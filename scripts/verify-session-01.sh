@@ -25,10 +25,10 @@ run_check() {
 }
 
 # === EDIT PER SESSION ===
-# run_check "cargo-check"  cargo check --all-targets
-# run_check "cargo-test"   cargo test --all-targets
-# run_check "cargo-fmt"    cargo fmt -- --check
-# run_check "cargo-clippy" cargo clippy --all-targets -- -D warnings
+run_check "cargo-check"  cargo check --all-targets
+run_check "cargo-test"   cargo test --all-targets
+run_check "cargo-fmt"    cargo fmt -- --check
+run_check "cargo-clippy" cargo clippy --all-targets -- -D warnings
 # ========================
 
 ( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
