@@ -1,0 +1,86 @@
+   Compiling tokio v1.52.3
+   Compiling tokio-util v0.7.18
+   Compiling tokio-rustls v0.26.4
+   Compiling tokio-stream v0.1.18
+   Compiling tokio-test v0.4.5
+   Compiling h2 v0.4.14
+   Compiling tower v0.5.3
+   Compiling tower-http v0.6.11
+   Compiling hyper v1.10.1
+   Compiling hyper-util v0.1.20
+   Compiling hyper-rustls v0.27.9
+   Compiling axum v0.8.9
+   Compiling reqwest v0.12.28
+   Compiling akriti v0.1.0 (/Users/suman/playground/akrti)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.65s
+     Running unittests src/lib.rs (target/debug/deps/akriti-99c3ad6c1b45c9a9)
+
+running 43 tests
+test ctx::compress::tests::empty_state_is_empty_summary ... ok
+test ctx::compress::tests::long_lists_are_truncated_with_more_tail ... ok
+test ctx::compress::tests::populated_state_summarizes_key_fields ... ok
+test hooks::cargo::tests::test_compress_test_pass_short ... ok
+test hooks::cargo::tests::test_compress_test_fail ... ok
+test hooks::docker::tests::test_compress_logs_short ... ok
+test hooks::docker::tests::test_compress_logs_long_with_errors ... ok
+test hooks::generic::tests::test_compress_short ... ok
+test hooks::generic::tests::test_compress_long ... ok
+test hooks::git::tests::test_compress_diff_long ... ok
+test hooks::git::tests::test_compress_log_long ... ok
+test hooks::git::tests::test_compress_log_short ... ok
+test hooks::git::tests::test_compress_status_long ... ok
+test ctx::tree::tests::test_tree_respects_max_depth ... ok
+test ctx::delta::tests::test_delta_no_cache ... ok
+test ctx::read::tests::test_read_small_file ... ok
+test ctx::read::tests::test_read_large_file ... ok
+test hooks::npm::tests::test_compress_test_short_pass ... ok
+test hooks::pytest::tests::test_compress_pytest_pass ... ok
+test hooks::npm::tests::test_compress_test_fail ... ok
+test hooks::pytest::tests::test_compress_pytest_fail ... ok
+test ctx::delta::tests::test_delta_with_changes ... ok
+test ctx::tree::tests::test_tree_skips_hidden_and_deps ... ok
+test proxy::optimizer::tests::estimate_tokens_is_chars_over_four ... ok
+test proxy::optimizer::tests::dedupes_repeated_tool_result_content ... ok
+test proxy::optimizer::tests::injects_summary_into_string_array_and_absent_system ... ok
+test proxy::optimizer::tests::extracts_touched_files ... ok
+test proxy::optimizer::tests::dedupes_repeated_text_keeping_last ... ok
+test proxy::optimizer::tests::optimize_request_never_grows_or_panics_on_odd_input ... ok
+test proxy::optimizer::tests::short_repeats_are_not_touched ... ok
+test proxy::optimizer::tests::optimize_request_reports_real_savings ... ok
+test proxy::optimizer::tests::strips_orphan_tool_results ... ok
+test proxy::tests::test_extract_anthropic_usage ... ok
+test proxy::tests::test_extract_missing_usage ... ok
+test proxy::tests::test_extract_openai_usage ... ok
+test state::session::tests::new_state_has_version_and_id ... ok
+test state::session::tests::touched_files_dedupe_and_preserve_order ... ok
+test index::tests::test_index_builds ... ok
+test state::session::tests::load_or_create_then_roundtrip ... ok
+test meter::tests::test_create_and_record ... ok
+test meter::tests::test_latest_session ... ok
+test ctx::search::tests::test_search_found ... ok
+test ctx::search::tests::test_search_not_found ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/main.rs (target/debug/deps/akriti-69c47f322140cb1d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/integration_test.rs (target/debug/deps/integration_test-dfb7cc04145110dc)
+
+running 4 tests
+test test_proxy_starts_and_records ... ok
+test session_history_growth_is_sublinear_with_dedup ... ok
+test test_cli_help_shows_commands ... ok
+test test_cli_init_creates_home_akriti ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.84s
+
+   Doc-tests akriti
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

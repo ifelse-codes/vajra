@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vajra — Complete Design Brief</title>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --ink2: #2d2d44;
+    --muted: #6b7280;
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: #e5e7eb;
+    --accent: #4f46e5;
+    --accent2: #7c3aed;
+    --green: #059669;
+    --red: #dc2626;
+    --amber: #d97706;
+    --blue: #2563eb;
+    --teal: #0d9488;
+    --tag-bg: #f3f4f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .layout { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* NAV */
+  .nav { position: sticky; top: 0; background: rgba(250,250,249,0.95); backdrop-filter: blur(6px);
+         border-bottom: 1px solid var(--border); padding: 10px 0; margin-bottom: 40px; z-index: 100; }
+  .nav-inner { max-width: 960px; margin: 0 auto; padding: 0 24px;
+               display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+  .nav a { color: var(--accent); text-decoration: none; font-weight: 500; white-space: nowrap; }
+  .nav a:hover { text-decoration: underline; }
+
+  /* HERO */
+  .hero { background: linear-gradient(135deg, #1a1a2e 0%, #2d1b69 100%);
+          color: white; border-radius: 16px; padding: 40px 48px; margin-bottom: 48px; }
+  .hero-tag { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .6; margin-bottom: 12px; }
+  .hero h1 { font-size: 32px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+  .hero h1 span { color: #a78bfa; }
+  .hero p { font-size: 17px; opacity: .85; max-width: 640px; }
+  .hero-sub { margin-top: 20px; display: flex; gap: 24px; flex-wrap: wrap; }
+  .hero-pill { font-size: 12px; background: rgba(255,255,255,.12); border-radius: 20px;
+               padding: 4px 14px; }
+
+  /* SECTIONS */
+  section { margin-bottom: 56px; }
+  h2 { font-size: 22px; font-weight: 800; color: var(--ink); margin-bottom: 20px;
+       padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  h2 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  h3 { font-size: 16px; font-weight: 700; color: var(--ink2); margin: 24px 0 10px; }
+
+  /* CALLOUT */
+  .callout { border-radius: 10px; padding: 18px 22px; margin-bottom: 20px; border-left: 4px solid; }
+  .callout.purple { background: #f5f3ff; border-color: #7c3aed; }
+  .callout.green  { background: #f0fdf4; border-color: var(--green); }
+  .callout.red    { background: #fef2f2; border-color: var(--red); }
+  .callout.amber  { background: #fffbeb; border-color: var(--amber); }
+  .callout.blue   { background: #eff6ff; border-color: var(--blue); }
+  .callout strong { display: block; font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+                    margin-bottom: 6px; opacity: .7; }
+
+  /* GRID */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+  /* CARD */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .card-head { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
+               color: var(--muted); margin-bottom: 8px; }
+  .card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .card p { font-size: 14px; color: var(--ink2); line-height: 1.55; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 20px; }
+  th { background: var(--tag-bg); padding: 9px 14px; text-align: left; font-size: 12px;
+       text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 700; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f9fafb; }
+
+  /* DECISION BLOCK */
+  .decision { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+              overflow: hidden; margin-bottom: 24px; }
+  .decision-head { background: var(--ink); color: white; padding: 14px 22px;
+                   display: flex; align-items: center; gap: 12px; }
+  .decision-head .num { font-size: 11px; opacity: .6; font-weight: 600; letter-spacing: .06em; }
+  .decision-head .title { font-size: 16px; font-weight: 700; }
+  .decision-body { padding: 22px; }
+  .decision-body h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
+                       color: var(--muted); font-weight: 700; margin: 16px 0 8px; }
+  .decision-body h4:first-child { margin-top: 0; }
+
+  /* VERDICT */
+  .verdict { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
+             padding: 12px 16px; margin: 14px 0; font-size: 14px; }
+  .verdict strong { color: var(--green); }
+
+  /* LIST */
+  ul.plain { list-style: none; padding: 0; }
+  ul.plain li { padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  ul.plain li:last-child { border-bottom: none; }
+  ul.bullets { padding-left: 20px; }
+  ul.bullets li { margin-bottom: 8px; font-size: 14px; }
+
+  /* TAG */
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px;
+         padding: 2px 8px; margin: 2px; }
+  .tag.green  { background: #d1fae5; color: #065f46; }
+  .tag.red    { background: #fee2e2; color: #991b1b; }
+  .tag.blue   { background: #dbeafe; color: #1e40af; }
+  .tag.purple { background: #ede9fe; color: #5b21b6; }
+  .tag.amber  { background: #fef3c7; color: #92400e; }
+  .tag.gray   { background: var(--tag-bg); color: var(--ink2); }
+
+  /* STATUS PILL */
+  .status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+             font-weight: 600; border-radius: 20px; padding: 3px 10px; }
+  .status.done  { background: #d1fae5; color: #065f46; }
+  .status.next  { background: #dbeafe; color: #1e40af; }
+  .status.later { background: var(--tag-bg); color: var(--muted); }
+
+  /* CODE */
+  code { font-family: "SF Mono", "Fira Code", monospace; font-size: 13px;
+         background: var(--tag-bg); padding: 2px 6px; border-radius: 4px; }
+  .code-block { background: #1e1e2e; color: #cdd6f4; font-family: "SF Mono", monospace;
+                font-size: 13px; padding: 18px 22px; border-radius: 10px; margin: 12px 0;
+                overflow-x: auto; line-height: 1.7; white-space: pre; }
+  .code-block .comment { color: #6c7086; }
+  .code-block .key { color: #89b4fa; }
+  .code-block .val { color: #a6e3a1; }
+  .code-block .str { color: #f9e2af; }
+
+  /* GUARDRAIL */
+  .guardrail { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0;
+               border-bottom: 1px solid var(--border); font-size: 14px; }
+  .guardrail:last-child { border-bottom: none; }
+  .g-num { font-size: 11px; font-weight: 800; color: white; background: var(--accent);
+            border-radius: 4px; padding: 2px 7px; flex-shrink: 0; margin-top: 2px; }
+  .g-text strong { display: block; font-size: 14px; margin-bottom: 3px; }
+  .g-text span { color: var(--muted); font-size: 13px; }
+
+  /* PHASE */
+  .phase-row { display: flex; gap: 0; margin-bottom: 20px; }
+  .phase-item { flex: 1; text-align: center; padding: 12px 8px; border: 1px solid var(--border);
+                font-size: 12px; position: relative; }
+  .phase-item:not(:last-child) { border-right: none; }
+  .phase-item:first-child { border-radius: 8px 0 0 8px; }
+  .phase-item:last-child { border-radius: 0 8px 8px 0; }
+  .phase-item.done { background: #d1fae5; border-color: #6ee7b7; }
+  .phase-item.active { background: #dbeafe; border-color: #93c5fd; font-weight: 700; }
+  .phase-item .p-label { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  .phase-item .p-sub { color: var(--muted); font-size: 11px; }
+
+  /* RECEIPT */
+  .receipt { background: #1e1e2e; color: #cdd6f4; font-family: "SF Mono", monospace;
+             font-size: 13px; padding: 20px 24px; border-radius: 10px; line-height: 1.8; }
+  .receipt .r-line { color: #6c7086; }
+  .receipt .r-total { color: #a6e3a1; font-weight: 700; }
+  .receipt .r-detail { color: #89dceb; }
+  .receipt .r-compress { color: #f9e2af; }
+
+  /* FLOW */
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .flow-box { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px;
+              padding: 8px 14px; font-size: 13px; font-weight: 600; text-align: center; }
+  .flow-arrow { color: var(--muted); font-size: 18px; font-weight: 300; }
+
+  hr.sec { border: none; border-top: 2px solid var(--border); margin: 48px 0; }
+  p { margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-inner">
+    <a href="#what">What is Vajra</a>
+    <a href="#problems">Problems it solves</a>
+    <a href="#bet">The strategic bet</a>
+    <a href="#economics">The economics</a>
+    <a href="#competition">Competition</a>
+    <a href="#v1scope">v1 scope</a>
+    <a href="#process">How we build</a>
+    <a href="#adr1">Decision 1 — Hook</a>
+    <a href="#adr2">Decision 2 — Structure</a>
+    <a href="#adr3">Decision 3 — Launcher &amp; Rules</a>
+    <a href="#adr4">Decision 4 — Cost meter</a>
+    <a href="#guardrails">All guardrails</a>
+    <a href="#buildorder">Build order</a>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Vajra — Complete Design Brief · 2026-06-16</div>
+  <h1>The <span>vendor-neutral</span> control plane<br>for AI-written code</h1>
+  <p>Everything decided so far: what Vajra is, why we're building it this way, every key trade-off, and the exact plan for writing the first version. In plain English.</p>
+  <div class="hero-sub">
+    <span class="hero-pill">✅ Brainstorm (S1–S4) done</span>
+    <span class="hero-pill">✅ Design (DS1–DS4 / ADR-0001–0004) done</span>
+    <span class="hero-pill">🔜 Code phase next</span>
+    <span class="hero-pill">Rust · Single binary · Apache-2.0 OSS</span>
+  </div>
+</div>
+
+<!-- WHAT IS VAJRA -->
+<section id="what">
+  <h2><span class="dot" style="background:#4f46e5"></span>What is Vajra?</h2>
+
+  <div class="callout purple">
+    <strong>One sentence</strong>
+    Vajra wraps your AI coding assistant. You type <code>vajra claude</code> instead of <code>claude</code>. Your agent works exactly the same — but Vajra watches what it does, keeps the expensive parts cheap, records everything it changed, and lets you set rules it can't ignore.
+  </div>
+
+  <p>You pick the AI coding agent you like — Claude Code, Codex, Cursor, Aider, whoever. Vajra sits between you and that agent. It doesn't replace the agent, doesn't change what it can do, and doesn't slow it down. It just adds a layer of control and visibility that the agent itself can't give you.</p>
+
+  <p>Think of it like a flight recorder for your coding sessions. The agent flies the plane; Vajra records everything that happens and tells you exactly what it cost.</p>
+
+  <div class="grid3">
+    <div class="card">
+      <div class="card-head">The on-ramp (free forever)</div>
+      <h4>Compression</h4>
+      <p>When the agent runs <code>cargo test</code> and gets 180 lines of output, Vajra shrinks it to 3 lines — saving tokens and money. Failures always come through in full so the agent can fix them.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">The hook (trust builder)</div>
+      <h4>Honest meter</h4>
+      <p>After every session Vajra prints exactly what it cost — broken down by model, cache type, and subagent. No estimates. Numbers straight from the log files.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">The moat (the company)</div>
+      <h4>Audit ledger</h4>
+      <p>A permanent, tamper-proof record of what your agents did — which agent wrote which line, when, in which session. Stored in your repo. No cloud. No expiry.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMS -->
+<section id="problems">
+  <h2><span class="dot" style="background:#dc2626"></span>The 10 problems Vajra kills</h2>
+
+  <table>
+    <tr><th>#</th><th>Pain</th><th>How Vajra handles it</th></tr>
+    <tr><td>1</td><td><strong>Session amnesia</strong> — every new session the agent starts from zero</td><td>Vajra writes a memory file the agent reads at the start of each session (without burning expensive tokens re-reading the whole conversation)</td></tr>
+    <tr><td>2</td><td><strong>Silent drift</strong> — the agent's mental picture of the repo doesn't match reality</td><td>Drift checks run in the environment before the agent even gets a chance to act on stale assumptions</td></tr>
+    <tr><td>3</td><td><strong>Scope creep</strong> — "just one more thing" turns a 20-minute task into a 2-hour rabbit hole</td><td>One task, a handful of files, and a time limit — enforced at the point where the agent takes action, not just asked politely in the prompt</td></tr>
+    <tr><td>4</td><td><strong>Bad commits</strong> — agent commits unreviewed code straight to main</td><td>Git guards block it silently at the action boundary</td></tr>
+    <tr><td>5</td><td><strong>Noisy output wasting tokens</strong> — <code>cargo build</code> spits 180 identical "Compiling…" lines</td><td>Failure-aware compression: success output shrinks, failure output stays intact so the agent can fix it</td></tr>
+    <tr><td>6</td><td><strong>Rules burned in the prompt</strong> — re-read every session, cost tokens, still ignorable</td><td>Rules live in the wrapper — they cost no tokens and the agent can't skip them</td></tr>
+    <tr><td>7</td><td><strong>"Which session am I in?"</strong> — no clean boundary between tasks</td><td>Single integer session ID — one task, one session, one story</td></tr>
+    <tr><td>8</td><td><strong>No idea what this cost</strong> — the agent's cost estimate is usually wrong</td><td>Honest per-session receipt with the real numbers, broken down by model and cache tier</td></tr>
+    <tr><td style="color:var(--accent);font-weight:800">9</td><td><strong>No record of what the agent actually did</strong> — who wrote this code? Which session? Which prompt?</td><td>The cross-agent audit ledger — permanent, in your repo, in the open agent-trace format. <em>This is the moat.</em></td></tr>
+    <tr><td>10</td><td><strong>Locked into one agent</strong> — switching means starting over</td><td>One wrapper, any agent — per-agent adapters handle the differences underneath</td></tr>
+  </table>
+</section>
+
+<!-- THE BIG IDEA -->
+<section id="bet">
+  <h2><span class="dot" style="background:#7c3aed"></span>The big idea — and the strategic bet</h2>
+
+  <div class="callout purple">
+    <strong>The core insight</strong>
+    Put the discipline <em>in the environment</em>, not in the prompt. Most "agent workflows" are rules pasted into the system prompt — re-read every session, cost tokens, and the agent can still ignore them. Vajra enforces rules <em>around</em> the agent, so they're free to apply and impossible to bypass.
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">What v1 ships (the trojan horse)</div>
+      <h4>Free compression</h4>
+      <p>Shortens noisy shell output before the agent sees it. Saves ~6–8% on your bill. Small but real, honest, and it installs the plumbing that the real product needs.</p>
+      <p style="margin-top:8px;font-size:13px;color:var(--muted)">This is NOT the value prop. It's the reason to install Vajra.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">What the company bets on</div>
+      <h4>Governance + audit ledger</h4>
+      <p>A tamper-proof record of everything every agent did, uniform across all agents, in an open standard format, stored permanently in your git repo — with policy enforcement on top.</p>
+      <p style="margin-top:8px;font-size:13px;color:var(--muted)">No competitor does this cleanly. This is the moat.</p>
+    </div>
+  </div>
+
+  <h3>Why compression is the right on-ramp even if it's not the product</h3>
+  <ul class="bullets">
+    <li>It works on the first install with zero config — <code>vajra claude</code> and you're done.</li>
+    <li>The code that delivers compression (the hook that intercepts Claude Code's tool calls) is the <em>same</em> plumbing that v2 governance needs. So building compression builds the rail for free.</li>
+    <li>Showing users their real session cost, honestly labeled, builds the trust that makes them willing to install something that watches their agent.</li>
+    <li>Compression savings are small enough to be honest about — "~6–8%, here's why it's not more" is a <em>credibility} signal, not a failure.</em></li>
+  </ul>
+</section>
+
+<!-- ECONOMICS -->
+<section id="economics">
+  <h2><span class="dot" style="background:#d97706"></span>The economics — why compression saves less than you'd think</h2>
+
+  <div class="callout amber">
+    <strong>The pivotal finding (from brainstorm S3)</strong>
+    Shortening shell output honestly saves about <strong>6–8%</strong> of your total bill — not 50%, not 30%. This is real money but it's not the story. Here's why the number is small, and why that's fine.
+  </div>
+
+  <h3>How Claude Code billing actually works</h3>
+  <p>When the agent runs a command and gets back 2,000 tokens of output, those tokens are charged full price <em>once</em>. After that, Claude Code caches them. Every subsequent turn that references that cached output costs only 10% of the original price. So if you compress 90% of that output, you save full price once — but the ongoing benefit is tiny because the cache was already doing the heavy lifting.</p>
+
+  <table>
+    <tr><th>Token type</th><th>Price (relative)</th><th>What compression saves</th></tr>
+    <tr><td><strong>Output tokens</strong> (what the agent writes)</td><td style="color:var(--red);font-weight:700">25× the input price</td><td>Nothing directly — compression doesn't reduce what the agent writes</td></tr>
+    <tr><td><strong>Fresh input tokens</strong> (new content read this turn)</td><td>1×</td><td>Real — saves this one time</td></tr>
+    <tr><td><strong>Cache writes</strong> (saving content for reuse, 5-min)</td><td>1.25×</td><td>Saved once when content first enters cache</td></tr>
+    <tr><td><strong>Cache writes</strong> (1-hour tier)</td><td>2×</td><td>Saved once — bigger win</td></tr>
+    <tr><td><strong>Cache reads</strong> (reusing cached content)</td><td>0.1×</td><td>Almost nothing — already dirt cheap</td></tr>
+    <tr><td><strong>Web search / web fetch</strong></td><td>Per-request flat fee</td><td>Zero — not token-based</td></tr>
+  </table>
+
+  <div class="callout green">
+    <strong>The real dollar lever</strong>
+    The biggest savings aren't from shorter output — they're from <strong>preventing extra turns</strong>. If compression causes the agent to misunderstand a failure and loop through extra back-and-forth attempts, each of those output turns costs 25× more per token than any input compression saved. This is why we <em>never</em> compress small failure output: passing a failure through verbatim prevents the re-run loops that actually cost money.
+  </div>
+
+  <h3>The corrected cost formula (live-verified against Claude Code v2.1.177)</h3>
+  <div class="code-block"><span class="comment"># Price for one line in a session log</span>
+cost = (
+  input_tokens           × model_input_price
+  + output_tokens        × model_output_price
+  + cache_5min_tokens    × model_input_price × 1.25
+  + cache_1hour_tokens   × model_input_price × 2.00
+  + cache_read_tokens    × model_input_price × 0.10
+) / 1,000,000
+
+<span class="comment"># Add per-request fees on top (not token-priced)</span>
+cost += web_searches × price_per_search
+cost += web_fetches  × price_per_fetch
+
+<span class="comment"># Do this for every "assistant" line, by its specific model</span>
+<span class="comment"># Sessions mix models: main agent is Opus, titles/subagents use Haiku</span>
+<span class="comment"># Also parse every subagent log file — they live in a subfolder</span></div>
+
+  <h3>Five traps that silently give you the wrong number</h3>
+  <ul class="bullets">
+    <li><strong>Don't add <code>cache_creation_input_tokens</code></strong> — it's already the sum of the 5-min and 1-hour tiers. Adding it again double-counts.</li>
+    <li><strong>Always open the subagent log files</strong> — Claude Code creates a separate log file for each subagent in a subfolder. Miss those files and you undercount the whole session.</li>
+    <li><strong>Skip lines marked <code>&lt;synthetic&gt;</code></strong> — these are placeholders, not real charges.</li>
+    <li><strong>Don't add up the <code>iterations</code> array</strong> — it's a breakdown of the same numbers already counted at the top level, not additional charges.</li>
+    <li><strong>Usage data is only on <code>assistant</code> lines</strong> — skip everything else.</li>
+  </ul>
+</section>
+
+<!-- COMPETITION -->
+<section id="competition">
+  <h2><span class="dot" style="background:#0d9488"></span>The competition — and where we fit</h2>
+
+  <h3>The closest competitor: AxonFlow</h3>
+  <p>AxonFlow is a Claude Code plugin that already ships ~80% of the governance vision we have: it intercepts tool calls, enforces 80+ built-in security policies, audits everything, and lets teams define custom rules. MIT licensed, free tier available. It's good. We have to be better in the right ways.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head" style="color:var(--amber)">What AxonFlow does well — copy it</div>
+      <ul class="bullets" style="margin-top:8px">
+        <li>Zero-config setup — policies on by default, no friction</li>
+        <li>Inline explanations — when it blocks something, it tells you which rule and why</li>
+        <li>Override flow — you can create an approved exception with a reason, and that's audited too</li>
+        <li>Fast — adds less than 10ms per tool call</li>
+        <li>Good starter policy set — dangerous shell commands, SQL injection, exposed secrets</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-head" style="color:var(--green)">AxonFlow's weaknesses — this is our opening</div>
+      <ul class="bullets" style="margin-top:8px">
+        <li><strong>Fails open on network loss</strong> — if their server is down, governance turns off. We run entirely on your machine.</li>
+        <li><strong>Sends data to their cloud</strong> — tool inputs and outputs go to their servers for audit. We never leave your machine.</li>
+        <li><strong>Free tier limited to 200 events/day</strong> — after that, governance stops or you pay. We're unlimited and free.</li>
+        <li><strong>Audit logs expire after 3 days on free tier</strong> — an attacker can just wait. We store in your git repo, permanently.</li>
+        <li><strong>Written in Bash</strong> — shell scripts in the security path are an attack surface. We ship a single compiled binary.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>The open standard we adopt: agent-trace</h3>
+  <p>Cursor (the IDE) published an open specification called <code>agent-trace</code> for recording which AI agent wrote which lines of code. It's a neutral format — any tool can read or write it. Instead of inventing our own format, we adopt it. We compete on being the best <em>recorder</em> of agent-trace data, not on having a different format.</p>
+
+  <div class="callout blue">
+    <strong>Our exact opening</strong>
+    We're the recorder + the ledger that nobody else has: write-time provenance at the line level, stored permanently in your git repo (not a SaaS database with a retention clock), in-process Rust engine (no network in the enforcement path), free and unlimited for solo developers.
+  </div>
+
+  <h3>The one-line moat</h3>
+  <div class="callout purple">
+    <strong>Sharpened positioning</strong>
+    "The local-first, git-native, tamper-evident flight recorder for AI-written code — uniform across every agent, in the open agent-trace format — that also enforces policy, with no cloud and no retention cliff."
+  </div>
+</section>
+
+<!-- V1 SCOPE -->
+<section id="v1scope">
+  <h2><span class="dot" style="background:#059669"></span>What v1 actually is</h2>
+
+  <div class="callout green">
+    <strong>v1 in one sentence</strong>
+    A single Rust binary called <code>vajractl</code>. You run <code>vajra claude</code>. It starts Claude Code with a special setting that makes Claude Code run our compression script after every shell command. When the session ends, it prints what the session cost. That's it.
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head" style="color:var(--green)">✅ In v1</div>
+      <ul class="bullets" style="margin-top:8px">
+        <li><code>vajra claude</code> launcher — one binary, no install friction</li>
+        <li>Failure-aware compression (success shrinks, failures stay intact)</li>
+        <li><code>VAJRA_RAW=1</code> escape — run with zero compression any time</li>
+        <li><code>[N lines folded]</code> breadcrumb so the agent always knows what was compressed</li>
+        <li>Honest session cost receipt (from the actual log files)</li>
+        <li>Per-tool on/off switches</li>
+        <li>Apache-2.0 open source</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-head" style="color:var(--red)">❌ Not in v1 (v2+)</div>
+      <ul class="bullets" style="margin-top:8px">
+        <li>Any network proxy or interception</li>
+        <li>Modifying what gets sent TO the agent (never)</li>
+        <li>Memory / context-file generation</li>
+        <li>Governance policies and commit blocking</li>
+        <li>The audit ledger and agent-trace output</li>
+        <li>Support for a second agent (Codex, Cursor, etc.)</li>
+        <li>MCP server integration</li>
+        <li>Team / org features</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>User journey (6 steps, start to receipt)</h3>
+  <div class="flow">
+    <div class="flow-box">curl install</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box"><code>vajra claude</code></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Claude Code boots normally</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Noisy success gets compressed</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Failures pass through verbatim</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Session ends → receipt printed</div>
+  </div>
+
+  <h3>The success metric (not "% tokens saved")</h3>
+  <p>We measure: <strong>median blended dollar cost with Vajra &lt; without Vajra</strong>, on a realistic mix of tasks, with identical task outcomes (the agent succeeds at the same things), and zero forced <code>VAJRA_RAW=1</code> re-runs.</p>
+  <p>We do NOT use "% input tokens reduced" — input tokens are cheap and cached. That number looks impressive and means almost nothing.</p>
+
+  <h3>The day-1 failure we must avoid</h3>
+  <div class="callout red">
+    <strong>The uninstall trap</strong>
+    If Vajra ever silently hides a line the agent needed — a failing test name, an error message, an important log line — the agent will loop, waste turns, and produce wrong output. The user blames Vajra and uninstalls. This is the #1 product killer. Every compression rule is designed around this: when in doubt, pass through verbatim.
+  </div>
+</section>
+
+<!-- BUILD PROCESS -->
+<section id="process">
+  <h2><span class="dot" style="background:#2563eb"></span>How we build — the deliberate pipeline</h2>
+
+  <p>Vajra practices what it preaches. We build it the same disciplined way we want developers to use it: one phase at a time, no skipping ahead, every decision justified and recorded.</p>
+
+  <div class="phase-row">
+    <div class="phase-item done"><div class="p-label">1. Brainstorm</div><div class="p-sub">✅ Done (S1–S4)</div></div>
+    <div class="phase-item done"><div class="p-label">2. Design</div><div class="p-sub">✅ Done (DS1–DS4)</div></div>
+    <div class="phase-item done"><div class="p-label">3. Lock Architecture</div><div class="p-sub">✅ Done (ADR-0001–0004)</div></div>
+    <div class="phase-item active"><div class="p-label">4. Code</div><div class="p-sub">🔜 Next</div></div>
+    <div class="phase-item later"><div class="p-label">5. Ship</div><div class="p-sub">Coming</div></div>
+  </div>
+
+  <p>Each design decision is written as an Architecture Decision Record (ADR) — a short document that captures what we decided, why, what the alternatives were, and what could change the decision later. We have four ADRs. They are the law until a new ADR supersedes them.</p>
+</section>
+
+<hr class="sec">
+
+<!-- ADR-0001 -->
+<section id="adr1">
+  <h2><span class="dot" style="background:#4f46e5"></span>Design Decision 1 — How does compression reach Claude Code?</h2>
+  <p style="color:var(--muted);margin-bottom:20px">ADR-0001 · 2026-06-15 · Resolved the biggest open question from brainstorming</p>
+
+  <div class="decision">
+    <div class="decision-head">
+      <div>
+        <div class="num">THE QUESTION</div>
+        <div class="title">After an agent runs <code>cargo test</code> and gets 180 lines back — how do we shorten that output before the agent reads it?</div>
+      </div>
+    </div>
+    <div class="decision-body">
+
+      <h4>Option A we rejected — The "shim" approach</h4>
+      <p>Put a fake <code>cargo</code> binary early in the search path. When Claude Code runs <code>cargo test</code>, our fake binary catches it first, runs the real <code>cargo</code>, shortens the output, and passes the shorter version back.</p>
+      <p><strong>The fatal flaw:</strong> our fake binary sits between two programs, not between the agent and the final result. So when the agent runs <code>cargo test | tail -5</code> (a pipeline), our fake <code>cargo</code> feeds compressed output into <code>tail</code> — and <code>tail</code> now cuts the last 5 lines of compressed output, not the last 5 lines of the real output. Completely wrong. There's no clean fix; it's baked into the architecture.</p>
+
+      <h4>Option B we chose — The "hook" approach</h4>
+      <p>Claude Code has a built-in feature: you can tell it to run a script after every shell command finishes. That script receives the command's full output as structured data (stdout, stderr, exit code) and can replace what the agent sees. We inject our script using the <code>--settings</code> flag when launching Claude Code. It runs after the whole command pipeline is done — exactly the right moment.</p>
+
+      <div class="verdict">
+        <strong>✅ Decision: Hook wins.</strong> We verified live that replacing the output this way actually reduces the number of tokens Claude Code charges you for — not just what appears on screen, but real billed tokens. A test that produced 21,000 tokens of raw output came down to 6,700 tokens with the hook replacing it. 68% reduction in what got charged.
+      </div>
+
+      <h4>What this means for the cross-agent rail (v2)</h4>
+      <p>The shim approach isn't dead — it's just doing a different job in v2. For the governance and audit ledger, we want to sit at the "action boundary" (when the agent is about to do something, should we allow it?). That's a better fit for the shim. So: hook does compression (v1), shim does governance (v2). Different tools for different jobs.</p>
+
+      <h4>The one thing that could reverse this decision</h4>
+      <p>If Anthropic changes how Claude Code's hook feature works in a future version, and the replacement stops actually reducing billed tokens, we'd switch to the shim for compression. We have a test that catches this before it silently breaks things.</p>
+
+    </div>
+  </div>
+</section>
+
+<!-- ADR-0002 -->
+<section id="adr2">
+  <h2><span class="dot" style="background:#7c3aed"></span>Design Decision 2 — How is the code structured?</h2>
+  <p style="color:var(--muted);margin-bottom:20px">ADR-0002 · 2026-06-16 · Locks all Rust interfaces and module layout</p>
+
+  <div class="decision">
+    <div class="decision-head">
+      <div>
+        <div class="num">THE QUESTION</div>
+        <div class="title">What are the exact shapes of the code pieces, and how do they talk to each other?</div>
+      </div>
+    </div>
+    <div class="decision-body">
+
+      <h4>The three main pieces</h4>
+      <div class="grid3">
+        <div class="card">
+          <div class="card-head">The Engine</div>
+          <h4>The brain</h4>
+          <p>Gets the command name, stdout, stderr, and exit code. Decides whether to shorten the output. Returns either a shorter version or "pass this through unchanged." Knows nothing about Claude Code — it's generic.</p>
+        </div>
+        <div class="card">
+          <div class="card-head">The Adapter</div>
+          <h4>The glue</h4>
+          <p>Reads the JSON that Claude Code sends via the hook. Translates it for the Engine. Takes the Engine's decision and writes the JSON that Claude Code expects back. Knows about Claude Code's specific format.</p>
+        </div>
+        <div class="card">
+          <div class="card-head">The Launcher</div>
+          <h4>The entry point</h4>
+          <p>What runs when you type <code>vajra claude</code>. Sets up the settings file so Claude Code uses our hook. Starts Claude Code. Waits for it to finish. Prints the receipt.</p>
+        </div>
+      </div>
+
+      <h4>How the Engine decides (the method signature in plain English)</h4>
+      <p>The Engine takes a request: "here is what command ran, and here is its output." It returns a decision: either "here's the shortened version, and I removed N lines" — or simply "don't touch this, pass it through."</p>
+      <p>The method is called <code>process</code> (not <code>compress</code>), because the engine sometimes decides not to compress anything. Naming it <code>compress</code> would imply it always compresses, which is wrong.</p>
+      <p>The return is an enum (a named choice, not just true/false), because v2 governance will need a third option — "block this." An enum makes adding that option later free.</p>
+
+      <h4>Passthrough signal to Claude Code</h4>
+      <p>When we don't want to change anything, we write an empty JSON object <code>{}</code> back to Claude Code. The key for "here's my replacement" is simply absent — Claude Code keeps the original. We do NOT exit with an error code, which might show a warning to the user.</p>
+
+      <h4>Four things the adapter checks before even calling the Engine</h4>
+      <ul class="bullets">
+        <li>Is this actually a shell command? (Not a file-read or other tool type — those we don't touch)</li>
+        <li>Is this an image output? (Can't compress that)</li>
+        <li>Did Claude Code say this command produces no output by design? (Don't touch it)</li>
+        <li>Is <code>VAJRA_RAW=1</code> set? (User wants no compression — pass through immediately)</li>
+      </ul>
+
+      <h4>How commands are classified (which heuristic to use)</h4>
+      <p>We look at the first word of the command. <code>cargo</code> → use the cargo rules. <code>pytest</code> or <code>python -m pytest</code> → use pytest rules. <code>git</code> → use git rules. Anything else → use the generic "head + tail" fallback.</p>
+      <p>One important special case: if the command contains <code>&amp;&amp;</code>, <code>|</code>, <code>;</code>, or similar (it's a pipeline or multi-step command), we skip tool-specific rules and always use the generic fallback. A cargo-specific rule applied to <code>cargo build &amp;&amp; echo done</code> output could misread the mixed output.</p>
+
+      <h4>Folder structure of the codebase</h4>
+      <div class="code-block">vajractl/
+  src/
+    main.rs          <span class="comment"># Entry point: routes subcommands, catches all errors</span>
+    cli/
+      hook.rs        <span class="comment"># "vajractl hook" — the script Claude Code runs after each command</span>
+      launch.rs      <span class="comment"># "vajra claude" — the launcher</span>
+    engine/
+      mod.rs         <span class="comment"># The Engine trait and all shared types (public)</span>
+      default.rs     <span class="comment"># DefaultEngine: the rules dispatch logic</span>
+      heuristics/    <span class="comment"># One file per tool: cargo.rs, git.rs, pytest.rs, npm.rs, generic.rs</span>
+    adapter/
+      claude_code.rs <span class="comment"># ClaudeCodeHookAdapter: reads/writes Claude Code's JSON format</span>
+    meter/
+      mod.rs         <span class="comment"># Session cost calculator</span></div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ADR-0003 -->
+<section id="adr3">
+  <h2><span class="dot" style="background:#059669"></span>Design Decision 3 — How the launcher works and the compression rules</h2>
+  <p style="color:var(--muted);margin-bottom:20px">ADR-0003 · 2026-06-16 · Settings injection + all compression heuristics</p>
+
+  <div class="decision">
+    <div class="decision-head">
+      <div>
+        <div class="num">THE QUESTION</div>
+        <div class="title">How does <code>vajra claude</code> inject our hook without breaking the user's Claude Code settings? And exactly what are the compression rules?</div>
+      </div>
+    </div>
+    <div class="decision-body">
+
+      <h4>Part A — How the launcher injects the hook</h4>
+
+      <p>Claude Code lets you pass a settings file when starting it. Our launcher creates a temporary settings file, puts our hook instruction in it, and passes it to Claude Code via a flag. When Claude Code exits, we delete the temp file. The user's actual Claude Code settings are never touched.</p>
+
+      <p><strong>The merge problem:</strong> the user might already have their own scripts set up to run after commands. If we just write a fresh settings file with only our hook, we'd overwrite theirs — they'd disappear for the session. So we first read their existing settings from two places (the global settings at <code>~/.claude/settings.json</code> and any project-level settings at <code>.claude/settings.json</code>), combine them with ours, and write the merged version to the temp file.</p>
+
+      <p><strong>Dedup:</strong> if <code>vajractl</code> already appears in the user's hooks (maybe they added it manually), we don't add a second copy.</p>
+
+      <p><strong>When things go wrong:</strong> if we can't read the settings, can't write the temp file, or detect that the settings format has changed in a way we don't understand — we warn with one line to stderr and then just run <code>claude</code> with no hook at all. You get no compression but Claude Code still works normally. We never fail loudly in a way that blocks your work.</p>
+
+      <p><strong>Why a file, not a command-line JSON string:</strong> JSON strings in shell commands need careful escaping. Files don't. We use a file.</p>
+
+      <p><strong>Why <code>spawn + wait</code>, not <code>exec</code>:</strong> <code>exec</code> replaces our process with Claude Code's process — our cleanup code never runs and the temp file leaks. With <code>spawn + wait</code>, our process stays alive, Claude Code runs as a child process, and when it exits we clean up properly.</p>
+
+      <h4>Part B — The two universal thresholds</h4>
+
+      <table>
+        <tr><th>Threshold</th><th>Value</th><th>What it means</th></tr>
+        <tr>
+          <td><strong>Line cap</strong></td>
+          <td><span class="tag green">30 lines</span></td>
+          <td>If output is shorter than 30 lines, never compress it. Validated by real examples: a 21-line git log passes through; a 46-line directory listing gets compressed. 30 is the right split.</td>
+        </tr>
+        <tr>
+          <td><strong>Fail passthrough cap</strong></td>
+          <td><span class="tag amber">400 lines</span></td>
+          <td>If a command failed (non-zero exit) AND produced fewer than 400 lines — pass everything through verbatim. The agent is mid-debug and needs every line. Never compress a small failure.</td>
+        </tr>
+      </table>
+
+      <h4>The order of decisions before any compression happens</h4>
+      <p>Every command goes through these checks in order. The first rule that matches wins; the rest don't run:</p>
+      <ol style="padding-left:20px;margin-bottom:16px">
+        <li style="margin-bottom:8px;font-size:14px"><strong>Under 30 lines?</strong> → Pass through. Don't touch it.</li>
+        <li style="margin-bottom:8px;font-size:14px"><strong>Failed AND under 400 lines?</strong> → Pass through verbatim. Agent is debugging.</li>
+        <li style="margin-bottom:8px;font-size:14px"><strong>Compound command</strong> (contains <code>&amp;&amp;</code>, <code>|</code>, <code>;</code>)? → Use generic rules only. Too risky to apply tool-specific rules to mixed output.</li>
+        <li style="margin-bottom:8px;font-size:14px"><strong>Otherwise:</strong> → Apply the tool-specific rule for the first word of the command.</li>
+      </ol>
+
+      <h4>How we know if a command succeeded (when there's no exit code)</h4>
+      <p>Claude Code's hook doesn't always pass us the exit code. When it's missing, we look at the last 5 lines of output for unambiguous success signs:</p>
+      <ul class="bullets">
+        <li>"Finished dev profile" or "Finished release profile" → cargo succeeded</li>
+        <li>"test result: ok" → cargo tests all passed</li>
+        <li>"N passed" with no "failed" or "error" nearby → test runner succeeded</li>
+        <li>Anything else → assume it might have failed, and don't compress it</li>
+      </ul>
+
+      <h4>The compression rules per tool</h4>
+
+      <table>
+        <tr><th>Tool</th><th>On success (exit 0)</th><th>On failure</th></tr>
+        <tr>
+          <td><strong>cargo build</strong></td>
+          <td>Keep only the "Finished dev profile in Xs" line. Drop all 180 "Compiling X v1.2.3" lines.</td>
+          <td>Under 400 lines → full verbatim. Over 400 → keep error lines, drop the compile noise.</td>
+        </tr>
+        <tr>
+          <td><strong>cargo test (all pass)</strong></td>
+          <td>Keep the "test result: ok. N passed" summary lines per suite. Drop every individual "test_name … ok" line and all compile output.</td>
+          <td>Keep every FAILED block and its full panic/traceback. Fold passing tests to a count. Add breadcrumb.</td>
+        </tr>
+        <tr>
+          <td><strong>git log</strong></td>
+          <td>If large: keep the first 10 commits + "[N more commits]". If under 30 lines: pass through.</td>
+          <td>Rare — pass through.</td>
+        </tr>
+        <tr>
+          <td><strong>git diff (with content)</strong></td>
+          <td><span class="tag red">Always pass through.</span> The diff IS what the agent is reading. Compressing it removes the information the agent asked for.</td>
+          <td>Always pass through.</td>
+        </tr>
+        <tr>
+          <td><strong>git status</strong></td>
+          <td>If large: group by type (modified/untracked/staged), show counts + 3 file samples per group.</td>
+          <td>Pass through.</td>
+        </tr>
+        <tr>
+          <td><strong>pytest (all pass)</strong></td>
+          <td>"✓ pytest — N passed in Xs" — one line.</td>
+          <td>Keep FAILED blocks and tracebacks verbatim. Fold passing lines to a count.</td>
+        </tr>
+        <tr>
+          <td><strong>npm install</strong></td>
+          <td>Keep the last 5 lines (package count + audit summary). Drop all download/extract progress.</td>
+          <td>Any "npm error" or "ERR!" lines always pass through, regardless of size.</td>
+        </tr>
+        <tr>
+          <td><strong>Everything else</strong></td>
+          <td>First 10 lines + last 10 lines, with the breadcrumb header explaining what was cut.</td>
+          <td>Large failures: first 5 + last 15 (bias toward the end, where errors usually appear).</td>
+        </tr>
+      </table>
+
+      <h4>The breadcrumb (every compressed output gets this header)</h4>
+      <div class="code-block"><span class="str">[vajra: 47 lines folded — VAJRA_RAW=1 before `vajra claude` to see full output]</span>
+✓ cargo test — all green in 4.9s
+  lib: 43 passed · bin: 0 · integration: 4 passed · doc: 0</div>
+      <p>The breadcrumb is the <em>first</em> line, not buried in the middle. The agent immediately knows it's reading compressed output, not a truncated error. If we removed zero lines, we return "pass through" instead — never show an empty breadcrumb.</p>
+
+      <h4>cargo subcommands that always pass through</h4>
+      <p><code>cargo fmt</code>, <code>cargo fix</code>, <code>cargo publish</code> — these modify files or publish packages. The agent needs to see exactly what happened. We never compress them. (In practice they often produce no output at all, so the 30-line cap would catch them anyway — but we make it explicit.)</p>
+
+    </div>
+  </div>
+</section>
+
+<!-- ADR-0004 -->
+<section id="adr4">
+  <h2><span class="dot" style="background:#2563eb"></span>Design Decision 4 — The cost meter and receipt</h2>
+  <p style="color:var(--muted);margin-bottom:20px">ADR-0004 · 2026-06-16 · How session cost is measured and shown</p>
+
+  <div class="decision">
+    <div class="decision-head">
+      <div>
+        <div class="num">THE QUESTION</div>
+        <div class="title">How does Vajra calculate what a session cost, and how does it tell you?</div>
+      </div>
+    </div>
+    <div class="decision-body">
+
+      <h4>Where the data comes from</h4>
+      <p>Claude Code writes a log file (JSONL format — one JSON record per line) for every session. It's in <code>~/.claude/projects/&lt;your-folder-name&gt;/</code>. If Claude Code used subagents during the session, each subagent has its own separate log file in a subfolder. Vajra reads all of them after Claude Code exits. No network needed. No asking Anthropic. The numbers are right there on your disk.</p>
+
+      <h4>When the receipt appears</h4>
+      <p>After <code>child.wait()</code> — meaning after Claude Code has fully exited and its log files are fully written. We capture a timestamp just before starting Claude Code, then after it exits we find the new log file (any <code>.jsonl</code> file that was created or modified after our start timestamp). That's the session we just ran.</p>
+
+      <h4>Where the receipt goes — stderr, not stdout</h4>
+      <p>The receipt is information <em>about</em> your session, not data from it. It goes to stderr so that if you pipe Claude Code's output somewhere (<code>vajra claude &gt; output.txt</code>), the receipt appears on your terminal but doesn't end up in the file. Set <code>VAJRA_QUIET=1</code> to suppress it entirely.</p>
+
+      <h4>The receipt format</h4>
+      <div class="receipt">
+<div class="r-line">─── vajra · a1b2c3d · 2026-06-16 14:32 ─────────────────────────────</div>
+<div class="r-total"> $0.0859  total  (opus 163 lines · haiku 8 lines via 2 subagents)</div>
+<div class="r-detail">          input $0.0128 · output $0.0810 · cache-r $0.0022 · cache-w $0.0139</div>
+<div class="r-compress">          83 lines folded across 7 tool calls</div>
+<div class="r-line">─────────────────────────────────────────────────────────────────────</div>
+      </div>
+      <p>Three rows by default: total with model breakdown, token category breakdown, compression summary. Set <code>VAJRA_VERBOSE=1</code> for a full per-model table.</p>
+
+      <h4>What the receipt does NOT include — and why</h4>
+      <p>The receipt does not say "you saved $X vs without compression." Computing that would require knowing what the output would have been without compression (the counter-factual), which is approximate and potentially misleading. The receipt tells you what you actually spent. The A/B benchmark (a separate Python script in the <code>bench/</code> folder) is where the savings comparison happens rigorously — interleaved arms, five runs each, real task completion checks.</p>
+
+      <h4>How compression line counts reach the receipt</h4>
+      <p>The hook script runs as a subprocess of Claude Code. The launcher runs as the parent. They don't share memory. The solution: before starting Claude Code, the launcher creates a temp file and sets an environment variable pointing to it. The hook script, which Claude Code inherits in its environment, can read that variable and know where to write. After each compression, the hook appends one line to that file: how many lines came in, how many went out, and the first word of the command. When Claude Code exits, the launcher reads and deletes that file. That's where "83 lines folded across 7 tool calls" comes from.</p>
+      <p>The file records only: line counts and the first word of the command (e.g., <code>cargo</code>). Never the full command string, never any content. This is a hard rule.</p>
+
+      <h4>Where pricing comes from</h4>
+      <p>The token prices (cost per million tokens for each model) are compiled directly into the binary — there's no config file to manage, no pricing table to download. The same pricing file (<code>bench/pricing.toml</code>) is also used by the benchmark harness. When Anthropic changes prices, we update the file and release a new version.</p>
+
+      <h4>The schema guard test</h4>
+      <p>If Anthropic changes the format of Claude Code's log file (renames a field, changes a key, removes the two-tier cache breakdown), our cost formula silently gives wrong numbers. To prevent this: we keep a tiny sample log file (<code>bench/fixtures/session_v1.jsonl</code>) with a hand-computed expected cost, and a test that verifies our meter produces that exact number. If the test goes red in CI, we stop and fix the formula before releasing. This test is release-blocking — no green test, no release.</p>
+
+      <div class="callout amber">
+        <strong>Schema drift fallback</strong>
+        If a required field is missing at runtime (Anthropic changed something and the user hasn't updated Vajra yet), we don't crash. We use 0 for that field, flag the receipt with <code>[estimated — update vajractl]</code>, and keep going. An imperfect receipt is better than no receipt.
+      </div>
+
+      <h4>Historical mode</h4>
+      <p><code>vajractl meter</code> with no arguments lists the five most recent sessions in the current project. <code>vajractl meter &lt;session-id&gt;</code> shows the receipt for that specific session. All the same code — just pointed at a different log file.</p>
+
+    </div>
+  </div>
+</section>
+
+<hr class="sec">
+
+<!-- GUARDRAILS -->
+<section id="guardrails">
+  <h2><span class="dot" style="background:#dc2626"></span>All 12 guardrails — things that must be true before v1 ships</h2>
+  <p style="margin-bottom:24px">These are release-blocking. Not nice-to-haves. If any of these aren't met, we don't ship.</p>
+
+  <div class="card" style="padding:6px 20px">
+    <div class="guardrail">
+      <div class="g-num">G1</div>
+      <div class="g-text">
+        <strong>Pin the Claude Code hook contract and verify it still works</strong>
+        <span>Detect which version of Claude Code is running. Verify that the hook's "replace output" feature actually does what we expect with a test. If we see an unknown version or the test fails → fall back to passing the original output through. Never guess.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G2</div>
+      <div class="g-text">
+        <strong>Merge settings, never overwrite</strong>
+        <span>When injecting our hook, we always read the user's existing Claude Code settings first and combine them. We never write a settings file that silently removes the user's own hooks or settings. If we can't safely merge → warn and skip injection.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G3</div>
+      <div class="g-text">
+        <strong>Keep the v2 rail real in CI</strong>
+        <span>The compression engine (the brain) is written behind a standard interface so a future governance adapter can plug in. We have a stub test that confirms this interface compiles and works — so the interface doesn't quietly rot before v2 arrives.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G4</div>
+      <div class="g-text">
+        <strong>Preserve the core invariants</strong>
+        <span><code>VAJRA_RAW=1</code> completely disables compression. Every compressed output shows a "[N lines folded]" header. Small failing output is never compressed. When in doubt, pass through verbatim and fail open.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G5</div>
+      <div class="g-text">
+        <strong>Only touch Bash tool output</strong>
+        <span>The adapter checks that the tool is actually the Bash tool before calling the compression engine. File reads, web fetches, and other tool types pass through untouched — even if the hook is somehow called for them.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G6</div>
+      <div class="g-text">
+        <strong>Compress only confirmed successes</strong>
+        <span>We only compress when we're sure the command succeeded. Either we got an explicit exit code of 0, or we see an unambiguous success marker in the output (like "Finished dev profile" for cargo). If we're not sure → don't compress.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G7</div>
+      <div class="g-text">
+        <strong>VAJRA_RAW works at two levels</strong>
+        <span>If <code>VAJRA_RAW=1</code> is set when <code>vajra claude</code> is run → don't inject the hook at all. If it's set any time before the hook runs → the hook exits immediately without compressing. Both layers must work.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G8</div>
+      <div class="g-text">
+        <strong>Settings merge must cover both global and project settings</strong>
+        <span>The settings injector reads from both <code>~/.claude/settings.json</code> (global) and <code>.claude/settings.json</code> (project-level). If Claude Code's settings format doesn't support multiple hook entries for the same tool, we warn and skip injection rather than overwrite.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G9</div>
+      <div class="g-text">
+        <strong>Validate the settings format before merging</strong>
+        <span>Before reading the user's Claude Code settings and merging them, we check that the settings file is in the format we expect (the hooks list is an array, not some other shape). If it's not → warn and skip, don't try to merge something we don't understand.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G10</div>
+      <div class="g-text">
+        <strong>Verify the session log folder name matches what Claude Code creates</strong>
+        <span>Claude Code names the log folder based on your working directory path. We derive the same name with a simple transformation. A CI test confirms our transformation matches what Claude Code actually creates — so we always look in the right folder for the session log.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G11</div>
+      <div class="g-text">
+        <strong>The cost formula test is release-blocking</strong>
+        <span>We have a sample log file with a hand-computed expected cost. A test verifies our meter produces that exact number. If the test goes red — because Anthropic changed the log format or the formula is wrong — no release goes out until it's fixed.</span>
+      </div>
+    </div>
+    <div class="guardrail">
+      <div class="g-num">G12</div>
+      <div class="g-text">
+        <strong>The compression stats sidecar never records content</strong>
+        <span>The file where the hook records compression counts contains only: how many lines came in, how many went out, and the first word of the command (e.g., "cargo"). The full command string, stdout, and stderr are never written to this file. This is non-negotiable.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILD ORDER -->
+<section id="buildorder">
+  <h2><span class="dot" style="background:#0d9488"></span>What gets built and in what order</h2>
+
+  <p>The design is complete. The code phase starts next. Here's the exact order — each step depends on the one before it.</p>
+
+  <table>
+    <tr><th>#</th><th>What</th><th>Why this order</th></tr>
+    <tr>
+      <td><span class="tag blue">1</span></td>
+      <td><strong>Engine types + trait</strong> — <code>engine/mod.rs</code></td>
+      <td>Everything else depends on these shapes. No heuristics yet — just the interface.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">2</span></td>
+      <td><strong>Stub conformance test</strong> — <code>tests/shim_stub.rs</code></td>
+      <td>Proves the Engine interface works before any real logic is written. Satisfies G3.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">3</span></td>
+      <td><strong>Compression heuristics</strong> — <code>engine/heuristics/</code> (cargo, git, generic, pytest, npm, docker)</td>
+      <td>Each one is paired with a real fixture test from the corpus. Cargo first — it's the most common case.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">4</span></td>
+      <td><strong>Default engine</strong> — <code>engine/default.rs</code></td>
+      <td>The dispatcher that routes commands to the right heuristic. Depends on all heuristics being done.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">5</span></td>
+      <td><strong>Claude Code adapter</strong> — <code>adapter/claude_code.rs</code></td>
+      <td>The JSON reader/writer for Claude Code's hook format. Depends on the Engine types.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">6</span></td>
+      <td><strong>Hook subcommand</strong> — <code>cli/hook.rs</code></td>
+      <td>The entry point for <code>vajractl hook</code>. Wires adapter + engine + sidecar append (G12).</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">7</span></td>
+      <td><strong>Launcher subcommand</strong> — <code>cli/launch.rs</code></td>
+      <td><code>vajra claude</code>: creates temp settings, sets sidecar env var, spawns Claude Code, waits, reads results.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">8</span></td>
+      <td><strong>Meter module</strong> — <code>meter/mod.rs</code>, <code>meter/parser.rs</code>, <code>meter/pricing.rs</code>, <code>meter/receipt.rs</code></td>
+      <td>Session log reader + cost formula + receipt formatter. Used by the launcher and the standalone <code>vajractl meter</code> command.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">9</span></td>
+      <td><strong>Benchmark fixtures</strong> — <code>bench/fixtures/session_v1.jsonl</code>, <code>expected_v1.json</code>, <code>pricing.toml</code></td>
+      <td>The raw inputs for the schema tripwire test. Hand-computed expected values.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">10</span></td>
+      <td><strong>Schema tripwire test</strong> — <code>tests/meter_tripwire.rs</code></td>
+      <td>G11: release-blocking. Asserts exact cost total against the fixture. Must be green to ship.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">11</span></td>
+      <td><strong>Meter subcommand</strong> — <code>cli/meter.rs</code></td>
+      <td><code>vajractl meter</code>: lists recent sessions or shows a specific session's receipt. Reuses all meter code.</td>
+    </tr>
+    <tr>
+      <td><span class="tag blue">12</span></td>
+      <td><strong>Cargo.toml + main.rs skeleton</strong></td>
+      <td>Actually, start here — set up the crate before writing any code above.</td>
+    </tr>
+  </table>
+
+  <h3>Four things to verify during coding (can't fully know until we try)</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Open question 1</div>
+      <h4>Does <code>--settings</code> add or replace?</h4>
+      <p>If Claude Code's <code>--settings</code> flag adds our settings on top of existing ones, we only need to write our hook to the temp file. If it replaces all settings, we need to copy everything. Test it with a simple experiment on CC v2.1.177.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">Open question 2</div>
+      <h4>Does the hook get the exit code?</h4>
+      <p>The verified schema showed stdout, stderr, interrupted flag, isImage, noOutputExpected — but no exit code field. If it's absent, our "confirm success" logic relies on text markers in the output. Test with a real hook call.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">Open question 3</div>
+      <h4>Does Claude Code flush the log immediately?</h4>
+      <p>After <code>child.wait()</code> returns, is the log file fully written? Or do we need a brief pause to let the OS flush it? Test with a real session and check timing.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">Open question 4</div>
+      <h4>Does <code>{}</code> mean "pass through"?</h4>
+      <p>We're confident that writing an empty JSON object means "don't replace the output" — the ADR-0001 experiment showed that the absent <code>updatedToolOutput</code> key is the clean signal. Confirm it explicitly.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="sec">
+
+<!-- TRUST -->
+<section>
+  <h2><span class="dot" style="background:#dc2626"></span>The 5 trust commitments — day one, non-negotiable</h2>
+  <div class="grid2">
+    <div class="callout green" style="margin-bottom:0">
+      <strong>1. Zero network calls at runtime</strong>
+      When Vajra is doing its job, it never makes a network request. Verifiable by running it offline.
+    </div>
+    <div class="callout green" style="margin-bottom:0">
+      <strong>2. No telemetry without explicit opt-in</strong>
+      No usage data, no crash reports, nothing — unless you explicitly turn it on.
+    </div>
+    <div class="callout green" style="margin-bottom:0">
+      <strong>3. Your code and prompts never leave your machine</strong>
+      Session logs are read in-memory. Aggregate numbers only (counts, not content). Nothing is written to disk beyond what Claude Code already writes itself.
+    </div>
+    <div class="callout green" style="margin-bottom:0">
+      <strong>4. Fail open by design</strong>
+      If anything goes wrong in Vajra — can't parse output, unknown error, CC version we don't recognize — we pass the original unchanged. The agent always gets something. We never block it.
+    </div>
+  </div>
+  <div class="callout green" style="margin-top:16px">
+    <strong>5. Verifiable, signed, reproducible</strong>
+    Every release is signed with a public key in the README. SHA-256 checksums on all binaries. <code>cargo install</code> and Homebrew are first-class alternatives — you never have to trust a <code>curl | bash</code> install. Reproducible builds are the stated goal.
+  </div>
+
+  <div class="callout red" style="margin-top:20px">
+    <strong>The #1 attack surface: the install script</strong>
+    The most dangerous thing about Vajra is the day-1 install: <code>curl -fsSL vajra.sh | bash</code>. That's arbitrary code execution. We mitigate it with: pinned/versioned/checksummed installer, signed releases, and always offering cargo/brew/direct-download alternatives. Anyone who doesn't trust the install script has a clean path that doesn't require it.
+  </div>
+</section>
+
+<!-- BUSINESS MODEL -->
+<section>
+  <h2><span class="dot" style="background:#7c3aed"></span>The business model</h2>
+
+  <div class="callout purple">
+    <strong>The rule</strong>
+    Helps one developer = free forever. Lets an org govern many developers = paid. Compression is never paywalled.
+  </div>
+
+  <table>
+    <tr><th>Tier</th><th>What's included</th><th>Price</th></tr>
+    <tr>
+      <td><strong>Open source</strong></td>
+      <td>The launcher, compression, honest meter, per-tool heuristics, solo local git guards, <code>VAJRA_RAW</code> escape — everything in v1</td>
+      <td>Free forever, Apache-2.0</td>
+    </tr>
+    <tr>
+      <td><strong>Team (paid)</strong></td>
+      <td>Shared policy configuration, persistent cross-agent audit log, fail-closed enforcement gates, CI/PR integration</td>
+      <td>Per seat</td>
+    </tr>
+    <tr>
+      <td><strong>Enterprise</strong></td>
+      <td>SSO, long-term audit retention, compliance attestation, central policy management, SIEM export</td>
+      <td>Annual contract</td>
+    </tr>
+  </table>
+
+  <h3>The traction metric we actually care about</h3>
+  <p><strong>Day-30 retained installs with at least one governance policy actively enforcing.</strong> Not stars. Not total installs. Not token-saved counts. The proof that compression on-ramp successfully recruited a governance user — someone who installed for savings and stayed for control.</p>
+</section>
+
+<!-- NAMING -->
+<section>
+  <h2><span class="dot" style="background:#6b7280"></span>Naming and release notes</h2>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">What it's called</div>
+      <h4>Brand: Vajra &nbsp;·&nbsp; Binary: <code>vajractl</code></h4>
+      <p>The crates.io name "vajra" was already taken, so the Rust package and install command will be <code>vajractl</code> (<code>cargo install vajractl</code>). The brand stays "Vajra."</p>
+      <p style="font-size:13px;color:var(--muted);margin-top:8px">Confirm ownership of <code>vajra.sh</code> before the public launch. There's a pentest framework with a similar name but the <code>vajractl</code> binary name disambiguates.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">Hero artifact for launch</div>
+      <h4>The honest receipt</h4>
+      <p>A 15-second screen recording showing the receipt after a real session. The number is small (~6–8%) and we say so. "Here's why it's not more. Run the benchmark yourself." Honesty is the brand on a skeptical developer audience.</p>
+    </div>
+  </div>
+
+  <div class="callout blue">
+    <strong>The contributor funnel</strong>
+    Each compression heuristic will eventually be a declarative config (TOML rule + golden fixture). "Add support for your favorite build tool" becomes a good-first-issue requiring no Rust knowledge. Every heuristic PR is gated on the fail-open invariant test and the lossless-output invariant test.
+  </div>
+</section>
+
+<hr class="sec">
+
+<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px 0">
+  Vajra Design Brief · Generated 2026-06-16 · ADR-0001 through ADR-0004 accepted · Design phase complete · Code phase next
+</div>
+
+</div><!-- /layout -->
+</body>
+</html>

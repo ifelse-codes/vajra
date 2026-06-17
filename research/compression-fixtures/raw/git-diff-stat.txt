@@ -1,0 +1,6 @@
+ .ai/KNOWLEDGE.md         |   8 ++++
+ .ai/ROADMAP.md           | 111 ++++++++++++++++++++++++++++++-----------------
+ .ai/SESSION-BOOT.md      |  16 +++----
+ .ai/STATE.md             |  29 ++++++++-----
+ .github/workflows/ci.yml |  26 +++++++++++
+ 5 files changed, 131 insertions(+), 59 deletions(-)

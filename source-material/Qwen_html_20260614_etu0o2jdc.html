@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vajra - AI Session Workflow</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --gold: #d4af37;
+            --text: #e0e0e0;
+            --muted: #888888;
+        }
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            border-bottom: 1px solid #222;
+        }
+        .nav-icon {
+            font-size: 2rem;
+            color: var(--gold);
+            font-weight: bold;
+        }
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-family: sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .nav-links a:hover { color: var(--gold); }
+        
+        .hero {
+            text-align: center;
+            padding: 8rem 5% 6rem;
+            background: radial-gradient(circle at center, #1a1a1a 0%, var(--bg) 70%);
+        }
+        .hero h1 {
+            font-size: 4rem;
+            color: var(--gold);
+            margin: 0;
+            letter-spacing: 2px;
+        }
+        .hero .subtitle {
+            font-size: 1.5rem;
+            color: var(--text);
+            margin: 1rem 0;
+            font-style: italic;
+        }
+        .hero p {
+            max-width: 600px;
+            margin: 2rem auto;
+            color: var(--muted);
+            font-family: sans-serif;
+        }
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            text-decoration: none;
+            font-family: sans-serif;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+        .btn:hover {
+            background: var(--gold);
+            color: var(--bg);
+        }
+
+        section {
+            padding: 5rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h2 {
+            font-size: 2.5rem;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        .card {
+            background: var(--surface);
+            padding: 2rem;
+            border: 1px solid #222;
+            border-radius: 4px;
+        }
+        .card h3 {
+            color: var(--gold);
+            margin-top: 0;
+            font-size: 1.2rem;
+        }
+        .card p {
+            color: var(--muted);
+            font-family: sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .layers {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .layer {
+            display: flex;
+            align-items: center;
+            background: var(--surface);
+            padding: 1.5rem;
+            border-left: 4px solid var(--gold);
+        }
+        .layer-id {
+            font-size: 1.5rem;
+            color: var(--gold);
+            font-weight: bold;
+            width: 60px;
+        }
+        .layer-name {
+            font-size: 1.2rem;
+            flex: 1;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .feature {
+            border-bottom: 1px solid #333;
+            padding-bottom: 1.5rem;
+        }
+        .feature h4 {
+            color: var(--gold);
+            margin: 0 0 0.5rem 0;
+        }
+        .feature p {
+            color: var(--muted);
+            font-family: sans-serif;
+            margin: 0;
+        }
+
+        .efficiency {
+            background: var(--surface);
+            text-align: center;
+            padding: 4rem 5%;
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+        }
+        .efficiency h2 { margin-bottom: 1rem; }
+        .stat {
+            font-size: 4rem;
+            color: var(--gold);
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+        .efficiency p {
+            max-width: 600px;
+            margin: 0 auto;
+            color: var(--muted);
+            font-family: sans-serif;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 5%;
+            color: var(--muted);
+            font-style: italic;
+            border-top: 1px solid #222;
+        }
+        footer .sanskrit {
+            font-size: 1.5rem;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-icon">व</div>
+    <div class="nav-links">
+        <a href="#problem">Problem</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#features">Features</a>
+        <a href="#efficiency">Efficiency</a>
+    </div>
+</nav>
+
+<header class="hero">
+    <h1>VAJRA</h1>
+    <p class="subtitle">The indestructible workflow for AI-assisted development.</p>
+    <p>A rigorous, fail-closed meta-workflow that eliminates cross-session amnesia, silent drift, and scope creep. Forged for long-running, multi-agent projects.</p>
+    <a href="#workflow" class="btn">Wield the Vajra</a>
+</header>
+
+<section id="problem">
+    <h2>The Chaos of AI Coding</h2>
+    <div class="cards">
+        <div class="card">
+            <h3>Cross-Session Amnesia</h3>
+            <p>Agents forget context between sessions, repeating work, breaking state, and losing the thread of complex tasks.</p>
+        </div>
+        <div class="card">
+            <h3>Silent Drift</h3>
+            <p>Subtle deviations from the architecture accumulate unnoticed until the codebase is unrecognizable and brittle.</p>
+        </div>
+        <div class="card">
+            <h3>Autonomous Bad Commits</h3>
+            <p>Without mechanical barriers, agents commit broken code, bypass verification, and pollute the git history.</p>
+        </div>
+        <div class="card">
+            <h3>Token Bloat</h3>
+            <p>Re-reading entire codebases and verbose states wastes context windows, slows down the agent, and burns money.</p>
+        </div>
+    </div>
+</section>
+
+<section id="workflow">
+    <h2>Defense in Depth</h2>
+    <p style="text-align: center; color: var(--muted); font-family: sans-serif; max-width: 700px; margin: 0 auto 3rem;">
+        Vajra enforces discipline through 5 mechanical layers. It doesn't ask the AI to be good; it makes bad behavior mechanically impossible.
+    </p>
+    <div class="layers">
+        <div class="layer"><div class="layer-id">L0</div><div class="layer-name">Server Protection & Environment Isolation</div></div>
+        <div class="layer"><div class="layer-id">L1</div><div class="layer-name">Git Hooks (Pre-commit & Pre-push enforcement)</div></div>
+        <div class="layer"><div class="layer-id">L2</div><div class="layer-name">Agent Hooks (Bash & Write interception)</div></div>
+        <div class="layer"><div class="layer-id">L3</div><div class="layer-name">Verify Scripts (Fail-closed closeout gates)</div></div>
+        <div class="layer"><div class="layer-id">L4</div><div class="layer-name">Integer State (Single Source of Truth in <code>.ai/</code>)</div></div>
+    </div>
+</section>
+
+<section id="features">
+    <h2>Core Mechanics</h2>
+    <div class="features">
+        <div class="feature">
+            <h4>Branch-per-Session</h4>
+            <p>Every session operates on an isolated <code>session-NN-&lt;slug&gt;</code> branch. No more stepping on your own toes.</p>
+        </div>
+        <div class="feature">
+            <h4>Fail-Closed Verification</h4>
+            <p><code>verify-closeout.sh</code> must exit 0. If it fails, the session cannot close. No silent passes.</p>
+        </div>
+        <div class="feature">
+            <h4>Ground-Truth Audits</h4>
+            <p>Every N sessions, a hook-enforced, no-code audit forces a full drift and staleness check.</p>
+        </div>
+        <div class="feature">
+            <h4>Approval-Gated Commits</h4>
+            <p>Mechanical barriers require explicit approval tokens before autonomous commits are allowed.</p>
+        </div>
+        <div class="feature">
+            <h4>Delta-Only Boot</h4>
+            <p>Agents don't re-read the world. They read <code>.ai/DELTA</code>—only what changed since the last session.</p>
+        </div>
+        <div class="feature">
+            <h4>Cross-Agent Compatibility</h4>
+            <p>Root pointers (<code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>.cursorrules</code>) all route to a single source of truth.</p>
+        </div>
+    </div>
+</section>
+
+<div class="efficiency" id="efficiency">
+    <h2>Forged for Speed</h2>
+    <div class="stat">~90%</div>
+    <p><strong>Fewer tokens per session.</strong></p>
+    <p style="margin-top: 1rem;">Token efficiency isn't a feature; it's a consequence of rigorous design. By using hash-cached constitutions, silent hooks, and delta-only boots, Vajra eliminates redundant context loading. Zero quality compromised.</p>
+</div>
+
+<footer>
+    <span class="sanskrit">ॐ</span>
+    Hard as diamond. Fast as lightning. Ordered as Rta.
+</footer>
+
+</body>
+</html>

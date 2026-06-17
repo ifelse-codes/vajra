@@ -1,0 +1,52 @@
+<script>
+    // Tab Switching Logic
+    function openTab(evt, tabId) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].classList.remove("active");
+        }
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+
+        // Render markdown if not already rendered
+        renderMD(tabId);
+    }
+
+    // Simple Markdown Renderer using marked.js
+    function renderMD(tabId) {
+        const num = tabId.split('-')[1];
+        const targetDiv = document.getElementById(`render-${num}`);
+        if (targetDiv.innerHTML.trim() === '') {
+            const mdScript = document.getElementById(`md-${num}`);
+            if (mdScript) {
+                targetDiv.innerHTML = marked.parse(mdScript.textContent);
+            }
+        }
+    }
+
+    // Initial render for the first tab
+    document.addEventListener("DOMContentLoaded", () => {
+        renderMD('kb-1');
+    });
+
+    // Copy to clipboard
+    function copyCode(btn) {
+        const codeBlock = btn.closest('.code-block-wrapper').querySelector('code');
+        navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+            const originalText = btn.textContent;
+            btn.textContent = "Copied!";
+            btn.style.color = "var(--vajra-green)";
+            btn.style.borderColor = "var(--vajra-green)";
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.color = "";
+                btn.style.borderColor = "";
+            }, 2000);
+        });
+    }
+</script>

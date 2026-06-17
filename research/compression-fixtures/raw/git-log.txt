@@ -1,0 +1,21 @@
+e9697b0 Merge pull request #2 from ifelse-codes/session-01-closeout
+12d3e8f chore: sync .ai snapshot post-S01 infra (remote, CI, hooks)
+81155b4 Merge pull request #1 from ifelse-codes/chore/ci
+e0b4dd8 ci: add GitHub Actions build+test workflow (L1)
+541abc3 chore: merge roadmap re-plan (vision-anchored, dependency-ordered)
+cbb132c docs: re-plan roadmap — vision-anchored, dependency-ordered
+8276da3 chore: merge Session 01 — session memory & dedup (closes S01)
+d9676e5 chore: Session 01 closeout — session memory & dedup (closes S01)
+7e9c8b5 test: 15-turn sub-linear growth + session-01 verify
+e5ed243 feat(proxy): wire dedup + session memory into request path
+63317c2 feat(ctx): deterministic session summarizer
+79f91c8 feat(proxy): pure request dedup optimizer
+9a87995 feat(state): per-session memory state
+32201ce chore: track v1 Rust codebase (was gitignored)
+cc580f2 chore: update STATE.md — Session 00 closeout on main
+e114e75 chore: merge Session 00 scaffold (closes S00)
+d6e31a0 chore: Session 00 closeout — pointer to S01 (Option B)
+3558b8a docs: Session 00 closeout — pointer to 01-task.md
+7dfcda3 chore: install agent-first session workflow scaffold (closes S00)
+0356245 feat: Complete v1 - indexer, integration tests, all core modules
+663ea6f feat: Chunk 1-4 complete - scaffold, meter, proxy, hooks, context tools
