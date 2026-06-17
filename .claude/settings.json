@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "SessionStart": [{
+      "hooks": [
+        {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-session-start.sh\""},
+        {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-drift-guard.sh\""}
+      ]
+    }],
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-prompt-submit.sh\""}]}],
+    "PreToolUse": [
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-pre-bash.sh\""}]},
+      {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-pre-write.sh\""}]}
+    ],
+    "Stop": [{"hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-stop.sh\""}]}]
+  }
+}

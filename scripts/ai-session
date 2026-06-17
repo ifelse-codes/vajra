@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Generic session wrapper — works with any AI agent, no Claude Code required.
+# Usage: source scripts/ai-session  (or: eval "$(scripts/ai-session)")
+
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+if [ ! -f .ai/SESSION ]; then
+  echo "[ai-session] ERROR: .ai/SESSION missing. Run bootstrap first." >&2
+  exit 1
+fi
+
+N="$(tr -d ' \t\n\r' < .ai/SESSION)"
+echo "=== Vajra Session $N ==="
+echo ""
+
+for f in .ai/AGENTS.md .ai/SESSION .ai/SESSION-BOOT.md .ai/TASK.md .ai/STATE.md .ai/CONSTRAINTS.yaml; do
+  if [ -f "$f" ]; then
+    echo "----- $f -----"
+    cat "$f"
+    echo ""
+  fi
+done
+
+BRANCH=$(git branch --show-current 2>/dev/null || echo "?")
+echo "Current branch: $BRANCH"
+
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+  echo "[REMINDER] On $BRANCH. Branch session-NN-<slug> first."
+fi
+
+export AI_SESSION_ROOT="$ROOT"
+export AI_SESSION_NUMBER="$N"
+export AI_SESSION_BRANCH="$BRANCH"

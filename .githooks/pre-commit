@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Tracked pre-commit hook. Activated by: git config core.hooksPath .githooks
+
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo DETACHED)"
+case "$branch" in
+  main|master)
+    echo "[pre-commit BLOCK] Direct commits to '$branch' forbidden. Branch session-NN-<slug> first."
+    exit 1 ;;
+esac
+
+staged="$(git diff --cached --name-only --diff-filter=ACMR | sed '/^$/d' | wc -l | tr -d ' ')"
+if [ "${staged:-0}" -gt 3 ]; then
+  echo "[pre-commit BLOCK] $staged files staged; max 3 per atomic change."
+  exit 1
+fi
+
+if [ -f .ai/SESSION ] && [ -f .ai/SESSION-BOOT.md ]; then
+  n="$(tr -d ' \t\n\r' < .ai/SESSION)"
+  boot="$(grep -m1 -E '\*\*Number:\*\*' .ai/SESSION-BOOT.md | grep -oE '[0-9]+' | head -1)"
+  if [ -n "$n" ] && [ -n "$boot" ] && [ "$((10#$n))" -ne "$((10#$boot))" ]; then
+    echo "[pre-commit BLOCK] .ai/ drift: .ai/SESSION=$n but SESSION-BOOT Number=$boot."
+    exit 1
+  fi
+fi
+
+if [ -x scripts/hook-drift-guard.sh ]; then
+  scripts/hook-drift-guard.sh --quiet || {
+    echo "[pre-commit BLOCK] drift-guard reported drift."
+    exit 1
+  }
+fi
+
+exit 0
