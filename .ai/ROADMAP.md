@@ -8,17 +8,17 @@
 |---|---|
 | Today | 2026-06-17 |
 | Current phase | Phase 0 — Foundation |
-| Completed sessions | 0 |
-| Active session | Session 00 — Bootstrap |
-| Next session | Session 01 — pending option selection |
+| Completed sessions | 1 |
+| Active session | Session 01 — Complete |
+| Next session | Session 02 — pending option selection |
 
 ## Phase 0 — Foundation
 
 | Workstream | Target session(s) | Status |
 |---|---|---|
-| Agent protocol bootstrap | Session 00 | [ ] in progress |
-| Cargo project scaffold | Session 01 | [ ] planned |
-| Engine trait + types + StubEngine | Session 01–02 | [ ] planned |
+| Agent protocol bootstrap | Session 00 | [x] complete |
+| Cargo project scaffold | Session 01 | [x] complete |
+| Engine trait + types + StubEngine | Session 01 | [x] complete |
 | Compression heuristics (cargo, git, pytest, npm, generic) | Session 02–03 | [ ] planned |
 | DefaultEngine dispatch + pre-rules | Session 03 | [ ] planned |
 | ClaudeCodeHookAdapter + wire types | Session 03–04 | [ ] planned |
@@ -33,7 +33,7 @@
 |---|---|---|
 | Integration tests + end-to-end | Session 06–07 | [ ] planned |
 | Measurement harness (bench/) | Session 07–08 | [ ] planned |
-| Installer (`curl \| bash`) | Session 08 | [ ] planned |
+| Installer (`curl | bash`) | Session 08 | [ ] planned |
 | OSS release prep | Session 09–10 | [ ] planned |
 
 ## Phase 2 — Governance / Audit Ledger (v2+)
@@ -44,6 +44,18 @@
 | Agent-trace format adoption | TBD | [ ] planned |
 | Git-native tamper-evident ledger | TBD | [ ] planned |
 | Policy engine | TBD | [ ] planned |
+
+## What Currently Works
+
+- Cargo project scaffold (`Cargo.toml`, `src/`, `tests/`)
+- `Engine` trait with `compress`/`decompress` interface
+- Core types: `CompressionAlgorithm`, `CompressionLevel`, `Strategy`
+- CLI skeleton with subcommands (`compress`, `decompress`, `benchmark`)
+- G3 conformance test
+
+## Next Session
+
+Session 02: Pick compression option (A/B/C) from `sessions/session-01-summary.md`, then read `prompts/02-task-<slug>.md`.
 
 ## Rules For This Document
 

@@ -2,13 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 01 — Cargo Scaffold + Engine Trait — PENDING
+## Session 02 — PENDING option selection
 
-Read prompt: `prompts/01-task-cargo-engine.md`
+Read options: `sessions/session-01-summary.md`
+
+Pick A/B/C, then read prompt: `prompts/02-task-<slug>.md`
 
 ### Between Sessions
 
-Closeout complete. Start next session from `prompts/01-task-cargo-engine.md` in a new chat.
+Closeout complete. Start next session from `prompts/02-task-<slug>.md` in a new chat.
 
 ## Always-True Reminders
 
