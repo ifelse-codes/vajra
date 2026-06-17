@@ -1,0 +1,78 @@
+version: 3
+
+session:
+  max_assumptions: 2
+  max_retries: 2
+  max_files_per_atomic_change: 3
+  max_stories_per_session: 1
+  cap_hours_per_session: 2
+  ground_truth_every_n_sessions: 5
+
+branch:
+  forbid_direct_work_on: [main, master]
+  required_session_branch_pattern: '^session-\d{2,}-[a-z0-9-]+$'
+  ground_truth_commit_exempt_branch_suffixes: [-closeout, -enforcement]
+
+commit:
+  autonomous: false
+  require_user_approval: true
+  approval_tokens: [approved, lgtm, "ship it", "yes commit", "go ahead and commit", "go ahead"]
+  forbid_skip_hooks: true
+  forbid_force_push_to: [main, master]
+
+verify:
+  required_for_done: true
+  script_pattern: 'scripts/verify-session-{NN}.sh'
+  template: 'scripts/verify-session-template.sh'
+  artifacts_dir: '.ai/verify/session-{NN}/'
+  exit_zero_required: true
+  closeout_script: 'scripts/verify-closeout.sh'
+  closeout_must_pass_before_close: true
+
+state:
+  state_md_mode: snapshot
+  knowledge_md_mode: append-permanent-only
+  session_summary_in: sessions/session-{NN}-summary.md
+  ground_truth_summary_in: sessions/session-{NN}-ground-truth.md
+  session_prompt_in: prompts/{NN}-task-{slug}.md
+  closeout_active_branch_value: "None — between sessions (SNN complete, SNN+1 not yet started)."
+
+communication:
+  max_words_per_response: 200
+  required_formats: [bullets, tables, code-blocks]
+  forbid: [greetings, apologies, filler, narration-of-thinking, trailing-summaries]
+  max_bullets_per_section: 5
+
+self_review_questions: [what_can_break, hidden_assumptions, production_ready, defensive_patches_only_on_repro_evidence, scope_intact]
+
+end_of_session:
+  must_present_n_options: 3
+  options_drawn_from: .ai/ROADMAP.md
+  options_format: [title, one_sentence_goal, why_pick_this, key_risk]
+  must_write_next_prompt_before_close: true
+
+ground_truth:
+  forbid_code_changes: true
+  forbid_commits: true
+  forbid_prs: true
+  required_outputs: [sessions/session-{NN}-ground-truth.md]
+  required_audits: [state_drift, knowledge_staleness, roadmap_priority, constraint_violation_review, cost_review]
+
+load_order:
+  - .ai/AGENTS.md
+  - .ai/SESSION
+  - .ai/SESSION-BOOT.md
+  - .ai/TASK.md
+  - .ai/STATE.md
+  - .ai/CONSTRAINTS.yaml
+  - .ai/KNOWLEDGE.md
+  - .ai/ROADMAP.md
+  - "prompts/{NN}-task-{slug}.md"
+
+enforcement:
+  binds_all_agents: true
+  fail_closed: true
+  closeout_not_done_until: scripts/verify-closeout.sh exits 0
+
+trust:
+  forbidden_phrases: []
