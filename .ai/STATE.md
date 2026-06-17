@@ -3,7 +3,7 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-`session-00-discovery`
+None — between sessions (S00 complete, S01 not yet started).
 
 ## Active PRs
 None.
@@ -19,8 +19,8 @@ None.
 - Nothing in protocol.
 
 ## What Is In Progress
-- Session 00 closeout complete. Between sessions until user picks S01 option.
+- Between sessions. Start S01 from `prompts/01-task-cargo-engine.md` in a new chat.
 
 ## Cost Tracking
-- Session 00: $0.00 (bootstrap, no API calls yet)
+- Session 00: $0.00 (bootstrap, no API calls)
 - Cumulative: $0.00

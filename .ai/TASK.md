@@ -2,13 +2,13 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 00 — Bootstrap — COMPLETE
+## Session 01 — Cargo Scaffold + Engine Trait — PENDING
 
-Discovery + `.ai/` scaffolding + hook system + verify gates. Full record: `sessions/session-00-summary.md` + `prompts/00-task-discovery.md`.
+Read prompt: `prompts/01-task-cargo-engine.md`
 
 ### Between Sessions
 
-Repo is **between sessions** until user picks A/B/C from `sessions/session-00-summary.md`.
+Closeout complete. Start next session from `prompts/01-task-cargo-engine.md` in a new chat.
 
 ## Always-True Reminders
 

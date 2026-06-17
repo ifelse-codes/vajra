@@ -17,8 +17,9 @@ None.
 ## Next Session
 - **Number:** 01
 - **Type:** CODE — first real work session
-- **Story:** *pending — user picks A / B / C from `sessions/session-00-summary.md`.*
-- **Read prompt:** `prompts/01-task-<slug>.md` (written once user picks)
+- **Story:** Cargo Scaffold + Engine Trait (Option A)
+- **Read prompt:** `prompts/01-task-cargo-engine.md`
+- **Branch:** `session-01-cargo-engine`
 
 ## Carry-Forwards
 - Activate git hooks per clone: `git config core.hooksPath .githooks`.
