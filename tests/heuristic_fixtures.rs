@@ -135,7 +135,7 @@ fn generic_over_cap_truncates() {
     match decision {
         EngineDecision::Compress { output, .. } => {
             assert!(
-                output.contains("[230 lines hidden]"),
+                output.contains("[230 hidden]"),
                 "expected truncation marker, got: {}",
                 output
             );

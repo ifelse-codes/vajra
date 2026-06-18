@@ -56,7 +56,7 @@ impl Heuristic for GenericHeuristic {
                 .collect::<Vec<_>>()
                 .join("\n");
             let hidden = lines.len().saturating_sub(20);
-            format!("{}\n\n… [{} lines hidden] …\n\n{}", head, hidden, tail)
+            format!("{}\n\n… [{} hidden] …\n\n{}", head, hidden, tail)
         }
     }
 }
@@ -99,6 +99,10 @@ mod tests {
         };
         let h = GenericHeuristic;
         let out = h.compress(&request);
-        assert!(out.contains("[230 lines hidden]"));
+        assert!(
+            out.contains("[230 hidden]"),
+            "expected [230 hidden], got: {}",
+            out
+        );
     }
 }

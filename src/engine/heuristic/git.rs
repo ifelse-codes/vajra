@@ -56,8 +56,11 @@ impl Heuristic for GitLogHeuristic {
             .copied()
             .collect::<Vec<_>>()
             .join("\n");
-        let hidden = lines.len() - head_count - tail_count;
-        format!("{}\n\n… [{} lines hidden] …\n\n{}", head, hidden, tail)
+        let hidden = lines
+            .len()
+            .saturating_sub(head_count)
+            .saturating_sub(tail_count);
+        format!("{}\n\n… [{} hidden] …\n\n{}", head, hidden, tail)
     }
 }
 
@@ -100,7 +103,7 @@ mod tests {
         let h = GitLogHeuristic;
         assert!(h.detect(&request));
         let out = h.compress(&request);
-        assert!(out.contains("[230 lines hidden]"), "hidden count wrong");
+        assert!(out.contains("[230 hidden]"), "hidden count wrong: {}", out);
         assert!(out.contains("0000 fake commit message"));
         // 249 decimal = 0x00f9 in 4-digit hex
         assert!(

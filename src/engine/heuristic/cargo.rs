@@ -100,9 +100,7 @@ fn compress_cargo_test_fail(stdout: &str) -> String {
     let mut in_failure = false;
     for line in stdout.lines() {
         let trimmed = line.trim();
-        if trimmed.starts_with("test ")
-            && (trimmed.ends_with("FAILED") || trimmed.ends_with("fAILED"))
-        {
+        if trimmed.starts_with("test ") && trimmed.ends_with("FAILED") {
             in_failure = true;
             failures.push(line);
         } else if in_failure {
