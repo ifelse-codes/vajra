@@ -6,11 +6,11 @@
 
 | Field | Value |
 |---|---|
-| Today | 2026-06-17 |
+| Today | 2026-06-18 |
 | Current phase | Phase 0 — Foundation |
-| Completed sessions | 1 |
-| Active session | Session 01 — Complete |
-| Next session | Session 02 — pending option selection |
+| Completed sessions | 2 |
+| Active session | Session 02 — Complete |
+| Next session | Session 03 — pending option selection |
 
 ## Phase 0 — Foundation
 
@@ -19,7 +19,7 @@
 | Agent protocol bootstrap | Session 00 | [x] complete |
 | Cargo project scaffold | Session 01 | [x] complete |
 | Engine trait + types + StubEngine | Session 01 | [x] complete |
-| Compression heuristics (cargo, git, pytest, npm, generic) | Session 02–03 | [ ] planned |
+| Compression heuristics (cargo, git, pytest, npm, generic) | Session 02 | [x] complete |
 | DefaultEngine dispatch + pre-rules | Session 03 | [ ] planned |
 | ClaudeCodeHookAdapter + wire types | Session 03–04 | [ ] planned |
 | CLI hook + launcher | Session 04 | [ ] planned |
@@ -52,10 +52,12 @@
 - Core types: `CompressionAlgorithm`, `CompressionLevel`, `Strategy`
 - CLI skeleton with subcommands (`compress`, `decompress`, `benchmark`)
 - G3 conformance test
+- Compression heuristics for cargo, git, pytest, npm, and generic workloads
+- DefaultEngine wired to heuristics with fail-open catch_unwind
 
 ## Next Session
 
-Session 02: Pick compression option (A/B/C) from `sessions/session-01-summary.md`, then read `prompts/02-task-<slug>.md`.
+Session 03: Pick compression option (A/B/C/D) from `sessions/session-02-summary.md`, then read `prompts/03-task-<slug>.md`.
 
 ## Rules For This Document
 

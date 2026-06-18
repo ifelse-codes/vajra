@@ -2,13 +2,13 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 02 — Compression Heuristics
+## Session 03 — PENDING option selection
 
-Read prompt: `prompts/02-task-compression-heuristics.md`
+Read prompt: `sessions/session-02-summary.md` for options A/B/C/D
 
 ### Between Sessions
 
-Closeout complete. Start next session from `prompts/02-task-<slug>.md` in a new chat.
+Closeout complete. Start next session from `sessions/session-02-summary.md` in a new chat and pick A/B/C/D.
 
 ## Always-True Reminders
 
