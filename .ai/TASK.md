@@ -2,11 +2,9 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 02 — PENDING option selection
+## Session 02 — Compression Heuristics
 
-Read options: `sessions/session-01-summary.md`
-
-Pick A/B/C, then read prompt: `prompts/02-task-<slug>.md`
+Read prompt: `prompts/02-task-compression-heuristics.md`
 
 ### Between Sessions
 
