@@ -3,7 +3,7 @@ pub const FAIL_PASSTHROUGH_CAP: usize = 50;
 
 pub enum EngineDecision {
     Passthrough,
-    Compress { tool: String },
+    Compress { tool: String, output: String },
 }
 
 pub struct ToolOutput {
@@ -29,10 +29,4 @@ impl Engine for StubEngine {
     }
 }
 
-pub struct DefaultEngine;
-
-impl Engine for DefaultEngine {
-    fn decide(&self, _request: &CompressionRequest) -> EngineDecision {
-        EngineDecision::Passthrough
-    }
-}
+pub mod heuristic;
