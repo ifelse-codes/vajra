@@ -29,4 +29,6 @@ impl Engine for StubEngine {
     }
 }
 
+pub mod default_engine;
 pub mod heuristic;
+pub use default_engine::DefaultEngine;
