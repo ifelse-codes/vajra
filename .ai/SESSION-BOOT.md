@@ -1,29 +1,29 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 01 — COMPLETE
-- **Type:** CODE — foundation
-- **Branch:** `session-01-cargo-engine`
-- **Date last updated:** 2026-06-17
+- **Number:** 02 — COMPLETE
+- **Type:** CODE — compression heuristics
+- **Branch:** `session-02-compression-heuristics`
+- **Date last updated:** 2026-06-18
 
 ## Live URLs / Endpoints
 None.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 01.
+- `.ai/SESSION` = 02.
 - `main`: baseline + session 00 closeout files.
-- `session-01-cargo-engine`: 3 commits (cargo scaffold + engine trait + CLI stubs + tests + verify script).
+- `session-02-compression-heuristics`: compression heuristics implemented and verified.
 - Enforcement layers L2–L5 in place. L0/L1 deferred until remote + CI exist.
 
 ## Next Session
-- **Number:** 02
+- **Number:** 03
 - **Type:** CODE
-- **Story:** TBD — pick from A/B/C in `sessions/session-01-summary.md`
-- **Read prompt:** `sessions/session-01-summary.md` for options
-- **Branch:** `session-02-<slug>`
+- **Story:** TBD — pick from A/B/C/D in `sessions/session-02-summary.md`
+- **Read prompt:** `sessions/session-02-summary.md` for options
+- **Branch:** `session-03-<slug>`
 
 ## Carry-Forwards
 - Activate git hooks per clone: `git config core.hooksPath .githooks`.
 - Set git user identity globally.
 - Add remote to enable L0 + L1.
-- Pick A/B/C and write `prompts/02-task-<slug>.md`.
+- Pick A/B/C/D and write `prompts/03-task-<slug>.md`.
