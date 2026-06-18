@@ -2,13 +2,13 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 03 — PENDING option selection
+## Session 03 — Claude Code Hook Adapter + Wire Types
 
-Read prompt: `sessions/session-02-summary.md` for options A/B/C/D
+Read prompt: `prompts/03-task-hook-adapter.md`
 
 ### Between Sessions
 
-Closeout complete. Start next session from `sessions/session-02-summary.md` in a new chat and pick A/B/C/D.
+Closeout complete. Start next session from `prompts/03-task-hook-adapter.md` in a new chat.
 
 ## Always-True Reminders
 
