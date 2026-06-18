@@ -9,3 +9,7 @@ Cargo.lock
 *.log
 .ai/verify/
 .claude/settings.local.json
+
+# Kimchi session artifacts
+.kimchi/
+kimchi-session-*.html
