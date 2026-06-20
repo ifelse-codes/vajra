@@ -6,11 +6,11 @@ pub struct PytestHeuristic;
 
 impl Heuristic for PytestHeuristic {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
-        request.tool_output.tool.starts_with("pytest")
+        request.command.starts_with("pytest")
     }
 
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
-        if request.tool_output.exit_code == 0 {
+        if request.tool_output.exit_code == Some(0) {
             compress_pytest_pass(&request.tool_output.stdout)
         } else {
             compress_pytest_fail(&request.tool_output.stdout)
@@ -19,12 +19,10 @@ impl Heuristic for PytestHeuristic {
 }
 
 fn compress_pytest_pass(stdout: &str) -> String {
-    // Keep the final summary line, drop verbose pass details.
     let lines: Vec<&str> = stdout.lines().collect();
     if lines.len() <= 30 {
         return stdout.to_string();
     }
-    // Find the summary line (typically "X passed" or "passed Y tests")
     let summary = lines
         .iter()
         .rev()
@@ -59,7 +57,6 @@ fn compress_pytest_pass(stdout: &str) -> String {
 }
 
 fn compress_pytest_fail(stdout: &str) -> String {
-    // Keep failures verbatim, drop pass noise.
     let lines: Vec<&str> = stdout.lines().collect();
     if lines.len() < 300 {
         return stdout.to_string();
@@ -86,11 +83,12 @@ mod tests {
 
     fn make_request(stdout: &str, exit_code: i32) -> CompressionRequest {
         CompressionRequest {
+            command: "pytest".into(),
             tool_output: ToolOutput {
-                tool: "pytest".into(),
                 stdout: stdout.into(),
                 stderr: String::new(),
-                exit_code,
+                exit_code: Some(exit_code),
+                interrupted: false,
             },
         }
     }
@@ -110,7 +108,6 @@ mod tests {
 
     #[test]
     fn pytest_pass_extracts_summary() {
-        // Large output — summary should be extracted
         let stdout =
             "============================= test session starts ==============================\n\
             platform darwin -- Python 3.11.0, pytest-7.0.0\n\
@@ -143,7 +140,6 @@ mod tests {
         assert!(h().detect(&request));
         let out = h().compress(&request);
         assert!(out.contains("FAILED") || out.contains("AssertionError"));
-        // Pass details may be folded but failures must be present
         assert!(out.contains("test_two") || out.contains("FAILED"));
     }
 

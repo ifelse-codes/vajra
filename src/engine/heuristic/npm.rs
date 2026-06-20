@@ -6,12 +6,12 @@ pub struct NpmTestHeuristic;
 
 impl Heuristic for NpmTestHeuristic {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
-        let tool = &request.tool_output.tool;
-        tool.starts_with("npm test") || tool.starts_with("npm run test")
+        let cmd = &request.command;
+        cmd.starts_with("npm test") || cmd.starts_with("npm run test")
     }
 
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
-        if request.tool_output.exit_code == 0 {
+        if request.tool_output.exit_code == Some(0) {
             compress_npm_test_pass(&request.tool_output.stdout)
         } else {
             compress_npm_test_fail(&request.tool_output.stdout)
@@ -20,12 +20,10 @@ impl Heuristic for NpmTestHeuristic {
 }
 
 fn compress_npm_test_pass(stdout: &str) -> String {
-    // Small output passes through; large output gets folded to summary.
     let lines: Vec<&str> = stdout.lines().collect();
     if lines.len() <= 30 {
         return stdout.to_string();
     }
-    // Find the summary line (common patterns: "Tests:", "Test Suites:", "passed", "PASS")
     let summary = lines
         .iter()
         .rev()
@@ -70,7 +68,6 @@ fn compress_npm_test_fail(stdout: &str) -> String {
     if lines.len() < 300 {
         return stdout.to_string();
     }
-    // Keep failure lines, test names, and error messages
     let failures: Vec<&str> = stdout
         .lines()
         .filter(|l| {
@@ -97,13 +94,14 @@ mod tests {
     use super::*;
     use crate::engine::{CompressionRequest, ToolOutput};
 
-    fn make_request(stdout: &str, tool: &str, exit_code: i32) -> CompressionRequest {
+    fn make_request(stdout: &str, command: &str, exit_code: i32) -> CompressionRequest {
         CompressionRequest {
+            command: command.into(),
             tool_output: ToolOutput {
-                tool: tool.into(),
                 stdout: stdout.into(),
                 stderr: String::new(),
-                exit_code,
+                exit_code: Some(exit_code),
+                interrupted: false,
             },
         }
     }
@@ -135,7 +133,6 @@ mod tests {
 
     #[test]
     fn npm_test_pass_folds_large_output() {
-        // Simulate 200+ lines of pass output
         let lines: Vec<String> = (0..200)
             .map(|i| format!(" PASS  test/spec{}.test.js (X ms)", i))
             .collect();
@@ -145,7 +142,6 @@ mod tests {
         );
         let out = compress_npm_test_pass(&stdout);
         assert!(out.contains("500 passed") || out.contains("passed"));
-        // Should NOT contain individual PASS lines
         assert!(!out.contains("PASS  test/spec0.test.js"));
     }
 
