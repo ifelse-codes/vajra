@@ -10,6 +10,8 @@ Cargo.lock
 .ai/verify/
 .claude/settings.local.json
 
+demo-output.txt
+
 # Kimchi session artifacts
 .kimchi/
 kimchi-session-*.html
