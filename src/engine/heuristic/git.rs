@@ -8,7 +8,7 @@ pub struct GitStatusHeuristic;
 
 impl Heuristic for GitStatusHeuristic {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
-        request.tool_output.tool.starts_with("git status")
+        request.command.starts_with("git status")
     }
 
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
@@ -21,7 +21,7 @@ pub struct GitDiffStatHeuristic;
 
 impl Heuristic for GitDiffStatHeuristic {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
-        request.tool_output.tool.starts_with("git diff --stat")
+        request.command.starts_with("git diff --stat")
     }
 
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
@@ -34,7 +34,7 @@ pub struct GitLogHeuristic;
 
 impl Heuristic for GitLogHeuristic {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
-        request.tool_output.tool.starts_with("git log")
+        request.command.starts_with("git log")
     }
 
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
@@ -69,13 +69,14 @@ mod tests {
     use super::*;
     use crate::engine::{CompressionRequest, ToolOutput};
 
-    fn make_request(stdout: &str, tool: &str) -> CompressionRequest {
+    fn make_request(stdout: &str, command: &str) -> CompressionRequest {
         CompressionRequest {
+            command: command.into(),
             tool_output: ToolOutput {
-                tool: tool.into(),
                 stdout: stdout.into(),
                 stderr: String::new(),
-                exit_code: 0,
+                exit_code: Some(0),
+                interrupted: false,
             },
         }
     }
@@ -94,7 +95,6 @@ mod tests {
 
     #[test]
     fn git_log_long_truncates() {
-        // Construct > 200 lines
         let lines: Vec<String> = (0..250)
             .map(|i| format!("{:04x} fake commit message", i))
             .collect();
@@ -105,7 +105,6 @@ mod tests {
         let out = h.compress(&request);
         assert!(out.contains("[230 hidden]"), "hidden count wrong: {}", out);
         assert!(out.contains("0000 fake commit message"));
-        // 249 decimal = 0x00f9 in 4-digit hex
         assert!(
             out.contains("00f9 fake commit message"),
             "tail should contain line 249 (0x00f9)"

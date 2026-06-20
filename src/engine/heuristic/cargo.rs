@@ -6,11 +6,11 @@ pub struct CargoBuildHeuristic;
 
 impl Heuristic for CargoBuildHeuristic {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
-        request.tool_output.tool.starts_with("cargo build")
+        request.command.starts_with("cargo build")
     }
 
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
-        if request.tool_output.exit_code == 0 {
+        if request.tool_output.exit_code == Some(0) {
             compress_cargo_build_success(&request.tool_output.stdout)
         } else {
             compress_cargo_build_fail(&request.tool_output.stdout)
@@ -22,11 +22,11 @@ pub struct CargoTestHeuristic;
 
 impl Heuristic for CargoTestHeuristic {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
-        request.tool_output.tool.starts_with("cargo test")
+        request.command.starts_with("cargo test")
     }
 
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
-        if request.tool_output.exit_code == 0 {
+        if request.tool_output.exit_code == Some(0) {
             compress_cargo_test_success(&request.tool_output.stdout)
         } else {
             compress_cargo_test_fail(&request.tool_output.stdout)
@@ -127,13 +127,14 @@ mod tests {
     use super::*;
     use crate::engine::{CompressionRequest, ToolOutput};
 
-    fn make_request(stdout: &str, tool: &str, exit_code: i32) -> CompressionRequest {
+    fn make_request(stdout: &str, command: &str, exit_code: i32) -> CompressionRequest {
         CompressionRequest {
+            command: command.into(),
             tool_output: ToolOutput {
-                tool: tool.into(),
                 stdout: stdout.into(),
                 stderr: String::new(),
-                exit_code,
+                exit_code: Some(exit_code),
+                interrupted: false,
             },
         }
     }
@@ -225,7 +226,6 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
         let h = test_heuristic();
         assert!(h.detect(&request));
         let out = h.compress(&request);
-        // Should contain the failure trace and pass count summary
         assert!(
             out.contains("failing_test") || out.contains("assertion failed"),
             "output: {}",
@@ -235,7 +235,6 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
     #[test]
     fn cargo_build_fail_small_is_passthrough() {
-        // Under 400 lines → passthrough
         let stdout = "error: could not compile `foo` due to previous error";
         let out = compress_cargo_build_fail(stdout);
         assert_eq!(out, stdout);

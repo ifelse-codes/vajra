@@ -8,22 +8,22 @@ pub trait Heuristic: Send + Sync {
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String;
 }
 
-/// Dispatch the correct heuristic for a request based on `tool_output.tool`.
+/// Dispatch the correct heuristic for a request based on `command`.
 pub fn select_heuristic(request: &crate::engine::CompressionRequest) -> Box<dyn Heuristic> {
-    let tool = &request.tool_output.tool;
-    if tool.starts_with("cargo build") {
+    let cmd = &request.command;
+    if cmd.starts_with("cargo build") {
         Box::new(cargo::CargoBuildHeuristic)
-    } else if tool.starts_with("cargo test") {
+    } else if cmd.starts_with("cargo test") {
         Box::new(cargo::CargoTestHeuristic)
-    } else if tool.starts_with("git log") {
+    } else if cmd.starts_with("git log") {
         Box::new(git::GitLogHeuristic)
-    } else if tool.starts_with("git status") {
+    } else if cmd.starts_with("git status") {
         Box::new(git::GitStatusHeuristic)
-    } else if tool.starts_with("git diff --stat") {
+    } else if cmd.starts_with("git diff --stat") {
         Box::new(git::GitDiffStatHeuristic)
-    } else if tool.starts_with("npm test") || tool.starts_with("npm run test") {
+    } else if cmd.starts_with("npm test") || cmd.starts_with("npm run test") {
         Box::new(npm::NpmTestHeuristic)
-    } else if tool.starts_with("pytest") {
+    } else if cmd.starts_with("pytest") {
         Box::new(pytest::PytestHeuristic)
     } else {
         Box::new(GenericHeuristic)
@@ -73,11 +73,12 @@ mod tests {
     #[test]
     fn generic_under_cap_returns_as_is() {
         let request = crate::engine::CompressionRequest {
+            command: "echo hello".into(),
             tool_output: crate::engine::ToolOutput {
-                tool: "echo hello".into(),
                 stdout: "hello\nworld".into(),
                 stderr: "".into(),
-                exit_code: 0,
+                exit_code: Some(0),
+                interrupted: false,
             },
         };
         let h = GenericHeuristic;
@@ -90,11 +91,12 @@ mod tests {
         let lines: Vec<String> = (0..250).map(|i| format!("line {}", i)).collect();
         let stdout = lines.join("\n");
         let request = crate::engine::CompressionRequest {
+            command: "echo".into(),
             tool_output: crate::engine::ToolOutput {
-                tool: "echo".into(),
                 stdout,
                 stderr: "".into(),
-                exit_code: 0,
+                exit_code: Some(0),
+                interrupted: false,
             },
         };
         let h = GenericHeuristic;
