@@ -3,17 +3,21 @@ pub const FAIL_PASSTHROUGH_CAP: usize = 50;
 
 pub enum EngineDecision {
     Passthrough,
-    Compress { tool: String, output: String },
+    Compressed {
+        output: String,
+        lines_removed: usize,
+    },
 }
 
 pub struct ToolOutput {
-    pub tool: String,
     pub stdout: String,
     pub stderr: String,
-    pub exit_code: i32,
+    pub exit_code: Option<i32>,
+    pub interrupted: bool,
 }
 
 pub struct CompressionRequest {
+    pub command: String,
     pub tool_output: ToolOutput,
 }
 

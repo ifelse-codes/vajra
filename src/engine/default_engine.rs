@@ -6,26 +6,20 @@ pub struct DefaultEngine;
 
 impl Engine for DefaultEngine {
     fn decide(&self, request: &CompressionRequest) -> EngineDecision {
-        let tool = request.tool_output.tool.clone();
-        let stdout = request.tool_output.stdout.clone();
+        let original_lines = request.tool_output.stdout.lines().count();
         let heuristic = select_heuristic(request);
-        let compressed = match std::panic::catch_unwind(AssertUnwindSafe(|| {
-            let req = crate::engine::CompressionRequest {
-                tool_output: crate::engine::ToolOutput {
-                    tool: tool.clone(),
-                    stdout,
-                    stderr: request.tool_output.stderr.clone(),
-                    exit_code: request.tool_output.exit_code,
-                },
+        let compressed =
+            match std::panic::catch_unwind(AssertUnwindSafe(|| heuristic.compress(request))) {
+                Ok(result) => result,
+                Err(_) => return EngineDecision::Passthrough,
             };
-            heuristic.compress(&req)
-        })) {
-            Ok(result) => result,
-            Err(_) => return EngineDecision::Passthrough,
-        };
-        EngineDecision::Compress {
-            tool,
+        let lines_removed = original_lines.saturating_sub(compressed.lines().count());
+        if lines_removed == 0 {
+            return EngineDecision::Passthrough;
+        }
+        EngineDecision::Compressed {
             output: compressed,
+            lines_removed,
         }
     }
 }
