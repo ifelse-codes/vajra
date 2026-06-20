@@ -4,11 +4,12 @@ use vajractl::engine::{CompressionRequest, Engine, EngineDecision, StubEngine, T
 fn stub_returns_passthrough() {
     let engine = StubEngine;
     let request = CompressionRequest {
+        command: "echo".into(),
         tool_output: ToolOutput {
-            tool: "echo".into(),
             stdout: "hello".into(),
             stderr: "".into(),
-            exit_code: 0,
+            exit_code: Some(0),
+            interrupted: false,
         },
     };
     let decision = engine.decide(&request);

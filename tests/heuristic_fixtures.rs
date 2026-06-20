@@ -1,12 +1,13 @@
 use vajractl::engine::{CompressionRequest, DefaultEngine, Engine, EngineDecision, ToolOutput};
 
-fn make_request(tool: &str, stdout: &str) -> CompressionRequest {
+fn make_request(command: &str, stdout: &str) -> CompressionRequest {
     CompressionRequest {
+        command: command.into(),
         tool_output: ToolOutput {
-            tool: tool.into(),
             stdout: stdout.into(),
             stderr: "".into(),
-            exit_code: 0,
+            exit_code: Some(0),
+            interrupted: false,
         },
     }
 }
@@ -21,16 +22,21 @@ fn cargo_build_fixture_compresses() {
     let request = make_request("cargo build", stdout);
     let decision = engine.decide(&request);
     match decision {
-        EngineDecision::Compress { tool, output } => {
-            assert_eq!(tool, "cargo build");
-            // Should contain "Finished" and "crates compiled"
+        EngineDecision::Compressed {
+            output,
+            lines_removed,
+        } => {
+            assert!(
+                lines_removed > 0,
+                "expected compression, got same line count"
+            );
             assert!(
                 output.contains("Finished") || output.contains("crates"),
                 "expected Finished/crates, got: {}",
                 output
             );
         }
-        EngineDecision::Passthrough => panic!("expected Compress, got Passthrough"),
+        EngineDecision::Passthrough => panic!("expected Compressed, got Passthrough"),
     }
 }
 
@@ -44,8 +50,7 @@ fn cargo_test_fixture_drops_compile_noise() {
     let request = make_request("cargo test", stdout);
     let decision = engine.decide(&request);
     match decision {
-        EngineDecision::Compress { output, .. } => {
-            // Should contain test suite info (ok / passed / test result markers)
+        EngineDecision::Compressed { output, .. } => {
             assert!(
                 output.contains("test result")
                     || output.contains("passed")
@@ -53,14 +58,13 @@ fn cargo_test_fixture_drops_compile_noise() {
                 "expected test results, got: {}",
                 output
             );
-            // Compile noise should be dropped by CargoTestHeuristic
             assert!(
                 !output.contains("Compiling"),
                 "compile noise should be dropped, got: {}",
                 output
             );
         }
-        EngineDecision::Passthrough => panic!("expected Compress, got Passthrough"),
+        EngineDecision::Passthrough => panic!("expected Compressed, got Passthrough"),
     }
 }
 
@@ -73,16 +77,11 @@ fn git_log_fixture_passthrough() {
     ));
     let request = make_request("git log", stdout);
     let decision = engine.decide(&request);
-    match decision {
-        EngineDecision::Compress { output, .. } => {
-            // git-log.txt is 20 lines, under LINE_CAP=200, should pass through unchanged
-            assert_eq!(
-                output, stdout,
-                "git log output should passthrough unchanged"
-            );
-        }
-        EngineDecision::Passthrough => panic!("git log returned passthrough unexpectedly"),
-    }
+    // git-log.txt is 20 lines (< LINE_CAP=200) — no compression, expect Passthrough
+    assert!(
+        matches!(decision, EngineDecision::Passthrough),
+        "git log short output should passthrough"
+    );
 }
 
 #[test]
@@ -94,15 +93,10 @@ fn git_status_fixture_passthrough() {
     ));
     let request = make_request("git status", stdout);
     let decision = engine.decide(&request);
-    match decision {
-        EngineDecision::Compress { output, .. } => {
-            assert_eq!(
-                output, stdout,
-                "git status output should passthrough unchanged"
-            );
-        }
-        EngineDecision::Passthrough => panic!("git status returned passthrough unexpectedly"),
-    }
+    assert!(
+        matches!(decision, EngineDecision::Passthrough),
+        "git status should always passthrough"
+    );
 }
 
 #[test]
@@ -114,15 +108,10 @@ fn git_diff_stat_fixture_passthrough() {
     ));
     let request = make_request("git diff --stat", stdout);
     let decision = engine.decide(&request);
-    match decision {
-        EngineDecision::Compress { output, .. } => {
-            assert_eq!(
-                output, stdout,
-                "git diff --stat output should passthrough unchanged"
-            );
-        }
-        EngineDecision::Passthrough => panic!("git diff --stat returned passthrough unexpectedly"),
-    }
+    assert!(
+        matches!(decision, EngineDecision::Passthrough),
+        "git diff --stat should always passthrough"
+    );
 }
 
 #[test]
@@ -133,14 +122,14 @@ fn generic_over_cap_truncates() {
     let request = make_request("echo", &stdout);
     let decision = engine.decide(&request);
     match decision {
-        EngineDecision::Compress { output, .. } => {
+        EngineDecision::Compressed { output, .. } => {
             assert!(
                 output.contains("[230 hidden]"),
                 "expected truncation marker, got: {}",
                 output
             );
         }
-        EngineDecision::Passthrough => panic!("expected Compress, got Passthrough"),
+        EngineDecision::Passthrough => panic!("expected Compressed, got Passthrough"),
     }
 }
 
@@ -150,10 +139,8 @@ fn generic_under_cap_passthrough() {
     let stdout = "hello\nworld";
     let request = make_request("echo", stdout);
     let decision = engine.decide(&request);
-    match decision {
-        EngineDecision::Compress { output, .. } => {
-            assert_eq!(output, stdout, "output should passthrough unchanged");
-        }
-        EngineDecision::Passthrough => panic!("expected Compress, got Passthrough"),
-    }
+    assert!(
+        matches!(decision, EngineDecision::Passthrough),
+        "short output should passthrough"
+    );
 }
