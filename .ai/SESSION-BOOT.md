@@ -1,29 +1,29 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 02 — COMPLETE
-- **Type:** CODE — compression heuristics
-- **Branch:** `session-02-compression-heuristics`
-- **Date last updated:** 2026-06-18
+- **Number:** 03 — COMPLETE
+- **Type:** CODE — ClaudeCodeHookAdapter + wire types
+- **Branch:** `session-03-hook-adapter`
+- **Date last updated:** 2026-06-20
 
 ## Live URLs / Endpoints
 None.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 02.
-- `main`: baseline + session 00 closeout files.
-- `session-02-compression-heuristics`: compression heuristics implemented and verified.
+- `.ai/SESSION` = 03.
+- `main`: baseline + S00–S02 closeout files.
+- `session-03-hook-adapter`: adapter + wire types implemented and verified. PR pending (no remote).
 - Enforcement layers L2–L5 in place. L0/L1 deferred until remote + CI exist.
 
 ## Next Session
-- **Number:** 03
+- **Number:** 04
 - **Type:** CODE
-- **Story:** TBD — pick from A/B/C/D in `sessions/session-02-summary.md`
-- **Read prompt:** `sessions/session-02-summary.md` for options
-- **Branch:** `session-03-<slug>`
+- **Story:** CLI Launcher + `--settings` Injector
+- **Read prompt:** `prompts/04-task-launcher.md`
+- **Branch:** `session-04-launcher`
 
 ## Carry-Forwards
 - Activate git hooks per clone: `git config core.hooksPath .githooks`.
 - Set git user identity globally.
-- Add remote to enable L0 + L1.
-- Pick A/B/C/D and write `prompts/03-task-<slug>.md`.
+- Add remote to enable L0 + L1 (enables `gh pr create`).
+- Resolve `LINE_CAP` discrepancy: code has 200, ADR-0003 specifies 30 — fix in S04.

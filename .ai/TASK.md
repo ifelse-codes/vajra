@@ -2,13 +2,13 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 03 — Claude Code Hook Adapter + Wire Types
+## Session 04 — CLI Launcher + `--settings` Injector
 
-Read prompt: `prompts/03-task-hook-adapter.md`
+Read prompt: `prompts/04-task-launcher.md`
 
 ### Between Sessions
 
-Closeout complete. Start next session from `prompts/03-task-hook-adapter.md` in a new chat.
+Closeout complete. Start next session from `prompts/04-task-launcher.md` in a new chat.
 
 ## Always-True Reminders
 
