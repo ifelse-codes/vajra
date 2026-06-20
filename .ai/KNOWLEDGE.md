@@ -52,3 +52,39 @@ Rust, single static binary (vajractl), Apache-2.0 OSS
 - ADR-0002: Engine trait + enum return + single crate + no adapter trait in v1
 - ADR-0003: Tempfile settings merge + LINE_CAP=30 + FAIL_PASSTHROUGH_CAP=400
 - ADR-0004: On-exit receipt to stderr + sidecar env var + compiled-in pricing
+
+## 7. Engine + Adapter Type Shapes (S03 — permanent)
+
+```rust
+// EngineDecision — Compress renamed Compressed; carries lines_removed
+pub enum EngineDecision {
+    Passthrough,
+    Compressed { output: String, lines_removed: usize },
+}
+
+// ToolOutput — tool field removed; interrupted + Option<i32> added
+pub struct ToolOutput {
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: Option<i32>,
+    pub interrupted: bool,
+}
+
+// CompressionRequest — command is the shell command string (was tool_output.tool)
+pub struct CompressionRequest {
+    pub command: String,
+    pub tool_output: ToolOutput,
+}
+```
+
+- `DefaultEngine` returns `Passthrough` (not `Compressed`) when `lines_removed == 0`.
+- `ClaudeCodeHookAdapter` lives in `src/adapter/claude_code.rs`.
+- Hook wire types use `#[serde(rename_all = "camelCase")]` (CC JSON is camelCase).
+- Breadcrumb format: `[N lines hidden — set VAJRA_RAW=1 to disable]` (appended to stdout).
+
+## 8. Known Discrepancies / Deferred Issues
+
+- **LINE_CAP discrepancy:** code has `LINE_CAP = 200`; ADR-0003 §2.2 specifies `LINE_CAP = 30`.
+  The ADR value (30) is the validated split point from the real fixture corpus. Resolve in S04.
+- **FAIL_PASSTHROUGH_CAP discrepancy:** code has `FAIL_PASSTHROUGH_CAP = 50`; ADR-0003 §2.2 specifies 400.
+  Resolve in S04 alongside LINE_CAP.

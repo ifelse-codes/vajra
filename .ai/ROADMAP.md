@@ -6,11 +6,11 @@
 
 | Field | Value |
 |---|---|
-| Today | 2026-06-18 |
+| Today | 2026-06-20 |
 | Current phase | Phase 0 — Foundation |
-| Completed sessions | 2 |
-| Active session | Session 02 — Complete |
-| Next session | Session 03 — pending option selection |
+| Completed sessions | 3 |
+| Active session | Session 03 — Complete |
+| Next session | Session 04 — CLI Launcher + `--settings` Injector |
 
 ## Phase 0 — Foundation
 
@@ -20,9 +20,9 @@
 | Cargo project scaffold | Session 01 | [x] complete |
 | Engine trait + types + StubEngine | Session 01 | [x] complete |
 | Compression heuristics (cargo, git, pytest, npm, generic) | Session 02 | [x] complete |
-| DefaultEngine dispatch + pre-rules | Session 03 | [ ] planned |
-| ClaudeCodeHookAdapter + wire types | Session 03–04 | [ ] planned |
-| CLI hook + launcher | Session 04 | [ ] planned |
+| DefaultEngine dispatch + pre-rules | Session 03 | [x] complete |
+| ClaudeCodeHookAdapter + wire types | Session 03 | [x] complete |
+| CLI launcher + `--settings` injector | Session 04 | [ ] planned |
 | Meter / receipt | Session 04–05 | [ ] planned |
 | Bench fixtures + tripwire | Session 05 | [ ] planned |
 | Session 05 NO-CODE audit | Session 05 | [ ] planned |
@@ -48,16 +48,18 @@
 ## What Currently Works
 
 - Cargo project scaffold (`Cargo.toml`, `src/`, `tests/`)
-- `Engine` trait with `compress`/`decompress` interface
-- Core types: `CompressionAlgorithm`, `CompressionLevel`, `Strategy`
-- CLI skeleton with subcommands (`compress`, `decompress`, `benchmark`)
+- `Engine` trait with `decide()` interface
+- Core types: `CompressionRequest::command`, `ToolOutput` (interrupted, Option<i32>), `EngineDecision::Compressed { lines_removed }`
+- CLI skeleton with subcommands (`hook`, `launch`, `meter`)
 - G3 conformance test
 - Compression heuristics for cargo, git, pytest, npm, and generic workloads
-- DefaultEngine wired to heuristics with fail-open catch_unwind
+- DefaultEngine with fail-open catch_unwind; Passthrough when lines_removed == 0
+- ClaudeCodeHookAdapter: reads CC hook JSON, compresses, writes hookSpecificOutput or {}
+- hook CLI subcommand wired to real adapter
 
 ## Next Session
 
-Session 03: Pick compression option (A/B/C/D) from `sessions/session-02-summary.md`, then read `prompts/03-task-<slug>.md`.
+Session 04: CLI launcher + `--settings` injector. Read `prompts/04-task-launcher.md`.
 
 ## Rules For This Document
 
