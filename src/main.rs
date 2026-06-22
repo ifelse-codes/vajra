@@ -22,7 +22,10 @@ fn main() -> std::process::ExitCode {
 
     let exit_code = match sub {
         Subcommand::Hook => run_subcommand(cli::hook::run),
-        Subcommand::Launch => run_subcommand(cli::launch::run),
+        Subcommand::Launch => {
+            let launch_args: Vec<String> = args.into_iter().skip(2).collect();
+            run_launch_subcommand(&launch_args)
+        }
         Subcommand::Meter => run_subcommand(cli::meter::run),
     };
 
@@ -31,6 +34,16 @@ fn main() -> std::process::ExitCode {
 
 fn run_subcommand(f: fn() -> Result<()>) -> u8 {
     match f() {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("vajra error: {e}");
+            1
+        }
+    }
+}
+
+fn run_launch_subcommand(args: &[String]) -> u8 {
+    match cli::launch::run(args) {
         Ok(_) => 0,
         Err(e) => {
             eprintln!("vajra error: {e}");
