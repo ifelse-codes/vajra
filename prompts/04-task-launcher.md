@@ -11,6 +11,9 @@ After this session, `vajra launch <args>` is a drop-in replacement for `claude <
 ## Source of Truth
 ADR-0003 §2.1 (injector design) governs all decisions here. Read it before coding.
 
+Also read `research/HEADROOM-LESSONS.md` for wrapper UX and cache-safety lessons.
+It is learn-only: do not copy Headroom code, docs, names, claims, or dependencies.
+
 ## Deliverables
 
 ### 1. `src/launcher/mod.rs` (new module)

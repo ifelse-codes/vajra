@@ -26,6 +26,7 @@
 | Meter / receipt | Session 04–05 | [ ] planned |
 | Bench fixtures + tripwire | Session 05 | [ ] planned |
 | Session 05 NO-CODE audit | Session 05 | [ ] planned |
+| Headroom lessons integration | Session 04 docs | [x] complete |
 
 ## Phase 1 — v1 Ship
 
@@ -33,6 +34,7 @@
 |---|---|---|
 | Integration tests + end-to-end | Session 06–07 | [ ] planned |
 | Measurement harness (bench/) | Session 07–08 | [ ] planned |
+| Raw-output recovery design | Session 07–08 | [ ] planned |
 | Installer (`curl | bash`) | Session 08 | [ ] planned |
 | OSS release prep | Session 09–10 | [ ] planned |
 
@@ -44,6 +46,17 @@
 | Agent-trace format adoption | TBD | [ ] planned |
 | Git-native tamper-evident ledger | TBD | [ ] planned |
 | Policy engine | TBD | [ ] planned |
+| Governed memory + MCP audit/recovery surface | TBD | [ ] planned |
+
+## Research Inputs To Revisit
+
+| Input | Use When |
+|---|---|
+| `research/HEADROOM-LESSONS.md` | Launcher UX, raw recovery, benchmark harness, future memory/MCP/output-token policy decisions |
+| `research/COMPETITOR-TEARDOWN.md` | Governance/audit positioning and competitor differentiation |
+| `research/AGENT-TRACE-AND-AXONFLOW.md` | Agent-trace adoption, policy engine, ledger design |
+| `research/JSONL-RECON.md` | Meter and receipt implementation |
+| `research/compression-fixtures/SPEC.md` | Compression heuristic changes and regression tests |
 
 ## What Currently Works
 

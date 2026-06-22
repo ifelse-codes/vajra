@@ -27,7 +27,7 @@ scripts/         hook-*.sh, verify-session-NN.sh, verify-closeout.sh, init-sessi
 prompts/         Session input contracts (NN-task-<slug>.md)
 sessions/        Session output reports (session-NN-summary.md)
 docs/adr/        Architecture decision records
-research/        Competitor teardown, JSONL recon, compression fixtures
+research/        Competitor teardown, Headroom lessons, JSONL recon, compression fixtures
 AGENTS.md        Root pointer (Codex)
 CLAUDE.md        Root pointer (Claude Code)
 .cursorrules     Root pointer (Cursor)
@@ -45,6 +45,7 @@ Rust, single static binary (vajractl), Apache-2.0 OSS
 - docs/adr/0002-engine-trait-adapter-contract-module-layout.md
 - docs/adr/0003-settings-injector-and-compression-heuristics.md
 - docs/adr/0004-meter-receipt-design.md
+- research/HEADROOM-LESSONS.md (learn-only reference; no code/docs/names/claims copied)
 
 ## 6. Solved Problems / Decisions Made
 
@@ -52,6 +53,7 @@ Rust, single static binary (vajractl), Apache-2.0 OSS
 - ADR-0002: Engine trait + enum return + single crate + no adapter trait in v1
 - ADR-0003: Tempfile settings merge + LINE_CAP=30 + FAIL_PASSTHROUGH_CAP=400
 - ADR-0004: On-exit receipt to stderr + sidecar env var + compiled-in pricing
+- Headroom lesson: keep Vajra governance/audit-first; learn from reversible compression, wrapper UX, cache safety, benchmarks, memory/MCP, and output-token shaping without copying.
 
 ## 7. Engine + Adapter Type Shapes (S03 — permanent)
 

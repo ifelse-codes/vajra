@@ -105,3 +105,7 @@ backs the **lossless invariant test** (`VAJRA_RAW` recovers `raw` byte-for-byte)
 **Takeaway for the code phase:** the compression heuristics are a (mostly) solved problem with a
 working reference next door. The novel v1 work is the **delivery mechanism (CC PostToolUse hook,
 ADR-0001) + the honest meter + lossless-on-demand discipline**, not reinventing the folding logic.
+
+For future compression expansion, also read `research/HEADROOM-LESSONS.md`. Use it as a
+learn-only reference for reversible raw recovery, cache safety, benchmark discipline, and
+content routing. Do not copy Headroom code, naming, benchmark claims, or dependencies.

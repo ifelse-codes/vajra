@@ -40,6 +40,14 @@ Enterprise "secure the AI-generated code" plays — IDE-time guardrails, pre-com
 for human + AI code. Adjacent (security scanning), not cross-agent audit-ledger, but competing
 for the same "govern agent code" budget and narrative.
 
+### Headroom (`chopratejas/headroom`) — compression/context benchmark, not the moat
+| Aspect | Finding |
+|---|---|
+| What | Local context compression layer for agents: wrapper, proxy, library, MCP, memory, reversible retrieval, output shaping |
+| Why it matters | It crowds the "token/context savings wrapper" story and proves that broad compression is not enough for Vajra differentiation |
+| Vajra response | Learn from wrapper UX, reversible recovery, cache safety, benchmarks, memory/MCP, and output-token framing; do not copy code, docs, names, claims, or dependencies |
+| Source note | See `research/HEADROOM-LESSONS.md` before designing raw recovery, benchmark harness, memory/MCP, or output policy |
+
 ---
 
 ## 2. The attribution layer (this is the surprise)

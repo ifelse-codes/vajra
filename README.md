@@ -24,7 +24,7 @@ This repo uses an **agent-first session workflow** to stay disciplined across se
 | `VAJRA-MASTER.md` | Single source of truth: full brainstorm + locked decisions |
 | `DESIGN-BRIEF.html` | Visual design brief |
 | `docs/adr/0001-0004.md` | Architecture Decision Records |
-| `research/` | Competitor teardown, JSONL recon, compression fixtures |
+| `research/` | Competitor teardown, Headroom lessons, JSONL recon, compression fixtures |
 
 ## Quick Start (Agent Workflow)
 

@@ -1,7 +1,7 @@
 # Vajra — Master Brainstorm Document
 
 **The single source of truth. Consolidates the full brainstorm phase (vision + S1–S4 + process).**
-**Date:** 2026-06-14 (rev. 2026-06-15) · **Author:** Suman · **Status:** Design phase IN PROGRESS — Session 1 done → [ADR-0001](docs/adr/0001-compression-delivery-mechanism.md) ✅ Accepted. Brainstorm CLOSED.
+**Date:** 2026-06-14 (rev. 2026-06-15; Headroom lessons added 2026-06-22) · **Author:** Suman · **Status:** Design phase IN PROGRESS — Session 1 done → [ADR-0001](docs/adr/0001-compression-delivery-mechanism.md) ✅ Accepted. Brainstorm CLOSED.
 
 > **Vajra is the vendor-neutral control plane for agent-written code: it audits and governs
 > what your coding agent does — and makes it cheaper on the way in.** Open-source. Works over
@@ -175,6 +175,13 @@ agent-written code. (This thesis was vindicated by the S3 economics.)
 | **Cross-cutting** | **Never compress small failing output (exit≠0 AND <~400 lines)** — agent is mid-debug. Fail-open if unsure. |
 
 **Reference impl + test corpus (study, DON'T copy — Vajra is greenfield):** the abandoned `akrti` repo already implements these exact heuristics with passing tests — `akrti/src/hooks/{cargo,git,pytest,npm,docker,generic}.rs` + `src/ctx/compress.rs`. ⚠ **`akrti/src/proxy/optimizer.rs` is the cache footgun** — the dedup / orphan-strip logic D2 (§5) says to delete; study what NOT to carry forward. A real captured corpus (6 commands, raw→ideal) lives in `research/compression-fixtures/` (e.g. `cargo build` 181→1 line; `cargo test` 86→3; passthrough gates proven on small `git status`/`diff`). **Net:** the folding heuristics are a near-solved problem with a working reference next door; the *novel* v1 work is the delivery hook (ADR-0001) + honest meter + lossless-on-demand discipline.
+
+**Headroom learning note (2026-06-22):** `research/HEADROOM-LESSONS.md` is now a mandatory
+learn-only reference before changing wrapper UX, raw recovery, benchmark methodology,
+memory/MCP surfaces, or output-token policy. The boundary is explicit: learn design lessons,
+do not copy code, docs, names, benchmark claims, or dependencies. The key implication is that
+Vajra must not become "another compression platform"; compression remains the wedge, while
+governance/audit/cost control remains the product identity.
 
 ### 6.3 The kill-or-confirm experiment
 Fixed noisy-failing test repo; agent must diagnose + fix. Same task **×5 per arm**, interleaved,
@@ -386,6 +393,7 @@ ADR-0002 locked: `Engine` trait (`process()` → `EngineDecision` enum), `Claude
 **Remaining recommended order:**
 - ✅ DS3 — `--settings` injector + compression heuristics → [ADR-0003](docs/adr/0003-settings-injector-and-compression-heuristics.md) (2026-06-16). Decided: tempfile + `spawn()+wait()`, merge algorithm (global+project+local hooks → dedup on `"vajractl"` substring → append Vajra entry), G9 schema validation, LINE_CAP=30, FAIL_PASSTHROUGH_CAP=400, per-tool heuristic contracts (cargo/git/pytest/npm/docker/generic), breadcrumb as header line, `git diff` content always passthrough.
 - ✅ DS4 — meter/receipt → [ADR-0004](docs/adr/0004-meter-receipt-design.md) (2026-06-16). Decided: on-exit receipt to stderr (after `child.wait()`), session JSONL discovered by modified-time after `session_start`, `VAJRA_SESSION_STATS` sidecar env var for compression stats (first token + lines_in/out, no content), pricing compiled-in via `include_str!`, compact 3-row receipt by default (`VAJRA_VERBOSE=1` for breakdown), warn+estimate on schema drift (not hard error), G10 (cwd-slug conformance test), G11 (tripwire release gate), G12 (no content in sidecar).
+- Research note — Headroom lessons → [research/HEADROOM-LESSONS.md](research/HEADROOM-LESSONS.md) (2026-06-22). Decided: learn only, do not copy. Feed raw-output recovery, wrapper UX, cache safety, benchmark, governed-memory, MCP, and output-policy design.
 - DS5 — measurement harness (`bench/`, Python, offline benchmark protocol from §7.5). **Design phase is COMPLETE after DS4 — DS5 may proceed straight to implementation of the Python harness since §7.5 specifies it fully.**
 - (v2) governance/audit data model + the cross-agent shim rail.
 
