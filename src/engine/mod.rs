@@ -1,5 +1,5 @@
-pub const LINE_CAP: usize = 200;
-pub const FAIL_PASSTHROUGH_CAP: usize = 50;
+pub const LINE_CAP: usize = 30;
+pub const FAIL_PASSTHROUGH_CAP: usize = 400;
 
 pub enum EngineDecision {
     Passthrough,
