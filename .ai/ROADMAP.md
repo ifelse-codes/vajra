@@ -1,82 +1,67 @@
 # Vajra — Working Roadmap
 
-**Agent-facing backlog. Updated at every closeout.**
+**Updated:** 2026-06-24 · Session 04 closeout prepared.
+
+**Founder direction update:** the north star is `vajra next` as the cross-agent workflow coach. The current repo is a working foundation: Claude compression rail + honest meter + `.ai` handoff packet.
 
 ## Where We Are
 
 | Field | Value |
 |---|---|
-| Today | 2026-06-20 |
+| Today | 2026-06-24 |
 | Current phase | Phase 0 — Foundation |
-| Completed sessions | 3 |
-| Active session | Session 03 — Complete |
-| Next session | Session 04 — CLI Launcher + `--settings` Injector |
+| Last closed session | Session 04 — launcher + `vajra claude` + `vajra next` packet |
+| Active session | none (between sessions) |
+| Next session | Session 05 — mandatory Ground Truth audit |
+| Crate | package `vajractl` · binary `vajra` |
 
-## Phase 0 — Foundation
+## v1 — Compression + Honest Metering
 
-| Workstream | Target session(s) | Status |
-|---|---|---|
-| Agent protocol bootstrap | Session 00 | [x] complete |
-| Cargo project scaffold | Session 01 | [x] complete |
-| Engine trait + types + StubEngine | Session 01 | [x] complete |
-| Compression heuristics (cargo, git, pytest, npm, generic) | Session 02 | [x] complete |
-| DefaultEngine dispatch + pre-rules | Session 03 | [x] complete |
-| ClaudeCodeHookAdapter + wire types | Session 03 | [x] complete |
-| CLI launcher + `--settings` injector | Session 04 | [ ] planned |
-| Meter / receipt | Session 04–05 | [ ] planned |
-| Bench fixtures + tripwire | Session 05 | [ ] planned |
-| Session 05 NO-CODE audit | Session 05 | [ ] planned |
-| Headroom lessons integration | Session 04 docs | [x] complete |
+**One sentence:** `vajra claude` compresses successful Bash output before the model sees it — and shows an honest receipt.
 
-## Phase 1 — v1 Ship
-
-| Workstream | Target session(s) | Status |
-|---|---|---|
-| Integration tests + end-to-end | Session 06–07 | [ ] planned |
-| Measurement harness (bench/) | Session 07–08 | [ ] planned |
-| Raw-output recovery design | Session 07–08 | [ ] planned |
-| Installer (`curl | bash`) | Session 08 | [ ] planned |
-| OSS release prep | Session 09–10 | [ ] planned |
-
-## Phase 2 — Governance / Audit Ledger (v2+)
-
-| Workstream | Target session(s) | Status |
-|---|---|---|
-| Cross-agent shim rail | TBD | [ ] planned |
-| Agent-trace format adoption | TBD | [ ] planned |
-| Git-native tamper-evident ledger | TBD | [ ] planned |
-| Policy engine | TBD | [ ] planned |
-| Governed memory + MCP audit/recovery surface | TBD | [ ] planned |
-
-## Research Inputs To Revisit
-
-| Input | Use When |
+| Component | Status |
 |---|---|
-| `research/HEADROOM-LESSONS.md` | Launcher UX, raw recovery, benchmark harness, future memory/MCP/output-token policy decisions |
-| `research/COMPETITOR-TEARDOWN.md` | Governance/audit positioning and competitor differentiation |
-| `research/AGENT-TRACE-AND-AXONFLOW.md` | Agent-trace adoption, policy engine, ledger design |
-| `research/JSONL-RECON.md` | Meter and receipt implementation |
-| `research/compression-fixtures/SPEC.md` | Compression heuristic changes and regression tests |
+| Engine trait + heuristics | [x] done |
+| Claude Code hook adapter | [x] done |
+| Launcher + settings injector | [x] done |
+| `vajra claude` alias | [x] done |
+| Meter + receipt | [x] done |
+| `vajra next` handoff packet | [x] done |
+| README + product honesty pass | [x] done |
 
-## What Currently Works
+## Remaining Work Before a Real v1 Ship
 
-- Cargo project scaffold (`Cargo.toml`, `src/`, `tests/`)
-- `Engine` trait with `decide()` interface
-- Core types: `CompressionRequest::command`, `ToolOutput` (interrupted, Option<i32>), `EngineDecision::Compressed { lines_removed }`
-- CLI skeleton with subcommands (`hook`, `launch`, `meter`)
-- G3 conformance test
-- Compression heuristics for cargo, git, pytest, npm, and generic workloads
-- DefaultEngine with fail-open catch_unwind; Passthrough when lines_removed == 0
-- ClaudeCodeHookAdapter: reads CC hook JSON, compresses, writes hookSpecificOutput or {}
-- hook CLI subcommand wired to real adapter
+| Item | Blocking? |
+|---|---|
+| Installer (`cargo install` path + optional one-line installer) | Yes |
+| Live user-run `vajra claude` smoke test on a real Claude Code session | Yes |
+| Verify `claude --settings` additive behavior empirically | Yes |
+| Session 05 Ground Truth audit | Yes |
+| Release packaging / first tagged cut | Yes |
 
-## Next Session
+## Session 05 — Ground Truth (Mandatory NO-CODE)
 
-Session 04: CLI launcher + `--settings` injector. Read `prompts/04-task-launcher.md`.
+| Option | Goal | Why pick this | Status |
+|---|---|---|---|
+| A | Audit `vajra claude` + `vajra next` for ship-readiness gaps | Most direct path to the founder's stated make-or-break flow | [ ] pending user pick |
+| B | Audit installer / release readiness | Best if the next code session should target first usable distribution | [ ] pending user pick |
+| C | Audit cross-agent workflow gaps vs. `VISION.md` | Best if the next code session should pivot harder toward the coach product | [ ] pending user pick |
+
+## v2 — Audit Ledger (earns its way in)
+
+- Repo-native provenance that travels with git.
+- Adopt/emit agent-trace where useful.
+- Bundle honest meter + governance once the ledger exists for real.
+
+## v3+ — Parked Honestly
+
+- Multi-agent launchers (Codex, Cursor, Aider, Kimi)
+- Policy enforcement
+- Governed memory
+- MCP retrieval/audit tools
 
 ## Rules For This Document
 
 1. Update at every closeout.
-2. Session numbers aspirational, not contracts.
-3. NO-CODE audit sessions at 05, 10, 15, 20, 25.
-4. New workstreams emerging mid-flight — add here with a discussion note.
+2. NO-CODE audit sessions at 05, 10, 15, 20, 25.
+3. New workstreams emerging mid-flight — add here with a discussion note.

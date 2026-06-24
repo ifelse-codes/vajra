@@ -15,7 +15,8 @@
 ## 2. Product Identity
 
 - **Name:** Vajra
-- **Positioning:** The vendor-neutral control plane for AI-written code: it audits and governs what your coding agent does — and makes it cheaper on the way in.
+- **Positioning:** CLI coach for AI coding agents. North star: guide workflow, memory, and discipline with `vajra next`.
+- **Implemented slices today:** `vajra claude` (Claude launch/compression/receipt) + `vajra next` (prints `.ai/` handoff packet + `VISION.md`).
 
 ## 3. Repo Layout (Agent Workflow)
 
@@ -35,11 +36,12 @@ CLAUDE.md        Root pointer (Claude Code)
 
 ## 4. Planned Tech Stack
 
-Rust, single static binary (vajractl), Apache-2.0 OSS
+Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
 
 ## 5. Source Documents
 
-- VAJRA-MASTER.md (single source of truth)
+- VISION.md (target product vision)
+- VAJRA-MASTER.md (single source of truth for the original compression-first thesis)
 - DESIGN-BRIEF.html (visual design brief)
 - docs/adr/0001-compression-delivery-mechanism.md
 - docs/adr/0002-engine-trait-adapter-contract-module-layout.md
@@ -53,6 +55,9 @@ Rust, single static binary (vajractl), Apache-2.0 OSS
 - ADR-0002: Engine trait + enum return + single crate + no adapter trait in v1
 - ADR-0003: Tempfile settings merge + LINE_CAP=30 + FAIL_PASSTHROUGH_CAP=400
 - ADR-0004: On-exit receipt to stderr + sidecar env var + compiled-in pricing
+- 2026-06-24 founder direction: `vajra next` + cross-agent workflow coach is the north star; current repo is a partial foundation, not the finished product.
+- Session 04 delivered `vajra claude` as the main Claude launcher alias and `vajra next` as the first agent-agnostic handoff packet command.
+- Launcher injection now resolves the current executable path instead of assuming `vajractl hook` is globally available.
 - Headroom lesson: keep Vajra governance/audit-first; learn from reversible compression, wrapper UX, cache safety, benchmarks, memory/MCP, and output-token shaping without copying.
 
 ## 7. Engine + Adapter Type Shapes (S03 — permanent)
@@ -84,9 +89,8 @@ pub struct CompressionRequest {
 - Hook wire types use `#[serde(rename_all = "camelCase")]` (CC JSON is camelCase).
 - Breadcrumb format: `[N lines hidden — set VAJRA_RAW=1 to disable]` (appended to stdout).
 
-## 8. Known Discrepancies / Deferred Issues
+## 8. Known Limitations
 
-- **LINE_CAP discrepancy:** code has `LINE_CAP = 200`; ADR-0003 §2.2 specifies `LINE_CAP = 30`.
-  The ADR value (30) is the validated split point from the real fixture corpus. Resolve in S04.
-- **FAIL_PASSTHROUGH_CAP discrepancy:** code has `FAIL_PASSTHROUGH_CAP = 50`; ADR-0003 §2.2 specifies 400.
-  Resolve in S04 alongside LINE_CAP.
+- **stderr-on-exit-0:** `cargo build` with warnings (exit 0) compresses stdout, folding individual warning details. stderr summary ("N warnings emitted") is preserved. Agent may need to re-run to see warning specifics.
+- **Savings estimate:** receipt uses ~12 tokens/line to estimate saved tokens. Rough, labeled as estimate.
+- **Pricing compiled-in:** binary update needed when Anthropic changes pricing. Stale pricing shows slightly wrong numbers but the receipt's `[estimated]` marker flags schema drift.
