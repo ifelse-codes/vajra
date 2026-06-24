@@ -10,6 +10,7 @@
 | OS | macOS |
 | Shell | /bin/zsh |
 | Git | initialized 2026-06-17 |
+| Claude CLI | `/opt/homebrew/bin/claude` present as of 2026-06-24 |
 | Owner | Suman — suman@sumanairbook.local |
 
 ## 2. Product Identity

@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-24 · Session 04 closeout prepared.
+**Updated:** 2026-06-24 · Session 05 Ground Truth closed; Session 06 prepared.
 
 **Founder direction update:** the north star is `vajra next` as the cross-agent workflow coach. The current repo is a working foundation: Claude compression rail + honest meter + `.ai` handoff packet.
 
@@ -10,14 +10,12 @@
 |---|---|
 | Today | 2026-06-24 |
 | Current phase | Phase 0 — Foundation |
-| Last closed session | Session 04 — launcher + `vajra claude` + `vajra next` packet |
+| Last closed session | Session 05 — Ground Truth ship-readiness audit |
 | Active session | none (between sessions) |
-| Next session | Session 05 — mandatory Ground Truth audit |
+| Next session | Session 06 — real `vajra claude` proof |
 | Crate | package `vajractl` · binary `vajra` |
 
-## v1 — Compression + Honest Metering
-
-**One sentence:** `vajra claude` compresses successful Bash output before the model sees it — and shows an honest receipt.
+## Current Working Slice
 
 | Component | Status |
 |---|---|
@@ -29,23 +27,22 @@
 | `vajra next` handoff packet | [x] done |
 | README + product honesty pass | [x] done |
 
-## Remaining Work Before a Real v1 Ship
+## Session 05 Audit Findings
 
-| Item | Blocking? |
+| Finding | Severity |
 |---|---|
-| Installer (`cargo install` path + optional one-line installer) | Yes |
-| Live user-run `vajra claude` smoke test on a real Claude Code session | Yes |
-| Verify `claude --settings` additive behavior empirically | Yes |
-| Session 05 Ground Truth audit | Yes |
-| Release packaging / first tagged cut | Yes |
+| `vajra claude` works locally, but additive `--settings` behavior still lacks real-session proof | Blocker |
+| No installer / release path exists | Blocker |
+| `vajra next` prints a large packet (`610` lines) and does not advance the loop | Blocker for founder story |
+| README still has a few legacy `vajra launch` references | Minor |
 
-## Session 05 — Ground Truth (Mandatory NO-CODE)
+## Session 06 Plan
 
 | Option | Goal | Why pick this | Status |
 |---|---|---|---|
-| A | Audit `vajra claude` + `vajra next` for ship-readiness gaps | Most direct path to the founder's stated make-or-break flow | [ ] pending user pick |
-| B | Audit installer / release readiness | Best if the next code session should target first usable distribution | [ ] pending user pick |
-| C | Audit cross-agent workflow gaps vs. `VISION.md` | Best if the next code session should pivot harder toward the coach product | [ ] pending user pick |
+| A | Prove `vajra claude` in a real session and verify additive behavior | Fastest path to current-slice ship-readiness | [x] selected |
+| B | Build the installer / release path | Needed before sharing beyond this machine | [ ] deferred |
+| C | Make `vajra next` actually advance the workflow | Closest move toward the founder vision | [ ] deferred |
 
 ## v2 — Audit Ledger (earns its way in)
 
