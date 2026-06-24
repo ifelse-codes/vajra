@@ -6,9 +6,11 @@
 
 ## What This Repo Is
 
-Vajra is the vendor-neutral control plane for AI-written code: it audits and governs what your coding agent does — and makes it cheaper on the way in.
+Vajra is a CLI coach for AI coding agents: it guides the workflow, hands the agent the right context, and keeps work moving in order with one command, `vajra next`.
 
-**Stack:** Rust, single static binary (vajractl), Apache-2.0 OSS
+**Today in code:** `vajra claude` launches Claude Code with Vajra's hook/receipt rail; `vajra next` prints the `.ai/` handoff packet plus `VISION.md` for any agent.
+**Target vision:** `VISION.md`
+**Stack:** Rust, single static binary (`vajra`; package `vajractl`), Apache-2.0 OSS
 **Owner:** Suman — suman@sumanairbook.local
 **Team:** Solo
 
