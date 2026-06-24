@@ -4,14 +4,13 @@
 Session 04 is complete. Session 05 is mandatory NO-CODE because `05 % 5 == 0`.
 
 ## Goal
-Audit the repo's real state against the session files, product claims, and founder vision before any more code work happens.
+Audit the repo's real state against the session files, product claims, and founder vision, with ship-readiness for `vajra claude` + `vajra next` as the primary focus.
 
-## User Focus Pick
-Choose one emphasis at session start:
+## Selected Focus
 
-- **Option A (recommended):** ship-readiness audit for `vajra claude` + `vajra next`
-- **Option B:** installer / release-readiness audit
-- **Option C:** cross-agent workflow gap map against `VISION.md`
+- **Chosen by user:** Option A
+- **Audit emphasis:** ship-readiness for `vajra claude` + `vajra next`
+- **Why this matters:** this is the closest check against the founder's make-or-break flow
 
 ## Deliverables
 - `sessions/session-05-ground-truth.md`
