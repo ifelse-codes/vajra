@@ -7,17 +7,21 @@ enum Subcommand {
     Hook,
     Launch,
     Meter,
+    Next,
+    Help,
 }
 
 fn main() -> std::process::ExitCode {
     let args: Vec<String> = args().collect();
-    let subcommand = args.get(1).map(|s| s.as_str()).unwrap_or("hook");
+    let subcommand = args.get(1).map(|s| s.as_str()).unwrap_or("help");
 
     let sub = match subcommand {
         "hook" => Subcommand::Hook,
-        "launch" => Subcommand::Launch,
+        "launch" | "claude" => Subcommand::Launch,
         "meter" => Subcommand::Meter,
-        _ => Subcommand::Hook,
+        "next" => Subcommand::Next,
+        "help" | "--help" | "-h" => Subcommand::Help,
+        _ => Subcommand::Help,
     };
 
     let exit_code = match sub {
@@ -27,6 +31,11 @@ fn main() -> std::process::ExitCode {
             run_launch_subcommand(&launch_args)
         }
         Subcommand::Meter => run_subcommand(cli::meter::run),
+        Subcommand::Next => run_subcommand(cli::next::run),
+        Subcommand::Help => {
+            print_usage();
+            0
+        }
     };
 
     std::process::ExitCode::from(exit_code)
@@ -50,4 +59,13 @@ fn run_launch_subcommand(args: &[String]) -> u8 {
             1
         }
     }
+}
+
+fn print_usage() {
+    eprintln!("vajra <claude|next|hook|meter>");
+    eprintln!("  claude [args...]  Launch Claude Code with Vajra hook injection");
+    eprintln!("  next              Print the current agent handoff packet from .ai/");
+    eprintln!("  hook              Claude Code PostToolUse hook entrypoint");
+    eprintln!("  meter <jsonl>     Print a receipt for a past Claude Code session");
+    eprintln!("  launch            Legacy alias for 'claude'");
 }
