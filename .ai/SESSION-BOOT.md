@@ -11,8 +11,8 @@ None.
 
 ## Repo State Snapshot
 - `.ai/SESSION` = 04.
-- `main`: ready for local merge with Session 04 closeout bundle.
-- `session-04-launcher`: validated and ready to merge locally.
+- `main`: includes the Session 04 closeout bundle after local fast-forward merge.
+- `session-04-launcher`: merged locally into `main` and retained for history.
 - Enforcement layers L2–L5 in place. L0/L1 deferred until remote + CI exist.
 
 ## Next Session
