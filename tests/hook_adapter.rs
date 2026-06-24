@@ -75,7 +75,7 @@ fn compression_bash_cargo_build_produces_updated_output() {
         updated_stdout
     );
     assert!(
-        updated_stdout.contains("lines hidden"),
+        updated_stdout.contains("lines folded"),
         "breadcrumb must be present, got: {}",
         updated_stdout
     );

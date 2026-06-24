@@ -1,2 +1,2 @@
 pub mod claude_code;
-pub use claude_code::ClaudeCodeHookAdapter;
+pub use claude_code::{ClaudeCodeHookAdapter, CompressionResult};
