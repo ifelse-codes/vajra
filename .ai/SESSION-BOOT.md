@@ -1,29 +1,28 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 03 — COMPLETE
-- **Type:** CODE — ClaudeCodeHookAdapter + wire types
-- **Branch:** `session-03-hook-adapter`
-- **Date last updated:** 2026-06-20
+- **Number:** 04 — COMPLETE
+- **Type:** CODE — launcher, `vajra claude`, and `vajra next`
+- **Branch:** `session-04-launcher`
+- **Date last updated:** 2026-06-24
 
 ## Live URLs / Endpoints
 None.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 03.
-- `main`: baseline + S00–S02 closeout files.
-- `session-03-hook-adapter`: adapter + wire types implemented and verified. PR pending (no remote).
+- `.ai/SESSION` = 04.
+- `main`: ready for local merge with Session 04 closeout bundle.
+- `session-04-launcher`: validated and ready to merge locally.
 - Enforcement layers L2–L5 in place. L0/L1 deferred until remote + CI exist.
 
 ## Next Session
-- **Number:** 04
-- **Type:** CODE
-- **Story:** CLI Launcher + `--settings` Injector
-- **Read prompt:** `prompts/04-task-launcher.md`
-- **Branch:** `session-04-launcher`
+- **Number:** 05
+- **Type:** GROUND TRUTH — NO-CODE
+- **Story:** Mandatory audit session. Focus pending user pick from `sessions/session-04-summary.md` options A/B/C.
+- **Read prompt:** `prompts/05-task-ground-truth.md`
+- **Branch:** `session-05-ground-truth` (when started)
 
 ## Carry-Forwards
-- Activate git hooks per clone: `git config core.hooksPath .githooks`.
-- Set git user identity globally.
-- Add remote to enable L0 + L1 (enables `gh pr create`).
-- Resolve `LINE_CAP` discrepancy: code has 200, ADR-0003 specifies 30 — fix in S04.
+- Add a remote to enable L0 + L1 and real PR flow.
+- Verify `claude --settings` additive behavior in a live Claude Code run.
+- Decide whether Session 06 should prioritize installer/release flow or deeper cross-agent workflow work.
