@@ -39,10 +39,13 @@ fn post_tool_use(hooks: &Value) -> &[Value] {
         .expect("PostToolUse must be an array")
 }
 
-fn count_vajractl(entries: &[Value]) -> usize {
+fn count_vajra_hooks(entries: &[Value]) -> usize {
     entries
         .iter()
-        .filter(|entry| entry.to_string().contains("vajractl"))
+        .filter(|entry| {
+            let text = entry.to_string();
+            text.contains("hook") && (text.contains("vajra") || text.contains("vajractl"))
+        })
         .count()
 }
 
@@ -51,11 +54,11 @@ fn merge_skips_injection_if_vajractl_present() {
     let root = make_project("dedup");
     write_settings(&root, ".claude/settings.json", "vajractl");
 
-    let hooks = merge_hook_settings_for(&root, None).unwrap();
+    let hooks = merge_hook_settings_for(&root, None, "vajra hook").unwrap();
     let entries = post_tool_use(&hooks);
 
     assert_eq!(entries.len(), 1);
-    assert_eq!(count_vajractl(entries), 1);
+    assert_eq!(count_vajra_hooks(entries), 1);
 
     fs::remove_dir_all(root).unwrap();
 }
@@ -65,12 +68,12 @@ fn merge_injects_entry_when_absent() {
     let root = make_project("inject");
     write_settings(&root, ".claude/settings.json", "clean");
 
-    let hooks = merge_hook_settings_for(&root, None).unwrap();
+    let hooks = merge_hook_settings_for(&root, None, "vajra hook").unwrap();
     let entries = post_tool_use(&hooks);
 
     assert_eq!(entries.len(), 1);
     assert_eq!(entries[0]["matcher"], "Bash");
-    assert_eq!(entries[0]["hooks"][0]["command"], "vajractl hook");
+    assert_eq!(entries[0]["hooks"][0]["command"], "vajra hook");
 
     fs::remove_dir_all(root).unwrap();
 }
@@ -80,11 +83,11 @@ fn merge_warns_and_skips_malformed_post_tool_use() {
     let root = make_project("bad-post-tool-use");
     write_settings(&root, ".claude/settings.json", "bad_post_tool_use");
 
-    let hooks = merge_hook_settings_for(&root, None).unwrap();
+    let hooks = merge_hook_settings_for(&root, None, "vajra hook").unwrap();
     let entries = post_tool_use(&hooks);
 
     assert_eq!(entries.len(), 1);
-    assert_eq!(entries[0]["hooks"][0]["command"], "vajractl hook");
+    assert_eq!(entries[0]["hooks"][0]["command"], "vajra hook");
 
     fs::remove_dir_all(root).unwrap();
 }
@@ -112,11 +115,11 @@ fn merge_reads_global_and_project() {
     write_settings(&home, ".claude/settings.json", "bash");
     write_settings(&root, ".claude/settings.json", "bash");
 
-    let hooks = merge_hook_settings_for(&root, Some(&home)).unwrap();
+    let hooks = merge_hook_settings_for(&root, Some(&home), "vajra hook").unwrap();
     let entries = post_tool_use(&hooks);
 
     assert_eq!(entries.len(), 3);
-    assert_eq!(count_vajractl(entries), 1);
+    assert_eq!(count_vajra_hooks(entries), 1);
 
     fs::remove_dir_all(home).unwrap();
     fs::remove_dir_all(root).unwrap();

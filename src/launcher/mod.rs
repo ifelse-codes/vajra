@@ -36,10 +36,15 @@ impl Drop for TempSettings {
 pub fn merge_hook_settings() -> Result<Value> {
     let cwd = env::current_dir().context("failed to read current directory")?;
     let home = env::var_os("HOME").map(PathBuf::from);
-    merge_hook_settings_for(&cwd, home.as_deref())
+    let hook_command = current_hook_command()?;
+    merge_hook_settings_for(&cwd, home.as_deref(), &hook_command)
 }
 
-pub fn merge_hook_settings_for(cwd: &Path, home: Option<&Path>) -> Result<Value> {
+pub fn merge_hook_settings_for(
+    cwd: &Path,
+    home: Option<&Path>,
+    hook_command: &str,
+) -> Result<Value> {
     let mut entries = Vec::new();
 
     if let Some(home) = home {
@@ -54,7 +59,7 @@ pub fn merge_hook_settings_for(cwd: &Path, home: Option<&Path>) -> Result<Value>
     );
 
     if !has_vajra_hook(&entries) {
-        entries.push(vajra_hook_entry());
+        entries.push(vajra_hook_entry(hook_command));
     }
 
     Ok(json!({ "PostToolUse": entries }))
@@ -65,6 +70,23 @@ pub fn command_exists(command: &str) -> bool {
         return false;
     };
     env::split_paths(&paths).any(|dir| dir.join(command).is_file())
+}
+
+fn current_hook_command() -> Result<String> {
+    let exe = env::current_exe().context("failed to resolve current executable path")?;
+    Ok(format!("{} hook", shell_quote(&exe)))
+}
+
+fn shell_quote(path: &Path) -> String {
+    let raw = path.to_string_lossy();
+    if raw
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '/' | '.' | '_' | '-'))
+    {
+        raw.into_owned()
+    } else {
+        format!("'{}'", raw.replace('\'', "'\\''"))
+    }
 }
 
 fn append_post_tool_use(path: &Path, entries: &mut Vec<Value>) {
@@ -108,27 +130,28 @@ fn find_project_root(cwd: &Path) -> PathBuf {
 }
 
 fn has_vajra_hook(entries: &[Value]) -> bool {
-    entries.iter().any(value_contains_vajractl_command)
+    entries.iter().any(value_contains_vajra_command)
 }
 
-fn value_contains_vajractl_command(value: &Value) -> bool {
+fn value_contains_vajra_command(value: &Value) -> bool {
     match value {
         Value::Object(map) => map.iter().any(|(key, value)| {
             (key == "command"
-                && value
-                    .as_str()
-                    .is_some_and(|command| command.contains("vajractl")))
-                || value_contains_vajractl_command(value)
+                && value.as_str().is_some_and(|command| {
+                    command.contains("hook")
+                        && (command.contains("vajra") || command.contains("vajractl"))
+                }))
+                || value_contains_vajra_command(value)
         }),
-        Value::Array(values) => values.iter().any(value_contains_vajractl_command),
+        Value::Array(values) => values.iter().any(value_contains_vajra_command),
         _ => false,
     }
 }
 
-fn vajra_hook_entry() -> Value {
+fn vajra_hook_entry(command: &str) -> Value {
     json!({
         "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": "vajractl hook" }]
+        "hooks": [{ "type": "command", "command": command }]
     })
 }
 
