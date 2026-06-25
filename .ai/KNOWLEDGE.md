@@ -49,6 +49,8 @@ Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
 - docs/adr/0003-settings-injector-and-compression-heuristics.md
 - docs/adr/0004-meter-receipt-design.md
 - research/HEADROOM-LESSONS.md (learn-only reference; no code/docs/names/claims copied)
+- research/COMPETITIVE-LEARNINGS.md (GSD/SuperClaude/Loop teardown — what to steal, what to avoid, expert panel consensus on build order)
+- research/COMPETITOR-TEARDOWN.md (AxonFlow + agent-trace spec analysis)
 
 ## 6. Solved Problems / Decisions Made
 
@@ -59,6 +61,7 @@ Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
 - 2026-06-24 founder direction: `vajra next` + cross-agent workflow coach is the north star; current repo is a partial foundation, not the finished product.
 - Session 04 delivered `vajra claude` as the main Claude launcher alias and `vajra next` as the first agent-agnostic handoff packet command.
 - Launcher injection now resolves the current executable path instead of assuming `vajractl hook` is globally available.
+- 2026-06-25 competitive analysis: GSD (64k stars, prompt-only, 10 agents), SuperClaude (23k, Claude-only, context bloat), Loop Engineering (maturity levels, budget guards). Vajra's wedge = enforcement, not prompts. Design rules: max 7 commands, <5% context footprint, 2-3 agents deep > 10 shallow. Full teardown at `research/COMPETITIVE-LEARNINGS.md`.
 - Headroom lesson: keep Vajra governance/audit-first; learn from reversible compression, wrapper UX, cache safety, benchmarks, memory/MCP, and output-token shaping without copying.
 
 ## 7. Engine + Adapter Type Shapes (S03 — permanent)
