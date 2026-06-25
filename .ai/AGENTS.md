@@ -6,9 +6,9 @@
 
 ## What This Repo Is
 
-Vajra is a CLI coach for AI coding agents: it guides the workflow, hands the agent the right context, and keeps work moving in order with one command, `vajra next`.
+Vajra is one CLI that guides any AI coding agent through a project step by step — keeping it on track, in context, and in order. The agent does the actual coding. Vajra is the coach.
 
-**Today in code:** `vajra claude` launches Claude Code with Vajra's hook/receipt rail; `vajra next` prints the `.ai/` handoff packet plus `VISION.md` for any agent.
+**Today in code:** `vajra claude` launches Claude Code with Vajra's compression hook + receipt; `vajra next` prints the `.ai/` handoff packet (read-only — does not advance the session yet). Only Claude Code is wired; other agents are planned.
 **Target vision:** `VISION.md`
 **Stack:** Rust, single static binary (`vajra`; package `vajractl`), Apache-2.0 OSS
 **Owner:** Suman — suman@sumanairbook.local

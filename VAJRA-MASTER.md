@@ -3,10 +3,10 @@
 **The single source of truth. Consolidates the full brainstorm phase (vision + S1–S4 + process).**
 **Date:** 2026-06-14 (rev. 2026-06-15; Headroom lessons added 2026-06-22) · **Author:** Suman · **Status:** Design phase IN PROGRESS — Session 1 done → [ADR-0001](docs/adr/0001-compression-delivery-mechanism.md) ✅ Accepted. Brainstorm CLOSED.
 
-> **Vajra is the vendor-neutral control plane for agent-written code: it audits and governs
-> what your coding agent does — and makes it cheaper on the way in.** Open-source. Works over
-> any coding agent (Claude Code, Codex, Kimi, Cursor, Aider…). Greenfield — no reuse of the
-> old `akrti` prototype.
+> **Vajra is one CLI that guides any AI coding agent through your project step by step —
+> keeping it on track, in context, and in order — while the agent does the actual coding.**
+> Open-source. Works over any coding agent (Claude Code, Codex, Kimi, Cursor, Aider…).
+> Greenfield — no reuse of the old `akrti` prototype.
 
 ---
 
@@ -312,11 +312,11 @@ and **neutrality across competitors is a conflict of interest** for them. Lead g
 
 **Defensibility ranking (most→least durable):** (1) git-native portable tamper-evident ledger · (2) write-time line-level provenance · (3) audit/compliance trail · (4) cross-agent uniformity · (5) policy-as-code runtime · (6) honest meter (credibility, not a moat).
 
-### 8.2 Positioning (locked)
-> "Vajra is the vendor-neutral control plane for agent-written code: it audits and governs what
-> your coding agent does — and makes it cheaper on the way in."
+### 8.2 Positioning (updated 2026-06-25)
+> "Vajra is one CLI that guides any AI coding agent through your project step by step —
+> workflow first, vendor-neutral by design, with honest token saving as the quiet bonus."
 
-**On-ramp → moat journey:** Land (free compression installs the rail) → Trust (honest meter) →
+**On-ramp → moat journey:** Land (disciplined workflow installs the rail) → Trust (honest meter) →
 Reveal pain (the session log is a proto-audit trail) → Convert (paid policy + cross-agent audit
 ledger) → Lock (team adds a 2nd agent; Vajra is the one place policy + audit live).
 

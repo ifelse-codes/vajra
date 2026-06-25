@@ -1,32 +1,49 @@
 # Vajra
 
-> One CLI for AI coding sessions — today: `vajra claude` for Claude Code and `vajra next` for agent handoff context.
+> One command-line tool that guides any AI coding agent through your project, step by step.
+
+## What Vajra Is
+
+Vajra is the coach. The AI agent (Claude Code, Kimi, Kilo, others) is the worker. You are the boss.
+
+You run `vajra <agent>` to load the workflow. You run `vajra next` to move one step forward. Vajra hands the agent the right context, the right rules, and the right step — the agent does the actual coding.
+
+**Vendor-neutral is the whole point.** GSD and SuperClaude only work with Claude. Vajra works with any agent. That is the main reason it exists.
 
 ## Current Status
 
-- `vajra claude` works today for Claude Code: it injects Vajra's hook, compresses successful Bash output, and prints a receipt.
-- `vajra next` now prints the current `.ai/` handoff packet, `VISION.md`, and the active prompt pointer for any agent.
-- Not done yet: automatic session advancement, non-Claude launchers, and full cross-agent workflow enforcement.
+| What | Status |
+|---|---|
+| `vajra claude` | **Works** — launches Claude Code with Vajra's compression hook and prints a receipt |
+| `vajra next` | **Partial** — prints the `.ai/` handoff packet; does not yet advance the session |
+| `vajra init` | **Not built yet** |
+| `vajra verify` | **Not built yet** (verify scripts exist, no CLI command) |
+| Other agents | **Not built yet** — only Claude Code is wired today |
+| Installer | **Not built yet** — no release pipeline |
 
-## What It Does
+## The Workflow (the product)
 
-Vajra intercepts successful tool output *before the model reads it*. A 180-line `cargo build` becomes one line. A passing test suite becomes a summary. Failures always pass through untouched — the agent must see real errors.
+Vajra enforces disciplined sessions: the `.ai/` rules, one branch per session, a verify gate that fails closed, drift detection, a NO-CODE audit every 5th session.
 
-This is fundamentally different from telling the agent to "ignore verbose output" in a prompt. That still bills every token. Vajra's PostToolUse hook fires before the model ingests the output, so compressed tokens are never billed.
+| # | Job | Plain meaning |
+|---|---|---|
+| 1 | **Guides the workflow** | Tells the agent the right step, in the right order, start to finish |
+| 2 | **Keeps memory** | Feeds the agent what the product is, the roadmap, the rules — so it never forgets between chats |
+| 3 | **Enforces discipline** | One branch per step, one step at a time — no drift, no chaos |
+| 4 | **Saves a few tokens** *(bonus)* | Trims long successful output before the agent sees it; failures pass through untouched |
 
-After the session, Vajra prints an honest receipt: actual tokens, actual dollars, lines folded. No vibes — real numbers you can verify against your Claude dashboard.
-
-## Quick Start
+## How You Use It
 
 ```bash
-cargo install vajractl
-vajra claude    # Claude Code with Vajra's hook injected
-vajra next      # print the current agent handoff packet
+vajra claude       # launch Claude Code with Vajra's workflow + hook
+vajra next         # print the current step + all its context (advancing is not yet implemented)
 ```
 
-`vajra launch` still works as a legacy alias. `vajra claude` injects a PostToolUse hook via `claude --settings`, compresses successful Bash output, and cleans up on exit.
+## How Saving Works (the quiet bonus)
 
-## What Gets Compressed
+Vajra intercepts successful tool output *before the model reads it* via a PostToolUse hook. A 180-line `cargo build` becomes one line. A passing test suite becomes a summary. Failures always pass through untouched.
+
+This is different from prompting the agent to "ignore verbose output" — that still bills every token. Vajra's hook fires before the model ingests the output, so compressed tokens are never billed.
 
 | Tool output | What happens |
 |---|---|
@@ -37,7 +54,9 @@ vajra next      # print the current agent handoff packet
 | Any command (exit ≠ 0) | **Verbatim — never compressed** |
 | Any command (< 30 lines) | **Verbatim — too short to bother** |
 | Non-Bash tools (Read, Edit, etc.) | **Verbatim — not touched** |
-| `VAJRA_RAW=1 vajra launch` | **Everything verbatim — full bypass** |
+| `VAJRA_RAW=1 vajra claude` | **Everything verbatim — full bypass** |
+
+Blended savings are modest — roughly 6-8% of input token cost. The receipt shows you the real number; decide for yourself if it's worth it. The bigger value is context window space: compressed output means more room for the agent to think before hitting the context limit.
 
 ## The Receipt
 
@@ -54,27 +73,13 @@ After every session:
 
 Run `vajra meter <path-to-session.jsonl>` to meter any past session.
 
-## Honest Savings
-
-Blended savings are modest — roughly 6-8% of input token cost. On a $20/month Claude Pro plan, that's small. On higher-volume usage, it scales. The receipt shows you the real number; decide for yourself if it's worth it.
-
-The bigger value is context window space: compressed output means more room for the agent to think before hitting the context limit.
-
 ## Known Limitations
 
-- **`vajra claude` is Claude Code only today** — it uses the CC PostToolUse hook mechanism. `vajra next` is agent-agnostic because it only prints repo workflow context.
+- **Only Claude Code today** — `vajra claude` uses the CC PostToolUse hook. `vajra next` is agent-agnostic (it only prints repo context). Other agent launchers are planned but not built.
+- **`vajra next` is read-only** — it prints the handoff packet but does not advance the session yet.
+- **No installer** — you must build from source (`cargo build`) until a release pipeline exists.
 - **Vendor-contract dependency** — `updatedToolOutput` is a CC hook feature with no stability guarantee. If Anthropic changes it, Vajra falls back to passthrough (fail-open, never breaks your session).
-- **Exit 0 with stderr warnings** — `cargo build` that succeeds with warnings: the warnings summary is preserved in stderr, but individual warning details in stdout are folded. The agent knows warnings exist but may need to re-run to see specifics.
-- **Savings estimates are rough** — the "tokens saved" number uses ~12 tokens/line as an estimate. Actual savings depend on your workload.
-
-## How It Works
-
-1. `vajra launch` reads your Claude Code hook config from `~/.claude/settings.json` and `.claude/settings.json`
-2. Merges Vajra's PostToolUse hook entry (never clobbers your existing hooks)
-3. Writes a temp settings file, spawns `claude --settings <tempfile>`
-4. On every Bash tool call, the hook compresses successful output and passes failures through
-5. On exit, reads the session JSONL and prints the receipt
-6. Cleans up the temp file
+- **Savings estimates are rough** — the "tokens saved" number uses ~12 tokens/line as an estimate.
 
 ## Environment Variables
 
@@ -84,10 +89,6 @@ The bigger value is context window space: compressed output means more room for 
 | `VAJRA_QUIET=1` | Suppress the end-of-session receipt |
 | `VAJRA_DEBUG=1` | Print temp settings path and merge details |
 | `VAJRA_VERBOSE=1` | Expanded per-model receipt breakdown |
-
-## Roadmap
-
-Audit ledger (v2) earns its way in once it exists. No governance claims until there's a working tamper-evident ledger to back them up.
 
 ## License
 
