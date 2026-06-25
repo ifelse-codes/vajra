@@ -1,10 +1,10 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 05 — COMPLETE
-- **Type:** GROUND TRUTH — NO-CODE
-- **Branch:** `session-05-ground-truth`
-- **Date last updated:** 2026-06-24
+- **Number:** 06 — IN PROGRESS
+- **Type:** CODE — vision alignment
+- **Branch:** `session-06-align-vision`
+- **Date last updated:** 2026-06-25
 
 ## Live URLs / Endpoints
 None.
@@ -24,6 +24,9 @@ None.
 - **Branch:** `session-06-live-claude-proof`
 
 ## Carry-Forwards
-- Capture real-session proof for `vajra claude` before broad release claims.
-- If proof passes, clean remaining legacy `vajra launch` references.
-- Keep installer / release work as the next likely follow-up after real-session validation.
+- Build queue is in ROADMAP.md and TASK.md — 9 items in priority order.
+- Next after vision alignment: prove `vajra claude` in a real session.
+- Then build `vajra init`, `vajra verify`, `vajra check` as real CLI commands.
+- `vajra next` advancement is the single most important feature after the basics work.
+- Second agent launcher proves vendor-neutral is real, not a claim.
+- Installer/release and legacy cleanup come last.

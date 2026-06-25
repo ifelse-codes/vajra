@@ -2,19 +2,24 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 05 — Ground Truth Audit — COMPLETE
+## Session 06 — Vision Alignment — IN PROGRESS
 
-Full record: `sessions/session-05-ground-truth.md` + `prompts/05-task-ground-truth.md`.
+- **Branch:** `session-06-align-vision`
+- **Goal:** Align all docs, roadmap, and positioning to the vendor-neutral, workflow-first vision.
 
-## Next Prepared Prompt
+## Build Queue (from ROADMAP.md, in order)
 
-Read next: `prompts/06-task-live-claude-proof.md`
+After this session, the next sessions should build these in order:
 
-### Between Sessions
-
-Repo is **between sessions**.
-
-Session 06 is prepared from the user's Option A pick: prove `vajra claude` in a real session and verify additive `--settings` behavior.
+1. Prove `vajra claude` in a real session (settings injection + hook + receipt)
+2. Build `vajra init` — scaffold `.ai/` directory in a new repo
+3. Build `vajra verify` — CLI wrapper for `scripts/verify-session-{NN}.sh`
+4. Build `vajra check` — drift detection against `.ai/STATE.md`
+5. Make `vajra next` advance the session (bump SESSION, update pointers, print next context)
+6. Prove `vajra next` end-to-end in a real multi-step project
+7. Add a second agent to prove vendor-neutral is real
+8. Installer / release path
+9. Clean legacy `vajra launch` references
 
 ## Always-True Reminders
 
