@@ -2,10 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 06 — Vision Alignment — IN PROGRESS
+## Session 06 — Vision Alignment + Competitive Learnings — COMPLETE
 
-- **Branch:** `session-06-align-vision`
-- **Goal:** Align all docs, roadmap, and positioning to the vendor-neutral, workflow-first vision.
+- **Branch:** `session-06-align-vision` + `session-06-competitive-learnings` + `session-06-pointer-fix`
+- **Goal:** Align all docs to workflow-first vision; integrate GSD/SuperClaude/Loop competitive teardown.
+
+## Next Session
+
+Read prompt: `prompts/07-task-live-claude-proof.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
