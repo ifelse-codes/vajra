@@ -16,8 +16,8 @@
 ## 2. Product Identity
 
 - **Name:** Vajra
-- **Positioning:** CLI coach for AI coding agents. North star: guide workflow, memory, and discipline with `vajra next`.
-- **Implemented slices today:** `vajra claude` (Claude launch/compression/receipt) + `vajra next` (prints `.ai/` handoff packet + `VISION.md`).
+- **Positioning:** One CLI that guides any AI coding agent through a project step by step. Vendor-neutral workflow coaching is the product; token saving is the quiet bonus.
+- **Implemented slices today:** `vajra claude` (launches Claude Code with workflow context + compression hook + receipt) + `vajra next` (prints `.ai/` handoff packet — read-only, does not advance yet). Only Claude Code is wired; other agents are planned.
 
 ## 3. Repo Layout (Agent Workflow)
 

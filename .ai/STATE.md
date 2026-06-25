@@ -3,28 +3,27 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S05 complete, S06 not yet started).
+`session-06-align-vision` — vision alignment pass.
 
 ## Active PRs
 None (no remote configured).
 
 ## What Currently Works
-- `vajra claude` launches Claude Code locally and passes through to Claude help (`cargo run -- claude --help`).
-- `vajra next` prints the repo handoff packet, `VISION.md`, and the current prompt pointer.
-- Session 04 code validation remains green: `scripts/verify-session-04.sh`, `cargo test`, `cargo clippy`, `scripts/verify-closeout.sh`.
-- Product docs now distinguish current implementation from the target vision.
-- Session 06 prompt is prepared for real-session proof of `vajra claude`.
+- `vajra claude` launches Claude Code with hook injection and prints a receipt on exit.
+- `vajra next` prints the `.ai/` handoff packet + VISION.md + prompt pointer (read-only).
+- Compression engine + 4 heuristics (cargo, git, npm, pytest) — tests pass against fixtures.
+- Meter parses session JSONL and prints honest cost breakdown — tests pass against fixtures.
+- All tests green: `cargo test`, `cargo clippy`.
 
-## What Is Broken
-- `vajra next` does not yet advance the workflow; it only prints the packet.
-- The packet is large (`610` lines in the current repo), so the UX is still more dump than coach.
-- Real `claude --settings` additive behavior is not yet proven in a full live session.
-- No installer / release path exists yet.
-- README still has a few legacy `vajra launch` references.
+## What Does NOT Work Yet
+- `vajra next` does not advance the workflow — it only dumps the packet.
+- `vajra init`, `vajra verify`, `vajra check` do not exist as CLI commands.
+- Settings injection (`--settings` additive behavior) has never been proven in a full live session.
+- Only Claude Code is wired — no second agent launcher exists.
+- No installer or release pipeline.
 
 ## What Is In Progress
-- Between sessions. Session 05 Ground Truth is closed locally.
-- Next planned session is Session 06: real-session proof for `vajra claude`.
+- Session 06: aligning all docs and roadmap to the vendor-neutral, workflow-first vision.
 
 ## Cost Tracking
 - Session 00: $0.00 (bootstrap, no API calls)
