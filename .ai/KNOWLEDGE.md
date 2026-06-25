@@ -63,6 +63,7 @@ Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
 - Launcher injection now resolves the current executable path instead of assuming `vajractl hook` is globally available.
 - 2026-06-25 competitive analysis: GSD (64k stars, prompt-only, 10 agents), SuperClaude (23k, Claude-only, context bloat), Loop Engineering (maturity levels, budget guards). Vajra's wedge = enforcement, not prompts. Design rules: max 7 commands, <5% context footprint, 2-3 agents deep > 10 shallow. Full teardown at `research/COMPETITIVE-LEARNINGS.md`.
 - Headroom lesson: keep Vajra governance/audit-first; learn from reversible compression, wrapper UX, cache safety, benchmarks, memory/MCP, and output-token shaping without copying.
+- 2026-06-25 Session 07: `claude --settings <file>` is **additive** — it merges with project `.claude/settings.json`, does not replace. All hook types from both sources fire. Verified via `--output-format stream-json --include-hook-events`.
 
 ## 7. Engine + Adapter Type Shapes (S03 — permanent)
 

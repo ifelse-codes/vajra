@@ -34,7 +34,7 @@
 | `vajra init` | [ ] not built — the most critical missing piece |
 | `vajra next` session advancement | [ ] stub — prints the packet, does not advance the loop |
 | `vajra verify` / `vajra check` | [ ] not built (scripts exist, no CLI) |
-| Settings injection — live proof | [ ] unproven — never tested in a full real session |
+| Settings injection — live proof | [x] CONFIRMED — Session 07, `--settings` is additive |
 | Second agent launcher | [ ] not built — only Claude Code is wired |
 | Budget guard / kill switch | [ ] not built |
 | Installer / release pipeline | [ ] not built |
@@ -53,7 +53,7 @@
 
 ### Phase 1 — Prove the core works for real (pre-release, blocking)
 
-1. **Prove `vajra claude` in a real session** — run it, verify settings injection is additive, confirm the hook fires and the receipt prints with real numbers. Pass/fail is binary.
+1. **[x] Prove `vajra claude` in a real session** — CONFIRMED in Session 07. Settings injection is additive, hooks fire, receipt prints with real numbers.
 
 2. **Build `vajra init`** — the most adoption-critical command. Scaffolds `.ai/` directory in a new repo: creates AGENTS.md, SESSION, SESSION-BOOT.md, TASK.md, STATE.md, CONSTRAINTS.yaml, KNOWLEDGE.md, ROADMAP.md, plus scripts/ and prompts/. Interactive: asks project name + first session goal (max 2 questions — steal GSD's friction model). Idempotent: skips files that already exist. Also generates cross-agent pointers (CLAUDE.md, AGENTS.md root, .cursorrules) and hook scripts for Claude Code.
 
