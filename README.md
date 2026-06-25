@@ -4,21 +4,22 @@
 
 ## What Vajra Is
 
-Vajra is the coach. The AI agent (Claude Code, Kimi, Kilo, others) is the worker. You are the boss.
+Vajra is the coach. The AI agent (Claude Code, Codex, Cursor, others) is the worker. You are the boss.
 
-You run `vajra <agent>` to load the workflow. You run `vajra next` to move one step forward. Vajra hands the agent the right context, the right rules, and the right step — the agent does the actual coding.
+You run `vajra init` to set up the workflow. You run `vajra <agent>` to start a session. You run `vajra next` to move one step forward. Vajra hands the agent the right context, the right rules, and the right step — the agent does the actual coding.
 
-**Vendor-neutral is the whole point.** GSD and SuperClaude only work with Claude. Vajra works with any agent. That is the main reason it exists.
+**Vendor-neutral is the whole point.** GSD and SuperClaude are prompt libraries — they suggest rules, but agents can ignore them. Vajra is a Rust binary that actually enforces rules via hooks, fails closed on violations, and meters cost honestly. Ship narrow, ship enforced, show receipts.
 
 ## Current Status
 
-| What | Status |
+| Command | Status |
 |---|---|
-| `vajra claude` | **Works** — launches Claude Code with Vajra's compression hook and prints a receipt |
+| `vajra init` | **Not built yet** — will scaffold `.ai/` workflow + hooks in any repo |
 | `vajra next` | **Partial** — prints the `.ai/` handoff packet; does not yet advance the session |
-| `vajra init` | **Not built yet** |
-| `vajra verify` | **Not built yet** (verify scripts exist, no CLI command) |
-| Other agents | **Not built yet** — only Claude Code is wired today |
+| `vajra check` | **Not built yet** — will run drift detection + readiness scoring |
+| `vajra claude` | **Works** — launches Claude Code with compression hook and prints a receipt |
+| `vajra <agent>` | **Not built yet** — Codex and Cursor planned next |
+| `vajra meter` | **Works** — prints cost receipt for any past session |
 | Installer | **Not built yet** — no release pipeline |
 
 ## The Workflow (the product)

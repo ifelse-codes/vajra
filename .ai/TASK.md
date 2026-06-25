@@ -11,15 +11,22 @@
 
 After this session, the next sessions should build these in order:
 
+### Phase 1 — Pre-release (blocking)
 1. Prove `vajra claude` in a real session (settings injection + hook + receipt)
-2. Build `vajra init` — scaffold `.ai/` directory in a new repo
-3. Build `vajra verify` — CLI wrapper for `scripts/verify-session-{NN}.sh`
-4. Build `vajra check` — drift detection against `.ai/STATE.md`
-5. Make `vajra next` advance the session (bump SESSION, update pointers, print next context)
+2. Build `vajra init` — scaffold `.ai/` + hooks + pointers (most adoption-critical command)
+3. Build `vajra check` — drift detection + readiness scoring + verify
+4. Make `vajra next` advance the session (bump SESSION, update pointers, print next context)
+5. Budget guard — `budget_cap_usd` in CONSTRAINTS.yaml, enforced in launcher
 6. Prove `vajra next` end-to-end in a real multi-step project
-7. Add a second agent to prove vendor-neutral is real
-8. Installer / release path
-9. Clean legacy `vajra launch` references
+
+### Phase 2 — Prove vendor-neutral
+7. Add second agent (Codex or Cursor) — deep integration, not prompt template
+8. Add third agent (Aider, Gemini CLI, or Kimi)
+
+### Phase 3 — Ship
+9. Installer / release path (`cargo install vajractl`, Homebrew)
+10. Maturity levels L1/L2/L3 in CONSTRAINTS.yaml
+11. Clean legacy `vajra launch` references
 
 ## Always-True Reminders
 
