@@ -13,7 +13,9 @@
 
 ## Next Session
 - **Number:** 12
-- **Read prompt:** `prompts/12-task-<slug>.md` (written after user picks A/B/C)
+- **Type:** CODE — e2e `vajra next` proof
+- **Read prompt:** `prompts/12-task-e2e-next-proof.md`
+- **Branch:** `session-12-e2e-next-proof`
 
 ## Carry-Forwards
 - Budget guard works — reads cap from CONSTRAINTS.yaml, warn or kill mode.
