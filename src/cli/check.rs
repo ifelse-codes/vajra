@@ -4,6 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::maturity::{read_maturity, MaturityLevel};
+
 const REQUIRED_FILES: &[&str] = &[
     ".ai/SESSION",
     ".ai/AGENTS.md",
@@ -24,6 +26,8 @@ pub fn run() -> Result<()> {
     let root =
         find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;
 
+    let maturity = read_maturity(&root.join(".ai/CONSTRAINTS.yaml"));
+
     let mut results = Vec::new();
 
     check_required_files(&root, &mut results);
@@ -34,10 +38,10 @@ pub fn run() -> Result<()> {
         check_verify_script(&root, n, &mut results);
     }
 
-    print_results(&results);
+    print_results(&results, maturity);
 
     let failed = results.iter().filter(|r| !r.passed).count();
-    if failed > 0 {
+    if failed > 0 && maturity != MaturityLevel::L1 {
         std::process::exit(1);
     }
     Ok(())
@@ -237,16 +241,22 @@ fn current_branch(root: &Path) -> String {
         .unwrap_or_else(|| "?".to_string())
 }
 
-fn print_results(results: &[CheckResult]) {
-    println!("=== vajra check ===");
+fn print_results(results: &[CheckResult], maturity: MaturityLevel) {
+    println!("=== vajra check ({maturity} {}) ===", maturity.label());
     println!();
     let header_detail = "DETAIL";
     println!("{:<30} {:<6} {header_detail}", "CHECK", "STATUS");
     let rule = "─".repeat(30);
     println!("{rule:<30} {:<6} {rule}", "──────");
 
+    let fail_label = if maturity == MaturityLevel::L1 {
+        "WARN"
+    } else {
+        "FAIL"
+    };
+
     for r in results {
-        let status = if r.passed { "PASS" } else { "FAIL" };
+        let status = if r.passed { "PASS" } else { fail_label };
         println!("{:<30} {:<6} {}", r.name, status, r.detail);
     }
 
@@ -257,6 +267,8 @@ fn print_results(results: &[CheckResult]) {
     println!();
     if fail == 0 {
         println!("Score: {pass}/{total} — ALL GREEN");
+    } else if maturity == MaturityLevel::L1 {
+        println!("Score: {pass}/{total} — {fail} WARNED (L1 report-only)");
     } else {
         println!("Score: {pass}/{total} — {fail} FAILED");
     }

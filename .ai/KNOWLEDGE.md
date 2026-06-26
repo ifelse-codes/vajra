@@ -94,7 +94,19 @@ pub struct CompressionRequest {
 - Hook wire types use `#[serde(rename_all = "camelCase")]` (CC JSON is camelCase).
 - Breadcrumb format: `[N lines hidden — set VAJRA_RAW=1 to disable]` (appended to stdout).
 
-## 8. Known Limitations
+## 8. Maturity Levels
+
+| Level | Name | `vajra check` | Hooks | `vajra next --advance` |
+|---|---|---|---|---|
+| L1 | Report | WARN (exit 0) | Log violations, never block | Interactive confirm |
+| L2 | Gated | FAIL (exit 1) | Can reject (exit 2) | Interactive confirm |
+| L3 | Auto | FAIL (exit 1) | Strict enforcement | Skips confirm |
+
+- Set via `maturity: L1|L2|L3` in `.ai/CONSTRAINTS.yaml`. Default: L2.
+- `vajra init` prompts for maturity level during scaffolding.
+- Hook scripts (`hook-pre-bash.sh`, `hook-pre-write.sh`) read `maturity:` and downgrade blocks to warnings at L1.
+
+## 9. Known Limitations
 
 - **stderr-on-exit-0:** `cargo build` with warnings (exit 0) compresses stdout, folding individual warning details. stderr summary ("N warnings emitted") is preserved. Agent may need to re-run to see warning specifics.
 - **Savings estimate:** receipt uses ~12 tokens/line to estimate saved tokens. Rough, labeled as estimate.

@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-26 · Session 13 closeout.
+**Updated:** 2026-06-26 · Session 14 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-26 |
 | Current phase | Phase 1 — Prove the core works |
-| Last closed session | Session 13 — installer / release path |
-| Active session | Between sessions (S14 pending) |
+| Last closed session | Session 14 — maturity levels |
+| Active session | Between sessions (S15 pending) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -33,7 +33,8 @@
 | Component | Status |
 |---|---|
 | Second agent launcher | [ ] not built — only Claude Code is wired |
-| Installer / release pipeline | [ ] not built |
+| Installer / release pipeline | [x] done — S13 |
+| Maturity levels L1/L2/L3 | [x] done — S14 |
 
 ## Design Rules (from competitive analysis)
 
@@ -73,7 +74,7 @@
 
 10. **[x] Installer / release path** — DONE in Session 13. `cargo install vajractl`, Homebrew formula, GitHub Actions CI + release workflow (3 targets), README install section. [PR #1](https://github.com/ifelse-codes/vajra/pull/1).
 
-11. **Maturity levels** — add `maturity: L1|L2|L3` to CONSTRAINTS.yaml. L1 = report-only (hooks log but don't block). L2 = gated (hooks can reject, human approval required). L3 = auto (next advances without confirmation). Gives users a growth path. Default: L2.
+11. **[x] Maturity levels** — DONE in Session 14. `maturity: L1|L2|L3` in CONSTRAINTS.yaml. L1 = report-only (warn, exit 0). L2 = gated (block, human approval). L3 = auto (skip confirm on advance). Wired into check, init, next, and hooks. [PR #2](https://github.com/ifelse-codes/vajra/pull/2).
 
 12. **Clean legacy references** — remove `vajra launch` alias and all references from code and docs.
 

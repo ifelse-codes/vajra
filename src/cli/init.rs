@@ -12,11 +12,23 @@ pub fn run() -> Result<()> {
 
     let project_name = prompt("Project name: ")?.unwrap_or_else(|| "my-project".into());
     let goal = prompt("First session goal: ")?.unwrap_or_else(|| "first session".into());
+    eprintln!();
+    eprintln!("Maturity levels:");
+    eprintln!("  L1 (Report) — hooks log violations but never block");
+    eprintln!("  L2 (Gated)  — hooks can reject, human approval required [default]");
+    eprintln!("  L3 (Auto)   — auto-advance, strict enforcement");
+    let maturity = prompt("Maturity level [L1/L2/L3]: ")?
+        .and_then(|v| match v.trim() {
+            "L1" | "l1" => Some("L1"),
+            "L3" | "l3" => Some("L3"),
+            _ => None,
+        })
+        .unwrap_or("L2");
 
-    scaffold(&root, &project_name, &goal)
+    scaffold(&root, &project_name, &goal, maturity)
 }
 
-pub fn scaffold(root: &Path, project_name: &str, goal: &str) -> Result<()> {
+pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> Result<()> {
     let slug = slugify(goal);
     let date = today();
 
@@ -28,7 +40,7 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str) -> Result<()> {
             .with_context(|| format!("failed to create {dir}/ directory"))?;
     }
 
-    for entry in files(project_name, goal, &slug, &date) {
+    for entry in files(project_name, goal, &slug, &date, maturity) {
         let full = root.join(&entry.path);
         if full.exists() {
             eprintln!("  skip   {}", entry.path);
@@ -137,14 +149,15 @@ fn find_project_root() -> Result<PathBuf> {
         .unwrap_or(cwd))
 }
 
-fn files(name: &str, goal: &str, slug: &str, date: &str) -> Vec<FileEntry> {
+fn files(name: &str, goal: &str, slug: &str, date: &str, maturity: &str) -> Vec<FileEntry> {
     let f = |path: &str, content: &str| FileEntry {
         path: path.to_string(),
         content: content
             .replace("{PROJECT_NAME}", name)
             .replace("{GOAL}", goal)
             .replace("{SLUG}", slug)
-            .replace("{DATE}", date),
+            .replace("{DATE}", date)
+            .replace("{MATURITY}", maturity),
         executable: false,
     };
     let fx = |path: &str, content: &str| FileEntry {
@@ -153,7 +166,8 @@ fn files(name: &str, goal: &str, slug: &str, date: &str) -> Vec<FileEntry> {
             .replace("{PROJECT_NAME}", name)
             .replace("{GOAL}", goal)
             .replace("{SLUG}", slug)
-            .replace("{DATE}", date),
+            .replace("{DATE}", date)
+            .replace("{MATURITY}", maturity),
         executable: true,
     };
 
@@ -278,6 +292,8 @@ None — initialization complete, S01 not yet started.
 "#;
 
 const TPL_CONSTRAINTS: &str = r#"version: 3
+
+maturity: {MATURITY}
 
 session:
   max_assumptions: 2

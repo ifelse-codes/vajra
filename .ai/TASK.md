@@ -2,15 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 13 — Installer / Release Path — COMPLETE
+## Session 14 — Maturity Levels — COMPLETE
 
 - **Type:** CODE
-- **Goal:** Ship `vajra` so anyone can install it in one command.
-- **Output:** `sessions/session-13-summary.md`
+- **Goal:** Add tiered enforcement maturity (L1/L2/L3) to CONSTRAINTS.yaml.
+- **Output:** `sessions/session-14-summary.md`
 
 ## Next Session
 
-Read prompt: `prompts/14-task-maturity-levels.md`
+Read prompt: `prompts/15-task-ground-truth.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
@@ -28,7 +28,7 @@ Read prompt: `prompts/14-task-maturity-levels.md`
 
 ### Phase 3 — Ship
 9. ~~Installer / release path~~ — DONE (S13)
-10. Maturity levels L1/L2/L3 in CONSTRAINTS.yaml
+10. ~~Maturity levels L1/L2/L3~~ — DONE (S14)
 11. Clean legacy `vajra launch` references
 
 ## Always-True Reminders
