@@ -2,6 +2,31 @@
 name = "vajractl"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.70"
+description = "One CLI that guides any AI coding agent through your project, step by step"
+license = "Apache-2.0"
+repository = "https://github.com/anthropics/vajra"
+homepage = "https://github.com/anthropics/vajra"
+readme = "README.md"
+keywords = ["ai", "agent", "workflow", "cli", "developer-tools"]
+categories = ["command-line-utilities", "development-tools"]
+exclude = [
+  ".ai/",
+  ".claude/",
+  ".githooks/",
+  "docs/",
+  "e2e-proof/",
+  "Formula/",
+  "prompts/",
+  "research/",
+  "scripts/",
+  "sessions/",
+  "source-material/",
+  "VAJRA-MASTER.md",
+  "VISION.md",
+  "DESIGN-BRIEF.html",
+  "next prompt .md",
+]
 
 [[bin]]
 name = "vajra"
