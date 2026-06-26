@@ -8,7 +8,7 @@
 
 Vajra is one CLI that guides any AI coding agent through a project step by step — keeping it on track, in context, and in order. The agent does the actual coding. Vajra is the coach.
 
-**Today in code:** `vajra claude` launches Claude Code with Vajra's compression hook + receipt; `vajra next` prints the `.ai/` handoff packet (read-only — does not advance the session yet). Only Claude Code is wired; other agents are planned.
+**Today in code:** `vajra claude` launches Claude Code with Vajra's compression hook + receipt; `vajra next` prints the `.ai/` handoff packet or advances the session via `--advance`; `vajra check` runs drift detection + readiness scoring; `vajra init` scaffolds `.ai/` workflow. Only Claude Code is wired; other agents are planned.
 **Target vision:** `VISION.md`
 **Stack:** Rust, single static binary (`vajra`; package `vajractl`), Apache-2.0 OSS
 **Owner:** Suman — suman@sumanairbook.local

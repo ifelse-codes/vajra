@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-26 · Session 08 closeout.
+**Updated:** 2026-06-26 · Session 09 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-26 |
 | Current phase | Phase 1 — Prove the core works |
-| Last closed session | Session 08 — vajra init + demo scripts |
-| Active session | Between sessions (S09 pending) |
+| Last closed session | Session 09 — vajra check + vajra next advance |
+| Active session | Between sessions (S10 pending — NO-CODE) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -26,15 +26,15 @@
 | `vajra claude` command | [x] done — launches Claude Code with hook injection, prints receipt on exit |
 | Meter + receipt | [x] done — parses session JSONL, prints honest cost breakdown |
 | `vajra init` command | [x] done — scaffolds `.ai/` + hooks + pointers (16 files, interactive, idempotent) |
-| `vajra next` (read-only) | [x] done — prints `.ai/` handoff packet + VISION.md + prompt pointer |
+| `vajra next` (read-only + advance) | [x] done — prints packet or advances session via `--advance` |
 
 ## What Does NOT Work Yet
 
 | Component | Status |
 |---|---|
 | `vajra init` | [x] done — Session 08 |
-| `vajra next` session advancement | [ ] stub — prints the packet, does not advance the loop |
-| `vajra verify` / `vajra check` | [ ] not built (scripts exist, no CLI) |
+| `vajra next` session advancement | [x] done — `--advance` bumps SESSION + SESSION-BOOT.md |
+| `vajra check` | [x] done — drift detection, 10 checks, readiness score |
 | Settings injection — live proof | [x] CONFIRMED — Session 07, `--settings` is additive |
 | Second agent launcher | [ ] not built — only Claude Code is wired |
 | Budget guard / kill switch | [ ] not built |
@@ -58,9 +58,9 @@
 
 2. **[x] Build `vajra init`** — DONE in Session 08. Scaffolds 16 files (.ai/ + hooks + pointers), interactive (2 questions), idempotent. Demo scripts formalized in CONSTRAINTS.yaml.
 
-3. **Build `vajra check`** — drift detection + readiness scoring (inspired by Loop Engineering's `loop-audit`). Reads `.ai/STATE.md` and compares claims against actual repo state (branch, session number, file existence). Also runs `scripts/verify-session-{NN}.sh` if it exists. Prints a pass/fail checklist with a readiness score. No side effects.
+3. **[x] Build `vajra check`** — DONE in Session 09. Drift detection + readiness scoring. 10 checks (required files, session validity, branch pattern, boot match, verify script). Pass/fail checklist + score. Exit 0/1.
 
-4. **Make `vajra next` advance the session** — the single most important feature. Today it dumps the packet. It needs to: (a) bump `.ai/SESSION`, (b) update SESSION-BOOT.md pointer, (c) print the next step's context. Move from "dump" to "advance."
+4. **[x] Make `vajra next` advance the session** — DONE in Session 09. `--advance` flag bumps `.ai/SESSION` (N → N+1), updates SESSION-BOOT.md number. Interactive confirm, refuses on main/master. Bare `vajra next` unchanged (backwards compatible).
 
 5. **Budget guard** — add `budget_cap_usd` field to CONSTRAINTS.yaml. The launcher checks cumulative spend after each session via the meter. Exceeds cap → warn or kill. Lives in the launcher run loop, not a separate command. Differentiator: GSD and SuperClaude have no cost enforcement at all.
 
@@ -104,8 +104,8 @@
 | Command | What it does | Phase |
 |---|---|---|
 | `vajra init` | Scaffold `.ai/` + hooks + pointers in any repo | 1 |
-| `vajra next` | Advance to next session step with context | 1 |
-| `vajra check` | Drift detection + readiness score + verify | 1 |
+| `vajra next` | [x] Advance to next session step with context | 1 |
+| `vajra check` | [x] Drift detection + readiness score + verify | 1 |
 | `vajra claude` | Launch Claude Code with hooks + meter | 0 (done) |
 | `vajra <agent>` | Launch other agents (Codex, Cursor, etc.) | 2 |
 | `vajra meter` | Print receipt for a past session | 0 (done) |
