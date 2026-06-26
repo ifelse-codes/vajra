@@ -32,12 +32,7 @@
 
 | Component | Status |
 |---|---|
-| `vajra init` | [x] done — Session 08 |
-| `vajra next` session advancement | [x] done — `--advance` bumps SESSION + SESSION-BOOT.md |
-| `vajra check` | [x] done — drift detection, 10 checks, readiness score |
-| Settings injection — live proof | [x] CONFIRMED — Session 07, `--settings` is additive |
 | Second agent launcher | [ ] not built — only Claude Code is wired |
-| Budget guard / kill switch | [ ] not built |
 | Installer / release pipeline | [ ] not built |
 
 ## Design Rules (from competitive analysis)
