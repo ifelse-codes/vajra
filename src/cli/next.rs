@@ -5,6 +5,8 @@ use std::io::{self, BufRead, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::maturity::{read_maturity, MaturityLevel};
+
 const PACKET_FILES: &[&str] = &[
     ".ai/AGENTS.md",
     ".ai/SESSION",
@@ -87,15 +89,21 @@ fn run_advance() -> Result<()> {
         .context(".ai/SESSION is not a valid integer")?;
     let next = current + 1;
 
-    eprintln!("vajra next --advance");
+    let maturity = read_maturity(&root.join(".ai/CONSTRAINTS.yaml"));
+
+    eprintln!("vajra next --advance ({maturity} {})", maturity.label());
     eprintln!("  current session: {current:02}");
     eprintln!("  next session:    {next:02}");
     eprintln!("  branch:          {branch}");
     eprintln!();
 
-    if !confirm("Advance to next session?")? {
-        eprintln!("Aborted.");
-        return Ok(());
+    if maturity != MaturityLevel::L3 {
+        if !confirm("Advance to next session?")? {
+            eprintln!("Aborted.");
+            return Ok(());
+        }
+    } else {
+        eprintln!("L3 auto-advance — skipping confirmation.");
     }
 
     fs::write(root.join(".ai/SESSION"), format!("{next:02}\n"))
