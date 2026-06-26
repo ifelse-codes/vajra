@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-26 · Session 09 closeout.
+**Updated:** 2026-06-26 · Session 11 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-26 |
 | Current phase | Phase 1 — Prove the core works |
-| Last closed session | Session 09 — vajra check + vajra next advance |
-| Active session | Between sessions (S10 pending — NO-CODE) |
+| Last closed session | Session 11 — budget guard |
+| Active session | Between sessions (S12 pending) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -57,7 +57,7 @@
 
 4. **[x] Make `vajra next` advance the session** — DONE in Session 09. `--advance` flag bumps `.ai/SESSION` (N → N+1), updates SESSION-BOOT.md number. Interactive confirm, refuses on main/master. Bare `vajra next` unchanged (backwards compatible).
 
-5. **Budget guard** — add `budget_cap_usd` field to CONSTRAINTS.yaml. The launcher checks cumulative spend after each session via the meter. Exceeds cap → warn or kill. Lives in the launcher run loop, not a separate command. Differentiator: GSD and SuperClaude have no cost enforcement at all.
+5. **[x] Budget guard** — DONE in Session 11. `budget.cap_usd` and `budget.mode` in CONSTRAINTS.yaml, enforced in launcher after session exit. Warn mode prints warning; kill mode exits 2. 11 tests.
 
 6. **Prove `vajra next` walks a real session start to finish** — the north star test. Run a real multi-step project where `vajra next` drives the loop. If it doesn't work end-to-end, it's not done.
 
