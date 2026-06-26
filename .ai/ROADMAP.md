@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-26 · Session 11 closeout.
+**Updated:** 2026-06-26 · Session 12 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-26 |
 | Current phase | Phase 1 — Prove the core works |
-| Last closed session | Session 11 — budget guard |
-| Active session | Between sessions (S12 pending) |
+| Last closed session | Session 12 — e2e vajra next proof |
+| Active session | Between sessions (S13 pending) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -59,7 +59,7 @@
 
 5. **[x] Budget guard** — DONE in Session 11. `budget.cap_usd` and `budget.mode` in CONSTRAINTS.yaml, enforced in launcher after session exit. Warn mode prints warning; kill mode exits 2. 11 tests.
 
-6. **Prove `vajra next` walks a real session start to finish** — the north star test. Run a real multi-step project where `vajra next` drives the loop. If it doesn't work end-to-end, it's not done.
+6. **[x] Prove `vajra next` walks a real session start to finish** — DONE in Session 12. 3-session loop proven end-to-end. Found and fixed: prompt pointer not updating on advance, SIGPIPE panic when piping output. Automated e2e proof in verify script.
 
 ### Phase 2 — Prove vendor-neutral is real (2-3 agents, not 10)
 

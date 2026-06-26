@@ -3,6 +3,13 @@ use vajractl::cli;
 use anyhow::Result;
 use std::env::args;
 
+fn reset_sigpipe() {
+    #[cfg(unix)]
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+    }
+}
+
 enum Subcommand {
     Check,
     Hook,
@@ -14,6 +21,7 @@ enum Subcommand {
 }
 
 fn main() -> std::process::ExitCode {
+    reset_sigpipe();
     let args: Vec<String> = args().collect();
     let subcommand = args.get(1).map(|s| s.as_str()).unwrap_or("help");
 

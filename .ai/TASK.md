@@ -2,25 +2,25 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 11 — Budget Guard — COMPLETE
+## Session 12 — E2E vajra next Proof — COMPLETE
 
 - **Type:** CODE
-- **Goal:** Add `budget_cap_usd` to CONSTRAINTS.yaml, enforce in launcher.
-- **Output:** `sessions/session-11-summary.md`
+- **Goal:** Prove `vajra next` drives a real multi-step project loop start to finish.
+- **Output:** `sessions/session-12-summary.md`
 
 ## Next Session
 
-Read prompt: `prompts/12-task-e2e-next-proof.md`
+Read prompt: `prompts/13-task-installer.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
-### Phase 1 — Pre-release (blocking)
+### Phase 1 — Pre-release (blocking) — COMPLETE
 1. ~~Prove `vajra claude` in a real session~~ — DONE (S07)
 2. ~~Build `vajra init`~~ — DONE (S08)
 3. ~~Build `vajra check`~~ — DONE (S09)
 4. ~~Make `vajra next` advance the session~~ — DONE (S09)
-5. Budget guard — `budget_cap_usd` in CONSTRAINTS.yaml, enforced in launcher
-6. Prove `vajra next` end-to-end in a real multi-step project
+5. ~~Budget guard~~ — DONE (S11)
+6. ~~Prove `vajra next` end-to-end~~ — DONE (S12)
 
 ### Phase 2 — Prove vendor-neutral
 7. Add second agent (Codex or Cursor) — deep integration, not prompt template
