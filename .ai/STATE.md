@@ -3,7 +3,7 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S09 complete, S10 not yet started).
+None — between sessions (S11 complete, S12 not yet started).
 
 ## Active PRs
 None (no remote configured).
@@ -34,4 +34,6 @@ None (no remote configured).
 - Session 07: ~$0.46 (3 test runs via `vajra claude -p`)
 - Session 08: ~$0.00 (no API calls — code session)
 - Session 09: ~$0.00 (no API calls — code session)
+- Session 10: ~$0.00 (no-code ground truth audit)
+- Session 11: ~$0.00 (no API calls — code session)
 - Cumulative: ~$0.46
