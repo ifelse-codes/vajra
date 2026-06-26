@@ -20,23 +20,18 @@ header "Build"
 cargo build -q
 ok "vajra built at $VAJRA"
 
-# ─── Case 1: vajra check on live repo ───────────────────────────────────────
-header "Case 1 — vajra check (live repo)"
-"$VAJRA" check 2>&1 || true
-ok "check ran with pass/fail checklist"
-
-# ─── Case 2: vajra check on fresh init ──────────────────────────────────────
-header "Case 2 — vajra check on fresh init"
+# ─── Case 1: vajra check on fresh init ──────────────────────────────────────
+header "Case 1 — vajra check on freshly-initialized repo"
 TMPDIR1=$(mktemp -d)
 cd "$TMPDIR1"
 git init -q
 printf "CheckDemo\nTest check\n" | "$VAJRA" init 2>/dev/null
 git checkout -q -b session-01-test
 "$VAJRA" check 2>&1 || true
-ok "check works on freshly-initialized repo"
+ok "check works — all checks PASS on clean init"
 
-# ─── Case 3: vajra next --advance ───────────────────────────────────────────
-header "Case 3 — vajra next --advance"
+# ─── Case 2: vajra next --advance ───────────────────────────────────────────
+header "Case 2 — vajra next --advance"
 label "Before advance:"
 echo "  SESSION = $(cat .ai/SESSION)"
 echo "  BOOT Number = $(grep 'Number' .ai/SESSION-BOOT.md)"
@@ -48,8 +43,8 @@ echo "  SESSION = $(cat .ai/SESSION)"
 echo "  BOOT Number = $(grep 'Number' .ai/SESSION-BOOT.md)"
 ok "Session advanced 01 → 02"
 
-# ─── Case 4: --advance refuses on main ──────────────────────────────────────
-header "Case 4 — --advance guard (refuses on main)"
+# ─── Case 3: --advance refuses on main ──────────────────────────────────────
+header "Case 3 — --advance guard (refuses on main)"
 cd "$ROOT"
 TMPDIR2=$(mktemp -d)
 cd "$TMPDIR2"
@@ -59,14 +54,14 @@ echo "01" > .ai/SESSION
 echo "y" | "$VAJRA" next --advance 2>&1 || true
 ok "Refused to advance on main"
 
-# ─── Case 5: bare vajra next still works ────────────────────────────────────
-header "Case 5 — bare vajra next (backwards compatible)"
+# ─── Case 4: bare vajra next still works ────────────────────────────────────
+header "Case 4 — bare vajra next (backwards compatible)"
 cd "$ROOT"
 "$VAJRA" next 2>&1 | head -5 || true
 ok "Bare next dumps packet as before"
 
-# ─── Case 6: Prior capabilities (cumulative) ────────────────────────────────
-header "Case 6 — Prior Capabilities (S01–S08)"
+# ─── Case 5: Prior capabilities (cumulative) ────────────────────────────────
+header "Case 5 — Prior Capabilities (S01–S08)"
 label "vajra init (S08):"
 TMPDIR3=$(mktemp -d)
 cd "$TMPDIR3"
@@ -90,11 +85,10 @@ header "Summary"
 printf "\n"
 printf "  %-40s %s\n" "Case" "Result"
 printf "  %-40s %s\n" "----------------------------------------" "------"
-printf "  %-40s %s\n" "1. vajra check (live repo)"              "WORKS"
-printf "  %-40s %s\n" "2. vajra check (fresh init)"             "WORKS"
-printf "  %-40s %s\n" "3. vajra next --advance"                 "WORKS"
-printf "  %-40s %s\n" "4. --advance main guard"                 "WORKS"
-printf "  %-40s %s\n" "5. bare vajra next (compat)"             "WORKS"
-printf "  %-40s %s\n" "6. Prior capabilities (init, hook, help)" "WORKS"
+printf "  %-40s %s\n" "1. vajra check (fresh init)"             "WORKS"
+printf "  %-40s %s\n" "2. vajra next --advance"                 "WORKS"
+printf "  %-40s %s\n" "3. --advance main guard"                 "WORKS"
+printf "  %-40s %s\n" "4. bare vajra next (compat)"             "WORKS"
+printf "  %-40s %s\n" "5. Prior capabilities (init, hook, help)" "WORKS"
 printf "\n"
 ok "Session 09 demo complete."

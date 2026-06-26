@@ -25,8 +25,24 @@ run_check "cargo-test"   cargo test --all-targets
 run_check "cargo-fmt"    cargo fmt -- --check
 run_check "cargo-clippy" cargo clippy --all-targets -- -D warnings
 
-# vajra check runs against this repo
-run_check "check-runs" "$ROOT/target/debug/vajra" check
+# vajra check runs in a temp dir (avoids recursion via verify→demo→check→verify)
+run_check "check-runs" bash -c '
+  CHECKDIR=$(mktemp -d)
+  cd "$CHECKDIR" || exit 1
+  git init -q
+  mkdir -p .ai
+  echo "01" > .ai/SESSION
+  echo "# Agents" > .ai/AGENTS.md
+  echo "- **Number:** 01" > .ai/SESSION-BOOT.md
+  echo "# Task" > .ai/TASK.md
+  echo "# State" > .ai/STATE.md
+  echo "version: 3" > .ai/CONSTRAINTS.yaml
+  git checkout -q -b session-01-test
+  "'"$ROOT"'/target/debug/vajra" check
+  STATUS=$?
+  rm -rf "$CHECKDIR"
+  exit $STATUS
+'
 
 # vajra next (bare) still dumps the packet
 run_check "next-dump" bash -c '

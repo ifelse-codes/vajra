@@ -152,6 +152,15 @@ fn check_boot_matches_session(root: &Path, session: u32, results: &mut Vec<Check
 }
 
 fn check_verify_script(root: &Path, session: u32, results: &mut Vec<CheckResult>) {
+    if env::var("VAJRA_CHECK_RUNNING").is_ok() {
+        results.push(CheckResult {
+            name: "verify: script exists".into(),
+            passed: true,
+            detail: "skipped (already inside vajra check)".into(),
+        });
+        return;
+    }
+
     let script = root.join(format!("scripts/verify-session-{session:02}.sh"));
     if !script.is_file() {
         results.push(CheckResult {
@@ -162,7 +171,11 @@ fn check_verify_script(root: &Path, session: u32, results: &mut Vec<CheckResult>
         return;
     }
 
-    let output = Command::new("bash").arg(&script).current_dir(root).output();
+    let output = Command::new("bash")
+        .arg(&script)
+        .current_dir(root)
+        .env("VAJRA_CHECK_RUNNING", "1")
+        .output();
 
     match output {
         Ok(o) if o.status.success() => {
