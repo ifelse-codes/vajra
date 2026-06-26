@@ -15,7 +15,7 @@
 ## Next Session
 - **Number:** 14
 - **Type:** TBD
-- **Read prompt:** `prompts/14-task-<slug>.md` (written after user picks A/B/C)
+- **Read prompt:** `prompts/14-task-maturity-levels.md`
 - **Branch:** TBD
 
 ## Carry-Forwards

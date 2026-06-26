@@ -10,7 +10,7 @@
 
 ## Next Session
 
-Read prompt: `prompts/14-task-<slug>.md` (pending user pick from A/B/C)
+Read prompt: `prompts/14-task-maturity-levels.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
