@@ -14,8 +14,8 @@
 ## Next Session
 - **Number:** 09
 - **Type:** CODE
-- **Story:** Pending user pick from sessions/session-08-summary.md (A: vajra check, B: vajra next advance, C: budget guard).
-- **Read prompt:** pending
+- **Story:** vajra check + vajra next advance (user picked A+B, constraint override: 2 stories).
+- **Read prompt:** `prompts/09-task-check-and-next.md`
 - **Branch:** pending
 
 ## Carry-Forwards

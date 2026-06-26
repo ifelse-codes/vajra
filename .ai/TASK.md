@@ -9,7 +9,7 @@
 
 ## Next Session
 
-Read prompt: pending (user picks from session-08-summary.md)
+Read prompt: `prompts/09-task-check-and-next.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
