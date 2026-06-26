@@ -12,7 +12,7 @@ fn make_project(name: &str) -> PathBuf {
 #[test]
 fn init_creates_all_files() {
     let root = make_project("full");
-    vajractl::cli::init::scaffold(&root, "TestProject", "build the thing").unwrap();
+    vajractl::cli::init::scaffold(&root, "TestProject", "build the thing", "L2").unwrap();
 
     let expected = [
         ".ai/AGENTS.md",
@@ -57,12 +57,12 @@ fn init_creates_all_files() {
 #[test]
 fn init_is_idempotent() {
     let root = make_project("idem");
-    vajractl::cli::init::scaffold(&root, "Proj", "goal one").unwrap();
+    vajractl::cli::init::scaffold(&root, "Proj", "goal one", "L2").unwrap();
 
     let agents_path = root.join(".ai/AGENTS.md");
     fs::write(&agents_path, "custom content").unwrap();
 
-    vajractl::cli::init::scaffold(&root, "Proj2", "goal two").unwrap();
+    vajractl::cli::init::scaffold(&root, "Proj2", "goal two", "L2").unwrap();
 
     let content = fs::read_to_string(&agents_path).unwrap();
     assert_eq!(content, "custom content");
@@ -76,7 +76,7 @@ fn init_scripts_are_executable() {
     use std::os::unix::fs::PermissionsExt;
 
     let root = make_project("exec");
-    vajractl::cli::init::scaffold(&root, "Proj", "goal").unwrap();
+    vajractl::cli::init::scaffold(&root, "Proj", "goal", "L2").unwrap();
 
     for script in &[
         "scripts/hook-session-start.sh",
@@ -96,7 +96,7 @@ fn init_scripts_are_executable() {
 #[test]
 fn init_substitutes_date() {
     let root = make_project("date");
-    vajractl::cli::init::scaffold(&root, "Proj", "goal").unwrap();
+    vajractl::cli::init::scaffold(&root, "Proj", "goal", "L2").unwrap();
 
     let boot = fs::read_to_string(root.join(".ai/SESSION-BOOT.md")).unwrap();
     assert!(!boot.contains("{DATE}"), "DATE placeholder not substituted");
@@ -105,9 +105,27 @@ fn init_substitutes_date() {
 }
 
 #[test]
+fn init_substitutes_maturity_level() {
+    let root = make_project("maturity");
+    vajractl::cli::init::scaffold(&root, "Proj", "goal", "L1").unwrap();
+
+    let constraints = fs::read_to_string(root.join(".ai/CONSTRAINTS.yaml")).unwrap();
+    assert!(
+        constraints.contains("maturity: L1"),
+        "maturity not set to L1"
+    );
+    assert!(
+        !constraints.contains("{MATURITY}"),
+        "MATURITY placeholder not substituted"
+    );
+
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn init_directories_created() {
     let root = make_project("dirs");
-    vajractl::cli::init::scaffold(&root, "Proj", "goal").unwrap();
+    vajractl::cli::init::scaffold(&root, "Proj", "goal", "L2").unwrap();
 
     assert!(root.join("scripts").is_dir());
     assert!(root.join("prompts").is_dir());
