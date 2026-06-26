@@ -1,5 +1,7 @@
 version: 3
 
+maturity: L2
+
 session:
   max_assumptions: 2
   max_retries: 2
