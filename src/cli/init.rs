@@ -462,6 +462,9 @@ const TPL_DEMO_TEMPLATE: &str = r#"#!/usr/bin/env bash
 # Template — copy to scripts/demo-session-NN.sh and customize per session.
 # Demo scripts are narrative — they show what was built with real/mock data.
 # Demos are cumulative: each session's demo includes prior session capabilities.
+# NOTE: This bash script is for CI/verify. When a user asks to see the demo,
+# the agent should present results as an interactive HTML slide deck
+# (terminal-styled, auto-play, PASS/FAIL coloring, scorecard summary).
 
 set -euo pipefail
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"

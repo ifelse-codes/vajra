@@ -2,22 +2,22 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 08 — Build `vajra init` + Formalize Demo Scripts — COMPLETE
+## Session 09 — Build `vajra check` + Make `vajra next` Advance — COMPLETE
 
-- **Branch:** `session-08-vajra-init`
-- **Goal:** Build `vajra init` (16-file scaffold, interactive, idempotent) + formalize demo scripts in governance.
+- **Branch:** `session-09-check-and-next`
+- **Goal:** Build `vajra check` (drift detection + readiness scoring) + `vajra next --advance` (bump SESSION, update pointers).
 
 ## Next Session
 
-Read prompt: `prompts/09-task-check-and-next.md`
+Read prompt: `prompts/10-task-ground-truth-audit.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
 ### Phase 1 — Pre-release (blocking)
 1. ~~Prove `vajra claude` in a real session~~ — DONE (S07)
 2. ~~Build `vajra init`~~ — DONE (S08)
-3. Build `vajra check` — drift detection + readiness scoring + verify
-4. Make `vajra next` advance the session (bump SESSION, update pointers, print next context)
+3. ~~Build `vajra check`~~ — DONE (S09)
+4. ~~Make `vajra next` advance the session~~ — DONE (S09)
 5. Budget guard — `budget_cap_usd` in CONSTRAINTS.yaml, enforced in launcher
 6. Prove `vajra next` end-to-end in a real multi-step project
 

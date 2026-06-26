@@ -34,6 +34,14 @@ demo:
   template: 'scripts/demo-session-template.sh'
   cumulative: true
   required_elements: [header, cases, summary_table]
+  presentation: interactive_html
+  presentation_rules:
+    - run demo script or commands to capture real output
+    - present as interactive HTML slide deck via show_widget
+    - terminal-styled output blocks with PASS/FAIL coloring
+    - one slide per major feature, final slide is scorecard
+    - include auto-play and keyboard nav
+    - bash script stays for CI/verify — presentation is agent's job for user
 
 state:
   state_md_mode: snapshot
