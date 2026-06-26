@@ -2,6 +2,23 @@
 
 > One command-line tool that guides any AI coding agent through your project, step by step.
 
+## Install
+
+```bash
+# From crates.io
+cargo install vajractl
+
+# From source
+git clone https://github.com/anthropics/vajra && cd vajra && cargo install --path .
+
+# macOS (Homebrew)
+brew install suman/tap/vajra
+
+# Prebuilt binary (macOS arm64 example)
+curl -fsSL https://github.com/anthropics/vajra/releases/latest/download/vajra-aarch64-apple-darwin.tar.gz | tar xz
+sudo mv vajra /usr/local/bin/
+```
+
 ## What Vajra Is
 
 Vajra is the coach. The AI agent (Claude Code, Codex, Cursor, others) is the worker. You are the boss.
@@ -14,13 +31,12 @@ You run `vajra init` to set up the workflow. You run `vajra <agent>` to start a 
 
 | Command | Status |
 |---|---|
-| `vajra init` | **Not built yet** — will scaffold `.ai/` workflow + hooks in any repo |
-| `vajra next` | **Partial** — prints the `.ai/` handoff packet; does not yet advance the session |
-| `vajra check` | **Not built yet** — will run drift detection + readiness scoring |
+| `vajra init` | **Works** — scaffolds `.ai/` workflow + hooks + cross-agent pointers (16 files, interactive, idempotent) |
+| `vajra next` | **Works** — prints `.ai/` handoff packet; `--advance` bumps session + pointers |
+| `vajra check` | **Works** — drift detection + readiness scoring (10 checks, pass/fail + score) |
 | `vajra claude` | **Works** — launches Claude Code with compression hook and prints a receipt |
-| `vajra <agent>` | **Not built yet** — Codex and Cursor planned next |
 | `vajra meter` | **Works** — prints cost receipt for any past session |
-| Installer | **Not built yet** — no release pipeline |
+| `vajra <agent>` | **Not built yet** — only Claude Code is wired; Codex and Cursor planned |
 
 ## The Workflow (the product)
 
@@ -36,8 +52,12 @@ Vajra enforces disciplined sessions: the `.ai/` rules, one branch per session, a
 ## How You Use It
 
 ```bash
-vajra claude       # launch Claude Code with Vajra's workflow + hook
-vajra next         # print the current step + all its context (advancing is not yet implemented)
+vajra init              # scaffold .ai/ workflow in any repo
+vajra claude            # launch Claude Code with workflow hook + receipt
+vajra next              # print the current step + all its context
+vajra next --advance    # bump to the next session
+vajra check             # drift detection + readiness score
+vajra meter session.jsonl  # cost receipt for a past session
 ```
 
 ## How Saving Works (the quiet bonus)
@@ -77,8 +97,7 @@ Run `vajra meter <path-to-session.jsonl>` to meter any past session.
 ## Known Limitations
 
 - **Only Claude Code today** — `vajra claude` uses the CC PostToolUse hook. `vajra next` is agent-agnostic (it only prints repo context). Other agent launchers are planned but not built.
-- **`vajra next` is read-only** — it prints the handoff packet but does not advance the session yet.
-- **No installer** — you must build from source (`cargo build`) until a release pipeline exists.
+- **`vajra next --advance`** — bumps the session but requires interactive confirmation (no `--yes` flag yet).
 - **Vendor-contract dependency** — `updatedToolOutput` is a CC hook feature with no stability guarantee. If Anthropic changes it, Vajra falls back to passthrough (fail-open, never breaks your session).
 - **Savings estimates are rough** — the "tokens saved" number uses ~12 tokens/line as an estimate.
 
