@@ -1,24 +1,27 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 12 — COMPLETE
-- **Type:** CODE — e2e `vajra next` proof
-- **Branch:** `session-12-e2e-next-proof`
+- **Number:** 13 — COMPLETE
+- **Type:** CODE — installer / release path
+- **Branch:** `session-13-installer`
 - **Date last updated:** 2026-06-26
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 12.
-- `main`: includes Session 12 merge (e2e proof + prompt pointer fix + SIGPIPE fix).
-- Phase 1 complete — all 6 items done.
+- `.ai/SESSION` = 13.
+- `main`: includes up to Session 12 merge.
+- `session-13-installer`: 4 commits, PR #1 open (CI green).
+- Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 13
-- **Type:** TBD (S13 is not a ground-truth session; next GT is S15)
-- **Read prompt:** `prompts/13-task-installer.md`
+- **Number:** 14
+- **Type:** TBD
+- **Read prompt:** `prompts/14-task-<slug>.md` (written after user picks A/B/C)
 - **Branch:** TBD
 
 ## Carry-Forwards
-- Phase 1 complete — vajra next e2e loop proven.
-- `--advance` now updates prompt pointers automatically.
-- SIGPIPE handled — piping vajra output through head/grep works.
-- Build queue: second agent → installer.
+- Phase 1 complete — all 6 core items done.
+- Phase 3 item 10 (installer) complete — CI + release pipeline live.
+- Remote configured and pushed.
+- `--advance` updates prompt pointers automatically.
+- SIGPIPE handled.
+- Build queue: second agent is next Phase 2 priority.
