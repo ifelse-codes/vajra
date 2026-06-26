@@ -1,28 +1,25 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 07 — COMPLETE
-- **Type:** VALIDATION — live `vajra claude` proof
-- **Branch:** `session-07-live-claude-proof`
-- **Date last updated:** 2026-06-25
-
-## Live URLs / Endpoints
-None.
+- **Number:** 08 — COMPLETE
+- **Type:** CODE — build `vajra init` + formalize demo scripts
+- **Branch:** `session-08-vajra-init`
+- **Date last updated:** 2026-06-26
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 07.
-- `main`: includes Session 06 closeout.
-- `session-07-live-claude-proof`: proof session, no code changes.
+- `.ai/SESSION` = 08.
+- `main`: includes Session 08 merge (vajra init + demo formalization).
 - Enforcement layers L2–L5 in place. L0/L1 deferred until remote + CI exist.
 
 ## Next Session
-- **Number:** 08
+- **Number:** 09
 - **Type:** CODE
-- **Story:** Pending user pick from session-07-summary.md (A: vajra init, B: vajra check, C: vajra next advance).
+- **Story:** Pending user pick from sessions/session-08-summary.md (A: vajra check, B: vajra next advance, C: budget guard).
 - **Read prompt:** pending
 - **Branch:** pending
 
 ## Carry-Forwards
-- `--settings` additivity CONFIRMED — can honestly claim `vajra claude` works.
-- Build queue: `vajra init` → `vajra check` → `vajra next` advance → budget guard → e2e proof.
+- `vajra init` works — 16 files, interactive, idempotent.
+- Demo scripts formalized in CONSTRAINTS.yaml + session loop.
+- Build queue: `vajra check` → `vajra next` advance → budget guard → e2e proof.
 - Session 10 will be NO-CODE (ground truth audit).
