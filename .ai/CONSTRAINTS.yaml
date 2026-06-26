@@ -29,6 +29,12 @@ verify:
   closeout_script: 'scripts/verify-closeout.sh'
   closeout_must_pass_before_close: true
 
+demo:
+  script_pattern: 'scripts/demo-session-{NN}.sh'
+  template: 'scripts/demo-session-template.sh'
+  cumulative: true
+  required_elements: [header, cases, summary_table]
+
 state:
   state_md_mode: snapshot
   knowledge_md_mode: append-permanent-only
