@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-25 · Competitive learnings integrated.
+**Updated:** 2026-06-26 · Session 08 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -10,10 +10,10 @@
 
 | Field | Value |
 |---|---|
-| Today | 2026-06-25 |
-| Current phase | Phase 0 — Foundation |
-| Last closed session | Session 05 — Ground Truth audit |
-| Active session | Session 06 — vision alignment + competitive learnings |
+| Today | 2026-06-26 |
+| Current phase | Phase 1 — Prove the core works |
+| Last closed session | Session 08 — vajra init + demo scripts |
+| Active session | Between sessions (S09 pending) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -25,13 +25,14 @@
 | Launcher + settings injector | [x] done — merges hook config, spawns `claude --settings <tmpfile>` |
 | `vajra claude` command | [x] done — launches Claude Code with hook injection, prints receipt on exit |
 | Meter + receipt | [x] done — parses session JSONL, prints honest cost breakdown |
+| `vajra init` command | [x] done — scaffolds `.ai/` + hooks + pointers (16 files, interactive, idempotent) |
 | `vajra next` (read-only) | [x] done — prints `.ai/` handoff packet + VISION.md + prompt pointer |
 
 ## What Does NOT Work Yet
 
 | Component | Status |
 |---|---|
-| `vajra init` | [ ] not built — the most critical missing piece |
+| `vajra init` | [x] done — Session 08 |
 | `vajra next` session advancement | [ ] stub — prints the packet, does not advance the loop |
 | `vajra verify` / `vajra check` | [ ] not built (scripts exist, no CLI) |
 | Settings injection — live proof | [x] CONFIRMED — Session 07, `--settings` is additive |
@@ -55,7 +56,7 @@
 
 1. **[x] Prove `vajra claude` in a real session** — CONFIRMED in Session 07. Settings injection is additive, hooks fire, receipt prints with real numbers.
 
-2. **Build `vajra init`** — the most adoption-critical command. Scaffolds `.ai/` directory in a new repo: creates AGENTS.md, SESSION, SESSION-BOOT.md, TASK.md, STATE.md, CONSTRAINTS.yaml, KNOWLEDGE.md, ROADMAP.md, plus scripts/ and prompts/. Interactive: asks project name + first session goal (max 2 questions — steal GSD's friction model). Idempotent: skips files that already exist. Also generates cross-agent pointers (CLAUDE.md, AGENTS.md root, .cursorrules) and hook scripts for Claude Code.
+2. **[x] Build `vajra init`** — DONE in Session 08. Scaffolds 16 files (.ai/ + hooks + pointers), interactive (2 questions), idempotent. Demo scripts formalized in CONSTRAINTS.yaml.
 
 3. **Build `vajra check`** — drift detection + readiness scoring (inspired by Loop Engineering's `loop-audit`). Reads `.ai/STATE.md` and compares claims against actual repo state (branch, session number, file existence). Also runs `scripts/verify-session-{NN}.sh` if it exists. Prints a pass/fail checklist with a readiness score. No side effects.
 

@@ -2,22 +2,20 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 07 — Live `vajra claude` Proof — COMPLETE
+## Session 08 — Build `vajra init` + Formalize Demo Scripts — COMPLETE
 
-- **Branch:** `session-07-live-claude-proof`
-- **Goal:** Prove `--settings` injection is additive. Conclusion: CONFIRMED.
+- **Branch:** `session-08-vajra-init`
+- **Goal:** Build `vajra init` (16-file scaffold, interactive, idempotent) + formalize demo scripts in governance.
 
 ## Next Session
 
-Read prompt: `prompts/08-task-vajra-init.md`
+Read prompt: pending (user picks from session-08-summary.md)
 
 ## Build Queue (from ROADMAP.md, in order)
 
-After this session, the next sessions should build these in order:
-
 ### Phase 1 — Pre-release (blocking)
-1. Prove `vajra claude` in a real session (settings injection + hook + receipt)
-2. Build `vajra init` — scaffold `.ai/` + hooks + pointers (most adoption-critical command)
+1. ~~Prove `vajra claude` in a real session~~ — DONE (S07)
+2. ~~Build `vajra init`~~ — DONE (S08)
 3. Build `vajra check` — drift detection + readiness scoring + verify
 4. Make `vajra next` advance the session (bump SESSION, update pointers, print next context)
 5. Budget guard — `budget_cap_usd` in CONSTRAINTS.yaml, enforced in launcher
