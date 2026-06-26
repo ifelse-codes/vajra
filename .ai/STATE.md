@@ -3,10 +3,10 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S12 complete, S13 not yet started).
+None — between sessions (S13 complete, S14 not yet started).
 
 ## Active PRs
-None (no remote configured).
+[PR #1](https://github.com/ifelse-codes/vajra/pull/1) — S13 installer (CI green, pending merge).
 
 ## What Currently Works
 - `vajra init` scaffolds `.ai/` + hooks + cross-agent pointers (16 files, interactive, idempotent).
@@ -21,11 +21,16 @@ None (no remote configured).
 - Demo scripts formalized in CONSTRAINTS.yaml and session loop.
 - Budget guard enforces `budget.cap_usd` from CONSTRAINTS.yaml after each session (warn or kill mode).
 - SIGPIPE handled gracefully — piping vajra output through head/grep works.
+- GitHub Actions CI (test+clippy+fmt on macOS+Linux) — green on first run.
+- GitHub Actions release workflow (tag-triggered, 3 targets: macOS arm64/x86_64 + Linux x86_64).
+- `cargo package` produces 35 KiB crate, publish-ready as `vajractl`.
+- Homebrew formula template at `Formula/vajra.rb`.
+- README install section with 4 methods.
+- Remote configured: `origin` → `https://github.com/ifelse-codes/vajra`.
 - All tests green: `cargo test` (85 tests), `cargo clippy`.
 
 ## What Is Broken
 - Only Claude Code is wired — no second agent launcher exists.
-- No installer or release pipeline.
 
 ## What Is In Progress
 - Nothing — between sessions.
@@ -39,4 +44,5 @@ None (no remote configured).
 - Session 10: ~$0.00 (no-code ground truth audit)
 - Session 11: ~$0.00 (no API calls — code session)
 - Session 12: ~$0.00 (no API calls — code session)
+- Session 13: ~$0.00 (no API calls — code session)
 - Cumulative: ~$0.46

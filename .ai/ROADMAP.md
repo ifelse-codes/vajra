@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-26 · Session 12 closeout.
+**Updated:** 2026-06-26 · Session 13 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-26 |
 | Current phase | Phase 1 — Prove the core works |
-| Last closed session | Session 12 — e2e vajra next proof |
-| Active session | Between sessions (S13 pending) |
+| Last closed session | Session 13 — installer / release path |
+| Active session | Between sessions (S14 pending) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -71,7 +71,7 @@
 
 ### Phase 3 — Ship it
 
-10. **Installer / release path** — `cargo install vajractl`, Homebrew, signed releases, `curl | bash` installer with SHA-256 verification. One-liner in the README.
+10. **[x] Installer / release path** — DONE in Session 13. `cargo install vajractl`, Homebrew formula, GitHub Actions CI + release workflow (3 targets), README install section. [PR #1](https://github.com/ifelse-codes/vajra/pull/1).
 
 11. **Maturity levels** — add `maturity: L1|L2|L3` to CONSTRAINTS.yaml. L1 = report-only (hooks log but don't block). L2 = gated (hooks can reject, human approval required). L3 = auto (next advances without confirmation). Gives users a growth path. Default: L2.
 

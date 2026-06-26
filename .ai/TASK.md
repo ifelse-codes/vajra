@@ -2,15 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 12 — E2E vajra next Proof — COMPLETE
+## Session 13 — Installer / Release Path — COMPLETE
 
 - **Type:** CODE
-- **Goal:** Prove `vajra next` drives a real multi-step project loop start to finish.
-- **Output:** `sessions/session-12-summary.md`
+- **Goal:** Ship `vajra` so anyone can install it in one command.
+- **Output:** `sessions/session-13-summary.md`
 
 ## Next Session
 
-Read prompt: `prompts/13-task-installer.md`
+Read prompt: `prompts/14-task-maturity-levels.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
@@ -27,7 +27,7 @@ Read prompt: `prompts/13-task-installer.md`
 8. Add third agent (Aider, Gemini CLI, or Kimi)
 
 ### Phase 3 — Ship
-9. Installer / release path (`cargo install vajractl`, Homebrew)
+9. ~~Installer / release path~~ — DONE (S13)
 10. Maturity levels L1/L2/L3 in CONSTRAINTS.yaml
 11. Clean legacy `vajra launch` references
 
