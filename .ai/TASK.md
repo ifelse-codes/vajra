@@ -2,12 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 11 — Budget Guard — IN PROGRESS
+## Session 11 — Budget Guard — COMPLETE
 
 - **Type:** CODE
 - **Goal:** Add `budget_cap_usd` to CONSTRAINTS.yaml, enforce in launcher.
-- **Branch:** `session-11-budget-guard`
-- **Prompt:** `prompts/11-task-budget-guard.md`
+- **Output:** `sessions/session-11-summary.md`
+
+## Next Session
+
+Awaiting user pick (A/B/C from session summary).
 
 ## Build Queue (from ROADMAP.md, in order)
 
