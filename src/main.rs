@@ -5,6 +5,7 @@ use std::env::args;
 
 enum Subcommand {
     Hook,
+    Init,
     Launch,
     Meter,
     Next,
@@ -17,6 +18,7 @@ fn main() -> std::process::ExitCode {
 
     let sub = match subcommand {
         "hook" => Subcommand::Hook,
+        "init" => Subcommand::Init,
         "launch" | "claude" => Subcommand::Launch,
         "meter" => Subcommand::Meter,
         "next" => Subcommand::Next,
@@ -26,6 +28,7 @@ fn main() -> std::process::ExitCode {
 
     let exit_code = match sub {
         Subcommand::Hook => run_subcommand(cli::hook::run),
+        Subcommand::Init => run_subcommand(cli::init::run),
         Subcommand::Launch => {
             let launch_args: Vec<String> = args.into_iter().skip(2).collect();
             run_launch_subcommand(&launch_args)
@@ -62,7 +65,8 @@ fn run_launch_subcommand(args: &[String]) -> u8 {
 }
 
 fn print_usage() {
-    eprintln!("vajra <claude|next|hook|meter>");
+    eprintln!("vajra <init|claude|next|hook|meter>");
+    eprintln!("  init              Scaffold .ai/ workflow in the current repo");
     eprintln!("  claude [args...]  Launch Claude Code with Vajra hook injection");
     eprintln!("  next              Print the current agent handoff packet from .ai/");
     eprintln!("  hook              Claude Code PostToolUse hook entrypoint");
