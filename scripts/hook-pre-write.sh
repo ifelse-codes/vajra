@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse(Edit|Write|MultiEdit): blocks code edits during Ground Truth.
+# Respects maturity level from CONSTRAINTS.yaml (L1 = warn-only, L2/L3 = can block).
 
 set -euo pipefail
 
@@ -7,6 +8,7 @@ INPUT=$(cat 2>/dev/null || echo "{}")
 FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.notebook_path // ""' 2>/dev/null || echo "")
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+MATURITY=$(grep -m1 '^maturity:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | awk '{print $2}' || echo "L2")
 BRANCH=$(cd "$ROOT" && git branch --show-current 2>/dev/null || echo "?")
 SESSION_NUM=$(echo "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
 
@@ -30,8 +32,12 @@ if [ "$GT_PW" -eq 1 ]; then
   case "$FILE" in
     */sessions/session-*-ground-truth.md|*/.ai/*|*/scripts/*) : ;;
     *)
-      echo "[HOOK BLOCK] Ground Truth Session $SESSION_NUM forbids edits to $FILE"
-      exit 2
+      if [ "$MATURITY" = "L1" ]; then
+        echo "[HOOK WARNING] Ground Truth Session $SESSION_NUM: edit to $FILE (L1 report-only, not blocking)"
+      else
+        echo "[HOOK BLOCK] Ground Truth Session $SESSION_NUM forbids edits to $FILE"
+        exit 2
+      fi
       ;;
   esac
 fi

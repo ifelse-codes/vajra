@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # PreToolUse(Bash): warns on destructive cmds; blocks commits during Ground Truth.
+# Respects maturity level from CONSTRAINTS.yaml (L1 = warn-only, L2/L3 = can block).
 
 set -euo pipefail
 
 INPUT=$(cat 2>/dev/null || echo "{}")
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
+
+ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+MATURITY=$(grep -m1 '^maturity:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | awk '{print $2}' || echo "L2")
 
 # Destructive command warnings
 case "$CMD" in
@@ -15,7 +19,6 @@ case "$CMD" in
     ;;
 esac
 
-ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 BRANCH=$(cd "$ROOT" && git branch --show-current 2>/dev/null || echo "?")
 
 # Ground Truth detection
@@ -34,16 +37,21 @@ esac
 
 # Block commits/pushes/PRs during Ground Truth
 if [ "$GT" -eq 1 ]; then
+  gt_block() {
+    if [ "$MATURITY" = "L1" ]; then
+      echo "[HOOK WARNING] Ground Truth Session $GT_NUM: $1 (L1 report-only, not blocking)"
+    else
+      echo "[HOOK BLOCK] Ground Truth Session $GT_NUM $1"
+      exit 2
+    fi
+  }
   case "$CMD" in
     *"git commit"*|*"git push"*|*"gh pr create"*|*"gh pr merge"*|*"glab mr create"*|*"glab mr merge"*|*"git commit --amend"*|*"git rebase"*)
-      echo "[HOOK BLOCK] Ground Truth Session $GT_NUM forbids commits/pushes/PR ops/rebases."
-      exit 2
+      gt_block "forbids commits/pushes/PR ops/rebases."
       ;;
     *"git"*)
-      # Block any git command that might modify history or state during GT
       if echo "$CMD" | grep -qE 'git (commit|push|merge|rebase|cherry-pick|reset|revert|stash)'; then
-        echo "[HOOK BLOCK] Ground Truth Session $GT_NUM forbids git state changes."
-        exit 2
+        gt_block "forbids git state changes."
       fi
       ;;
   esac
