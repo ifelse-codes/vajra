@@ -1,25 +1,25 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 08 — COMPLETE
-- **Type:** CODE — build `vajra init` + formalize demo scripts
-- **Branch:** `session-08-vajra-init`
+- **Number:** 09 — COMPLETE
+- **Type:** CODE — build `vajra check` + `vajra next --advance`
+- **Branch:** `session-09-check-and-next`
 - **Date last updated:** 2026-06-26
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 08.
-- `main`: includes Session 08 merge (vajra init + demo formalization).
+- `.ai/SESSION` = 09.
+- `main`: includes Session 09 merge (vajra check + next advance).
 - Enforcement layers L2–L5 in place. L0/L1 deferred until remote + CI exist.
 
 ## Next Session
-- **Number:** 09
-- **Type:** CODE
-- **Story:** vajra check + vajra next advance (user picked A+B, constraint override: 2 stories).
-- **Read prompt:** `prompts/09-task-check-and-next.md`
-- **Branch:** pending
+- **Number:** 10
+- **Type:** NO-CODE (ground truth audit)
+- **Story:** Full state + roadmap audit.
+- **Read prompt:** `prompts/10-task-ground-truth-audit.md`
+- **Branch:** N/A (no-code session)
 
 ## Carry-Forwards
-- `vajra init` works — 16 files, interactive, idempotent.
-- Demo scripts formalized in CONSTRAINTS.yaml + session loop.
-- Build queue: `vajra check` → `vajra next` advance → budget guard → e2e proof.
-- Session 10 will be NO-CODE (ground truth audit).
+- `vajra check` works — 10 checks, pass/fail + readiness score.
+- `vajra next --advance` works — bumps SESSION + SESSION-BOOT.md, main guard.
+- Build queue: budget guard → e2e proof → second agent.
+- Session 10 is NO-CODE (ground truth audit) — no source edits.
