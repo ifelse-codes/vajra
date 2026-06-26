@@ -1,6 +1,7 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use std::env;
 use std::fs;
+use std::io::{self, BufRead, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -15,7 +16,17 @@ const PACKET_FILES: &[&str] = &[
     ".ai/ROADMAP.md",
 ];
 
-pub fn run() -> Result<()> {
+pub fn run(args: &[String]) -> Result<()> {
+    let advance = args.iter().any(|a| a == "--advance");
+
+    if advance {
+        run_advance()
+    } else {
+        run_dump()
+    }
+}
+
+fn run_dump() -> Result<()> {
     let cwd = env::current_dir().context("failed to read current directory")?;
     let root =
         find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;
@@ -56,6 +67,94 @@ pub fn run() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn run_advance() -> Result<()> {
+    let cwd = env::current_dir().context("failed to read current directory")?;
+    let root =
+        find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;
+
+    let branch = current_branch(&root);
+    if branch == "main" || branch == "master" {
+        bail!("refusing to advance on {branch} — switch to a session branch first");
+    }
+
+    let session_content =
+        fs::read_to_string(root.join(".ai/SESSION")).context("failed to read .ai/SESSION")?;
+    let current: u32 = session_content
+        .trim()
+        .parse()
+        .context(".ai/SESSION is not a valid integer")?;
+    let next = current + 1;
+
+    eprintln!("vajra next --advance");
+    eprintln!("  current session: {current:02}");
+    eprintln!("  next session:    {next:02}");
+    eprintln!("  branch:          {branch}");
+    eprintln!();
+
+    if !confirm("Advance to next session?")? {
+        eprintln!("Aborted.");
+        return Ok(());
+    }
+
+    fs::write(root.join(".ai/SESSION"), format!("{next:02}\n"))
+        .context("failed to write .ai/SESSION")?;
+
+    update_session_boot(&root, current, next)?;
+
+    eprintln!();
+    eprintln!("Advanced: session {current:02} → {next:02}");
+    eprintln!("  .ai/SESSION updated");
+    eprintln!("  .ai/SESSION-BOOT.md updated");
+
+    Ok(())
+}
+
+fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<()> {
+    let path = root.join(".ai/SESSION-BOOT.md");
+    let content = fs::read_to_string(&path).context("failed to read .ai/SESSION-BOOT.md")?;
+
+    let current_str = format!("{current:02}");
+    let next_str = format!("{next:02}");
+
+    let updated: String = content
+        .lines()
+        .map(|line| {
+            if line.contains("**Number:**") {
+                line.replace(&current_str, &next_str)
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let updated = if content.ends_with('\n') && !updated.ends_with('\n') {
+        updated + "\n"
+    } else {
+        updated
+    };
+
+    fs::write(&path, updated).context("failed to write .ai/SESSION-BOOT.md")?;
+    Ok(())
+}
+
+fn confirm(question: &str) -> Result<bool> {
+    eprint!("{question} [y/N] ");
+    io::stderr().flush()?;
+    let mut line = String::new();
+    let bytes = io::stdin()
+        .lock()
+        .read_line(&mut line)
+        .context("failed to read input")?;
+    if bytes == 0 {
+        return Ok(false);
+    }
+    Ok(matches!(
+        line.trim().to_ascii_lowercase().as_str(),
+        "y" | "yes"
+    ))
 }
 
 fn find_repo_root(start: &Path) -> Option<PathBuf> {
@@ -134,5 +233,23 @@ mod tests {
     #[test]
     fn extract_prompt_path_ignores_other_lines() {
         assert_eq!(extract_prompt_path("no prompt here"), None);
+    }
+
+    #[test]
+    fn update_session_boot_replaces_number() {
+        let tmp = tempfile::tempdir().unwrap();
+        let ai = tmp.path().join(".ai");
+        fs::create_dir_all(&ai).unwrap();
+        fs::write(
+            ai.join("SESSION-BOOT.md"),
+            "# Session Boot\n- **Number:** 08\n- **Type:** CODE\n",
+        )
+        .unwrap();
+
+        update_session_boot(tmp.path(), 8, 9).unwrap();
+
+        let result = fs::read_to_string(ai.join("SESSION-BOOT.md")).unwrap();
+        assert!(result.contains("**Number:** 09"));
+        assert!(!result.contains("**Number:** 08"));
     }
 }
