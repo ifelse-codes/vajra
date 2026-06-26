@@ -1,3 +1,4 @@
+use crate::budget::{self, BudgetVerdict};
 use crate::launcher::{command_exists, merge_hook_settings, TempSettings};
 use crate::meter;
 use anyhow::{Context, Result};
@@ -61,19 +62,46 @@ fn wait_and_meter(
     std::mem::drop(temp_settings);
     let status = status.context("failed to wait on claude")?;
 
-    if std::env::var("VAJRA_QUIET").ok().as_deref() != Some("1") {
-        print_receipt(session_start, stats_path);
-    }
+    let session_cost = if std::env::var("VAJRA_QUIET").ok().as_deref() != Some("1") {
+        print_receipt(session_start, stats_path)
+    } else {
+        None
+    };
 
     let _ = std::fs::remove_file(stats_path);
 
     if !status.success() {
         std::process::exit(status.code().unwrap_or(1));
     }
+
+    if let Some(cost) = session_cost {
+        check_budget_cap(cost)?;
+    }
+
     Ok(())
 }
 
-fn print_receipt(session_start: SystemTime, stats_path: &Path) {
+fn check_budget_cap(session_cost: f64) -> Result<()> {
+    let constraints_path = std::env::current_dir()
+        .ok()
+        .map(|d| d.join(".ai/CONSTRAINTS.yaml"));
+    let config = constraints_path
+        .as_deref()
+        .and_then(budget::read_budget_config);
+
+    match budget::check_budget(config.as_ref(), session_cost) {
+        BudgetVerdict::OverBudget { spent, cap, kill } => {
+            eprint!("{}", budget::format_budget_warning(spent, cap, kill));
+            if kill {
+                std::process::exit(2);
+            }
+        }
+        BudgetVerdict::UnderBudget | BudgetVerdict::NoCap => {}
+    }
+    Ok(())
+}
+
+fn print_receipt(session_start: SystemTime, stats_path: &Path) -> Option<f64> {
     let compression_stats = meter::read_compression_stats(stats_path);
 
     let jsonl = match meter::find_session_jsonl(session_start) {
@@ -85,16 +113,19 @@ fn print_receipt(session_start: SystemTime, stats_path: &Path) {
                     stats.lines_folded, stats.calls_compressed
                 );
             }
-            return;
+            return None;
         }
     };
 
     match meter::meter_session(&jsonl.0, jsonl.1.as_deref(), compression_stats) {
         Ok(cost) => {
+            let total = cost.total_dollars;
             eprint!("\n{}", meter::format_receipt(&cost));
+            Some(total)
         }
         Err(e) => {
             eprintln!("\n[vajra] meter error: {e}");
+            None
         }
     }
 }
