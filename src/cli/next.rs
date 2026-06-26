@@ -103,10 +103,21 @@ fn run_advance() -> Result<()> {
 
     update_session_boot(&root, current, next)?;
 
+    let next_prompt = find_next_prompt(&root, next);
+    if let Some(ref prompt_path) = next_prompt {
+        update_prompt_pointer(&root, ".ai/TASK.md", prompt_path)?;
+        update_prompt_pointer(&root, ".ai/SESSION-BOOT.md", prompt_path)?;
+    }
+
     eprintln!();
     eprintln!("Advanced: session {current:02} → {next:02}");
     eprintln!("  .ai/SESSION updated");
     eprintln!("  .ai/SESSION-BOOT.md updated");
+    if let Some(ref prompt_path) = next_prompt {
+        eprintln!("  prompt pointer → {prompt_path}");
+    } else {
+        eprintln!("  warning: no prompt found for session {next:02} in prompts/");
+    }
 
     Ok(())
 }
@@ -193,6 +204,58 @@ fn print_file(root: &Path, relative: &str) -> Result<()> {
     Ok(())
 }
 
+fn find_next_prompt(root: &Path, next: u32) -> Option<String> {
+    let prompts_dir = root.join("prompts");
+    let prefix = format!("{next:02}-task-");
+
+    fs::read_dir(&prompts_dir)
+        .ok()?
+        .filter_map(|e| e.ok())
+        .find_map(|e| {
+            let name = e.file_name().to_string_lossy().to_string();
+            if name.starts_with(&prefix) && name.ends_with(".md") {
+                Some(format!("prompts/{name}"))
+            } else {
+                None
+            }
+        })
+}
+
+fn update_prompt_pointer(root: &Path, relative: &str, new_prompt: &str) -> Result<()> {
+    let path = root.join(relative);
+    let content = match fs::read_to_string(&path) {
+        Ok(c) => c,
+        Err(_) => return Ok(()),
+    };
+
+    let updated: String = content
+        .lines()
+        .map(|line| {
+            if !line.to_ascii_lowercase().contains("read prompt") {
+                return line.to_string();
+            }
+            let Some(start) = line.find('`') else {
+                return line.to_string();
+            };
+            let tail = &line[start + 1..];
+            let Some(end) = tail.find('`') else {
+                return line.to_string();
+            };
+            format!("{}`{new_prompt}`{}", &line[..start], &tail[end + 1..])
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let updated = if content.ends_with('\n') && !updated.ends_with('\n') {
+        updated + "\n"
+    } else {
+        updated
+    };
+
+    fs::write(&path, updated).with_context(|| format!("failed to write {relative}"))?;
+    Ok(())
+}
+
 fn extract_prompt_path(content: &str) -> Option<String> {
     content.lines().find_map(extract_backticked_prompt)
 }
@@ -233,6 +296,47 @@ mod tests {
     #[test]
     fn extract_prompt_path_ignores_other_lines() {
         assert_eq!(extract_prompt_path("no prompt here"), None);
+    }
+
+    #[test]
+    fn find_next_prompt_finds_matching_file() {
+        let tmp = tempfile::tempdir().unwrap();
+        let prompts = tmp.path().join("prompts");
+        fs::create_dir_all(&prompts).unwrap();
+        fs::write(prompts.join("02-task-add-goodbye.md"), "# S02").unwrap();
+        fs::write(prompts.join("01-task-kickoff.md"), "# S01").unwrap();
+
+        assert_eq!(
+            find_next_prompt(tmp.path(), 2),
+            Some("prompts/02-task-add-goodbye.md".to_string())
+        );
+        assert_eq!(find_next_prompt(tmp.path(), 3), None);
+    }
+
+    #[test]
+    fn update_prompt_pointer_replaces_backticked_path() {
+        let tmp = tempfile::tempdir().unwrap();
+        let ai = tmp.path().join(".ai");
+        fs::create_dir_all(&ai).unwrap();
+        fs::write(
+            ai.join("TASK.md"),
+            "# Task\nRead prompt: `prompts/01-task-kickoff.md`\n",
+        )
+        .unwrap();
+
+        update_prompt_pointer(tmp.path(), ".ai/TASK.md", "prompts/02-task-add-goodbye.md").unwrap();
+
+        let result = fs::read_to_string(ai.join("TASK.md")).unwrap();
+        assert!(result.contains("`prompts/02-task-add-goodbye.md`"));
+        assert!(!result.contains("01-task-kickoff"));
+    }
+
+    #[test]
+    fn update_prompt_pointer_skips_missing_file() {
+        let tmp = tempfile::tempdir().unwrap();
+        let result =
+            update_prompt_pointer(tmp.path(), ".ai/TASK.md", "prompts/02-task-add-goodbye.md");
+        assert!(result.is_ok());
     }
 
     #[test]
