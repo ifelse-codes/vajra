@@ -17,7 +17,7 @@
 
 - **Name:** Vajra
 - **Positioning:** One CLI that guides any AI coding agent through a project step by step. Vendor-neutral workflow coaching is the product; token saving is the quiet bonus.
-- **Implemented slices today:** `vajra claude` (launches Claude Code with workflow context + compression hook + receipt) + `vajra next` (prints `.ai/` handoff packet — read-only, does not advance yet). Only Claude Code is wired; other agents are planned.
+- **Implemented slices today:** `vajra claude` (launches Claude Code with workflow context + compression hook + receipt) + `vajra next` (prints `.ai/` handoff packet or advances via `--advance`) + `vajra check` (drift detection + readiness scoring) + `vajra init` (scaffolds `.ai/` workflow). Only Claude Code is wired; other agents are planned.
 
 ## 3. Repo Layout (Agent Workflow)
 
