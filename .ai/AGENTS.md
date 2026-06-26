@@ -52,7 +52,7 @@ Under Claude Code, the `SessionStart` hook in `.claude/settings.json` prints fil
 2. **BRANCH** — `git checkout -b session-NN-<slug>` from `main`. Never work on `main`.
 3. **PLAN** — Bullets. Max 2 assumptions. Wait for approval token.
 4. **EXECUTE** — Atomic changes. Update `ROADMAP.md` [x] on completion. Update `KNOWLEDGE.md` on new permanent fact.
-5. **VERIFY + DEMO** — `scripts/verify-session-NN.sh` exits 0 = done. `scripts/demo-session-NN.sh` shows what was built (cumulative — includes prior session capabilities). Artifacts at `.ai/verify/session-NN/<ts>/` with `latest` symlink.
+5. **VERIFY + DEMO** — `scripts/verify-session-NN.sh` exits 0 = done. `scripts/demo-session-NN.sh` shows what was built (cumulative — includes prior session capabilities). Artifacts at `.ai/verify/session-NN/<ts>/` with `latest` symlink. When user asks to see the demo, present as an interactive HTML slide deck (terminal-styled, auto-play, PASS/FAIL coloring, scorecard) — not raw terminal output.
 6. **PR** — Open PR to `main`. Not closed until merged.
 7. **SUMMARY** — `sessions/session-NN-summary.md`. Required: goal achieved? evidence? exactly 3 next options A/B/C.
 8. **NEXT** — After user picks, write `prompts/NN+1-task-<slug>.md`. Update `.ai/TASK.md` pointer.
