@@ -2,14 +2,12 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 09 — Build `vajra check` + Make `vajra next` Advance — COMPLETE
+## Session 11 — Budget Guard — IN PROGRESS
 
-- **Branch:** `session-09-check-and-next`
-- **Goal:** Build `vajra check` (drift detection + readiness scoring) + `vajra next --advance` (bump SESSION, update pointers).
-
-## Next Session
-
-Read prompt: `prompts/10-task-ground-truth-audit.md`
+- **Type:** CODE
+- **Goal:** Add `budget_cap_usd` to CONSTRAINTS.yaml, enforce in launcher.
+- **Branch:** `session-11-budget-guard`
+- **Prompt:** `prompts/11-task-budget-guard.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 

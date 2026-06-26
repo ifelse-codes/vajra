@@ -18,12 +18,12 @@ None (no remote configured).
 - Compression engine + 4 heuristics (cargo, git, npm, pytest) — tests pass against fixtures.
 - Meter parses session JSONL and prints honest cost breakdown — tests pass against fixtures.
 - Demo scripts formalized in CONSTRAINTS.yaml and session loop.
-- All tests green: `cargo test` (32 tests), `cargo clippy`.
+- Budget guard enforces `budget.cap_usd` from CONSTRAINTS.yaml after each session (warn or kill mode).
+- All tests green: `cargo test` (82 tests), `cargo clippy`.
 
 ## What Is Broken
 - Only Claude Code is wired — no second agent launcher exists.
 - No installer or release pipeline.
-- No budget guard.
 
 ## What Is In Progress
 - Nothing — between sessions.

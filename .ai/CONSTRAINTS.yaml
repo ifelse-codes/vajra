@@ -83,6 +83,10 @@ load_order:
   - .ai/ROADMAP.md
   - "prompts/{NN}-task-{slug}.md"
 
+budget:
+  cap_usd: 5.00
+  mode: warn
+
 enforcement:
   binds_all_agents: true
   fail_closed: true
