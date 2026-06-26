@@ -16,11 +16,7 @@ pub struct BudgetConfig {
 #[derive(Debug, Clone, PartialEq)]
 pub enum BudgetVerdict {
     UnderBudget,
-    OverBudget {
-        spent: f64,
-        cap: f64,
-        kill: bool,
-    },
+    OverBudget { spent: f64, cap: f64, kill: bool },
     NoCap,
 }
 
@@ -46,9 +42,7 @@ pub fn check_budget(config: Option<&BudgetConfig>, session_cost: f64) -> BudgetV
 
 pub fn format_budget_warning(spent: f64, cap: f64, kill: bool) -> String {
     let action = if kill { "KILLED" } else { "WARNING" };
-    format!(
-        "[vajra budget] {action}: session cost ${spent:.4} exceeds cap ${cap:.2}\n"
-    )
+    format!("[vajra budget] {action}: session cost ${spent:.4} exceeds cap ${cap:.2}\n")
 }
 
 fn parse_budget_section(content: &str) -> Option<BudgetConfig> {
@@ -61,10 +55,7 @@ fn parse_budget_section(content: &str) -> Option<BudgetConfig> {
             in_budget = true;
             continue;
         }
-        if in_budget
-            && !line.starts_with(' ')
-            && !line.starts_with('\t')
-            && !line.trim().is_empty()
+        if in_budget && !line.starts_with(' ') && !line.starts_with('\t') && !line.trim().is_empty()
         {
             break;
         }
@@ -80,10 +71,7 @@ fn parse_budget_section(content: &str) -> Option<BudgetConfig> {
         }
     }
 
-    cap_usd.map(|cap| BudgetConfig {
-        cap_usd: cap,
-        mode,
-    })
+    cap_usd.map(|cap| BudgetConfig { cap_usd: cap, mode })
 }
 
 #[cfg(test)]
@@ -131,7 +119,10 @@ mod tests {
             cap_usd: 5.0,
             mode: BudgetMode::Warn,
         };
-        assert_eq!(check_budget(Some(&config), 3.50), BudgetVerdict::UnderBudget);
+        assert_eq!(
+            check_budget(Some(&config), 3.50),
+            BudgetVerdict::UnderBudget
+        );
     }
 
     #[test]
