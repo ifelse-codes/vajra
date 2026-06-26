@@ -9,13 +9,13 @@
 cargo install vajractl
 
 # From source
-git clone https://github.com/anthropics/vajra && cd vajra && cargo install --path .
+git clone https://github.com/ifelse-codes/vajra && cd vajra && cargo install --path .
 
 # macOS (Homebrew)
 brew install suman/tap/vajra
 
 # Prebuilt binary (macOS arm64 example)
-curl -fsSL https://github.com/anthropics/vajra/releases/latest/download/vajra-aarch64-apple-darwin.tar.gz | tar xz
+curl -fsSL https://github.com/ifelse-codes/vajra/releases/latest/download/vajra-aarch64-apple-darwin.tar.gz | tar xz
 sudo mv vajra /usr/local/bin/
 ```
 
