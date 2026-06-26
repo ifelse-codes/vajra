@@ -10,7 +10,7 @@
 
 ## Next Session
 
-Awaiting user pick (A/B/C from session summary).
+Read prompt: `prompts/12-task-e2e-next-proof.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
