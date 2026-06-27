@@ -2,15 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 16 — Clean Legacy References + Fix S15 Drift — COMPLETE
+## Session 17 — Pre-Run Cost Estimate — COMPLETE
 
 - **Type:** CODE
-- **Goal:** Remove `vajra launch` alias, fix S15 ground truth findings.
-- **PR:** [#4](https://github.com/ifelse-codes/vajra/pull/4) — merged
+- **Goal:** Add `vajra estimate` command for pre-run cost prediction.
+- **PR:** [#6](https://github.com/ifelse-codes/vajra/pull/6) — merged
 
 ## Next Session
 
-Read prompt: `prompts/17-task-pre-run-cost-estimate.md`
+Read prompt: `prompts/18-task-product-review-and-vision.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
@@ -30,6 +30,9 @@ Read prompt: `prompts/17-task-pre-run-cost-estimate.md`
 9. ~~Installer / release path~~ — DONE (S13)
 10. ~~Maturity levels L1/L2/L3~~ — DONE (S14)
 11. ~~Clean legacy `vajra launch` references~~ — DONE (S16)
+
+### Phase 4 — Post-launch
+12. ~~Pre-run cost estimate~~ — DONE (S17)
 
 ## Always-True Reminders
 

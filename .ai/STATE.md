@@ -3,10 +3,10 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S16 complete, S17 not yet started).
+None — between sessions (S17 complete, S18 not yet started).
 
 ## Active PRs
-None — PR #4 (S16) merged.
+None — PR #6 (S17) merged.
 
 ## What Currently Works
 - `vajra init` scaffolds `.ai/` + hooks + cross-agent pointers (16 files, interactive, idempotent). Prompts for maturity level.
@@ -16,6 +16,7 @@ None — PR #4 (S16) merged.
 - `vajra next --advance` bumps SESSION + SESSION-BOOT.md + prompt pointer. L3 skips confirm, L1/L2 require it.
 - `vajra next` e2e loop proven: init → next → work → advance → repeat across 3 sessions.
 - `vajra check` runs 10 drift-detection checks. L1 = WARN (exit 0), L2/L3 = FAIL (exit 1).
+- `vajra estimate` predicts token spend before running a session. Chars/4 input, 3:1 output ratio, Opus pricing, budget warning.
 - Maturity levels L1/L2/L3 parsed from `maturity:` in CONSTRAINTS.yaml (default L2).
 - Hook scripts respect maturity — L1 = warn-only, L2/L3 = can block.
 - Compression engine + 4 heuristics (cargo, git, npm, pytest) — tests pass against fixtures.
@@ -26,11 +27,12 @@ None — PR #4 (S16) merged.
 - GitHub Actions release workflow (tag-triggered, 3 targets: macOS arm64/x86_64 + Linux x86_64).
 - `cargo package` produces publish-ready crate as `vajractl`.
 - Remote configured: `origin` → `https://github.com/ifelse-codes/vajra`.
-- All tests green: `cargo test` (96 tests), `cargo clippy`.
+- All tests green: `cargo test` (77 unit + 26 integration), `cargo clippy`.
 - Legacy `vajra launch` alias removed (S16).
 
 ## What Is Broken
 - Only Claude Code is wired — no second agent launcher exists.
+- `vajra estimate` output ratio (3:1) is unvalidated placeholder — treat as order-of-magnitude.
 
 ## What Is In Progress
 - Nothing — between sessions.
@@ -39,9 +41,6 @@ None — PR #4 (S16) merged.
 - Session 00–05: $0.00 (no API calls)
 - Session 06: $0.00 (docs only)
 - Session 07: ~$0.46 (3 test runs via `vajra claude -p`)
-- Session 08–09: ~$0.00 (code sessions)
-- Session 10: ~$0.00 (no-code ground truth audit)
-- Session 11–14: ~$0.00 (code sessions)
-- Session 15: ~$0.00 (no-code ground truth audit)
-- Session 16: ~$0.00 (code session, no API calls)
+- Session 08–16: ~$0.00 (code/no-code sessions, no API calls)
+- Session 17: ~$0.00 (code session, no API calls)
 - Cumulative: ~$0.46
