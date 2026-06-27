@@ -11,11 +11,11 @@ S19 Varta-v0 PR pending merge to `main`.
 ## Direction (set S18, advanced S19)
 - **Reframe: co-pilot, not cop** — guide the agent in real time (ADAS / F1 race engineer), not catch mistakes after.
 - **Product direction: Varta** — a compact ⚡ C-inspired machine language the agent learns at boot and speaks all session; delivered as a **skill** (not a compiler). Co-pilot mechanism = `⚡on(x) ⚡include`. See `VISION.md`, ROADMAP Phase 2, memory `vajra-varta`.
-- **Varta v0 shipped (S19)** — the skill + grammar + `vajra.varta` worked example + read-back test. Files in `varta/`.
+- **Varta v0 shipped (S19)** — the **language**: `varta/SKILL.md` (teaches the ⚡ grammar) + `varta/GRAMMAR.varta` (self-describing spec). The agent speaks Varta from the **live `.ai/`** source. The hand-written `vajra.varta` companion was **dropped** — a second copy drifts and loses config (it had already dropped budget cap, maturity, max_bullets). A persisted `.varta` returns later, **generated** from `.ai/`, never hand-kept.
 - **Next code build = the co-pilot loader** (ROADMAP item 8) — picked for S21. Make `⚡on(x) ⚡include` actually fire mid-session.
 
 ## What Currently Works
-- **Varta v0 (the skill)** — `varta/SKILL.md` teaches the 9-construct ⚡ grammar + boot ritual; `varta/GRAMMAR.varta` is the self-describing spec; `varta/vajra.varta` renders Vajra's `.ai/` in Varta (companion); `varta/READBACK.md` proves an agent answers the rules from the spec alone. verify-session-19.sh green (10/10). Nothing parses it — the agent is the runtime.
+- **Varta v0 (the language)** — `varta/SKILL.md` teaches the 9-construct ⚡ grammar + boot ritual (read→internalize→speak); `varta/GRAMMAR.varta` is the self-describing spec. The agent speaks Varta from the **live `.ai/`** — no second copy to drift or lose. verify-session-19.sh green (9/9); demo shows a live read-back from `.ai/CONSTRAINTS.yaml`. Nothing parses it — the agent is the runtime.
 - `vajra init` scaffolds `.ai/` + hooks + cross-agent pointers (16 files, interactive, idempotent). Prompts for maturity level.
 - `vajra claude` launches Claude Code with hook injection and prints a receipt on exit.
 - `--settings` injection is additive — proven in Session 07.
@@ -34,7 +34,7 @@ S19 Varta-v0 PR pending merge to `main`.
 - Only Claude Code is wired — no second agent launcher exists.
 - `vajra estimate` output ratio (3:1) is unvalidated placeholder — treat as order-of-magnitude.
 - **First-run payoff is invisible** — `vajra init` produces files, not a felt win (S18 finding; Phase 2 item 9).
-- **Varta is not yet wired into `vajra init`** (standalone files only, S19 decision), and `⚡on(...)` loads are read by the agent, not yet fired by a runtime (that is the S21 co-pilot loader).
+- **A persisted `.varta` is not generated yet** — S19 ships the language only; rendering `.ai/` → `.varta` (drift-free) is a follow-up, as is wiring Varta into `vajra init`. `⚡on(...)` loads are read by the agent, not yet fired by a runtime (the S21 co-pilot loader).
 
 ## What Is In Progress
 - Nothing — between sessions. Next: **S20 ground-truth audit (mandatory NO-CODE)**, then S21 = co-pilot loader.
