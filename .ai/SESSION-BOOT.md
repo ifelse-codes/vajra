@@ -1,25 +1,25 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 17 — COMPLETE
-- **Type:** CODE — pre-run cost estimate
-- **Branch:** `session-17-pre-run-cost-estimate`
+- **Number:** 18 — COMPLETE
+- **Type:** INTERACTIVE — product review + vision building
+- **Branch:** `session-18-product-review-and-vision`
 - **Date last updated:** 2026-06-27
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 17.
-- `main`: includes up to Session 17 merge (PR #6 merged).
+- `.ai/SESSION` = 18.
+- `main`: includes up to Session 17 (PR #7 merged). S18 PR pending merge.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 18
-- **Type:** INTERACTIVE — product review + vision building
-- **Read prompt:** `prompts/18-task-product-review-and-vision.md`
-- **Branch:** `session-18-product-review-and-vision`
+- **Number:** 19
+- **Type:** CODE — Varta v0 (the skill)
+- **Read prompt:** `prompts/19-task-varta-skill.md`
+- **Branch:** `session-19-varta-skill`
 
 ## Carry-Forwards
-- Phase 1 complete — all 6 core items done.
-- Phase 3 items 10 (installer), 11 (maturity levels), 12 (legacy cleanup) complete.
-- Phase 4 item 13 (pre-run cost estimate) complete.
-- `vajra estimate` output ratio is unvalidated — future session should calibrate against real JSONL.
-- Remote configured and pushed.
+- S18 reframe: **co-pilot, not cop.** New direction = **Varta** (⚡ machine language, shipped as a skill). See `VISION.md` + memory `vajra-varta`.
+- Next build = Varta v0: write the skill + convert Vajra's own `.ai/` to one `.varta`; prove an agent learns it and speaks it for a session.
+- `vajra claude` onboarding gap: no auth pre-check before launch (Phase 2 item 9, first-run "aha").
+- Validate Varta over 2–3 real sessions before building the runtime co-pilot loader (Phase 2 item 8).
+- `vajra estimate` output ratio (3:1) still unvalidated.
