@@ -1,25 +1,24 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 15 — COMPLETE
-- **Type:** NO-CODE — ground truth audit
-- **Branch:** `session-15-ground-truth`
+- **Number:** 16 — COMPLETE
+- **Type:** CODE — clean legacy references + fix S15 drift
+- **Branch:** `session-16-cleanup-and-drift-fix`
 - **Date last updated:** 2026-06-27
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 14.
-- `main`: includes up to Session 14 merge (PR #2 merged).
+- `.ai/SESSION` = 16.
+- `main`: includes up to Session 16 merge (PR #4 merged).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 16
-- **Type:** CODE — clean legacy references + fix S15 drift
-- **Read prompt:** `prompts/16-task-cleanup-and-drift-fix.md`
+- **Number:** 17
+- **Type:** CODE — pre-run cost estimate
+- **Read prompt:** `prompts/17-task-pre-run-cost-estimate.md`
 - **Branch:** TBD
 
 ## Carry-Forwards
 - Phase 1 complete — all 6 core items done.
-- Phase 3 items 10 (installer) and 11 (maturity levels) complete.
-- Maturity levels L1/L2/L3 wired into check, init, next, and hooks.
-- S15 ground truth: 4 findings (0 high, 2 medium, 2 low) — all assigned to S16.
+- Phase 3 items 10 (installer), 11 (maturity levels), 12 (legacy cleanup) complete.
+- S15 ground truth findings all resolved in S16.
 - Remote configured and pushed.

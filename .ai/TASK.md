@@ -2,15 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 15 — Ground Truth Audit — COMPLETE
+## Session 16 — Clean Legacy References + Fix S15 Drift — COMPLETE
 
-- **Type:** NO-CODE
-- **Goal:** Mandatory ground truth audit after 5 code sessions (S11–S14).
-- **Output:** `sessions/session-15-ground-truth.md`
+- **Type:** CODE
+- **Goal:** Remove `vajra launch` alias, fix S15 ground truth findings.
+- **PR:** [#4](https://github.com/ifelse-codes/vajra/pull/4) — merged
 
 ## Next Session
 
-Read prompt: `prompts/16-task-cleanup-and-drift-fix.md`
+Read prompt: `prompts/17-task-pre-run-cost-estimate.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
@@ -26,10 +26,10 @@ Read prompt: `prompts/16-task-cleanup-and-drift-fix.md`
 7. Add second agent (Codex or Cursor) — deep integration, not prompt template
 8. Add third agent (Aider, Gemini CLI, or Kimi)
 
-### Phase 3 — Ship
+### Phase 3 — Ship — COMPLETE
 9. ~~Installer / release path~~ — DONE (S13)
 10. ~~Maturity levels L1/L2/L3~~ — DONE (S14)
-11. Clean legacy `vajra launch` references
+11. ~~Clean legacy `vajra launch` references~~ — DONE (S16)
 
 ## Always-True Reminders
 
