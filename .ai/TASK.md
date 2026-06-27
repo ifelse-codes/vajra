@@ -2,15 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 14 — Maturity Levels — COMPLETE
+## Session 15 — Ground Truth Audit — COMPLETE
 
-- **Type:** CODE
-- **Goal:** Add tiered enforcement maturity (L1/L2/L3) to CONSTRAINTS.yaml.
-- **Output:** `sessions/session-14-summary.md`
+- **Type:** NO-CODE
+- **Goal:** Mandatory ground truth audit after 5 code sessions (S11–S14).
+- **Output:** `sessions/session-15-ground-truth.md`
 
 ## Next Session
 
-Read prompt: `prompts/15-task-ground-truth.md`
+Read prompt: `prompts/16-task-cleanup-and-drift-fix.md`
 
 ## Build Queue (from ROADMAP.md, in order)
 
