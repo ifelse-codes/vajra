@@ -37,7 +37,7 @@ run_check "constraints-budget" grep -q "cap_usd:" .ai/CONSTRAINTS.yaml
 run_check "state-test-count"  bash -c '! grep -q "(32 tests)" .ai/STATE.md'
 
 # ROADMAP.md no done items in "Does NOT Work"
-run_check "roadmap-clean"     bash -c '! grep -A20 "Does NOT Work" .ai/ROADMAP.md | grep -q "\[x\]"'
+run_check "roadmap-clean"     bash -c '! sed -n "/Does NOT Work/,/^##/p" .ai/ROADMAP.md | grep -q "\[x\]"'
 
 # session-06-summary.md restored
 run_check "session-06-exists" test -f sessions/session-06-summary.md

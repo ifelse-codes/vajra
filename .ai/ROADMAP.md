@@ -27,14 +27,14 @@
 | Meter + receipt | [x] done — parses session JSONL, prints honest cost breakdown |
 | `vajra init` command | [x] done — scaffolds `.ai/` + hooks + pointers (16 files, interactive, idempotent) |
 | `vajra next` (read-only + advance) | [x] done — prints packet or advances session via `--advance` |
+| Installer / release pipeline | [x] done — S13: `cargo install vajractl`, GitHub Actions CI + release (3 targets) |
+| Maturity levels L1/L2/L3 | [x] done — S14: L1 report / L2 gated / L3 auto, wired into check, init, next, hooks |
 
 ## What Does NOT Work Yet
 
 | Component | Status |
 |---|---|
 | Second agent launcher | [ ] not built — only Claude Code is wired |
-| Installer / release pipeline | [x] done — S13 |
-| Maturity levels L1/L2/L3 | [x] done — S14 |
 
 ## Design Rules (from competitive analysis)
 

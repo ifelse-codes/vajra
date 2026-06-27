@@ -92,7 +92,7 @@ pub struct CompressionRequest {
 - `DefaultEngine` returns `Passthrough` (not `Compressed`) when `lines_removed == 0`.
 - `ClaudeCodeHookAdapter` lives in `src/adapter/claude_code.rs`.
 - Hook wire types use `#[serde(rename_all = "camelCase")]` (CC JSON is camelCase).
-- Breadcrumb format: `[N lines hidden — set VAJRA_RAW=1 to disable]` (appended to stdout).
+- Breadcrumb format: `[vajra: N lines folded — VAJRA_RAW=1 before 'vajra claude' to see full output]` (appended to stdout).
 
 ## 8. Maturity Levels
 
