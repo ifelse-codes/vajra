@@ -8,9 +8,11 @@
 
 ## The simple picture
 
-- **The AI agent** = the worker (writes code, makes branches, creates files)
-- **Vajra** = the coach (tells it what step is next, hands it the context and rules — never codes itself)
-- **You** = the boss (you say `vajra next`, the coach moves the worker forward)
+- **The AI agent** = the driver (writes code, makes branches, creates files)
+- **Vajra** = the co-pilot (calls the next move, feeds the right rule at the right moment — never drives itself)
+- **You** = the team principal (you say `vajra next`, the co-pilot moves the driver forward)
+
+**Co-pilot, not cop.** Vajra does not wait for the agent to crash and then write a ticket. It rides along and guides — like ADAS guides a car, or a race engineer guides an F1 driver through each corner.
 
 ## What it does
 
@@ -29,10 +31,37 @@
 | `vajra claude` *(existing project)* | Loads the memory, points the agent at the current step |
 | `vajra next` | "Step done — here's the next one + all its context." Agent continues. |
 
+## The problem we are really solving
+
+- Agents (Claude, Kimi, Codex) **forget the vision** and rush to finish the task fast.
+- The big idea drifts away mid-session. The rules stop being followed.
+- Front-loading a giant `AGENTS.md` does not stick — the agent skims it once and moves on.
+
+## The next leap — Varta (the agent's language)
+
+**Varta** *(Sanskrit: "talk / dialogue")* is a compact language the agent learns and speaks — built for machines, not humans.
+
+- **Looks like code** (C / Java style), so it can never blend into prose. Keywords carry a `⚡` mark.
+- **Delivered as a skill** — not a compiler. The agent loads it at the start, *internalizes* the rules (a re-train before work), then speaks Varta all session to manage its own notes and the `.ai/` files.
+- **The co-pilot lives here.** `⚡on(compression) ⚡include "src/engine/*"` means: pull that context *only* when the agent touches that work. Right rule, right corner — not everything up front.
+- **Humans just spectate.** The `//` comments are the one human-readable lane. You glance the *why*; the agent handles the rest.
+
+A taste:
+
+```
+⚡forbid {
+  work_on_main;              // branch session-NN-slug first
+  commit_without_approval;   // wait: approved | lgtm | ship it
+}
+⚡on (drift_check) ⚡include "STATE.md", git_status;
+```
+
 ## What makes it different
 
 - **Works with any agent** — Claude, Kimi, Kilo, others
 - **One button: `vajra next`** — advances the whole loop with a single command
+- **Co-pilot, not cop** — guides the agent in real time, instead of catching mistakes after
+- **Varta** — a machine language that keeps the vision loaded and the rules followed
 - **Honest** — modest token savings, no hype
 
 ## Rules

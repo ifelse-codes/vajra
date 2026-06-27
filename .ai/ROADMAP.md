@@ -62,9 +62,17 @@
 
 6. **[x] Prove `vajra next` walks a real session start to finish** — DONE in Session 12. 3-session loop proven end-to-end. Found and fixed: prompt pointer not updating on advance, SIGPIPE panic when piping output. Automated e2e proof in verify script.
 
-### Phase 2 — Deepen Claude experience (before adding other agents)
+### Phase 2 — Varta: the agent's language + the co-pilot (S18 direction)
 
-7. *Open — needs brainstorming. Focus: make `vajra claude` excellent before going multi-agent.*
+**Why this phase exists (S18 finding):** running the commands produces *files*, not a *feeling* — the first-run payoff is invisible. The deeper pain across 2 months of `.ai/` use: agents forget the vision and rush to finish. Fix = **Varta**, a compact ⚡ machine-language the agent learns at boot and speaks all session, with a co-pilot that feeds the right context at the right moment. Reframe: **co-pilot, not cop.** See `VISION.md` and memory `vajra-varta`.
+
+7. **[ ] Varta v0 — the skill** *(NEXT — picked S18)* — Write the Varta skill (`SKILL.md`, teaches the ⚡ grammar like plain-talk teaches plain English) + convert Vajra's own `.ai/` into one `.varta` spec. Prove an agent loads it, internalizes it, and speaks it for a full session. Risk: language may need 2–3 real sessions to settle.
+
+8. **[ ] The co-pilot loader** — Make `⚡on(x) ⚡include` real: Vajra surfaces the right context mid-session based on what the agent touches (drift nudges, race-engineer calls). Build *after* Varta v0 proves the language. Risk: needs runtime hooks — harder.
+
+9. **[ ] First-run "aha"** — Make `vajra init` → first session deliver a visible win in 2 minutes. Fixes the exact "not worth it" feeling from the S18 walkthrough. Risk: polish, not the big bet.
+
+**Varta language spec (locked S18):** C/Java-inspired syntax + `⚡` keyword prefix. Constructs: `⚡project{⚡is ⚡stack ⚡goal ⚡now}`, `⚡forbid{}`, `⚡require{}`, `⚡max{}`, `⚡pipeline{}`, `⚡final{}`, `⚡on(cond) ⚡include "files"` (the co-pilot), `⚡assert{}`, `⚡enum next{}`. `//` comments = the human-glanceable *why*. Mechanism = **skill, not compiler** — the agent reads/writes it, nothing parses it.
 
 ### Phase 3 — Ship it — COMPLETE
 
