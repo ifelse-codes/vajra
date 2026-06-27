@@ -3,13 +3,13 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S15 complete, S16 not yet started).
+None — between sessions (S16 complete, S17 not yet started).
 
 ## Active PRs
-None — PR #1 (S13) and PR #2 (S14) both merged.
+None — PR #4 (S16) merged.
 
 ## What Currently Works
-- `vajra init` scaffolds `.ai/` + hooks + cross-agent pointers (16 files, interactive, idempotent). Now prompts for maturity level.
+- `vajra init` scaffolds `.ai/` + hooks + cross-agent pointers (16 files, interactive, idempotent). Prompts for maturity level.
 - `vajra claude` launches Claude Code with hook injection and prints a receipt on exit.
 - `--settings` injection is additive — proven in Session 07.
 - `vajra next` prints the `.ai/` handoff packet + VISION.md + prompt pointer (read-only).
@@ -27,6 +27,7 @@ None — PR #1 (S13) and PR #2 (S14) both merged.
 - `cargo package` produces publish-ready crate as `vajractl`.
 - Remote configured: `origin` → `https://github.com/ifelse-codes/vajra`.
 - All tests green: `cargo test` (96 tests), `cargo clippy`.
+- Legacy `vajra launch` alias removed (S16).
 
 ## What Is Broken
 - Only Claude Code is wired — no second agent launcher exists.
@@ -42,4 +43,5 @@ None — PR #1 (S13) and PR #2 (S14) both merged.
 - Session 10: ~$0.00 (no-code ground truth audit)
 - Session 11–14: ~$0.00 (code sessions)
 - Session 15: ~$0.00 (no-code ground truth audit)
+- Session 16: ~$0.00 (code session, no API calls)
 - Cumulative: ~$0.46
