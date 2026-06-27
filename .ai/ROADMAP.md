@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-27 · Session 17 closeout.
+**Updated:** 2026-06-27 · Session 18 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +11,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-27 |
-| Current phase | Phase 1 — Prove the core works |
-| Last closed session | Session 17 — pre-run cost estimate |
-| Active session | Between sessions (S18 pending) |
+| Current phase | Phase 2 — Varta (the agent's language) |
+| Last closed session | Session 18 — product review + vision (Varta direction set) |
+| Active session | Between sessions (S19 pending — Varta v0) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
