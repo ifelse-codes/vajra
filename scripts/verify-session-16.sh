@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT"
 
-SESSION="11"
+SESSION="16"
 
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 ARTIFACTS=".ai/verify/session-${SESSION}/${TS}"
@@ -24,23 +24,18 @@ run_check "cargo-check"       cargo check --all-targets
 run_check "cargo-test"        cargo test --all-targets
 run_check "cargo-clippy"      cargo clippy --all-targets -- -D warnings
 
-# Budget module exists
-run_check "budget-mod-exists" test -f src/budget/mod.rs
+# Part 1: launch alias removed from main.rs
+run_check "no-launch-match"   bash -c '! grep -q "\"launch\"" src/main.rs'
+run_check "no-launch-help"    bash -c '! grep -q "launch.*Legacy" src/main.rs'
 
-# Budget tests pass
-run_check "budget-tests"      cargo test budget --lib
-
-# CONSTRAINTS.yaml has budget section
-run_check "constraints-budget" grep -q "cap_usd:" .ai/CONSTRAINTS.yaml
-
-# STATE.md test count fixed (not 32)
-run_check "state-test-count"  bash -c '! grep -q "(32 tests)" .ai/STATE.md'
-
-# ROADMAP.md no done items in "Does NOT Work"
+# Part 2a: ROADMAP — no [x] items in "Does NOT Work Yet"
 run_check "roadmap-clean"     bash -c '! sed -n "/Does NOT Work/,/^##/p" .ai/ROADMAP.md | grep -q "\[x\]"'
 
-# session-06-summary.md restored
-run_check "session-06-exists" test -f sessions/session-06-summary.md
+# Part 2b: KNOWLEDGE.md breadcrumb matches code
+run_check "breadcrumb-sync"   bash -c 'grep -q "vajra:.*folded" .ai/KNOWLEDGE.md'
+
+# Part 2c: S11 verify passes (roadmap-clean was failing before)
+run_check "s11-verify"        bash scripts/verify-session-11.sh
 
 ( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
 

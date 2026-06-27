@@ -14,7 +14,7 @@ enum Subcommand {
     Check,
     Hook,
     Init,
-    Launch,
+    Claude,
     Meter,
     Next,
     Help,
@@ -29,7 +29,7 @@ fn main() -> std::process::ExitCode {
         "check" => Subcommand::Check,
         "hook" => Subcommand::Hook,
         "init" => Subcommand::Init,
-        "launch" | "claude" => Subcommand::Launch,
+        "claude" => Subcommand::Claude,
         "meter" => Subcommand::Meter,
         "next" => Subcommand::Next,
         "help" | "--help" | "-h" => Subcommand::Help,
@@ -40,9 +40,9 @@ fn main() -> std::process::ExitCode {
         Subcommand::Check => run_subcommand(cli::check::run),
         Subcommand::Hook => run_subcommand(cli::hook::run),
         Subcommand::Init => run_subcommand(cli::init::run),
-        Subcommand::Launch => {
-            let launch_args: Vec<String> = args.into_iter().skip(2).collect();
-            run_launch_subcommand(&launch_args)
+        Subcommand::Claude => {
+            let claude_args: Vec<String> = args.into_iter().skip(2).collect();
+            run_claude_subcommand(&claude_args)
         }
         Subcommand::Meter => run_subcommand(cli::meter::run),
         Subcommand::Next => {
@@ -78,7 +78,7 @@ fn run_args_subcommand(f: fn(&[String]) -> Result<()>, args: &[String]) -> u8 {
     }
 }
 
-fn run_launch_subcommand(args: &[String]) -> u8 {
+fn run_claude_subcommand(args: &[String]) -> u8 {
     match cli::launch::run(args) {
         Ok(_) => 0,
         Err(e) => {
@@ -96,5 +96,4 @@ fn print_usage() {
     eprintln!("  next [--advance]  Print handoff packet, or advance to next session");
     eprintln!("  hook              Claude Code PostToolUse hook entrypoint");
     eprintln!("  meter <jsonl>     Print a receipt for a past Claude Code session");
-    eprintln!("  launch            Legacy alias for 'claude'");
 }
