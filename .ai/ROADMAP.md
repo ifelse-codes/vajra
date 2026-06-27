@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-27 · Session 15 closeout.
+**Updated:** 2026-06-27 · Session 16 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-27 |
 | Current phase | Phase 1 — Prove the core works |
-| Last closed session | Session 15 — ground truth audit (NO-CODE) |
-| Active session | Between sessions (S16 pending) |
+| Last closed session | Session 16 — cleanup + drift fix |
+| Active session | Between sessions (S17 pending) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -76,7 +76,7 @@
 
 11. **[x] Maturity levels** — DONE in Session 14. `maturity: L1|L2|L3` in CONSTRAINTS.yaml. L1 = report-only (warn, exit 0). L2 = gated (block, human approval). L3 = auto (skip confirm on advance). Wired into check, init, next, and hooks. [PR #2](https://github.com/ifelse-codes/vajra/pull/2).
 
-12. **Clean legacy references** — remove `vajra launch` alias and all references from code and docs.
+12. **[x] Clean legacy references** — DONE in Session 16. Removed `vajra launch` alias from match arm, help text, enum. [PR #4](https://github.com/ifelse-codes/vajra/pull/4).
 
 ### Phase 4 — Earn the next features (post-launch, only when users ask)
 
