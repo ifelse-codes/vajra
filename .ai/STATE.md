@@ -3,10 +3,10 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S14 complete, S15 not yet started).
+None — between sessions (S15 complete, S16 not yet started).
 
 ## Active PRs
-[PR #2](https://github.com/ifelse-codes/vajra/pull/2) — S14 maturity levels (pending merge).
+None — PR #1 (S13) and PR #2 (S14) both merged.
 
 ## What Currently Works
 - `vajra init` scaffolds `.ai/` + hooks + cross-agent pointers (16 files, interactive, idempotent). Now prompts for maturity level.
@@ -41,4 +41,5 @@ None — between sessions (S14 complete, S15 not yet started).
 - Session 08–09: ~$0.00 (code sessions)
 - Session 10: ~$0.00 (no-code ground truth audit)
 - Session 11–14: ~$0.00 (code sessions)
+- Session 15: ~$0.00 (no-code ground truth audit)
 - Cumulative: ~$0.46
