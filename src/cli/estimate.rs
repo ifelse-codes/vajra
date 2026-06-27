@@ -87,8 +87,7 @@ pub fn run() -> Result<()> {
         total_chars
     );
 
-    let budget_config =
-        budget::read_budget_config(&root.join(".ai/CONSTRAINTS.yaml"));
+    let budget_config = budget::read_budget_config(&root.join(".ai/CONSTRAINTS.yaml"));
     if let Some(ref config) = budget_config {
         if total_cost > config.cap_usd {
             eprintln!(
@@ -97,7 +96,10 @@ pub fn run() -> Result<()> {
             );
         } else {
             let remaining = config.cap_usd - total_cost;
-            println!("  budget: ${:.2} cap, ~${:.2} remaining after this session", config.cap_usd, remaining);
+            println!(
+                "  budget: ${:.2} cap, ~${:.2} remaining after this session",
+                config.cap_usd, remaining
+            );
         }
     }
 
@@ -196,7 +198,11 @@ mod tests {
         let ai = tmp.path().join(".ai");
         std::fs::create_dir_all(&ai).unwrap();
         std::fs::write(ai.join("SESSION"), "17\n").unwrap();
-        std::fs::write(ai.join("TASK.md"), "Read prompt: `prompts/17-task-test.md`\n").unwrap();
+        std::fs::write(
+            ai.join("TASK.md"),
+            "Read prompt: `prompts/17-task-test.md`\n",
+        )
+        .unwrap();
         std::fs::write(ai.join("AGENTS.md"), "# Agents\nTest content here.\n").unwrap();
         std::fs::write(ai.join("STATE.md"), "# State\n").unwrap();
         std::fs::write(
@@ -207,7 +213,11 @@ mod tests {
 
         let prompts = tmp.path().join("prompts");
         std::fs::create_dir_all(&prompts).unwrap();
-        std::fs::write(prompts.join("17-task-test.md"), "# Session 17\nDo something.\n").unwrap();
+        std::fs::write(
+            prompts.join("17-task-test.md"),
+            "# Session 17\nDo something.\n",
+        )
+        .unwrap();
 
         // Run from the temp dir
         let original = std::env::current_dir().unwrap();
