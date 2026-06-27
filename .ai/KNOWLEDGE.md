@@ -58,6 +58,7 @@ Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
 - ADR-0002: Engine trait + enum return + single crate + no adapter trait in v1
 - ADR-0003: Tempfile settings merge + LINE_CAP=30 + FAIL_PASSTHROUGH_CAP=400
 - ADR-0004: On-exit receipt to stderr + sidecar env var + compiled-in pricing
+- ADR-0005: Pre-run cost estimate — chars/4 for input tokens, 3:1 output ratio (placeholder heuristic, not validated), Opus pricing default. Output ratio is low-confidence and dominates the estimate; treat as order-of-magnitude guidance until historical JSONL ratios replace it.
 - 2026-06-24 founder direction: `vajra next` + cross-agent workflow coach is the north star; current repo is a partial foundation, not the finished product.
 - Session 04 delivered `vajra claude` as the main Claude launcher alias and `vajra next` as the first agent-agnostic handoff packet command.
 - Launcher injection now resolves the current executable path instead of assuming `vajractl hook` is globally available.

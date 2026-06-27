@@ -138,6 +138,7 @@ A check that cannot evaluate FAILS. Never silently pass.
 | ADR-0002 | Engine trait, adapter contract, and module layout for v1 | 2026-06-16 |
 | ADR-0003 | `--settings` injector design and compression engine heuristics | 2026-06-16 |
 | ADR-0004 | Meter and receipt design | 2026-06-16 |
+| ADR-0005 | Pre-run cost estimate design | 2026-06-27 |
 
 ---
 
