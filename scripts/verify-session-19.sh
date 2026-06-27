@@ -20,29 +20,25 @@ run_check() {
   fi
 }
 
-# --- Deliverable 1: the Varta skill ---
+# --- Deliverable 1: the skill teaches the language ---
 run_check "skill-exists"        test -f varta/SKILL.md
 run_check "skill-frontmatter"   grep -q "^name: varta$" varta/SKILL.md
+run_check "skill-language-not-file" grep -qi "language, not a file" varta/SKILL.md
+run_check "skill-reads-live-ai" grep -qF ".ai/" varta/SKILL.md
+
+# --- Deliverable 2: the self-describing grammar (the 9 constructs, frozen) ---
 run_check "grammar-exists"      test -f varta/GRAMMAR.varta
-
-# --- Deliverable 2: vajra.varta worked example ---
-run_check "vajra-varta-exists"  test -f varta/vajra.varta
-
-# all 9 constructs present in the worked example (the whole grammar, nothing more)
 run_check "nine-constructs"     bash -c '
-  f=varta/vajra.varta
+  f=varta/GRAMMAR.varta
   for k in "⚡project" "⚡forbid" "⚡require" "⚡max" "⚡pipeline" "⚡final" "⚡on" "⚡assert" "⚡enum"; do
     grep -qF "$k" "$f" || { echo "missing construct: $k"; exit 1; }
   done'
+run_check "grammar-copilot"     grep -qF "⚡on (" varta/GRAMMAR.varta
+run_check "grammar-human-lane"  grep -q "//" varta/GRAMMAR.varta
 
-# the hard rule and the co-pilot load are both expressed
-run_check "forbid-main"         grep -qF "work_on_main" varta/vajra.varta
-run_check "copilot-compression" grep -qF "⚡on (compression)" varta/vajra.varta
-run_check "human-lane"          grep -q "//" varta/vajra.varta
-
-# --- Deliverable 3: the read-back test ---
-run_check "readback-exists"     test -f varta/READBACK.md
-run_check "readback-complete"   grep -qF "6/6" varta/READBACK.md
+# --- The no-drift guarantee, encoded structurally (S19 decision) ---
+# Varta is a language spoken from live .ai/, NOT a hand-kept copy. No companion file may exist.
+run_check "no-handcopy-companion" bash -c '! test -f varta/vajra.varta'
 
 ( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
 
