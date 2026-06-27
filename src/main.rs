@@ -12,6 +12,7 @@ fn reset_sigpipe() {
 
 enum Subcommand {
     Check,
+    Estimate,
     Hook,
     Init,
     Claude,
@@ -27,6 +28,7 @@ fn main() -> std::process::ExitCode {
 
     let sub = match subcommand {
         "check" => Subcommand::Check,
+        "estimate" => Subcommand::Estimate,
         "hook" => Subcommand::Hook,
         "init" => Subcommand::Init,
         "claude" => Subcommand::Claude,
@@ -38,6 +40,7 @@ fn main() -> std::process::ExitCode {
 
     let exit_code = match sub {
         Subcommand::Check => run_subcommand(cli::check::run),
+        Subcommand::Estimate => run_subcommand(cli::estimate::run),
         Subcommand::Hook => run_subcommand(cli::hook::run),
         Subcommand::Init => run_subcommand(cli::init::run),
         Subcommand::Claude => {
@@ -89,11 +92,12 @@ fn run_claude_subcommand(args: &[String]) -> u8 {
 }
 
 fn print_usage() {
-    eprintln!("vajra <init|claude|check|next|hook|meter>");
+    eprintln!("vajra <init|claude|check|next|estimate|hook|meter>");
     eprintln!("  init              Scaffold .ai/ workflow in the current repo");
     eprintln!("  claude [args...]  Launch Claude Code with Vajra hook injection");
     eprintln!("  check             Drift detection + readiness score for .ai/ state");
     eprintln!("  next [--advance]  Print handoff packet, or advance to next session");
+    eprintln!("  estimate          Predict token spend and cost before running a session");
     eprintln!("  hook              Claude Code PostToolUse hook entrypoint");
     eprintln!("  meter <jsonl>     Print a receipt for a past Claude Code session");
 }

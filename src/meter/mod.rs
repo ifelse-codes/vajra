@@ -33,7 +33,7 @@ const WEB_SEARCH_PER_REQUEST: f64 = 0.01;
 const WEB_FETCH_PER_REQUEST: f64 = 0.01;
 const TOKENS_PER_LINE_ESTIMATE: f64 = 12.0;
 
-fn pricing_for(model: &str) -> (f64, f64) {
+pub(crate) fn pricing_for(model: &str) -> (f64, f64) {
     for p in MODEL_PRICING {
         if model.starts_with(p.prefix) {
             return (p.input_per_mtok, p.output_per_mtok);
