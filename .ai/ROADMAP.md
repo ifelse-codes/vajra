@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-27 · Session 16 closeout.
+**Updated:** 2026-06-27 · Session 17 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-27 |
 | Current phase | Phase 1 — Prove the core works |
-| Last closed session | Session 16 — cleanup + drift fix |
-| Active session | Between sessions (S17 pending) |
+| Last closed session | Session 17 — pre-run cost estimate |
+| Active session | Between sessions (S18 pending) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -62,29 +62,28 @@
 
 6. **[x] Prove `vajra next` walks a real session start to finish** — DONE in Session 12. 3-session loop proven end-to-end. Found and fixed: prompt pointer not updating on advance, SIGPIPE panic when piping output. Automated e2e proof in verify script.
 
-### Phase 2 — Prove vendor-neutral is real (2-3 agents, not 10)
+### Phase 2 — Deepen Claude experience (before adding other agents)
 
-7. **Add a second agent** (Codex or Cursor) — prove `vajra <agent>` works with something other than Claude Code. Deep integration, not a prompt template. The workflow commands (`init`, `next`, `check`) must work identically. The launcher is agent-specific.
+7. *Open — needs brainstorming. Focus: make `vajra claude` excellent before going multi-agent.*
 
-8. **`vajra next` works identically across both agents** — the agent changes, the workflow doesn't. This is the proof that vendor-neutral is real, not a claim.
+### Phase 3 — Ship it — COMPLETE
 
-9. **Add a third agent** (Aider, Gemini CLI, or Kimi) — solidifies the multi-agent story.
+8. **[x] Installer / release path** — DONE in Session 13. `cargo install vajractl`, Homebrew formula, GitHub Actions CI + release workflow (3 targets), README install section. [PR #1](https://github.com/ifelse-codes/vajra/pull/1).
 
-### Phase 3 — Ship it
+9. **[x] Maturity levels** — DONE in Session 14. `maturity: L1|L2|L3` in CONSTRAINTS.yaml. L1 = report-only (warn, exit 0). L2 = gated (block, human approval). L3 = auto (skip confirm on advance). Wired into check, init, next, and hooks. [PR #2](https://github.com/ifelse-codes/vajra/pull/2).
 
-10. **[x] Installer / release path** — DONE in Session 13. `cargo install vajractl`, Homebrew formula, GitHub Actions CI + release workflow (3 targets), README install section. [PR #1](https://github.com/ifelse-codes/vajra/pull/1).
+10. **[x] Clean legacy references** — DONE in Session 16. Removed `vajra launch` alias from match arm, help text, enum. [PR #4](https://github.com/ifelse-codes/vajra/pull/4).
 
-11. **[x] Maturity levels** — DONE in Session 14. `maturity: L1|L2|L3` in CONSTRAINTS.yaml. L1 = report-only (warn, exit 0). L2 = gated (block, human approval). L3 = auto (skip confirm on advance). Wired into check, init, next, and hooks. [PR #2](https://github.com/ifelse-codes/vajra/pull/2).
+11. **[x] Pre-run cost estimate** — DONE in Session 17. `vajra estimate` reads context files, estimates tokens, prices against Opus rates, warns on budget. ADR-0005. [PR #6](https://github.com/ifelse-codes/vajra/pull/6).
 
-12. **[x] Clean legacy references** — DONE in Session 16. Removed `vajra launch` alias from match arm, help text, enum. [PR #4](https://github.com/ifelse-codes/vajra/pull/4).
+### Backlog (when ready, not before)
 
-### Phase 4 — Earn the next features (post-launch, only when users ask)
-
-13. **Pre-run cost estimate** — predict token spend before running a session (inspired by Loop Engineering's `loop-cost`).
-14. **Canned workflow patterns** — daily triage, PR babysitter, CI sweeper (inspired by Loop Engineering). Only after the core loop is proven.
-15. **Audit ledger (v2)** — git-native provenance, agent-trace format. No governance claims until a working ledger exists.
-16. **Additional agents** — Kilo, Windsurf, Continue, others. Add as users request.
-17. **Policy enforcement, governed memory, MCP tools** — only after the core loop is proven and users exist.
+- **Add second agent** (Codex or Cursor) — deferred until Claude experience is fully satisfying.
+- **Add third agent** (Aider, Gemini CLI, or Kimi) — after second agent proves the pattern.
+- **Canned workflow patterns** — daily triage, PR babysitter, CI sweeper. Low priority.
+- **Audit ledger (v2)** — git-native provenance, agent-trace format.
+- **Additional agents** — Kilo, Windsurf, Continue, others. Add as users request.
+- **Policy enforcement, governed memory, MCP tools** — only after the core loop is proven and users exist.
 
 ## Competitive Reference
 
@@ -103,6 +102,7 @@
 | `vajra next` | [x] Advance to next session step with context | 1 |
 | `vajra check` | [x] Drift detection + readiness score + verify | 1 |
 | `vajra claude` | Launch Claude Code with hooks + meter | 0 (done) |
+| `vajra estimate` | [x] Predict token spend before running a session | 4 (done) |
 | `vajra <agent>` | Launch other agents (Codex, Cursor, etc.) | 2 |
 | `vajra meter` | Print receipt for a past session | 0 (done) |
 
