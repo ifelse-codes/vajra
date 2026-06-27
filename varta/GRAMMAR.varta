@@ -1,0 +1,55 @@
+// Varta — the ⚡ machine-language. v0 (locked S19).
+// Sanskrit vārtā = "talk / dialogue". Built for the agent, not the human.
+//
+// HOW TO READ THIS FILE:
+//   - Every keyword wears a ⚡ so it can NEVER blend into prose. If you see ⚡, it is machine syntax.
+//   - { } group a block. ; ends a statement. // is the ONE human lane — it carries the *why*.
+//   - This file is written IN Varta: it is both the spec and a working example. Dogfood.
+//   - Nothing parses this but you. There is no compiler. You read it, internalize it, then speak it.
+//
+// THE 9 CONSTRUCTS — this is the whole language. There is no construct #10.
+
+⚡project {                      // identity — who/what/why. load first, never drift from it.
+  ⚡is    "one-line: what this thing is";
+  ⚡stack "language / runtime / license";
+  ⚡goal  "the north star, one line — the thing that must not be forgotten";
+  ⚡now   "what THIS session must deliver";
+}
+
+⚡forbid {                       // hard rules. violation = STOP and ask. non-negotiable.
+  do_the_bad_thing;             // the why lives here, in the comment
+}
+
+⚡require {                      // invariants. must hold true at all times, not just at the end.
+  the_thing_that_must_be_true;  // why it matters
+}
+
+⚡max {                          // numeric ceilings. cross one => split the work or stop.
+  thing = 3;                    // unit / meaning
+}
+
+⚡pipeline {                     // the session loop, in order. a then b then c.
+  boot -> branch -> plan -> execute -> verify -> ship;
+}
+
+⚡final {                        // locked decisions (ADRs). changing one needs explicit human approval.
+  ADR_0000: "the decision in one line";   // date locked
+}
+
+// ⚡on — THE CO-PILOT. load context ONLY when that work is actually touched.
+// right rule, right corner — not everything up front. this is the whole point of Varta.
+⚡on (trigger_word) ⚡include "glob/or/path/*", other_source;   // why this context, for this work
+
+⚡assert {                       // pre-ship checklist. run before EVERY ship. shaky answer => do not ship.
+  is_it_actually_true?;         // the test behind the question
+}
+
+⚡enum next {                    // end-of-session. exactly 3 options. human picks one.
+  A: "option one";              // why pick / key risk
+  B: "option two";              // why pick / key risk
+  C: "option three";            // why pick / key risk
+}
+
+// THAT IS THE ENTIRE GRAMMAR. 9 constructs, one comment lane, ⚡ on every keyword.
+// To SPEAK Varta: gate each action against ⚡forbid/⚡max, fire ⚡on loads when you touch matching work,
+// keep ⚡now in view, and write your own running notes in this same shape.
