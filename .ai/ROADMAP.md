@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-27 · Session 18 closeout.
+**Updated:** 2026-06-27 · Session 19 closeout.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-27 |
 | Current phase | Phase 2 — Varta (the agent's language) |
-| Last closed session | Session 18 — product review + vision (Varta direction set) |
-| Active session | Between sessions (S19 pending — Varta v0) |
+| Last closed session | Session 19 — Varta v0 (the skill) shipped |
+| Active session | Between sessions (S20 pending — mandatory NO-CODE ground-truth) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -66,9 +66,9 @@
 
 **Why this phase exists (S18 finding):** running the commands produces *files*, not a *feeling* — the first-run payoff is invisible. The deeper pain across 2 months of `.ai/` use: agents forget the vision and rush to finish. Fix = **Varta**, a compact ⚡ machine-language the agent learns at boot and speaks all session, with a co-pilot that feeds the right context at the right moment. Reframe: **co-pilot, not cop.** See `VISION.md` and memory `vajra-varta`.
 
-7. **[ ] Varta v0 — the skill** *(NEXT — picked S18)* — Write the Varta skill (`SKILL.md`, teaches the ⚡ grammar like plain-talk teaches plain English) + convert Vajra's own `.ai/` into one `.varta` spec. Prove an agent loads it, internalizes it, and speaks it for a full session. Risk: language may need 2–3 real sessions to settle.
+7. **[x] Varta v0 — the skill** — DONE in Session 19. Ships the **language only**: `varta/SKILL.md` teaches the ⚡ grammar (boot ritual read→internalize→speak), `varta/GRAMMAR.varta` is the self-describing spec. 9 constructs, skill not compiler. The agent speaks Varta from the **live `.ai/`** — a hand-written `vajra.varta` companion was built then dropped (a second copy drifts + loses config). verify-session-19.sh green. *Follow-ups: render `.ai/` → `.varta` (generated, drift-free) + wire into `vajra init`.*
 
-8. **[ ] The co-pilot loader** — Make `⚡on(x) ⚡include` real: Vajra surfaces the right context mid-session based on what the agent touches (drift nudges, race-engineer calls). Build *after* Varta v0 proves the language. Risk: needs runtime hooks — harder.
+8. **[ ] The co-pilot loader** *(NEXT code session — picked S19, runs S21 after the S20 ground-truth)* — Make `⚡on(x) ⚡include` real: Vajra surfaces the right context mid-session based on what the agent touches (drift nudges, race-engineer calls). The language now exists to drive it. Risk: needs runtime hooks — harder.
 
 9. **[ ] First-run "aha"** — Make `vajra init` → first session deliver a visible win in 2 minutes. Fixes the exact "not worth it" feeling from the S18 walkthrough. Risk: polish, not the big bet.
 
