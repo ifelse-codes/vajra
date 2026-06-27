@@ -3,10 +3,15 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S17 complete, S18 not yet started).
+None — between sessions (S18 complete, S19 not yet started).
 
 ## Active PRs
-None — PR #6 (S17) merged.
+S18 product-review + vision PR pending merge to `main`.
+
+## Direction (set S18)
+- **Reframe: co-pilot, not cop** — guide the agent in real time (ADAS / F1 race engineer), not catch mistakes after.
+- **New product direction: Varta** — a compact ⚡ C-inspired machine language the agent learns at boot and speaks all session; delivered as a **skill** (not a compiler). Co-pilot mechanism = `⚡on(x) ⚡include`. See `VISION.md`, ROADMAP Phase 2, memory `vajra-varta`.
+- **Next build = Varta v0** (the skill).
 
 ## What Currently Works
 - `vajra init` scaffolds `.ai/` + hooks + cross-agent pointers (16 files, interactive, idempotent). Prompts for maturity level.
@@ -33,9 +38,10 @@ None — PR #6 (S17) merged.
 ## What Is Broken
 - Only Claude Code is wired — no second agent launcher exists.
 - `vajra estimate` output ratio (3:1) is unvalidated placeholder — treat as order-of-magnitude.
+- **First-run payoff is invisible** — `vajra init` produces files, not a felt win (S18 finding; Phase 2 item 9).
 
 ## What Is In Progress
-- Nothing — between sessions.
+- Nothing — between sessions. Next: **Varta v0** (the skill).
 
 ## Cost Tracking
 - Session 00–05: $0.00 (no API calls)
@@ -43,4 +49,5 @@ None — PR #6 (S17) merged.
 - Session 07: ~$0.46 (3 test runs via `vajra claude -p`)
 - Session 08–16: ~$0.00 (code/no-code sessions, no API calls)
 - Session 17: ~$0.00 (code session, no API calls)
+- Session 18: ~$0.00 (interactive review, no API calls)
 - Cumulative: ~$0.46
