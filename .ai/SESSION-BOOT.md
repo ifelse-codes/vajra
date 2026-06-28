@@ -1,27 +1,26 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 19 — COMPLETE
-- **Type:** CODE — Varta v0 (the skill)
-- **Branch:** `session-19-varta-skill`
-- **Date last updated:** 2026-06-27
+- **Number:** 20 — COMPLETE
+- **Type:** NO-CODE — Ground-truth audit (`20 % 5 == 0`)
+- **Branch:** audit on `session-20-ground-truth`; authorized hardening on `session-20-enforcement` (exempt suffix)
+- **Date last updated:** 2026-06-28
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 19.
-- `main`: includes up to Session 18 (PR #8 merged). S19 PR pending merge.
+- `.ai/SESSION` = 20.
+- `main`: includes up to Session 19 (PR #9 merged). S20 enforcement PR pending merge.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- New this session: `varta/` (SKILL.md + GRAMMAR.varta) — the Varta language.
+- New this session: `sessions/session-20-ground-truth.md` + the GT mechanism **hardened to catch direction drift** (vision + roadmap), not just discipline drift.
 
 ## Next Session
-- **Number:** 20
-- **Type:** NO-CODE — mandatory ground-truth audit (`20 % 5 == 0`)
-- **Read prompt:** `prompts/20-task-ground-truth.md`
-- **Branch:** `session-20-ground-truth` (or `-closeout`/`-enforcement` if hardening)
+- **Number:** 21
+- **Type:** CODE — the co-pilot loader
+- **Read prompt:** `prompts/21-task-copilot-loader.md`
+- **Branch:** `session-21-copilot-loader`
 
 ## Carry-Forwards
-- **S20 is NO-CODE** — no source edits, no commits, no PRs (hook-enforced). Re-read all `.ai/` + the new `varta/`.
-- S21 direction picked: **the co-pilot loader** (make `⚡on(x) ⚡include` fire mid-session). The S20 audit should rerank toward it and sketch where the runtime hook lives.
-- Varta v0 ships the **language only** (`varta/SKILL.md` + `GRAMMAR.varta`); the agent speaks it from the live `.ai/`. A hand-written `vajra.varta` companion was dropped (drift + lost config). A persisted `.varta` returns later, **generated** from `.ai/` — never hand-kept. Wiring into `vajra init` is also a follow-up.
-- Validate the 9-construct grammar over 2–3 real sessions before locking it.
+- **S21 = co-pilot loader** — make `⚡on(x) ⚡include` actually *fire* mid-session. S20 sketch: a **CC hook** is the only reactive option (it sees what the agent touches); lives as a new hook script in `scripts/` + matcher near `src/adapter/`, wired via `.claude/settings.json`, reusing the proven additive `--settings` path.
+- **S21 carries two riders:** (1) propagate the new GT audits into the `vajra init` scaffold (`src/cli/init.rs`) so every Vajra project inherits them; (2) the **"does Varta enforce or merely advise?"** decision gate — if the loader can't make `⚡on` enforce, Varta is off-wedge (memory `vajra-varta-wedge-risk`).
+- GT now audits **vision + roadmap drift** + a meta-check (`CONSTRAINTS.yaml#ground_truth`, `AGENTS.md`). Next GT = S25.
+- "Grammar frozen at 9" is **provisional** — validate over real sessions before locking.
 - `vajra estimate` output ratio (3:1) still unvalidated.
-- `vajra claude` onboarding gap: no auth pre-check before launch (Phase 2 item 9, first-run "aha").

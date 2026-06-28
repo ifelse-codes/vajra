@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-27 · Session 19 closeout.
+**Updated:** 2026-06-28 · Session 20 ground-truth (direction-drift hardening).
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -10,10 +10,10 @@
 
 | Field | Value |
 |---|---|
-| Today | 2026-06-27 |
+| Today | 2026-06-28 |
 | Current phase | Phase 2 — Varta (the agent's language) |
-| Last closed session | Session 19 — Varta v0 (the skill) shipped |
-| Active session | Between sessions (S20 pending — mandatory NO-CODE ground-truth) |
+| Last closed session | Session 20 — ground-truth audit (GT now catches direction drift) |
+| Active session | Between sessions (S21 pending — the co-pilot loader) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -68,7 +68,7 @@
 
 7. **[x] Varta v0 — the skill** — DONE in Session 19. Ships the **language only**: `varta/SKILL.md` teaches the ⚡ grammar (boot ritual read→internalize→speak), `varta/GRAMMAR.varta` is the self-describing spec. 9 constructs, skill not compiler. The agent speaks Varta from the **live `.ai/`** — a hand-written `vajra.varta` companion was built then dropped (a second copy drifts + loses config). verify-session-19.sh green. *Follow-ups: render `.ai/` → `.varta` (generated, drift-free) + wire into `vajra init`.*
 
-8. **[ ] The co-pilot loader** *(NEXT code session — picked S19, runs S21 after the S20 ground-truth)* — Make `⚡on(x) ⚡include` real: Vajra surfaces the right context mid-session based on what the agent touches (drift nudges, race-engineer calls). The language now exists to drive it. Risk: needs runtime hooks — harder.
+8. **[ ] The co-pilot loader** *(NEXT code session — S21)* — Make `⚡on(x) ⚡include` real via a **CC hook** (the only reactive fire point): surface the right context the moment the agent touches matching work. **This is the gate on whether Varta enforces (the wedge) or merely advises (off-wedge — S20 audit).** Riders: propagate the new GT audits into the `vajra init` scaffold (`src/cli/init.rs`); answer "does Varta enforce or advise?". Risk: needs runtime hooks + a condition language.
 
 9. **[ ] First-run "aha"** — Make `vajra init` → first session deliver a visible win in 2 minutes. Fixes the exact "not worth it" feeling from the S18 walkthrough. Risk: polish, not the big bet.
 
@@ -76,13 +76,13 @@
 
 ### Phase 3 — Ship it — COMPLETE
 
-8. **[x] Installer / release path** — DONE in Session 13. `cargo install vajractl`, Homebrew formula, GitHub Actions CI + release workflow (3 targets), README install section. [PR #1](https://github.com/ifelse-codes/vajra/pull/1).
+10. **[x] Installer / release path** — DONE in Session 13. `cargo install vajractl`, Homebrew formula, GitHub Actions CI + release workflow (3 targets), README install section. [PR #1](https://github.com/ifelse-codes/vajra/pull/1).
 
-9. **[x] Maturity levels** — DONE in Session 14. `maturity: L1|L2|L3` in CONSTRAINTS.yaml. L1 = report-only (warn, exit 0). L2 = gated (block, human approval). L3 = auto (skip confirm on advance). Wired into check, init, next, and hooks. [PR #2](https://github.com/ifelse-codes/vajra/pull/2).
+11. **[x] Maturity levels** — DONE in Session 14. `maturity: L1|L2|L3` in CONSTRAINTS.yaml. L1 = report-only (warn, exit 0). L2 = gated (block, human approval). L3 = auto (skip confirm on advance). Wired into check, init, next, and hooks. [PR #2](https://github.com/ifelse-codes/vajra/pull/2).
 
-10. **[x] Clean legacy references** — DONE in Session 16. Removed `vajra launch` alias from match arm, help text, enum. [PR #4](https://github.com/ifelse-codes/vajra/pull/4).
+12. **[x] Clean legacy references** — DONE in Session 16. Removed `vajra launch` alias from match arm, help text, enum. [PR #4](https://github.com/ifelse-codes/vajra/pull/4).
 
-11. **[x] Pre-run cost estimate** — DONE in Session 17. `vajra estimate` reads context files, estimates tokens, prices against Opus rates, warns on budget. ADR-0005. [PR #6](https://github.com/ifelse-codes/vajra/pull/6).
+13. **[x] Pre-run cost estimate** — DONE in Session 17. `vajra estimate` reads context files, estimates tokens, prices against Opus rates, warns on budget. ADR-0005. [PR #6](https://github.com/ifelse-codes/vajra/pull/6).
 
 ### Backlog (when ready, not before)
 

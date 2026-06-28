@@ -3,16 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S19 complete, S20 not yet started).
+None — between sessions (S20 complete, S21 not yet started).
 
 ## Active PRs
-S19 Varta-v0 PR pending merge to `main`.
+S20 enforcement PR pending merge to `main` (GT direction-drift hardening). S19 Varta-v0 PR #9 — **merged**.
 
 ## Direction (set S18, advanced S19)
 - **Reframe: co-pilot, not cop** — guide the agent in real time (ADAS / F1 race engineer), not catch mistakes after.
 - **Product direction: Varta** — a compact ⚡ C-inspired machine language the agent learns at boot and speaks all session; delivered as a **skill** (not a compiler). Co-pilot mechanism = `⚡on(x) ⚡include`. See `VISION.md`, ROADMAP Phase 2, memory `vajra-varta`.
 - **Varta v0 shipped (S19)** — the **language**: `varta/SKILL.md` (teaches the ⚡ grammar) + `varta/GRAMMAR.varta` (self-describing spec). The agent speaks Varta from the **live `.ai/`** source. The hand-written `vajra.varta` companion was **dropped** — a second copy drifts and loses config (it had already dropped budget cap, maturity, max_bullets). A persisted `.varta` returns later, **generated** from `.ai/`, never hand-kept.
-- **Next code build = the co-pilot loader** (ROADMAP item 8) — picked for S21. Make `⚡on(x) ⚡include` actually fire mid-session.
+- **Next code build = the co-pilot loader** (ROADMAP item 8) — picked for S21. Make `⚡on(x) ⚡include` actually fire mid-session. It is also the **gate** on whether Varta enforces (the wedge) or merely advises (off-wedge) — memory `vajra-varta-wedge-risk`.
+- **S20 hardened the ground-truth audit** to catch **direction drift** (vision + roadmap), not just discipline drift — rules serve the vision. `CONSTRAINTS.yaml#ground_truth` + `AGENTS.md`. Scaffold propagation (`src/cli/init.rs`) queued for S21.
 
 ## What Currently Works
 - **Varta v0 (the language)** — `varta/SKILL.md` teaches the 9-construct ⚡ grammar + boot ritual (read→internalize→speak); `varta/GRAMMAR.varta` is the self-describing spec. The agent speaks Varta from the **live `.ai/`** — no second copy to drift or lose. verify-session-19.sh green (9/9); demo shows a live read-back from `.ai/CONSTRAINTS.yaml`. Nothing parses it — the agent is the runtime.
@@ -28,7 +29,8 @@ S19 Varta-v0 PR pending merge to `main`.
 - Compression engine + 4 heuristics (cargo, git, npm, pytest) + meter — tests pass against fixtures.
 - Budget guard enforces `budget.cap_usd` after each session (warn or kill mode).
 - GitHub Actions CI (test+clippy+fmt on macOS+Linux) green; release workflow (3 targets); `cargo package` as `vajractl`.
-- Remote `origin` → `https://github.com/ifelse-codes/vajra`. All tests green: `cargo test` (77 unit + 26 integration), `cargo clippy`.
+- Remote `origin` → `https://github.com/ifelse-codes/vajra`. All tests green: `cargo test` (77 unit + 26 integration = 103), `cargo clippy`.
+- **Ground-truth audit (hardened S20)** — every 5th session now audits **direction drift** (`vision_alignment`, `roadmap_alignment`) + **discipline drift** + a meta-check, per `CONSTRAINTS.yaml#ground_truth`. The audit that guards drift is no longer blind to vision drift.
 
 ## What Is Broken
 - Only Claude Code is wired — no second agent launcher exists.
@@ -37,7 +39,7 @@ S19 Varta-v0 PR pending merge to `main`.
 - **A persisted `.varta` is not generated yet** — S19 ships the language only; rendering `.ai/` → `.varta` (drift-free) is a follow-up, as is wiring Varta into `vajra init`. `⚡on(...)` loads are read by the agent, not yet fired by a runtime (the S21 co-pilot loader).
 
 ## What Is In Progress
-- Nothing — between sessions. Next: **S20 ground-truth audit (mandatory NO-CODE)**, then S21 = co-pilot loader.
+- Nothing — between sessions. Next: **S21 — the co-pilot loader** (make `⚡on` fire) + scaffold propagation + the Varta enforce-or-advise gate.
 
 ## Cost Tracking
 - Session 00–05: $0.00 (no API calls)
@@ -47,4 +49,5 @@ S19 Varta-v0 PR pending merge to `main`.
 - Session 17: ~$0.00 (code session, no API calls)
 - Session 18: ~$0.00 (interactive review, no API calls)
 - Session 19: ~$0.00 (docs/skill session, no API calls)
+- Session 20: ~$0.00 (no-code ground-truth audit, no API calls)
 - Cumulative: ~$0.46

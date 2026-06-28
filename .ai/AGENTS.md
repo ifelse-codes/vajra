@@ -78,7 +78,11 @@ Step 7 is not finished until the agent has:
 
 `NN % 5 == 0` → mandatory NO-CODE. No source-code edits, no commits, no PRs.
 
-Checklist: re-read `.ai/`, drift audit, stale-fact audit, roadmap rerank, cost audit, constraint review. Output: `sessions/session-NN-ground-truth.md`. User signs off before code resumes.
+**Catch two classes of drift — not just one:**
+1. **Direction drift** — *are we building the right thing?* Vision + roadmap still map to the north-star; current work is the shortest path, not intellectually-fun scope creep. → `vision_alignment`, `roadmap_alignment`
+2. **Discipline drift** — *did we honor the contract, and does the contract still serve the vision?* → `state_drift`, `knowledge_staleness`, `constraint_violation_review`, `constitution_review`, `cost_review`
+
+Run every audit in `CONSTRAINTS.yaml#ground_truth.required_audits`, answering its question list. **Meta-check: did this audit's own mechanism miss a kind of drift?** (Auditing rule-following while ignoring the vision is the exact trap — rules serve the vision, not the reverse.) Output: `sessions/session-NN-ground-truth.md`. User signs off before code resumes.
 
 Hooks (`hook-pre-bash.sh`, `hook-pre-write.sh`) enforce. Authorized hardening goes on a `session-NN-closeout` or `session-NN-enforcement` branch (exempt by suffix).
 

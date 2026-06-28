@@ -72,7 +72,21 @@ ground_truth:
   forbid_commits: true
   forbid_prs: true
   required_outputs: [sessions/session-{NN}-ground-truth.md]
-  required_audits: [state_drift, knowledge_staleness, roadmap_priority, constraint_violation_review, cost_review]
+  # Every GT must catch BOTH direction drift (vision+roadmap) and discipline drift (rules+constitution+state).
+  # Rules exist to serve the vision — auditing rule-following without auditing the vision is the trap S20 caught.
+  drift_axes: [vision, roadmap, rules, constitution, state, cost]
+  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review]
+  vision_questions:
+    - Is the north-star still the right destination?
+    - Is current work the shortest path to it, or intellectually-fun scope creep?
+    - What new evidence would make us pivot or abandon this direction?
+  roadmap_questions:
+    - Does each phase still map to the north-star?
+    - Is the next item the highest-leverage one, or just the easiest?
+    - Any item now obsolete, or any the vision now demands but the roadmap lacks?
+  constitution_questions:
+    - Is any rule now blocking the vision instead of protecting it?
+    - Did this audit's own mechanism have a blind spot? (meta-check)
 
 load_order:
   - .ai/AGENTS.md
