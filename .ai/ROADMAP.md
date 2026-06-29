@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-29 · Session 26 — one-session-per-chat enforcement shipped (`hook-session-guard.sh`, PR #17). **Founder override of the S25 audit:** the second agent is **parked in the backlog** — gated on *founder* satisfaction with Vajra-on-Claude, not the audit's call. New next leap = **Darshan** (S27), the human-facing glanceable output skill that pairs with Varta (agent talks ↔ user sees).
+**Updated:** 2026-06-29 · Session 27 — **Darshan** shipped (`darshan/SKILL.md` + AGENTS.md boot pointer, PR #18): Vajra's default surface-adaptive glanceable human-output skill, the human's lane that pairs with Varta (agent talks ↔ user sees). **Founder override of the S25 audit still holds:** the second agent is **parked in the backlog** — gated on *founder* satisfaction with Vajra-on-Claude. Next = **propagate Darshan + the S26 session-guard into `vajra init`** (S28, the S22 pattern).
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +11,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-29 |
-| Current phase | Phases 1–3 + Varta arc COMPLETE; loop hardened (S26 chat-guard); next = Darshan (human's lane) |
-| Last closed session | Session 26 — one-session-per-chat enforcement (`hook-session-guard.sh`, PR #17) |
-| Active session | Between sessions (S27 pending — CODE/content: Darshan, the glanceable human-output skill) |
+| Current phase | Phases 1–3 + Varta arc COMPLETE; loop hardened (S26 chat-guard); human's lane shipped (S27 Darshan); next = propagate into `vajra init` |
+| Last closed session | Session 27 — Darshan, the human's glanceable output skill (`darshan/SKILL.md`, PR #18) |
+| Active session | Between sessions (S28 pending — CODE: propagate Darshan + session-guard into `vajra init`) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -29,12 +29,14 @@
 | `vajra next` (read-only + advance) | [x] done — prints packet or advances session via `--advance` |
 | Installer / release pipeline | [x] done — S13: `cargo install vajractl`, GitHub Actions CI + release (3 targets) |
 | Maturity levels L1/L2/L3 | [x] done — S14: L1 report / L2 gated / L3 auto, wired into check, init, next, hooks |
+| Darshan (human's glanceable output skill) | [x] done — S27: `darshan/SKILL.md` + AGENTS.md boot pointer; skill, not renderer; 3 surface tiers |
+| One-session-per-chat guard | [x] done — S26: `hook-session-guard.sh` blocks N→N+1 in the same chat |
 
 ## What Does NOT Work Yet
 
 | Component | Status |
 |---|---|
-| Darshan (human's glanceable output lane) | [ ] not built — next leap (S27); the agent still dumps walls of text |
+| Darshan in `vajra init` scaffold | [ ] not built — S27 shipped the skill; propagation to every project = S28 |
 | Second agent launcher | [ ] not built — only Claude Code is wired (**parked**: owner-gated on Claude satisfaction) |
 
 ## Design Rules (from competitive analysis)
@@ -98,8 +100,8 @@
 > only then does the second agent return to #1.
 
 1. **[x] Enforce one-session-per-chat** — DONE in Session 26. `scripts/hook-session-guard.sh` (PreToolUse Bash) records the Claude `session_id` that owns each vajra-session in a gitignored `.ai/.session-owner`; blocks `git checkout -b session-(N+1)-*` from the same chat that owns N (exit 2, "open a new chat first"). Maturity-gated (L1 advise / L2-L3 block), gated on `one_session_per_chat: true`. No 8th command. Closes the AGENTS.md step-10 convention gap (S23 finding). verify-session-26.sh green (13/13). Scaffold propagation to `vajra init` deferred to S27.
-2. **Darshan — the human's lane (S27 — picked)** — Vajra's default, surface-adaptive, **glanceable** way of *showing* the human instead of dumping walls of text. Pairs with Varta: **the agent talks to itself (Varta); the user sees (Darshan).** Skill, not a renderer (like Varta) — one rule: *"render the richest visual this surface can handle; always glanceable; never drop meaning."* 3 tiers: rich chat (HTML/SVG) · terminal (ANSI/box-drawing) · plain (structured markdown). Fixes AI cognitive-overload / burnout — the founder's S26 dissatisfaction with how the agent talks to the user. Name provisional. `prompts/27-task-darshan.md`.
-3. **Propagate session-guard into `vajra init`** (S26 rider) — every scaffolded project inherits the S26 enforcement (the S22 lesson). Small, well-understood. May ride with Darshan's propagation or split to S28.
+2. **[x] Darshan — the human's lane** — DONE in Session 27. `darshan/SKILL.md`: skill, not a renderer (like Varta). One rule: *"render the richest visual this surface can handle; always glanceable; never drop meaning."* 3 tiers: rich chat (HTML/SVG) · terminal (ANSI/box-drawing) · plain (structured markdown), with worked before/after for chat + terminal. Boot-wired via a *Speaking Skills* pointer in `.ai/AGENTS.md` (default human output). `VISION.md` gained the human lane. No 8th command, no `src/` change. Name **Darshan** confirmed at BOOT. verify-session-27.sh green (18/18). [PR #18](https://github.com/ifelse-codes/vajra/pull/18). *Propagation to `vajra init` deferred to S28.*
+3. **Propagate Darshan + session-guard into `vajra init`** (S28 — picked) — every scaffolded project inherits the S27 Darshan skill + boot pointer **and** the S26 one-session-per-chat guard (the S22 pattern: `include_str!` + settings wiring + scaffold tests). **Scope risk:** if both exceed 1 story, do Darshan-only S28 and split the guard to S29. `prompts/28-task-init-propagation.md`.
 
 ### Backlog (parked until owner declares Claude "satisfying")
 - **Add second agent** (Codex or Cursor) — **the north-star gap (S25 GT), but owner-gated.** Only wedge pillar with zero code; proves ADR-0002's adapter contract is vendor-neutral. Returns to #1 **only when the owner declares Vajra-on-Claude satisfying** (S26 override — the S25 "condition met" call was the audit's, not the owner's).
