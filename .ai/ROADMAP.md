@@ -90,7 +90,7 @@
 
 ### Next leap (S25 GT verdict — in priority order)
 
-1. **Enforce one-session-per-chat** *(S26 — picked)* — record the Claude `session_id` that opens each vajra-session; a maturity-gated hook refuses to start session N+1 from the same chat ("open a new chat first"). Closes the gap that AGENTS.md step 10 is convention-only (S23 finding). `prompts/26-task-chat-guard.md`.
+1. **[x] Enforce one-session-per-chat** — DONE in Session 26. `scripts/hook-session-guard.sh` (PreToolUse Bash) records the Claude `session_id` that owns each vajra-session in a gitignored `.ai/.session-owner`; blocks `git checkout -b session-(N+1)-*` from the same chat that owns N (exit 2, "open a new chat first"). Maturity-gated (L1 advise / L2-L3 block), gated on `one_session_per_chat: true`. No 8th command. Closes the AGENTS.md step-10 convention gap (S23 finding). verify-session-26.sh green (13/13). Scaffold propagation to `vajra init` deferred to S27.
 2. **Add second agent** (Codex or Cursor) — **#1 north-star gap (S25 GT).** The only wedge pillar with zero code; proves ADR-0002's adapter contract is genuinely vendor-neutral. Deferral condition ("until Claude is satisfying") is now met. **Must lead the S27 options.**
 3. **North-star breadth indicator** (S25 meta-finding) — a RED-until-≥2-agents signal so the green dashboard can't imply health while the cross-agent gap widens.
 
