@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-28 · Session 20 ground-truth (direction-drift hardening).
+**Updated:** 2026-06-29 · Session 21 — the co-pilot loader (Varta now enforces).
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -10,10 +10,10 @@
 
 | Field | Value |
 |---|---|
-| Today | 2026-06-28 |
+| Today | 2026-06-29 |
 | Current phase | Phase 2 — Varta (the agent's language) |
-| Last closed session | Session 20 — ground-truth audit (GT now catches direction drift) |
-| Active session | Between sessions (S21 pending — the co-pilot loader) |
+| Last closed session | Session 21 — the co-pilot loader (`⚡on` fires + enforces) |
+| Active session | Between sessions (S22 pending — scaffold propagation) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -68,9 +68,11 @@
 
 7. **[x] Varta v0 — the skill** — DONE in Session 19. Ships the **language only**: `varta/SKILL.md` teaches the ⚡ grammar (boot ritual read→internalize→speak), `varta/GRAMMAR.varta` is the self-describing spec. 9 constructs, skill not compiler. The agent speaks Varta from the **live `.ai/`** — a hand-written `vajra.varta` companion was built then dropped (a second copy drifts + loses config). verify-session-19.sh green. *Follow-ups: render `.ai/` → `.varta` (generated, drift-free) + wire into `vajra init`.*
 
-8. **[ ] The co-pilot loader** *(NEXT code session — S21)* — Make `⚡on(x) ⚡include` real via a **CC hook** (the only reactive fire point): surface the right context the moment the agent touches matching work. **This is the gate on whether Varta enforces (the wedge) or merely advises (off-wedge — S20 audit).** Riders: propagate the new GT audits into the `vajra init` scaffold (`src/cli/init.rs`); answer "does Varta enforce or advise?". Risk: needs runtime hooks + a condition language.
+8. **[x] The co-pilot loader** — DONE in Session 21. `⚡on(cond) ⚡include "files"` fires via a PreToolUse hook (`scripts/hook-copilot-loader.sh`) reading `copilot.on` rules from the live `.ai/CONSTRAINTS.yaml`. **Gate answered: Varta ENFORCES** — L2/L3 block the tool (exit 2) until the context is surfaced; L1 advises. Proven live (blocked a real `git commit`). verify-session-21.sh green (10/10). [PR #11](https://github.com/ifelse-codes/vajra/pull/11). *Rider (scaffold propagation) split to item 8a.*
 
-9. **[ ] First-run "aha"** — Make `vajra init` → first session deliver a visible win in 2 minutes. Fixes the exact "not worth it" feeling from the S18 walkthrough. Risk: polish, not the big bet.
+8a. **[ ] Scaffold propagation** *(NEXT — S22)* — make `vajra init` emit the S20 GT audits (`ground_truth:` block) + the S21 co-pilot (`copilot.on` + `hook-copilot-loader.sh` + settings wiring), so every project inherits them. The deferred S21 rider + the S19 "wire Varta into init" follow-up. Risk: avoiding a drifting hand-copy of the hook in the embedded template.
+
+9. **[ ] First-run "aha"** — Make `vajra init` → first session deliver a visible win in 2 minutes. Fixes the exact "not worth it" feeling from the S18 walkthrough. Now newly compelling: the co-pilot is a *felt* moment. Risk: polish, not the big bet.
 
 **Varta language spec (locked S18):** C/Java-inspired syntax + `⚡` keyword prefix. Constructs: `⚡project{⚡is ⚡stack ⚡goal ⚡now}`, `⚡forbid{}`, `⚡require{}`, `⚡max{}`, `⚡pipeline{}`, `⚡final{}`, `⚡on(cond) ⚡include "files"` (the co-pilot), `⚡assert{}`, `⚡enum next{}`. `//` comments = the human-glanceable *why*. Mechanism = **skill, not compiler** — the agent reads/writes it, nothing parses it.
 
