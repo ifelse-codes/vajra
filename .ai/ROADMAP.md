@@ -90,6 +90,7 @@
 
 ### Backlog (when ready, not before)
 
+- **Enforce one-session-per-chat** — record the Claude `session_id` that opens each vajra-session; `vajra next --advance` (or a PreToolUse hook) refuses to advance N→N+1 from the same chat ("open a new chat first"). Closes the gap that AGENTS.md step 10 is convention-only (S23 finding).
 - **Add second agent** (Codex or Cursor) — deferred until Claude experience is fully satisfying.
 - **Add third agent** (Aider, Gemini CLI, or Kimi) — after second agent proves the pattern.
 - **Canned workflow patterns** — daily triage, PR babysitter, CI sweeper. Low priority.
