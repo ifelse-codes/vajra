@@ -2,17 +2,17 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 24 — Render `.ai/` → generated `vajra.varta` (CODE) — COMPLETE
+## Session 25 — Ground Truth (NO-CODE, direction-drift lens) — COMPLETE
 
-- **Type:** CODE
-- **Goal:** bring back a persisted `.varta` *only* as a one-way generated render of the live `.ai/` (the S19 condition), drift-guarded.
-- **Outcome:** `src/varta/{mod,render}.rs` renders the live `.ai/` into the 9 ⚡ constructs (hand-parsed, no `serde_yaml`, deterministic). `vajra check --render` writes the committed `vajra.varta`; plain `vajra check` adds a `varta: matches render` drift guard (on-disk == fresh render). No 8th command. verify-session-24.sh green (21/21). **Closes the Varta story.** Report: `sessions/session-24-summary.md`. PR #15.
+- **Type:** GROUND-TRUTH (NO-CODE) — `25 % 5 == 0`
+- **Verdict:** Varta (S21–S24) was on-wedge, not scope creep (S21 proved it enforces) — but its leverage is spent. Shortest path to the north-star now bends to the **second agent launcher** (the only wedge pillar with zero code). **Meta-finding:** green dashboard (`check`/verify/CI) measures Claude-depth only — no cross-agent breadth metric → false-green risk.
+- **Outcome:** all 7 audits + meta-check answered. Zero constraint violations S21–S24. Cost ~$0.46 (unchanged). Report: `sessions/session-25-ground-truth.md`. **User picked S26 = B (one-session-per-chat enforcement).**
 
-Between sessions. Next: read `prompts/25-task-ground-truth.md`.
+Between sessions. Next: read `prompts/26-task-chat-guard.md`.
 
 ## Next Session
 
-Read prompt: `prompts/25-task-ground-truth.md` — **S25 ground-truth (NO-CODE)**, mandated (NN%5==0). Lens chosen at S24 closeout: **direction drift** — was S21–S24 (4 sessions on Varta) the shortest path, or scope creep vs. the cross-agent north-star (only Claude wired)? Run ALL required audits + the meta-check. End with 3 candidate S26 sessions (one must be the second agent launcher).
+Read prompt: `prompts/26-task-chat-guard.md` — **S26 CODE: enforce one-session-per-chat**. Make AGENTS.md step 10 / `one_session_per_chat: true` real via a maturity-gated hook keyed on Claude `session_id`; block starting session N+1 in the same chat. No 8th command; ≤3 files/commit; propagate to `vajra init` (or split to S27). **S27 options must lead with the second agent launcher (S25's #1 north-star gap).**
 
 ## Build Queue (from ROADMAP.md, in order)
 
@@ -30,8 +30,8 @@ Read prompt: `prompts/25-task-ground-truth.md` — **S25 ground-truth (NO-CODE)*
 ~~Installer · maturity levels · legacy cleanup · pre-run cost estimate~~ — DONE (S13, S14, S16, S17)
 
 ### Next
-- **S25 = ground-truth (NO-CODE)** — lens: direction drift. Then S26 from the GT's 3 options.
-- Backlog (post-GT candidates): **second agent launcher (cross-agent — the north-star gap)** · one-session-per-chat enforcement · audit ledger v2 · policy/governed-memory/MCP.
+- **S26 = one-session-per-chat enforcement (CODE)** — picked at S25 GT. `prompts/26-task-chat-guard.md`.
+- Backlog (S27+ candidates): **second agent launcher (cross-agent — the north-star gap, S25's #1)** · audit ledger v2 · north-star breadth indicator (S25 meta) · policy/governed-memory/MCP.
 
 ## Always-True Reminders
 
