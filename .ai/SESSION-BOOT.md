@@ -1,26 +1,27 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 20 — COMPLETE
-- **Type:** NO-CODE — Ground-truth audit (`20 % 5 == 0`)
-- **Branch:** audit on `session-20-ground-truth`; authorized hardening on `session-20-enforcement` (exempt suffix)
-- **Date last updated:** 2026-06-28
+- **Number:** 21 — COMPLETE
+- **Type:** CODE — the co-pilot loader (make `⚡on` fire + enforce)
+- **Branch:** `session-21-copilot-loader`
+- **Date last updated:** 2026-06-29
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 20.
-- `main`: includes up to Session 19 (PR #9 merged). S20 enforcement PR pending merge.
+- `.ai/SESSION` = 21.
+- `main`: includes up to Session 20 (PR #10 merged). S21 PR #11 pending merge.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- New this session: `sessions/session-20-ground-truth.md` + the GT mechanism **hardened to catch direction drift** (vision + roadmap), not just discipline drift.
+- New this session: `scripts/hook-copilot-loader.sh` (the co-pilot loader) + `copilot.on` rules in `.ai/CONSTRAINTS.yaml` + PreToolUse wiring in `.claude/settings.json` + verify/demo 21. **Varta's first enforcing use.**
 
 ## Next Session
-- **Number:** 21
-- **Type:** CODE — the co-pilot loader
-- **Read prompt:** `prompts/21-task-copilot-loader.md`
-- **Branch:** `session-21-copilot-loader`
+- **Number:** 22
+- **Type:** CODE — scaffold propagation (the deferred S21 rider)
+- **Read prompt:** `prompts/22-task-scaffold-propagation.md`
+- **Branch:** `session-22-scaffold-propagation`
 
 ## Carry-Forwards
-- **S21 = co-pilot loader** — make `⚡on(x) ⚡include` actually *fire* mid-session. S20 sketch: a **CC hook** is the only reactive option (it sees what the agent touches); lives as a new hook script in `scripts/` + matcher near `src/adapter/`, wired via `.claude/settings.json`, reusing the proven additive `--settings` path.
-- **S21 carries two riders:** (1) propagate the new GT audits into the `vajra init` scaffold (`src/cli/init.rs`) so every Vajra project inherits them; (2) the **"does Varta enforce or merely advise?"** decision gate — if the loader can't make `⚡on` enforce, Varta is off-wedge (memory `vajra-varta-wedge-risk`).
-- GT now audits **vision + roadmap drift** + a meta-check (`CONSTRAINTS.yaml#ground_truth`, `AGENTS.md`). Next GT = S25.
-- "Grammar frozen at 9" is **provisional** — validate over real sessions before locking.
-- `vajra estimate` output ratio (3:1) still unvalidated.
+- **S22 = scaffold propagation** — `vajra init` must emit the S20 GT audits (`ground_truth:` block) + the S21 co-pilot (`copilot.on` + `hook-copilot-loader.sh` + settings wiring). `src/cli/init.rs`'s `TPL_CONSTRAINTS` has **no `ground_truth:` section at all** and no copilot block; stale `approval_tokens` (missing `"go ahead and commit"`) + missing `ground_truth_commit_exempt_branch_suffixes`.
+- **S22 key decision:** how does `vajra init` ship the ~70-line hook **without it drifting** from canonical `scripts/hook-copilot-loader.sh` (embed const vs generate vs reference)?
+- **Decision gate ANSWERED (S21):** Varta **enforces** — L2/L3 exit-2 block until context surfaced, L1 advises. On-wedge. Proven live (blocked a real `git commit`).
+- Co-pilot v0 limits: simple-glob + `cmd:` substring (no `**`/regex); surfaces paths+why, not file contents; debounce keys on `session_id`.
+- GT now audits **vision + roadmap drift** + a meta-check. Next GT = **S25**.
+- "Grammar frozen at 9" still **provisional**; `vajra estimate` 3:1 ratio still unvalidated.
