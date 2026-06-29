@@ -1,0 +1,59 @@
+// vajra.varta — GENERATED from .ai/ by `vajra check --render`. DO NOT EDIT BY HAND.
+// One-way render: edit .ai/, then regenerate. `vajra check` drift-guards this file
+// against a fresh render (S22 cmp pattern), so it can never silently drift or lose config.
+
+⚡project {                      // identity — load first, never drift from it.
+  ⚡is    "Vajra is one CLI that guides any AI coding agent through a project step by step — keeping it on track, in context, and in order";
+  ⚡stack "Rust, single static binary (`vajra`; package `vajractl`), Apache-2.0 OSS";
+  ⚡goal  "VISION.md";
+  ⚡now   "session 23 — CODE";
+}
+
+⚡forbid {                       // hard rules. violation = STOP and ask.
+  commit_to_main_and_master;            // branch.forbid_direct_work_on
+  autonomous_commit;          // commit.autonomous = false — wait for approval
+  skip_hooks;                 // commit.forbid_skip_hooks
+}
+
+⚡require {                      // invariants. must hold at all times.
+  verify_exits_zero;          // verify.exit_zero_required — never leave red
+  state_is_snapshot;          // state.state_md_mode — never append history
+  fail_closed;                // enforcement.fail_closed — a check that can't run FAILS
+}
+
+⚡max {                          // numeric ceilings. cross one => split or stop.
+  assumptions = 2;            // more => STOP and ask
+  retries = 2;                // 3rd failure => escalate
+  files_per_commit = 3;       // hook-enforced
+  stories_per_session = 1;    // larger => split
+  hours_per_session = 2;      // marathon = drift
+}
+
+⚡pipeline {                     // the session loop, in order.
+  boot -> branch -> plan -> execute -> verify -> ship;
+}
+
+⚡final {                        // locked decisions (ADRs). change needs approval.
+  ADR_0001: "Deliver v1 compression via CC `PostToolUse` hook (not PATH-shim)";   // 2026-06-15
+  ADR_0002: "Engine trait, adapter contract, and module layout for v1";   // 2026-06-16
+  ADR_0003: "`--settings` injector design and compression engine heuristics";   // 2026-06-16
+  ADR_0004: "Meter and receipt design";   // 2026-06-16
+  ADR_0005: "Pre-run cost estimate design";   // 2026-06-27
+}
+
+// ⚡on — THE CO-PILOT. load context ONLY when that work is touched (copilot.on).
+⚡on (src/engine/*) ⚡include "docs/adr/0003-settings-injector-and-compression-heuristics.md, .ai/KNOWLEDGE.md";   // heuristics share the LINE_CAP / passthrough trim contract — load it before editing
+⚡on (*.varta) ⚡include "varta/SKILL.md";   // Varta is spoken from the live .ai/, never hand-copied — re-read the rule before editing a .varta
+⚡on (cmd:git commit) ⚡include ".ai/STATE.md";   // STATE.md is a snapshot of reality — confirm it matches before you commit
+
+⚡assert {                       // pre-ship checklist. shaky answer => do not ship.
+  what_can_break?;
+  hidden_assumptions?;
+  production_ready?;
+  defensive_patches_only_on_repro_evidence?;
+  scope_intact?;
+}
+
+⚡enum next {                   // end-of-session. A/B/C authored at closeout; here = committed pointer.
+  A: "session 24 — CODE";
+}
