@@ -2,40 +2,38 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 25 — Ground Truth (NO-CODE, direction-drift lens) — COMPLETE
+## Session 26 — Enforce one-session-per-chat (CODE) — COMPLETE
 
-- **Type:** GROUND-TRUTH (NO-CODE) — `25 % 5 == 0`
-- **Verdict:** Varta (S21–S24) was on-wedge, not scope creep (S21 proved it enforces) — but its leverage is spent. Shortest path to the north-star now bends to the **second agent launcher** (the only wedge pillar with zero code). **Meta-finding:** green dashboard (`check`/verify/CI) measures Claude-depth only — no cross-agent breadth metric → false-green risk.
-- **Outcome:** all 7 audits + meta-check answered. Zero constraint violations S21–S24. Cost ~$0.46 (unchanged). Report: `sessions/session-25-ground-truth.md`. **User picked S26 = B (one-session-per-chat enforcement).**
+- **Type:** CODE — make AGENTS.md step 10 / `one_session_per_chat: true` real.
+- **Shipped:** `scripts/hook-session-guard.sh` (PreToolUse Bash) records the Claude `session_id` that owns each vajra-session (gitignored `.ai/.session-owner`) and **blocks `git checkout -b session-(N+1)-*` from the same chat that owns N** (exit 2). Maturity-gated (L1 advise / L2-L3 block), gated on `one_session_per_chat: true`. No 8th command, no new dep. verify-session-26.sh green (13/13). **PR #17 — open (merge after closeout).**
+- **Founder direction:** second agent **parked in backlog** (owner-gated, not audit-gated). New next leap = **Darshan** (human-facing glanceable output skill).
 
-Between sessions. Next: read `prompts/26-task-chat-guard.md`.
+Between sessions. Next: read `prompts/27-task-darshan.md`.
 
 ## Next Session
 
-Read prompt: `prompts/26-task-chat-guard.md` — **S26 CODE: enforce one-session-per-chat**. Make AGENTS.md step 10 / `one_session_per_chat: true` real via a maturity-gated hook keyed on Claude `session_id`; block starting session N+1 in the same chat. No 8th command; ≤3 files/commit; propagate to `vajra init` (or split to S27). **S27 options must lead with the second agent launcher (S25's #1 north-star gap).**
+Read prompt: `prompts/27-task-darshan.md` — **S27 CODE/content: Darshan**, Vajra's default surface-adaptive *glanceable* way of showing the human (skill, not renderer; pairs with Varta — agent talks ↔ user sees). One rule = "render the richest visual this surface can handle, always glanceable, never drop meaning." 3 surface tiers (rich chat HTML · terminal ANSI/box · plain markdown). Name provisional — founder confirms at BOOT. No 8th command; ≤3 files/commit; propagation to `vajra init` may split to S28.
 
 ## Build Queue (from ROADMAP.md, in order)
 
-### Phase 1 — Pre-release (blocking) — COMPLETE
-1–6. ~~claude · init · check · next --advance · budget guard · next e2e~~ — DONE (S07–S12)
+### Phases 1–3 + Varta arc — COMPLETE
+1–13. ~~claude · init · check · next --advance · budget guard · next e2e · Varta v0 · co-pilot loader · scaffold propagation · first-run aha · render `.ai/`→.varta · installer · maturity · legacy cleanup · pre-run estimate~~ — DONE (S07–S24).
 
-### Phase 2 — Varta: the agent's language + the co-pilot — COMPLETE
-7. ~~**Varta v0 — the skill**~~ — DONE (S19).
-8. ~~**Co-pilot loader**~~ — DONE (S21). `⚡on` fires + Varta enforces.
-8a. ~~**Scaffold propagation**~~ — DONE (S22).
-9. ~~**First-run "aha"**~~ — DONE (S23).
-9a. ~~**Render `.ai/` → generated `.varta`**~~ — DONE (S24). `vajra check --render` + drift guard. Closes the Varta story.
+### Next leap (re-ranked S26 — founder override of the S25 audit)
+1. ~~**Enforce one-session-per-chat**~~ — DONE (S26). `scripts/hook-session-guard.sh`.
+2. **Darshan — human-facing glanceable output skill (CODE/content)** — picked S26. `prompts/27-task-darshan.md`.
+3. **Propagate session-guard into `vajra init`** (S26 rider) — small, well-understood.
 
-### Phase 3 — Ship — COMPLETE
-~~Installer · maturity levels · legacy cleanup · pre-run cost estimate~~ — DONE (S13, S14, S16, S17)
-
-### Next
-- **S26 = one-session-per-chat enforcement (CODE)** — picked at S25 GT. `prompts/26-task-chat-guard.md`.
-- Backlog (S27+ candidates): **second agent launcher (cross-agent — the north-star gap, S25's #1)** · audit ledger v2 · north-star breadth indicator (S25 meta) · policy/governed-memory/MCP.
+### Backlog (parked until founder declares Vajra-on-Claude "satisfying")
+- **Add second agent (Codex/Cursor)** — the north-star gap (S25), but **owner-gated**. Returns to #1 only when the founder is satisfied with Claude.
+- **North-star breadth indicator** (RED until ≥2 agents) — S25 meta-finding.
+- **Dogfood / verification session** — use Varta+Darshan on a real project, log friction, fix-or-defer (retired from slot 27).
+- Audit ledger v2 · third agent · policy/governed-memory/MCP.
 
 ## Always-True Reminders
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`.
-- Every 5th session is NO-CODE ground-truth — audits **direction + discipline** drift. This is S25.
+- Every 5th session is NO-CODE ground-truth (next = S30) — audits **direction + discipline** drift.
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
+- **New session = new chat** (now enforced by `hook-session-guard.sh`).

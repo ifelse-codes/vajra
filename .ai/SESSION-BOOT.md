@@ -1,26 +1,27 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 25 — COMPLETE
-- **Type:** GROUND-TRUTH (NO-CODE) — lens: direction drift (Varta vs the cross-agent north-star)
-- **Branch:** `session-25-closeout` (audit only; closeout bundle committed on the exempt suffix)
+- **Number:** 26 — COMPLETE
+- **Type:** CODE — enforce one-session-per-chat (make AGENTS.md step 10 / `one_session_per_chat: true` real)
+- **Branch:** `session-26-chat-guard` (from `main`)
 - **Date last updated:** 2026-06-29
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 25.
-- `main`: includes up to Session 24 (PR #15 merged). S25 = NO-CODE GT, no source changes.
+- `.ai/SESSION` = 26.
+- `main`: includes up to Session 24 (PR #15 merged). S25 = NO-CODE GT (no PR).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- This session: ground-truth audit. **Verdict — Varta (S21–S24) was on-wedge (S21 proved it enforces), not scope creep, but its leverage is spent; the shortest path to the north-star now bends to the second agent launcher.** Meta-finding: green dashboard measures Claude-depth only, no cross-agent breadth metric (false-green risk). All 7 audits + meta-check answered; zero constraint violations S21–S24. Report: `sessions/session-25-ground-truth.md`. **User picked S26 = B (one-session-per-chat enforcement).**
+- This session: shipped `scripts/hook-session-guard.sh` (PreToolUse Bash). Records which Claude `session_id` owns each vajra-session in a gitignored `.ai/.session-owner`; **blocks `git checkout -b session-(N+1)-*` from the same chat that owns N** (exit 2). Maturity-gated (L1 advise / L2-L3 block), gated on `one_session_per_chat: true`. No 8th command, no new dep. verify-session-26.sh green (13/13). **PR #17 — open (merge after closeout).**
+- **Founder direction this session:** second agent is **parked back in the backlog** — gated on *founder* satisfaction with Vajra-on-Claude (NOT the S25 audit's call). New next leap = **Darshan**, the human-facing glanceable output skill (see Next Session).
 
 ## Next Session
-- **Number:** 26
-- **Type:** CODE — enforce one-session-per-chat (make AGENTS.md step 10 / `one_session_per_chat: true` real)
-- **Read prompt:** `prompts/26-task-chat-guard.md`
-- **Branch:** `session-26-chat-guard` (from `main`)
+- **Number:** 27
+- **Type:** CODE/content — **Darshan**: Vajra's default, surface-adaptive, glanceable way of *showing* the human (skill, not renderer). Pairs with Varta (agent talks ↔ user sees).
+- **Read prompt:** `prompts/27-task-darshan.md`
+- **Branch:** `session-27-darshan` (from `main`)
 
 ## Carry-Forwards
-- **North-star gap is #1:** second agent launcher (Codex/Cursor) — must LEAD the S27 options (S25 verdict). Don't let S26 become a detour from the cross-agent leap.
-- **S26 = one-session-per-chat enforcement:** maturity-gated hook keyed on Claude `session_id`; block starting session N+1 in the same chat. No 8th command; ≤3 files/commit; propagate to `vajra init` (or split to S27).
-- **S25 meta — false-green risk:** consider a "north-star gap" indicator (RED until ≥2 agents) on the S27 menu.
-- **Resolved at this closeout:** "grammar frozen at 9" → **validated** by the S24 render (the 9 held across a full generated render of `.ai/`). Recurring low drift: STATE now writes PR status as "merged"/"open", not "pending merge" (flagged S15/S20/S25).
-- **Still open (carry):** `vajra estimate` 3:1 output ratio — unvalidated placeholder, order-of-magnitude only.
+- **Darshan = make Claude satisfying, not a detour.** Skill-not-renderer (like Varta); default human-output skill; one rule = "render the richest visual this surface can handle, always glanceable, never drop meaning." Name provisional — founder confirms at BOOT.
+- **Second agent stays parked** — owner-gated on founder's satisfaction verdict (memory `vajra-second-agent-gate`). Returns to #1 only when founder declares Vajra-on-Claude satisfying. The S25 "condition met" was the audit's call, not the founder's.
+- **Dogfood / "verification" session** retired from slot 27 → backlog; revive after Darshan ships.
+- **Recurring low drift:** STATE writes PR status as "open (merge after closeout)", not "pending merge" (flagged S15/S20/S25).
+- **Still open (carry):** `vajra estimate` 3:1 output ratio unvalidated; `vajra claude` no auth pre-check before launch (S18 onboarding gap).

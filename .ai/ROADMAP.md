@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-29 · Session 25 — ground-truth (NO-CODE, direction-drift lens). Verdict: Varta was on-wedge but its leverage is spent; the **second agent launcher** is the highest-leverage next move (north-star gap). S26 (one-session-per-chat enforcement) hardens the loop first.
+**Updated:** 2026-06-29 · Session 26 — one-session-per-chat enforcement shipped (`hook-session-guard.sh`, PR #17). **Founder override of the S25 audit:** the second agent is **parked in the backlog** — gated on *founder* satisfaction with Vajra-on-Claude, not the audit's call. New next leap = **Darshan** (S27), the human-facing glanceable output skill that pairs with Varta (agent talks ↔ user sees).
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +11,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-29 |
-| Current phase | Phases 1–3 COMPLETE — Varta arc done; S25 GT says next leap = cross-agent |
-| Last closed session | Session 25 — ground-truth (NO-CODE, direction drift); verdict → second agent launcher is #1 |
-| Active session | Between sessions (S26 pending — CODE: one-session-per-chat enforcement) |
+| Current phase | Phases 1–3 + Varta arc COMPLETE; loop hardened (S26 chat-guard); next = Darshan (human's lane) |
+| Last closed session | Session 26 — one-session-per-chat enforcement (`hook-session-guard.sh`, PR #17) |
+| Active session | Between sessions (S27 pending — CODE/content: Darshan, the glanceable human-output skill) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -34,7 +34,8 @@
 
 | Component | Status |
 |---|---|
-| Second agent launcher | [ ] not built — only Claude Code is wired |
+| Darshan (human's glanceable output lane) | [ ] not built — next leap (S27); the agent still dumps walls of text |
+| Second agent launcher | [ ] not built — only Claude Code is wired (**parked**: owner-gated on Claude satisfaction) |
 
 ## Design Rules (from competitive analysis)
 
@@ -88,13 +89,21 @@
 
 13. **[x] Pre-run cost estimate** — DONE in Session 17. `vajra estimate` reads context files, estimates tokens, prices against Opus rates, warns on budget. ADR-0005. [PR #6](https://github.com/ifelse-codes/vajra/pull/6).
 
-### Next leap (S25 GT verdict — in priority order)
+### Next leap (re-ranked S26 — USER override of the S25 audit)
 
-1. **Enforce one-session-per-chat** *(S26 — picked)* — record the Claude `session_id` that opens each vajra-session; a maturity-gated hook refuses to start session N+1 from the same chat ("open a new chat first"). Closes the gap that AGENTS.md step 10 is convention-only (S23 finding). `prompts/26-task-chat-guard.md`.
-2. **Add second agent** (Codex or Cursor) — **#1 north-star gap (S25 GT).** The only wedge pillar with zero code; proves ADR-0002's adapter contract is genuinely vendor-neutral. Deferral condition ("until Claude is satisfying") is now met. **Must lead the S27 options.**
-3. **North-star breadth indicator** (S25 meta-finding) — a RED-until-≥2-agents signal so the green dashboard can't imply health while the cross-agent gap widens.
+> **S26 owner decision:** the second agent is **parked back in the backlog.** The S25 audit
+> declared "Claude experience is satisfying → promote second agent." The owner disagrees:
+> **Vajra-on-Claude is NOT yet satisfying.** The gate is the owner's judgment, not the audit's.
+> Next sessions deepen/polish the Claude experience until the owner declares it satisfying;
+> only then does the second agent return to #1.
 
-### Backlog (after the leap)
+1. **[x] Enforce one-session-per-chat** — DONE in Session 26. `scripts/hook-session-guard.sh` (PreToolUse Bash) records the Claude `session_id` that owns each vajra-session in a gitignored `.ai/.session-owner`; blocks `git checkout -b session-(N+1)-*` from the same chat that owns N (exit 2, "open a new chat first"). Maturity-gated (L1 advise / L2-L3 block), gated on `one_session_per_chat: true`. No 8th command. Closes the AGENTS.md step-10 convention gap (S23 finding). verify-session-26.sh green (13/13). Scaffold propagation to `vajra init` deferred to S27.
+2. **Darshan — the human's lane (S27 — picked)** — Vajra's default, surface-adaptive, **glanceable** way of *showing* the human instead of dumping walls of text. Pairs with Varta: **the agent talks to itself (Varta); the user sees (Darshan).** Skill, not a renderer (like Varta) — one rule: *"render the richest visual this surface can handle; always glanceable; never drop meaning."* 3 tiers: rich chat (HTML/SVG) · terminal (ANSI/box-drawing) · plain (structured markdown). Fixes AI cognitive-overload / burnout — the founder's S26 dissatisfaction with how the agent talks to the user. Name provisional. `prompts/27-task-darshan.md`.
+3. **Propagate session-guard into `vajra init`** (S26 rider) — every scaffolded project inherits the S26 enforcement (the S22 lesson). Small, well-understood. May ride with Darshan's propagation or split to S28.
+
+### Backlog (parked until owner declares Claude "satisfying")
+- **Add second agent** (Codex or Cursor) — **the north-star gap (S25 GT), but owner-gated.** Only wedge pillar with zero code; proves ADR-0002's adapter contract is vendor-neutral. Returns to #1 **only when the owner declares Vajra-on-Claude satisfying** (S26 override — the S25 "condition met" call was the audit's, not the owner's).
+- **North-star breadth indicator** (S25 meta-finding) — a RED-until-≥2-agents signal so the green dashboard can't imply health while the cross-agent gap widens. Pairs with the second agent.
 - **Add third agent** (Aider, Gemini CLI, or Kimi) — after second agent proves the pattern.
 - **Audit ledger (v2)** — git-native provenance, agent-trace format (meaningful only once ≥2 agents exist).
 - **Canned workflow patterns** — daily triage, PR babysitter, CI sweeper. Low priority.
