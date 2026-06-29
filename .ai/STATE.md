@@ -3,16 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S24 complete, S25 not yet started).
+None — between sessions (S25 complete, S26 not yet started).
 
 ## Active PRs
-S24 varta-render PR #15 pending merge to `main`. S23 first-run-aha PR #13 — **merged**.
+None. S24 varta-render PR #15 — **merged** to `main` (`d0533f0`). S25 = NO-CODE ground-truth (no PR). S23 first-run-aha PR #13 — merged.
 
-## Direction (set S18, advanced S19, proven S21, propagated S22, felt S23, persisted-as-render S24)
+## Direction (set S18, advanced S19, proven S21, propagated S22, felt S23, persisted-as-render S24, audited S25)
 - **Reframe: co-pilot, not cop** — guide the agent in real time (ADAS / F1 race engineer), not catch mistakes after.
 - **Product direction: Varta** — a compact ⚡ C-inspired machine language the agent learns at boot and speaks all session; delivered as a **skill** (not a compiler). Co-pilot mechanism = `⚡on(x) ⚡include`.
 - **The Varta arc is complete:** S19 shipped the language, S21 made it **enforce**, S22 **propagated** it to every `vajra init` project, S23 made the first run **felt**, S24 brought back a persisted `.varta` **as a one-way generated render** (drift-guarded). Phases 1–3 + the Varta story are all done.
-- **Next = S25 ground-truth (NO-CODE)** — primary lens **direction drift**: was S21–S24 (4 sessions on Varta) the shortest path, or scope creep vs. the cross-agent north-star (only Claude is wired)?
+- **S25 ground-truth verdict:** Varta was **on-wedge** (S21 proved it enforces), not scope creep — but its leverage is spent. The shortest path to the cross-agent north-star now bends to the **second agent launcher** (the only wedge pillar with zero code). **Meta-finding:** the green dashboard (`check`/verify/CI) measures Claude-depth only — no cross-agent breadth metric (false-green risk).
+- **Next = S26 (CODE): enforce one-session-per-chat** (picked at S25 GT) — hardens the existing loop. **S27+ must lead with the second agent launcher** (north-star gap #1).
 
 ## What Currently Works
 - **Render `.ai/` → `vajra.varta` (S24)** — `vajra check --render` regenerates a committed `vajra.varta` from the live `.ai/` (CONSTRAINTS/AGENTS/SESSION/SESSION-BOOT) in the 9 locked ⚡ constructs; hand-parsed (no `serde_yaml`), deterministic. Plain `vajra check` adds a `varta: matches render` **drift guard** (on-disk == fresh render, S22 `cmp`); missing/stale → FAIL with the fix. No 8th command. verify-session-24.sh green (21/21).
@@ -30,7 +31,7 @@ S24 varta-render PR #15 pending merge to `main`. S23 first-run-aha PR #13 — **
 - `vajra estimate` output ratio (3:1) is unvalidated placeholder — order-of-magnitude only.
 
 ## What Is In Progress
-- Nothing — between sessions. Next: **S25 — ground-truth (NO-CODE)**, lens = direction drift. Read `prompts/25-task-ground-truth.md`.
+- Nothing — between sessions. Next: **S26 — enforce one-session-per-chat (CODE)**. Read `prompts/26-task-chat-guard.md`. S27 must lead with the second agent launcher (S25's #1 gap).
 
 ## Cost Tracking
 - Session 00–05: $0.00 (no API calls)
@@ -38,4 +39,5 @@ S24 varta-render PR #15 pending merge to `main`. S23 first-run-aha PR #13 — **
 - Session 07: ~$0.46 (3 test runs via `vajra claude -p`)
 - Session 08–23: ~$0.00 (code/no-code sessions, no API calls)
 - Session 24: ~$0.00 (code session, no API calls)
+- Session 25: ~$0.00 (NO-CODE ground-truth, no API calls)
 - Cumulative: ~$0.46
