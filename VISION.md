@@ -44,7 +44,7 @@
 - **Looks like code** (C / Java style), so it can never blend into prose. Keywords carry a `⚡` mark.
 - **Delivered as a skill** — not a compiler. The agent loads it at the start, *internalizes* the rules (a re-train before work), then speaks Varta all session to manage its own notes and the `.ai/` files.
 - **The co-pilot lives here.** `⚡on(compression) ⚡include "src/engine/*"` means: pull that context *only* when the agent touches that work. Right rule, right corner — not everything up front.
-- **Humans just spectate.** The `//` comments are the one human-readable lane. You glance the *why*; the agent handles the rest.
+- **Humans get their own lane — Darshan** (below). Inside Varta, the `//` comments carry the *why*; everything the user *sees* is rendered by Darshan.
 
 A taste:
 
@@ -54,6 +54,24 @@ A taste:
   commit_without_approval;   // wait: approved | lgtm | ship it
 }
 ⚡on (drift_check) ⚡include "STATE.md", git_status;
+```
+
+## The human's lane — Darshan (how you *see*)
+
+**Darshan** *(Sanskrit: "sight, seeing, a glance")* is the counterpart to Varta. **Varta is how the agent talks to itself; Darshan is how the user sees.**
+
+- **Fixes the wall of text.** AI output is too many words, too dense — you have to grind it line-by-line. Darshan says *more with fewer words*, carried by visual structure (banners, cards, tables, color, bars).
+- **More than plain words.** Plain-talk fixes the *words*; Darshan also fixes the *load* — same meaning, nothing dropped, far less to read.
+- **Delivered as a skill** — not a renderer. The agent internalizes one rule at boot and draws with whatever its screen supports: rich chat (HTML/SVG), terminal (color + box-drawing), or plain markdown.
+- **One rule:** *render the richest visual this surface can handle; always glanceable; never drop meaning.*
+
+A taste — the same status, glanceable:
+
+```
+┌─ Session done ─────────────── ✓ ─┐
+│  verify   9/9 pass  ▕████████▏    │
+│  PR       ⚠ open                  │
+└───────────────────────────────────┘
 ```
 
 ## What makes it different
