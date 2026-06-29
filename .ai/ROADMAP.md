@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-29 · Session 24 — render `.ai/` → generated `vajra.varta` (the Varta arc complete; persisted as a drift-guarded render).
+**Updated:** 2026-06-29 · Session 25 — ground-truth (NO-CODE, direction-drift lens). Verdict: Varta was on-wedge but its leverage is spent; the **second agent launcher** is the highest-leverage next move (north-star gap). S26 (one-session-per-chat enforcement) hardens the loop first.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +11,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-29 |
-| Current phase | Phase 2 COMPLETE — Varta shipped, enforces, propagates, felt, persisted-as-render |
-| Last closed session | Session 24 — render `.ai/` → generated `vajra.varta` (Varta arc complete) |
-| Active session | Between sessions (S25 pending — NO-CODE ground-truth, lens: direction drift) |
+| Current phase | Phases 1–3 COMPLETE — Varta arc done; S25 GT says next leap = cross-agent |
+| Last closed session | Session 25 — ground-truth (NO-CODE, direction drift); verdict → second agent launcher is #1 |
+| Active session | Between sessions (S26 pending — CODE: one-session-per-chat enforcement) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -88,13 +88,16 @@
 
 13. **[x] Pre-run cost estimate** — DONE in Session 17. `vajra estimate` reads context files, estimates tokens, prices against Opus rates, warns on budget. ADR-0005. [PR #6](https://github.com/ifelse-codes/vajra/pull/6).
 
-### Backlog (when ready, not before)
+### Next leap (S25 GT verdict — in priority order)
 
-- **Enforce one-session-per-chat** — record the Claude `session_id` that opens each vajra-session; `vajra next --advance` (or a PreToolUse hook) refuses to advance N→N+1 from the same chat ("open a new chat first"). Closes the gap that AGENTS.md step 10 is convention-only (S23 finding).
-- **Add second agent** (Codex or Cursor) — deferred until Claude experience is fully satisfying.
+1. **Enforce one-session-per-chat** *(S26 — picked)* — record the Claude `session_id` that opens each vajra-session; a maturity-gated hook refuses to start session N+1 from the same chat ("open a new chat first"). Closes the gap that AGENTS.md step 10 is convention-only (S23 finding). `prompts/26-task-chat-guard.md`.
+2. **Add second agent** (Codex or Cursor) — **#1 north-star gap (S25 GT).** The only wedge pillar with zero code; proves ADR-0002's adapter contract is genuinely vendor-neutral. Deferral condition ("until Claude is satisfying") is now met. **Must lead the S27 options.**
+3. **North-star breadth indicator** (S25 meta-finding) — a RED-until-≥2-agents signal so the green dashboard can't imply health while the cross-agent gap widens.
+
+### Backlog (after the leap)
 - **Add third agent** (Aider, Gemini CLI, or Kimi) — after second agent proves the pattern.
+- **Audit ledger (v2)** — git-native provenance, agent-trace format (meaningful only once ≥2 agents exist).
 - **Canned workflow patterns** — daily triage, PR babysitter, CI sweeper. Low priority.
-- **Audit ledger (v2)** — git-native provenance, agent-trace format.
 - **Additional agents** — Kilo, Windsurf, Continue, others. Add as users request.
 - **Policy enforcement, governed memory, MCP tools** — only after the core loop is proven and users exist.
 
