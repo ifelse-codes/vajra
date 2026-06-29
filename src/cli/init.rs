@@ -25,7 +25,9 @@ pub fn run() -> Result<()> {
         })
         .unwrap_or("L2");
 
-    scaffold(&root, &project_name, &goal, maturity)
+    scaffold(&root, &project_name, &goal, maturity)?;
+    first_run_aha(&root);
+    Ok(())
 }
 
 pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> Result<()> {
@@ -63,8 +65,85 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
 
     eprintln!();
     eprintln!("Created {created} files, skipped {skipped}.");
-    eprintln!("Next: git add .ai/ && vajra claude");
     Ok(())
+}
+
+/// First-run "aha" (S23): after scaffolding, let the user *see* the co-pilot work in
+/// seconds — fire the just-scaffolded hook once against a sample `git commit` so the
+/// guard is felt, not just filed. Best-effort: a missing bash/jq never fails init.
+fn first_run_aha(root: &Path) {
+    eprintln!();
+    eprintln!("▶ See it work — a 5-second simulation against your new project:");
+    eprintln!();
+    match copilot_fire_preview(root) {
+        Some(block) => {
+            for line in block.lines() {
+                eprintln!("    {line}");
+            }
+            eprintln!();
+            eprintln!("↑ That's Vajra guiding your agent: the moment it runs `git commit`, the");
+            eprintln!(
+                "  right context is surfaced first — automatically, for every guarded action."
+            );
+        }
+        None => eprint!("{}", render_aha_fallback()),
+    }
+    eprintln!();
+    eprintln!("Next: git add .ai/ && start a guided session →  vajra claude");
+}
+
+/// Fire the scaffolded co-pilot hook once and capture what the agent would see.
+/// Returns None if the hook or its deps (bash/jq) aren't available — caller falls back.
+fn copilot_fire_preview(root: &Path) -> Option<String> {
+    use std::io::Write as _;
+    use std::process::Stdio;
+
+    let hook = root.join("scripts/hook-copilot-loader.sh");
+    if !hook.exists() {
+        return None;
+    }
+    // Isolated debounce dir so the preview can't interfere with a real session.
+    let state_dir = std::env::temp_dir().join(format!("vajra-aha-{}", std::process::id()));
+    let payload = r#"{"tool_name":"Bash","tool_input":{"command":"git commit -m wip"},"session_id":"vajra-init-aha"}"#;
+
+    let mut child = Command::new("bash")
+        .arg(&hook)
+        .env("CLAUDE_PROJECT_DIR", root)
+        .env("VAJRA_COPILOT_STATE_DIR", &state_dir)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .ok()?;
+
+    // Drop stdin right after writing so the hook's `cat` sees EOF and proceeds.
+    child.stdin.take()?.write_all(payload.as_bytes()).ok()?;
+    let out = child.wait_with_output().ok()?;
+    let _ = fs::remove_dir_all(&state_dir);
+
+    let mut combined = String::from_utf8_lossy(&out.stdout).into_owned();
+    combined.push_str(&String::from_utf8_lossy(&out.stderr));
+    let trimmed = combined.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
+/// Shown when the live fire can't run (no bash/jq): a static, still-useful preview.
+fn render_aha_fallback() -> String {
+    let lines = [
+        "    [co-pilot] Your agent is now guided. Example rule (.ai/CONSTRAINTS.yaml):",
+        "",
+        "        ⚡on(cmd:git commit) ⚡include \".ai/STATE.md\"",
+        "",
+        "    Before a commit, Vajra surfaces STATE.md to check first — for every",
+        "    guarded action. (Install `jq` to see this fire live on `vajra init`.)",
+    ];
+    let mut s = lines.join("\n");
+    s.push('\n');
+    s
 }
 
 struct FileEntry {
@@ -678,6 +757,14 @@ mod tests {
             let mode = fs::metadata(&hook).unwrap().permissions().mode();
             assert_eq!(mode & 0o111, 0o111, "hook must be executable");
         }
+    }
+
+    #[test]
+    fn aha_fallback_is_informative() {
+        let s = render_aha_fallback();
+        assert!(s.contains("⚡on(cmd:git commit)"), "fallback lost the rule");
+        assert!(s.contains(".ai/STATE.md"), "fallback lost the include");
+        assert!(s.contains("guided"), "fallback lost the framing");
     }
 
     #[test]
