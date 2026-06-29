@@ -1,26 +1,27 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 22 — COMPLETE
-- **Type:** CODE — scaffold propagation (`vajra init` emits S20 GT audits + S21 co-pilot)
-- **Branch:** `session-22-scaffold-propagation`
+- **Number:** 23 — COMPLETE
+- **Type:** CODE — first-run "aha" (`vajra init` ends with a live co-pilot fire)
+- **Branch:** `session-23-first-run-aha`
 - **Date last updated:** 2026-06-29
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 22.
-- `main`: includes up to Session 21 (PR #11 merged). S22 PR #12 pending merge.
+- `.ai/SESSION` = 23.
+- `main`: includes up to Session 22 (PR #12 merged). S23 PR #13 pending merge.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- New this session: `src/cli/init.rs` now scaffolds the `ground_truth:` + `copilot:` blocks, refreshed `approval_tokens` + `ground_truth_commit_exempt_branch_suffixes`, ships `scripts/hook-copilot-loader.sh` (via `include_str!`) + wires it into the scaffolded `.claude/settings.json`. `Cargo.toml` un-excludes that one hook. verify/demo 22.
+- New this session: `src/cli/init.rs` gained `first_run_aha()` — after scaffolding, it fires the just-scaffolded `hook-copilot-loader.sh` once against a sample `git commit` and shows the real block + surfaced `.ai/STATE.md` (graceful fallback if bash/jq absent). verify/demo 23. **Phase 2 complete.**
 
 ## Next Session
-- **Number:** 23
-- **Type:** CODE — first-run "aha" (Phase 2 item 9 — closes Phase 2)
-- **Read prompt:** `prompts/23-task-first-run-aha.md`
-- **Branch:** `session-23-first-run-aha`
+- **Number:** 24
+- **Type:** CODE — render `.ai/` → generated `.varta` (lean; the S19 deferred follow-up)
+- **Read prompt:** `prompts/24-task-varta-render.md`
+- **Branch:** `session-24-varta-render`
 
 ## Carry-Forwards
-- **S23 = first-run "aha"** — one scripted, *felt* win within ~2 min of `vajra init`. Last open Phase 2 item; landing it closes Phase 2. Hard cap: max 7 top-level commands — prefer extending `init`/reusing `claude`/`next` over a new verb.
-- **S22 key decision (ANSWERED):** the co-pilot hook ships via `include_str!` of canonical `scripts/hook-copilot-loader.sh` — one source of truth, byte-identical, no hand-copy (the S19 rule). Cost: `Cargo.toml` must un-exclude any file `include_str!`'d from outside `src/` so `cargo install` compiles (verified via `cargo package --list`).
-- Scaffold now produces **17 files** (was 16). Starter `copilot.on` rules ship 2 examples (`cmd:git commit`, `prompts/*`) pointing only at scaffolded files (anti-rot holds).
-- **Next GT = S25** (NO-CODE; audits direction + discipline drift). Keep S23/S24 lean.
-- Still provisional: "grammar frozen at 9"; `vajra estimate` 3:1 ratio unvalidated. Deferred Varta follow-up (option B): render `.ai/` → generated `.varta`.
+- **S24 = render `.ai/` → generated `.varta`** — one-way render, regenerated never hand-kept (the S19 condition for a persisted `.varta`). Drift-guard with the S22 `cmp` pattern.
+- **S24 key decisions:** (1) what triggers the render without an 8th command (7-cap); (2) how to parse `CONSTRAINTS.yaml` — **no `serde_yaml` dep today** (hooks hand-parse), don't add a dep without approval; (3) where the artifact lives + committed-vs-ignored.
+- **S23 key decision (ANSWERED):** the first-run aha = a **live co-pilot fire at the end of `vajra init`** — rides on `init` (no 8th command), a real hook fire (dogfoods S22), graceful bash/jq fallback. init exits 0 despite the child's exit 2.
+- **Phase 2 is COMPLETE** (Varta v0 + co-pilot loader + scaffold propagation + first-run aha). Phases 1–3 all done; what remains is the backlog (cross-agent, ledger v2, policy/memory/MCP).
+- **Next GT = S25** (NO-CODE; audits direction + discipline drift). Keep S24 lean — leave a clean surface.
+- Still provisional: "grammar frozen at 9"; `vajra estimate` 3:1 ratio unvalidated (candidate GT inputs).
