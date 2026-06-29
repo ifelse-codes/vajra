@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-29 · Session 21 — the co-pilot loader (Varta now enforces).
+**Updated:** 2026-06-29 · Session 22 — scaffold propagation (the hardening now travels with every `vajra init`).
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -12,8 +12,8 @@
 |---|---|
 | Today | 2026-06-29 |
 | Current phase | Phase 2 — Varta (the agent's language) |
-| Last closed session | Session 21 — the co-pilot loader (`⚡on` fires + enforces) |
-| Active session | Between sessions (S22 pending — scaffold propagation) |
+| Last closed session | Session 22 — scaffold propagation (`vajra init` emits S20 GT + S21 co-pilot) |
+| Active session | Between sessions (S23 pending — first-run "aha") |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -70,9 +70,9 @@
 
 8. **[x] The co-pilot loader** — DONE in Session 21. `⚡on(cond) ⚡include "files"` fires via a PreToolUse hook (`scripts/hook-copilot-loader.sh`) reading `copilot.on` rules from the live `.ai/CONSTRAINTS.yaml`. **Gate answered: Varta ENFORCES** — L2/L3 block the tool (exit 2) until the context is surfaced; L1 advises. Proven live (blocked a real `git commit`). verify-session-21.sh green (10/10). [PR #11](https://github.com/ifelse-codes/vajra/pull/11). *Rider (scaffold propagation) split to item 8a.*
 
-8a. **[ ] Scaffold propagation** *(NEXT — S22)* — make `vajra init` emit the S20 GT audits (`ground_truth:` block) + the S21 co-pilot (`copilot.on` + `hook-copilot-loader.sh` + settings wiring), so every project inherits them. The deferred S21 rider + the S19 "wire Varta into init" follow-up. Risk: avoiding a drifting hand-copy of the hook in the embedded template.
+8a. **[x] Scaffold propagation** — DONE in Session 22. `vajra init` emits the S20 GT audits (`ground_truth:` block) + the S21 co-pilot (`copilot.on` + `hook-copilot-loader.sh` + settings wiring); every project inherits them. The hook ships via `include_str!` of the canonical script (byte-identical, no drift); `Cargo.toml` un-excludes that one file so `cargo install` compiles. verify-session-22.sh green (12/12). [PR #12](https://github.com/ifelse-codes/vajra/pull/12).
 
-9. **[ ] First-run "aha"** — Make `vajra init` → first session deliver a visible win in 2 minutes. Fixes the exact "not worth it" feeling from the S18 walkthrough. Now newly compelling: the co-pilot is a *felt* moment. Risk: polish, not the big bet.
+9. **[ ] First-run "aha"** *(NEXT — S23)* — Make `vajra init` → first session deliver a visible/felt win in ~2 minutes. Fixes the exact "not worth it" feeling from the S18 walkthrough. Newly winnable: the co-pilot is a *felt* moment (S21) and now propagates to every project (S22). Closes Phase 2. Risk: "aha" is subjective — needs one concrete scripted moment.
 
 **Varta language spec (locked S18):** C/Java-inspired syntax + `⚡` keyword prefix. Constructs: `⚡project{⚡is ⚡stack ⚡goal ⚡now}`, `⚡forbid{}`, `⚡require{}`, `⚡max{}`, `⚡pipeline{}`, `⚡final{}`, `⚡on(cond) ⚡include "files"` (the co-pilot), `⚡assert{}`, `⚡enum next{}`. `//` comments = the human-glanceable *why*. Mechanism = **skill, not compiler** — the agent reads/writes it, nothing parses it.
 

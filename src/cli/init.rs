@@ -185,6 +185,7 @@ fn files(name: &str, goal: &str, slug: &str, date: &str, maturity: &str) -> Vec<
         f(".cursorrules", TPL_CURSORRULES),
         f(".claude/settings.json", TPL_CLAUDE_SETTINGS),
         fx("scripts/hook-session-start.sh", TPL_HOOK_SESSION_START),
+        fx("scripts/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
         f("prompts/01-task-kickoff.md", TPL_PROMPT),
@@ -306,11 +307,12 @@ session:
 branch:
   forbid_direct_work_on: [main, master]
   required_session_branch_pattern: '^session-\d{2,}-[a-z0-9-]+$'
+  ground_truth_commit_exempt_branch_suffixes: [-closeout, -enforcement]
 
 commit:
   autonomous: false
   require_user_approval: true
-  approval_tokens: [approved, lgtm, "ship it", "yes commit", "go ahead"]
+  approval_tokens: [approved, lgtm, "ship it", "yes commit", "go ahead and commit", "go ahead"]
 
 verify:
   required_for_done: true
@@ -333,6 +335,28 @@ communication:
   required_formats: [bullets, tables, code-blocks]
   forbid: [greetings, apologies, filler, trailing-summaries]
 
+ground_truth:
+  # Every 5th session is NO-CODE. It must catch BOTH direction drift (vision+roadmap)
+  # and discipline drift (rules+constitution+state). Rules exist to serve the vision —
+  # auditing rule-following without auditing the vision is the trap.
+  forbid_code_changes: true
+  forbid_commits: true
+  forbid_prs: true
+  required_outputs: [sessions/session-{NN}-ground-truth.md]
+  drift_axes: [vision, roadmap, rules, constitution, state, cost]
+  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review]
+  vision_questions:
+    - Is the north-star still the right destination?
+    - Is current work the shortest path to it, or intellectually-fun scope creep?
+    - What new evidence would make us pivot or abandon this direction?
+  roadmap_questions:
+    - Does each phase still map to the north-star?
+    - Is the next item the highest-leverage one, or just the easiest?
+    - Any item now obsolete, or any the vision now demands but the roadmap lacks?
+  constitution_questions:
+    - Is any rule now blocking the vision instead of protecting it?
+    - Did this audit's own mechanism have a blind spot? (meta-check)
+
 load_order:
   - .ai/AGENTS.md
   - .ai/SESSION
@@ -342,6 +366,18 @@ load_order:
   - .ai/CONSTRAINTS.yaml
   - .ai/KNOWLEDGE.md
   - .ai/ROADMAP.md
+
+copilot:
+  # The co-pilot loader (fired by scripts/hook-copilot-loader.sh): surface the right
+  # context the moment matching work is touched, not all up front.
+  # Rule form:  "PATTERN => file, file | why this context, for this work"
+  #   PATTERN = a path glob (matched against the touched file, repo-relative)
+  #          or cmd:<substring> (matched against a Bash command).
+  # Maturity-gated: L1 advises (non-blocking); L2/L3 enforce (exit 2 — block until surfaced).
+  # Per-session debounce: each rule fires once per session. Edit these for your project.
+  on:
+    - "cmd:git commit => .ai/STATE.md | STATE.md is a snapshot of reality — confirm it matches before you commit"
+    - "prompts/* => .ai/TASK.md, .ai/ROADMAP.md | the prompt is the session contract — re-read the task + roadmap before editing it"
 "#;
 
 const TPL_KNOWLEDGE: &str = r#"# {PROJECT_NAME} — Knowledge Base
@@ -408,6 +444,26 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-copilot-loader.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-copilot-loader.sh\""
+          }
+        ]
+      }
     ]
   }
 }
@@ -428,6 +484,11 @@ for f in .ai/SESSION .ai/SESSION-BOOT.md .ai/TASK.md .ai/STATE.md .ai/CONSTRAINT
 done
 exit 0
 "#;
+
+// Canonical co-pilot loader, embedded verbatim from the real script — one source of
+// truth, no hand-copy, so it can never drift (the S19 rule Varta enforces). The file is
+// un-excluded in Cargo.toml's `exclude` so it ships with `cargo install`.
+const TPL_HOOK_COPILOT_LOADER: &str = include_str!("../../scripts/hook-copilot-loader.sh");
 
 const TPL_VERIFY_TEMPLATE: &str = r#"#!/usr/bin/env bash
 # Template — copy to scripts/verify-session-NN.sh and customize per session.
@@ -559,5 +620,75 @@ mod tests {
     #[test]
     fn slugify_empty() {
         assert_eq!(slugify(""), "");
+    }
+
+    // ── Scaffold propagation (S22) ────────────────────────────────────────────
+
+    fn scaffold_tmp() -> tempfile::TempDir {
+        let dir = tempfile::tempdir().unwrap();
+        scaffold(dir.path(), "Demo", "build it", "L2").unwrap();
+        dir
+    }
+
+    #[test]
+    fn scaffold_emits_ground_truth_audits() {
+        let dir = scaffold_tmp();
+        let c = fs::read_to_string(dir.path().join(".ai/CONSTRAINTS.yaml")).unwrap();
+        for needle in [
+            "ground_truth:",
+            "vision_alignment",
+            "roadmap_alignment",
+            "constitution_review",
+            "drift_axes:",
+            "vision_questions:",
+        ] {
+            assert!(c.contains(needle), "TPL_CONSTRAINTS missing {needle:?}");
+        }
+    }
+
+    #[test]
+    fn scaffold_emits_copilot_rules_and_refreshes() {
+        let dir = scaffold_tmp();
+        let c = fs::read_to_string(dir.path().join(".ai/CONSTRAINTS.yaml")).unwrap();
+        assert!(c.contains("copilot:"), "missing copilot block");
+        assert!(c.contains("=>"), "missing a ⚡on rule");
+        // refreshed since pre-S20:
+        assert!(c.contains("go ahead and commit"), "stale approval_tokens");
+        assert!(
+            c.contains("ground_truth_commit_exempt_branch_suffixes"),
+            "missing GT exempt suffixes"
+        );
+    }
+
+    #[test]
+    fn scaffold_ships_copilot_hook_verbatim() {
+        let dir = scaffold_tmp();
+        let hook = dir.path().join("scripts/hook-copilot-loader.sh");
+        assert!(hook.exists(), "hook not scaffolded");
+        // The whole point of option (b): the scaffolded copy is byte-identical to the
+        // canonical script — one source of truth, no drift.
+        assert_eq!(
+            fs::read_to_string(&hook).unwrap(),
+            TPL_HOOK_COPILOT_LOADER,
+            "scaffolded hook drifted from canonical"
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&hook).unwrap().permissions().mode();
+            assert_eq!(mode & 0o111, 0o111, "hook must be executable");
+        }
+    }
+
+    #[test]
+    fn scaffold_wires_copilot_into_settings() {
+        let dir = scaffold_tmp();
+        let s = fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+        assert_eq!(
+            s.matches("hook-copilot-loader.sh").count(),
+            2,
+            "co-pilot must be wired for both Bash and Edit|Write|MultiEdit"
+        );
+        assert!(s.contains("PreToolUse"), "missing PreToolUse wiring");
     }
 }
