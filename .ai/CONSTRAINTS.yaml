@@ -103,6 +103,19 @@ budget:
   cap_usd: 5.00
   mode: warn
 
+copilot:
+  # ⚡on(work) ⚡include "context" — the co-pilot loader (S21). Fired by scripts/hook-copilot-loader.sh.
+  # The agent speaks these as Varta ⚡on(...) from THIS live source; nothing is hand-copied (no drift).
+  # Rule form:  "PATTERN => file, file | why this context, for this work"
+  #   PATTERN = a path glob, matched against the touched file (repo-relative),
+  #          or cmd:<substring>, matched against a Bash command.
+  # Maturity-gated: L1 advises (non-blocking), L2/L3 enforce (exit 2 — block until surfaced).
+  # Per-session debounce: each rule fires once per session, not on every edit.
+  on:
+    - "src/engine/* => docs/adr/0003-settings-injector-and-compression-heuristics.md, .ai/KNOWLEDGE.md | heuristics share the LINE_CAP / passthrough trim contract — load it before editing"
+    - "*.varta => varta/SKILL.md | Varta is spoken from the live .ai/, never hand-copied — re-read the rule before editing a .varta"
+    - "cmd:git commit => .ai/STATE.md | STATE.md is a snapshot of reality — confirm it matches before you commit"
+
 enforcement:
   binds_all_agents: true
   fail_closed: true
