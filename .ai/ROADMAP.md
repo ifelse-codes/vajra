@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-29 · Session 22 — scaffold propagation (the hardening now travels with every `vajra init`).
+**Updated:** 2026-06-29 · Session 23 — first-run "aha" (Phase 2 complete; first run now delivers a felt win).
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +11,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-29 |
-| Current phase | Phase 2 — Varta (the agent's language) |
-| Last closed session | Session 22 — scaffold propagation (`vajra init` emits S20 GT + S21 co-pilot) |
-| Active session | Between sessions (S23 pending — first-run "aha") |
+| Current phase | Phase 2 COMPLETE — Varta shipped, enforces, propagates, felt |
+| Last closed session | Session 23 — first-run "aha" (Phase 2 complete) |
+| Active session | Between sessions (S24 pending — render `.ai/` → `.varta`) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -62,7 +62,7 @@
 
 6. **[x] Prove `vajra next` walks a real session start to finish** — DONE in Session 12. 3-session loop proven end-to-end. Found and fixed: prompt pointer not updating on advance, SIGPIPE panic when piping output. Automated e2e proof in verify script.
 
-### Phase 2 — Varta: the agent's language + the co-pilot (S18 direction)
+### Phase 2 — Varta: the agent's language + the co-pilot (S18 direction) — COMPLETE
 
 **Why this phase exists (S18 finding):** running the commands produces *files*, not a *feeling* — the first-run payoff is invisible. The deeper pain across 2 months of `.ai/` use: agents forget the vision and rush to finish. Fix = **Varta**, a compact ⚡ machine-language the agent learns at boot and speaks all session, with a co-pilot that feeds the right context at the right moment. Reframe: **co-pilot, not cop.** See `VISION.md` and memory `vajra-varta`.
 
@@ -72,7 +72,9 @@
 
 8a. **[x] Scaffold propagation** — DONE in Session 22. `vajra init` emits the S20 GT audits (`ground_truth:` block) + the S21 co-pilot (`copilot.on` + `hook-copilot-loader.sh` + settings wiring); every project inherits them. The hook ships via `include_str!` of the canonical script (byte-identical, no drift); `Cargo.toml` un-excludes that one file so `cargo install` compiles. verify-session-22.sh green (12/12). [PR #12](https://github.com/ifelse-codes/vajra/pull/12).
 
-9. **[ ] First-run "aha"** *(NEXT — S23)* — Make `vajra init` → first session deliver a visible/felt win in ~2 minutes. Fixes the exact "not worth it" feeling from the S18 walkthrough. Newly winnable: the co-pilot is a *felt* moment (S21) and now propagates to every project (S22). Closes Phase 2. Risk: "aha" is subjective — needs one concrete scripted moment.
+9. **[x] First-run "aha"** — DONE in Session 23. `vajra init` ends with `first_run_aha()`: it fires the just-scaffolded co-pilot once against a sample `git commit` and shows the real block + surfaced `.ai/STATE.md` (graceful fallback if bash/jq absent). Rides on `init` — no 8th command. **Closes Phase 2.** verify-session-23.sh green (11/11). [PR #13](https://github.com/ifelse-codes/vajra/pull/13).
+
+9a. **[ ] Render `.ai/` → generated `.varta`** *(NEXT — S24, lean)* — bring back a persisted `.varta` *only* as a one-way generated render of the live `.ai/` (the S19 condition), drift-guarded via the S22 `cmp` pattern. The S19 deferred follow-up. Risk: value (may be redundant if `.ai/` reads fine) + no `serde_yaml` dep today.
 
 **Varta language spec (locked S18):** C/Java-inspired syntax + `⚡` keyword prefix. Constructs: `⚡project{⚡is ⚡stack ⚡goal ⚡now}`, `⚡forbid{}`, `⚡require{}`, `⚡max{}`, `⚡pipeline{}`, `⚡final{}`, `⚡on(cond) ⚡include "files"` (the co-pilot), `⚡assert{}`, `⚡enum next{}`. `//` comments = the human-glanceable *why*. Mechanism = **skill, not compiler** — the agent reads/writes it, nothing parses it.
 
