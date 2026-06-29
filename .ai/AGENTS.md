@@ -30,6 +30,19 @@ Vajra is one CLI that guides any AI coding agent through a project step by step 
 
 ---
 
+## Speaking Skills (Load at Boot)
+
+Vajra ships two speaking skills — instructions you internalize at boot and speak all session (skills, not renderers; nothing in the binary parses or draws them).
+
+| Skill | Lane | Load |
+|---|---|---|
+| **Darshan** (`darshan/SKILL.md`) | **the human's** — how you *show* the user, every reply | **Default for all human output.** One rule: *render the richest visual this surface can handle; always glanceable; never drop meaning.* 3 tiers: rich chat (HTML/SVG) · terminal (ANSI/box) · plain (markdown). |
+| **Varta** (`varta/SKILL.md`) | **the agent's** — how you talk to *yourself* over the live `.ai/` | Read → internalize → speak the ⚡ grammar; gate every action against `⚡forbid`/`⚡max`. |
+
+**The user sees Darshan; you think in Varta.** Both are mandatory at boot. No 8th command — they ride the boot/skill surface.
+
+---
+
 ## Mandatory Load Order (Every Session)
 
 1. `.ai/AGENTS.md` (this file)
