@@ -57,7 +57,7 @@ Under Claude Code, the `SessionStart` hook in `.claude/settings.json` prints fil
 7. **SUMMARY** — `sessions/session-NN-summary.md`. Required: goal achieved? evidence? exactly 3 next options A/B/C.
 8. **NEXT** — After user picks, write `prompts/NN+1-task-<slug>.md`. Update `.ai/TASK.md` pointer.
 9. **CLOSEOUT** — Sync all `.ai/` files. `.ai/SESSION` → current N. STATE.md REPLACE. ROADMAP.md mark [x]. KNOWLEDGE.md add permanent facts. TASK.md = "between sessions". SESSION-BOOT.md update `**Number:**`. `verify-closeout.sh` must exit 0.
-10. **CLOSE** — Start next session in a new chat from the new prompt file.
+10. **CLOSE** — Start the next session in a **new chat** from the new prompt file. One vajra-session per chat: never begin the next session's BRANCH/PLAN in the current chat (Hard Rule). Vajra will enforce this — see ROADMAP.
 
 ---
 
@@ -102,6 +102,7 @@ Hooks (`hook-pre-bash.sh`, `hook-pre-write.sh`) enforce. Authorized hardening go
 | Max 1 story per session | Larger → split |
 | Max 3 files per atomic commit | Hook-enforced |
 | ~2h per session cap | Marathon = drift |
+| One vajra-session per chat | New session = new chat (step 10). Convention until Vajra enforces it. |
 
 **Approval tokens:** `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
 

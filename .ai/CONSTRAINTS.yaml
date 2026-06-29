@@ -9,6 +9,7 @@ session:
   max_stories_per_session: 1
   cap_hours_per_session: 2
   ground_truth_every_n_sessions: 5
+  one_session_per_chat: true   # new vajra-session = new chat (AGENTS.md step 10). Agent-followed today; Vajra-enforced is roadmapped.
 
 branch:
   forbid_direct_work_on: [main, master]
