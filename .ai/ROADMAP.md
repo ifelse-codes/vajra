@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-29 · Session 23 — first-run "aha" (Phase 2 complete; first run now delivers a felt win).
+**Updated:** 2026-06-29 · Session 24 — render `.ai/` → generated `vajra.varta` (the Varta arc complete; persisted as a drift-guarded render).
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +11,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-29 |
-| Current phase | Phase 2 COMPLETE — Varta shipped, enforces, propagates, felt |
-| Last closed session | Session 23 — first-run "aha" (Phase 2 complete) |
-| Active session | Between sessions (S24 pending — render `.ai/` → `.varta`) |
+| Current phase | Phase 2 COMPLETE — Varta shipped, enforces, propagates, felt, persisted-as-render |
+| Last closed session | Session 24 — render `.ai/` → generated `vajra.varta` (Varta arc complete) |
+| Active session | Between sessions (S25 pending — NO-CODE ground-truth, lens: direction drift) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -74,7 +74,7 @@
 
 9. **[x] First-run "aha"** — DONE in Session 23. `vajra init` ends with `first_run_aha()`: it fires the just-scaffolded co-pilot once against a sample `git commit` and shows the real block + surfaced `.ai/STATE.md` (graceful fallback if bash/jq absent). Rides on `init` — no 8th command. **Closes Phase 2.** verify-session-23.sh green (11/11). [PR #13](https://github.com/ifelse-codes/vajra/pull/13).
 
-9a. **[ ] Render `.ai/` → generated `.varta`** *(NEXT — S24, lean)* — bring back a persisted `.varta` *only* as a one-way generated render of the live `.ai/` (the S19 condition), drift-guarded via the S22 `cmp` pattern. The S19 deferred follow-up. Risk: value (may be redundant if `.ai/` reads fine) + no `serde_yaml` dep today.
+9a. **[x] Render `.ai/` → generated `.varta`** — DONE in Session 24. `vajra check --render` renders the live `.ai/` into the 9 ⚡ constructs as a committed `vajra.varta`; plain `vajra check` drift-guards it (`varta: matches render`, the S22 `cmp` pattern). Hand-parsed (no `serde_yaml` dep), deterministic, no 8th command. The S19 deferred follow-up — closes the Varta story. verify-session-24.sh green (21/21). [PR #15](https://github.com/ifelse-codes/vajra/pull/15).
 
 **Varta language spec (locked S18):** C/Java-inspired syntax + `⚡` keyword prefix. Constructs: `⚡project{⚡is ⚡stack ⚡goal ⚡now}`, `⚡forbid{}`, `⚡require{}`, `⚡max{}`, `⚡pipeline{}`, `⚡final{}`, `⚡on(cond) ⚡include "files"` (the co-pilot), `⚡assert{}`, `⚡enum next{}`. `//` comments = the human-glanceable *why*. Mechanism = **skill, not compiler** — the agent reads/writes it, nothing parses it.
 

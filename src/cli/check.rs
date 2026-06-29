@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::maturity::{read_maturity, MaturityLevel};
+use crate::varta::{render_from_root, RENDER_PATH};
 
 const REQUIRED_FILES: &[&str] = &[
     ".ai/SESSION",
@@ -21,10 +22,22 @@ struct CheckResult {
     detail: String,
 }
 
-pub fn run() -> Result<()> {
+pub fn run(args: &[String]) -> Result<()> {
     let cwd = env::current_dir().context("failed to read current directory")?;
     let root =
         find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;
+
+    // `--render`: regenerate the one-way `.varta` from the live `.ai/`, then return.
+    if args.iter().any(|a| a == "--render") {
+        let rendered = render_from_root(&root)?;
+        fs::write(root.join(RENDER_PATH), &rendered)
+            .with_context(|| format!("could not write {RENDER_PATH}"))?;
+        println!(
+            "rendered {RENDER_PATH} from .ai/ ({} bytes)",
+            rendered.len()
+        );
+        return Ok(());
+    }
 
     let maturity = read_maturity(&root.join(".ai/CONSTRAINTS.yaml"));
 
@@ -37,6 +50,7 @@ pub fn run() -> Result<()> {
         check_boot_matches_session(&root, n, &mut results);
         check_verify_script(&root, n, &mut results);
     }
+    check_varta_render(&root, &mut results);
 
     print_results(&results, maturity);
 
@@ -45,6 +59,41 @@ pub fn run() -> Result<()> {
         std::process::exit(1);
     }
     Ok(())
+}
+
+/// Drift guard: the on-disk `vajra.varta` must equal a fresh render of the live `.ai/`.
+/// Proves the artifact is generated, not hand-edited (the S22 `cmp` pattern). A missing or
+/// stale file fails with the exact fix — `vajra check --render`.
+fn check_varta_render(root: &Path, results: &mut Vec<CheckResult>) {
+    let name = "varta: matches render".to_string();
+    let rendered = match render_from_root(root) {
+        Ok(r) => r,
+        Err(e) => {
+            results.push(CheckResult {
+                name,
+                passed: false,
+                detail: format!("could not render: {e}"),
+            });
+            return;
+        }
+    };
+    let on_disk = fs::read_to_string(root.join(RENDER_PATH));
+    let (passed, detail) = match on_disk {
+        Err(_) => (
+            false,
+            format!("{RENDER_PATH} missing — run `vajra check --render`"),
+        ),
+        Ok(d) if d == rendered => (true, format!("{RENDER_PATH} up to date")),
+        Ok(_) => (
+            false,
+            format!("{RENDER_PATH} stale — run `vajra check --render`"),
+        ),
+    };
+    results.push(CheckResult {
+        name,
+        passed,
+        detail,
+    });
 }
 
 fn find_repo_root(start: &Path) -> Option<PathBuf> {

@@ -2,17 +2,17 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 23 — First-run "aha" (CODE) — COMPLETE
+## Session 24 — Render `.ai/` → generated `vajra.varta` (CODE) — COMPLETE
 
 - **Type:** CODE
-- **Goal:** make `vajra init` → first run deliver a *felt* win in ~2 min.
-- **Outcome:** `src/cli/init.rs` gained `first_run_aha()` — after scaffolding, it fires the just-scaffolded co-pilot once against a sample `git commit` and shows the real block + surfaced `.ai/STATE.md` (graceful fallback if bash/jq absent; init exits 0 despite child exit 2). Rides on `init` — no 8th command. verify-session-23.sh green (11/11). **Closes Phase 2.** Report: `sessions/session-23-summary.md`. PR #13.
+- **Goal:** bring back a persisted `.varta` *only* as a one-way generated render of the live `.ai/` (the S19 condition), drift-guarded.
+- **Outcome:** `src/varta/{mod,render}.rs` renders the live `.ai/` into the 9 ⚡ constructs (hand-parsed, no `serde_yaml`, deterministic). `vajra check --render` writes the committed `vajra.varta`; plain `vajra check` adds a `varta: matches render` drift guard (on-disk == fresh render). No 8th command. verify-session-24.sh green (21/21). **Closes the Varta story.** Report: `sessions/session-24-summary.md`. PR #15.
 
-Between sessions. Next: read `prompts/24-task-varta-render.md`.
+Between sessions. Next: read `prompts/25-task-ground-truth.md`.
 
 ## Next Session
 
-Read prompt: `prompts/24-task-varta-render.md` — **S24 CODE: render `.ai/` → generated `.varta`** (lean; the S19 deferred follow-up). Then **S25 = ground-truth (NO-CODE)**.
+Read prompt: `prompts/25-task-ground-truth.md` — **S25 ground-truth (NO-CODE)**, mandated (NN%5==0). Lens chosen at S24 closeout: **direction drift** — was S21–S24 (4 sessions on Varta) the shortest path, or scope creep vs. the cross-agent north-star (only Claude wired)? Run ALL required audits + the meta-check. End with 3 candidate S26 sessions (one must be the second agent launcher).
 
 ## Build Queue (from ROADMAP.md, in order)
 
@@ -22,19 +22,20 @@ Read prompt: `prompts/24-task-varta-render.md` — **S24 CODE: render `.ai/` →
 ### Phase 2 — Varta: the agent's language + the co-pilot — COMPLETE
 7. ~~**Varta v0 — the skill**~~ — DONE (S19).
 8. ~~**Co-pilot loader**~~ — DONE (S21). `⚡on` fires + Varta enforces.
-8a. ~~**Scaffold propagation**~~ — DONE (S22). `vajra init` emits the S20 GT audits + S21 co-pilot.
-9. ~~**First-run "aha"**~~ — DONE (S23). `vajra init` ends with a live co-pilot fire (felt win).
+8a. ~~**Scaffold propagation**~~ — DONE (S22).
+9. ~~**First-run "aha"**~~ — DONE (S23).
+9a. ~~**Render `.ai/` → generated `.varta`**~~ — DONE (S24). `vajra check --render` + drift guard. Closes the Varta story.
 
 ### Phase 3 — Ship — COMPLETE
 ~~Installer · maturity levels · legacy cleanup · pre-run cost estimate~~ — DONE (S13, S14, S16, S17)
 
-### Next (lean, before the S25 ground-truth)
-- **Render `.ai/` → generated `.varta`** *(S24)* — the S19 follow-up: a persisted `.varta` only as a one-way generated render, drift-guarded.
-- Backlog (post-GT candidates): second agent launcher (cross-agent) · audit ledger v2 · policy/governed-memory/MCP.
+### Next
+- **S25 = ground-truth (NO-CODE)** — lens: direction drift. Then S26 from the GT's 3 options.
+- Backlog (post-GT candidates): **second agent launcher (cross-agent — the north-star gap)** · one-session-per-chat enforcement · audit ledger v2 · policy/governed-memory/MCP.
 
 ## Always-True Reminders
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`.
-- Every 5th session is NO-CODE ground-truth — audits **direction + discipline** drift. Next: S25.
+- Every 5th session is NO-CODE ground-truth — audits **direction + discipline** drift. This is S25.
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.

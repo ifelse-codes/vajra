@@ -39,7 +39,10 @@ fn main() -> std::process::ExitCode {
     };
 
     let exit_code = match sub {
-        Subcommand::Check => run_subcommand(cli::check::run),
+        Subcommand::Check => {
+            let check_args: Vec<String> = args.into_iter().skip(2).collect();
+            run_args_subcommand(cli::check::run, &check_args)
+        }
         Subcommand::Estimate => run_subcommand(cli::estimate::run),
         Subcommand::Hook => run_subcommand(cli::hook::run),
         Subcommand::Init => run_subcommand(cli::init::run),
@@ -95,7 +98,9 @@ fn print_usage() {
     eprintln!("vajra <init|claude|check|next|estimate|hook|meter>");
     eprintln!("  init              Scaffold .ai/ workflow in the current repo");
     eprintln!("  claude [args...]  Launch Claude Code with Vajra hook injection");
-    eprintln!("  check             Drift detection + readiness score for .ai/ state");
+    eprintln!(
+        "  check [--render]   Drift detection + readiness score; --render regenerates vajra.varta"
+    );
     eprintln!("  next [--advance]  Print handoff packet, or advance to next session");
     eprintln!("  estimate          Predict token spend and cost before running a session");
     eprintln!("  hook              Claude Code PostToolUse hook entrypoint");
