@@ -1,27 +1,28 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 29 — COMPLETE
-- **Type:** CODE — propagate the session-guard into `vajra init`
-- **Branch:** `session-29-session-guard-propagation` (from `main`)
+- **Number:** 30 — COMPLETE
+- **Type:** GROUND-TRUTH (NO-CODE) — `NN % 5 == 0`. Lead lens = the founder-satisfaction gate.
+- **Branch:** `session-30-closeout` (exempt by suffix; user pre-approved the hardening this session)
 - **Date last updated:** 2026-06-30
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 29.
-- `main`: includes up to Session 28 (PR #19 merged, commit `c65fc10`). S25 = NO-CODE GT (no PR).
+- `.ai/SESSION` = 30.
+- `main`: includes up to Session 29 (PR #21 merged, commit `8c3c832`). S25/S30 = NO-CODE GT.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- This session: **propagated the S26 session-guard into `vajra init`** — `src/cli/init.rs` gained `TPL_HOOK_SESSION_GUARD = include_str!("../../scripts/hook-session-guard.sh")` + emits it executable + wires it into `.claude/settings.json` PreToolUse(Bash) + emits `one_session_per_chat: true` in `TPL_CONSTRAINTS` + a new `TPL_GITIGNORE` (`.ai/.session-owner`). `Cargo.toml` un-excludes the hook (`!scripts/hook-session-guard.sh`). Scaffold 18 → 20 files. The scaffolded guard actually enforces (blocks N→N+1 in same chat, exit 2). No 8th command, no new dep, no `src/` guard logic (embed-only, never spawned). 4 new scaffold tests. verify-session-29.sh green (19/19, incl. a real end-to-end `vajra init` into a temp repo). **PR #21 — open (merge after closeout).**
-- **Decision this session:** closes the second half of the S28 split; the propagation arc (co-pilot S22 + Darshan S28 + guard S29) is now complete.
+- This session: **ground-truth audit (founder-satisfaction gate).** Verdict: **promote second agent → NO, defer — the gate is UNMEASURED.** Cumulative spend ~$0.46, *all from S07*; `vajra claude` (the product loop) has not run for real in 22 sessions, so "satisfying" is undeclarable from build-sessions. S27 (Darshan) plausibly moved daily satisfaction; S28/S29 moved *completeness*, not daily friction. **Meta-check:** all 7 audits pass green while the product sits un-dogfooded — no audit measured *usage*. **Hardening (pre-approved):** added a `dogfood_check` axis + `dogfood_questions` to `CONSTRAINTS.yaml#ground_truth`. PR-status "drift" (now 6×) retired as an accepted snapshot-before-merge artifact. All other audits clean (state accurate, zero constraint breach, cost honest). Report: `sessions/session-30-ground-truth.md`.
+- **Decision this session:** highest-leverage next = the **dogfood / verification session** (S31), not another Claude-depth polish and not yet the second agent. Measure the gate, then decide.
 
 ## Next Session
-- **Number:** 30
-- **Type:** GROUND-TRUTH (NO-CODE) — `NN % 5 == 0`. Lead lens = the **founder-satisfaction gate**: is Vajra-on-Claude now satisfying enough to promote the second agent? Run all required audits + the meta-check. No code, no commits, no PRs.
-- **Read prompt:** `prompts/30-task-ground-truth.md`
-- **Branch:** none for code; authorized hardening (if any) on `session-30-closeout`/`-enforcement` (exempt by suffix), only after user approval.
+- **Number:** 31
+- **Type:** CODE — **dogfood / verification.** Run a real unit of work through `vajra claude` (first real spend since S07), capture the lived experience + receipt, then render the gate verdict: promote the second agent (Y) or fix the one pain the dogfood surfaces (N). Honors the new `dogfood_check` axis.
+- **Read prompt:** `prompts/31-task-dogfood-verification.md`
+- **Branch:** `session-31-<slug>` (from `main`).
 
 ## Carry-Forwards
-- **S30 is the ground-truth (NO-CODE)** — this is it. The session after (S31) is CODE again.
-- **Second agent stays parked** — owner-gated on the founder's satisfaction verdict (memory `vajra-second-agent-gate`). **S30 GT decides this gate.** The S25 "condition met" was the audit's call, not the founder's.
-- **Propagation arc complete (S22→S29)** — the dogfood / "verification" session is now unblocked; strong post-GT candidate.
-- **Recurring low drift (5×, S15/S20/S25/S27/S28):** STATE writes PR status as "open (merge after closeout)" / actual merge state, not "pending merge". (Honored this closeout.)
-- **Still open (carry):** `vajra estimate` 3:1 output ratio unvalidated; `vajra claude` no auth pre-check before launch (S18 onboarding gap).
+- **S31 is CODE again** — the dogfood/verification session (this GT's #1).
+- **Second agent stays parked** — gate is now **"unmeasured," not "unsatisfied."** S31 measures it; S32 promotes (gate cleared) or fixes the one real pain.
+- **Propagation arc complete (S22→S29)** — no propagation work remains.
+- **PR-status "drift" retired** — accepted snapshot-before-merge artifact; do not re-flag.
+- **Still open (carry):** `vajra estimate` 3:1 output ratio unvalidated; `vajra claude` no auth pre-check before launch (S18 onboarding gap) — both are candidate S31 fixes *only if* the dogfood proves them blocking.
+- **New `dogfood_check` audit axis** — every future GT asks: has real work run through `vajra claude` since the last GT?
