@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-30 · Session 28 — **Darshan propagated into `vajra init`** (`src/cli/init.rs` via `include_str!` + Speaking Skills boot pointer in `TPL_AGENTS`, PR #19): every scaffolded project now inherits the human's glanceable lane. **Darshan-only** this session (the prompt's pre-authorized scope-split); the S26 session-guard propagation → **S29**. **Founder override of the S25 audit still holds:** the second agent is **parked in the backlog** — gated on *founder* satisfaction with Vajra-on-Claude. Next = **propagate the session-guard into `vajra init`** (S29), then **S30 = ground-truth (NO-CODE)**.
+**Updated:** 2026-06-30 · Session 29 — **session-guard propagated into `vajra init`** (`src/cli/init.rs` via `include_str!` + PreToolUse(Bash) wiring + `one_session_per_chat: true` + a new `.gitignore` + a `Cargo.toml` un-exclude, PR #21): every scaffolded project now inherits one-session-per-chat enforcement. **Closes the S28 split — the propagation arc (co-pilot S22 + Darshan S28 + guard S29) is complete.** **Founder override of the S25 audit still holds:** the second agent is **parked in the backlog** — gated on *founder* satisfaction with Vajra-on-Claude. Next = **S30 ground-truth (NO-CODE)**, lead lens = the founder-satisfaction gate.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +11,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-30 |
-| Current phase | Phases 1–3 + Varta arc COMPLETE; loop hardened (S26 chat-guard); human's lane shipped (S27) + propagated into `init` (S28); next = propagate the session-guard into `init` (S29) |
-| Last closed session | Session 28 — Darshan propagated into `vajra init` (`src/cli/init.rs`, PR #19) |
-| Active session | Between sessions (S29 pending — CODE: propagate the session-guard into `vajra init`) |
+| Current phase | Phases 1–3 + Varta arc COMPLETE; loop hardened (S26 chat-guard); human's lane shipped (S27); **propagation arc complete** (co-pilot S22 + Darshan S28 + guard S29 all in `init`); next = S30 ground-truth (NO-CODE) |
+| Last closed session | Session 29 — session-guard propagated into `vajra init` (`src/cli/init.rs` + `Cargo.toml`, PR #21) |
+| Active session | Between sessions (S30 pending — GROUND-TRUTH NO-CODE: founder-satisfaction gate) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -30,15 +30,14 @@
 | Installer / release pipeline | [x] done — S13: `cargo install vajractl`, GitHub Actions CI + release (3 targets) |
 | Maturity levels L1/L2/L3 | [x] done — S14: L1 report / L2 gated / L3 auto, wired into check, init, next, hooks |
 | Darshan (human's glanceable output skill) | [x] done — S27: `darshan/SKILL.md` + AGENTS.md boot pointer; skill, not renderer; 3 surface tiers |
-| One-session-per-chat guard | [x] done — S26: `hook-session-guard.sh` blocks N→N+1 in the same chat |
+| One-session-per-chat guard | [x] done — S26: `hook-session-guard.sh` blocks N→N+1 in the same chat; **propagated into `vajra init` S29 (PR #21)** |
 
 ## What Does NOT Work Yet
 
 | Component | Status |
 |---|---|
 | Darshan in `vajra init` scaffold | [x] done — S28: `include_str!` + Speaking Skills boot pointer; every project inherits it (PR #19) |
-| Session-guard in `vajra init` scaffold | [ ] not built — S26 shipped the guard; propagation to every project = S29 |
-| Second agent launcher | [ ] not built — only Claude Code is wired (**parked**: owner-gated on Claude satisfaction) |
+| Second agent launcher | [ ] not built — only Claude Code is wired (**parked**: owner-gated on Claude satisfaction; **S30 GT decides the gate**) |
 
 ## Design Rules (from competitive analysis)
 
@@ -103,7 +102,8 @@
 1. **[x] Enforce one-session-per-chat** — DONE in Session 26. `scripts/hook-session-guard.sh` (PreToolUse Bash) records the Claude `session_id` that owns each vajra-session in a gitignored `.ai/.session-owner`; blocks `git checkout -b session-(N+1)-*` from the same chat that owns N (exit 2, "open a new chat first"). Maturity-gated (L1 advise / L2-L3 block), gated on `one_session_per_chat: true`. No 8th command. Closes the AGENTS.md step-10 convention gap (S23 finding). verify-session-26.sh green (13/13). Scaffold propagation to `vajra init` deferred to S27.
 2. **[x] Darshan — the human's lane** — DONE in Session 27. `darshan/SKILL.md`: skill, not a renderer (like Varta). One rule: *"render the richest visual this surface can handle; always glanceable; never drop meaning."* 3 tiers: rich chat (HTML/SVG) · terminal (ANSI/box-drawing) · plain (structured markdown), with worked before/after for chat + terminal. Boot-wired via a *Speaking Skills* pointer in `.ai/AGENTS.md` (default human output). `VISION.md` gained the human lane. No 8th command, no `src/` change. Name **Darshan** confirmed at BOOT. verify-session-27.sh green (18/18). [PR #18](https://github.com/ifelse-codes/vajra/pull/18). *Propagation to `vajra init` deferred to S28.*
 3. **[x] Propagate Darshan into `vajra init`** — DONE in Session 28. `src/cli/init.rs`: `TPL_DARSHAN = include_str!("../../darshan/SKILL.md")` + emit `darshan/SKILL.md` (byte-identical) + a **Speaking Skills (Load at Boot)** section in `TPL_AGENTS`. Scaffold 17 → 18 files. No `Cargo.toml` change (`darshan/` already ships), no 8th command, no new dep, no `src/` renderer. 2 new scaffold tests. **Darshan-only** (the prompt's pre-authorized scope-split — the session-guard half = S29). verify-session-28.sh green (12/12). [PR #19](https://github.com/ifelse-codes/vajra/pull/19).
-4. **Propagate the session-guard into `vajra init`** (S29 — picked) — closes the second half of the S28 split: `hook-session-guard.sh` via `include_str!` + settings PreToolUse(Bash) wiring + `one_session_per_chat: true` in `TPL_CONSTRAINTS` + a new `.gitignore` (ignoring `.ai/.session-owner`) + a `Cargo.toml` un-exclude (`!scripts/hook-session-guard.sh`). The proven S22/S28 pattern. `prompts/29-task-session-guard-propagation.md`. **Then S30 = ground-truth (NO-CODE).**
+4. **[x] Propagate the session-guard into `vajra init`** — DONE in Session 29. `src/cli/init.rs`: `TPL_HOOK_SESSION_GUARD = include_str!("../../scripts/hook-session-guard.sh")` (byte-identical, executable) + emit + PreToolUse(Bash) wiring + `one_session_per_chat: true` in `TPL_CONSTRAINTS` + a new `TPL_GITIGNORE` (`.ai/.session-owner`); `Cargo.toml` un-excludes the hook so `cargo install` compiles. Scaffold 18 → 20 files; the scaffolded guard actually enforces (exit 2). No 8th command, no new dep, no `src/` guard logic. 4 new scaffold tests. verify-session-29.sh green (19/19). [PR #21](https://github.com/ifelse-codes/vajra/pull/21). **Closes the S28 split — propagation arc (S22+S28+S29) complete.**
+5. **S30 — ground-truth (NO-CODE)** — `NN % 5 == 0`. Lead lens = the **founder-satisfaction gate**: is Vajra-on-Claude satisfying enough to promote the second agent? `prompts/30-task-ground-truth.md`.
 
 ### Backlog (parked until owner declares Claude "satisfying")
 - **Add second agent** (Codex or Cursor) — **the north-star gap (S25 GT), but owner-gated.** Only wedge pillar with zero code; proves ADR-0002's adapter contract is vendor-neutral. Returns to #1 **only when the owner declares Vajra-on-Claude satisfying** (S26 override — the S25 "condition met" call was the audit's, not the owner's).
