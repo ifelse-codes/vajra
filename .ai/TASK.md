@@ -2,17 +2,17 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 27 — Darshan: the human's glanceable output skill (CODE/content) — COMPLETE
+## Session 28 — Propagate Darshan into `vajra init` (CODE) — COMPLETE
 
-- **Type:** CODE/content — Darshan, Vajra's default surface-adaptive glanceable human-output skill (skill, not renderer; pairs with Varta — agent talks ↔ user sees).
-- **Shipped:** `darshan/SKILL.md` (boot ritual + one rule "render the richest visual this surface can handle; always glanceable; never drop meaning" + 3 tiers [rich chat HTML/SVG · terminal ANSI/box · plain markdown] + before/after for chat + terminal). Boot-wired via a **Speaking Skills** pointer in `.ai/AGENTS.md`. `VISION.md` gained the human lane. No 8th command, no `src/` change, no new dep. verify-session-27.sh green (18/18). **PR #18 — open (merge after closeout).**
-- **Decisions:** name **Darshan** confirmed at BOOT; `vajra init` propagation **deferred to S28** (1-story cap).
+- **Type:** CODE — propagate the S27 Darshan skill into the `vajra init` scaffold (the S22 `include_str!` pattern).
+- **Shipped:** `src/cli/init.rs` — `TPL_DARSHAN = include_str!("../../darshan/SKILL.md")` + emit `darshan/SKILL.md` (byte-identical) + a **Speaking Skills (Load at Boot)** section in `TPL_AGENTS`. Scaffold 17 → 18 files. No `Cargo.toml` change (`darshan/` already ships), no 8th command, no new dep, no `src/` renderer. verify-session-28.sh green (12/12). **PR [#19](https://github.com/ifelse-codes/vajra/pull/19) — merged (`c65fc10`).**
+- **Decisions:** **Darshan-only this session** (prompt's pre-authorized scope-split); the S26 **session-guard** propagation deferred to **S29**.
 
-Between sessions. Next: read `prompts/28-task-init-propagation.md`.
+Between sessions. Next: read `prompts/29-task-session-guard-propagation.md`.
 
 ## Next Session
 
-Read prompt: `prompts/28-task-init-propagation.md` — **S28 CODE: propagate Darshan + the S26 session-guard into `vajra init`** (the S22 pattern), so every scaffolded project inherits the full enforced + glanceable loop. **Scope risk:** if both artifacts exceed 1 story, do Darshan-only S28 and split the session-guard to S29.
+Read prompt: `prompts/29-task-session-guard-propagation.md` — **S29 CODE: propagate the S26 session-guard into `vajra init`** (`hook-session-guard.sh` via `include_str!` + settings PreToolUse wiring + `one_session_per_chat: true` + a new `.gitignore` for `.ai/.session-owner` + a `Cargo.toml` un-exclude). Closes the second half of the S28 split. **Then S30 = ground-truth (NO-CODE).**
 
 ## Build Queue (from ROADMAP.md, in order)
 
