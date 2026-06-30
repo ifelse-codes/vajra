@@ -75,8 +75,13 @@ ground_truth:
   required_outputs: [sessions/session-{NN}-ground-truth.md]
   # Every GT must catch BOTH direction drift (vision+roadmap) and discipline drift (rules+constitution+state).
   # Rules exist to serve the vision — auditing rule-following without auditing the vision is the trap S20 caught.
-  drift_axes: [vision, roadmap, rules, constitution, state, cost]
-  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review]
+  drift_axes: [vision, roadmap, rules, constitution, state, cost, usage]
+  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check]
+  # dogfood_check added S30: 7 audits passed green while the product sat un-dogfooded (~$0 spend since S07).
+  # No audit measured USAGE — the S25 false-green finding one level deeper. The cost ledger is the evidence.
+  dogfood_questions:
+    - Has real work run through `vajra claude` since the last ground-truth? (The cost ledger is the proof, not test counts.)
+    - If not, any "is Vajra-on-Claude satisfying?" verdict is unmeasured by definition — flag it, do not guess.
   vision_questions:
     - Is the north-star still the right destination?
     - Is current work the shortest path to it, or intellectually-fun scope creep?

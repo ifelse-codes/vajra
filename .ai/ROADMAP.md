@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-30 · Session 29 — **session-guard propagated into `vajra init`** (`src/cli/init.rs` via `include_str!` + PreToolUse(Bash) wiring + `one_session_per_chat: true` + a new `.gitignore` + a `Cargo.toml` un-exclude, PR #21): every scaffolded project now inherits one-session-per-chat enforcement. **Closes the S28 split — the propagation arc (co-pilot S22 + Darshan S28 + guard S29) is complete.** **Founder override of the S25 audit still holds:** the second agent is **parked in the backlog** — gated on *founder* satisfaction with Vajra-on-Claude. Next = **S30 ground-truth (NO-CODE)**, lead lens = the founder-satisfaction gate.
+**Updated:** 2026-06-30 · **Session 30 — ground-truth (NO-CODE), founder-satisfaction gate.** Verdict: **promote second agent → NO, defer — the gate is UNMEASURED** (~$0.46 spend, all from S07; `vajra claude` unrun for 22 sessions). Meta-check: 7 audits green while the product sits un-dogfooded → hardened with a new **`dogfood_check`** audit axis. PR-status "drift" (6×) retired as an accepted snapshot-before-merge artifact. **Highest-leverage next = the dogfood / verification session (S31)** — measure the gate with real `vajra claude` usage, then decide on the second agent. Propagation arc (co-pilot S22 + Darshan S28 + guard S29) complete.
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +11,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-30 |
-| Current phase | Phases 1–3 + Varta arc COMPLETE; loop hardened (S26 chat-guard); human's lane shipped (S27); **propagation arc complete** (co-pilot S22 + Darshan S28 + guard S29 all in `init`); next = S30 ground-truth (NO-CODE) |
-| Last closed session | Session 29 — session-guard propagated into `vajra init` (`src/cli/init.rs` + `Cargo.toml`, PR #21) |
-| Active session | Between sessions (S30 pending — GROUND-TRUTH NO-CODE: founder-satisfaction gate) |
+| Current phase | Phases 1–3 + Varta arc COMPLETE; propagation arc complete (S22/S28/S29); **S30 ground-truth done — gate is unmeasured**; next = S31 dogfood/verification |
+| Last closed session | Session 30 — ground-truth (NO-CODE), founder-satisfaction gate: verdict defer + `dogfood_check` hardening (exempt branch, no PR) |
+| Active session | Between sessions (S31 pending — CODE: dogfood / verification through `vajra claude`) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -103,10 +103,11 @@
 2. **[x] Darshan — the human's lane** — DONE in Session 27. `darshan/SKILL.md`: skill, not a renderer (like Varta). One rule: *"render the richest visual this surface can handle; always glanceable; never drop meaning."* 3 tiers: rich chat (HTML/SVG) · terminal (ANSI/box-drawing) · plain (structured markdown), with worked before/after for chat + terminal. Boot-wired via a *Speaking Skills* pointer in `.ai/AGENTS.md` (default human output). `VISION.md` gained the human lane. No 8th command, no `src/` change. Name **Darshan** confirmed at BOOT. verify-session-27.sh green (18/18). [PR #18](https://github.com/ifelse-codes/vajra/pull/18). *Propagation to `vajra init` deferred to S28.*
 3. **[x] Propagate Darshan into `vajra init`** — DONE in Session 28. `src/cli/init.rs`: `TPL_DARSHAN = include_str!("../../darshan/SKILL.md")` + emit `darshan/SKILL.md` (byte-identical) + a **Speaking Skills (Load at Boot)** section in `TPL_AGENTS`. Scaffold 17 → 18 files. No `Cargo.toml` change (`darshan/` already ships), no 8th command, no new dep, no `src/` renderer. 2 new scaffold tests. **Darshan-only** (the prompt's pre-authorized scope-split — the session-guard half = S29). verify-session-28.sh green (12/12). [PR #19](https://github.com/ifelse-codes/vajra/pull/19).
 4. **[x] Propagate the session-guard into `vajra init`** — DONE in Session 29. `src/cli/init.rs`: `TPL_HOOK_SESSION_GUARD = include_str!("../../scripts/hook-session-guard.sh")` (byte-identical, executable) + emit + PreToolUse(Bash) wiring + `one_session_per_chat: true` in `TPL_CONSTRAINTS` + a new `TPL_GITIGNORE` (`.ai/.session-owner`); `Cargo.toml` un-excludes the hook so `cargo install` compiles. Scaffold 18 → 20 files; the scaffolded guard actually enforces (exit 2). No 8th command, no new dep, no `src/` guard logic. 4 new scaffold tests. verify-session-29.sh green (19/19). [PR #21](https://github.com/ifelse-codes/vajra/pull/21). **Closes the S28 split — propagation arc (S22+S28+S29) complete.**
-5. **S30 — ground-truth (NO-CODE)** — `NN % 5 == 0`. Lead lens = the **founder-satisfaction gate**: is Vajra-on-Claude satisfying enough to promote the second agent? `prompts/30-task-ground-truth.md`.
+5. **[x] S30 — ground-truth (NO-CODE)** — DONE. Founder-satisfaction gate: **verdict = defer the second agent, the gate is UNMEASURED** (`vajra claude` unrun since S07). Hardened `ground_truth.required_audits` with a **`dogfood_check`** axis; retired the PR-status "drift". Report: `sessions/session-30-ground-truth.md`.
+6. **Dogfood / verification session (S31)** — **the GT's #1.** Run real work through `vajra claude` (first spend since S07), capture the lived experience + receipt, render the gate verdict. `prompts/31-task-dogfood-verification.md`.
 
-### Backlog (parked until owner declares Claude "satisfying")
-- **Add second agent** (Codex or Cursor) — **the north-star gap (S25 GT), but owner-gated.** Only wedge pillar with zero code; proves ADR-0002's adapter contract is vendor-neutral. Returns to #1 **only when the owner declares Vajra-on-Claude satisfying** (S26 override — the S25 "condition met" call was the audit's, not the owner's).
+### Backlog (parked until the gate is measured + cleared by the founder)
+- **Add second agent** (Codex or Cursor) — **the north-star gap (S25 GT), owner-gated.** Only wedge pillar with zero code; proves ADR-0002's adapter contract is vendor-neutral. Returns to #1 **only when the founder declares Vajra-on-Claude satisfying** — gate now **unmeasured** (S30); S31 measures it.
 - **North-star breadth indicator** (S25 meta-finding) — a RED-until-≥2-agents signal so the green dashboard can't imply health while the cross-agent gap widens. Pairs with the second agent.
 - **Add third agent** (Aider, Gemini CLI, or Kimi) — after second agent proves the pattern.
 - **Audit ledger (v2)** — git-native provenance, agent-trace format (meaningful only once ≥2 agents exist).
