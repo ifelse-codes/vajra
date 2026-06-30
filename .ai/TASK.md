@@ -2,34 +2,28 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 30 — Ground Truth (NO-CODE) · founder-satisfaction gate — COMPLETE
+## Session 31 — Dogfood / Verification (CODE → docs-only, option C) — COMPLETE
 
-- **Type:** GROUND-TRUTH (`NN % 5 == 0`) — lead lens = the founder-satisfaction gate.
-- **Verdict:** **promote second agent → NO, defer.** Not for lack of Claude depth — the gate is **unmeasured**: cumulative spend ~$0.46, *all from S07*; `vajra claude` hasn't run for real in 22 sessions. S27 (Darshan) plausibly moved daily satisfaction; S28/S29 moved *completeness*, not daily friction.
-- **Meta-check finding:** all 7 audits pass green while the product sits un-dogfooded — no audit measured *usage*. Hardened: added a **`dogfood_check`** axis to `CONSTRAINTS.yaml#ground_truth.required_audits`.
-- **PR-status "drift" (6×) retired** as an accepted snapshot-before-merge artifact — not a violation.
-- **Highest-leverage next (S31):** the **dogfood / verification session** — run real work through `vajra claude`, founder renders the gate verdict with evidence.
-- Audits all clean (state accurate, zero constraint breach, cost honest). Report: `sessions/session-30-ground-truth.md`. Hardening on exempt branch `session-30-closeout` (user pre-approved this session).
+- **Type:** CODE dogfood / verification. Ran the real `vajra claude` loop for the first time since S07, against an existing TS pnpm monorepo (`chitra`).
+- **Gate verdict:** **DO NOT promote the second agent.** Three shipped `[x]`-done features are dead in the real loop (S30 false-green shape, proven 3×), ranked by daily satisfaction:
+  1. **Darshan not obeyed** — prose pointer, never enforced; agent dumps walls of text (felt every reply). **→ S32 fixes this first.**
+  2. **Compression never fires** on real CC — adapter `HookInput` camelCase vs real CC snake_case top-level; pinned against a captured payload. Exact 2-file fix, low daily $ impact.
+  3. **Brownfield onboarding unguided** — init works on existing repos but no learn-the-codebase session; hooks pollute the project's `scripts/`.
+- **Meta-finding:** 2 of 3 are Vajra violating its own "enforcement, not prompts" wedge (value shipped as advisory text the agent ignores).
+- **Outcome (option C, founder-directed):** record findings in the governance docs; do NOT cram all three fixes into one session (1-story discipline). Report: `sessions/session-31-summary.md`; detail in `.ai/KNOWLEDGE.md` S31.
 
-Between sessions. Next: read `prompts/31-task-dogfood-verification.md`.
+Between sessions. Next: read `prompts/32-task-darshan-enforcement.md`.
 
 ## Next Session
 
-Read prompt: `prompts/31-task-dogfood-verification.md` — **S31 CODE: dogfood / verification.** Run a real unit of work through `vajra claude` (first real spend since S07), capture the lived experience + receipt, then render the gate verdict: promote the second agent (Y) or fix the one pain the dogfood surfaces (N). Honors the new `dogfood_check` axis.
+Read prompt: `prompts/32-task-darshan-enforcement.md` — **S32 CODE: Darshan enforcement.** Make the agent load + follow `darshan/SKILL.md` every session (min: surface it in the SessionStart boot packet; design stronger enforcement). Move Darshan from *advised* → *enforced*. One story, ≤3 files.
 
-## Build Queue (from ROADMAP.md, in order)
+## Build Queue (from ROADMAP.md, in order — fix the core, ranked by satisfaction)
 
-### Phases 1–3 + Varta arc + propagation — COMPLETE
-1–13 + propagation. ~~claude · init · check · next --advance · budget guard · next e2e · Varta v0 · co-pilot loader · scaffold propagation · first-run aha · render `.ai/`→.varta · installer · maturity · legacy cleanup · pre-run estimate · chat-guard · Darshan · Darshan-in-init · guard-in-init~~ — DONE (S07–S29). **S30 ground-truth — DONE.**
-
-### Next (S30 GT verdict)
-1. **Dogfood / verification session (S31)** — measure the founder-satisfaction gate with real `vajra claude` usage.
-2. **Add second agent (Codex/Cursor)** — returns to #1 *only if* the dogfood clears the gate.
-
-### Backlog (parked until the gate is measured + cleared)
-- **Add second agent (Codex/Cursor)** — the north-star gap (S25), **owner-gated**. Gate now "unmeasured"; S31 measures it.
-- **North-star breadth indicator** (RED until ≥2 agents) — S25 meta-finding.
-- Audit ledger v2 · third agent · policy/governed-memory/MCP.
+1. **Darshan enforcement (S32)** — finding #1, most-felt.
+2. **Compression schema fix** — finding #2, exact 2-file fix vs the captured payload.
+3. **Brownfield onboarding** — finding #3.
+4. **Add second agent (Codex/Cursor)** — stays parked until the core is fixed.
 
 ## Always-True Reminders
 
@@ -38,3 +32,4 @@ Read prompt: `prompts/31-task-dogfood-verification.md` — **S31 CODE: dogfood /
 - Every 5th session is NO-CODE ground-truth (last = S30; next = S35) — audits **direction + discipline** drift.
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
 - **New session = new chat** (enforced by `hook-session-guard.sh`, now in `vajra init` too).
+- **Every fix moves a feature from *advised* → *enforced*** (S31 meta-finding — Vajra's own wedge).
