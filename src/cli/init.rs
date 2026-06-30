@@ -262,6 +262,7 @@ fn files(name: &str, goal: &str, slug: &str, date: &str, maturity: &str) -> Vec<
         f("CLAUDE.md", TPL_CLAUDE_MD),
         f("AGENTS.md", TPL_AGENTS_ROOT),
         f(".cursorrules", TPL_CURSORRULES),
+        f("darshan/SKILL.md", TPL_DARSHAN),
         f(".claude/settings.json", TPL_CLAUDE_SETTINGS),
         fx("scripts/hook-session-start.sh", TPL_HOOK_SESSION_START),
         fx("scripts/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
@@ -280,6 +281,13 @@ const TPL_AGENTS: &str = r#"# {PROJECT_NAME} — AI Agent Constitution
 ## What This Repo Is
 
 {PROJECT_NAME}. Managed by the Vajra workflow.
+
+## Speaking Skills (Load at Boot)
+
+**Darshan** (`darshan/SKILL.md`) is your default human-output skill — read and internalize
+it at boot, then speak it all session. One rule: *render the richest visual this surface can
+handle; always glanceable; never drop meaning.* It is a skill, not a renderer — nothing in
+the binary parses or draws it. The user sees Darshan in every reply.
 
 ## Mandatory Load Order
 
@@ -569,6 +577,12 @@ exit 0
 // un-excluded in Cargo.toml's `exclude` so it ships with `cargo install`.
 const TPL_HOOK_COPILOT_LOADER: &str = include_str!("../../scripts/hook-copilot-loader.sh");
 
+// Darshan (S27/S28) — the human's glanceable output skill, embedded verbatim from the
+// canonical file so the scaffolded copy can never drift. `darshan/` is not in Cargo.toml's
+// `exclude`, so it already ships with `cargo install`. Skill-not-renderer holds: `init`
+// only *copies* the skill + wires the AGENTS.md boot pointer; nothing in Rust renders it.
+const TPL_DARSHAN: &str = include_str!("../../darshan/SKILL.md");
+
 const TPL_VERIFY_TEMPLATE: &str = r#"#!/usr/bin/env bash
 # Template — copy to scripts/verify-session-NN.sh and customize per session.
 
@@ -757,6 +771,33 @@ mod tests {
             let mode = fs::metadata(&hook).unwrap().permissions().mode();
             assert_eq!(mode & 0o111, 0o111, "hook must be executable");
         }
+    }
+
+    #[test]
+    fn scaffold_ships_darshan_skill_verbatim() {
+        let dir = scaffold_tmp();
+        let skill = dir.path().join("darshan/SKILL.md");
+        assert!(skill.exists(), "Darshan skill not scaffolded");
+        // Byte-identical to the canonical source — one source of truth, no drift (S22 pattern).
+        assert_eq!(
+            fs::read_to_string(&skill).unwrap(),
+            TPL_DARSHAN,
+            "scaffolded Darshan skill drifted from canonical darshan/SKILL.md"
+        );
+    }
+
+    #[test]
+    fn scaffold_wires_darshan_into_constitution() {
+        let dir = scaffold_tmp();
+        let agents = fs::read_to_string(dir.path().join(".ai/AGENTS.md")).unwrap();
+        assert!(
+            agents.contains("Speaking Skills"),
+            "missing Speaking Skills boot section"
+        );
+        assert!(
+            agents.contains("darshan/SKILL.md"),
+            "AGENTS.md must point at the scaffolded Darshan skill"
+        );
     }
 
     #[test]
