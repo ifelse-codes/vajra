@@ -262,10 +262,12 @@ fn files(name: &str, goal: &str, slug: &str, date: &str, maturity: &str) -> Vec<
         f("CLAUDE.md", TPL_CLAUDE_MD),
         f("AGENTS.md", TPL_AGENTS_ROOT),
         f(".cursorrules", TPL_CURSORRULES),
+        f(".gitignore", TPL_GITIGNORE),
         f("darshan/SKILL.md", TPL_DARSHAN),
         f(".claude/settings.json", TPL_CLAUDE_SETTINGS),
         fx("scripts/hook-session-start.sh", TPL_HOOK_SESSION_START),
         fx("scripts/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
+        fx("scripts/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
         f("prompts/01-task-kickoff.md", TPL_PROMPT),
@@ -390,6 +392,7 @@ session:
   max_stories_per_session: 1
   cap_hours_per_session: 2
   ground_truth_every_n_sessions: 5
+  one_session_per_chat: true   # new session = new chat; enforced by scripts/hook-session-guard.sh
 
 branch:
   forbid_direct_work_on: [main, master]
@@ -539,6 +542,10 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-copilot-loader.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-session-guard.sh\""
           }
         ]
       },
@@ -576,6 +583,18 @@ exit 0
 // truth, no hand-copy, so it can never drift (the S19 rule Varta enforces). The file is
 // un-excluded in Cargo.toml's `exclude` so it ships with `cargo install`.
 const TPL_HOOK_COPILOT_LOADER: &str = include_str!("../../scripts/hook-copilot-loader.sh");
+
+// Canonical session-guard (S26/S29) — one-session-per-chat enforcement, embedded
+// verbatim so the scaffolded copy can never drift (S22 pattern). Gated on
+// CONSTRAINTS.yaml#session.one_session_per_chat: true; records the owning chat in a
+// gitignored `.ai/.session-owner`. Un-excluded in Cargo.toml so it ships with `cargo install`.
+const TPL_HOOK_SESSION_GUARD: &str = include_str!("../../scripts/hook-session-guard.sh");
+
+// The scaffold's `.gitignore` — the session-guard writes the owning chat's id into
+// `.ai/.session-owner`, a local-only record that must never be committed.
+const TPL_GITIGNORE: &str = r#"# Vajra session-guard owner record (one-session-per-chat) — local only, never commit.
+.ai/.session-owner
+"#;
 
 // Darshan (S27/S28) — the human's glanceable output skill, embedded verbatim from the
 // canonical file so the scaffolded copy can never drift. `darshan/` is not in Cargo.toml's
@@ -797,6 +816,63 @@ mod tests {
         assert!(
             agents.contains("darshan/SKILL.md"),
             "AGENTS.md must point at the scaffolded Darshan skill"
+        );
+    }
+
+    // ── Session-guard propagation (S29) ──────────────────────────────────────
+
+    #[test]
+    fn scaffold_ships_session_guard_verbatim() {
+        let dir = scaffold_tmp();
+        let hook = dir.path().join("scripts/hook-session-guard.sh");
+        assert!(hook.exists(), "session-guard not scaffolded");
+        // Byte-identical to canonical — one source of truth, no drift (S22 pattern).
+        assert_eq!(
+            fs::read_to_string(&hook).unwrap(),
+            TPL_HOOK_SESSION_GUARD,
+            "scaffolded session-guard drifted from canonical hook-session-guard.sh"
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&hook).unwrap().permissions().mode();
+            assert_eq!(mode & 0o111, 0o111, "session-guard must be executable");
+        }
+    }
+
+    #[test]
+    fn scaffold_wires_session_guard_into_settings() {
+        let dir = scaffold_tmp();
+        let s = fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+        assert_eq!(
+            s.matches("hook-session-guard.sh").count(),
+            1,
+            "session-guard must be wired once (PreToolUse Bash)"
+        );
+        // Both Bash-matcher co-pilot + guard fire on Bash: the guard rides the Bash matcher.
+        assert!(s.contains("hook-copilot-loader.sh"), "co-pilot wiring lost");
+    }
+
+    #[test]
+    fn scaffold_emits_one_session_per_chat_flag() {
+        let dir = scaffold_tmp();
+        let c = fs::read_to_string(dir.path().join(".ai/CONSTRAINTS.yaml")).unwrap();
+        assert!(
+            c.contains("one_session_per_chat: true"),
+            "session-guard is gated on one_session_per_chat: true"
+        );
+    }
+
+    #[test]
+    fn scaffold_gitignores_session_owner() {
+        let dir = scaffold_tmp();
+        let gi = dir.path().join(".gitignore");
+        assert!(gi.exists(), ".gitignore not scaffolded");
+        assert!(
+            fs::read_to_string(&gi)
+                .unwrap()
+                .contains(".ai/.session-owner"),
+            ".gitignore must ignore the session-guard owner record"
         );
     }
 
