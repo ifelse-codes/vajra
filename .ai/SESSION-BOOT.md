@@ -16,6 +16,7 @@
 ## Next Session
 - **Number:** 33
 - **Type:** CODE — **Compression schema fix** (S31 finding #2, pre-pinned). Remove `#[serde(rename_all="camelCase")]` from `HookInput` ONLY (keep it on `HookToolResponse`); `exit_code` stays `Option`; add a regression test from a **verbatim captured real CC payload**. Reproduce the passthrough bug BEFORE the fix, confirm the fold after. Restores a true product claim (compression never fired on real CC since S03/S07). One story, ≤3 files.
+- **⚠ Build-order fork — founder decides at BOOT:** the compression fix above is the **pinned default**. Alternative: promote the **obedience metric + co-pilot pace-notes** work (2026-07-01 headroom discovery — ROADMAP Backlog; `sessions/discovery-2026-07-01-headroom.md`) if judged higher-leverage. Choice was deferred ("docs capture only, decide later") — surface it, don't default silently.
 - **Read prompt:** `prompts/33-task-compression-schema-fix.md`
 - **Branch:** `session-33-<slug>` (from `main`).
 
