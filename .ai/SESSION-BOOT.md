@@ -1,28 +1,28 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 32 — COMPLETE
-- **Type:** CODE — Darshan enforcement (S31 finding #1, founder-ranked first).
-- **Branch:** `session-32-darshan-enforcement`
+- **Number:** 33 — COMPLETE
+- **Type:** CODE — Compression schema fix (S31 finding #2, pre-pinned).
+- **Branch:** `session-33-compression-schema-fix`
 - **Date last updated:** 2026-07-01
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 32.
-- `main`: includes up to Session 31 (PR #23 merged, `79ad2fb`). S32 on `session-32-darshan-enforcement`, PR #24 open.
+- `.ai/SESSION` = 33.
+- `main`: includes up to Session 32 (PR #24 merged). S33 on `session-33-compression-schema-fix`, PR pending.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- This session: **moved Darshan from *advised* → *enforced*.** The `SessionStart` boot hook (`scripts/hook-session-start.sh`) now prints a Darshan directive into every boot packet — the one rule (inlined) + `darshan/SKILL.md` pointer + a `▶ ACK NOW` speak-back (mirrors Varta's read→internalize→speak). `src/cli/init.rs` embeds the canonical hook via `include_str!` (killing the pre-existing inline-copy drift; S22/S28/S29 pattern); `Cargo.toml` un-excludes it so it ships with `cargo install`. verify-session-32.sh green (18/18); scaffold byte-identical; `cargo test` 98 pass, clippy clean. Report: `sessions/session-32-summary.md`.
-- **Design note:** a hook can't read the agent's prose, so true enforcement is a design problem — chosen mechanism is *loud-at-boot directive + speak-back ACK* (loading it every session ≈ 80% of the win). Follow-on documented, not built: a `Stop`-hook wall-of-text heuristic.
+- This session: **fixed the S31 #2 root cause — compression never fired on real Claude Code.** `HookInput` had `#[serde(rename_all="camelCase")]`, but real CC sends snake_case top-level keys (`tool_name/tool_input/tool_response`) → parse-fail → silent `{}` passthrough on every real session since S03/S07. Removed the attribute from `HookInput` only; `HookToolResponse` keeps it (its nested keys really are camelCase); `exit_code` stays `Option`. Reproduced the bug first (a real-shaped payload → passthrough), then confirmed the fix flips it to a fold. All pre-existing test fixtures (which encoded the wrong casing — "the tests validated the bug") rewritten to the real shape; one test kept (renamed) documenting that the old camelCase-top-level shape is not real CC's format and correctly fails open. verify-session-33.sh green (9/9); `cargo test` 107 total pass (98 lib + 9 adapter), clippy clean. Report: `sessions/session-33-summary.md`.
+- **Founder build-order fork (deferred at S32 boot) resolved:** chose the pinned compression fix over promoting the 2026-07-01 obedience-metric/pace-notes discovery; that discovery stays in ROADMAP Backlog, not scheduled.
+- **New finding surfaced (not fixed, out of scope):** even after this fix, `cargo`/`npm`/`pytest` heuristics key off `exit_code == Some(0)` directly rather than the engine's own inferred success — and real CC never sends `exit_code` for Bash. So those three heuristics still won't fold typical-sized (<400 line) output on real CC; only line-count-driven paths (git log/status/diff-stat, the generic head+tail fallback, or any output ≥`FAIL_PASSTHROUGH_CAP`) genuinely benefit yet. Candidate for its own future session.
 
 ## Next Session
-- **Number:** 33
-- **Type:** CODE — **Compression schema fix** (S31 finding #2, pre-pinned). Remove `#[serde(rename_all="camelCase")]` from `HookInput` ONLY (keep it on `HookToolResponse`); `exit_code` stays `Option`; add a regression test from a **verbatim captured real CC payload**. Reproduce the passthrough bug BEFORE the fix, confirm the fold after. Restores a true product claim (compression never fired on real CC since S03/S07). One story, ≤3 files.
-- **⚠ Build-order fork — founder decides at BOOT:** the compression fix above is the **pinned default**. Alternative: promote the **obedience metric + co-pilot pace-notes** work (2026-07-01 headroom discovery — ROADMAP Backlog; `sessions/discovery-2026-07-01-headroom.md`) if judged higher-leverage. Choice was deferred ("docs capture only, decide later") — surface it, don't default silently.
-- **Read prompt:** `prompts/33-task-compression-schema-fix.md`
-- **Branch:** `session-33-<slug>` (from `main`).
+- **Number:** 34
+- **Type:** CODE — **Brownfield onboarding** (S31 finding #3). A guided "session 0: study this existing codebase, fill KNOWLEDGE + STATE" kickoff template; rethink hook placement so scaffolded hooks don't land inside the project's own `scripts/` package; add the S18-noted `vajra claude` auth pre-check.
+- **Read prompt:** `prompts/34-task-brownfield-onboarding.md`
+- **Branch:** `session-34-<slug>` (from `main`).
 
 ## Carry-Forwards
-- **Fix the core before breadth** — second agent stays parked; gate is MEASURED → do not promote until the 3 core breakages are fixed. #1 (Darshan) done S32; #2 (compression) = S33; #3 (brownfield) = S34.
+- **Fix the core before breadth** — second agent stays parked; gate is MEASURED → do not promote until the 3 core breakages are fixed. #1 (Darshan) done S32; #2 (compression) done S33; #3 (brownfield) = S34.
 - **Order is by satisfaction, not fix-ease.**
-- **Compression fix is pre-pinned:** remove `rename_all="camelCase"` from `HookInput` only; keep it on `HookToolResponse`; add a regression test from a verbatim captured real CC payload (KNOWLEDGE S31).
-- **Meta-rule to carry:** every fix moves the feature from *advised* → *enforced* (S32 was the first — Darshan).
-- **Next ground truth = S35** (NO-CODE). S33 + S34 are the last two CODE sessions before it.
+- **Meta-rule held again:** S33 moved compression from *advised* (a claim nobody could verify) → *enforced* (evidenced by a real-shaped regression test) — the second instance of the S31/S32 pattern.
+- **New carry-forward:** the `exit_code == Some(0)` heuristic gap (cargo/npm/pytest) found during S33 is real but out of this session's scope — a candidate for a future 1-story session, not S34 (S34 stays brownfield-only).
+- **Next ground truth = S35** (NO-CODE). S34 is the last CODE session before it.
