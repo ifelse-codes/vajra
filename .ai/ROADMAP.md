@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-01 · **Session 32 — Darshan enforcement (CODE) — DONE.** Moved Darshan *advised → enforced*: the `SessionStart` boot packet now surfaces the skill (one rule + `darshan/SKILL.md` pointer + `▶ ACK NOW` speak-back) every session, and `vajra init` inherits it byte-identical via `include_str!`. Closes S31 finding #1 (most-felt). verify 18/18. [PR #24](https://github.com/ifelse-codes/vajra/pull/24). **Next = S33 compression schema fix (S31 #2).**
+**Updated:** 2026-07-01 · **Session 32 — Darshan enforcement (CODE) — DONE.** Moved Darshan *advised → enforced*: the `SessionStart` boot packet now surfaces the skill (one rule + `darshan/SKILL.md` pointer + `▶ ACK NOW` speak-back) every session, and `vajra init` inherits it byte-identical via `include_str!`. Closes S31 finding #1 (most-felt). verify 18/18. [PR #24](https://github.com/ifelse-codes/vajra/pull/24). **Next = S33 compression schema fix (S31 #2)** — *pinned default; at S33 BOOT the founder may instead promote the 2026-07-01 obedience-metric + co-pilot pace-notes discovery (Backlog). Choice deferred, surface it.*
 
 **Prior · Session 31 — DOGFOOD / verification (CODE).** Ran the real `vajra claude` loop against an existing TS monorepo (`chitra`) — first real usage since S07. **Gate verdict: DO NOT promote the second agent.** Three shipped `[x]`-done features are dead in the real loop (the S30 false-green shape, proven 3×), **ranked by daily founder satisfaction**: (1) **Darshan not obeyed** (felt every reply — prose pointer, not enforced; agent dumps walls of text); (2) **compression never fires** on real CC (snake_case top-level vs the adapter's camelCase `HookInput` — pinned against a captured payload; low daily $ impact); (3) **brownfield onboarding unguided** (init works on existing repos but no learn-the-codebase session; hooks pollute the project's `scripts/`). **Meta:** 2 of 3 are Vajra violating its own "enforcement, not prompts" wedge. **Fix the core before adding breadth; S32 starts with Darshan.** Findings recorded option-C (docs only, no fix committed — 1-story discipline). See KNOWLEDGE S31. *(S30 context: gate was UNMEASURED at ~$0.46 spend; S31 measured it.)*
 
@@ -12,7 +12,7 @@
 
 | Field | Value |
 |---|---|
-| Today | 2026-06-30 |
+| Today | 2026-07-01 |
 | Current phase | Phases 1–3 + Varta + propagation COMPLETE; **fixing the core (S31 items 7–9): S32 Darshan enforcement DONE**; next = S33 compression schema fix, then S34 brownfield |
 | Last closed session | Session 32 — Darshan enforcement: boot packet now surfaces `darshan/SKILL.md` (one rule + speak-back) every session + `vajra init` inherits it via `include_str!`; advised → enforced. verify 18/18. PR #24 |
 | Active session | None — S32 closed; S33 (compression schema fix) not yet started |

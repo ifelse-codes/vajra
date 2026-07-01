@@ -15,6 +15,8 @@ Between sessions. Next: read `prompts/33-task-compression-schema-fix.md`.
 
 Read prompt: `prompts/33-task-compression-schema-fix.md` — **S33 CODE: compression schema fix (S31 #2).** Remove `rename_all="camelCase"` from `HookInput` ONLY (keep it on `HookToolResponse`); `exit_code` stays `Option`; add a regression test from a **verbatim captured real CC payload**. Reproduce the passthrough bug BEFORE the fix, confirm the fold after. One story, ≤3 files.
 
+**⚠ Build-order fork — decide at BOOT:** compression fix (pinned default, above) **OR** promote the **obedience metric + co-pilot pace-notes** (2026-07-01 headroom discovery; ROADMAP Backlog; `sessions/discovery-2026-07-01-headroom.md`). Founder deferred the choice ("decide later") — the next BOOT must surface it, not default silently.
+
 ## Build Queue (from ROADMAP.md, in order — fix the core, ranked by satisfaction)
 
 1. ~~Darshan enforcement (S32)~~ — **DONE.**
