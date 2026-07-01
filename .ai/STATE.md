@@ -6,7 +6,7 @@
 None — between sessions (S33 complete, S34 not yet started).
 
 ## Active PRs
-- S33 compression-schema-fix PR — pending (open after closeout).
+- S33 compression-schema-fix PR [#27](https://github.com/ifelse-codes/vajra/pull/27) — open (merge after closeout).
 - S32 Darshan-enforcement PR #24 — merged. S31 dogfood docs PR #23 — merged (`79ad2fb`). S29 guard-in-init PR #21 — merged (`8c3c832`). S28 Darshan-in-init PR #19 — merged (`c65fc10`).
 
 ## Direction (set S18 … audited S25, hardened S26, human-lane S27, in-init S28/S29, gate-audited S30, dogfood-measured S31, Darshan-enforced S32, compression-enforced S33)
