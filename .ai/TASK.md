@@ -2,25 +2,24 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 32 — Darshan enforcement (CODE) — COMPLETE
+## Session 33 — Compression schema fix (CODE) — COMPLETE
 
-- **Type:** CODE. Moved Darshan *advised → enforced* (S31 finding #1, founder-ranked first).
-- **Shipped:** the `SessionStart` boot hook (`scripts/hook-session-start.sh`) now prints a Darshan directive into every boot packet — one rule (inlined) + `darshan/SKILL.md` pointer + `▶ ACK NOW` speak-back. `src/cli/init.rs` embeds the canonical hook via `include_str!` (kills the pre-existing drift); `Cargo.toml` un-excludes it so it ships. `scripts/verify-session-32.sh` green (18/18).
-- **Meta-rule honored:** advised → enforced. Follow-on documented (not built): a `Stop`-hook wall-of-text heuristic for machine enforcement.
-- **PR:** [#24](https://github.com/ifelse-codes/vajra/pull/24).
+- **Type:** CODE. Fixed the S31 finding #2 root cause: compression never fired on real Claude Code.
+- **Shipped:** removed `#[serde(rename_all = "camelCase")]` from `HookInput` (kept it on `HookToolResponse`; `exit_code` stays `Option`). Real CC sends snake_case top-level keys (`tool_name/tool_input/tool_response`); the old attribute silently failed to parse every real payload → `{}` passthrough since S03/S07. Reproduced the bug first (regression test against a real-shaped payload), then confirmed the fix flips it to a fold. Rewrote all pre-existing fixtures (which encoded the wrong casing) to the real shape; kept one renamed test documenting the old camelCase-top-level shape correctly fails open. `scripts/verify-session-33.sh` green (9/9).
+- **Meta-rule honored:** advised → enforced, second instance (S32 was Darshan).
+- **New finding surfaced, not fixed:** `cargo`/`npm`/`pytest` heuristics key off `exit_code == Some(0)` directly, not the engine's inferred success — real CC never sends `exit_code`, so those three heuristics still won't fold typical output. Out of scope; candidate for a future session.
+- **PR:** pending.
 
-Between sessions. Next: read `prompts/33-task-compression-schema-fix.md`.
+Between sessions. Next: read `prompts/34-task-brownfield-onboarding.md`.
 
 ## Next Session
 
-Read prompt: `prompts/33-task-compression-schema-fix.md` — **S33 CODE: compression schema fix (S31 #2).** Remove `rename_all="camelCase"` from `HookInput` ONLY (keep it on `HookToolResponse`); `exit_code` stays `Option`; add a regression test from a **verbatim captured real CC payload**. Reproduce the passthrough bug BEFORE the fix, confirm the fold after. One story, ≤3 files.
-
-**⚠ Build-order fork — decide at BOOT:** compression fix (pinned default, above) **OR** promote the **obedience metric + co-pilot pace-notes** (2026-07-01 headroom discovery; ROADMAP Backlog; `sessions/discovery-2026-07-01-headroom.md`). Founder deferred the choice ("decide later") — the next BOOT must surface it, not default silently.
+Read prompt: `prompts/34-task-brownfield-onboarding.md` — **S34 CODE: brownfield onboarding (S31 #3).** A guided "session 0: study this existing codebase" kickoff + rethink hook placement so scaffolded hooks don't land inside the project's own `scripts/` package + a `vajra claude` auth pre-check. One story, ≤3 files.
 
 ## Build Queue (from ROADMAP.md, in order — fix the core, ranked by satisfaction)
 
 1. ~~Darshan enforcement (S32)~~ — **DONE.**
-2. **Compression schema fix (S33)** — finding #2, exact 2-file fix vs the captured payload.
+2. ~~Compression schema fix (S33)~~ — **DONE.**
 3. **Brownfield onboarding (S34)** — finding #3.
 4. **Add second agent (Codex/Cursor)** — stays parked until the core is fixed.
 5. **S35 = NO-CODE ground truth** (every 5th session).
