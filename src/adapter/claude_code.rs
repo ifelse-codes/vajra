@@ -10,7 +10,6 @@ pub struct CompressionResult {
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct HookInput {
     pub tool_name: String,
     pub tool_input: HookToolInput,
