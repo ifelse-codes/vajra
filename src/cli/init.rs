@@ -563,21 +563,12 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
 }
 "#;
 
-const TPL_HOOK_SESSION_START: &str = r#"#!/usr/bin/env bash
-set -euo pipefail
-ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
-
-echo "=== Agent Boot (per .ai/AGENTS.md) ==="
-echo ""
-for f in .ai/SESSION .ai/SESSION-BOOT.md .ai/TASK.md .ai/STATE.md .ai/CONSTRAINTS.yaml; do
-  if [ -f "$ROOT/$f" ]; then
-    echo "----- $f -----"
-    cat "$ROOT/$f"
-    echo ""
-  fi
-done
-exit 0
-"#;
+// Canonical SessionStart boot hook, embedded verbatim (S32) so the scaffolded copy can
+// never drift from the real one — the same one-source pattern as the co-pilot loader and
+// session guard. This is what surfaces the Darshan speaking skill in every project's boot
+// packet (S32 Darshan enforcement: advised -> enforced). Un-excluded in Cargo.toml so it
+// ships with `cargo install`.
+const TPL_HOOK_SESSION_START: &str = include_str!("../../scripts/hook-session-start.sh");
 
 // Canonical co-pilot loader, embedded verbatim from the real script — one source of
 // truth, no hand-copy, so it can never drift (the S19 rule Varta enforces). The file is

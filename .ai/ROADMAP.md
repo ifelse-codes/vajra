@@ -1,6 +1,8 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-06-30 · **Session 31 — DOGFOOD / verification (CODE).** Ran the real `vajra claude` loop against an existing TS monorepo (`chitra`) — first real usage since S07. **Gate verdict: DO NOT promote the second agent.** Three shipped `[x]`-done features are dead in the real loop (the S30 false-green shape, proven 3×), **ranked by daily founder satisfaction**: (1) **Darshan not obeyed** (felt every reply — prose pointer, not enforced; agent dumps walls of text); (2) **compression never fires** on real CC (snake_case top-level vs the adapter's camelCase `HookInput` — pinned against a captured payload; low daily $ impact); (3) **brownfield onboarding unguided** (init works on existing repos but no learn-the-codebase session; hooks pollute the project's `scripts/`). **Meta:** 2 of 3 are Vajra violating its own "enforcement, not prompts" wedge. **Fix the core before adding breadth; S32 starts with Darshan.** Findings recorded option-C (docs only, no fix committed — 1-story discipline). See KNOWLEDGE S31. *(S30 context: gate was UNMEASURED at ~$0.46 spend; S31 measured it.)*
+**Updated:** 2026-07-01 · **Session 32 — Darshan enforcement (CODE) — DONE.** Moved Darshan *advised → enforced*: the `SessionStart` boot packet now surfaces the skill (one rule + `darshan/SKILL.md` pointer + `▶ ACK NOW` speak-back) every session, and `vajra init` inherits it byte-identical via `include_str!`. Closes S31 finding #1 (most-felt). verify 18/18. [PR #24](https://github.com/ifelse-codes/vajra/pull/24). **Next = S33 compression schema fix (S31 #2).**
+
+**Prior · Session 31 — DOGFOOD / verification (CODE).** Ran the real `vajra claude` loop against an existing TS monorepo (`chitra`) — first real usage since S07. **Gate verdict: DO NOT promote the second agent.** Three shipped `[x]`-done features are dead in the real loop (the S30 false-green shape, proven 3×), **ranked by daily founder satisfaction**: (1) **Darshan not obeyed** (felt every reply — prose pointer, not enforced; agent dumps walls of text); (2) **compression never fires** on real CC (snake_case top-level vs the adapter's camelCase `HookInput` — pinned against a captured payload; low daily $ impact); (3) **brownfield onboarding unguided** (init works on existing repos but no learn-the-codebase session; hooks pollute the project's `scripts/`). **Meta:** 2 of 3 are Vajra violating its own "enforcement, not prompts" wedge. **Fix the core before adding breadth; S32 starts with Darshan.** Findings recorded option-C (docs only, no fix committed — 1-story discipline). See KNOWLEDGE S31. *(S30 context: gate was UNMEASURED at ~$0.46 spend; S31 measured it.)*
 
 **North star:** `vajra next` as the cross-agent workflow coach. One command that advances the agent to the next step with the right context.
 
@@ -11,9 +13,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-06-30 |
-| Current phase | Phases 1–3 + Varta + propagation COMPLETE; **S31 dogfood done — gate MEASURED, verdict = do NOT promote second agent; 3 core breakages found**; next = fix the core (items 7–9) |
-| Last closed session | Session 31 — dogfood / verification: ran the real `vajra claude` loop on existing `chitra`; found compression dead + Darshan unenforced + brownfield unguided; findings recorded (option C, docs only) |
-| Active session | S31 in progress — findings documented on `session-31-dogfood-verification`; no fix committed (1-story discipline) |
+| Current phase | Phases 1–3 + Varta + propagation COMPLETE; **fixing the core (S31 items 7–9): S32 Darshan enforcement DONE**; next = S33 compression schema fix, then S34 brownfield |
+| Last closed session | Session 32 — Darshan enforcement: boot packet now surfaces `darshan/SKILL.md` (one rule + speak-back) every session + `vajra init` inherits it via `include_str!`; advised → enforced. verify 18/18. PR #24 |
+| Active session | None — S32 closed; S33 (compression schema fix) not yet started |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -38,8 +40,8 @@
 |---|---|
 | Darshan in `vajra init` scaffold | [x] done — S28: `include_str!` + Speaking Skills boot pointer; every project inherits it (PR #19) |
 | Second agent launcher | [ ] not built — only Claude Code is wired (**parked**: **S31 dogfood decided the gate → do NOT promote** until the 3 core breakages are fixed) |
-| Compression on real Claude Code | [ ] **BROKEN** — adapter `HookInput` camelCase vs real CC snake_case; never fires (S31). Tests green on wrong-cased fixtures. Fix = item 7 |
-| Darshan obeyed in real sessions | [ ] **NOT ENFORCED** — prose pointer only; agent dumps walls of text (S31). Fix = item 8 |
+| Compression on real Claude Code | [ ] **BROKEN** — adapter `HookInput` camelCase vs real CC snake_case; never fires (S31). Tests green on wrong-cased fixtures. Fix = item 8 (S33) |
+| Darshan obeyed in real sessions | [x] **ENFORCED — S32.** Boot packet surfaces the skill (one rule + `darshan/SKILL.md` pointer + `▶ ACK NOW` speak-back) every session; `vajra init` inherits it via `include_str!`. Machine-verified speak-back = follow-on. |
 
 ## Design Rules (from competitive analysis)
 
@@ -110,8 +112,8 @@
 
 ### Next (S31 dogfood verdict — fix the core, **ranked by daily founder satisfaction**, not fix-convenience; each its own 1-story session)
 
-7. **Darshan enforcement (S32 — most-felt, do first)** — make the agent actually load + follow `darshan/SKILL.md` every session (it currently dumps walls of text — the pain felt on EVERY reply). Minimum: surface it in the `SessionStart` boot packet so it loads each session; design stronger enforcement (a hook can't read the agent's prose, so this is a design-bearing session). Closes the "we violate our own enforcement-not-prompts wedge" gap. *(S31 #1)*
-8. **Compression schema fix** — `HookInput` drops `rename_all="camelCase"` → snake_case top-level; keep camelCase on `HookToolResponse`; add a regression test from a **verbatim captured real CC payload**. 2 files, exact, evidenced — restores a true product claim. Ranked #2 (low daily $ impact — the "quiet bonus", not the moat). *(S31 #2)*
+7. **[x] Darshan enforcement — DONE in Session 32.** The `SessionStart` boot hook (`scripts/hook-session-start.sh`) now prints a Darshan directive into every boot packet: the one rule (inlined) + `darshan/SKILL.md` pointer + a `▶ ACK NOW` speak-back (mirrors Varta's read→internalize→speak). `src/cli/init.rs`: `TPL_HOOK_SESSION_START` inline copy → `include_str!` of the canonical hook (kills the pre-existing drift; S22/S28/S29 pattern); `Cargo.toml` un-excludes it. **advised → enforced** (the meta-rule). Follow-on (documented, not built): a `Stop`-hook wall-of-text heuristic for machine enforcement. verify-session-32.sh green (18/18). [PR #24](https://github.com/ifelse-codes/vajra/pull/24). *(S31 #1)*
+8. **Compression schema fix (S33 — next)** — `HookInput` drops `rename_all="camelCase"` → snake_case top-level; keep camelCase on `HookToolResponse`; add a regression test from a **verbatim captured real CC payload**. 2 files, exact, evidenced — restores a true product claim. Ranked #2 (low daily $ impact — the "quiet bonus", not the moat). *(S31 #2)*
 9. **Brownfield onboarding** — a guided "session 0: study this existing codebase, fill KNOWLEDGE + STATE" kickoff template; rethink hook placement so they don't land inside the project's own `scripts/` package; add the S18 `vajra claude` auth pre-check. *(S31 #3)*
 
 > **Meta-finding (elevate):** 2 of 3 above are the same root failure — Vajra ships value as advisory "the agent should read this file", which the dogfood proved the agent ignores. **Vajra violates its own "enforcement, not prompts" wedge.** The fixes should each move the feature from *advised* to *enforced*.
