@@ -1,27 +1,27 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 31 — COMPLETE
-- **Type:** CODE — dogfood / verification (became **docs-only**, option C: findings recorded, no code fix).
-- **Branch:** `session-31-dogfood-verification`
-- **Date last updated:** 2026-06-30
+- **Number:** 32 — COMPLETE
+- **Type:** CODE — Darshan enforcement (S31 finding #1, founder-ranked first).
+- **Branch:** `session-32-darshan-enforcement`
+- **Date last updated:** 2026-07-01
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 31.
-- `main`: includes up to Session 29 (PR #21 merged, commit `8c3c832`). S30 = NO-CODE GT (closeout on exempt branch, no PR). S31 docs-only on `session-31-dogfood-verification`.
+- `.ai/SESSION` = 32.
+- `main`: includes up to Session 31 (PR #23 merged, `79ad2fb`). S32 on `session-32-darshan-enforcement`, PR #24 open.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- This session: **first real `vajra claude` usage since S07.** Ran the real loop against an existing TS pnpm monorepo (`chitra`) — `vajra init` + a "learn the codebase" session. **Gate verdict: DO NOT promote the second agent.** Three shipped `[x]`-done features are dead in the real loop (the S30 false-green shape, proven 3×), **ranked by daily satisfaction:** (1) **Darshan not obeyed** (prose pointer, never enforced — agent dumps walls of text, felt every reply); (2) **compression never fires** on real CC (adapter `HookInput` camelCase vs real CC snake_case top-level — pinned against a captured payload; low daily $ impact); (3) **brownfield onboarding unguided** (init works on existing repos but no learn-the-codebase session; hooks pollute the project's own `scripts/`). **Meta-finding:** 2 of 3 are Vajra violating its own "enforcement, not prompts" wedge. Report: `sessions/session-31-summary.md`; detail in `.ai/KNOWLEDGE.md` S31.
-- **Decision this session:** record findings (option C, docs only); fix the core before the second agent; **S32 = Darshan enforcement first** (most-felt).
+- This session: **moved Darshan from *advised* → *enforced*.** The `SessionStart` boot hook (`scripts/hook-session-start.sh`) now prints a Darshan directive into every boot packet — the one rule (inlined) + `darshan/SKILL.md` pointer + a `▶ ACK NOW` speak-back (mirrors Varta's read→internalize→speak). `src/cli/init.rs` embeds the canonical hook via `include_str!` (killing the pre-existing inline-copy drift; S22/S28/S29 pattern); `Cargo.toml` un-excludes it so it ships with `cargo install`. verify-session-32.sh green (18/18); scaffold byte-identical; `cargo test` 98 pass, clippy clean. Report: `sessions/session-32-summary.md`.
+- **Design note:** a hook can't read the agent's prose, so true enforcement is a design problem — chosen mechanism is *loud-at-boot directive + speak-back ACK* (loading it every session ≈ 80% of the win). Follow-on documented, not built: a `Stop`-hook wall-of-text heuristic.
 
 ## Next Session
-- **Number:** 32
-- **Type:** CODE — **Darshan enforcement** (S31 finding #1, founder-ranked first). Make the agent actually load + follow `darshan/SKILL.md` every session (it currently dumps walls of text). Minimum: surface it in the `SessionStart` boot packet so it loads each session; design stronger enforcement (a hook can't read the agent's prose — design-bearing). Move Darshan from *advised* → *enforced*. One story, ≤3 files.
-- **Read prompt:** `prompts/32-task-darshan-enforcement.md`
-- **Branch:** `session-32-<slug>` (from `main`).
+- **Number:** 33
+- **Type:** CODE — **Compression schema fix** (S31 finding #2, pre-pinned). Remove `#[serde(rename_all="camelCase")]` from `HookInput` ONLY (keep it on `HookToolResponse`); `exit_code` stays `Option`; add a regression test from a **verbatim captured real CC payload**. Reproduce the passthrough bug BEFORE the fix, confirm the fold after. Restores a true product claim (compression never fired on real CC since S03/S07). One story, ≤3 files.
+- **Read prompt:** `prompts/33-task-compression-schema-fix.md`
+- **Branch:** `session-33-<slug>` (from `main`).
 
 ## Carry-Forwards
-- **Fix the core before breadth** — second agent stays parked; gate is now MEASURED → do not promote until the 3 core breakages are fixed.
-- **Order is by satisfaction, not fix-ease:** S32 Darshan enforcement (#1) · then compression schema fix (#2, exact 2-file fix vs the captured payload) · then brownfield onboarding (#3).
+- **Fix the core before breadth** — second agent stays parked; gate is MEASURED → do not promote until the 3 core breakages are fixed. #1 (Darshan) done S32; #2 (compression) = S33; #3 (brownfield) = S34.
+- **Order is by satisfaction, not fix-ease.**
 - **Compression fix is pre-pinned:** remove `rename_all="camelCase"` from `HookInput` only; keep it on `HookToolResponse`; add a regression test from a verbatim captured real CC payload (KNOWLEDGE S31).
-- **Meta-finding to carry:** every fix must move the feature from *advised* → *enforced* (Vajra's own wedge).
-- **S31 docs-only** — open a PR for the doc updates or fold into S32. PR-status "drift" stays retired (do not re-flag).
+- **Meta-rule to carry:** every fix moves the feature from *advised* → *enforced* (S32 was the first — Darshan).
+- **Next ground truth = S35** (NO-CODE). S33 + S34 are the last two CODE sessions before it.
