@@ -120,6 +120,8 @@
 
 > **Meta-finding (elevate):** 2 of 3 above are the same root failure — Vajra ships value as advisory "the agent should read this file", which the dogfood proved the agent ignores. **Vajra violates its own "enforcement, not prompts" wedge.** The fixes should each move the feature from *advised* to *enforced*.
 
+10. **[x] Ground-truth gate re-measure (NO-CODE)** — DONE in Session 35. Lens A (founder pick): verified the "fix the core before breadth" bet + re-measured the second-agent gate. **Verdict: gate NOT cleared, still unmeasured** — zero `vajra claude` spend since S31, so S32–S34 fixes are test-verified, not daily-use-verified (same honest call as S30). Pressure-tested the *advised → enforced* wedge for structural leaks: found 2 isolated debt items (`.claude/settings.json` merge, `exit_code` heuristic), not a pattern. Ranked S36 candidates: real dogfood run (recommended) · settings.json merge · exit_code fix · obedience metric. Report: `sessions/session-35-ground-truth.md`.
+
 ### Backlog (parked until the gate is measured + cleared by the founder)
 - **`.claude/settings.json` merge on init** (S34 finding) — a brownfield repo that already has `.claude/settings.json` gets it *skipped*, so the scaffolded `.ai/hooks/` are never wired. Needs a merge strategy (same class as the launcher's `--settings` merge, ADR-0003). 1-story candidate; S35 GT ranks it.
 - **`exit_code == Some(0)` heuristic gap** (S33 finding) — `cargo`/`npm`/`pytest` heuristics key off a field real CC never sends for Bash → they fall to `_fail` passthrough under 400 lines; should key off the engine's inferred success. 1-story candidate; S35 GT ranks it.

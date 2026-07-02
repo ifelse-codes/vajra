@@ -138,3 +138,14 @@ pub struct CompressionRequest {
 - **stderr-on-exit-0:** `cargo build` with warnings (exit 0) compresses stdout, folding individual warning details. stderr summary ("N warnings emitted") is preserved. Agent may need to re-run to see warning specifics.
 - **Savings estimate:** receipt uses ~12 tokens/line to estimate saved tokens. Rough, labeled as estimate.
 - **Pricing compiled-in:** binary update needed when Anthropic changes pricing. Stale pricing shows slightly wrong numbers but the receipt's `[estimated]` marker flags schema drift.
+
+## 10. Ground-Truth Track Record
+
+- `dogfood_check` (added S30) has now caught the same class of finding twice — S30 and S35 both
+  flagged "$0 `vajra claude` spend, satisfaction gate unmeasured" while the other 7 required
+  audits stayed green. Confirms it's a durable, non-redundant axis (the S25 false-green trap
+  one level deeper), not a one-off catch — keep it mandatory in `required_audits`.
+- Passing `cargo test`/`verify-session-NN.sh` proves a fix is *correct*; it does not prove a
+  fix is *felt*. Only a live multi-turn `vajra claude` session against real work answers the
+  founder-satisfaction gate — test-green and daily-use-verified are separate claims, don't
+  conflate them in closeout language.
