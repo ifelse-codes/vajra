@@ -1,28 +1,27 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 33 — COMPLETE
-- **Type:** CODE — Compression schema fix (S31 finding #2, pre-pinned).
-- **Branch:** `session-33-compression-schema-fix`
-- **Date last updated:** 2026-07-01
+- **Number:** 34 — COMPLETE
+- **Type:** CODE — Brownfield onboarding (S31 finding #3, last of the three core breakages).
+- **Branch:** `session-34-brownfield-onboarding`
+- **Date last updated:** 2026-07-02
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 33.
-- `main`: includes up to Session 32 (PR #24 merged). S33 on `session-33-compression-schema-fix`, PR pending.
+- `.ai/SESSION` = 34.
+- `main`: includes up to Session 33 (PR #27 merged). S34 on `session-34-brownfield-onboarding`, PR [#29](https://github.com/ifelse-codes/vajra/pull/29) open.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- This session: **fixed the S31 #2 root cause — compression never fired on real Claude Code.** `HookInput` had `#[serde(rename_all="camelCase")]`, but real CC sends snake_case top-level keys (`tool_name/tool_input/tool_response`) → parse-fail → silent `{}` passthrough on every real session since S03/S07. Removed the attribute from `HookInput` only; `HookToolResponse` keeps it (its nested keys really are camelCase); `exit_code` stays `Option`. Reproduced the bug first (a real-shaped payload → passthrough), then confirmed the fix flips it to a fold. All pre-existing test fixtures (which encoded the wrong casing — "the tests validated the bug") rewritten to the real shape; one test kept (renamed) documenting that the old camelCase-top-level shape is not real CC's format and correctly fails open. verify-session-33.sh green (9/9); `cargo test` 107 total pass (98 lib + 9 adapter), clippy clean. Report: `sessions/session-33-summary.md`.
-- **Founder build-order fork (deferred at S32 boot) resolved:** chose the pinned compression fix over promoting the 2026-07-01 obedience-metric/pace-notes discovery; that discovery stays in ROADMAP Backlog, not scheduled.
-- **New finding surfaced (not fixed, out of scope):** even after this fix, `cargo`/`npm`/`pytest` heuristics key off `exit_code == Some(0)` directly rather than the engine's own inferred success — and real CC never sends `exit_code` for Bash. So those three heuristics still won't fold typical-sized (<400 line) output on real CC; only line-count-driven paths (git log/status/diff-stat, the generic head+tail fallback, or any output ≥`FAIL_PASSTHROUGH_CAP`) genuinely benefit yet. Candidate for its own future session.
+- This session (three-part story, one story): **(1) Session-0 onboarding** — `vajra init` detects a brownfield repo (`is_brownfield()`: any root entry the scaffold doesn't own) and boots it into session 00 with a guided study-the-repo brief (`prompts/00-task-brownfield-onboarding.md`) that fills KNOWLEDGE/STATE with reality before feature work; greenfield unchanged. **(2) Hook placement** — scaffolded `hook-*.sh` land in `.ai/hooks/`, never the project's own `scripts/`; settings.json template updated; verify/demo session scripts stay in `scripts/`. **(3) Auth pre-check** — `vajra claude` fails fast without credentials (env key → `~/.claude/.credentials.json` → `oauthAccount` marker → macOS Keychain; presence-only; `VAJRA_SKIP_AUTH_CHECK=1` bypasses). Closes the S18 gap.
+- **Evidence:** verify-session-34.sh green (11/11) — E2E runs the built binary against real-shaped temp repos. Verified on real brownfield copies (`darpan` TS monorepo with its own `scripts/`, `TradingAgents`). Auth check verified live (Keychain pass / forced no-creds fail-fast / bypass). `cargo test` 133 pass, clippy clean.
+- **Meta-rule: third instance of *advised → enforced*** (S32 Darshan, S33 compression, S34 brownfield).
+- **New finding (out of scope):** brownfield repos that already have `.claude/settings.json` get it skipped on init → scaffolded hooks never wired. Needs a merge strategy; future 1-story candidate.
 
 ## Next Session
-- **Number:** 34
-- **Type:** CODE — **Brownfield onboarding** (S31 finding #3). A guided "session 0: study this existing codebase, fill KNOWLEDGE + STATE" kickoff template; rethink hook placement so scaffolded hooks don't land inside the project's own `scripts/` package; add the S18-noted `vajra claude` auth pre-check.
-- **Read prompt:** `prompts/34-task-brownfield-onboarding.md`
-- **Branch:** `session-34-<slug>` (from `main`).
+- **Number:** 35
+- **Type:** **GROUND TRUTH (NO-CODE, mandated `NN % 5 == 0`)** — lead lens (founder pick A): "fix the core" bet verification + second-agent gate re-measure. `dogfood_check` will flag ~$0 spend since S31 — an "unmeasured" verdict teeing up an S36 dogfood is the honest likely outcome.
+- **Read prompt:** `prompts/35-task-ground-truth-gate-remeasure.md`
+- **Branch:** `session-35-ground-truth` (from `main`). No code, no commits, no PRs.
 
 ## Carry-Forwards
-- **Fix the core before breadth** — second agent stays parked; gate is MEASURED → do not promote until the 3 core breakages are fixed. #1 (Darshan) done S32; #2 (compression) done S33; #3 (brownfield) = S34.
-- **Order is by satisfaction, not fix-ease.**
-- **Meta-rule held again:** S33 moved compression from *advised* (a claim nobody could verify) → *enforced* (evidenced by a real-shaped regression test) — the second instance of the S31/S32 pattern.
-- **New carry-forward:** the `exit_code == Some(0)` heuristic gap (cargo/npm/pytest) found during S33 is real but out of this session's scope — a candidate for a future 1-story session, not S34 (S34 stays brownfield-only).
-- **Next ground truth = S35** (NO-CODE). S34 is the last CODE session before it.
+- **All three S31 core breakages closed** (S32 #1 Darshan, S33 #2 compression, S34 #3 brownfield). Second agent stays parked until the founder clears the gate — S35 re-asks it.
+- **Open advised-mode gaps for S36 ranking:** `.claude/settings.json` merge (S34 finding); `cargo`/`npm`/`pytest` `exit_code == Some(0)` heuristics (S33 finding); obedience-metric/pace-notes backlog (2026-07-01); a real dogfood run.
+- **Meta-rule held 3×:** every fix moves a feature *advised → enforced* — Vajra's own wedge.

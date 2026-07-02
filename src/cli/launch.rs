@@ -10,6 +10,7 @@ pub fn run(args: &[String]) -> Result<()> {
     if !command_exists("claude") {
         anyhow::bail!("claude not found in PATH; install Claude Code before using vajra claude")
     }
+    preflight_auth_check()?;
 
     let session_start = SystemTime::now();
     let stats_path = std::env::temp_dir().join(format!(
@@ -44,6 +45,55 @@ pub fn run(args: &[String]) -> Result<()> {
             wait_and_meter(command, None, session_start, &stats_path)
         }
     }
+}
+
+/// Fail fast if Claude Code has no credentials (S34, gap noted S18): an unauthenticated
+/// launch otherwise surfaces as a confusing failure deep inside the session. Presence-only
+/// evidence — never a paid API call. Layers, cheapest first:
+///   1. `ANTHROPIC_API_KEY` in the environment
+///   2. `~/.claude/.credentials.json` (Linux) / `oauthAccount` in `~/.claude.json`
+///   3. macOS Keychain entry `Claude Code-credentials`
+///
+/// `VAJRA_SKIP_AUTH_CHECK=1` bypasses (escape hatch for storage layouts we don't know).
+fn preflight_auth_check() -> Result<()> {
+    if std::env::var("VAJRA_SKIP_AUTH_CHECK").ok().as_deref() == Some("1") {
+        return Ok(());
+    }
+    let api_key = std::env::var("ANTHROPIC_API_KEY").ok();
+    let home = std::env::var_os("HOME").map(std::path::PathBuf::from);
+    if auth_evidence(api_key.as_deref(), home.as_deref()) || keychain_has_credentials() {
+        return Ok(());
+    }
+    anyhow::bail!(
+        "no Claude Code credentials found — authenticate before launching:\n  \
+         run `claude` once and complete /login, or set ANTHROPIC_API_KEY.\n  \
+         (Bypass this pre-check with VAJRA_SKIP_AUTH_CHECK=1.)"
+    )
+}
+
+fn auth_evidence(api_key: Option<&str>, home: Option<&Path>) -> bool {
+    if api_key.is_some_and(|k| !k.trim().is_empty()) {
+        return true;
+    }
+    let Some(home) = home else { return false };
+    if home.join(".claude/.credentials.json").exists() {
+        return true;
+    }
+    // After OAuth login, `~/.claude.json` records the account even where the token
+    // itself lives elsewhere (e.g. macOS Keychain).
+    std::fs::read_to_string(home.join(".claude.json")).is_ok_and(|s| s.contains("\"oauthAccount\""))
+}
+
+fn keychain_has_credentials() -> bool {
+    if !cfg!(target_os = "macos") {
+        return false;
+    }
+    Command::new("security")
+        .args(["find-generic-password", "-s", "Claude Code-credentials"])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .is_ok_and(|s| s.success())
 }
 
 fn wait_and_meter(
@@ -127,5 +177,46 @@ fn print_receipt(session_start: SystemTime, stats_path: &Path) -> Option<f64> {
             eprintln!("\n[vajra] meter error: {e}");
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn auth_evidence_accepts_api_key() {
+        assert!(auth_evidence(Some("sk-ant-xxx"), None));
+        assert!(
+            !auth_evidence(Some("   "), None),
+            "blank key is no evidence"
+        );
+        assert!(!auth_evidence(None, None));
+    }
+
+    #[test]
+    fn auth_evidence_accepts_credentials_file() {
+        let home = tempfile::tempdir().unwrap();
+        assert!(!auth_evidence(None, Some(home.path())));
+        fs::create_dir_all(home.path().join(".claude")).unwrap();
+        fs::write(home.path().join(".claude/.credentials.json"), "{}").unwrap();
+        assert!(auth_evidence(None, Some(home.path())));
+    }
+
+    #[test]
+    fn auth_evidence_accepts_oauth_account_marker() {
+        let home = tempfile::tempdir().unwrap();
+        fs::write(home.path().join(".claude.json"), r#"{"numStartups":3}"#).unwrap();
+        assert!(
+            !auth_evidence(None, Some(home.path())),
+            "a claude.json without oauthAccount is no evidence"
+        );
+        fs::write(
+            home.path().join(".claude.json"),
+            r#"{"oauthAccount":{"emailAddress":"x@y.z"}}"#,
+        )
+        .unwrap();
+        assert!(auth_evidence(None, Some(home.path())));
     }
 }

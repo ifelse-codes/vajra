@@ -3,41 +3,38 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S33 complete, S34 not yet started).
+None — between sessions (S34 complete, S35 not yet started).
 
 ## Active PRs
-- S33 compression-schema-fix PR [#27](https://github.com/ifelse-codes/vajra/pull/27) — open (merge after closeout).
-- S32 Darshan-enforcement PR #24 — merged. S31 dogfood docs PR #23 — merged (`79ad2fb`). S29 guard-in-init PR #21 — merged (`8c3c832`). S28 Darshan-in-init PR #19 — merged (`c65fc10`).
+- S34 brownfield-onboarding PR [#29](https://github.com/ifelse-codes/vajra/pull/29) — open (merge after closeout).
+- S33 compression-schema-fix PR #27 — merged. S32 Darshan-enforcement PR #24 — merged. S31 dogfood docs PR #23 — merged (`79ad2fb`). S29 guard-in-init PR #21 — merged (`8c3c832`).
 
-## Direction (set S18 … audited S25, hardened S26, human-lane S27, in-init S28/S29, gate-audited S30, dogfood-measured S31, Darshan-enforced S32, compression-enforced S33)
+## Direction (set S18 … audited S25, hardened S26, human-lane S27, in-init S28/S29, gate-audited S30, dogfood-measured S31, Darshan-enforced S32, compression-enforced S33, brownfield-guided S34)
 - **Reframe: co-pilot, not cop** — guide the agent in real time (ADAS / F1 race engineer), not catch mistakes after.
 - **Two speaking skills, two lanes:** **Varta** = the agent talks to itself over the live `.ai/` (⚡ language, skill not compiler). **Darshan** = the user *sees* (glanceable, surface-adaptive; skill not renderer). The agent thinks in Varta; the human gets Darshan.
-- **Second agent launcher stays parked** (S26 founder override) — gated on founder satisfaction with Vajra-on-Claude, not the audit's call. **S31 dogfood measured the gate: DO NOT promote** until the 3 core breakages are fixed.
-- **S31 DOGFOOD verdict — 3 core features dead in the real loop** (S30 false-green shape, proven 3×), ranked by daily satisfaction: (1) Darshan not obeyed; (2) compression never fires; (3) brownfield unguided. **Meta:** 2 of 3 are Vajra violating its own "enforcement, not prompts" wedge. **Fix the core before breadth.** (KNOWLEDGE S31)
-- **S32: finding #1 fixed — Darshan is now enforced.** **S33: finding #2 fixed — the compression schema bug is fixed** (HookInput no longer forces camelCase). Order continues: S34 brownfield (#3), then reconsider the second agent.
-- **S33 build-order fork resolved:** founder chose the pinned compression fix over promoting the 2026-07-01 obedience-metric/pace-notes discovery (stays in ROADMAP Backlog, unscheduled).
+- **Second agent launcher stays parked** (S26 founder override) — gated on founder satisfaction with Vajra-on-Claude, not the audit's call. S31 measured the gate: fix the 3 core breakages first.
+- **ALL THREE S31 core breakages now closed:** S32 #1 Darshan enforced · S33 #2 compression schema fixed · **S34 #3 brownfield onboarding guided.** Each fix moved a feature *advised → enforced* (the meta-rule, 3 instances — Vajra's own wedge).
+- **S35 = mandated GROUND TRUTH (NO-CODE), founder-picked lens A:** verify the "fix the core before breadth" bet paid off + re-measure the second-agent gate. `dogfood_check` will flag ~$0 `vajra claude` spend since S31 — "unmeasured → dogfood S36" is the honest likely verdict.
 
 ## What Currently Works
-- **Compression fires on real Claude Code (S33)** — `HookInput` no longer requires camelCase top-level keys; parses the real snake_case envelope (`tool_name/tool_input/tool_response`). Regression test built from a verbatim real-shaped payload reproduces the old bug (silent passthrough) and confirms the fold post-fix. verify-session-33.sh green (9/9). **advised → enforced claim → now evidenced**, closing the S03/S07 "zero savings" gap for line-count-driven heuristics (git log/status/diff-stat, generic head+tail, any ≥400-line output).
-- **Darshan enforced (S32)** — `scripts/hook-session-start.sh` prints a Darshan directive into every boot packet (one rule inlined + `darshan/SKILL.md` pointer + `▶ ACK NOW` speak-back). `vajra init` embeds the canonical hook via `include_str!` (byte-identical, can't drift); `Cargo.toml` un-excludes it so it ships. verify-session-32.sh green (18/18).
-- **Ground-truth hardening (S30)** — `CONSTRAINTS.yaml#ground_truth` has a **`dogfood_check`** audit + `dogfood_questions`: every future GT asks whether real work has run through `vajra claude` since the last GT (the cost ledger is the proof).
-- **Session-guard in `vajra init` (S29)** + **Darshan skill in init (S28) / skill (S27)** — `include_str!` one-source propagation; the scaffolded guard actually enforces (exit 2).
-- `vajra claude` · `vajra next` · `vajra check` · `vajra init` (20 files) · `vajra estimate` · `vajra meter`. Co-pilot loader (S21) fires `⚡on` mid-session (fired live on this session's `git commit`). CI green. `cargo test` green (107: 98 lib + 9 adapter), clippy clean.
+- **Brownfield onboarding (S34)** — `vajra init` detects an existing codebase (`is_brownfield()`: any root entry the scaffold doesn't own) → session 00 with a guided study-the-repo brief (`prompts/00-task-brownfield-onboarding.md`); `SESSION`/`TASK.md`/`SESSION-BOOT.md` point at it; KNOWLEDGE/STATE get filled from observed reality before feature work. Scaffolded hooks land in `.ai/hooks/` (never the project's own `scripts/`). `vajra claude` fails fast without credentials (presence-only layers: env key → credentials file → `oauthAccount` marker → macOS Keychain; `VAJRA_SKIP_AUTH_CHECK=1` bypass). verify-session-34.sh green (11/11) incl. E2E of the built binary on real-shaped repos; verified on real copies of `darpan` + `TradingAgents`.
+- **Compression fires on real Claude Code (S33)** — `HookInput` parses the real snake_case envelope; regression-tested against a verbatim real-shaped payload. Line-count-driven heuristics fold (git log/status/diff-stat, generic head+tail, ≥400-line output).
+- **Darshan enforced (S32)** — boot packet prints the directive (one rule + skill pointer + `▶ ACK NOW`); `vajra init` embeds via `include_str!`.
+- **Ground-truth hardening (S30)** — `dogfood_check` audit + questions; the cost ledger is the proof of usage.
+- `vajra claude` · `vajra next` · `vajra check` · `vajra init` (20 files greenfield / 21 brownfield) · `vajra estimate` · `vajra meter`. Co-pilot loader (S21) fired live on this session's `git commit`. CI green. `cargo test` 133 pass (110 lib + 23 integration), clippy clean.
 
 ## What Is Broken
-> **Ranked by the gate's own lens — daily founder satisfaction — not by fix-convenience (S31 founder call).**
-- ~~🔴 S31 #1 — Darshan not obeyed~~ — **FIXED S32.** Now surfaced in the boot packet every session + speak-back ACK. Machine-verified enforcement (a `Stop`-hook wall-of-text heuristic) remains a documented follow-on, not built.
-- ~~🔴 S31 #2 — compression hook NEVER fires on real Claude Code~~ — **FIXED S33.** `HookInput` no longer requires camelCase top-level keys. Regression-tested against a verbatim real-shaped payload.
-- **🟡 NEW (found during S33, not fixed) — `cargo`/`npm`/`pytest` heuristics key off `exit_code == Some(0)` directly**, not the engine's own inferred success — and real CC never sends `exit_code` for Bash. So those three heuristics still fall to their "\_fail" branch (passthrough unless ≥400 lines) on every real invocation, regardless of the schema fix. Only line-count-driven paths (git heuristics, generic head+tail fallback, huge output) genuinely fold today. Candidate for its own future 1-story session.
-- **🟡 S31 #3 — brownfield onboarding unguided (felt once per project).** `vajra init` works on existing repos but no "learn-the-codebase" first session; hooks land in the project's own `scripts/`. Plus the S18 gap: `vajra claude` has no auth pre-check. **S34.**
-- **META:** the fixes each move a feature *advised → enforced* — Vajra's own wedge. S32 (Darshan) and S33 (compression) both done this way; S34 continues.
-- Second agent launcher (the north-star gap) stays parked until the core is fixed.
+> **All three S31 core breakages are FIXED (S32/S33/S34).** Remaining, for S35 GT to rank:
+- **🟡 `.claude/settings.json` merge gap (found S34, not fixed)** — a brownfield repo that already has `.claude/settings.json` gets it *skipped* on init → the scaffolded hooks in `.ai/hooks/` are never wired. Needs a merge strategy (same class as the launcher's `--settings` merge). Future 1-story candidate.
+- **🟡 `cargo`/`npm`/`pytest` heuristics key off `exit_code == Some(0)` (found S33, not fixed)** — real CC never sends `exit_code` for Bash, so those three fall to their `_fail` branch (passthrough unless ≥400 lines). Only line-count-driven paths genuinely fold today.
+- **Dogfood gap:** ~$0 `vajra claude` spend since S31 — satisfaction gate is unmeasured by definition.
+- Second agent launcher (the north-star gap) stays parked until the founder clears the gate.
 - **Co-pilot v0 limits** — simple-glob + `cmd:` substring (no `**`/regex); surfaces paths + why, not file contents.
 - **No `serde_yaml` dep** — hooks + the varta renderer hand-parse `CONSTRAINTS.yaml` line-by-line.
 - `vajra estimate` output ratio (3:1) is unvalidated placeholder.
 
 ## What Is In Progress
-- **S33 DONE + closed.** Compression schema fix shipped (HookInput schema + regression tests), PR pending. **Next session (S34) = brownfield onboarding (#3)**; second agent reconsideration after that. S35 = NO-CODE ground truth. 1-story/≤3-file discipline keeps each fix to its own session.
+- **S34 DONE + closed.** Brownfield onboarding shipped (init session-0 path + `.ai/hooks/` placement + auth pre-check), PR #29 open. **Next session (S35) = mandated GROUND TRUTH (NO-CODE)**, lens A: bet verification + gate re-measure. Read `prompts/35-task-ground-truth-gate-remeasure.md` in a **new chat**.
 
 ## Cost Tracking
 - Session 00–05: $0.00 (no API calls)
@@ -45,6 +42,5 @@ None — between sessions (S33 complete, S34 not yet started).
 - Session 07: ~$0.46 (3 test runs via `vajra claude -p`)
 - Session 08–30: ~$0.00 (code/no-code sessions, no API calls)
 - Session 31: first real spend since S07 — a live `vajra claude` session in `chitra` (receipt to stderr, exact $ not captured).
-- Session 32: ~$0.00 (Rust code session — build/test/verify only, no `vajra claude` API run).
-- Session 33: ~$0.00 (Rust code session — build/test/verify only, no `vajra claude` API run).
+- Session 32–34: ~$0.00 (Rust code sessions — build/test/verify only; S34's `vajra claude --version` checks spawn no API calls).
 - Cumulative: ~$0.46 + S31 dogfood run.
