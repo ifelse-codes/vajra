@@ -1,27 +1,28 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 34 — COMPLETE
-- **Type:** CODE — Brownfield onboarding (S31 finding #3, last of the three core breakages).
-- **Branch:** `session-34-brownfield-onboarding`
+- **Number:** 35 — COMPLETE
+- **Type:** GROUND TRUTH (NO-CODE) — "fix the core" bet verification + second-agent gate re-measure (lens A).
+- **Branch:** `session-35-ground-truth`
 - **Date last updated:** 2026-07-02
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 34.
-- `main`: includes up to Session 33 (PR #27 merged). S34 on `session-34-brownfield-onboarding`, PR [#29](https://github.com/ifelse-codes/vajra/pull/29) open.
+- `.ai/SESSION` = 35.
+- `main`: includes up to Session 34 (PR #29 merged). S35 on `session-35-ground-truth`, docs-only, no PR (GT rule).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- This session (three-part story, one story): **(1) Session-0 onboarding** — `vajra init` detects a brownfield repo (`is_brownfield()`: any root entry the scaffold doesn't own) and boots it into session 00 with a guided study-the-repo brief (`prompts/00-task-brownfield-onboarding.md`) that fills KNOWLEDGE/STATE with reality before feature work; greenfield unchanged. **(2) Hook placement** — scaffolded `hook-*.sh` land in `.ai/hooks/`, never the project's own `scripts/`; settings.json template updated; verify/demo session scripts stay in `scripts/`. **(3) Auth pre-check** — `vajra claude` fails fast without credentials (env key → `~/.claude/.credentials.json` → `oauthAccount` marker → macOS Keychain; presence-only; `VAJRA_SKIP_AUTH_CHECK=1` bypasses). Closes the S18 gap.
-- **Evidence:** verify-session-34.sh green (11/11) — E2E runs the built binary against real-shaped temp repos. Verified on real brownfield copies (`darpan` TS monorepo with its own `scripts/`, `TradingAgents`). Auth check verified live (Keychain pass / forced no-creds fail-fast / bypass). `cargo test` 133 pass, clippy clean.
-- **Meta-rule: third instance of *advised → enforced*** (S32 Darshan, S33 compression, S34 brownfield).
-- **New finding (out of scope):** brownfield repos that already have `.claude/settings.json` get it skipped on init → scaffolded hooks never wired. Needs a merge strategy; future 1-story candidate.
+- All 8 required audits run (`vision_alignment` … `dogfood_check`). **Gate call: second-agent promotion NOT cleared — still unmeasured.** Zero `vajra claude` spend since S31; S32–S34 fixes are test-verified, not daily-use-verified. Same call as S30, one session later.
+- **Tension pressure-test:** `.claude/settings.json` merge gap (S34) + `exit_code` heuristic gap (S33) are two isolated debt items, not a structural wedge leak — tracked, not alarming.
+- **Ranked S36 candidates:** (1) real dogfood session (recommended), (2) `.claude/settings.json` merge, (3) `exit_code` heuristic fix, (4) obedience metric (backlog, needs usage to measure).
+- Full report: `sessions/session-35-ground-truth.md`.
 
 ## Next Session
-- **Number:** 35
-- **Type:** **GROUND TRUTH (NO-CODE, mandated `NN % 5 == 0`)** — lead lens (founder pick A): "fix the core" bet verification + second-agent gate re-measure. `dogfood_check` will flag ~$0 spend since S31 — an "unmeasured" verdict teeing up an S36 dogfood is the honest likely outcome.
-- **Read prompt:** `prompts/35-task-ground-truth-gate-remeasure.md`
-- **Branch:** `session-35-ground-truth` (from `main`). No code, no commits, no PRs.
+- **Number:** 36
+- **Type:** Founder picks from 3 options in `sessions/session-35-ground-truth.md`.
+- **A (recommended, prompt ready):** `prompts/36-task-real-dogfood-run.md` — real dogfood run.
+- **B/C:** settings.json merge / exit_code fix — write the prompt at session start if picked instead.
+- **Branch:** `session-36-<slug>` (from `main`).
 
 ## Carry-Forwards
-- **All three S31 core breakages closed** (S32 #1 Darshan, S33 #2 compression, S34 #3 brownfield). Second agent stays parked until the founder clears the gate — S35 re-asks it.
-- **Open advised-mode gaps for S36 ranking:** `.claude/settings.json` merge (S34 finding); `cargo`/`npm`/`pytest` `exit_code == Some(0)` heuristics (S33 finding); obedience-metric/pace-notes backlog (2026-07-01); a real dogfood run.
-- **Meta-rule held 3×:** every fix moves a feature *advised → enforced* — Vajra's own wedge.
+- **Second-agent gate still unmeasured** — do not clear without a real dogfood session first.
+- **Open advised-mode gaps for S36+ ranking:** `.claude/settings.json` merge (S34 finding); `cargo`/`npm`/`pytest` `exit_code == Some(0)` heuristics (S33 finding); obedience-metric/pace-notes backlog (2026-07-01).
+- **Meta-rule held 3×:** every fix moves a feature *advised → enforced* — Vajra's own wedge. No 4th data point yet on whether it's structurally leaky.
