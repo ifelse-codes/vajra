@@ -27,7 +27,7 @@ fn init_creates_all_files() {
         "AGENTS.md",
         ".cursorrules",
         ".claude/settings.json",
-        "scripts/hook-session-start.sh",
+        ".ai/hooks/hook-session-start.sh",
         "scripts/verify-session-template.sh",
         "scripts/demo-session-template.sh",
         "prompts/01-task-kickoff.md",
@@ -79,7 +79,7 @@ fn init_scripts_are_executable() {
     vajractl::cli::init::scaffold(&root, "Proj", "goal", "L2").unwrap();
 
     for script in &[
-        "scripts/hook-session-start.sh",
+        ".ai/hooks/hook-session-start.sh",
         "scripts/verify-session-template.sh",
         "scripts/demo-session-template.sh",
     ] {

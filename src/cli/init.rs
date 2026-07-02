@@ -33,16 +33,24 @@ pub fn run() -> Result<()> {
 pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> Result<()> {
     let slug = slugify(goal);
     let date = today();
+    let brownfield = is_brownfield(root);
 
     let mut created = 0u32;
     let mut skipped = 0u32;
 
-    for dir in &[".ai", "scripts", "prompts", "sessions", ".claude"] {
+    for dir in &[
+        ".ai",
+        ".ai/hooks",
+        "scripts",
+        "prompts",
+        "sessions",
+        ".claude",
+    ] {
         fs::create_dir_all(root.join(dir))
             .with_context(|| format!("failed to create {dir}/ directory"))?;
     }
 
-    for entry in files(project_name, goal, &slug, &date, maturity) {
+    for entry in files(project_name, goal, &slug, &date, maturity, brownfield) {
         let full = root.join(&entry.path);
         if full.exists() {
             eprintln!("  skip   {}", entry.path);
@@ -65,7 +73,44 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
 
     eprintln!();
     eprintln!("Created {created} files, skipped {skipped}.");
+    if brownfield {
+        eprintln!();
+        eprintln!("Existing codebase detected → session 00 is a guided onboarding:");
+        eprintln!("  study the repo, fill .ai/KNOWLEDGE.md + .ai/STATE.md with reality,");
+        eprintln!("  then start feature work in session 01.");
+        eprintln!("  Brief: prompts/00-task-brownfield-onboarding.md");
+    }
     Ok(())
+}
+
+/// Brownfield = the repo already has content Vajra didn't put there. Detected by any
+/// root entry that isn't `.git` or one of the paths this scaffold itself creates —
+/// so re-running `init` on an already-scaffolded project stays greenfield, while a
+/// repo with real source (src/, package.json, …) gets the session-0 onboarding path.
+fn is_brownfield(root: &Path) -> bool {
+    const SCAFFOLD_OWNED: &[&str] = &[
+        ".git",
+        ".ai",
+        "scripts",
+        "prompts",
+        "sessions",
+        ".claude",
+        "darshan",
+        "CLAUDE.md",
+        "AGENTS.md",
+        ".cursorrules",
+        ".gitignore",
+    ];
+    fs::read_dir(root)
+        .map(|entries| {
+            entries.filter_map(|e| e.ok()).any(|e| {
+                let name = e.file_name();
+                !SCAFFOLD_OWNED
+                    .iter()
+                    .any(|owned| name.as_os_str() == *owned)
+            })
+        })
+        .unwrap_or(false)
 }
 
 /// First-run "aha" (S23): after scaffolding, let the user *see* the co-pilot work in
@@ -98,7 +143,7 @@ fn copilot_fire_preview(root: &Path) -> Option<String> {
     use std::io::Write as _;
     use std::process::Stdio;
 
-    let hook = root.join("scripts/hook-copilot-loader.sh");
+    let hook = root.join(".ai/hooks/hook-copilot-loader.sh");
     if !hook.exists() {
         return None;
     }
@@ -228,29 +273,55 @@ fn find_project_root() -> Result<PathBuf> {
         .unwrap_or(cwd))
 }
 
-fn files(name: &str, goal: &str, slug: &str, date: &str, maturity: &str) -> Vec<FileEntry> {
-    let f = |path: &str, content: &str| FileEntry {
-        path: path.to_string(),
-        content: content
+fn files(
+    name: &str,
+    goal: &str,
+    slug: &str,
+    date: &str,
+    maturity: &str,
+    brownfield: bool,
+) -> Vec<FileEntry> {
+    // Brownfield repos boot into session 00 (study the codebase); greenfield goes
+    // straight to the session-01 kickoff. The kickoff prompt is emitted either way.
+    let (first_nn, first_prompt, first_title, first_note) = if brownfield {
+        (
+            "00",
+            "prompts/00-task-brownfield-onboarding.md",
+            "Brownfield onboarding (study the codebase)",
+            "Existing codebase — session 00 studies it before any feature work.",
+        )
+    } else {
+        (
+            "01",
+            "prompts/01-task-kickoff.md",
+            goal,
+            "First session. No prior work.",
+        )
+    };
+    let fill = move |content: &str| {
+        content
             .replace("{PROJECT_NAME}", name)
             .replace("{GOAL}", goal)
             .replace("{SLUG}", slug)
             .replace("{DATE}", date)
-            .replace("{MATURITY}", maturity),
+            .replace("{MATURITY}", maturity)
+            .replace("{FIRST_NN}", first_nn)
+            .replace("{FIRST_PROMPT}", first_prompt)
+            .replace("{FIRST_TITLE}", first_title)
+            .replace("{FIRST_NOTE}", first_note)
+    };
+    let f = |path: &str, content: &str| FileEntry {
+        path: path.to_string(),
+        content: fill(content),
         executable: false,
     };
     let fx = |path: &str, content: &str| FileEntry {
         path: path.to_string(),
-        content: content
-            .replace("{PROJECT_NAME}", name)
-            .replace("{GOAL}", goal)
-            .replace("{SLUG}", slug)
-            .replace("{DATE}", date)
-            .replace("{MATURITY}", maturity),
+        content: fill(content),
         executable: true,
     };
 
-    vec![
+    let mut entries = vec![
         f(".ai/AGENTS.md", TPL_AGENTS),
         f(".ai/SESSION", TPL_SESSION),
         f(".ai/SESSION-BOOT.md", TPL_SESSION_BOOT),
@@ -265,13 +336,23 @@ fn files(name: &str, goal: &str, slug: &str, date: &str, maturity: &str) -> Vec<
         f(".gitignore", TPL_GITIGNORE),
         f("darshan/SKILL.md", TPL_DARSHAN),
         f(".claude/settings.json", TPL_CLAUDE_SETTINGS),
-        fx("scripts/hook-session-start.sh", TPL_HOOK_SESSION_START),
-        fx("scripts/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
-        fx("scripts/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
+        // Hooks live under .ai/hooks/ (S34): they are Vajra's, not the project's —
+        // keeps them out of a brownfield project's own scripts/ package. Per-session
+        // verify/demo scripts stay in scripts/ (that contract is unchanged).
+        fx(".ai/hooks/hook-session-start.sh", TPL_HOOK_SESSION_START),
+        fx(".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
+        fx(".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
         f("prompts/01-task-kickoff.md", TPL_PROMPT),
-    ]
+    ];
+    if brownfield {
+        entries.push(f(
+            "prompts/00-task-brownfield-onboarding.md",
+            TPL_PROMPT_ONBOARD,
+        ));
+    }
+    entries
 }
 
 // ── Templates ───────────────────────────────────────────────────────────────
@@ -333,32 +414,32 @@ the binary parses or draws it. The user sees Darshan in every reply.
 - Code first, explanation after
 "#;
 
-const TPL_SESSION: &str = "01\n";
+const TPL_SESSION: &str = "{FIRST_NN}\n";
 
 const TPL_SESSION_BOOT: &str = r#"# Session Boot
 
 ## Current Session
-- **Number:** 01
+- **Number:** {FIRST_NN}
 - **Type:** CODE
 - **Branch:** pending
 - **Date last updated:** {DATE}
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 01.
-- First session. No prior work.
+- `.ai/SESSION` = {FIRST_NN}.
+- {FIRST_NOTE}
 
 ## Next Session
-- **Read prompt:** `prompts/01-task-kickoff.md`
+- **Read prompt:** `{FIRST_PROMPT}`
 "#;
 
 const TPL_TASK: &str = r#"# Current Task Pointer
 
-## Session 01 — {GOAL}
+## Session {FIRST_NN} — {FIRST_TITLE}
 
 - **Branch:** pending
-- **Goal:** {GOAL}
+- **Goal:** {FIRST_TITLE}
 
-Read prompt: `prompts/01-task-kickoff.md`
+Read prompt: `{FIRST_PROMPT}`
 "#;
 
 const TPL_STATE: &str = r#"# {PROJECT_NAME} — Current State Snapshot
@@ -392,7 +473,7 @@ session:
   max_stories_per_session: 1
   cap_hours_per_session: 2
   ground_truth_every_n_sessions: 5
-  one_session_per_chat: true   # new session = new chat; enforced by scripts/hook-session-guard.sh
+  one_session_per_chat: true   # new session = new chat; enforced by .ai/hooks/hook-session-guard.sh
 
 branch:
   forbid_direct_work_on: [main, master]
@@ -458,7 +539,7 @@ load_order:
   - .ai/ROADMAP.md
 
 copilot:
-  # The co-pilot loader (fired by scripts/hook-copilot-loader.sh): surface the right
+  # The co-pilot loader (fired by .ai/hooks/hook-copilot-loader.sh): surface the right
   # context the moment matching work is touched, not all up front.
   # Rule form:  "PATTERN => file, file | why this context, for this work"
   #   PATTERN = a path glob (matched against the touched file, repo-relative)
@@ -530,7 +611,7 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-session-start.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-session-start.sh\""
           }
         ]
       }
@@ -541,11 +622,11 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-copilot-loader.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-copilot-loader.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-session-guard.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-session-guard.sh\""
           }
         ]
       },
@@ -554,7 +635,7 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-copilot-loader.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-copilot-loader.sh\""
           }
         ]
       }
@@ -695,6 +776,40 @@ const TPL_PROMPT: &str = r#"# Session 01 — {GOAL}
 - Session summary with 3 next options
 "#;
 
+// Session-0 brief for brownfield repos (S34): the codebase existed before Vajra, so the
+// first session studies it and seeds the .ai/ files with reality — no feature work.
+const TPL_PROMPT_ONBOARD: &str = r#"# Session 00 — Brownfield Onboarding (study the codebase)
+
+> This project existed before Vajra. Session 00 is a guided study session: learn the
+> codebase, then fill the `.ai/` files with reality instead of empty templates. No
+> feature work happens here — session 01 (`prompts/01-task-kickoff.md`) starts on facts.
+
+## Goal (one story)
+Study the existing repo and seed `.ai/KNOWLEDGE.md` + `.ai/STATE.md` with a real
+first-pass understanding.
+
+## Steps
+1. **Scan the repo** — layout, languages, entry points, how to build/test/run, CI,
+   existing docs. Read the top-level manifests (package.json / Cargo.toml / etc.) first.
+2. **Ask the founder** (max 5 framing questions) — what is this project, what state is it
+   really in, what is the next milestone, what must never break, any no-go areas?
+3. **Fill `.ai/KNOWLEDGE.md`** — permanent facts only: stack, commands, conventions,
+   invariants, environment quirks. If you can't verify a fact, don't write it.
+4. **Rewrite `.ai/STATE.md`** — What Currently Works / What Is Broken from observed
+   reality (run the tests; the results are the evidence).
+5. **Seed `.ai/ROADMAP.md`** with the founder's next milestone, then point `.ai/TASK.md`
+   at `prompts/01-task-kickoff.md` and set `.ai/SESSION` to 01.
+
+## Guardrails
+- **Docs only**: `.ai/` files. No source-code edits, no refactors, no "quick fixes".
+- Branch `session-00-onboarding` from `main`. Commits need the founder's approval token.
+- Max 2 assumptions; unverifiable claims are questions for the founder, not facts.
+
+## Exit Criteria
+- Founder signs off that `KNOWLEDGE.md` + `STATE.md` match reality.
+- Session 01 starts in a **new chat** from `prompts/01-task-kickoff.md`.
+"#;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -766,7 +881,7 @@ mod tests {
     #[test]
     fn scaffold_ships_copilot_hook_verbatim() {
         let dir = scaffold_tmp();
-        let hook = dir.path().join("scripts/hook-copilot-loader.sh");
+        let hook = dir.path().join(".ai/hooks/hook-copilot-loader.sh");
         assert!(hook.exists(), "hook not scaffolded");
         // The whole point of option (b): the scaffolded copy is byte-identical to the
         // canonical script — one source of truth, no drift.
@@ -815,7 +930,7 @@ mod tests {
     #[test]
     fn scaffold_ships_session_guard_verbatim() {
         let dir = scaffold_tmp();
-        let hook = dir.path().join("scripts/hook-session-guard.sh");
+        let hook = dir.path().join(".ai/hooks/hook-session-guard.sh");
         assert!(hook.exists(), "session-guard not scaffolded");
         // Byte-identical to canonical — one source of truth, no drift (S22 pattern).
         assert_eq!(
@@ -865,6 +980,94 @@ mod tests {
                 .contains(".ai/.session-owner"),
             ".gitignore must ignore the session-guard owner record"
         );
+    }
+
+    // ── Brownfield onboarding + hook placement (S34) ──────────────────────────
+
+    #[test]
+    fn scaffold_hooks_land_in_ai_hooks_not_scripts() {
+        let dir = scaffold_tmp();
+        for hook in [
+            "hook-session-start.sh",
+            "hook-copilot-loader.sh",
+            "hook-session-guard.sh",
+        ] {
+            assert!(
+                dir.path().join(".ai/hooks").join(hook).exists(),
+                "{hook} missing from .ai/hooks/"
+            );
+            assert!(
+                !dir.path().join("scripts").join(hook).exists(),
+                "{hook} must not land in the project's scripts/"
+            );
+        }
+        let s = fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+        assert!(
+            s.contains("$CLAUDE_PROJECT_DIR/.ai/hooks/hook-session-start.sh"),
+            "settings.json must point at .ai/hooks/"
+        );
+        assert!(
+            !s.contains("scripts/hook-"),
+            "settings.json still references scripts/ hooks"
+        );
+    }
+
+    #[test]
+    fn scaffold_empty_repo_is_greenfield() {
+        let dir = scaffold_tmp();
+        assert_eq!(
+            fs::read_to_string(dir.path().join(".ai/SESSION")).unwrap(),
+            "01\n"
+        );
+        assert!(!dir
+            .path()
+            .join("prompts/00-task-brownfield-onboarding.md")
+            .exists());
+        let task = fs::read_to_string(dir.path().join(".ai/TASK.md")).unwrap();
+        assert!(task.contains("prompts/01-task-kickoff.md"));
+    }
+
+    #[test]
+    fn scaffold_existing_code_gets_session_zero() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("src")).unwrap();
+        fs::write(dir.path().join("src/index.ts"), "export {};\n").unwrap();
+        fs::write(dir.path().join("package.json"), "{}\n").unwrap();
+        scaffold(dir.path(), "Demo", "build it", "L2").unwrap();
+
+        assert_eq!(
+            fs::read_to_string(dir.path().join(".ai/SESSION")).unwrap(),
+            "00\n"
+        );
+        let brief = dir.path().join("prompts/00-task-brownfield-onboarding.md");
+        assert!(brief.exists(), "onboarding brief not emitted");
+        let brief = fs::read_to_string(brief).unwrap();
+        for needle in [
+            "KNOWLEDGE.md",
+            "STATE.md",
+            "Docs only",
+            "session-00-onboarding",
+        ] {
+            assert!(
+                brief.contains(needle),
+                "onboarding brief missing {needle:?}"
+            );
+        }
+        // Session 00 studies; session 01 still holds the user's goal.
+        let task = fs::read_to_string(dir.path().join(".ai/TASK.md")).unwrap();
+        assert!(task.contains("Session 00 — Brownfield onboarding"));
+        assert!(task.contains("prompts/00-task-brownfield-onboarding.md"));
+        assert!(dir.path().join("prompts/01-task-kickoff.md").exists());
+    }
+
+    #[test]
+    fn brownfield_detection_ignores_scaffold_owned_paths() {
+        let dir = scaffold_tmp();
+        // A fully-scaffolded (or re-run) project is not brownfield…
+        assert!(!is_brownfield(dir.path()));
+        // …but one real source file flips it.
+        fs::write(dir.path().join("main.py"), "print()\n").unwrap();
+        assert!(is_brownfield(dir.path()));
     }
 
     #[test]
