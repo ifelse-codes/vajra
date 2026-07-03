@@ -1,10 +1,9 @@
-# Session 38 — Fix the compression fail-gate (S36 finding, PROVEN)
+# Session 39 — Fix the compression fail-gate (S36 finding, PROVEN)
 
-> Demoted from 37 after the S36 interactive dogfood surfaced a bigger finding — Vajra's
-> enforcement itself leaked (see `prompts/37-task-enforce-session-boundaries.md`). Compression is
-> the "quiet bonus," not the moat, so it sits *behind* the enforcement fix. Still a proven, ready
-> fix — do it once the enforcement gap is closed (or if the founder re-picks it sooner).
-> Branch when scheduled: `session-38-fix-compression-exit-gate`.
+> Renumbered 37 → 38 → 39 as the enforcement work took priority: S37 shipped the publish-guard,
+> S38 propagates it into `vajra init`. Compression is the "quiet bonus," not the moat, so it sits
+> *behind* the enforcement work. Still a proven, ready fix — do it once enforcement is closed (or
+> if the founder re-picks it sooner). Branch when scheduled: `session-39-fix-compression-exit-gate`.
 
 ## ⛔ Guiding principle (non-negotiable — founder directive, S36)
 **Correctness and the agent's experience beat token savings, always.** Compression is the quiet
@@ -68,13 +67,13 @@ it is provably safe**, and passthrough everywhere we can't guarantee correctness
     and after** — the invariant that must never regress;
   - whatever the generic path decides for `ls`, assert it **never drops the tail** (failure signal
     preserved). The existing `tests/hook_adapter.rs` real-shape fixtures are the template.
-- `scripts/verify-session-37.sh` green; `cargo test` + clippy clean.
+- `scripts/verify-session-39.sh` green; `cargo test` + clippy clean.
 - Sanity-check against the real loop if cheap: `vajra hook` fold table flips as above (no paid
   `vajra claude` run required — the S36 method proves it for $0).
 
 ## Guardrails
-- Branch `session-37-fix-compression-exit-gate` from `main`.
-- Max 2 assumptions / 2 retries / ≤3 files / ~2h. New chat (S36 → S37 boundary).
+- Branch `session-39-fix-compression-exit-gate` from `main`.
+- Max 2 assumptions / 2 retries / ≤3 files / ~2h. New chat.
 
 ## Explicitly OUT of scope (carry-forwards, own sessions)
 - **Silent-parse-failure blindness** (S36): `HookToolResponse` requires `isImage`/`noOutputExpected`
