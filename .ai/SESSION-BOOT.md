@@ -1,32 +1,33 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 39 — COMPLETE
-- **Type:** CODE — harden the guards (founder-combined A+B: publish-guard over-block fix + session-guard advance arming).
-- **Branch:** `session-39-harden-guards`.
+- **Number:** 40 — COMPLETE
+- **Type:** GROUND TRUTH — mandatory NO-CODE (every 5th; last = S35). Lens = enforcement-completeness.
+- **Branch:** `session-40-closeout` (doc-only, suffix-exempt).
 - **Date last updated:** 2026-07-03
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 39.
-- `main`: up to Session 38 (PR #33). S39 on `session-39-harden-guards`, PR pending (founder pushes — the publish-guard blocks the agent from pushing, by design).
+- `.ai/SESSION` = 40.
+- `main`: up to Session 39 (PR #34, merged `61637fb`). S40 GT report on `session-40-closeout`, PR pending (founder pushes — publish-guard blocks the agent, by design).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- **Shipped: both guards are now correct + more complete.**
-  - **B (`08c1cfe`):** `scripts/hook-publish-guard.sh` strips quoted spans (`sed -E "s/'…'//g; s/\"…\"//g"`) before classifying, so a trigger phrase inside a message/arg (`git commit -m "…git push…"`, `echo "gh pr create"`, `--body`) no longer false-blocks. Real unquoted `git push` / `gh pr create|merge` / `glab mr *` (incl. force, compound, quoted-branch-arg) still block at L2/L3. Fail-safe: over-block > leak.
-  - **A (`c87d302`):** `scripts/hook-session-guard.sh` also arms on `vajra next --advance` (grep the invocation; target session = `.ai/SESSION` + 1; reuse the same same-chat N→N+1 ownership block), closing the S36 root cause (the brownfield agent advanced 00→01 without ever `checkout -b`). Quote-strips first so a message can't false-arm. No `src/` change — `--advance` already exists.
-- **Proved:** `verify-session-39.sh` 37/37 green (B now-pass + B zero-regression block + A advance-block/fresh-pass/L1/non-arm + A checkout no-regression + byte-identical scaffold cmp both hooks + fmt/clippy/test). `cargo test` 133 pass. 3 files. Full report: `sessions/session-39-summary.md`.
+- **Delivered: `sessions/session-40-ground-truth.md`** — enforcement-completeness audit.
+  - **Lens verdict:** S37→S39 converged on the *harm* (every S36 outward action — push/2×PR create+merge — now BLOCKS, scaffolded via S38) but not the *proof* (moat test-verified, not live-verified).
+  - **Residual-gap ranking:** 1 real (latent) leak = **`jq`-missing → fail-open** (violates AGENTS.md L147 "a check that cannot evaluate FAILS"); 1 high-leverage bounded = **git-level `pre-push`/`pre-commit` not scaffolded** (closes raw-`echo > .ai/SESSION` too); 4 accepted v0 limits (obfuscation, heredoc over-block, coarse env var, first-unbranched-advance hygiene).
+  - **dogfood_check = 🔴 UNMEASURED** — ~$0 `vajra claude` since S36; the S37→S39 guards are test-green, not live-verified (same cliff compression sat on before S31/S36 proved it dead).
+  - **Meta-check:** 3 Claude-only plumbing sessions; cross-agent breadth still zero code (S25, 15 sessions stale). Enforcement was correct priority AND is now at the unmeasured-risk cliff.
+- **8 required audits:** vision 🟡 · roadmap 🟡 (no scheduled re-dogfood item) · state ✅ (S39 "pending" = accepted snapshot-before-merge; actually merged) · knowledge ✅ · constraints ✅ · constitution 🔴 (jq fail-open) · cost ✅ · dogfood 🔴.
 
 ## Next Session
-- **Number:** 40
-- **Type:** GROUND TRUTH — mandatory NO-CODE (every 5th; last = S35). **No src edits, no commits to main, no PRs.**
-- **Prompt:** `prompts/40-task-enforcement-completeness-gt.md` (ready).
-- **Lens (founder pick):** enforcement-completeness — did S37→S39 (guard authored → propagated → corrected) converge, or are the recorded residual gaps real leaks? Rank each; walk the S36 sequence against today's guards. dogfood_check mandatory (gate unmeasured since S36). Meta-check for direction drift after three enforcement-plumbing sessions.
-- **Branch:** `session-40-closeout` if doc-only hardening, else none (pure audit).
-- **Then:** S41 (leading post-GT) = compression fail-gate, correctness-first (`prompts/41-task-fix-compression-exit-gate.md`).
+- **Number:** 41
+- **Type:** CODE — **B: fix the compression fail-gate, correctness-first** (founder pick at S40 close).
+- **Prompt:** `prompts/41-task-fix-compression-exit-gate.md` (ready).
+- **Goal:** unblock the safe format-aware `git*` folds regardless of `exitCode`; keep the generic path conservative; **never hide a failure** (founder directive). Proven defect (S36); the "quiet bonus," not the moat.
+- **Branch:** `session-41-fix-compression-exit-gate`.
+- **Then S42 = C** (founder pick): git-level `pre-push`/`pre-commit` scaffolding into `vajra init` (ROADMAP #17) — **bundle the `jq`-preflight / fail-closed fix** (the S40 constitution finding).
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S40; do NOT audit it here.
-- **To push/PR S39, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the guard blocks the agent otherwise, by design). Push: `VAJRA_ALLOW_PUBLISH=1 git push -u origin session-39-harden-guards`, then open the PR to `main`.
-- **Post-merge:** checkout `main` + prune the merged `session-39-*` branch (the S37 founder-flagged return-to-main step).
-- **Open enforcement gaps (S40 must rank):** no git-level `pre-push`/`pre-commit` scaffolded (#17); publish-guard jq-missing → fail-open; obfuscated-command evasion; raw `echo > .ai/SESSION` bypass (S39-A out of scope); heredoc-body over-block; per-launch (not per-action) approval.
-- **Compression still dead in real use** (S41 ready) — behind the enforcement work; the "quiet bonus."
-- **Dogfood gate unmeasured** — ~$0 `vajra claude` spend since S36; the S37–S39 guards are test-verified, not live-verified.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S41; do NOT start it here.
+- **To push/PR the S40 closeout, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the guard blocks the agent otherwise, by design). Push: `VAJRA_ALLOW_PUBLISH=1 git push -u origin session-40-closeout`, then open the PR to `main`.
+- **Post-merge:** checkout `main` + prune the merged `session-40-closeout` branch (the S37 founder-flagged return-to-main step).
+- **Dogfood gate still UNMEASURED** (S40 finding) — the S37→S39 moat is live-unverified; a real `vajra claude` re-dogfood (GT candidate A, not picked) remains the missing verification. Added to ROADMAP as a standing item.
+- **jq fail-open** (S40 constitution finding) — folds into S42/C.
