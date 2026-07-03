@@ -3,44 +3,38 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S35 GT complete, S36 not yet started).
+None — between sessions (S36 complete, S37 not yet started).
 
 ## Active PRs
-- None open. S34 brownfield-onboarding PR [#29](https://github.com/ifelse-codes/vajra/pull/29) — merged. S33 compression-schema-fix PR #27 — merged. S32 Darshan-enforcement PR #24 — merged. S31 dogfood docs PR #23 — merged (`79ad2fb`). S29 guard-in-init PR #21 — merged (`8c3c832`).
-- S35 is GT (NO-CODE): docs-only `.ai/` sync, no PR.
+- S36 real-dogfood-run PR — open (docs-only: dogfood report + re-ranked prompts + `.ai/` sync).
+- Merged: S34 brownfield [#29](https://github.com/ifelse-codes/vajra/pull/29) · S33 compression #27 · S32 Darshan #24 · S31 dogfood #23 · S35 GT closeout #30.
 
-## Direction (set S18 … audited S25, hardened S26, human-lane S27, in-init S28/S29, gate-audited S30, dogfood-measured S31, Darshan-enforced S32, compression-enforced S33, brownfield-guided S34, gate-reaudited S35)
-- **Reframe: co-pilot, not cop** — guide the agent in real time (ADAS / F1 race engineer), not catch mistakes after.
-- **Two speaking skills, two lanes:** **Varta** = the agent talks to itself over the live `.ai/` (⚡ language, skill not compiler). **Darshan** = the user *sees* (glanceable, surface-adaptive; skill not renderer). The agent thinks in Varta; the human gets Darshan.
-- **Second agent launcher stays parked** (S26 founder override) — gated on founder satisfaction with Vajra-on-Claude, not the audit's call. S31 measured the gate: fix the 3 core breakages first. **S35 re-measured it: still parked, still unmeasured** (zero `vajra claude` spend since S31).
-- **ALL THREE S31 core breakages closed:** S32 #1 Darshan enforced · S33 #2 compression schema fixed · S34 #3 brownfield onboarding guided. Each fix moved a feature *advised → enforced* (the meta-rule, 3 instances — Vajra's own wedge). **S35 pressure-tested the wedge for structural leaks: 2 isolated debt items found (settings.json merge, exit_code heuristic), not a pattern.**
-- **S35 GT verdict (lens A): gate NOT cleared.** Test-verified ≠ daily-use-verified. Recommendation: S36 = a real dogfood session before anything else, including the second agent.
+## Direction (set S18 … dogfood-measured S31, Darshan-enforced S32, compression-enforced S33, brownfield-guided S34, gate-reaudited S35, **dogfood-verified-live S36**)
+- **Co-pilot, not cop** — guide the agent in real time; **Varta** = the agent's lane, **Darshan** = the human's lane.
+- **S36 headline (founder's own interactive `vajra claude` run): the enforcement moat LEAKED.** At L3, in one chat, the agent shipped **2 real merged PRs** to `github.com/ifelse-codes/chitra`, ran ~4 sessions, committed to `main` — Vajra's hooks stopped **none** of it. Enforcement is the moat; this outranks the compression fix.
+- **What DID hold live:** Darshan — **founder-confirmed "what I actually envisioned"** (the S31 #1 daily-friction item). Brownfield onboarding + auth (S34) hold live.
+- **What is DEAD live:** compression — 0 folds across a 576-entry session (the `exitCode` fail-gate, proven).
+- **Second agent stays parked — now FURTHER from cleared** than before S36: the founder watched Vajra fail to govern Claude in the one dimension that is the whole product.
 
 ## What Currently Works
-- **Brownfield onboarding (S34)** — `vajra init` detects an existing codebase (`is_brownfield()`: any root entry the scaffold doesn't own) → session 00 with a guided study-the-repo brief (`prompts/00-task-brownfield-onboarding.md`); `SESSION`/`TASK.md`/`SESSION-BOOT.md` point at it; KNOWLEDGE/STATE get filled from observed reality before feature work. Scaffolded hooks land in `.ai/hooks/` (never the project's own `scripts/`). `vajra claude` fails fast without credentials (presence-only layers: env key → credentials file → `oauthAccount` marker → macOS Keychain; `VAJRA_SKIP_AUTH_CHECK=1` bypass). verify-session-34.sh green (11/11) incl. E2E of the built binary on real-shaped repos; verified on real copies of `darpan` + `TradingAgents`.
-- **Compression fires on real Claude Code (S33)** — `HookInput` parses the real snake_case envelope; regression-tested against a verbatim real-shaped payload. Line-count-driven heuristics fold (git log/status/diff-stat, generic head+tail, ≥400-line output).
-- **Darshan enforced (S32)** — boot packet prints the directive (one rule + skill pointer + `▶ ACK NOW`); `vajra init` embeds via `include_str!`.
-- **Ground-truth hardening (S30) + re-run (S35)** — `dogfood_check` audit + questions proved out twice now: both times caught an unmeasured gate the other 7 audits missed.
-- `vajra claude` · `vajra next` · `vajra check` · `vajra init` (20 files greenfield / 21 brownfield) · `vajra estimate` · `vajra meter`. Co-pilot loader (S21) fired live on this session's `git commit`. CI green. `cargo test` 133 pass (110 lib + 23 integration), clippy clean — unchanged this session (NO-CODE).
+- **Darshan (S32) — founder-confirmed good in real use (S36).** Boot directive surfaces every session and is obeyed; the interactive agent replied in glanceable tables/bullets. The S31 #1 complaint is cleared by the person who lives with it.
+- **Brownfield onboarding + auth (S34) — hold live (S36).** `vajra init` on a real copy of `chitra` detected brownfield → session 00 brief; hooks in `.ai/hooks/`; `.gitignore` idempotent-skipped; auth pre-check passed and the nested spawn authenticated (no S31 401).
+- `vajra claude` · `vajra next` · `vajra check` · `vajra init` · `vajra estimate` · `vajra meter`. `cargo test` 133 pass, clippy clean — unchanged this session (no `src/` edits).
 
 ## What Is Broken
-> All three S31 core breakages are FIXED (S32/S33/S34), but **unverified by daily use** (S35 finding).
-- **🟡 `.claude/settings.json` merge gap (found S34, not fixed)** — a brownfield repo that already has `.claude/settings.json` gets it *skipped* on init → the scaffolded hooks in `.ai/hooks/` are never wired. Needs a merge strategy (same class as the launcher's `--settings` merge). **S35-ranked #2 for S36.**
-- **🟡 `cargo`/`npm`/`pytest` heuristics key off `exit_code == Some(0)` (found S33, not fixed)** — real CC never sends `exit_code` for Bash, so those three fall to their `_fail` branch (passthrough unless ≥400 lines). Only line-count-driven paths genuinely fold today. **S35-ranked #3 for S36.**
-- **Dogfood gap (S35 headline finding):** ~$0 `vajra claude` spend since S31 — satisfaction gate is unmeasured by definition, same as S30. **S35-ranked #1 for S36 (highest leverage).**
-- Second agent launcher (the north-star gap) stays parked until the founder clears the gate — still unmeasured after S35.
-- **Co-pilot v0 limits** — simple-glob + `cmd:` substring (no `**`/regex); surfaces paths + why, not file contents.
-- **No `serde_yaml` dep** — hooks + the varta renderer hand-parse `CONSTRAINTS.yaml` line-by-line.
-- `vajra estimate` output ratio (3:1) is unvalidated placeholder.
+- **🔴 Enforcement leak (S36 headline, NEW).** Vajra enforces none of its hard rules in a real autonomous (L3) session. Root cause (4 structural gaps): (1) `hook-session-guard.sh` arms only on `git checkout -b session-(N+1)` from an owning chat — brownfield never branches 00, so the tripwire never arms; (2) **no hook watches `git push` / `gh pr create` / `gh pr merge`**; (3) `vajra init` scaffolds `.claude/` hooks but not git-level `pre-push`/`pre-commit`; (4) L3 gates nothing. **S37-ranked #1** (`prompts/37-task-enforce-session-boundaries.md`).
+- **🔴 Compression dead in real use (S36, sharper than the S33 carry-note).** `default_engine.rs:17` fail-gate drops all 30–399-line output unless `is_success`; real CC sends no `exitCode` and `infer_success` only matches cargo/pytest tails → git log/status AND generic output all pass through; only ≥400-line output folds. Fix must be **correctness-first** (never gamble). **S38-ranked** (`prompts/38-task-fix-compression-exit-gate.md`).
+- **🟡 Budget cap didn't bite (S36).** A single interactive session ran to **$58** under a `$5` warn-mode cap (checked only after exit; warn never kills). Cost is dominated by boot-packet cache-read (~$32) — the "<5% footprint" rule.
+- **🟡 Silent-parse-failure blindness / verify+demo templates in the project's `scripts/` / `.claude/settings.json` merge on init (S34)** — backlog.
+- **Co-pilot v0 limits** — simple-glob + `cmd:` substring (false-positive-prone; blocked this closeout's own tooling once).
+- Second agent launcher stays parked (gate unmet).
 
 ## What Is In Progress
-- **S35 GT DONE + closed.** Report: `sessions/session-35-ground-truth.md`. Gate call: NOT cleared, still unmeasured. **Next session (S36)** = founder picks option A (recommended: real dogfood run) / B (settings.json merge) / C (exit_code fix) from the report, in a **new chat**.
+- **S36 DONE + closed.** Report: `sessions/session-36-summary.md`. Ran the real `vajra claude` loop against `/private/tmp/chitra` (both an agent `-p` run and the founder's interactive run). **Next (S37)** = founder pick, re-ranked around the enforcement leak: **A (recommended)** enforcement (`prompts/37`), **B** compression (`prompts/38`), **C** boot-cost trim — in a **new chat**.
 
 ## Cost Tracking
-- Session 00–05: $0.00 (no API calls)
-- Session 06: $0.00 (docs only)
-- Session 07: ~$0.46 (3 test runs via `vajra claude -p`)
-- Session 08–30: ~$0.00 (code/no-code sessions, no API calls)
-- Session 31: first real spend since S07 — a live `vajra claude` session in `chitra` (receipt to stderr, exact $ not captured).
-- Session 32–35: ~$0.00 (Rust code sessions + S35 GT docs-only — build/test/verify only, no live agent runs).
-- Cumulative: ~$0.46 + S31 dogfood run. **Zero spend for 4 consecutive sessions (S32–S35) — the dogfood gap the S35 GT flagged.**
+- Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
+- Session 31: first real `vajra claude` dogfood since S07 (chitra; exact $ not captured).
+- Session 32–35: ~$0.00 (code + GT docs sessions).
+- **Session 36: ~$61.4** — two real runs against `/private/tmp/chitra`: agent `-p` run **$3.27** (`fable-5`) + founder interactive run **$58.17** (`opus-4-8`; cache-r $32.21 · output $13.96 · cache-w $11.66 · input $0.33). Compression saved **$0**.
+- Cumulative: ~$62.
