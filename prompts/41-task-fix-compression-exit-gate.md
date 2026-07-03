@@ -1,9 +1,11 @@
-# Session 39 — Fix the compression fail-gate (S36 finding, PROVEN)
+# Session 41 — Fix the compression fail-gate (S36 finding, PROVEN)
 
-> Renumbered 37 → 38 → 39 as the enforcement work took priority: S37 shipped the publish-guard,
-> S38 propagates it into `vajra init`. Compression is the "quiet bonus," not the moat, so it sits
-> *behind* the enforcement work. Still a proven, ready fix — do it once enforcement is closed (or
-> if the founder re-picks it sooner). Branch when scheduled: `session-39-fix-compression-exit-gate`.
+> Renumbered 37 → 38 → 39 → 41 as the enforcement work kept taking priority: S37 shipped the
+> publish-guard, S38 propagated it into `vajra init`, S39 hardens the guards (session-boundary +
+> publish-guard false-positive), S40 is the mandatory NO-CODE ground-truth. Compression is the
+> "quiet bonus," not the moat, so it sits *behind* the enforcement work — the leading candidate for
+> the first code slot after the GT. Still a proven, ready fix — do it once enforcement is closed (or
+> if the founder re-picks it sooner). Branch when scheduled: `session-41-fix-compression-exit-gate`.
 
 ## ⛔ Guiding principle (non-negotiable — founder directive, S36)
 **Correctness and the agent's experience beat token savings, always.** Compression is the quiet
@@ -67,12 +69,12 @@ it is provably safe**, and passthrough everywhere we can't guarantee correctness
     and after** — the invariant that must never regress;
   - whatever the generic path decides for `ls`, assert it **never drops the tail** (failure signal
     preserved). The existing `tests/hook_adapter.rs` real-shape fixtures are the template.
-- `scripts/verify-session-39.sh` green; `cargo test` + clippy clean.
+- `scripts/verify-session-41.sh` green; `cargo test` + clippy clean.
 - Sanity-check against the real loop if cheap: `vajra hook` fold table flips as above (no paid
   `vajra claude` run required — the S36 method proves it for $0).
 
 ## Guardrails
-- Branch `session-39-fix-compression-exit-gate` from `main`.
+- Branch `session-41-fix-compression-exit-gate` from `main`.
 - Max 2 assumptions / 2 retries / ≤3 files / ~2h. New chat.
 
 ## Explicitly OUT of scope (carry-forwards, own sessions)

@@ -342,6 +342,7 @@ fn files(
         fx(".ai/hooks/hook-session-start.sh", TPL_HOOK_SESSION_START),
         fx(".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
         fx(".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
+        fx(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
         f("prompts/01-task-kickoff.md", TPL_PROMPT),
@@ -627,6 +628,10 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-session-guard.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-publish-guard.sh\""
           }
         ]
       },
@@ -661,6 +666,14 @@ const TPL_HOOK_COPILOT_LOADER: &str = include_str!("../../scripts/hook-copilot-l
 // CONSTRAINTS.yaml#session.one_session_per_chat: true; records the owning chat in a
 // gitignored `.ai/.session-owner`. Un-excluded in Cargo.toml so it ships with `cargo install`.
 const TPL_HOOK_SESSION_GUARD: &str = include_str!("../../scripts/hook-session-guard.sh");
+
+// Canonical publish-guard (S37/S38) — blocks outward/irreversible actions (git push,
+// gh pr create/merge, glab mr create/merge) at L2/L3 unless the founder launched with
+// VAJRA_ALLOW_PUBLISH=1. Embedded verbatim so the scaffolded copy can never drift (S22
+// pattern). This is the S36 leak fix propagated to where it actually leaked: scaffolded
+// projects run the real autonomous sessions. Un-excluded in Cargo.toml so it ships with
+// `cargo install`.
+const TPL_HOOK_PUBLISH_GUARD: &str = include_str!("../../scripts/hook-publish-guard.sh");
 
 // The scaffold's `.gitignore` — the session-guard writes the owning chat's id into
 // `.ai/.session-owner`, a local-only record that must never be committed.
@@ -979,6 +992,43 @@ mod tests {
                 .unwrap()
                 .contains(".ai/.session-owner"),
             ".gitignore must ignore the session-guard owner record"
+        );
+    }
+
+    // ── Publish-guard propagation (S38) ──────────────────────────────────────
+
+    #[test]
+    fn scaffold_ships_publish_guard_verbatim() {
+        let dir = scaffold_tmp();
+        let hook = dir.path().join(".ai/hooks/hook-publish-guard.sh");
+        assert!(hook.exists(), "publish-guard not scaffolded");
+        // Byte-identical to canonical — one source of truth, no drift (S22 pattern).
+        assert_eq!(
+            fs::read_to_string(&hook).unwrap(),
+            TPL_HOOK_PUBLISH_GUARD,
+            "scaffolded publish-guard drifted from canonical hook-publish-guard.sh"
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&hook).unwrap().permissions().mode();
+            assert_eq!(mode & 0o111, 0o111, "publish-guard must be executable");
+        }
+    }
+
+    #[test]
+    fn scaffold_wires_publish_guard_into_settings() {
+        let dir = scaffold_tmp();
+        let s = fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+        assert_eq!(
+            s.matches("hook-publish-guard.sh").count(),
+            1,
+            "publish-guard must be wired once (PreToolUse Bash)"
+        );
+        // Rides the same Bash matcher as the co-pilot + session-guard.
+        assert!(
+            s.contains("hook-session-guard.sh"),
+            "session-guard wiring lost"
         );
     }
 
