@@ -3,41 +3,40 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S39 complete, S40 not yet started).
+`session-40-closeout` — S40 ground-truth (NO-CODE) complete; doc-only, suffix-exempt. (Between vajra-sessions otherwise: S41 not yet started.)
 
 ## Active PRs
-- S39 harden-guards PR — **pending** (founder pushes: the publish-guard blocks the agent, by design). Push: `VAJRA_ALLOW_PUBLISH=1 git push -u origin session-39-harden-guards`, then open PR to `main`.
-- Merged: S38 propagate-publish-guard #33 · S37 enforce-session-boundaries [#32](https://github.com/ifelse-codes/vajra/pull/32) · S36 dogfood #31 · S34 brownfield #29 · S33 compression #27 · S32 Darshan #24 · S35 GT closeout #30.
+- S40 GT closeout PR — **pending** (founder pushes: the publish-guard blocks the agent, by design). Push: `VAJRA_ALLOW_PUBLISH=1 git push -u origin session-40-closeout`, then open PR to `main`.
+- Merged: S39 harden-guards [#34](https://github.com/ifelse-codes/vajra/pull/34) · S38 propagate-publish-guard #33 · S37 enforce-session-boundaries [#32](https://github.com/ifelse-codes/vajra/pull/32) · S36 dogfood #31 · S35 GT closeout #30.
 
-## Direction (set S18 … dogfood-verified-live S36, enforcement-hardened S37, propagated S38, **corrected S39**)
+## Direction (set S18 … enforcement-hardened S37, propagated S38, corrected S39, **audited S40**)
 - **Co-pilot, not cop** — guide the agent in real time; **Varta** = the agent's lane, **Darshan** = the human's lane.
-- **Enforcement is the moat, and it must be correct.** S36 proved it leaked (agent shipped 2 real PRs unstopped). S37 closed the core, S38 propagated it into `vajra init`, **S39 made the guards correct (publish-guard over-block fixed) + more complete (session-guard now arms on `vajra next --advance`, not just `checkout -b` — the S36 root cause).**
-- **Next: S40 mandatory NO-CODE ground-truth, lens = enforcement-completeness** — did the S37→S39 guard work converge, or are the residual gaps real leaks? Meta-check for direction drift after three enforcement-plumbing sessions.
-- **Second agent stays parked** — gate unmet + unmeasured; the S36 governance failure is being closed, not yet re-measured live.
+- **Enforcement is the moat — S40 verdict: the harm the S36 leak caused is closed, the proof is not.** Every S36 outward action (push / 2× PR create+merge) now BLOCKS, scaffolded (S38); but the moat is **test-verified, not live-verified** — the dogfood gate is UNMEASURED (~$0 `vajra claude` since S36).
+- **S41 = compression fail-gate, correctness-first** (founder pick B); **S42 = git-level hooks scaffolding + `jq`-preflight** (founder pick C). A live re-dogfood (GT candidate A, not picked) stays the missing verification of the moat.
+- **Second agent stays parked** — cross-agent breadth still zero code (S25, 15 sessions stale); the S40 meta-check flags Claude-only depth accumulating.
 
 ## What Currently Works
-- **Publish-guard, corrected (S39-B) — proved 13/13.** `hook-publish-guard.sh` strips quoted spans before classifying, so a trigger phrase inside a message/arg (`git commit -m "…git push…"`, `echo "gh pr create"`, `--body`) no longer false-blocks; every real unquoted `git push` / `gh pr create|merge` / `glab mr *` (incl. force, compound `cd && push`, quoted-branch-arg) still blocks at L2/L3 (exit 2). Fail-safe: over-block > leak.
-- **Session-guard, armed on advance (S39-A) — proved.** `hook-session-guard.sh` now fires on `vajra next --advance` (target = `.ai/SESSION` + 1), not just `git checkout -b session-(N+1)`; same same-chat N→N+1 ownership block; quote-strips so a message can't false-arm. Fresh chat / plain `next` / a SESSION *read* all pass. Checkout boundary (S26/S29) holds, no regression.
-- **Both hooks stay byte-identical in `vajra init`** — `include_str!`-embedded; the existing scaffold drift unit tests + a fresh E2E `cmp` confirm scaffolded copies == canonical after the S39 edits.
-- **Publish-guard (S37) + propagation (S38), Darshan (S32/S36-confirmed), brownfield+auth (S34)** — all hold.
-- `vajra claude` · `vajra next` · `vajra check` · `vajra init` (21 files greenfield) · `vajra estimate` · `vajra meter`. `cargo test` 133 pass, clippy clean, fmt clean.
+- **Publish-guard, correct + scaffolded (S37→S39-B).** `hook-publish-guard.sh` blocks `git push` (any form) / `gh pr create|merge` / `glab mr *` at L2/L3 (exit 2) unless `VAJRA_ALLOW_PUBLISH=1`; strips quoted spans first so a trigger phrase inside a message/arg no longer false-blocks. Scaffolded byte-identical into `vajra init` (S38). **S40 confirmed: every S36 outward action now blocks.**
+- **Session-guard, armed on advance (S39-A) + scaffolded (S29).** `hook-session-guard.sh` fires on `git checkout -b session-(N+1)` **and** `vajra next --advance` (target = `.ai/SESSION`+1); same same-chat N→N+1 block; quote-strips so a message can't false-arm. **S40 live data point:** creating `session-40-closeout` did NOT false-block (same-session-number checkout allowed correctly).
+- **Both guards byte-identical in `vajra init`** — `include_str!`-embedded; scaffold-drift unit tests hold.
+- **The vajra repo's own git belt** — `.githooks/pre-commit` (blocks main commits, >3 staged files, `.ai/` drift) + `pre-push` (blocks push to main/master), `core.hooksPath=.githooks`. **NOT scaffolded into `vajra init`** (ROADMAP #17 → S42/C).
+- `vajra claude` · `vajra next` · `vajra check` · `vajra init` · `vajra estimate` · `vajra meter`. `cargo test` 133 pass, clippy clean, fmt clean.
 
 ## What Is Broken
-- **🟡 Publish-guard v0 limits.** Heredoc-body phrase still over-blocks (fail-safe, accepted); jq-missing → fail-open; obfuscated `g=push; git $g` evades; one env var authorizes the whole launch (coarse, not per-action).
-- **🟡 Session-guard: raw `echo N > .ai/SESSION` bypass.** Deliberately out of S39-A's bounded scope (the guard arms on `vajra next --advance`, the sanctioned advance; a Bash hook can't see the Rust `fs::write`). Belongs to the git-level `pre-commit`/`pre-push` belt (ROADMAP #17).
-- **🔴 No git-level `pre-push`/`pre-commit` scaffolded** (S38 split, ROADMAP #17) — L3 gates nothing beyond the `.claude/` hooks; a belt-and-suspenders L2 layer for scaffolded projects.
-- **🔴 Compression dead in real use (S36, proven).** `default_engine.rs:17` fail-gate drops 30–399-line output unless `is_success`; real CC sends no `exitCode`. Fix must be correctness-first. **Ready** (`prompts/41-task-fix-compression-exit-gate.md`).
+- **🔴 `jq`-missing → fail-open (S40 constitution finding).** All hooks parse the payload with `jq`; if `jq` is absent, `CMD` is empty → `exit 0` → the guard passes everything. Violates AGENTS.md L147 ("a check that cannot evaluate FAILS; never silently pass"). Fix = `jq`-preflight / fail-closed. **Folds into S42/C.**
+- **🔴 No git-level `pre-push`/`pre-commit` scaffolded** (ROADMAP #17 → S42/C) — scaffolded projects have only the `.claude/` L3 hooks; a raw `echo N > .ai/SESSION` write bypasses the Bash session-guard. Bounded (the publish-guard blocks the outward *harm* regardless); the git belt is the right layer.
+- **🔴 Compression dead in real use (S36, proven).** `default_engine.rs:17` fail-gate drops 30–399-line output unless `is_success`; real CC sends no `exitCode`. **S41 fixes it, correctness-first** (`prompts/41-task-fix-compression-exit-gate.md`).
+- **🟡 Accepted publish-guard v0 limits.** Heredoc-body phrase over-blocks (fail-safe); obfuscated `g=push; git $g` evades (non-adversarial threat model); one env var authorizes the whole launch (coarse, not per-action).
 - **🟡 Budget cap didn't bite / silent-parse-failure blindness / `.claude/settings.json` merge on init** — backlog.
 
 ## What Is In Progress
-- **S39 DONE + closed.** Report: `sessions/session-39-summary.md`. Hardened both guards (B: publish-guard over-block fixed; A: session-guard arms on advance) — founder-combined A+B, ordered B→A, each a separate ≤3-file commit (`08c1cfe`, `c87d302`); `verify-session-39.sh` 37/37 green; 3 files. **Next (S40)** = mandatory NO-CODE ground-truth, lens = enforcement-completeness — in a **new chat**.
+- **S40 DONE + closed.** Ground-truth report: `sessions/session-40-ground-truth.md` (8 audits + lens-A leak/limit ranking + dogfood verdict + 3 ranked candidates). Founder pick: **S41 = B (compression), S42 = C (git-level hooks + jq fix).** **Next (S41)** = compression fail-gate, correctness-first — in a **new chat**.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
 - Session 31: first real `vajra claude` dogfood since S07 (chitra; exact $ not captured).
 - Session 32–35: ~$0.00 (code + GT docs sessions).
 - Session 36: ~$61.4 — two real runs against `/private/tmp/chitra` (agent `-p` $3.27 fable-5 + founder interactive $58.17 opus-4-8). Compression saved $0.
-- Session 37: ~$0.00 — build/code session (guard authored directly, no paid `vajra claude` run).
-- Session 38: ~$0.00 — build/code session (propagation authored + local E2E `vajra init`, no paid run).
-- **Session 39: ~$0.00** — build/code session (both guard fixes authored directly; verified with `cargo test` + shell-driven hook payloads + a local E2E `vajra init`, no paid `vajra claude` run).
-- Cumulative: ~$62. **No real `vajra claude` spend since S36 — the dogfood gate stays unmeasured (S40 must flag it).**
+- Session 37–39: ~$0.00 each — build/code sessions (guards authored + verified via `cargo test` + shell-driven hook payloads + local E2E `vajra init`, no paid `vajra claude` run).
+- **Session 40: ~$0.00** — NO-CODE ground-truth (audit + doc closeout only).
+- Cumulative: ~$62. **No real `vajra claude` spend since S36 — the dogfood gate stays UNMEASURED (S40 flagged it; live re-verify still owed).**
