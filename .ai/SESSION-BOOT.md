@@ -1,31 +1,31 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 37 — COMPLETE
-- **Type:** CODE — close the S36 enforcement leak (option A). Guard outward/irreversible actions.
-- **Branch:** `session-37-enforce-session-boundaries`.
+- **Number:** 38 — COMPLETE
+- **Type:** CODE — propagate the publish-guard into `vajra init` (close the S36 leak where it happened).
+- **Branch:** `session-38-propagate-publish-guard`.
 - **Date last updated:** 2026-07-03
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 37.
-- `main`: up to Session 36 (PR #31). S37 on `session-37-enforce-session-boundaries`, PR pending (founder pushes — the new guard blocks the agent from pushing, by design).
+- `.ai/SESSION` = 38.
+- `main`: up to Session 37 (PR #32). S38 on `session-38-propagate-publish-guard`, PR pending (founder pushes — the publish-guard blocks the agent from pushing, by design).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- **Shipped `scripts/hook-publish-guard.sh`** — PreToolUse(Bash) hook that blocks `git push` / `gh pr create` / `gh pr merge` / `glab mr *` at L2/L3 (exit 2) unless `VAJRA_ALLOW_PUBLISH=1` was set at launch; L1 advises; innocuous git passes. Wired into `.claude/settings.json`.
-- **Proved live:** the guard blocked this session's own `git push` tool call; the co-pilot loader blocked the first commit to surface STATE.md. Enforcement fired against the agent building it.
-- **Repo-only** — `vajra init` does NOT scaffold this guard yet (that's where S36 leaked). Propagation = S38.
-- `scripts/verify-session-37.sh`: 22/22 green. No `src/` change (bash-only). Full report: `sessions/session-37-summary.md`.
+- **Shipped: publish-guard now scaffolds into `vajra init`.** `src/cli/init.rs` embeds `hook-publish-guard.sh` via `include_str!` (byte-identical), emits it to `.ai/hooks/` (executable), and wires it into `TPL_CLAUDE_SETTINGS`'s PreToolUse Bash array beside the session-guard; `Cargo.toml` un-excludes it so `cargo install` compiles it. Every scaffolded project now inherits the block on `git push` / `gh pr create` / `gh pr merge`.
+- **Proved end-to-end:** a real `vajra init` into a temp repo scaffolds the guard byte-identical, and the scaffolded copy blocks a `git push` payload at L2 (exit 2), allows with `VAJRA_ALLOW_PUBLISH=1`. `verify-session-38.sh`: 19/19 green. 3 files. Full report: `sessions/session-38-summary.md`.
+- **New finding (recorded, not fixed):** the publish-guard over-blocks — it greps the whole command string, so a trigger phrase inside a `git commit -m "…git push…"` message false-blocks. Hit live this session (worked around with `git commit -F`). → S39 story B.
 
 ## Next Session
-- **Number:** 38
-- **Type:** Propagate the guard into `vajra init` + git-level hooks (founder pick A).
-- **Prompt:** `prompts/38-task-propagate-publish-guard.md` (ready).
-- **Goal:** scaffold `hook-publish-guard.sh` into new projects (S29 `include_str!` pattern) + a git-level `pre-push`, so the guard exists where the S36 leak actually happened (scaffolded projects).
-- **Branch:** `session-38-propagate-publish-guard` (from `main`).
-- **Also ready (not picked):** `prompts/39-task-fix-compression-exit-gate.md` (compression, correctness-first) · session-boundary hardening (the other S36 slice).
+- **Number:** 39
+- **Type:** CODE — harden the guards. **Founder combined two stories into S39 (deliberate `max 1 story` override).**
+- **Prompt:** `prompts/39-task-harden-guards.md` (ready).
+- **Goal (ordered B → A):** **B** — fix the publish-guard false-positive (match the command token, not the whole line); **A** — arm the session-guard on *any* advance (`SESSION` bump / `vajra next --advance`), not just `git checkout -b` (the S36 root cause). B first so it's banked if the ~2h cap hits mid-A.
+- **Branch:** `session-39-harden-guards` (from `main`).
+- **Then:** S40 = mandatory NO-CODE ground-truth. S41 (leading) = compression fail-gate (`prompts/41-task-fix-compression-exit-gate.md`, renumbered 39→41).
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S38; do NOT branch/plan it here.
-- **Publish-guard is repo-only** — scaffolded projects (the S36 leak site) stay unguarded until S38 propagation lands.
-- **Other S36 enforcement gaps still open:** session-boundary armed on one tripwire only; L3 gates nothing; git-level `pre-push`/`pre-commit` not scaffolded.
-- **v0 guard limits:** jq-missing → fail-open; regex won't catch obfuscated commands (`g=push; git $g`); one env var authorizes the whole launch (coarse).
-- **Compression still dead in real use** (S38/39 ready) — the "quiet bonus," behind enforcement.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S39; do NOT branch/plan it here.
+- **To push/PR from an agent session, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the guard blocks the agent otherwise, by design). Once S39 story B lands, a commit *message* mentioning the trigger phrases no longer false-blocks.
+- **Post-merge:** checkout `main` + prune the merged `session-38-*` branch (the S37 founder-flagged return-to-main step).
+- **Other S36 enforcement gaps still open:** session-boundary arms on one tripwire only (S39 story A); no git-level `pre-push`/`pre-commit` scaffolded (S38 split); L3 gates nothing beyond these hooks.
+- **Publish-guard v0 limits:** the new false-positive (S39 B) · jq-missing → fail-open · obfuscated-command evasion · one env var authorizes the whole launch (coarse).
+- **Compression still dead in real use** (S41 ready) — the "quiet bonus," behind enforcement.
