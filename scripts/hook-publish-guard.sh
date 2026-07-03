@@ -33,18 +33,26 @@ CONSTRAINTS="$ROOT/.ai/CONSTRAINTS.yaml"
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 [ -n "$CMD" ] || exit 0
 
+# S39 (story B — fix the over-block): classify against the command with QUOTED SPANS
+# REMOVED, so a trigger phrase buried inside an argument/message no longer false-blocks
+# (`git commit -m "…git push…"`, `--body "…gh pr create…"`, `echo "gh pr merge"`). A real
+# invocation always places the command name OUTSIDE quotes, so stripping quoted spans can
+# never hide a genuine push/PR — fail-safe: anything unquoted still matches and blocks.
+# Unbalanced quotes / heredocs leave text in place -> over-block, the safe direction.
+SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
+
 # Classify the command as an outward/irreversible action. Here-strings (not pipes) so a
 # short-circuiting `grep -q` can never SIGPIPE a producer under `set -o pipefail` (S32 gotcha).
 ACTION=""
-if grep -qE '(^|[^[:alnum:]_])git[[:space:]]+push([^[:alnum:]]|$)' <<<"$CMD"; then
+if grep -qE '(^|[^[:alnum:]_])git[[:space:]]+push([^[:alnum:]]|$)' <<<"$SCAN"; then
   ACTION="git push (publishing commits to a remote)"
-elif grep -qE '(^|[^[:alnum:]_])gh[[:space:]]+pr[[:space:]]+create([^[:alnum:]]|$)' <<<"$CMD"; then
+elif grep -qE '(^|[^[:alnum:]_])gh[[:space:]]+pr[[:space:]]+create([^[:alnum:]]|$)' <<<"$SCAN"; then
   ACTION="gh pr create (opening a pull request)"
-elif grep -qE '(^|[^[:alnum:]_])gh[[:space:]]+pr[[:space:]]+merge([^[:alnum:]]|$)' <<<"$CMD"; then
+elif grep -qE '(^|[^[:alnum:]_])gh[[:space:]]+pr[[:space:]]+merge([^[:alnum:]]|$)' <<<"$SCAN"; then
   ACTION="gh pr merge (merging a pull request)"
-elif grep -qE '(^|[^[:alnum:]_])glab[[:space:]]+mr[[:space:]]+create([^[:alnum:]]|$)' <<<"$CMD"; then
+elif grep -qE '(^|[^[:alnum:]_])glab[[:space:]]+mr[[:space:]]+create([^[:alnum:]]|$)' <<<"$SCAN"; then
   ACTION="glab mr create (opening a merge request)"
-elif grep -qE '(^|[^[:alnum:]_])glab[[:space:]]+mr[[:space:]]+merge([^[:alnum:]]|$)' <<<"$CMD"; then
+elif grep -qE '(^|[^[:alnum:]_])glab[[:space:]]+mr[[:space:]]+merge([^[:alnum:]]|$)' <<<"$SCAN"; then
   ACTION="glab mr merge (merging a merge request)"
 fi
 [ -n "$ACTION" ] || exit 0
