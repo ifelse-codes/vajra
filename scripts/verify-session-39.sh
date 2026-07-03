@@ -78,11 +78,50 @@ run_check "B-advise-L1"                 expect_pub 0 L1 "" 'git push origin main
 run_check "B-pass-git-status"           expect_pub 0 L2 "" 'git status'
 
 # =====================================================================================
+# Story A — session-guard: arm on `vajra next --advance`, not just `checkout -b`.
+# Drive the hook against a temp root that controls .ai/SESSION (=38) and the enable flag,
+# with a synthetic owner record (38 owned by chatA) — no real chat needed (verify-26 pattern).
+# =====================================================================================
+AROOT=$(mktemp -d)
+mkdir -p "$AROOT/.ai"
+printf '38\n' > "$AROOT/.ai/SESSION"
+printf 'maturity: L2\nsession:\n  one_session_per_chat: true\n' > "$AROOT/.ai/CONSTRAINTS.yaml"
+AOWN="$AROOT/owner"
+# expect_guard <expected-rc> <maturity> <cmd> <sid>   (owner is always 38 -> chatA)
+expect_guard() {
+  local expected="$1" mat="$2" cmd="$3" sid="$4" json rc
+  printf '38\tchatA\n' > "$AOWN"
+  json=$(jq -nc --arg c "$cmd" --arg s "$sid" '{tool_input:{command:$c}, session_id:$s}')
+  set +e
+  printf '%s' "$json" | CLAUDE_PROJECT_DIR="$AROOT" VAJRA_SESSION_OWNER_FILE="$AOWN" \
+    VAJRA_GUARD_MATURITY="$mat" bash "$SGUARD" >/dev/null 2>&1
+  rc=$?
+  set -e
+  [ "$rc" = "$expected" ]
+}
+# A.1 — the S36 root cause is closed: same chat that owns 38, on `vajra next --advance`
+#        (target 39), is BLOCKED at L2 — even though it never ran `checkout -b`.
+run_check "A-advance-same-chat-blocks"  expect_guard 2 L2 'vajra next --advance' chatA
+run_check "A-advance-cargo-run-form"    expect_guard 2 L2 'cargo run -- next --advance' chatA
+# A.2 — a fresh chat advancing is the correct path -> allowed.
+run_check "A-advance-fresh-chat-allows" expect_guard 0 L2 'vajra next --advance' chatB
+# A.3 — L1 advises, never blocks, on the same boundary.
+run_check "A-advance-L1-advises"        expect_guard 0 L1 'vajra next --advance' chatA
+# A.4 — non-advance activity never arms (plain next, a read, or the phrase inside a message).
+run_check "A-plain-next-passes"         expect_guard 0 L2 'vajra next' chatA
+run_check "A-cat-session-no-arm"        expect_guard 0 L2 'cat .ai/SESSION' chatA
+run_check "A-advance-phrase-in-msg"     expect_guard 0 L2 'git commit -m "run vajra next --advance later"' chatA
+# A.5 — the S26/S29 checkout boundary still holds (zero regression).
+run_check "A-checkout-same-chat-blocks" expect_guard 2 L2 'git checkout -b session-39-foo' chatA
+run_check "A-checkout-fresh-allows"     expect_guard 0 L2 'git checkout -b session-39-foo' chatB
+run_check "A-checkout-nonsession"       expect_guard 0 L2 'git checkout -b feature/x' chatA
+
+# =====================================================================================
 # Byte-identical: a real `vajra init` inherits BOTH hardened hooks with no drift.
 # =====================================================================================
 run_check "cargo-build" cargo build
 SCRATCH=$(mktemp -d)
-trap 'rm -rf "$SCRATCH"' EXIT
+trap 'rm -rf "$SCRATCH" "$AROOT"' EXIT
 ( cd "$SCRATCH" && git init -q )
 printf 'demo-proj\nbuild it\n\n' | ( cd "$SCRATCH" && "$ROOT/target/debug/vajra" init ) >/dev/null 2>&1 || true
 run_check "e2e-pub-byte-identical"   cmp -s "$SCRATCH/.ai/hooks/hook-publish-guard.sh" "$PUB"

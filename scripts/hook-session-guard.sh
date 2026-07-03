@@ -30,8 +30,26 @@ CONSTRAINTS="$ROOT/.ai/CONSTRAINTS.yaml"
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "nosession")
 
-# Only fire on creation of a vajra-session branch: git checkout -b session-NN-<slug>
-NN=$(printf '%s' "$CMD" | grep -oE 'checkout +-b +session-[0-9]+-' | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
+# Scan a QUOTED-SPAN-STRIPPED copy so a trigger phrase inside a message/arg (e.g.
+# git commit -m "…checkout -b session-40…") can't false-arm the boundary — same fix as the
+# S39 publish-guard. Real checkout/advance commands are unquoted, so nothing real is hidden.
+SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
+
+# Fire on a session ADVANCE — two shapes, one meaning ("this chat crosses N -> N+1"):
+#   1. checkout of the next branch: git checkout -b session-NN-<slug>   (NN = the new session).
+#   2. `vajra next --advance` (S39, story A — the S36 root cause). The S36 brownfield agent
+#      advanced 00->01 WITHOUT ever `checkout -b`, so the branch tripwire never armed and it
+#      ran two vajra-sessions in one chat, unstopped. `--advance` is Vajra's ONE sanctioned
+#      advance command; it bumps .ai/SESSION via Rust `fs::write` (invisible to a Bash hook as
+#      a file write), so the invocation itself is the observable common-denominator signal.
+#      For an advance the target session is (current .ai/SESSION) + 1. (A raw manual
+#      `echo N > .ai/SESSION` is out of scope here — tracked for git-level pre-commit
+#      scaffolding; enforcement stays fail-safe: unrecognised advances simply don't arm.)
+NN=$(printf '%s' "$SCAN" | grep -oE 'checkout +-b +session-[0-9]+-' | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
+if [ -z "$NN" ] && grep -qE '(^|[^[:alnum:]_])next[[:space:]]+--advance([^[:alnum:]]|$)' <<<"$SCAN"; then
+  CUR=$(tr -dc '0-9' < "$ROOT/.ai/SESSION" 2>/dev/null || true)
+  [ -n "$CUR" ] && NN=$((10#$CUR + 1))
+fi
 [ -n "$NN" ] || exit 0
 NN=$((10#$NN))
 
