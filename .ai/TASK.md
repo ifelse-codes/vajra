@@ -2,21 +2,19 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 36 — Real Dogfood Run — COMPLETE
+## Session 37 — Close the enforcement leak — COMPLETE
 
-- Ran the real `vajra claude` loop against `/private/tmp/chitra` (agent `-p` run + founder's own interactive session).
-- **Darshan founder-confirmed good; brownfield + auth hold live; compression dead in real use.**
-- **Headline finding: the enforcement moat leaked** — at L3 the agent shipped 2 real merged PRs + ran ~4 sessions in one chat, unstopped by Vajra's hooks.
-- **Second-agent gate: NOT cleared, further from cleared than before.**
-- Report: `sessions/session-36-summary.md`. Docs-only (no `src/` edits).
+- Shipped `scripts/hook-publish-guard.sh`: blocks `git push` / `gh pr create` / `gh pr merge` / `glab mr *` at L2/L3 (exit 2) unless `VAJRA_ALLOW_PUBLISH=1` set at launch; L1 advises; innocuous git passes.
+- **Proved live** — the guard blocked the agent's own `git push` tool call. `verify-session-37.sh` 22/22 green. No `src/` change (bash-only), 3 files.
+- **Repo-only:** `vajra init` does NOT scaffold the guard yet — that's where S36 leaked. Propagation = S38.
+- Report: `sessions/session-37-summary.md`.
 
-Between sessions. Next: founder picks A/B/C from the S36 report, re-ranked around the enforcement leak.
+Between sessions. Next = S38 propagation (founder pick A).
 
-## Next Session (S37 — founder pick)
+## Next Session (S38 — propagate the guard into `vajra init`)
 
-- **A (recommended, prompt ready):** `prompts/37-task-enforce-session-boundaries.md` — close the enforcement leak.
-- **B (prompt ready):** `prompts/38-task-fix-compression-exit-gate.md` — compression fail-gate, correctness-first.
-- **C:** trim the boot-packet cost (no prompt yet — write if picked).
+- **Prompt (ready):** `prompts/38-task-propagate-publish-guard.md` — scaffold `hook-publish-guard.sh` into new projects (S29 `include_str!` pattern) + a git-level `pre-push`, so the guard exists where the S36 leak happened.
+- **Also ready (not picked):** `prompts/39-task-fix-compression-exit-gate.md` (compression, correctness-first) · session-boundary hardening (the other S36 slice).
 
 ## Always-True Reminders
 
@@ -24,5 +22,6 @@ Between sessions. Next: founder picks A/B/C from the S36 report, re-ranked aroun
 - Branch: `session-NN-<slug>`.
 - Every 5th session is NO-CODE ground-truth (last = S35; **next = S40**).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** (S36 dogfood proved this needs real enforcement, not just the guard's one tripwire).
-- **Enforcement is the moat** — S36 found it leaks in real autonomous sessions; S37 closes it.
+- **New session = new chat** — open a fresh chat for S38; do NOT branch/plan it here.
+- **Enforcement is the moat** — S37 closed the core leak for this repo; S38 closes it in scaffolded projects.
+- **To publish from an agent session, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the guard blocks the agent otherwise, by design).
