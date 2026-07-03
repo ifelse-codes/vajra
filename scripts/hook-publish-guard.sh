@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# PreToolUse(Bash): guards outward/irreversible actions (S37 — close the S36 enforcement leak).
+#
+# The S36 dogfood finding: at maturity L3, in ONE chat, the agent pushed to a real
+# remote and created + merged two real PRs — Vajra's hooks stopped none of it.
+# hook-pre-bash.sh only *warns* on `git push`; nothing watched `gh pr create`/`gh pr merge`.
+# This hook turns the outward/irreversible actions into a real, maturity-gated BLOCK
+# unless the founder has explicitly authorized publishing for this launch.
+#
+# Guarded actions: git push (any form), gh pr create, gh pr merge, glab mr create/merge.
+#
+# Approval signal: the environment variable VAJRA_ALLOW_PUBLISH=1, set by the founder at
+# launch (e.g. `VAJRA_ALLOW_PUBLISH=1 vajra claude`). An env var — NOT a token file —
+# because the agent can `touch` a file itself but CANNOT mutate this hook's launch
+# environment from inside a Bash tool call (a child shell can't change the parent's env,
+# and PreToolUse fires *before* the command runs, so an inline `VAJRA_ALLOW_PUBLISH=1 git
+# push` typed by the agent never reaches this hook's own environment). Escape hatch mirrors
+# VAJRA_SKIP_AUTH_CHECK (S34).
+#
+# Maturity-gated (same gate as every Vajra hook, S21):
+#   L1    -> ADVISE  : warn on stdout, exit 0 (agent may proceed).
+#   L2/L3 -> ENFORCE : warn on stderr, exit 2 (action blocked).
+# Always-on at L2/L3 (enforcement is the moat — not behind an opt-in flag).
+#
+# Test/override knob: VAJRA_GUARD_MATURITY overrides the maturity read from CONSTRAINTS.yaml.
+
+set -euo pipefail
+
+INPUT=$(cat 2>/dev/null || echo "{}")
+ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+CONSTRAINTS="$ROOT/.ai/CONSTRAINTS.yaml"
+
+CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
+[ -n "$CMD" ] || exit 0
+
+# Classify the command as an outward/irreversible action. Here-strings (not pipes) so a
+# short-circuiting `grep -q` can never SIGPIPE a producer under `set -o pipefail` (S32 gotcha).
+ACTION=""
+if grep -qE '(^|[^[:alnum:]_])git[[:space:]]+push([^[:alnum:]]|$)' <<<"$CMD"; then
+  ACTION="git push (publishing commits to a remote)"
+elif grep -qE '(^|[^[:alnum:]_])gh[[:space:]]+pr[[:space:]]+create([^[:alnum:]]|$)' <<<"$CMD"; then
+  ACTION="gh pr create (opening a pull request)"
+elif grep -qE '(^|[^[:alnum:]_])gh[[:space:]]+pr[[:space:]]+merge([^[:alnum:]]|$)' <<<"$CMD"; then
+  ACTION="gh pr merge (merging a pull request)"
+elif grep -qE '(^|[^[:alnum:]_])glab[[:space:]]+mr[[:space:]]+create([^[:alnum:]]|$)' <<<"$CMD"; then
+  ACTION="glab mr create (opening a merge request)"
+elif grep -qE '(^|[^[:alnum:]_])glab[[:space:]]+mr[[:space:]]+merge([^[:alnum:]]|$)' <<<"$CMD"; then
+  ACTION="glab mr merge (merging a merge request)"
+fi
+[ -n "$ACTION" ] || exit 0
+
+# Explicit founder approval for this launch — allow through.
+if [ "${VAJRA_ALLOW_PUBLISH:-}" = "1" ]; then
+  echo "[vajra publish-guard] ALLOWED ($ACTION) — VAJRA_ALLOW_PUBLISH=1."
+  exit 0
+fi
+
+MATURITY="${VAJRA_GUARD_MATURITY:-$(grep -m1 '^maturity:' "$CONSTRAINTS" 2>/dev/null | awk '{print $2}' || echo "L2")}"
+
+if [ "$MATURITY" = "L1" ]; then
+  echo "[vajra publish-guard] $ACTION — L1 advise (not blocking)."
+  echo "  Outward/irreversible action; confirm explicit founder approval per .ai/AGENTS.md."
+  exit 0
+fi
+
+{
+  echo "[vajra publish-guard] BLOCKED: $ACTION"
+  echo "  Outward/irreversible actions need explicit founder approval (S37 — the S36 leak)."
+  echo "  To allow this launch: relaunch with VAJRA_ALLOW_PUBLISH=1"
+  echo "    (e.g. VAJRA_ALLOW_PUBLISH=1 vajra claude)."
+  echo "  To downgrade to advice: set maturity: L1 in .ai/CONSTRAINTS.yaml."
+} 1>&2
+exit 2
