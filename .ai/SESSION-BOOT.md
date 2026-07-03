@@ -1,28 +1,30 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 35 — COMPLETE
-- **Type:** GROUND TRUTH (NO-CODE) — "fix the core" bet verification + second-agent gate re-measure (lens A).
-- **Branch:** `session-35-ground-truth`
-- **Date last updated:** 2026-07-02
+- **Number:** 36 — COMPLETE
+- **Type:** Real dogfood run (option A from S35 GT) — CODE-adjacent (real usage + findings write-up).
+- **Branch:** `session-36-real-dogfood-run`.
+- **Date last updated:** 2026-07-03
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 35.
-- `main`: includes up to Session 34 (PR #29 merged). S35 on `session-35-ground-truth`, docs-only, no PR (GT rule).
+- `.ai/SESSION` = 36.
+- `main`: up to Session 35 (PR #30). S36 on `session-36-real-dogfood-run`, docs-only PR pending.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- All 8 required audits run (`vision_alignment` … `dogfood_check`). **Gate call: second-agent promotion NOT cleared — still unmeasured.** Zero `vajra claude` spend since S31; S32–S34 fixes are test-verified, not daily-use-verified. Same call as S30, one session later.
-- **Tension pressure-test:** `.claude/settings.json` merge gap (S34) + `exit_code` heuristic gap (S33) are two isolated debt items, not a structural wedge leak — tracked, not alarming.
-- **Ranked S36 candidates:** (1) real dogfood session (recommended), (2) `.claude/settings.json` merge, (3) `exit_code` heuristic fix, (4) obedience metric (backlog, needs usage to measure).
-- Full report: `sessions/session-35-ground-truth.md`.
+- **Ran the real `vajra claude` loop against `/private/tmp/chitra`** (a real brownfield pnpm monorepo): an agent-driven `-p` run **and** the founder's own interactive session (`8f9c103`, Opus 4.8, $58.17).
+- **Verdict:** Darshan **founder-confirmed good**; brownfield onboarding + auth **hold live**; compression is **dead in real use**; and — the headline — **Vajra's enforcement leaked**: at L3 the agent shipped 2 real merged PRs + ran ~4 sessions in one chat, unstopped.
+- **Second-agent gate: NOT cleared — further from cleared than before S36.**
+- Full report: `sessions/session-36-summary.md`.
 
 ## Next Session
-- **Number:** 36
-- **Type:** Founder picks from 3 options in `sessions/session-35-ground-truth.md`.
-- **A (recommended, prompt ready):** `prompts/36-task-real-dogfood-run.md` — real dogfood run.
-- **B/C:** settings.json merge / exit_code fix — write the prompt at session start if picked instead.
-- **Branch:** `session-36-<slug>` (from `main`).
+- **Number:** 37
+- **Type:** Founder pick, re-ranked around the enforcement leak.
+- **A (recommended, prompt ready):** `prompts/37-task-enforce-session-boundaries.md` — close the enforcement leak (guard `push`/`pr merge` + the session boundary).
+- **B (prompt ready):** `prompts/38-task-fix-compression-exit-gate.md` — compression fail-gate, correctness-first.
+- **C:** trim the boot-packet cost (~$32 cache-read / $58 session). Write the prompt at session start if picked.
+- **Branch:** `session-37-<slug>` (from `main`).
 
 ## Carry-Forwards
-- **Second-agent gate still unmeasured** — do not clear without a real dogfood session first.
-- **Open advised-mode gaps for S36+ ranking:** `.claude/settings.json` merge (S34 finding); `cargo`/`npm`/`pytest` `exit_code == Some(0)` heuristics (S33 finding); obedience-metric/pace-notes backlog (2026-07-01).
-- **Meta-rule held 3×:** every fix moves a feature *advised → enforced* — Vajra's own wedge. No 4th data point yet on whether it's structurally leaky.
+- **Enforcement is the moat and it leaked** — S37 #1. Guard the outward/irreversible actions; harden the boundary; scaffold git-level hooks; reconsider what L3 may do unsupervised.
+- **Compression must never gamble** (founder directive): correctness + agent experience > token savings; fold only where provably safe.
+- **Real artifacts exist:** 2 merged PRs on `github.com/ifelse-codes/chitra` (throwaway dogfood copy that became a real repo) — founder's to clean up.
+- **Meta-rule held again:** the enforcement leak is the same *advised → enforced* gap that hit Darshan in S31, now at the core promise.
