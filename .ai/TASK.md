@@ -2,18 +2,27 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 42 — Git-level hooks + `jq`-preflight (CODE, founder pick C) — Gap 1 COMPLETE
+## Session 43 — Git-level hooks scaffolding into `vajra init` (CODE, founder pick C carry) — COMPLETE
 
-- **Delivered (Gap 1):** `jq`-preflight, fail-closed (AGENTS.md L147). A byte-identical block after `set -euo pipefail` in all 5 `jq`-parsing hooks — `jq` missing → L2/L3 `exit 2` (block, was `exit 0`), L1 `exit 0` (advise). Reads maturity via `grep`/`awk` (not `jq`), so it travels inside the `include_str!`'d copies → scaffolded projects inherit it, no `init.rs` change.
-- **Evidence:** `verify-session-42.sh` 31/31 (all 5 hooks under a `jq`-less `PATH` shim; zero regression with `jq` present; block identical across all 5; `vajra init` scaffolds it baked in); `cargo test` + clippy + fmt clean. Commits `f3778b5` + `f15edb6`.
-- **Carry-forward:** Gap 2 (git-level `.githooks/` scaffolding into `vajra init`) is a second story → S43.
+- **Delivered:** the git-level belt scaffolded into `vajra init` (ROADMAP #17b). `src/cli/init.rs`
+  emits `.githooks/pre-commit` + `pre-push` byte-identical to canonical (via `include_str!`, one
+  source) + sets `core.hooksPath=.githooks` (`configure_githooks_path` — idempotent, graceful on
+  non-git). `Cargo.toml` un-excludes both files. An independent **L2** layer beneath the L3
+  `.claude/` hooks — closes the raw `echo > .ai/SESSION` / direct-commit / direct-push bypass.
+- **Evidence:** `verify-session-43.sh` 22/22 (real `vajra init` into a temp git repo: byte-identical
+  + executable + `core.hooksPath` set; scaffolded pre-commit BLOCKS on-main/>3-staged/`.ai/`-drift;
+  pre-push BLOCKS push-to-main; non-git degrades gracefully; packaging ships both); `cargo test`
+  111 lib (+4) + 12 adapter; clippy + fmt clean. Commits `7a9ef90` + `0f5f565`.
 
-Between sessions. Next = S43 (CODE — Gap 2: git-level hooks scaffolding into `vajra init`, founder pick).
+Between sessions. Next = S44 (CODE — `.claude/settings.json` merge on init, founder pick B).
 
-## Next Session (S43 — CODE, founder pick / S42 carry)
+## Next Session (S44 — CODE, founder pick B)
 
-- **Prompt (ready):** `prompts/43-task-git-level-hooks-scaffold.md` — scaffold `.githooks/pre-push` + `pre-commit` (via `include_str!`, byte-identical) + set `core.hooksPath` into `vajra init` (ROADMAP #17b) as an independent L2 belt beneath the L3 `.claude/` hooks. Closes the raw-`echo > .ai/SESSION` bypass at the right layer.
-- **Branch:** `session-43-git-level-hooks-scaffold`.
+- **Prompt (ready):** `prompts/44-task-settings-json-merge.md` — `vajra init` merges Vajra's hooks
+  into an existing `.claude/settings.json` instead of skipping it, so brownfield projects that
+  already have one get the L3 hooks wired (today the enforcement moat is silently absent for that
+  use case). Additive + idempotent; same class as the ADR-0003 launcher `--settings` merge.
+- **Branch:** `session-44-settings-json-merge`.
 
 ## Always-True Reminders
 
@@ -21,6 +30,10 @@ Between sessions. Next = S43 (CODE — Gap 2: git-level hooks scaffolding into `
 - Branch: `session-NN-<slug>`.
 - Every 5th session is NO-CODE ground-truth (last = S40; next = S45).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S43; do NOT start it here.
-- **Enforcement is the moat** — S37→S39 closed the S36 harm; S40 audited it (harm closed, proof not, gate UNMEASURED); S41 fixed the compression quiet-bonus for the git family; **S42 closed the constitution 🔴 (`jq` fail-open → fail-closed); S43 adds the git-level L2 belt to scaffolded projects.**
-- **To publish from an agent session, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the guard blocks the agent otherwise, by design).
+- **New session = new chat** — open a fresh chat for S44; do NOT start it here.
+- **Enforcement is the moat** — S37→S39 closed the S36 harm; S40 audited it (harm closed, proof
+  UNMEASURED); S41 fixed compression; S42 closed the `jq` fail-open; **S43 added the git-level L2
+  belt to scaffolded projects; S44 wires the moat into brownfield repos that already own a
+  `.claude/settings.json`.**
+- **To publish from an agent session, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the
+  guard blocks the agent otherwise, by design).
