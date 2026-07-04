@@ -6,6 +6,18 @@
 pub trait Heuristic: Send + Sync {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool;
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String;
+
+    /// Whether this heuristic's fold is guaranteed to preserve a failure signal
+    /// for its known output format, so it is safe to run *regardless of exit code*
+    /// (S41 fix). Real Claude Code omits `exitCode` for Bash, which makes the
+    /// engine infer "failure" and gate folding; heuristics that fold lossy-SAFE
+    /// for their format (tail/error text always kept) opt out of that gate here.
+    ///
+    /// Default `false` — the conservative generic path stays gated: prefer a
+    /// passthrough over a fold that might hide a marker-less failure.
+    fn preserves_failure_signal(&self) -> bool {
+        false
+    }
 }
 
 /// Dispatch the correct heuristic for a request based on `command`.
