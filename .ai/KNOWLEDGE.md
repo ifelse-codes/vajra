@@ -170,3 +170,33 @@ pub struct CompressionRequest {
   fix is *felt*. Only a live multi-turn `vajra claude` session against real work answers the
   founder-satisfaction gate — test-green and daily-use-verified are separate claims, don't
   conflate them in closeout language.
+
+- 2026-07-04 Session 43 (git-level belt scaffolded into `vajra init` — ROADMAP #17b, S40 finding #2,
+  founder pick C carry / Gap 2): **the tracked git belt the vajra repo runs is now scaffolded into
+  every project.** `src/cli/init.rs`: `TPL_GITHOOK_PRE_COMMIT` / `TPL_GITHOOK_PRE_PUSH =
+  include_str!("../../.githooks/pre-{commit,push}")` (byte-identical, one source — the S22/S29/S38
+  pattern) + two `fx()` emits (executable) + a new `configure_githooks_path(root)` that runs `git -C
+  root config core.hooksPath .githooks`. **Independent L2 layer** beneath the L3 `.claude/` hooks
+  (AGENTS.md Defense-in-Depth table) — closes the raw `echo N > .ai/SESSION` / direct-commit /
+  direct-push bypass at the git layer (the S39/S40 bounded carry-forward). **Idempotence + graceful
+  degradation (the real risk, per the prompt):** the config step (a) no-ops with a documented manual
+  line when `.git` is absent (init runs on non-git dirs too); (b) reads the **repo-LOCAL**
+  `core.hooksPath` (`--local --get`) and leaves an existing value untouched (init's skip-if-present
+  convention) — deliberately local, not effective, so a machine-global hooksPath neither blocks
+  activation nor gets stomped, and the unit test is deterministic. **Two gotchas fixed mid-session:**
+  (1) `.githooks/` had to be added to `is_brownfield`'s `SCAFFOLD_OWNED` list, else a scaffolded
+  project's new `.githooks/` dir made a re-run misdetect as brownfield (the `brownfield_detection_*`
+  test caught it); (2) `Cargo.toml` excludes `.githooks/`, so both files need per-file negations
+  `!.githooks/pre-commit` + `!.githooks/pre-push` or `cargo install` can't compile the `include_str!`
+  (verified via `cargo package --list --allow-dirty`) — same class as the S22/S29/S38 `scripts/*`
+  un-exclude. **Behavior change (intended, documented):** the scaffolded pre-commit blocks commits to
+  `main|master`, so after `vajra init` on a fresh greenfield repo the first `git commit` is blocked
+  until you `git checkout -b session-NN-*` — byte-identical to Vajra's own belt, enforces "never
+  commit to main"; scaffolded byte-identical per the prompt's no-refactor directive. verify-session-43.sh
+  22/22 (real `vajra init` into a temp git repo drives the scaffolded pre-commit to BLOCK
+  on-main/>3-staged/`.ai/`-drift + pre-push to BLOCK push-to-main, clean cases pass; non-git degrades;
+  packaging ships both). `cargo test` 111 lib (+4) + 12 adapter; clippy + fmt clean. Commits `7a9ef90`
+  (feature: init.rs + Cargo.toml) + `0f5f565` (proof: verify). PR pending (publish-guard blocks the
+  agent). **Next = S44: `.claude/settings.json` merge on init (founder pick B, S34 finding)** — merge
+  Vajra's hooks into an existing settings.json instead of skipping it, so brownfield repos that
+  already own one get the L3 hooks wired.
