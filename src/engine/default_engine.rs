@@ -14,15 +14,28 @@ impl Engine for DefaultEngine {
             return EngineDecision::Passthrough;
         }
 
-        if !is_success(&request.tool_output) && line_count < FAIL_PASSTHROUGH_CAP {
-            return EngineDecision::Passthrough;
-        }
-
+        // Select the heuristic BEFORE the fail-gate (S41): the gate must know
+        // whether this heuristic folds lossy-SAFE for its format.
         let heuristic: Box<dyn Heuristic> = if is_compound(&request.command) {
             Box::new(GenericHeuristic)
         } else {
             select_heuristic(request)
         };
+
+        // Fail-gate — conservative, and it applies ONLY to heuristics that do NOT
+        // guarantee the failure signal survives. Real CC omits `exitCode`, so
+        // `is_success` infers "failure" for ordinary commands; without this scoping
+        // that inference would block the known-safe format-aware git* folds too
+        // (the S36 "0 folds live" bug). Format-aware heuristics (git*) keep their
+        // failure signal by construction, so they fold regardless of exit code;
+        // the generic/unknown path stays gated — prefer passthrough over a fold
+        // that might hide a marker-less failure (founder directive: never gamble).
+        if !heuristic.preserves_failure_signal()
+            && !is_success(&request.tool_output)
+            && line_count < FAIL_PASSTHROUGH_CAP
+        {
+            return EngineDecision::Passthrough;
+        }
 
         let compressed =
             match std::panic::catch_unwind(AssertUnwindSafe(|| heuristic.compress(request))) {

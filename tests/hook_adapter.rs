@@ -159,3 +159,74 @@ fn passthrough_short_bash_output() {
     let out = run_adapter(json);
     assert_eq!(out, "{}", "short output should passthrough");
 }
+
+// ─── S41: fail-gate no longer blocks the known-safe format-aware folds ────────
+//
+// Root cause (S36, proven): real CC omits `exitCode` for Bash → `is_success`
+// infers "failure" → the fail-gate blocked EVERY 30–399-line command (0 folds
+// live). S41 scopes that gate to heuristics that do NOT guarantee the failure
+// signal survives; the git family folds lossy-SAFE for its format, so it now
+// folds regardless of exit code. The generic/unknown path stays gated —
+// correctness-first, never gamble (founder directive).
+
+#[test]
+fn git_log_no_exit_code_folds_after_s41() {
+    // THE WIN: a large `git log` with no exitCode passed through before S41
+    // (silently — the S36 "0 folds live" bug); it must fold now.
+    let raw: String = (0..60)
+        .map(|i| format!("{i:04x} commit message {i}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let json = real_cc_payload("git log --oneline -60", &raw);
+    let out = run_adapter(&json);
+
+    assert_ne!(out, "{}", "git log (no exitCode) must fold after S41");
+    let parsed: serde_json::Value = serde_json::from_str(&out).expect("valid JSON");
+    let updated = parsed["hookSpecificOutput"]["updatedToolOutput"]["stdout"]
+        .as_str()
+        .expect("updatedToolOutput.stdout is a string");
+    assert!(
+        updated.contains("lines folded"),
+        "breadcrumb missing: {updated}"
+    );
+    // Recoverable / never-drop-the-tail: the newest commit survives head+tail.
+    assert!(
+        updated.contains("commit message 59"),
+        "tail (newest commit) must survive the fold: {updated}"
+    );
+}
+
+#[test]
+fn genuine_failure_no_exit_code_passthroughs_both_ways() {
+    // INVARIANT #1 (never hide a failure): a generic command that failed but sent
+    // no exitCode — and whose error is NOT in the last lines — must NOT be folded.
+    // The generic path is not format-aware, so it stays gated. Passthrough before
+    // AND after S41; this is the regression that must never flip.
+    let mut lines = vec![String::from("error: could not find configuration file")];
+    lines.extend((0..80).map(|i| format!("  ...retrying step {i}")));
+    let raw = lines.join("\n");
+    let json = real_cc_payload("./deploy.sh", &raw);
+    let out = run_adapter(&json);
+    assert_eq!(
+        out, "{}",
+        "a marker-less-tail failure on the generic path must passthrough — never gamble"
+    );
+}
+
+#[test]
+fn generic_ls_no_exit_code_stays_conservative() {
+    // The generic/unknown path stays gated after S41 — an ordinary `ls` with no
+    // exitCode (<FAIL_PASSTHROUGH_CAP lines) is NOT folded. Prefer passthrough
+    // over a risky generic fold; folding little here is acceptable per the
+    // guiding principle. Full passthrough trivially preserves the tail.
+    let raw: String = (0..80)
+        .map(|i| format!("src/file_{i}.rs"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let json = real_cc_payload("ls -1 src", &raw);
+    let out = run_adapter(&json);
+    assert_eq!(
+        out, "{}",
+        "generic ls (no exitCode, under cap) stays passthrough — conservative"
+    );
+}

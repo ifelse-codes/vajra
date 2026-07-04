@@ -2,21 +2,18 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 40 — Ground Truth (NO-CODE), lens: enforcement-completeness — COMPLETE
+## Session 41 — Fix the compression fail-gate (CODE, founder pick B) — COMPLETE
 
-- **Delivered:** `sessions/session-40-ground-truth.md`.
-- **Verdict:** S37→S39 converged on the *harm* (every S36 outward action now BLOCKS, scaffolded) but not the *proof* — the moat is **test-verified, not live-verified**; **dogfood gate 🔴 UNMEASURED** (~$0 `vajra claude` since S36).
-- **Gaps ranked:** 1 real (latent) leak = **`jq`-missing → fail-open** (constitution L147 violation); 1 high-leverage bounded = **git-level hooks not scaffolded** (closes raw-`.ai/SESSION`-write too); 4 accepted v0 limits.
-- **Meta:** 3 Claude-only plumbing sessions; cross-agent breadth still zero code (S25, 15 sessions stale).
-- **8 audits:** vision 🟡 · roadmap 🟡 · state ✅ · knowledge ✅ · constraints ✅ · constitution 🔴 · cost ✅ · dogfood 🔴.
+- **Delivered:** compression fail-gate fixed correctness-first. The gate now runs *after* heuristic selection and applies only when `!heuristic.preserves_failure_signal()`. The git family folds regardless of `exitCode` (git log head+tail; git status/diff passthrough); the generic path stays conservative; failures are never hidden.
+- **Evidence:** `verify-session-41.sh` 20/20; regression tests from real-shape payloads (no `exitCode`); `cargo test` 107 lib + 12 adapter; clippy + fmt clean; live-proven for $0 via `vajra hook`. Commits `98376db` (fix) + `a5086a6` (proof).
+- **Carry-forward:** cargo/npm/pytest still branch on `exit_code == Some(0)` → never fold on real CC (own future compression session).
 
-Between sessions. Next = S41 (CODE — B: fix the compression fail-gate, correctness-first).
+Between sessions. Next = S42 (CODE — C: git-level hooks scaffolding + `jq`-preflight, founder pick).
 
-## Next Session (S41 — CODE, founder pick B)
+## Next Session (S42 — CODE, founder pick C)
 
-- **Prompt (ready):** `prompts/41-task-fix-compression-exit-gate.md` — unblock the safe format-aware `git*` folds regardless of `exitCode`; keep the generic path conservative; **never hide a failure** (founder directive). Proven defect (S36); the "quiet bonus," not the moat.
-- **Branch:** `session-41-fix-compression-exit-gate`.
-- **Then S42 = C** (founder pick): git-level `pre-push`/`pre-commit` scaffolding into `vajra init` (ROADMAP #17), **bundling the `jq`-preflight fix** (S40 constitution finding).
+- **Prompt (ready):** `prompts/42-task-git-level-hooks-jq-preflight.md` — scaffold `.githooks/pre-push` + `pre-commit` + `core.hooksPath` into `vajra init` (ROADMAP #17) **and** bundle the S40 `jq`-missing → fail-open fix (fail-closed preflight; AGENTS.md L147). **Recommended split at BOOT:** Gap 1 (jq-preflight) first, Gap 2 (git-level scaffold) second — carry to S43 if both won't fit one clean session.
+- **Branch:** `session-42-git-level-hooks-jq-preflight`.
 
 ## Always-True Reminders
 
@@ -24,6 +21,6 @@ Between sessions. Next = S41 (CODE — B: fix the compression fail-gate, correct
 - Branch: `session-NN-<slug>`.
 - Every 5th session is NO-CODE ground-truth (last = S40; next = S45).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S41; do NOT start it here.
-- **Enforcement is the moat** — S37 closed the leak, S38 propagated it, S39 made the guards correct; **S40 audited it: harm closed, moat live-unverified (gate UNMEASURED).**
+- **New session = new chat** — open a fresh chat for S42; do NOT start it here.
+- **Enforcement is the moat** — S37→S39 closed the S36 harm; S40 audited it (harm closed, proof not, gate UNMEASURED); **S41 fixed the compression quiet-bonus for the git family; S42 hardens enforcement (git-level belt + jq fail-closed).**
 - **To publish from an agent session, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the guard blocks the agent otherwise, by design).

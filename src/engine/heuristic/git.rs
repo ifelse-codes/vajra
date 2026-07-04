@@ -14,6 +14,11 @@ impl Heuristic for GitStatusHeuristic {
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
         request.tool_output.stdout.clone()
     }
+
+    // Pure passthrough — never drops a byte, so it can never hide a failure.
+    fn preserves_failure_signal(&self) -> bool {
+        true
+    }
 }
 
 /// Always passthrough — git diff --stat is already narrowed.
@@ -26,6 +31,11 @@ impl Heuristic for GitDiffStatHeuristic {
 
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
         request.tool_output.stdout.clone()
+    }
+
+    // Pure passthrough — never drops a byte, so it can never hide a failure.
+    fn preserves_failure_signal(&self) -> bool {
+        true
     }
 }
 
@@ -61,6 +71,13 @@ impl Heuristic for GitLogHeuristic {
             .saturating_sub(head_count)
             .saturating_sub(tail_count);
         format!("{}\n\n… [{} hidden] …\n\n{}", head, hidden, tail)
+    }
+
+    // git log stdout is a flat commit list — a git-log *failure* surfaces on
+    // stderr with a short/empty stdout (caught by LINE_CAP), never mid-list.
+    // Head+tail always keeps the newest commits, so no failure signal is lost.
+    fn preserves_failure_signal(&self) -> bool {
+        true
     }
 }
 
