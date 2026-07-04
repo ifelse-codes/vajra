@@ -41,6 +41,7 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
     for dir in &[
         ".ai",
         ".ai/hooks",
+        ".githooks",
         "scripts",
         "prompts",
         "sessions",
@@ -73,6 +74,10 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
 
     eprintln!();
     eprintln!("Created {created} files, skipped {skipped}.");
+
+    // Activate the git-level belt (S43): point git at the scaffolded .githooks/.
+    configure_githooks_path(root);
+
     if brownfield {
         eprintln!();
         eprintln!("Existing codebase detected → session 00 is a guided onboarding:");
@@ -83,6 +88,48 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
     Ok(())
 }
 
+/// Activate the scaffolded git-level belt (S43): point git at `.githooks/` so the tracked
+/// pre-commit/pre-push run as an independent L2 layer beneath the L3 `.claude/` hooks.
+/// Idempotent + graceful — a non-git dir is a documented no-op; an existing `core.hooksPath`
+/// is left untouched (init's skip-if-present convention). Never fails init.
+fn configure_githooks_path(root: &Path) {
+    if !root.join(".git").exists() {
+        eprintln!("  note   not a git repo yet — after `git init`, activate the belt with:");
+        eprintln!("           git config core.hooksPath .githooks");
+        return;
+    }
+    // Respect an existing hooksPath (skip-if-present, like the file scaffold). Read the
+    // repo-LOCAL value only — a machine-global hooksPath isn't this project's decision, and
+    // the belt's scope is this one repo (local config overrides global anyway).
+    let existing = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["config", "--local", "--get", "core.hooksPath"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+    if let Some(path) = existing {
+        eprintln!("  skip   core.hooksPath already set to '{path}' (left as-is)");
+        return;
+    }
+    match Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["config", "core.hooksPath", ".githooks"])
+        .status()
+    {
+        Ok(s) if s.success() => {
+            eprintln!("  config core.hooksPath = .githooks (git-level L2 belt active)")
+        }
+        _ => eprintln!(
+            "  warn   could not set core.hooksPath; run: git config core.hooksPath .githooks"
+        ),
+    }
+}
+
 /// Brownfield = the repo already has content Vajra didn't put there. Detected by any
 /// root entry that isn't `.git` or one of the paths this scaffold itself creates —
 /// so re-running `init` on an already-scaffolded project stays greenfield, while a
@@ -91,6 +138,7 @@ fn is_brownfield(root: &Path) -> bool {
     const SCAFFOLD_OWNED: &[&str] = &[
         ".git",
         ".ai",
+        ".githooks",
         "scripts",
         "prompts",
         "sessions",
@@ -343,6 +391,13 @@ fn files(
         fx(".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
         fx(".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
         fx(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
+        // Git-level belt (S43): tracked pre-commit/pre-push, an independent L2 layer
+        // (git-native) beneath the L3 .claude/ hooks. Byte-identical to the vajra repo's
+        // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
+        // in configure_githooks_path(). Closes the raw `echo > .ai/SESSION` / direct-commit
+        // bypass at the right layer.
+        fx(".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
+        fx(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
         f("prompts/01-task-kickoff.md", TPL_PROMPT),
@@ -674,6 +729,15 @@ const TPL_HOOK_SESSION_GUARD: &str = include_str!("../../scripts/hook-session-gu
 // projects run the real autonomous sessions. Un-excluded in Cargo.toml so it ships with
 // `cargo install`.
 const TPL_HOOK_PUBLISH_GUARD: &str = include_str!("../../scripts/hook-publish-guard.sh");
+
+// Canonical git-level hooks (S43) — the SAME files the vajra repo runs, embedded verbatim
+// so the scaffolded copy can never drift (S22 one-source pattern). An independent L2 belt
+// (git-native) beneath the L3 .claude/ hooks: pre-commit blocks main-commits / >3 staged /
+// .ai/ drift; pre-push blocks push to main|master. Activated by `git config core.hooksPath
+// .githooks` (configure_githooks_path). `.githooks/*` is excluded in Cargo.toml, so both
+// files are un-excluded there (per-file negation) so they ship with `cargo install`.
+const TPL_GITHOOK_PRE_COMMIT: &str = include_str!("../../.githooks/pre-commit");
+const TPL_GITHOOK_PRE_PUSH: &str = include_str!("../../.githooks/pre-push");
 
 // The scaffold's `.gitignore` — the session-guard writes the owning chat's id into
 // `.ai/.session-owner`, a local-only record that must never be committed.
@@ -1030,6 +1094,95 @@ mod tests {
             s.contains("hook-session-guard.sh"),
             "session-guard wiring lost"
         );
+    }
+
+    // ── Git-level belt propagation (S43) ─────────────────────────────────────
+
+    #[test]
+    fn scaffold_ships_githooks_verbatim() {
+        let dir = scaffold_tmp();
+        for (rel, canonical) in [
+            (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
+            (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
+        ] {
+            let hook = dir.path().join(rel);
+            assert!(hook.exists(), "{rel} not scaffolded");
+            // Byte-identical to the vajra repo's own .githooks/* — one source, no drift.
+            assert_eq!(
+                fs::read_to_string(&hook).unwrap(),
+                canonical,
+                "scaffolded {rel} drifted from the canonical .githooks source"
+            );
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mode = fs::metadata(&hook).unwrap().permissions().mode();
+                assert_eq!(mode & 0o111, 0o111, "{rel} must be executable");
+            }
+        }
+    }
+
+    fn git_init(path: &Path) {
+        Command::new("git")
+            .arg("-C")
+            .arg(path)
+            .args(["init", "-q"])
+            .status()
+            .expect("git init failed");
+    }
+
+    fn local_hookspath(path: &Path) -> String {
+        let out = Command::new("git")
+            .arg("-C")
+            .arg(path)
+            .args(["config", "--local", "--get", "core.hooksPath"])
+            .output()
+            .unwrap();
+        String::from_utf8_lossy(&out.stdout).trim().to_string()
+    }
+
+    #[test]
+    fn scaffold_sets_core_hookspath_in_git_repo() {
+        let dir = tempfile::tempdir().unwrap();
+        git_init(dir.path());
+        scaffold(dir.path(), "Demo", "build it", "L2").unwrap();
+        assert_eq!(
+            local_hookspath(dir.path()),
+            ".githooks",
+            "core.hooksPath must be set to .githooks (git-level belt active)"
+        );
+    }
+
+    #[test]
+    fn scaffold_respects_existing_hookspath() {
+        let dir = tempfile::tempdir().unwrap();
+        git_init(dir.path());
+        // A project that already configured its own hooks — init must not clobber it.
+        Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["config", "core.hooksPath", "my-hooks"])
+            .status()
+            .unwrap();
+        scaffold(dir.path(), "Demo", "build it", "L2").unwrap();
+        assert_eq!(
+            local_hookspath(dir.path()),
+            "my-hooks",
+            "an existing core.hooksPath must be left untouched (skip-if-present)"
+        );
+    }
+
+    #[test]
+    fn scaffold_non_git_dir_emits_belt_without_crashing() {
+        // scaffold_tmp() is a non-git temp dir: init runs on non-git dirs too, so the belt
+        // must still be emitted and the config step must degrade to a documented no-op.
+        let dir = scaffold_tmp();
+        assert!(
+            !dir.path().join(".git").exists(),
+            "precondition: scaffold_tmp is not a git repo"
+        );
+        assert!(dir.path().join(".githooks/pre-commit").exists());
+        assert!(dir.path().join(".githooks/pre-push").exists());
     }
 
     // ── Brownfield onboarding + hook placement (S34) ──────────────────────────

@@ -14,6 +14,8 @@ exclude = [
   ".ai/",
   ".claude/",
   ".githooks/",
+  "!.githooks/pre-commit",
+  "!.githooks/pre-push",
   "docs/",
   "e2e-proof/",
   "Formula/",
