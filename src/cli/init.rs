@@ -1,8 +1,12 @@
 use anyhow::{Context, Result};
+use serde_json::{json, Value};
 use std::io::{self, BufRead, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{fmt, fs};
+
+/// The one file `init` merges into rather than skips when it already exists (S44).
+const CLAUDE_SETTINGS_PATH: &str = ".claude/settings.json";
 
 pub fn run() -> Result<()> {
     let root = find_project_root()?;
@@ -37,6 +41,7 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
 
     let mut created = 0u32;
     let mut skipped = 0u32;
+    let mut merged = 0u32;
 
     for dir in &[
         ".ai",
@@ -54,8 +59,36 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
     for entry in files(project_name, goal, &slug, &date, maturity, brownfield) {
         let full = root.join(&entry.path);
         if full.exists() {
-            eprintln!("  skip   {}", entry.path);
-            skipped += 1;
+            // Brownfield L3-moat fix (S44): a pre-existing `.claude/settings.json` must be
+            // MERGED, not skipped — otherwise the scaffolded `.ai/hooks/` are never fired and
+            // the whole L3 enforcement moat is silently absent for exactly the primary
+            // (brownfield) use case. Every other file keeps the skip-if-present convention.
+            if entry.path == CLAUDE_SETTINGS_PATH {
+                match merge_claude_settings_file(&full, &entry.content) {
+                    Ok(true) => {
+                        eprintln!(
+                            "  merge  {} (Vajra hooks wired into existing file)",
+                            entry.path
+                        );
+                        merged += 1;
+                    }
+                    Ok(false) => {
+                        eprintln!("  skip   {} (Vajra hooks already present)", entry.path);
+                        skipped += 1;
+                    }
+                    // Never overwrite the user's file: warn loudly and leave it untouched.
+                    Err(e) => {
+                        eprintln!("  warn   {} left untouched — {e}", entry.path);
+                        eprintln!(
+                            "           fix the JSON, then re-run `vajra init` to wire the L3 hooks."
+                        );
+                        skipped += 1;
+                    }
+                }
+            } else {
+                eprintln!("  skip   {}", entry.path);
+                skipped += 1;
+            }
         } else {
             if let Some(parent) = full.parent() {
                 fs::create_dir_all(parent)?;
@@ -73,7 +106,7 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
     }
 
     eprintln!();
-    eprintln!("Created {created} files, skipped {skipped}.");
+    eprintln!("Created {created} files, merged {merged}, skipped {skipped}.");
 
     // Activate the git-level belt (S43): point git at the scaffolded .githooks/.
     configure_githooks_path(root);
@@ -128,6 +161,141 @@ fn configure_githooks_path(root: &Path) {
             "  warn   could not set core.hooksPath; run: git config core.hooksPath .githooks"
         ),
     }
+}
+
+/// Read → merge → write-back the L3 hooks into an existing `.claude/settings.json` (S44).
+/// Returns `Ok(true)` if the file changed, `Ok(false)` if Vajra's hooks were already wired,
+/// or `Err` if the existing file is malformed — the caller then leaves it untouched.
+fn merge_claude_settings_file(path: &Path, template: &str) -> Result<bool> {
+    let existing =
+        fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
+    let (merged, changed) = merge_claude_settings(&existing, template)?;
+    if changed {
+        fs::write(path, merged).with_context(|| format!("failed to write {}", path.display()))?;
+    }
+    Ok(changed)
+}
+
+/// Additively merge Vajra's `SessionStart` + `PreToolUse` hook groups (from `template`) into
+/// an existing user `.claude/settings.json`, preserving every user key and hook. Idempotent:
+/// a Vajra group is appended only if the target event array does not already contain a
+/// structurally-equal group *or* reference that group's `.ai/hooks/*.sh` script paths.
+/// Returns `(pretty-printed merged JSON, changed?)`. A malformed / non-object existing file
+/// is an `Err` — the caller must not overwrite it.
+///
+/// Why not reuse the launcher's `merge_hook_settings_for` (ADR-0003): that builds a *fresh*
+/// `PostToolUse`-only object for the `--settings` temp file at launch; this merges
+/// `SessionStart`+`PreToolUse` into the user's on-disk file preserving all keys. Different shape.
+fn merge_claude_settings(existing_json: &str, template_json: &str) -> Result<(String, bool)> {
+    let mut existing: Value = serde_json::from_str(existing_json)
+        .context("existing .claude/settings.json is not valid JSON")?;
+    let template: Value =
+        serde_json::from_str(template_json).context("internal: TPL_CLAUDE_SETTINGS is not JSON")?;
+
+    let root = existing
+        .as_object_mut()
+        .context("existing .claude/settings.json is not a JSON object")?;
+    let tpl_hooks = template
+        .get("hooks")
+        .and_then(Value::as_object)
+        .context("internal: template missing hooks object")?;
+
+    // Ensure a `hooks` object exists without disturbing any other top-level key.
+    let hooks = root
+        .entry("hooks")
+        .or_insert_with(|| json!({}))
+        .as_object_mut()
+        .context("existing .claude/settings.json `hooks` is not an object")?;
+
+    let mut changed = false;
+    for (event, tpl_groups) in tpl_hooks {
+        let Some(tpl_groups) = tpl_groups.as_array() else {
+            continue;
+        };
+        let arr = hooks
+            .entry(event.clone())
+            .or_insert_with(|| json!([]))
+            .as_array_mut()
+            .with_context(|| format!("existing `hooks.{event}` is not an array"))?;
+        // Snapshot before appending so groups added this run don't affect each other's
+        // idempotence check (the co-pilot hook is shared across the Bash + Edit groups).
+        let snapshot = arr.clone();
+        for group in tpl_groups {
+            if group_already_present(&snapshot, group) {
+                continue;
+            }
+            arr.push(group.clone());
+            changed = true;
+        }
+    }
+
+    let mut out = serde_json::to_string_pretty(&existing)
+        .context("failed to encode merged .claude/settings.json")?;
+    out.push('\n');
+    Ok((out, changed))
+}
+
+/// A Vajra hook-group is already wired if the event array holds a structurally-equal group,
+/// or already references every `.ai/hooks/*.sh` script path that group carries (so a
+/// user-reformatted copy still de-dupes rather than duplicating).
+fn group_already_present(snapshot: &[Value], group: &Value) -> bool {
+    if snapshot.iter().any(|e| e == group) {
+        return true;
+    }
+    let paths = hook_script_paths(group);
+    !paths.is_empty()
+        && paths
+            .iter()
+            .all(|p| snapshot.iter().any(|e| entry_references(e, p)))
+}
+
+/// The distinct `.ai/hooks/*.sh` script paths a hook group's `command` strings reference —
+/// the stable idempotence key (survives quoting/formatting differences).
+fn hook_script_paths(group: &Value) -> Vec<String> {
+    let mut cmds = Vec::new();
+    collect_command_strings(group, &mut cmds);
+    let mut paths = Vec::new();
+    for cmd in cmds {
+        if let Some(p) = extract_ai_hook_path(&cmd) {
+            if !paths.contains(&p) {
+                paths.push(p);
+            }
+        }
+    }
+    paths
+}
+
+fn entry_references(entry: &Value, path: &str) -> bool {
+    let mut cmds = Vec::new();
+    collect_command_strings(entry, &mut cmds);
+    cmds.iter().any(|c| c.contains(path))
+}
+
+/// Recursively collect every `"command": "<str>"` value under a JSON node.
+fn collect_command_strings(value: &Value, out: &mut Vec<String>) {
+    match value {
+        Value::Object(map) => {
+            for (key, v) in map {
+                if key == "command" {
+                    if let Some(s) = v.as_str() {
+                        out.push(s.to_string());
+                    }
+                } else {
+                    collect_command_strings(v, out);
+                }
+            }
+        }
+        Value::Array(items) => items.iter().for_each(|v| collect_command_strings(v, out)),
+        _ => {}
+    }
+}
+
+/// Extract the `.ai/hooks/<name>.sh` substring from a hook command, if present.
+fn extract_ai_hook_path(cmd: &str) -> Option<String> {
+    let start = cmd.find(".ai/hooks/")?;
+    let rest = &cmd[start..];
+    let end = rest.find(".sh")? + ".sh".len();
+    Some(rest[..end].to_string())
 }
 
 /// Brownfield = the repo already has content Vajra didn't put there. Detected by any
@@ -1291,5 +1459,115 @@ mod tests {
             "co-pilot must be wired for both Bash and Edit|Write|MultiEdit"
         );
         assert!(s.contains("PreToolUse"), "missing PreToolUse wiring");
+    }
+
+    // ── Brownfield .claude/settings.json merge (S44) ─────────────────────────
+
+    // A realistic pre-existing user file: an unrelated top-level key, a user SessionStart
+    // hook, and a user PreToolUse Bash group — all of which the merge must preserve.
+    const USER_SETTINGS: &str = r#"{
+  "model": "claude-opus-4",
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "echo user-boot" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "echo user-bash" } ] }
+    ]
+  }
+}"#;
+
+    #[test]
+    fn merge_wires_all_vajra_hooks_and_preserves_user() {
+        let (out, changed) = merge_claude_settings(USER_SETTINGS, TPL_CLAUDE_SETTINGS).unwrap();
+        assert!(changed, "merging into a Vajra-less file must change it");
+        // All four Vajra hook scripts wired, each exactly as often as canonical.
+        assert_eq!(out.matches("hook-session-start.sh").count(), 1);
+        assert_eq!(out.matches("hook-session-guard.sh").count(), 1);
+        assert_eq!(out.matches("hook-publish-guard.sh").count(), 1);
+        assert_eq!(out.matches("hook-copilot-loader.sh").count(), 2);
+        // The user's hooks + unrelated key survive untouched.
+        assert!(
+            out.contains("echo user-boot"),
+            "user SessionStart hook dropped"
+        );
+        assert!(
+            out.contains("echo user-bash"),
+            "user PreToolUse hook dropped"
+        );
+        assert!(
+            out.contains("claude-opus-4"),
+            "unrelated top-level key dropped"
+        );
+        // Output is valid JSON.
+        serde_json::from_str::<Value>(&out).expect("merged output is not valid JSON");
+    }
+
+    #[test]
+    fn merge_is_idempotent() {
+        let (once, c1) = merge_claude_settings(USER_SETTINGS, TPL_CLAUDE_SETTINGS).unwrap();
+        assert!(c1);
+        let (twice, c2) = merge_claude_settings(&once, TPL_CLAUDE_SETTINGS).unwrap();
+        assert!(!c2, "second merge must be a no-op");
+        assert_eq!(once, twice, "second merge must not mutate the file");
+        // No duplication — the shared co-pilot hook stays at 2, guards at 1.
+        assert_eq!(twice.matches("hook-session-guard.sh").count(), 1);
+        assert_eq!(twice.matches("hook-copilot-loader.sh").count(), 2);
+    }
+
+    #[test]
+    fn merge_into_file_without_hooks_key() {
+        let (out, changed) =
+            merge_claude_settings(r#"{"model":"x"}"#, TPL_CLAUDE_SETTINGS).unwrap();
+        assert!(changed);
+        assert!(out.contains("hook-session-guard.sh"), "hooks not created");
+        assert!(out.contains("\"model\""), "unrelated key dropped");
+    }
+
+    #[test]
+    fn merge_rejects_malformed_json() {
+        assert!(
+            merge_claude_settings("{ not json", TPL_CLAUDE_SETTINGS).is_err(),
+            "malformed existing JSON must error (caller leaves the file untouched)"
+        );
+    }
+
+    #[test]
+    fn merge_rejects_non_object_root() {
+        assert!(
+            merge_claude_settings("[]", TPL_CLAUDE_SETTINGS).is_err(),
+            "a non-object root must error rather than be clobbered"
+        );
+    }
+
+    #[test]
+    fn scaffold_merges_existing_claude_settings() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".claude")).unwrap();
+        fs::write(dir.path().join(".claude/settings.json"), USER_SETTINGS).unwrap();
+
+        scaffold(dir.path(), "Demo", "build it", "L2").unwrap();
+        let s = fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+        // User content preserved…
+        assert!(s.contains("echo user-boot"));
+        assert!(s.contains("echo user-bash"));
+        assert!(s.contains("claude-opus-4"));
+        // …and every Vajra hook wired into the pre-existing file.
+        for needle in [
+            "hook-session-start.sh",
+            "hook-copilot-loader.sh",
+            "hook-session-guard.sh",
+            "hook-publish-guard.sh",
+        ] {
+            assert!(s.contains(needle), "merge lost {needle}");
+        }
+        // Re-running init stays greenfield: no duplicate Vajra entries.
+        scaffold(dir.path(), "Demo", "build it", "L2").unwrap();
+        let s2 = fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+        assert_eq!(
+            s2.matches("hook-session-guard.sh").count(),
+            1,
+            "re-run duplicated Vajra hooks"
+        );
     }
 }
