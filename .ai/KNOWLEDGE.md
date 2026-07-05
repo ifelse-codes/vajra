@@ -236,3 +236,43 @@ pub struct CompressionRequest {
   should stop us"; the paid live re-dogfood (#17a) itself is a separate code/verify session (S46) the
   audit ranks + tees up. Memory `vajra-enforcement-leak-s36` (last silent L3 leak closed; dogfood gate
   still UNMEASURED).
+
+- 2026-07-05 Session 45 (combined ground-truth, all three lenses — NO-CODE, mandatory every-5th; last
+  GT = S40): ran ONE comprehensive audit through lenses A (dogfood/enforcement) · B (direction/vision) ·
+  C (process-cost). **Verdict: the enforcement moat is architecturally COMPLETE and paper-sound across
+  the full S36 kill-chain, but NOT live-verified since S36 — `dogfood_check` 🔴 UNMEASURED for the 4th
+  consecutive GT (S30/S35/S40/S45).** **Ground-truthed live (not trusted from STATE):** `cargo test` =
+  **135 green** (117 lib + 12 adapter + 6 integration, 0 fail — matches STATE exactly); `maturity: L2`;
+  `jq`-preflight present in all 5 hooks (publish-guard/session-guard/copilot-loader/pre-bash/pre-write);
+  git belt active (`.githooks/pre-commit`+`pre-push`, `core.hooksPath=.githooks`); publish-guard
+  executable. **One drift, accepted:** STATE called the S44 PR "pending" but `921a440 S44 … (#39)` is
+  `main`'s head — S44 merged, `.ai/SESSION`=44==main head (the S30-retired snapshot-before-merge artifact,
+  STATE snapshotted at closeout before the founder merges). Minor: one stale `origin/session-42-*` remote
+  branch (local pruned cleanly). **Lens A (walked the S36 kill-chain on paper):** every S36 outward action
+  (`git push` main+branch, `gh pr create`+`merge` ×2) now blocks via the S38-scaffolded publish-guard; the
+  advance-hygiene half is mostly closed (session-guard arms on `vajra next --advance`; git-level pre-commit
+  catches `.ai/`-drift/main commits) — the *precise* never-branched-first-advance still slips but is
+  *hygiene, not harm*. **What's unproven without a real run: that ANY of it fires against a live autonomous
+  agent** — proven live exactly once (S37); S38-scaffold/S39-fixes/S42-jq/S43-git-belt/S44-merge have only
+  `verify-*.sh`+replay+`cmp` evidence. Identical cliff compression sat on before S31/S36 falsified it
+  (green tests, dead in the loop, proven 3×). Live re-dogfood = highest-leverage next, no cheaper
+  falsification. **Lens B:** Claude-enforcement depth was correct through S44 (closed the S36-triggered
+  arc) and has now hit diminishing returns — the arc is complete, so past S44 it's scope creep; cross-agent
+  code still zero (S25, 20 sessions stale). **The S26 founder-satisfaction gate CANNOT be judged while
+  dogfood is unmeasured** → order is forced: A (dogfood) unblocks B (second agent). **Lens C:** no rule
+  currently *blocks* the vision — the ≤3-file cap + co-pilot commit-gate are net-protective friction; the
+  one badly-missed target is boot-packet cost (#18: S36's $58 run was ~$32 cache-read of the heavy `.ai/`,
+  the `<5% footprint` rule), but it only bites in paid runs (≈0 since S36). **Meta-check: this GT
+  structurally cannot prove liveness** (same blind spot as S40) — `dogfood_check` names the cliff but can
+  only say "unmeasured," never measure; that's *why* #17a must be a code/verify session, not a GT (not a
+  fixable audit gap). **MVP-launch framing (founder asked):** honest value story ✅ launch-ready (governance
+  not tokens; Darshan founder-confirmed) · enforcement-holds-live 🔴 the BLOCKING gap (live-unproven since
+  it leaked) · frictionless install 🟡 (`cargo install vajractl` README path broken — crates.io
+  taken/unpublished; real = `cargo install --path`) · cross-agent claim 🔴 (zero code — narrow the pitch to
+  "your Claude Code follows your rules" or build the 2nd agent first). **Single shortest path to MVP = S46
+  live re-dogfood (#17a):** flips the blocking pillar 🔴→✅ (or finds the next leak), lets the founder judge
+  the satisfaction gate, and measures whether boot cost is tolerable. **Founder pick: A → S46 = #17a**
+  (`prompts/46-task-live-redogfood.md`, PAID). NO code / commits to main / PRs; doc-only closeout on
+  `session-45-closeout` (suffix-exempt — the GT pre-write hook allowlists only `sessions/*-ground-truth.md`
+  + `.ai/*` + `scripts/*`, so the next prompt must be written on the exempt branch). Report:
+  `sessions/session-45-ground-truth.md`. Memory `vajra-enforcement-leak-s36` (arc complete, proof owed).
