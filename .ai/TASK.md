@@ -2,40 +2,39 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 44 — `.claude/settings.json` merge on `vajra init` (CODE, founder pick B) — COMPLETE
+## Session 45 — combined ground-truth, all three lenses (NO-CODE, mandatory every-5th) — COMPLETE
 
-- **Delivered:** `vajra init` now MERGES Vajra's hooks into a pre-existing `.claude/settings.json`
-  instead of skipping it (ROADMAP #18b, closes the S34 finding — the last silent L3-enforcement leak).
-  For `.claude/settings.json` only, `scaffold()` routes an existing file to `merge_claude_settings_file`
-  → the pure `merge_claude_settings`: appends Vajra's `SessionStart` + `PreToolUse` groups additively,
-  preserving every user key/hook; idempotent (structural-equality OR `.ai/hooks/*.sh` path, vs a
-  pre-merge snapshot); malformed existing JSON → left untouched + loud warn, init still exits 0. The
-  launcher's ADR-0003 `--settings` merge is NOT reused (fresh `PostToolUse`-only object — different
-  shape; documented inline).
-- **Evidence:** `verify-session-44.sh` 24/24 (real `vajra init` into a temp brownfield repo: user hook
-  + key survive + all 4 Vajra hooks wired + valid JSON; run 2× = no dupes; greenfield writes canonical;
-  malformed preserved + warns); `cargo test` 117 lib (+6) + 12 adapter; clippy + fmt clean. Commit `8a78ca6`.
+- **Delivered:** one comprehensive NO-CODE audit through all three lenses (A dogfood/enforcement · B
+  direction/vision · C process-cost). Output = `sessions/session-45-ground-truth.md`.
+- **Verdict:** the enforcement moat is **architecturally complete and paper-sound** across the full S36
+  kill-chain, but **not live-verified since S36** — `dogfood_check` 🔴 UNMEASURED for the **4th
+  consecutive GT** (S30, S35, S40, S45). 8 audits: vision 🟡 · roadmap 🟡 · state ✅ · knowledge ✅ ·
+  constraints ✅ · constitution 🟡 (jq 🔴 closed S42) · cost ✅ · dogfood 🔴.
+- **Ground-truthed live:** 135 tests green (117 lib + 12 adapter + 6 integration), maturity L2,
+  jq-preflight in all 5 hooks, git belt active, publish-guard executable. STATE accurate; only artifact =
+  accepted snapshot-before-merge (S44 "pending" = merged PR #39).
+- **Founder pick: A** — S46 = live re-dogfood (#17a), prove the guards fire live.
 
-Between sessions. Next = S45 (NO-CODE — mandatory ground-truth, all three lenses combined).
+Between sessions. Next = S46 (CODE/VERIFY, PAID — live re-dogfood).
 
-## Next Session (S45 — NO-CODE, mandatory ground-truth)
+## Next Session (S46 — CODE/VERIFY, PAID)
 
-- **Prompt (ready):** `prompts/45-task-combined-ground-truth.md` — the every-5th NO-CODE audit (last =
-  S40). Founder directed **all three lenses in one comprehensive review**: (A) dogfood /
-  enforcement-completeness · (B) direction / vision drift · (C) process-cost drift. "No rule should stop
-  us." Run every `required_audit`; render one honest verdict; rank + tee up the paid live re-dogfood
-  (#17a) as the likely S46 code/verify session (the audit itself cannot run the paid loop).
-- **Branch:** `session-45-combined-ground-truth` (NO-CODE; doc-only closeout on a `-closeout` suffix branch is exempt).
+- **Prompt (ready):** `prompts/46-task-live-redogfood.md` — run the real `vajra claude` loop against a
+  freshly scaffolded L3 project; produce **live evidence** (captured transcript) that the moat blocks an
+  autonomous agent's push / PR / advance; render the founder-satisfaction gate verdict with that evidence
+  + cost receipt. Cheap `-p` + replay first; interactive only to provoke a guard. Success = ≥1 live exit-2
+  block in the JSONL, OR a documented new leak (S36-style). Cost lands in the ledger (the dogfood proof).
+- **Branch:** `session-46-<slug>` off `main` — **new chat.**
 
 ## Always-True Reminders
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`.
-- Every 5th session is NO-CODE ground-truth (last = S40; **S45 is next and mandatory**).
+- Every 5th session is NO-CODE ground-truth (last = S45; next mandatory = S50).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S45; do NOT start it here.
-- **Enforcement is the moat** — S37→S39 closed the S36 harm; S40 audited it; S41 fixed compression;
-  S42 closed the `jq` fail-open; S43 added the git-level L2 belt; **S44 wired the moat into brownfield
-  repos that already own a `.claude/settings.json` — the last silent L3 leak.**
-- **To publish from an agent session, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the
-  guard blocks the agent otherwise, by design).
+- **New session = new chat** — open a fresh chat for S46; do NOT start it here.
+- **Enforcement is the moat — and now the proof is owed.** S37→S44 completed the enforcement arc across
+  L2 (git) + L3 (`.claude/`), greenfield + brownfield; S45 GT ruled it **complete but live-unproven.**
+  S46 is the paid live run that closes (or falsifies) that proof.
+- **To publish from an agent session, the founder must launch with `VAJRA_ALLOW_PUBLISH=1`** (the guard
+  blocks the agent otherwise, by design).
