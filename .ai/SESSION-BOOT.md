@@ -1,44 +1,43 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 45 — COMPLETE
-- **Type:** NO-CODE — mandatory ground-truth (every 5th; last = S40), all three lenses combined
-  (A dogfood/enforcement · B direction/vision · C process-cost).
-- **Branch:** `session-45-combined-ground-truth` (audit); doc-only closeout on `session-45-closeout` (exempt).
+- **Number:** 46 — COMPLETE
+- **Type:** CODE/VERIFY, **PAID** — live re-dogfood (#17a, founder pick A). No source-code change;
+  deliverable = live evidence the moat fires + the direction-B pivot.
+- **Branch:** `session-46-live-redogfood`.
 - **Date last updated:** 2026-07-05
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 45.
-- `main`: up to Session 44 (PR #39, merged `921a440`). S45 = NO-CODE audit, output
-  `sessions/session-45-ground-truth.md`; closeout bundle on `session-45-closeout` (founder pushes).
+- `.ai/SESSION` = 46.
+- `main`: up to Session 45 (PR #40, `ff201e4` — the S45 GT closeout is merged; S44 = #39, `921a440`).
+  S46 output = `sessions/session-46-summary.md` + artifact `sessions/session-46-live-hook-fire.txt`.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- **Verdict: the enforcement moat is architecturally COMPLETE and paper-sound across the full S36
-  kill-chain, but NOT live-verified since S36.** `dogfood_check` 🔴 UNMEASURED for the **4th consecutive
-  GT** (S30, S35, S40, S45). 8 audits: vision 🟡 · roadmap 🟡 · state ✅ · knowledge ✅ · constraints ✅ ·
-  constitution 🟡 (jq 🔴 closed S42) · cost ✅ · dogfood 🔴.
-- **Ground-truthed live this session:** 135 tests green (117 lib + 12 adapter + 6 integration), maturity
-  L2, jq-preflight in all 5 hooks, git belt active (`core.hooksPath=.githooks`), publish-guard executable.
-  STATE accurate; only artifact = accepted snapshot-before-merge (S44 "pending" = merged PR #39).
-- **MVP framing:** honest value story ✅ ready · enforcement-holds-live 🔴 blocking · install 🟡 · cross-agent 🔴.
+- **Verdict: the enforcement moat is LIVE-VERIFIED — `dogfood_check` 🟢 for the first time since S36**
+  (flagged 🔴 at S30/S35/S40/S45). Proved via 13/13 $0 replay + four PAID `vajra claude -p` L3 runs
+  (~$3.84). **Two layers hold live:** governance-in-context (Claude self-refuses the guarded push/PR 3/3)
+  + the hook backstop (isolation harness: agent ran `git push -u origin …`, publish-guard blocked exit-2
+  in the nested JSONL, run 4). 4/4 leaked nothing. `verify-session-46.sh` 13/13.
+- **FOUNDER DIRECTION LOCK — pivot to B:** offered (A) "your AI can't go rogue" vs (B) "your AI does
+  better work", founder picked **B**. The enforcement arc is DONE; build the co-pilot value. Memory
+  `vajra-direction-b-copilot`.
 
 ## Next Session
-- **Number:** 46
-- **Type:** CODE/VERIFY, **PAID** — live re-dogfood (#17a, founder pick A). Run the real `vajra claude`
-  loop against a freshly scaffolded L3 project; produce **live evidence** (captured transcript) that the
-  moat blocks an autonomous agent's push / PR / advance; render the founder-satisfaction gate verdict with
-  that evidence + cost receipt.
-- **Prompt:** `prompts/46-task-live-redogfood.md` (ready).
-- **Method:** cheap `-p` + payload replay first ($0); one paid `vajra claude -p` run at L3; interactive
-  only to provoke a guard. Success = ≥1 live exit-2 block in the JSONL, OR a documented new leak (S36-style).
-- **Branch:** `session-46-<slug>` off `main`.
+- **Number:** 47
+- **Type:** the FIRST direction-B session (CODE) — **founder pick: B, the mid-run co-pilot.** Wire a
+  `UserPromptSubmit` murmur so the co-pilot surfaces the right `copilot.on` context *proactively and
+  non-blocking* (exit 0 — guide, not block), the half missing from today's PreToolUse-only blocker.
+  Paired follow-on (document, ~S48) = the obedience metric that measures whether it helps.
+- **Prompt:** `prompts/47-task-midrun-copilot.md` (ready).
+- **Branch:** `session-47-midrun-copilot` off `main`.
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S46; do NOT start it here.
-- **The dollar figure in the ledger IS the dogfood proof** — `dogfood_check` reads the cost ledger, not
-  test counts. S46 must land a real spend + capture the receipt (incl. the cache-read share, #18 evidence).
-- **To let the agent push/PR for the proof, the founder controls `VAJRA_ALLOW_PUBLISH`** — the guard
-  blocking the agent IS the success signal; do not set it just to make a push succeed.
-- **Post-merge (S37 return-to-main step):** after the S45 closeout merges, checkout `main` + prune the
-  merged `session-45-*` branches; prune the stale `origin/session-42-*` remote branch too.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S47; do NOT start it here.
+- **Direction is B now** — "make the AI do better work", not "block it". Do not schedule another guard
+  session. Enforcement is complete + live-verified; the value/co-pilot lane is the work.
+- **"Cheaper" = less re-work, not compression** (~$0 savings). Don't chase token compression for value.
+- **Post-merge (S37 return-to-main step):** after the S46 closeout merges, checkout `main` + prune the
+  merged `session-46-*` (and `session-45-*`) branches; prune the stale `origin/session-42-*` remote branch.
 - **Next mandatory NO-CODE ground-truth = S50** (every 5th; last = S45).
 - **Carry (compression):** cargo/npm/pytest exit-code fold gap — never fold on real CC; own future session.
+- **Carry (publish-guard v0):** line-based quote-strip over-blocks a multi-line single-quoted command that
+  embeds a trigger phrase (observed live S46 on the orchestrator's own command; fail-safe direction). Backlog.
