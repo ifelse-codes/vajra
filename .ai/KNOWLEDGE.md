@@ -200,3 +200,39 @@ pub struct CompressionRequest {
   agent). **Next = S44: `.claude/settings.json` merge on init (founder pick B, S34 finding)** — merge
   Vajra's hooks into an existing settings.json instead of skipping it, so brownfield repos that
   already own one get the L3 hooks wired.
+
+- 2026-07-04 Session 44 (`.claude/settings.json` merge on init — founder pick B, closes the S34
+  finding): **`vajra init` now MERGES Vajra's hooks into a pre-existing `.claude/settings.json`
+  instead of skipping it** — the last silent L3-enforcement leak. `init` followed skip-if-present
+  for every file; for `.claude/settings.json` that was wrong — a brownfield repo that already had one
+  kept it untouched, so the scaffolded `.ai/hooks/` were never fired and the whole L3 moat (Darshan
+  boot, co-pilot, session-guard, publish-guard) was silently absent for exactly the primary use case.
+  **Fix (2 files, `src/cli/init.rs` + `scripts/verify-session-44.sh`):** in `scaffold()`'s file loop,
+  a pre-existing `.claude/settings.json` (only) routes to `merge_claude_settings_file()` → the pure
+  `merge_claude_settings(existing, template) -> Result<(String, bool)>`, which parses both to
+  `serde_json::Value` and appends each Vajra `SessionStart`+`PreToolUse` hook GROUP to the user's
+  arrays, preserving every user key/hook (Vajra's SessionStart rides as a **separate** array entry
+  beside the user's, so both fire). **Idempotent:** a group is appended only if the target event array
+  lacks a structurally-equal group AND doesn't already reference that group's `.ai/hooks/*.sh` script
+  paths — checked against a **pre-merge snapshot** of the array so the co-pilot hook (shared across the
+  Bash + Edit groups) can't self-cancel within one run. **Malformed / non-object existing JSON → `Err`
+  → the caller leaves the file untouched + prints a loud `warn` (never overwritten); init still exits
+  0** (consistent with the launcher's `append_post_tool_use` skip-on-malformed). **The launcher's
+  `merge_hook_settings_for` (ADR-0003) is NOT reused** — it builds a *fresh `PostToolUse`-only* object
+  for the `--settings` temp file at launch; a different shape from an additive on-disk merge preserving
+  all keys. Documented inline rather than force-shared (a genuinely different algorithm, not copy-paste).
+  **Accepted cosmetic:** `serde_json` sorts object keys (no `preserve_order` feature enabled → enabling
+  it is a dep change, out of scope) so top-level key *order* may shift on merge — **zero content dropped,
+  array/hook execution order preserved.** verify-session-44.sh **24/24** (real `vajra init` into a temp
+  brownfield repo with a pre-existing settings carrying a user hook + unrelated key → user hook + key
+  survive + all 4 Vajra hooks wired + valid JSON; run 2× → no duplicate Vajra entries; greenfield still
+  writes the canonical file; malformed preserved byte-for-byte + warns). `cargo test` **117 lib (+6)** +
+  12 adapter; clippy + fmt clean. Commit `8a78ca6`. ~$0 (no paid `vajra claude` run). **Verify gotcha
+  (recorded):** in a throwaway one-liner, `( cd "$D" && "$PWD/target/debug/vajra" init )` expands `$PWD`
+  **after** the `cd`, so the binary path resolves under the temp dir and init silently no-ops under a
+  trailing `|| true` — always use an absolute binary path captured before the subshell (the verify
+  script does). **Next = S45: mandatory NO-CODE ground-truth** — founder directed **all three lenses
+  combined** (dogfood/enforcement-completeness + direction/vision drift + process-cost drift), "no rule
+  should stop us"; the paid live re-dogfood (#17a) itself is a separate code/verify session (S46) the
+  audit ranks + tees up. Memory `vajra-enforcement-leak-s36` (last silent L3 leak closed; dogfood gate
+  still UNMEASURED).
