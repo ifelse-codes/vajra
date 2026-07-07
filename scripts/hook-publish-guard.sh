@@ -17,14 +17,29 @@
 # push` typed by the agent never reaches this hook's own environment). Escape hatch mirrors
 # VAJRA_SKIP_AUTH_CHECK (S34).
 #
-# Maturity-gated (same gate as every Vajra hook, S21):
+# When enforcing (see the S47 opt-in gate below), maturity-gated like every Vajra hook (S21):
 #   L1    -> ADVISE  : warn on stdout, exit 0 (agent may proceed).
 #   L2/L3 -> ENFORCE : warn on stderr, exit 2 (action blocked).
-# Always-on at L2/L3 (enforcement is the moat — not behind an opt-in flag).
+# NOTE (S47): no longer always-on — this repo DISABLED it (`publish_guard: off` in CONSTRAINTS);
+# re-arm with VAJRA_ENFORCE_PUBLISH=1. The `vajra init` scaffold still ships it on. See the gate
+# right after `set -euo pipefail`.
 #
 # Test/override knob: VAJRA_GUARD_MATURITY overrides the maturity read from CONSTRAINTS.yaml.
 
 set -euo pipefail
+
+# ── S47 founder directive: the publish-guard is OPT-IN now ───────────────────────────────────
+# The enforcement arc (S37→S44) is complete + LIVE-VERIFIED (S46) and direction is B, so the
+# founder disabled the always-on block in THIS repo. The guard ENFORCES only when EITHER the env
+# var VAJRA_ENFORCE_PUBLISH=1 is set (explicit re-arm), OR .ai/CONSTRAINTS.yaml does NOT carry
+# `publish_guard: off`. This repo sets `publish_guard: off`, so publishing is allowed with no env
+# var. The scaffold ships NO such line — the SAME byte-identical hook, gated by config — so every
+# NEW project still gets the guard ON. The switch lives in CONSTRAINTS, not the code: no drift.
+_VROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+_PG=$(grep -m1 '^[[:space:]]*publish_guard:[[:space:]]' "$_VROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | awk '{print $2}' || echo "")
+if [ "${VAJRA_ENFORCE_PUBLISH:-}" != "1" ] && [ "$_PG" = "off" ]; then
+  exit 0
+fi
 
 # jq preflight — fail-closed (AGENTS.md L147: a check that cannot evaluate FAILS).
 if ! command -v jq >/dev/null 2>&1; then

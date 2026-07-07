@@ -125,6 +125,11 @@ copilot:
 enforcement:
   binds_all_agents: true
   fail_closed: true
+  # S47 founder directive: the publish-guard is OFF in THIS repo (enforcement arc complete +
+  # live-verified S46; direction B). Publishing (git push / gh pr create|merge) is allowed with
+  # no env var. Re-arm the block with VAJRA_ENFORCE_PUBLISH=1, or delete this line. The `vajra
+  # init` scaffold does NOT carry this line, so new projects keep the guard on.
+  publish_guard: off
   closeout_not_done_until: scripts/verify-closeout.sh exits 0
 
 trust:
