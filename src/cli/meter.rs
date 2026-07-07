@@ -1,4 +1,5 @@
 use crate::meter;
+use crate::obedience;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 
@@ -20,5 +21,9 @@ pub fn run() -> Result<()> {
 
     let cost = meter::meter_session(&path, subagent_dir.as_deref(), None)?;
     eprint!("{}", meter::format_receipt(&cost));
+
+    // Obedience metric (S48): did the agent obey the rails? Read-only, same JSONL.
+    let obedience = obedience::obedience_for(&path)?;
+    eprint!("{}", obedience::format_obedience(&obedience));
     Ok(())
 }
