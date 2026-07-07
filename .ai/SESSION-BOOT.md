@@ -28,13 +28,13 @@
 
 ## Next Session
 - **Number:** 49
-- **Type:** CODE — **awaiting founder pick (A/B/C)** from the S48 summary:
-  - **A (recommended):** baseline read — run the metric across several past sessions for context.
-  - **B:** measure the value gap (real-task baseline, PAID) — `vajra claude` vs plain `claude`; the
-    work-quality question obedience does NOT answer.
-  - **C:** trace-mine missing `⚡on` advisories (look-only detector) → co-pilot content backlog.
-- **Prompt:** `prompts/49-task-<slug>.md` — **written after the founder picks.**
+- **Type:** CODE (reporting) — **founder pick A: the obedience baseline.** Run the S48 metric across the
+  project's past session transcripts → a ranked per-session table + aggregate (median/range), so a single
+  obedience reading has a yardstick. Reporting only ($0); descriptive, not causal. Reuses
+  `src/obedience/mod.rs` behind a batch/report surface — no 8th command, no new dep.
+- **Prompt:** `prompts/49-task-obedience-baseline.md` (ready).
 - **Branch:** `session-49-<slug>` off `main`.
+- **Then S50 = mandatory NO-CODE ground-truth** (every 5th; last = S45).
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S49; do NOT start it here.

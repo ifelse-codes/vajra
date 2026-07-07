@@ -15,14 +15,16 @@
 - **Founder direction: B in execution.** Enforcement is the floor (complete + live-verified S46); the
   co-pilot value is the product. Measure before building more — this session is the number.
 
-Between sessions. Next = S49 — **awaiting founder pick (A/B/C)** from the S48 summary.
+Between sessions. Next = S49 — **the obedience baseline (founder pick A)**.
 
-## Next Session (S49 — awaiting founder pick)
+## Next Session (S49 — the obedience baseline, founder pick A)
 
-- **A (recommended):** baseline read — the metric across several past sessions for context ($0).
-- **B:** measure the value gap (real-task baseline, PAID) — the work-quality question obedience omits.
-- **C:** trace-mine missing `⚡on` advisories (look-only) → co-pilot content backlog.
-- **Prompt:** `prompts/49-task-<slug>.md` — written after the pick. **Branch:** `session-49-<slug>` — new chat.
+- **Delivers:** run the S48 metric across the project's past session transcripts → a ranked per-session
+  table + aggregate (median/range), giving "98.9%" a yardstick. Reporting only ($0); descriptive, not
+  causal. Reuses `src/obedience/mod.rs` behind a batch/report surface — no 8th command, no new dep.
+- **Prompt:** `prompts/49-task-obedience-baseline.md` (ready).
+- **Branch:** `session-49-<slug>` off `main` — **new chat.**
+- **Then S50 = mandatory NO-CODE ground-truth** (every 5th; last = S45).
 
 ## Always-True Reminders
 
