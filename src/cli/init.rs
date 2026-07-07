@@ -557,6 +557,7 @@ fn files(
         // verify/demo scripts stay in scripts/ (that contract is unchanged).
         fx(".ai/hooks/hook-session-start.sh", TPL_HOOK_SESSION_START),
         fx(".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
+        fx(".ai/hooks/hook-copilot-murmur.sh", TPL_HOOK_COPILOT_MURMUR),
         fx(".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
         fx(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
         // Git-level belt (S43): tracked pre-commit/pre-push, an independent L2 layer
@@ -840,6 +841,16 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-copilot-murmur.sh\""
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -883,6 +894,13 @@ const TPL_HOOK_SESSION_START: &str = include_str!("../../scripts/hook-session-st
 // truth, no hand-copy, so it can never drift (the S19 rule Varta enforces). The file is
 // un-excluded in Cargo.toml's `exclude` so it ships with `cargo install`.
 const TPL_HOOK_COPILOT_LOADER: &str = include_str!("../../scripts/hook-copilot-loader.sh");
+
+// Canonical co-pilot MURMUR (S47) — the proactive, non-blocking half of the co-pilot (direction B).
+// A UserPromptSubmit hook: each user turn it murmurs the copilot.on context relevant to the
+// working-tree changes (advisory, exit 0 — never blocks; the loader owns enforcement). Embedded
+// verbatim so the scaffolded copy can never drift (S22 one-source pattern); un-excluded in
+// Cargo.toml so it ships with `cargo install`.
+const TPL_HOOK_COPILOT_MURMUR: &str = include_str!("../../scripts/hook-copilot-murmur.sh");
 
 // Canonical session-guard (S26/S29) — one-session-per-chat enforcement, embedded
 // verbatim so the scaffolded copy can never drift (S22 pattern). Gated on
@@ -1141,6 +1159,45 @@ mod tests {
             let mode = fs::metadata(&hook).unwrap().permissions().mode();
             assert_eq!(mode & 0o111, 0o111, "hook must be executable");
         }
+    }
+
+    #[test]
+    fn scaffold_ships_copilot_murmur_verbatim() {
+        let dir = scaffold_tmp();
+        let hook = dir.path().join(".ai/hooks/hook-copilot-murmur.sh");
+        assert!(hook.exists(), "murmur hook not scaffolded");
+        // Byte-identical to the canonical script — one source of truth, no drift (S22 pattern).
+        assert_eq!(
+            fs::read_to_string(&hook).unwrap(),
+            TPL_HOOK_COPILOT_MURMUR,
+            "scaffolded murmur hook drifted from canonical"
+        );
+        // Direction-B invariant: the murmur guides, it never blocks — no `exit 2` anywhere.
+        assert!(
+            !TPL_HOOK_COPILOT_MURMUR.contains("exit 2"),
+            "the murmur must never block (exit 2) — it is advisory at every maturity"
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&hook).unwrap().permissions().mode();
+            assert_eq!(mode & 0o111, 0o111, "murmur hook must be executable");
+        }
+    }
+
+    #[test]
+    fn scaffold_wires_murmur_into_user_prompt_submit() {
+        let dir = scaffold_tmp();
+        let s = fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+        assert!(
+            s.contains("UserPromptSubmit"),
+            "murmur must be wired on UserPromptSubmit (the proactive lane)"
+        );
+        assert_eq!(
+            s.matches("hook-copilot-murmur.sh").count(),
+            1,
+            "murmur wired exactly once, on UserPromptSubmit"
+        );
     }
 
     #[test]
