@@ -307,3 +307,31 @@ pub struct CompressionRequest {
   guard, build the co-pilot value; "cheaper" comes from less re-work, not compression (~$0). A return to
   the north star the S37→S46 guard work drifted from. Memories `vajra-direction-b-copilot` (new) +
   `vajra-enforcement-leak-s36` (arc DONE, dogfood GREEN). Next = S47, a **B** session (pick pending).
+- 2026-07-06 Session 47 (mid-run co-pilot murmur — the FIRST direction-B session, founder pick B): shipped
+  the **proactive, non-blocking half** of the co-pilot. `scripts/hook-copilot-murmur.sh` is a
+  **`UserPromptSubmit`** hook (a hook event Vajra's scaffold didn't use before) that reuses the loader's
+  rule-parse + per-session debounce but **inverts the posture: advise (stdout, exit 0), never block** —
+  enforcement stays the loader's job (the direction-B lane). **Signal = `git status --untracked-files=all`
+  → the files in play this session; `cut -c4-`** (fixed columns, space-safe) matched against each
+  `copilot.on` **path-glob** rule; `cmd:*` rules are skipped (a user turn has no `tool_input.command`).
+  Guards: missing `jq` / no working-tree change / no match / can't-decide → **stays quiet** (exit 0, never
+  fail-closed — the guidance inversion of the S42 jq-preflight). Per-session debounce keyed on
+  `session_id` in a **separate `murmur-` marker namespace** so murmur ↔ loader never cross-cancel (a
+  murmured rule can still be enforced later by the loader — independent layers). **`--untracked-files=all`
+  matters:** default `git status` collapses an untracked dir to `dir/`, which over-matches a `dir/*` glob
+  on mere existence; `-uall` lists real file paths. **Propagated into `vajra init`** byte-identical via
+  `include_str!("../../scripts/hook-copilot-murmur.sh")` (S22 one-source pattern) + emit to `.ai/hooks/` +
+  a new `UserPromptSubmit` block in `TPL_CLAUDE_SETTINGS`; `Cargo.toml` un-excludes the hook (the S22
+  packaging gotcha) so `cargo install` ships it. 2 scaffold tests (byte-identical + wired-once-on-
+  UserPromptSubmit + a source-invariant that the hook contains **no `exit 2`**). `verify-session-47.sh`
+  **23/23 green** (fmt/clippy/`cargo test` **119 lib**, +2 · packaging · E2E: a real `vajra init` murmurs a
+  matching change at exit 0, stays advisory at L3, debounces, stays quiet on no match). Commits `ea7e497`
+  (hook + repo wiring) + `027afcb` (scaffold + ship + verify). **Dogfood live:** the loader blocked this
+  session's own `git commit` on `⚡on(cmd:git commit)` (exit 2) — the co-pilot working on itself.
+  **HONEST READ (the founder-flagged bar):** *mechanism verified, value UNMEASURED* — the murmur fires
+  right, but whether it makes the AI do better work is unproven (a helper on faith). Accepted v0 limit: in
+  a fresh *uncommitted* repo `-uall` lists all untracked files so `prompts/*` murmurs on the scaffolded
+  prompts even when the agent isn't editing one; in any committed repo `git status` shows only real changes
+  → no bite. **Founder pick A: S48 = the obedience metric** (`obedience % = clean ÷ (clean+blocked/retried)`)
+  — measure before building more co-pilot. `prompts/48-task-obedience-metric.md`. Memory
+  `vajra-direction-b-copilot`.
