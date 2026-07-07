@@ -18,13 +18,14 @@
 
 Between sessions. Next = S50 — **mandatory NO-CODE ground-truth** (every 5th; last = S45).
 
-## Next Session (S50 — mandatory NO-CODE ground-truth)
+## Next Session (S50 — mandatory NO-CODE ground-truth · lens B: dogfood/enforcement)
 
 - **Type:** NO-CODE. Run all 8 `CONSTRAINTS.yaml#ground_truth.required_audits` (direction + discipline drift).
-- **Founder picks the lead lens:** A direction-B value · B dogfood/enforcement · C process-cost + note-compression.
-- **Output:** `sessions/session-50-ground-truth.md`. **Prompt:** `prompts/50-task-<slug>.md` (after the pick).
+- **Founder pick = B (dogfood/enforcement lead):** is the moat still LIVE (measured, not assumed)? has any
+  real *paid* work run through `vajra claude` since S46? cost discipline. The cost ledger is the proof.
+- **Output:** `sessions/session-50-ground-truth.md`. **Prompt:** `prompts/50-task-dogfood-enforcement-gt.md` (ready).
 - **Branch:** `session-50-<slug>` off `main` — **new chat.**
-- **Then S51 resumes CODE** (founder pick from the GT's ranked candidates).
+- **Then S51 resumes CODE** (founder pick from the GT's ranked candidates; S49-B value-gap proof is a carry).
 
 ## Always-True Reminders
 

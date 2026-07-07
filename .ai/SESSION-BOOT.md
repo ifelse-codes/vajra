@@ -27,10 +27,10 @@
 - **Number:** 50
 - **Type:** **mandatory NO-CODE ground-truth** (every 5th; last = S45). No source edits, no commits, no PRs.
   Run all 8 `CONSTRAINTS.yaml#ground_truth.required_audits` (both drift classes: direction + discipline).
-  Founder picks the **lead lens**: **A** direction-B value ("is work-quality still UNMEASURED; was S47→S49
-  the shortest path or scope-creep?") · **B** dogfood/enforcement (moat still live? any paid run since S46?)
-  · **C** process-cost + note-compression (should the every-5th note-compaction idea activate?).
-- **Prompt:** `prompts/50-task-<slug>.md` — written after the founder's lens pick.
+  **Founder pick = B (dogfood/enforcement lead):** is the moat still LIVE — measured, not assumed (🟢 since
+  S46)? has any real *paid* work run through `vajra claude` since S46? cost discipline. The cost ledger is
+  the proof. All 8 audits still run; this lens sets what leads.
+- **Prompt:** `prompts/50-task-dogfood-enforcement-gt.md` (ready).
 - **Branch:** `session-50-<slug>` off `main` (GT sessions use a `-closeout`/`-enforcement` suffix only if
   hardening is authorized; the audit output itself is docs-only).
 - **Then S51 resumes CODE** (founder pick from the S50 GT's ranked candidates).
