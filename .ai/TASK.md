@@ -2,27 +2,28 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 50 — Ground Truth (NO-CODE, mandatory every-5th) · lens B: dogfood/enforcement — COMPLETE
+## Session 51 — Measure the value gap (real-task A/B on chitra, PAID) · direction B — COMPLETE
 
-- **Verdict:** paper moat intact + re-verified live today (10 hooks present + wired, 129 lib tests, jq-preflight
-  in 6 hooks, git-belt `core.hooksPath=.githooks`, L2, scaffold keeps guard ON); **live moat aging** — no paid
-  `vajra claude` run since S46 (S47/S48/S49 all ~$0). `dogfood_check` = **🟡 measured-then-aging** (distinct
-  from the pre-S46 hard 🔴 UNMEASURED). Standing #1 unchanged: **work-quality is UNMEASURED.**
-- **8 audits:** vision 🟡 · roadmap 🟡 · state ✅ · knowledge ✅ · constraints ✅ · constitution 🟡 · cost ✅ ·
-  dogfood 🟡. **Meta-check:** presence-checks prove the machinery *exists*, never that it *fires*; this lens
-  tempts re-polishing the guard (S46 said stop) — the highest-leverage move is the work-quality proof.
-- **Output:** `sessions/session-50-ground-truth.md`. NO code, NO source edits; closeout on exempt
-  `session-50-closeout` branch. **Founder pick = A** → S51 = the value-gap real-task baseline (PAID).
+- **Verdict (n=1, honest):** **no measurable Vajra work-quality win; cost ~19% more.** Both arms equal on
+  core API correctness; the Vajra arm mirrored chitra's own *broken* `CONTRIBUTING.md` (peripheral slip) and
+  had a marginally better ordered new-user path. **Thesis UNPROVEN — the README one-shot was too easy to
+  separate the arms.**
+- **Duties landed:** value-gap number (null at n=1) · `dogfood_check` 🟢 refreshed (first paid `vajra claude`
+  since S46; co-pilot fired live exit-2; **+1 bug: receipt overstates cost ~9×**) · **chitra advanced for
+  real** (S03 merged to chitra `main`; S04 README committed `def0cfa`).
+- **Output:** `sessions/session-51-summary.md` + `sessions/session-51-artifacts/` + `verify-session-51.sh`
+  (19/19). S51 spend ~$1.52. **Founder pick = A** → S52 = value gap on a HARDER task.
 
-Between sessions. Next = **S51 — Measure the value gap (real-task baseline, PAID)** · `prompts/51-task-value-gap.md`.
+Between sessions. Next = **S52 — Value gap on a HARDER task (n=2, PAID)** · `prompts/52-task-value-gap-harder.md`.
 
-## Next Session (S51 — Measure the value gap · direction B · CODE/VERIFY · PAID)
+## Next Session (S52 — Value gap on a HARDER task · direction B · CODE/VERIFY · PAID)
 
-- **Type:** CODE/VERIFY, **PAID.** Run the same small real task twice — Arm A `vajra claude` vs Arm B plain
-  `claude` — diff on a pre-declared rubric (correctness · corrections · cost). The first attempt at the
-  **work-quality number** obedience does NOT answer; the paid run also refreshes the aging `dogfood_check`.
-- **Output:** `sessions/session-51-summary.md` (rubric + both arms + honest n=1 verdict + 3 S52 candidates).
-- **Branch:** `session-51-<slug>` off `main` — **new chat.** **Prompt:** `prompts/51-task-value-gap.md` (ready).
+- **Type:** CODE/VERIFY, **PAID.** Re-run the A/B on a real multi-step, convention-heavy chitra task (lead =
+  publishable `dist/` build for `@chitra/core`) where captured `.ai/` context could prevent drift/re-work — the
+  axis a README one-shot could not test. Adds a **constraint-adherence** rubric axis. n=2, still small.
+- **Output:** `sessions/session-52-summary.md` (rubric + both arms + honest verdict vs the S51 null + 3 S53
+  candidates). Arm A committed in chitra.
+- **Branch:** `session-52-<slug>` off `main` — **new chat.** **Prompt:** `prompts/52-task-value-gap-harder.md` (ready).
 
 ## Always-True Reminders
 
@@ -30,7 +31,7 @@ Between sessions. Next = **S51 — Measure the value gap (real-task baseline, PA
 - Branch: `session-NN-<slug>`.
 - Every 5th session is NO-CODE ground-truth (last = S50; next mandatory = S55).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S51; do NOT start it here.
-- **Direction is B (S46 lock), in execution:** make the AI do BETTER WORK (correct results, less re-work,
-  less babysitting), not just block it. Enforcement is complete + live-verified — do not re-open it.
-  **The obedience metric + baseline are a floor, not work-quality.** Memory `vajra-direction-b-copilot`.
+- **New session = new chat** — open a fresh chat for S52; do NOT start it here.
+- **Direction is B (S46 lock), in execution:** make the AI do BETTER WORK, not just block it. **S51 = first
+  work-quality reading = honest n=1 null — do not rescue the thesis.** Use `total_cost_usd`, not the vajra
+  receipt (overstates ~9×). Memory `vajra-direction-b-copilot`.

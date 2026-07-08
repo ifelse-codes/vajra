@@ -1,49 +1,52 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 50 — COMPLETE
-- **Type:** **NO-CODE ground-truth** (mandatory every-5th; last = S45) · **lead lens B: dogfood/enforcement.**
-  Ran all 8 `required_audits` (direction + discipline drift). No source edits, no PRs; docs-only audit +
-  closeout on the exempt `session-50-closeout` branch.
-- **Branch:** audit on `session-50-dogfood-enforcement-gt`; closeout on `session-50-closeout` (exempt suffix).
+- **Number:** 51 — COMPLETE
+- **Type:** **CODE/VERIFY · PAID** — direction B, founder pick A. Measured the **value gap**: the same real
+  chitra task run twice — Arm A `vajra claude` (kept) vs Arm B plain `claude` (stripped worktree, discarded) —
+  on a pre-declared rubric (correctness · corrections · cost). First real **work-quality** reading.
+- **Branch:** `session-51-value-gap` (Vajra). The useful work landed in **chitra** (its own repo/workflow).
 - **Date last updated:** 2026-07-08
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 50.
-- `main`: up to Session 49 (PR #44, obedience baseline merged). S50 output = `sessions/session-50-ground-truth.md`
-  (docs-only) + `prompts/51-task-value-gap.md` + closeout bundle, **committed locally on `session-50-closeout`**
-  (publish-guard OFF in this repo; founder pushes / merges).
+- `.ai/SESSION` = 51.
+- `main`: up to Session 50. S51 output = `sessions/session-51-summary.md` + `sessions/session-51-artifacts/`
+  + `prompts/52-task-value-gap-harder.md` + `scripts/verify-session-51.sh` (19/19) + closeout, **committed
+  locally on `session-51-value-gap`** (publish-guard OFF in this repo; founder pushes / merges).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- **Verdict:** paper moat **intact + re-verified live today** (10 hooks present + wired in `.claude/settings.json`,
-  129 lib tests, jq-preflight in 6 hooks, git-belt `core.hooksPath=.githooks`, maturity L2, scaffold keeps guard
-  ON, git clean, cost ledger honest ~$65.8). **Live moat AGING** — no paid `vajra claude` run since S46
-  (S47/S48/S49 all ~$0). `dogfood_check` = **🟡 measured-then-aging** (S46 *did* measure it live — distinct
-  from the pre-S46 hard 🔴 UNMEASURED — but 4 sessions of $0 build-work since = freshness decaying).
-- **8 audits:** vision 🟡 · roadmap 🟡 · state ✅ · knowledge ✅ · constraints ✅ · constitution 🟡 · cost ✅ ·
-  dogfood 🟡. **Meta-check:** presence-checks prove the machinery *exists*, never that it *fires*; this lens
-  tempts re-polishing the guard (S46 pivot said stop). Highest-leverage move = the work-quality proof.
-- **Direction is B (S46 lock), in execution.** Enforcement moat stays COMPLETE; do not re-open the guard.
+- **Verdict (n=1, honest):** **no measurable Vajra work-quality win; cost ~19% MORE** ($0.8127 vs $0.6813).
+  Both arms **equal** on core API correctness (themes, exports, methods, `toJSON` shape). Vajra arm
+  **marginally worse** on peripheral correctness — it faithfully mirrored chitra's **own broken**
+  `CONTRIBUTING.md` (wrong clone URL + a `node file.ts` run command that can't execute TS) — and marginally
+  **better** on task structure (explicit ordered new-user path). **Thesis UNPROVEN — the task was too easy to
+  separate the arms.**
+- **`dogfood_check` → 🟢 refreshed** (first paid `vajra claude` since S46). Enforcement fired live (co-pilot
+  blocked this session's own `git commit`, exit 2). **NEW bug found:** the vajra receipt overstated cost
+  **~9×** ($7.37 vs Claude's authoritative $0.81) — cache-pricing miscalibration; the "honest receipt" is wrong.
+- **chitra advanced for real:** S03 finished + merged to chitra `main`; **S04 README committed** (`def0cfa`,
+  chitra `session-04-readme-getting-started`) — Arm A's output with the 1 correction folded in.
+- S51 spend ~**$1.52** (Arm A $0.8127 · Arm B $0.6813 · probe $0.0265). Cumulative ~**$67.3**. Under $5 cap.
 
 ## Next Session
-- **Number:** 51
-- **Type:** **CODE/VERIFY · PAID** — **founder pick A: measure the value gap.** Run the same small real task
-  twice — Arm A `vajra claude` vs Arm B plain `claude` — diff on a pre-declared rubric (correctness ·
-  corrections · cost). The first attempt at the **work-quality number** obedience does NOT answer; the paid
-  run also refreshes the aging `dogfood_check`. Honest read: n=1 is a start, not a proof.
-- **Prompt:** `prompts/51-task-value-gap.md` (ready).
-- **Branch:** `session-51-<slug>` off `main` — **new chat.**
-- **Then S52** = founder pick from the S51 ranked candidates.
+- **Number:** 52
+- **Type:** **CODE/VERIFY · PAID** — **founder pick A: value gap on a HARDER task (n=2).** Re-run the A/B on a
+  real multi-step, convention-heavy chitra task (lead = the publishable `dist/` build for `@chitra/core`) where
+  captured `.ai/` context could plausibly prevent drift/re-work — the axis a README one-shot could not test.
+  Adds a **constraint-adherence** rubric axis. Takes the second reading; still small-n.
+- **Prompt:** `prompts/52-task-value-gap-harder.md` (ready).
+- **Branch:** `session-52-<slug>` off `main` — **new chat.**
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S51; do NOT start it here.
-- **Post-merge (S37 return-to-main step):** after the S50 branches merge, checkout `main` + prune the merged
-  `session-50-*` (and older `session-49-*`/`session-48-*`) branches; prune stale `origin/session-42-*`.
-- **Direction is B** — "make the AI do better work". Enforcement is complete + live-verified; do not re-open it.
-- **The obedience metric + baseline are a floor, not work-quality** — S51 (option A) is the harder, truer proof.
-- **`dogfood_check` is 🟡 aging** — a paid run (S51) is the cheapest refresh; a $0 payload-replay refreshes the
-  mechanism only (was S50 candidate B, not picked).
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S52; do NOT start it here.
+- **Post-merge (S37 return-to-main step):** after the S51 branch merges, checkout `main` + prune merged
+  `session-51-*` (and older `session-50-*`/`session-49-*`) branches; prune stale `origin/session-42-*`.
+  In chitra: `session-03-polish-docs` merged to chitra `main`; `session-04-readme-getting-started` holds S04.
+- **Direction is B** — "make the AI do better work". S51 = first work-quality reading = **honest n=1 null.**
+  Do NOT rescue the thesis; a harder-task null (S52) would be a major, honest signal. Enforcement stays
+  complete + live-verified; do not re-open it.
+- **Use `total_cost_usd`, NOT the vajra receipt** — receipt overstates ~9× (S51 finding). Fix = a future
+  session (was S52 candidate C, not picked).
 - **S55 = next mandatory NO-CODE ground-truth** (every 5th; last = S50).
-- **Carry (murmur v0):** fresh *uncommitted* repo `-uall` over-fires `prompts/*`; no bite committed. Backlog.
 - **Carry (compression):** cargo/npm/pytest exit-code fold gap — never fold on real CC; own future session.
-- **Carry (publish-guard v0):** line-based quote-strip over-blocks a multi-line single-quoted command that
-  embeds a trigger phrase (fail-safe direction). Backlog.
+- **Carry (env):** nested `claude`/`vajra claude` needs API-key billing (org disabled subscription for the CLI);
+  S51's paid arms ran on API credits after the founder enabled it.
