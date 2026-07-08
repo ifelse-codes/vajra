@@ -1,0 +1,77 @@
+diff --git a/packages/core/README.md b/packages/core/README.md
+index 557adab..907f06e 100644
+--- a/packages/core/README.md
++++ b/packages/core/README.md
+@@ -65,6 +65,23 @@ plot([10, 20, 15, 30, 25])
+ 
+ ---
+ 
++## Examples
++
++Two ready-to-run scripts live in the repo. Run them with [`tsx`](https://github.com/privatenumber/tsx):
++
++```bash
++# A quick tour: line, bar, sparkline, progress, pie, and the fluent plot() API
++npx tsx packages/core/demo.ts
++
++# Every chart type, from the repo root
++npx tsx examples/basic.ts
++```
++
++- [`packages/core/demo.ts`](./demo.ts) — short, curated highlights
++- [`examples/basic.ts`](../../examples/basic.ts) — all 20 chart types
++
++---
++
+ ## Chart Types
+ 
+ | Chart | Function | Description |
+@@ -153,29 +170,33 @@ chart.toJSON();          // structured { type, data, plain, ... }
+ 
+ ## AI Agent Support
+ 
+-Chitra is designed for AI agent workflows. Use `toPlain()` or `toJSON()` to integrate with agents:
++Chitra is designed for AI agent workflows. Every chart result exposes three
++agent-friendly output helpers — pick the one that fits the surface:
++
++- `toPlain()` — plain text with all ANSI color codes stripped
++- `toMarkdown()` — the same plain text wrapped in a fenced ```code block```
++- `toJSON()` — a structured object: `{ type, data, labels, title, plain }`
+ 
+ ```ts
+-// For MCP servers and LLM tools
+-const chartData = line({
++// For MCP servers and LLM tools — return the plain text as a tool result
++const chart = line({
+   data: metrics,
+   title: "Response Times",
+-  noColor: true,     // No ANSI for LLM consumption
+-}).toPlain();
++});
+ 
+-// Return as tool result
+-return { content: [{ type: "text", text: chartData }] };
++return { content: [{ type: "text", text: chart.toPlain() }] };
+ ```
+ 
+ ```ts
+-// For structured agent responses
+-const result = bar({
+-  data: counts,
+-  labels: categories,
+-  noColor: true,
+-}).toJSON();
+-
+-// result.plain — text representation
++// For chat/markdown surfaces — render inside a fenced code block
++const summary = bar({ data: counts, labels: categories }).toMarkdown();
++```
++
++```ts
++// For structured agent responses — get text plus the underlying data
++const result = bar({ data: counts, labels: categories }).toJSON();
++
++// result.plain — text representation (no ANSI)
+ // result.data  — original data
+ // result.type  — chart type
+ ```
