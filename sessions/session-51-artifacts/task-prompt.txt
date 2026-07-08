@@ -1,0 +1,9 @@
+TASK: Improve packages/core/README.md for the @chitra/core terminal chart library so a brand-new user can, in this order: (1) install it, (2) render their first chart, (3) find the runnable example files, and (4) understand the AI-agent output helpers (plain / markdown / json output).
+
+Hard requirements:
+- Every code example must use ONLY real exports of @chitra/core and ONLY real theme names. Read packages/core/src (index.ts, types.ts, themes/) to confirm exports and theme names BEFORE writing any example.
+- Do not invent APIs, options, methods, or theme names. If unsure, read the source rather than guessing.
+- Keep it tight — sharpen and correct, do not bloat.
+- Edit ONLY packages/core/README.md. Do NOT modify library code, tests, or any other file.
+
+When done, briefly summarize what you changed and why.
