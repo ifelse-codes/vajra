@@ -2,38 +2,35 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 49 — the obedience baseline (direction B, founder pick A, CODE/reporting) — COMPLETE
+## Session 50 — Ground Truth (NO-CODE, mandatory every-5th) · lens B: dogfood/enforcement — COMPLETE
 
-- **Delivered:** `vajra meter --all [dir]` — a batch/present layer over the S48 `obedience_for`. Runs the
-  metric across every `*.jsonl` in a directory (default `~/.claude/projects/<cwd-slug>`) → a **worst-first**
-  ranked table + aggregate (n / median / range / total blocks / empties skipped), so a single reading has a
-  yardstick. `src/obedience/mod.rs` (`baseline_for_dir` / `aggregate` / `sort_rows` / `format_baseline`) +
-  `src/cli/meter.rs` `--all`; `scripts/verify-session-49.sh`. Output = `sessions/session-49-summary.md` +
-  `sessions/session-49-baseline.md`.
-- **Verdict:** `verify-session-49.sh` **27/27 green**; `cargo test` **129 lib** (+5). Real read: 63 sessions;
-  **substantive (≥10 calls, n=52) median 98.9%, band 95–100%** → the S48 live reading was dead-on normal.
-  **Honest read: descriptive not causal; still obedience-to-the-RAILS, not work-quality — a floor.**
-- **Founder direction: B in execution.** Enforcement is the floor (complete + live-verified S46); the
-  co-pilot value is the product. S47→S49 built the measurement spine; work-quality itself is still option B.
+- **Verdict:** paper moat intact + re-verified live today (10 hooks present + wired, 129 lib tests, jq-preflight
+  in 6 hooks, git-belt `core.hooksPath=.githooks`, L2, scaffold keeps guard ON); **live moat aging** — no paid
+  `vajra claude` run since S46 (S47/S48/S49 all ~$0). `dogfood_check` = **🟡 measured-then-aging** (distinct
+  from the pre-S46 hard 🔴 UNMEASURED). Standing #1 unchanged: **work-quality is UNMEASURED.**
+- **8 audits:** vision 🟡 · roadmap 🟡 · state ✅ · knowledge ✅ · constraints ✅ · constitution 🟡 · cost ✅ ·
+  dogfood 🟡. **Meta-check:** presence-checks prove the machinery *exists*, never that it *fires*; this lens
+  tempts re-polishing the guard (S46 said stop) — the highest-leverage move is the work-quality proof.
+- **Output:** `sessions/session-50-ground-truth.md`. NO code, NO source edits; closeout on exempt
+  `session-50-closeout` branch. **Founder pick = A** → S51 = the value-gap real-task baseline (PAID).
 
-Between sessions. Next = S50 — **mandatory NO-CODE ground-truth** (every 5th; last = S45).
+Between sessions. Next = **S51 — Measure the value gap (real-task baseline, PAID)** · `prompts/51-task-value-gap.md`.
 
-## Next Session (S50 — mandatory NO-CODE ground-truth · lens B: dogfood/enforcement)
+## Next Session (S51 — Measure the value gap · direction B · CODE/VERIFY · PAID)
 
-- **Type:** NO-CODE. Run all 8 `CONSTRAINTS.yaml#ground_truth.required_audits` (direction + discipline drift).
-- **Founder pick = B (dogfood/enforcement lead):** is the moat still LIVE (measured, not assumed)? has any
-  real *paid* work run through `vajra claude` since S46? cost discipline. The cost ledger is the proof.
-- **Output:** `sessions/session-50-ground-truth.md`. **Prompt:** `prompts/50-task-dogfood-enforcement-gt.md` (ready).
-- **Branch:** `session-50-<slug>` off `main` — **new chat.**
-- **Then S51 resumes CODE** (founder pick from the GT's ranked candidates; S49-B value-gap proof is a carry).
+- **Type:** CODE/VERIFY, **PAID.** Run the same small real task twice — Arm A `vajra claude` vs Arm B plain
+  `claude` — diff on a pre-declared rubric (correctness · corrections · cost). The first attempt at the
+  **work-quality number** obedience does NOT answer; the paid run also refreshes the aging `dogfood_check`.
+- **Output:** `sessions/session-51-summary.md` (rubric + both arms + honest n=1 verdict + 3 S52 candidates).
+- **Branch:** `session-51-<slug>` off `main` — **new chat.** **Prompt:** `prompts/51-task-value-gap.md` (ready).
 
 ## Always-True Reminders
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`.
-- Every 5th session is NO-CODE ground-truth (last = S45; next mandatory = S50).
+- Every 5th session is NO-CODE ground-truth (last = S50; next mandatory = S55).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S50; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S51; do NOT start it here.
 - **Direction is B (S46 lock), in execution:** make the AI do BETTER WORK (correct results, less re-work,
   less babysitting), not just block it. Enforcement is complete + live-verified — do not re-open it.
   **The obedience metric + baseline are a floor, not work-quality.** Memory `vajra-direction-b-copilot`.
