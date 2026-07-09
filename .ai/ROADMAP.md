@@ -47,9 +47,9 @@
 | Field | Value |
 |---|---|
 | Today | 2026-07-09 |
-| Current phase | **S52 done — second work-quality reading (harder-task value-gap A/B on chitra, PAID); n=2 NULL.** Both arms built the same solution + the same `.tsbuildinfo` bug; Vajra ~12% more. **Direction B UNPROVEN across n=2** (easy README + hard dist build). Value shown = **governance/drift-prevention (the floor)**. `dogfood_check` 🟢 (guards fired live 3×); receipt ~8× overstatement re-confirmed; guard nested-repo blindspot found. chitra advanced (S05 GT + S06 dist build on `main`). **Founder pick → S53 = reframe Vajra around GOVERNANCE as the product** (NO-CODE positioning), gated on the differentiator test. **Next mandatory NO-CODE GT = S55.** |
+| Current phase | **S53 (in progress) — REFRAME to GOVERNANCE as the product (NO-CODE positioning).** After the n=2 null on "better work", `VISION.md` now leads with *provable agent governance*; `DECISION-001` reverses the S46 B-lock (supersede, not erase); ROADMAP re-ranked around *"make governance sellable"* (ledger OUTPUT = #1). **Differentiator test (Q2): PARTIAL PASS** — beats git hooks + CLAUDE.md on enforcement-depth, NOT yet on the ledger moat (cross-agent = 0 code). "Better work" kept as an under-tested hypothesis. **Next mandatory NO-CODE GT = S55.** |
 | Last closed session | Session 52 — Value gap on a HARDER task (dist-build A/B, PAID); `sessions/session-52-summary.md` |
-| Active session | None — S52 closed; S53 (reframe to governance, NO-CODE) not yet started (new chat) |
+| Active session | **S53 — reframe to governance (NO-CODE), branch `session-53-reframe-governance`** |
 | Crate | package `vajractl` · binary `vajra` |
 
 ## What Works Today
@@ -195,12 +195,38 @@
   floor): governed arm refused to code in a NO-CODE slot; governed GT caught real chitra drift. `dogfood_check`
   🟢 (guards fired live 3×); receipt ~8× re-confirmed; **guard nested-repo blindspot** found. chitra advanced
   (S05 GT + S06 dist build on `main`, npm-buildable). `verify-session-52.sh`; ~$4.95. `sessions/session-52-summary.md`.
-- **[→] S53 (SCHEDULED — founder pick at S52 close) — Reframe Vajra around GOVERNANCE as the product (NO-CODE
-  positioning).** The n=2 null on "better work" + repeated live governance wins → reposition the north-star
-  (VISION) around governance, record the direction-decision (reverses the S46 B-lock), re-rank ROADMAP.
-  **Gated on the honest differentiator test: beat "just git hooks + CLAUDE.md" or record that it fails.** No
-  feature build (that's S54). `prompts/53-task-reframe-governance-product.md` (ready). Risk: a pivot on n=2 —
-  keep the door open; do NOT overclaim A nor rescue B.
+- **[~] S53 (IN PROGRESS) — Reframe Vajra around GOVERNANCE as the product (NO-CODE positioning).** The n=2 null
+  on "better work" + repeated live governance wins → repositioned the north-star (`VISION.md`), recorded the
+  direction-decision (`docs/decisions/DECISION-001-governance-as-product.md`, reverses the S46 B-lock), re-ranked
+  around *"make governance sellable"* (below). **Differentiator test (Q2) verdict: PARTIAL PASS** — governance
+  beats "just git hooks + CLAUDE.md" on **enforcement-depth** (action-time interception incl. `gh pr create`;
+  session state machine; fail-closed) but **NOT** on the headline **ledger** moat (cross-agent = 0 code, no
+  buyer-facing artifact). Reframe holds; the ledger is the sellable-maker (S54 #1). Door kept open (n=2 small).
+
+### Next leap (S53 REFRAME — "make governance sellable"; supersedes the direction-B ordering)
+
+> **Reframe (DECISION-001):** the product is **provable agent governance.** The MVP question is no longer
+> "does the AI do better work" — it is **"is governance *visible* to a buyer?"** Governance that fires but
+> leaves no artifact a buyer can read is enforcement-depth, not a product. Re-ranked by leverage on *sellable*.
+
+1. **[ ] S54 #1 — The governed-session LEDGER output (the sellable-maker).** Turn the enforcement events that
+   *already fire* (and already sit in the trace) into a committed, human+machine-readable **audit record**:
+   *"your AI provably followed these rules; here are the actions it took, blocked, and why."* This is the make-
+   or-break for the reframe (VISION rule: build the ledger next). Local-first, git-native; target the open
+   `agent-trace` format. **Highest leverage: makes governance visible = the thing a buyer pays to keep.**
+2. **[ ] "Provably followed the rules" DEMO.** Package the S46 live-hook-fire + S52 governance catches (refused
+   NO-CODE slot; caught real drift) into a Darshan demo a buyer can *see*. Cheaper than the full ledger; proves
+   the story now. Good S54 fallback if the ledger scope is too big for one story.
+3. **[ ] Cross-agent (2nd agent) — now MOAT-proving, not just breadth.** The headline moat needs ≥2 agents
+   (S25 north-star gap). Reframed: this proves the *cross-agent* half of the ledger claim, so it is moat-critical,
+   not decoration. Owner-gated (S26) — but the gate rationale shifts from "is Claude satisfying" to "the moat needs it."
+4. **[ ] Install fix (crates.io name taken → `cargo install --path` / rename).** Frictionless install is table-
+   stakes for adoption. Low leverage until there's a sellable artifact (do after #1/#2).
+5. **[ ] Receipt ~8× overstatement fix (S51/S52 carry) — now a governance-CREDIBILITY item.** "Honest receipts"
+   is part of the governance/audit claim; being ~8× wrong on a real run undercuts the trust posture. Calibrate +
+   regression-test against S52's captured `total_cost_usd`.
+6. **[ ] Guard nested-repo blindspot (S52 live-found).** `session-guard`/`copilot-loader` can't tell a subject
+   repo's `session-NN` branches from Vajra's own. Bounded; removes friction from the exact dogfood workflow.
 - **[ ] Fix the ~9× receipt overstatement (S51 live-found, backlog).** The vajra receipt reported $7.37 vs
   Claude's authoritative $0.81 for the same run (cache-pricing miscalibration). "Honest receipts" is a core
   claim and is currently wrong on a real run. Calibration + regression test against S51's payload.
