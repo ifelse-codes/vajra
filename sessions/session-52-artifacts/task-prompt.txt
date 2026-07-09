@@ -1,0 +1,13 @@
+The @chitra/core package is configured to publish a dist/ build — package.json's "exports", "main", "module", "types", and "files" all point at ./dist/* — but its build script is `tsc --noEmit`, so it never emits anything. The package therefore cannot actually be built, published, or imported by consumers.
+
+Fix this. Make `pnpm build` emit a real, publishable dist/ that satisfies package.json's declared entry points:
+- ESM output at dist/index.js
+- CommonJS output at dist/index.cjs
+- TypeScript declarations at dist/index.d.ts
+
+Requirements:
+- Keep zero runtime dependencies (build-time devDependencies are fine).
+- Do NOT change the public API. `pnpm test` must stay green (currently 116 tests pass).
+- After `pnpm build`, the emitted dist/ must be importable from BOTH an ESM `import` and a CommonJS `require`.
+
+Work only within packages/core. Stop when `pnpm build` produces a working dist/ and `pnpm test` passes.
