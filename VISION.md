@@ -1,99 +1,97 @@
 # Vajra — Crystal Clear
 
-> Status: target product vision. The current repo only implements part of this today.
+> Status: target product vision. The current repo implements the enforcement floor today;
+> the buyer-facing ledger is not built yet (stated plainly below — no overclaim).
+> **Reframed 2026-07-09 (S53):** the product is **provable agent governance.** See
+> `docs/decisions/DECISION-001-governance-as-product.md` for why this supersedes the S46 "better work" lock.
 
 ## One sentence
 
-**Vajra is one command-line tool that guides any AI coding agent (Claude Code, Kimi, Kilo) through your project step-by-step — keeping it on track, in context, and in order — while the agent does the actual coding.**
+**Vajra is one command-line tool that makes any AI coding agent follow your rules — provably — and gives you an auditable record of what it did, while the agent does the actual coding.**
 
 ## The simple picture
 
 - **The AI agent** = the driver (writes code, makes branches, creates files)
-- **Vajra** = the co-pilot (calls the next move, feeds the right rule at the right moment — never drives itself)
-- **You** = the team principal (you say `vajra next`, the co-pilot moves the driver forward)
+- **Vajra** = the governor + co-pilot (enforces the rules at the moment of action, feeds the right context, records what happened — never drives itself)
+- **You** = the team principal (you set the policy; Vajra makes the agent honor it and proves it did)
 
-**Co-pilot, not cop.** Vajra does not wait for the agent to crash and then write a ticket. It rides along and guides — like ADAS guides a car, or a race engineer guides an F1 driver through each corner.
+**Guardrail *and* co-pilot.** Vajra rides along: it guides the agent to the next step *and* stops the actions your policy forbids — before they happen, not after — then leaves a record you can audit.
+
+## What Vajra actually is (the reframe)
+
+The thing that worked, live, every session across two months of dogfooding is **governance / drift-prevention**: the agent provably followed the rules. The thing we tried to lead with — "your AI does better work" — was measured twice (S51 README, S52 dist-build) and came back **n=2 null** (no measurable work-quality win; +12–19% cost; on the hard task both arms produced the *same solution and the same bug*). So we lead with what's real.
+
+| | Status |
+|---|---|
+| **Provable rule-following** (enforced, not advised) | ✅ real today — live-verified S46; fired live S51/S52 |
+| **Drift-prevention** (agent stays on the goal + the process) | ✅ real today — governed GT caught real drift (S52) |
+| **"Does better work"** | ⚠ **hypothesis, not the pitch** — n=2 null; kept, not led |
+| **Cross-agent tamper-evident audit ledger** (the moat) | 🔴 **aspirational — 0 cross-agent code today** |
 
 ## What it does
 
-| # | Job | Plain meaning |
+| # | Job | Plain meaning | Real today? |
+|---|---|---|---|
+| 1 | **Enforces discipline at action-time** | Blocks the forbidden action (push to main, `gh pr create`, session drift) *before* it runs — exit 2 | ✅ |
+| 2 | **Keeps memory + feeds context** | The agent never forgets the vision, roadmap, rules between chats; the co-pilot surfaces the right rule at the right corner | ✅ |
+| 3 | **Records what the agent did** | An auditable trail — *"your AI provably followed the rules"* | 🔴 not shipped (S54 MVP) |
+| 4 | **Works across agents** | One governance layer over Claude, Cursor, Codex, others | 🔴 Claude-only today |
+| 5 | **Saves a few tokens** *(bonus)* | Trims long successful output; failures pass through | ✅ (small $) |
+
+## The differentiator — the make-or-break
+
+**"Isn't this just a good `CLAUDE.md` + git hooks + a linter?"** The honest answer:
+
+| Layer | What it enforces | The gap Vajra closes |
 |---|---|---|
-| 1 | **Guides the workflow** | Tells the agent the right step, the right order, start to finish |
-| 2 | **Keeps memory** | Feeds the agent what the product is, the roadmap, the rules — so it never forgets between chats |
-| 3 | **Enforces discipline** | One branch per step, one step at a time — no drift, no chaos |
-| 4 | **Saves a few tokens** *(bonus)* | Trims long successful output before the agent sees it; failures pass through untouched |
+| `CLAUDE.md` / `AGENTS.md` | nothing — **advisory, the agent skims and ignores it** (proven S31) | Vajra's hooks *intercept*; the rule is enforced, not requested |
+| git hooks (`pre-commit`/`pre-push`) | only at **git boundaries**; `--no-verify` bypasses; **blind to `gh pr create` / `gh pr merge`** (GitHub API, no git hook fires) and to the agent's mid-turn Edit/Write/Bash | Vajra fires on the **tool call**, before it runs — including non-git outward actions and mid-turn edits |
+| a linter | code style/correctness | Vajra governs **agent behavior + process** (session state, one-chat-per-session, N→N+1) |
 
-## How you use it
+**Also real, and git-hooks don't have it:** a **session/process state machine**, a **context co-pilot** (`⚡on` surfaces the right file at the right action), and a **fail-closed** posture (*a check that cannot evaluate FAILS* — jq-missing blocks, S42; linters/hooks usually fail open).
 
-| You type | What happens |
-|---|---|
-| `vajra claude` *(new project)* | Asks a few questions, then has the agent set up the workflow — once |
-| `vajra claude` *(existing project)* | Loads the memory, points the agent at the current step |
-| `vajra next` | "Step done — here's the next one + all its context." Agent continues. |
+**Honest verdict (the gate):** the reframe **PASSES on enforcement-depth** — Vajra assembles a governance layer that `CLAUDE.md` + git hooks + a linter cannot. It does **NOT** yet win on the *headline* moat (the cross-agent, tamper-evident **ledger**), because that is unbuilt. So today Vajra is a *better-enforced governance layer*; the thing a buyer would **pay to keep** — the provable audit record — is the S54 build. We record that tension rather than paper over it.
 
-## The problem we are really solving
+## Who pays, and for what pain (ICP)
 
-- Agents (Claude, Kimi, Codex) **forget the vision** and rush to finish the task fast.
-- The big idea drifts away mid-session. The rules stop being followed.
-- Front-loading a giant `AGENTS.md` does not stick — the agent skims it once and moves on.
+**Teams running AI agents on client or regulated code who must *prove* the agent behaved.**
 
-## The next leap — Varta (the agent's language)
+- An **agency / consultancy** running Claude Code on a client's codebase: *"I need to show the client my AI didn't push to main, didn't touch out-of-scope files, followed the change process."*
+- A **multi-agent shop** (Claude + Cursor + Codex): *"I need one governance layer and one audit trail across all of them."*
+- A **regulated team** (fin/health): *"I need an auditable record that agent-written changes followed policy."*
 
-**Varta** *(Sanskrit: "talk / dialogue")* is a compact language the agent learns and speaks — built for machines, not humans.
+**Job-to-be-done:** *give me a provable, enforced, auditable record that my agent followed the rules* — not a prompt that asks it to.
+**Honest caveat:** the pain is real and enforcement is real, but the artifact they'd pay for (the audit ledger) doesn't ship yet — which is exactly why it's the next build.
 
-- **Looks like code** (C / Java style), so it can never blend into prose. Keywords carry a `⚡` mark.
-- **Delivered as a skill** — not a compiler. The agent loads it at the start, *internalizes* the rules (a re-train before work), then speaks Varta all session to manage its own notes and the `.ai/` files.
-- **The co-pilot lives here.** `⚡on(compression) ⚡include "src/engine/*"` means: pull that context *only* when the agent touches that work. Right rule, right corner — not everything up front.
-- **Humans get their own lane — Darshan** (below). Inside Varta, the `//` comments carry the *why*; everything the user *sees* is rendered by Darshan.
+## What "better work" becomes
 
-A taste:
+Not disproven — **under-tested.** Two single-shot bounded tasks (README, dist-build) can't test the long-horizon claim that governed context prevents drift and re-work over a *whole project*. So we **keep it as a stated hypothesis**, revisited only with a longer-horizon test — never as the pitch. Memory `vajra-direction-b-copilot`.
 
-```
-⚡forbid {
-  work_on_main;              // branch session-NN-slug first
-  commit_without_approval;   // wait: approved | lgtm | ship it
-}
-⚡on (drift_check) ⚡include "STATE.md", git_status;
-```
+## The two speaking skills (unchanged, still shipped)
 
-## The human's lane — Darshan (how you *see*)
-
-**Darshan** *(Sanskrit: "sight, seeing, a glance")* is the counterpart to Varta. **Varta is how the agent talks to itself; Darshan is how the user sees.**
-
-- **Fixes the wall of text.** AI output is too many words, too dense — you have to grind it line-by-line. Darshan says *more with fewer words*, carried by visual structure (banners, cards, tables, color, bars).
-- **More than plain words.** Plain-talk fixes the *words*; Darshan also fixes the *load* — same meaning, nothing dropped, far less to read.
-- **Delivered as a skill** — not a renderer. The agent internalizes one rule at boot and draws with whatever its screen supports: rich chat (HTML/SVG), terminal (color + box-drawing), or plain markdown.
-- **One rule:** *render the richest visual this surface can handle; always glanceable; never drop meaning.*
-
-A taste — the same status, glanceable:
-
-```
-┌─ Session done ─────────────── ✓ ─┐
-│  verify   9/9 pass  ▕████████▏    │
-│  PR       ⚠ open                  │
-└───────────────────────────────────┘
-```
+- **Varta** *(the agent's lane)* — a compact `⚡` language the agent internalizes at boot and speaks all session over the live `.ai/`. The co-pilot lives here: `⚡on(cond) ⚡include "files"` — right rule, right corner. Skill, not a compiler.
+- **Darshan** *(the human's lane)* — one rule: *render the richest visual this surface can handle; always glanceable; never drop meaning.* Skill, not a renderer.
 
 ## What makes it different
 
-- **Works with any agent** — Claude, Kimi, Kilo, others
-- **One button: `vajra next`** — advances the whole loop with a single command
-- **Co-pilot, not cop** — guides the agent in real time, instead of catching mistakes after
-- **Varta** — a machine language that keeps the vision loaded and the rules followed
-- **Honest** — modest token savings, no hype
+- **Enforced, not advised** — the agent follows the rules provably; `CLAUDE.md` only asks
+- **Action-time, not git-boundary** — catches `gh pr create` and mid-turn edits that git hooks can't see
+- **Fail-closed** — a check that cannot evaluate blocks; no silent pass
+- **Local-first, git-native** — no cloud, no retention cliff (vs SaaS governance)
+- **Honest** — modest token savings, "better work" unproven, cross-agent unbuilt — all stated
 
 ## Rules
 
-- Vajra **guides**, the agent **does the work** — Vajra never touches code itself
+- Vajra **guides + governs**, the agent **does the work** — Vajra never touches code itself
 - It is **not done until it runs** on your machine — never trust code that only *looks* done
-- `vajra next` working end-to-end is the **make-or-break** — prove that first, everything else is decoration
+- The **ledger output** (provable audit record) is the make-or-break for the reframe — build that next, everything else is decoration
 
 ## Honest truth
 
-- Every piece exists elsewhere (GSD, SuperClaude, Headroom)
-- The edge is the combination + the shape: one cross-agent binary, one `vajra next` button, honestly built
-- This is a strong learning-and-shipping project with a real, clear shape
+- The enforcement floor is real and live-verified; the moat (cross-agent tamper-evident ledger) is not built
+- Competitors exist (AxonFlow ships ~80% of the vision; Cursor's `agent-trace` spec occupies cross-agent attribution) — the edge is local-first + git-native + fail-closed + the open format
+- This is a strong, honest project with a clear next build: make governance *sellable* by making it *visible*
 
 ## In one breath
 
-*Vajra is the coach that makes any AI coding agent do the right work, in the right order, with the right context — driven by one command, `vajra next`.*
+*Vajra is the governor that makes any AI coding agent provably follow your rules — and (next) hands you the auditable record that proves it.*
