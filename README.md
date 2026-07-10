@@ -27,16 +27,21 @@ You run `vajra init` to set up the workflow. You run `vajra <agent>` to start a 
 
 **Vendor-neutral is the whole point.** GSD and SuperClaude are prompt libraries — they suggest rules, but agents can ignore them. Vajra is a Rust binary that actually enforces rules via hooks, fails closed on violations, and meters cost honestly. Ship narrow, ship enforced, show receipts.
 
+**Direction (2026-07):** the product is **provable agent governance**, shaped as a **governed multi-agent SDLC pipeline** — a specialised agent per stage with enforced, delta-tracked handoffs. The first stage (the **Analyst** — intent → the next governed prompt) ships today. The next build is the **fidelity / acceptance auditor** (does the delivery match what was asked, judged independently) — *in build, not shipped.* See [`VISION.md`](VISION.md) and `docs/decisions/`.
+
 ## Current Status
 
 | Command | Status |
 |---|---|
-| `vajra init` | **Works** — scaffolds `.ai/` workflow + hooks + cross-agent pointers (16 files, interactive, idempotent) |
-| `vajra next` | **Works** — prints `.ai/` handoff packet; `--advance` bumps session + pointers |
+| `vajra init` | **Works** — scaffolds `.ai/` workflow + hooks + cross-agent pointers (21 files, interactive, idempotent) |
+| `vajra next` | **Works** — prints `.ai/` handoff packet; `--advance` bumps session (now gated: won't advance into a session whose prompt is missing/malformed/unapproved) |
+| `vajra next --scaffold NN <slug>` / `--validate NN` | **Works** — the **Analyst stage**: generate the next governed prompt from a template, and report whether it is well-formed + approved |
 | `vajra check` | **Works** — drift detection + readiness scoring (10 checks, pass/fail + score) |
 | `vajra claude` | **Works** — launches Claude Code with compression hook and prints a receipt |
 | `vajra meter` | **Works** — prints cost receipt for any past session |
 | `vajra <agent>` | **Not built yet** — only Claude Code is wired; Codex and Cursor planned |
+
+> **Honest note on the receipt:** the cost figure Vajra prints currently overstates real spend by ~8× (a cache-pricing bug); use Claude's `total_cost_usd` until it's fixed. Fidelity of what we *claim* is the whole point — so we flag it.
 
 ## The Workflow (the product)
 
@@ -55,7 +60,9 @@ Vajra enforces disciplined sessions: the `.ai/` rules, one branch per session, a
 vajra init              # scaffold .ai/ workflow in any repo
 vajra claude            # launch Claude Code with workflow hook + receipt
 vajra next              # print the current step + all its context
-vajra next --advance    # bump to the next session
+vajra next --scaffold 56 planner-stage   # Analyst: generate the next governed prompt
+vajra next --validate 56 # is that prompt well-formed + approved? (READY / NOT-READY)
+vajra next --advance    # bump to the next session (gated on an approved prompt)
 vajra check             # drift detection + readiness score
 vajra meter session.jsonl  # cost receipt for a past session
 ```

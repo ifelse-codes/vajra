@@ -67,7 +67,7 @@ Under Claude Code, the `SessionStart` hook in `.claude/settings.json` prints fil
 4. **EXECUTE** — Atomic changes. Update `ROADMAP.md` [x] on completion. Update `KNOWLEDGE.md` on new permanent fact.
 5. **VERIFY + DEMO** — `scripts/verify-session-NN.sh` exits 0 = done. `scripts/demo-session-NN.sh` shows what was built (cumulative — includes prior session capabilities). Artifacts at `.ai/verify/session-NN/<ts>/` with `latest` symlink. When user asks to see the demo, present as an interactive HTML slide deck (terminal-styled, auto-play, PASS/FAIL coloring, scorecard) — not raw terminal output.
 6. **PR** — Open PR to `main`. Not closed until merged.
-7. **SUMMARY** — `sessions/session-NN-summary.md`. Required: goal achieved? evidence? exactly 3 next options A/B/C.
+7. **SUMMARY + FIDELITY REVIEW** — `sessions/session-NN-summary.md`. Required: goal achieved? evidence? exactly 3 next options A/B/C. **PLUS a fidelity check the summary must show: map EVERY numbered requirement / deliverable in the prompt to what shipped — `SHIPPED` / `PARTIAL` / `NOT-BUILT` + evidence. State plainly what you did NOT build and the fakest "green" here. This must be reviewed independently (a separate cold pass — ideally a subagent — fed only the prompt + the diff), never self-certified. (DECISION-002)**
 8. **NEXT** — After user picks, write `prompts/NN+1-task-<slug>.md`. Update `.ai/TASK.md` pointer.
 9. **CLOSEOUT** — Sync all `.ai/` files. `.ai/SESSION` → current N. STATE.md REPLACE. ROADMAP.md mark [x]. KNOWLEDGE.md add permanent facts. TASK.md = "between sessions". SESSION-BOOT.md update `**Number:**`. `verify-closeout.sh` must exit 0.
 10. **CLOSE** — Start the next session in a **new chat** from the new prompt file. One vajra-session per chat: never begin the next session's BRANCH/PLAN in the current chat (Hard Rule). Vajra will enforce this — see ROADMAP.
@@ -116,6 +116,8 @@ Hooks (`hook-pre-bash.sh`, `hook-pre-write.sh`) enforce. Authorized hardening go
 | Max 3 files per atomic commit | Hook-enforced |
 | ~2h per session cap | Marathon = drift |
 | One vajra-session per chat | New session = new chat (step 10). Convention until Vajra enforces it. |
+| **Fidelity ≠ discipline** | Following the rules is not delivering what was asked. Map **every** numbered requirement in the prompt to evidence (SHIPPED / PARTIAL / NOT-BUILT). A green verify script proves discipline, never fidelity. (DECISION-002) |
+| **No self-certification** | The builder does not accept its own delivery. Fidelity is judged by an **independent** pass fed only the prompt + the diff, adversarially — not by the agent that wrote the code. (DECISION-002) |
 
 **Approval tokens:** `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
 
@@ -128,6 +130,9 @@ Hooks (`hook-pre-bash.sh`, `hook-pre-write.sh`) enforce. Authorized hardening go
 3. Production ready?
 4. Defensive patches only on repro evidence?
 5. Scope intact?
+6. **Did I build EVERY numbered requirement, or silently re-scope to the part that yields a green checkmark?**
+7. **What did I NOT build — stated plainly, not buried under small true caveats?**
+8. **What is the fakest "green" here — the thing that looks done but is hollow?**
 
 If any answer is shaky → do not ship.
 

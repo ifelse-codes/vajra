@@ -5,6 +5,7 @@ use std::io::{self, BufRead, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::analyst;
 use crate::maturity::{read_maturity, MaturityLevel};
 
 const PACKET_FILES: &[&str] = &[
@@ -19,13 +20,80 @@ const PACKET_FILES: &[&str] = &[
 ];
 
 pub fn run(args: &[String]) -> Result<()> {
-    let advance = args.iter().any(|a| a == "--advance");
+    // The Analyst stage (S54) rides `vajra next` — no 8th top-level command (max-7 cap).
+    if let Some(i) = args.iter().position(|a| a == "--scaffold") {
+        return run_scaffold(args.get(i + 1), args.get(i + 2));
+    }
+    if let Some(i) = args.iter().position(|a| a == "--validate") {
+        return run_validate(args.get(i + 1));
+    }
 
-    if advance {
+    if args.iter().any(|a| a == "--advance") {
         run_advance()
     } else {
         run_dump()
     }
+}
+
+/// `vajra next --scaffold NN <slug>` — the Analyst's GENERATE step: write a well-formed prompt
+/// (`prompts/NN-task-<slug>.md`) from the Borrow-Engine template, ready to fill and approve.
+fn run_scaffold(nn: Option<&String>, slug: Option<&String>) -> Result<()> {
+    let (nn, slug) = match (nn, slug) {
+        (Some(nn), Some(slug)) => (nn, slug),
+        _ => bail!("usage: vajra next --scaffold <NN> <slug>   (e.g. --scaffold 56 planner-stage)"),
+    };
+    let session: u32 = nn
+        .trim()
+        .parse()
+        .with_context(|| format!("session number must be an integer (got {nn:?})"))?;
+
+    let cwd = env::current_dir().context("failed to read current directory")?;
+    let root =
+        find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;
+
+    let path = analyst::scaffold_prompt(&root, session, slug).map_err(|e| anyhow::anyhow!(e))?;
+    let rel = path.strip_prefix(&root).unwrap_or(&path);
+    println!("scaffolded {} (DRAFT)", rel.display());
+    println!("  fill Goal/Deliverables/Acceptance/Guardrails/Delta, then flip Status -> APPROVED.");
+    println!(
+        "  the advance gate blocks `vajra next --advance` into session {session:02} until then."
+    );
+    Ok(())
+}
+
+/// `vajra next --validate NN` — the Analyst's report: is prompts/NN-*.md well-formed?
+fn run_validate(nn: Option<&String>) -> Result<()> {
+    let nn = nn.context("usage: vajra next --validate <NN>")?;
+    let session: u32 = nn
+        .trim()
+        .parse()
+        .with_context(|| format!("session number must be an integer (got {nn:?})"))?;
+
+    let cwd = env::current_dir().context("failed to read current directory")?;
+    let root =
+        find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;
+
+    let verdict = analyst::gate(&root, session);
+    println!("=== analyst: prompt for session {session:02} ===");
+    println!(
+        "prompt: {}",
+        verdict.prompt_path.as_deref().unwrap_or("(none)")
+    );
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
 }
 
 fn run_dump() -> Result<()> {
@@ -96,6 +164,31 @@ fn run_advance() -> Result<()> {
     eprintln!("  next session:    {next:02}");
     eprintln!("  branch:          {branch}");
     eprintln!();
+
+    // Analyst gate (S54): the pipeline's first handoff must be governed — you cannot advance
+    // INTO session N+1 unless its prompt is present, well-formed, and APPROVED (not DRAFT).
+    // Fail-closed at L2/L3; advise at L1; `VAJRA_SKIP_ANALYST_GATE=1` is the documented override.
+    let verdict = analyst::gate(&root, next);
+    for w in &verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        eprintln!("[vajra analyst] the prompt for session {next:02} is NOT ready:");
+        for r in &verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_ANALYST_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_ANALYST_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {next:02} has no approved, well-formed prompt \
+                 (Analyst gate). Run `vajra next --scaffold {next:02} <slug>`, fill + approve it, \
+                 or set VAJRA_SKIP_ANALYST_GATE=1 to override."
+            );
+        }
+    }
 
     if maturity != MaturityLevel::L3 {
         if !confirm("Advance to next session?")? {
