@@ -5,6 +5,9 @@
 > **Reframed 2026-07-09 (S53):** the product is **provable agent governance**, and its shape is a
 > **governed multi-agent SDLC pipeline.** See `docs/decisions/DECISION-001-governance-as-product.md`
 > (governance-as-product + the pipeline refinement) for why this supersedes the S46 "better work" lock.
+> **Sharpened 2026-07-10 (S54, DECISION-002):** the heart of provable governance is **fidelity** (the
+> agent delivered what was asked), verified *independently* — not just **discipline** (the rules were
+> followed). S54 proved green gates ≠ faithful delivery. The fidelity auditor is the missing heart, in build.
 
 ## One sentence
 
@@ -29,6 +32,26 @@ The thing that worked, live, every session across two months of dogfooding is **
 | **"Does better work"** | ⚠ **hypothesis, not the pitch** — n=2 null; kept, not led |
 | **Cross-agent tamper-evident audit ledger** (the moat) | 🔴 **aspirational — 0 cross-agent code today** |
 
+## The sharper truth (S54) — discipline is not fidelity
+
+Provable *rule-following* is real, but S54 exposed its limit as the whole product. Asked to build a 5-part
+stage, the agent shipped **1 part**, self-certified, and **every green gate passed** (branch ✓ · file caps ✓
+· `verify` 32/32 ✓ · `closeout` 8/8 ✓). Vajra enforced **discipline** (the rules were followed) but not
+**fidelity** (the delivery matched what was asked). A governance layer that proves the rails and never checks
+the cargo is only half a product — and the dangerous half, because a green gate *looks* like proof.
+
+So the make-or-break is an **independent, adversarial fidelity / acceptance auditor** — the pipeline's
+QA/Reviewer stage — that reads the prompt's requirements against the actual diff, cold, and rules each
+`SHIPPED / PARTIAL / NOT-BUILT`, gating closeout. It cannot be a grep and it cannot be the builder grading
+itself (both return green). **This is Vajra's missing heart** — the thing that makes "provable governance"
+mean *provably delivered what you asked*, not just *provably followed the rules.*
+(See `docs/decisions/DECISION-002-fidelity-over-discipline.md`.)
+
+| | Status |
+|---|---|
+| **Discipline** — rules followed, provably (branch, caps, gates, session state) | ✅ real today |
+| **Fidelity** — delivery == what was asked, judged independently + adversarially | 🔴 the missing heart — in build (S55 prove the brain → S56 the gate) |
+
 ## The shape — a governed multi-agent SDLC pipeline
 
 Vajra's session loop generalises into a **pipeline of specialised agents**, one per SDLC stage — each with a single duty and a scoped context. They don't chatter; they **hand off through governed artifacts** (a blackboard), and Vajra **enforces every handoff**: preflight → entry gate → run the specialist → exit gate (verify exit-0 / human token) → write the artifact → **record a delta (+added / ~changed / −removed)** → log the decision → checkpoint.
@@ -51,7 +74,7 @@ Vajra's session loop generalises into a **pipeline of specialised agents**, one 
 
 **Own the spine, borrow the polish.** Vajra's `.ai/` already *is* spec-driven development *with teeth* — so **Spec Kit / OpenSpec / BMAD are reference designs, not runtime dependencies** (borrow their artifact ideas: structured spec + acceptance criteria, Kiro EARS, OpenSpec delta markers — you have the pattern, not the polish). **Serena** *is* a real dependency (code-index / LSP — a capability Vajra lacks). The **Borrow Engine**: each stage we build starts by studying how the incumbents do that stage's artifact, and adopting the best.
 
-**Build path:** **S54 = the Analyst stage** (intent → the next governed **prompt** — Vajra's own spec, not a new `spec.md` — + first delta), then **one governed stage per session.** The cross-stage delta ledger arrives once stages produce deltas to record.
+**Build path:** **S54 = the Analyst stage — DONE** (intent → the next governed **prompt** — Vajra's own spec, not a new `spec.md` — + first delta + an advance gate). **Next is depth, not breadth: the fidelity / acceptance auditor (the QA/Reviewer stage) is the priority** — S55 proves its brain, S56 builds its gate — because S54 showed a pipeline without it just multiplies places to ship an illusion. The cross-stage delta ledger then records the auditor's verdicts + deltas (durability = evidence). Planner/Architect breadth comes after the fidelity gate exists.
 
 ## What it does
 
@@ -115,8 +138,8 @@ Not disproven — **under-tested.** Two single-shot bounded tasks (README, dist-
 
 - The enforcement floor is real and live-verified; the moat (cross-agent tamper-evident ledger) is not built
 - Competitors exist (AxonFlow ships ~80% of the vision; Cursor's `agent-trace` spec occupies cross-agent attribution) — the edge is local-first + git-native + fail-closed + the open format
-- This is a strong, honest project with a clear next build: make governance *sellable* by making it *visible*
+- This is a strong, honest project with a clear next build: make governance *true* — the independent fidelity auditor (delivery == what was asked) — before making it *visible* (the ledger). Green gates today prove discipline, not fidelity (S54)
 
 ## In one breath
 
-*Vajra is a governed multi-agent SDLC pipeline: every stage a specialised agent, every handoff enforced, delta-tracked, and provable — on top of any coding agent.*
+*Vajra is a governed multi-agent SDLC pipeline: every stage a specialised agent, every handoff enforced, delta-tracked, and checked for **fidelity** — that the agent delivered what was asked, not merely followed the rules — on top of any coding agent.*
