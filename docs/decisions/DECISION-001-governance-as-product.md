@@ -114,12 +114,20 @@ decision-log → checkpoint. This closes both gaps and gives the governance wedg
 4. **The ledger is re-sequenced, not dropped:** it becomes the **cross-stage delta record** — most valuable once
    stages produce deltas to record — so it follows the first stages rather than leading.
 
-**Build path (re-pointed):** **S54 = build the first governed specialist stage = the Analyst** (vague intent →
-structured `spec.md` + acceptance + first delta; closes gap #1; the existing Demo step becomes stage #7). Then
-**one governed stage per session.** (S55 = mandatory NO-CODE ground-truth.)
+**Build path (re-pointed):** **S54 = build the first governed specialist stage = the Analyst** (intent → the next
+governed **prompt** `prompts/NN-task.md` — Vajra's own spec, **not** a new `spec.md` — with acceptance folded into
+the prompt + first delta; closes gap #1; the existing Demo step becomes stage #7). Then **one governed stage per
+session.** (S55 = mandatory NO-CODE ground-truth.)
 
 **Discipline that keeps this from the photo-doc's "20–30%-complete platform":** one governed stage per session ·
 dogfood each · artifacts-not-chatter · enforcement stays the wedge · "better work" stays a hypothesis.
 
 **Q2 unchanged:** the differentiator vs "git hooks + `CLAUDE.md`" is still **enforcement-depth** (PARTIAL PASS);
 the pipeline extends *what* is governed (a whole SDLC, not just a coding session), not the basis of the verdict.
+
+**Correction (2026-07-10, founder-flagged):** the Analyst's artifact is **Vajra's own session prompt**
+(`prompts/NN-task.md`), **not** a new `spec.md` — the prompt already carries goal + deliverables + acceptance +
+guardrails, and a separate `spec.md` would be a **second source of truth** (breaks *own the spine · no second
+store*). **General rule (now a permanent learning — `.ai/KNOWLEDGE.md` + memory `feedback-map-concepts-to-vajra`):**
+map any borrowed concept onto Vajra's existing mechanism **before** importing it — the **prompt IS the spec**,
+`.ai/` IS the memory, the ROADMAP **A/B/C** IS intake — and if the mapping isn't obvious, **ASK.**
