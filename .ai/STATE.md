@@ -30,6 +30,12 @@ supersede, not erase) + re-ranked `.ai/ROADMAP.md` (around *"make governance sel
   = **0 code**, **no buyer-facing audit artifact ships** (AxonFlow ~80% of that vision). ⇒ Vajra is a
   better-enforced governance layer today; it becomes a *product a buyer keeps* only when the **ledger OUTPUT**
   makes governance **visible.**
+- **Refined S53 (same session) — the SHAPE:** governance-as-product is now a **governed multi-agent SDLC
+  pipeline** — each session step generalises into an SDLC stage run by a **specialised agent** with enforced,
+  **delta-tracked** handoffs (closes the two gaps vs Spec Kit/OpenSpec: delta tracking + SDLC breadth). Own the
+  `.ai/` spine (already spec-driven-dev *with teeth*); Spec Kit/OpenSpec/BMAD = **reference designs**, Serena =
+  **dep**, Borrow Engine per stage. Build **one governed stage per session** → **S54 = the Analyst stage**; the
+  ledger becomes the later cross-stage delta record. `DECISION-001` refinement; memory `vajra-direction-b-copilot`.
 - **"Better work"** kept as a **stated, under-tested hypothesis** (single bounded tasks under-test the
   long-horizon claim), not the pitch. Revisit only with a longer-horizon test.
 - **Enforcement moat: COMPLETE + LIVE-VERIFIED (S46); re-verified live S51/S52/S53** (co-pilot blocked this
@@ -48,11 +54,11 @@ supersede, not erase) + re-ranked `.ai/ROADMAP.md` (around *"make governance sel
 
 ## What Is Broken / Weak
 - **🔴 The moat's headline (cross-agent tamper-evident ledger) is 0 code / aspirational.** No buyer-facing audit
-  artifact ships. This is *the* gap the reframe must close → **S54 = A-thin ledger** (extract + present).
-- **🟡 The ledger MVP is "just extraction" until it's durable.** S53 finding: the session content is *already* in
-  `~/.claude/projects/*.jsonl` and `vajra meter` already reads it — so extract-and-present is a script (makes
-  governance *visible*, the feel). The moat kernel = **durability** (commit it git-tied + hash-chain = evidence) =
-  **A-full = S56.** Do not overclaim A-thin as evidence.
+  artifact ships → closed by the **pipeline** (delta-tracked handoffs); the cross-stage ledger follows the first
+  stages (S56+), so **S54 builds the Analyst stage**, not the ledger.
+- **🟡 One governed stage ≠ the pipeline (S54 risk).** The Analyst stage must beat "just Spec Kit reimplemented"
+  on the **enforcement + delta** wedge, not artifact polish. The cross-stage ledger's moat kernel is still
+  **durability** (git-tied + hash-chain = evidence), sequenced after the first stages.
 - **🔴 The vajra receipt overstates cost ~8× (re-confirmed S52).** Use `total_cost_usd`. Now a governance-
   credibility item (honest receipts is part of the audit claim). Backlog.
 - **🟡 Guard nested-repo blindspot (S52).** Guards can't tell a subject repo's `session-NN` branches from Vajra's own.
@@ -61,11 +67,12 @@ supersede, not erase) + re-ranked `.ai/ROADMAP.md` (around *"make governance sel
 - **🟡 Env:** nested `claude`/`vajra claude` needs API-key billing (org disabled subscription for the CLI).
 
 ## What Is In Progress
-- **S53 DONE + closed** (NO-CODE, ~$0). Reframed Vajra to governance-as-product; Q2 differentiator = PARTIAL PASS
-  (enforcement-depth real, ledger moat unbuilt); "better work" parked as hypothesis. **Founder pick → S54 =
-  A-thin `vajra ledger`** (extract from the trace + Darshan-present so the user *feels* governance; ride `vajra
-  meter`, no 8th command). **A-full (durable, git-tied, hash-chained evidence) = S56.** New chat.
-  `prompts/54-task-ledger-extract-present.md` ready. **Next mandatory NO-CODE GT = S55.**
+- **S53 DONE + closed** (NO-CODE, ~$0), **refined same session** to the pipeline north-star. Reframed Vajra to
+  governance-as-product (Q2 = PARTIAL PASS: enforcement-depth real, cross-agent ledger unbuilt; "better work"
+  parked as hypothesis), then sharpened the SHAPE to a **governed multi-agent SDLC pipeline** (specialised agent
+  per stage, enforced + delta-tracked handoffs; own the `.ai/` spine, Spec Kit/OpenSpec/BMAD = reference designs,
+  Serena = dep). **S54 = the Analyst stage** (vague intent → governed `spec.md` + acceptance + first delta; one
+  governed stage per session). New chat. `prompts/54-task-analyst-stage.md` ready. **Next mandatory NO-CODE GT = S55.**
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
