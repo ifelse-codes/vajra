@@ -1,4 +1,5 @@
 pub mod adapter;
+pub mod analyst;
 pub mod budget;
 pub mod cli;
 pub mod engine;
