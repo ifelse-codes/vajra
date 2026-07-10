@@ -23,6 +23,10 @@ has "$V" 'CLAUDE\.md.*git hook|git hook.*CLAUDE\.md|differentiator' 'VISION: dif
 has "$V" 'gh pr create'                       'VISION: names the concrete edge git hooks miss'
 has "$V" 'hypothesis'                         'VISION: "better work" kept as a hypothesis (not led)'
 has "$V" 'ICP|who pays|job-to-be-done|regulated' 'VISION: ICP / who-pays stated'
+has "$V" 'multi-agent SDLC pipeline|governed multi-agent' 'VISION: pipeline north-star present'
+has "$V" 'Analyst'                            'VISION: Analyst stage named'
+has "$V" 'reference design|Serena'            'VISION: borrow-vs-dependency stated'
+has "$V" 'delta'                              'VISION: delta tracking present'
 
 # --- DECISION-001: supersedes the S46 B-lock, records the honest verdict ---
 D=docs/decisions/DECISION-001-governance-as-product.md
@@ -33,12 +37,14 @@ has "$D" 'n=2'                                'DECISION: n=2 evidence cited'
 has "$D" 'PARTIAL PASS|PASSES'                'DECISION: differentiator verdict recorded'
 has "$D" 'risk'                               'DECISION: honest risks recorded'
 has "$D" 'revisit'                            'DECISION: keeps the door open (revisit condition)'
+has "$D" 'Refinement|pipeline'               'DECISION: pipeline refinement recorded'
 
-# --- ROADMAP: re-ranked around "make governance sellable", ledger = #1 ---
+# --- ROADMAP: re-ranked around the governed multi-agent SDLC pipeline; Analyst = S54 #1 ---
 R=.ai/ROADMAP.md
-has "$R" 'make governance sellable|sellable'  'ROADMAP: re-ranked around sellable'
-has "$R" 'ledger'                             'ROADMAP: ledger OUTPUT ranked'
-has "$R" 'S54 #1|#1 —|sellable-maker'         'ROADMAP: an explicit #1 for S54'
+has "$R" 'governed multi-agent SDLC pipeline|pipeline' 'ROADMAP: re-ranked around the pipeline'
+has "$R" 'Analyst'                            'ROADMAP: Analyst stage ranked'
+has "$R" 'S54 #1|Analyst stage|one governed stage per session' 'ROADMAP: explicit S54 #1 (Analyst)'
+has "$R" 'reference design'                   'ROADMAP: Spec Kit/OpenSpec/BMAD = reference designs'
 
 # --- summary: honest verdict + 3 ranked S54 candidates ---
 S=sessions/session-53-summary.md
@@ -47,9 +53,11 @@ has "$S" 'differentiator'                     'summary: differentiator verdict'
 has "$S" 'PARTIAL PASS|PASSES|FAILS'          'summary: explicit pass/fail on the gate'
 has "$S" 'candidates for S54|S54 candidates'  'summary: 3 S54 candidates'
 has "$S" 'hypothesis'                         'summary: B kept as hypothesis, not rescued'
+has "$S" 'Analyst'                            'summary: S54 = the Analyst stage'
 
-# --- next prompt written + NO-CODE guarantee ---
-ls prompts/54-task-*.md >/dev/null 2>&1 && ok "S54 prompt written" || no "S54 prompt written"
+# --- next prompt written (Analyst stage; ledger prompt superseded) + NO-CODE guarantee ---
+[ -f prompts/54-task-analyst-stage.md ] && ok "S54 Analyst prompt written" || no "S54 Analyst prompt written"
+[ ! -f prompts/54-task-ledger-extract-present.md ] && ok "superseded ledger prompt removed" || no "superseded ledger prompt removed"
 
 # NO-CODE: no src/ change this session
 if git rev-parse --git-dir >/dev/null 2>&1; then
