@@ -86,3 +86,40 @@ the S54 MVP, and the honest condition on this whole decision.
 - a longer-horizon (multi-session, whole-project) test shows a real work-quality win → re-weight B; **or**
 - the ledger MVP ships and **still** can't be distinguished from git hooks + a log file → the reframe fails its
   own gate, and governance is a feature, not a product. Keep the door open.
+
+## Refinement (same session, S53) — the shape is a governed multi-agent SDLC pipeline
+
+After locking governance-as-product, the S53 brainstorm sharpened the *shape* of the product and re-pointed the
+S54 build. This **refines — does not reverse** — the decision above.
+
+**Trigger:** a scan of the AI-SDLC-harness landscape (GitHub Spec Kit 111k★, OpenSpec, BMAD, Kiro, Serena).
+Finding: Vajra's `.ai/` + prompts + session loop **already is spec-driven development** — constitution + spec +
+staged workflow + artifacts + human gates + resume + decision trail — and on the parts it has, it **enforces**
+them, which Spec Kit/OpenSpec do not. Two real gaps vs them: **delta tracking** and **full-SDLC breadth**.
+
+**Refined north-star:** **Vajra = a governed multi-agent SDLC pipeline.** Each SDLC stage runs as a
+**specialised agent** (Analyst → Architect → Planner → Developer → QA → Reviewer → Demo → Releaser → Monitor)
+with one duty + scoped context; they **collaborate via governed artifacts (a blackboard), never agent-to-agent
+chatter** (which invites the token-blowup/races the photo-doc's "orchestration limits" warns of). Vajra
+**enforces every handoff**: preflight → gate → run → verify/human gate → artifact → **delta (+/~/−)** →
+decision-log → checkpoint. This closes both gaps and gives the governance wedge a concrete shape.
+
+**Decisions locked:**
+1. **Vajra OWNS its `.ai/` spine** — it is spec-driven-dev *with teeth*, so **Spec Kit / OpenSpec / BMAD are
+   DEMOTED from runtime dependency to REFERENCE DESIGNS** (borrow artifact ideas: structured spec + acceptance,
+   Kiro EARS, OpenSpec delta markers — "you have the pattern, not the polish; borrow, don't dismiss").
+2. **Serena STAYS a real dependency** (code-index / LSP — a capability Vajra lacks).
+3. **Borrow Engine** — every stage-build session starts by studying how the incumbents do that stage's
+   artifact + UX, and adopting the best.
+4. **The ledger is re-sequenced, not dropped:** it becomes the **cross-stage delta record** — most valuable once
+   stages produce deltas to record — so it follows the first stages rather than leading.
+
+**Build path (re-pointed):** **S54 = build the first governed specialist stage = the Analyst** (vague intent →
+structured `spec.md` + acceptance + first delta; closes gap #1; the existing Demo step becomes stage #7). Then
+**one governed stage per session.** (S55 = mandatory NO-CODE ground-truth.)
+
+**Discipline that keeps this from the photo-doc's "20–30%-complete platform":** one governed stage per session ·
+dogfood each · artifacts-not-chatter · enforcement stays the wedge · "better work" stays a hypothesis.
+
+**Q2 unchanged:** the differentiator vs "git hooks + `CLAUDE.md`" is still **enforcement-depth** (PARTIAL PASS);
+the pipeline extends *what* is governed (a whole SDLC, not just a coding session), not the basis of the verdict.

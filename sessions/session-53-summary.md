@@ -4,8 +4,10 @@
 **Branch:** `session-53-reframe-governance` · **1 story.**
 **One-line verdict:** the reframe **holds** — governance beats "just git hooks + `CLAUDE.md`" on
 **enforcement-depth** (a **PARTIAL PASS** on the differentiator gate) — but the thing a buyer would *pay to keep*,
-the **cross-agent tamper-evident ledger**, is **0 code today.** So governance is the product; **making it
-*visible* (the ledger OUTPUT) is the S54 make-or-break.** No overclaim, no rescue of B.
+the **cross-agent tamper-evident ledger**, is **0 code today.** So governance is the product. **Refined same
+session: its shape is a governed multi-agent SDLC pipeline** (a specialised agent per stage; every handoff
+enforced + delta-tracked; own the `.ai/` spine, borrow artifact ideas from Spec Kit/OpenSpec/BMAD, depend on
+Serena). **S54 = the Analyst stage — the first governed specialist.** No overclaim, no rescue of B.
 
 ---
 
@@ -46,7 +48,7 @@ Teams running agents on **client / regulated code who must *prove* the agent beh
 
 - `VISION.md` — rewritten to lead with governance; every not-real part flagged (cross-agent, ledger, better-work).
 - `docs/decisions/DECISION-001-governance-as-product.md` — supersedes (does not erase) the S46 B-lock; records the Q2 verdict + risks + revisit condition.
-- `.ai/ROADMAP.md` — re-ranked around *"make governance sellable"* (ledger OUTPUT = #1).
+- `.ai/ROADMAP.md` — re-ranked around the **governed multi-agent SDLC pipeline** (Analyst stage = #1; the ledger becomes the later cross-stage delta record).
 - Memory — `vajra-direction-b-copilot` + `vajra-positioning` updated.
 - `scripts/verify-session-53.sh` — docs-present + honest-sections checks.
 
@@ -57,10 +59,10 @@ Teams running agents on **client / regulated code who must *prove* the agent beh
 - **Production-ready:** N/A (docs). **Scope:** 1 story, NO-CODE honored (no `src/`).
 - **Honest read:** the reframe survives Q2 only on enforcement-depth; if the S54 ledger still can't be told apart from "git hooks + a log file," the reframe fails its own gate — DECISION-001 keeps that door open.
 
-## 3 ranked candidates for S54
+## 3 ranked candidates for S54 (refined — the pipeline's first stage)
 
-**A. (recommended) Build the governed-session LEDGER output — the sellable-maker (highest-leverage BUILD toward governance-as-product).** One-sentence goal: turn the enforcement events that already fire (already in the trace) into a committed, human+machine-readable audit record — *"your AI provably followed these rules; here's what it did / was blocked from doing, and why."* Why pick: it is the exact thing the Q2 verdict says is missing — makes governance *visible* = the thing a buyer keeps; local-first, git-native, target `agent-trace`. Key risk: scope — a full tamper-evident hash-chained ledger is big; slice to a v0 single-agent readable record first (demo-grade), harden later.
+**A. (recommended) Build the Analyst stage — the pipeline's first governed specialist.** One-sentence goal: a specialised Analyst turns a vague intent into a structured `spec.md` + acceptance criteria + the first delta (+/~/−), **gated** (block downstream until the spec is human-approved). Why pick: it is the **front door of the whole pipeline**, closes gap #1 (formal spec artifact), and seeds delta tracking; the Borrow Engine studies Spec Kit/Kiro/OpenSpec first and adopts the best shape. Key risk: scope — slice to ONE stage (don't build Architect/Planner too); if the spec-gen reads as "just Spec Kit reimplemented," lean on the enforcement + delta wedge, not artifact polish. Prompt: `prompts/54-task-analyst-stage.md`.
 
-**B. The "provably followed the rules" DEMO.** Goal: package the S46 live-hook-fire + S52 governance catches into a Darshan demo a buyer can *see* — the story before the full ledger. Why pick: cheaper than A, proves the reframe now, good fallback if A is too big for one story. Key risk: a demo without a durable artifact is theater — must point at real captured runs, not a mock.
+**B. The cross-stage delta LEDGER (re-sequenced from the old S54 plan).** Goal: the provable record *across* stages — *"your AI provably followed these rules through the pipeline."* Why pick: it is the sellable-maker. Key risk: premature — it needs stages producing deltas to record; the A-thin single-session trace view (the superseded `prompts/54-task-ledger-extract-present.md`) is a smaller sub-slice if wanted sooner.
 
-**C. Cross-agent (2nd agent) as the moat-proving build.** Goal: wire a second agent (Codex/Cursor) so the *cross-agent* half of the ledger claim stops being aspirational. Why pick: it is the only path to the headline moat; reframed as moat-critical, not breadth. Key risk: owner-gated (S26) and larger than one story; premature before the ledger exists to be cross-agent *about*.
+**C. Cross-agent (2nd agent) — moat-proving.** Goal: a different agent per stage under the adapter contract, so the *cross-agent* half of the moat stops being aspirational. Why pick: the only path to the headline cross-agent moat. Key risk: owner-gated (S26) and larger than one story; premature before ≥1 governed stage exists.

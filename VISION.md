@@ -1,9 +1,10 @@
 # Vajra — Crystal Clear
 
 > Status: target product vision. The current repo implements the enforcement floor today;
-> the buyer-facing ledger is not built yet (stated plainly below — no overclaim).
-> **Reframed 2026-07-09 (S53):** the product is **provable agent governance.** See
-> `docs/decisions/DECISION-001-governance-as-product.md` for why this supersedes the S46 "better work" lock.
+> the full pipeline + buyer-facing ledger are not built yet (stated plainly below — no overclaim).
+> **Reframed 2026-07-09 (S53):** the product is **provable agent governance**, and its shape is a
+> **governed multi-agent SDLC pipeline.** See `docs/decisions/DECISION-001-governance-as-product.md`
+> (governance-as-product + the pipeline refinement) for why this supersedes the S46 "better work" lock.
 
 ## One sentence
 
@@ -28,13 +29,35 @@ The thing that worked, live, every session across two months of dogfooding is **
 | **"Does better work"** | ⚠ **hypothesis, not the pitch** — n=2 null; kept, not led |
 | **Cross-agent tamper-evident audit ledger** (the moat) | 🔴 **aspirational — 0 cross-agent code today** |
 
+## The shape — a governed multi-agent SDLC pipeline
+
+Vajra's session loop generalises into a **pipeline of specialised agents**, one per SDLC stage — each with a single duty and a scoped context. They don't chatter; they **hand off through governed artifacts** (a blackboard), and Vajra **enforces every handoff**: preflight → entry gate → run the specialist → exit gate (verify exit-0 / human token) → write the artifact → **record a delta (+added / ~changed / −removed)** → log the decision → checkpoint.
+
+| Stage | Specialist | Duty | Artifact | Gate |
+|---|---|---|---|---|
+| Requirements | **Analyst** | vague intent → structured spec + acceptance | `spec.md` | human ✋ |
+| Architecture | **Architect** | design + ADR | `design.md` + ADR | human ✋ |
+| Plan | **Planner** | design → tasks | `tasks.md` | verify: covers the spec |
+| Build | **Developer** | code per task | code | verify: builds |
+| QA | **QA** | tests · lint · types · security | results | verify: exit 0 |
+| Review | **Reviewer** | review + score | `review.md` | score ≥ bar |
+| Demo | **Demo-builder** | prove it runs | demo | human 👁 |
+| Deploy | **Releaser** | guarded release + rollback | runbook | human ✋ |
+| Monitor | **Monitor** | watch + alert | — | later |
+
+**Why this is a product and BMAD/Spec Kit aren't:** they *describe* these stages (role prompts / markdown); **neither enforces or proves the handoff.** Vajra's version = the same pipeline with **gates + a delta ledger = provable, and cross-agent.** That is the governance wedge, given a shape. It also closes the two gaps we found vs Spec Kit/OpenSpec: **delta tracking** (every handoff emits +/~/−) and **SDLC breadth** (the stages *are* the breadth).
+
+**Own the spine, borrow the polish.** Vajra's `.ai/` already *is* spec-driven development *with teeth* — so **Spec Kit / OpenSpec / BMAD are reference designs, not runtime dependencies** (borrow their artifact ideas: structured spec + acceptance criteria, Kiro EARS, OpenSpec delta markers — you have the pattern, not the polish). **Serena** *is* a real dependency (code-index / LSP — a capability Vajra lacks). The **Borrow Engine**: each stage we build starts by studying how the incumbents do that stage's artifact, and adopting the best.
+
+**Build path:** **S54 = the Analyst stage** (vague intent → `spec.md` + acceptance + first delta), then **one governed stage per session.** The cross-stage delta ledger arrives once stages produce deltas to record.
+
 ## What it does
 
 | # | Job | Plain meaning | Real today? |
 |---|---|---|---|
 | 1 | **Enforces discipline at action-time** | Blocks the forbidden action (push to main, `gh pr create`, session drift) *before* it runs — exit 2 | ✅ |
 | 2 | **Keeps memory + feeds context** | The agent never forgets the vision, roadmap, rules between chats; the co-pilot surfaces the right rule at the right corner | ✅ |
-| 3 | **Records what the agent did** | An auditable trail — *"your AI provably followed the rules"* | 🔴 not shipped (S54 MVP) |
+| 3 | **Delta-tracks each stage** | Every handoff records +added/~changed/−removed → a provable trail across the pipeline | 🔴 not shipped (the pipeline build, S54+) |
 | 4 | **Works across agents** | One governance layer over Claude, Cursor, Codex, others | 🔴 Claude-only today |
 | 5 | **Saves a few tokens** *(bonus)* | Trims long successful output; failures pass through | ✅ (small $) |
 
@@ -50,7 +73,7 @@ The thing that worked, live, every session across two months of dogfooding is **
 
 **Also real, and git-hooks don't have it:** a **session/process state machine**, a **context co-pilot** (`⚡on` surfaces the right file at the right action), and a **fail-closed** posture (*a check that cannot evaluate FAILS* — jq-missing blocks, S42; linters/hooks usually fail open).
 
-**Honest verdict (the gate):** the reframe **PASSES on enforcement-depth** — Vajra assembles a governance layer that `CLAUDE.md` + git hooks + a linter cannot. It does **NOT** yet win on the *headline* moat (the cross-agent, tamper-evident **ledger**), because that is unbuilt. So today Vajra is a *better-enforced governance layer*; the thing a buyer would **pay to keep** — the provable audit record — is the S54 build. We record that tension rather than paper over it.
+**Honest verdict (the gate):** the reframe **PASSES on enforcement-depth** — Vajra assembles a governance layer that `CLAUDE.md` + git hooks + a linter cannot. It does **NOT** yet win on the *headline* moat (the cross-agent, tamper-evident **ledger**), because that is unbuilt. So today Vajra is a *better-enforced governance layer*; the thing a buyer would **pay to keep** — the provable, delta-tracked pipeline record — is the pipeline build (S54 = the Analyst stage). We record that tension rather than paper over it.
 
 ## Who pays, and for what pain (ICP)
 
@@ -84,7 +107,7 @@ Not disproven — **under-tested.** Two single-shot bounded tasks (README, dist-
 
 - Vajra **guides + governs**, the agent **does the work** — Vajra never touches code itself
 - It is **not done until it runs** on your machine — never trust code that only *looks* done
-- The **ledger output** (provable audit record) is the make-or-break for the reframe — build that next, everything else is decoration
+- The **pipeline** — starting with the **Analyst stage** (S54), one governed stage per session — is the next build; everything else is decoration
 
 ## Honest truth
 
@@ -94,4 +117,4 @@ Not disproven — **under-tested.** Two single-shot bounded tasks (README, dist-
 
 ## In one breath
 
-*Vajra is the governor that makes any AI coding agent provably follow your rules — and (next) hands you the auditable record that proves it.*
+*Vajra is a governed multi-agent SDLC pipeline: every stage a specialised agent, every handoff enforced, delta-tracked, and provable — on top of any coding agent.*
