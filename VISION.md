@@ -35,7 +35,7 @@ Vajra's session loop generalises into a **pipeline of specialised agents**, one 
 
 | Stage | Specialist | Duty | Artifact | Gate |
 |---|---|---|---|---|
-| Requirements | **Analyst** | vague intent → structured spec + acceptance | `spec.md` | human ✋ |
+| Requirements | **Analyst** | intent → 3 options (A/B/C) → the next governed prompt | `prompts/NN-task.md` | human ✋ |
 | Architecture | **Architect** | design + ADR | `design.md` + ADR | human ✋ |
 | Plan | **Planner** | design → tasks | `tasks.md` | verify: covers the spec |
 | Build | **Developer** | code per task | code | verify: builds |
@@ -45,11 +45,13 @@ Vajra's session loop generalises into a **pipeline of specialised agents**, one 
 | Deploy | **Releaser** | guarded release + rollback | runbook | human ✋ |
 | Monitor | **Monitor** | watch + alert | — | later |
 
+*Artifacts map to a **Vajra-native home**, never a foreign file — the **prompt IS the spec** (`prompts/NN-task.md`: goal + deliverables + acceptance + guardrails); `.ai/` is the memory. Later stages' artifacts (design, tasks…) get mapped onto `.ai/`/`prompts/` when built, not imported (see `.ai/KNOWLEDGE.md`).*
+
 **Why this is a product and BMAD/Spec Kit aren't:** they *describe* these stages (role prompts / markdown); **neither enforces or proves the handoff.** Vajra's version = the same pipeline with **gates + a delta ledger = provable, and cross-agent.** That is the governance wedge, given a shape. It also closes the two gaps we found vs Spec Kit/OpenSpec: **delta tracking** (every handoff emits +/~/−) and **SDLC breadth** (the stages *are* the breadth).
 
 **Own the spine, borrow the polish.** Vajra's `.ai/` already *is* spec-driven development *with teeth* — so **Spec Kit / OpenSpec / BMAD are reference designs, not runtime dependencies** (borrow their artifact ideas: structured spec + acceptance criteria, Kiro EARS, OpenSpec delta markers — you have the pattern, not the polish). **Serena** *is* a real dependency (code-index / LSP — a capability Vajra lacks). The **Borrow Engine**: each stage we build starts by studying how the incumbents do that stage's artifact, and adopting the best.
 
-**Build path:** **S54 = the Analyst stage** (vague intent → `spec.md` + acceptance + first delta), then **one governed stage per session.** The cross-stage delta ledger arrives once stages produce deltas to record.
+**Build path:** **S54 = the Analyst stage** (intent → the next governed **prompt** — Vajra's own spec, not a new `spec.md` — + first delta), then **one governed stage per session.** The cross-stage delta ledger arrives once stages produce deltas to record.
 
 ## What it does
 
