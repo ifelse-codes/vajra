@@ -39,7 +39,7 @@ esac
 
 if [ "$GT_PW" -eq 1 ]; then
   case "$FILE" in
-    */sessions/session-*-ground-truth.md|*/.ai/*|*/scripts/*) : ;;
+    */sessions/session-*-ground-truth.md|*/sessions/session-*-review.md|*/reviewer/*|*/.ai/*|*/scripts/*) : ;;
     *)
       if [ "$MATURITY" = "L1" ]; then
         echo "[HOOK WARNING] Ground Truth Session $SESSION_NUM: edit to $FILE (L1 report-only, not blocking)"

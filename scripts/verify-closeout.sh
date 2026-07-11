@@ -126,6 +126,76 @@ check_cost_tracking() {
   fi
 }
 
+# --- Fidelity gate (S56 — DECISION-002 teeth) -------------------------------
+# Un-forgeable waiver: a founder-controlled env var, NOT a text marker the agent
+# can Write into a tracked file. Mirrors VAJRA_ALLOW_PUBLISH (S37). Session-scoped:
+# VAJRA_CLOSEOUT_WAIVER must equal N (a stale waiver for another session does not apply).
+waiver_ok() { [ -n "${VAJRA_CLOSEOUT_WAIVER:-}" ] && [ "${VAJRA_CLOSEOUT_WAIVER}" = "$N" ]; }
+
+# Closeout structurally requires an INDEPENDENT fidelity review (reviewer/SKILL.md).
+# It must (1) exist, (2) be real — a per-requirement verdict table (SHIPPED/PARTIAL/
+# NOT-BUILT) + a canonical "**Verdict:** ACCEPT|REJECT" line — not merely present, and
+# (3) resolve to ACCEPT. Missing / incomplete / REJECT FAILS closeout unless waived.
+check_fidelity_review() {
+  local NAME="fidelity-review-accept"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  local F="sessions/session-${N}-review.md"
+  : > "$LOG"
+
+  # (1) Require the artifact.
+  if [ ! -f "$F" ] || [ ! -s "$F" ]; then
+    echo "MISSING: $F — an independent fidelity review is required (DECISION-002)." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: supply sessions/session-${N}-review.md (cold pass) or a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+
+  # (2) Real, not present: per-requirement verdict TABLE + a canonical overall verdict.
+  # Count verdict tokens only inside table rows (lines containing '|') so three verdict
+  # WORDS scattered in prose don't fake a table — the gate must not ship the soft-proxy
+  # disease it exists to kill (S56 self-review finding).
+  local tokens overall complete=1
+  tokens=$(grep -E '\|' "$F" | grep -oiE 'SHIPPED|PARTIAL|NOT-BUILT' | wc -l | tr -d ' ') || true
+  overall=$(grep -iE '^[*_[:space:]]*(overall[[:space:]]+|final[[:space:]]+)?verdict[*_[:space:]]*:' "$F" \
+            | grep -ioE 'ACCEPT|REJECT' | head -1 | tr '[:lower:]' '[:upper:]') || true
+  echo "per-requirement verdict rows (in-table): ${tokens:-0}" >> "$LOG"
+  echo "canonical overall verdict: ${overall:-<none>}" >> "$LOG"
+
+  if [ "${tokens:-0}" -lt 3 ]; then
+    echo "INCOMPLETE: fewer than 3 in-table per-requirement verdicts — not a real acceptance table." >> "$LOG"; complete=0
+  fi
+  if [ -z "$overall" ]; then
+    echo "INCOMPLETE: no canonical '**Verdict:** ACCEPT|REJECT' line (heading-grep is not a verdict)." >> "$LOG"; complete=0
+  fi
+
+  # (3) ACCEPT passes; missing verdict, incomplete table, or REJECT fails unless waived.
+  if [ "$complete" -eq 1 ] && [ "$overall" = "ACCEPT" ]; then
+    echo "OK: independent review present, complete (${tokens} verdicts), Verdict=ACCEPT." >> "$LOG"; ok "$NAME"; return
+  fi
+  [ "$complete" -eq 0 ] && echo "BLOCK: review is present but incomplete (not real, only present)." >> "$LOG"
+  [ "$overall" = "REJECT" ] && echo "BLOCK: review Verdict=REJECT — delivery does not match the prompt." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: closeout blocked — ship an ACCEPT review (fix the gaps) or record a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"; bad "$NAME"
+  fi
+}
+
+# Focused entry point: run ONLY the fidelity gate against an explicit or resolved N.
+# Used by verify-session-56.sh and the S54 dogfood (`--fidelity-only 54`).
+if [ "${1:-}" = "--fidelity-only" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
+  check_fidelity_review
+  echo ""
+  echo "=== Fidelity gate (N=${N:-?}) ==="
+  for r in "${RESULTS[@]}"; do echo "$r"; done
+  cat "$ARTIFACTS/fidelity-review-accept.log" 2>/dev/null || true
+  if [ "$FAIL" -eq 0 ]; then echo "FIDELITY: PASS"; exit 0; else echo "FIDELITY: FAIL"; exit 1; fi
+fi
+
 check_session_file
 check_required_files
 check_session_boot
@@ -134,6 +204,7 @@ check_state_sections
 check_session_pair
 check_roadmap_current
 check_cost_tracking
+check_fidelity_review
 
 ( cd ".ai/verify/closeout" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
 
