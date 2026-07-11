@@ -1,8 +1,9 @@
 # Reviewer — the fidelity / acceptance auditor (Vajra's QA/PO stage)
 
-> **Status:** DRAFT (S55). The *brain* of Vajra's missing heart. Boot-loaded like Darshan and Varta —
-> instructions the agent internalizes; **nothing in the binary parses or runs this.** S56 builds the
-> *teeth* (a closeout gate that requires this skill's artifact and fails on REJECT). Prototyped live in
+> **Status:** ACTIVE (S56 — teeth built). The *brain* of Vajra's missing heart. Boot-loaded like Darshan
+> and Varta — instructions the agent internalizes; **nothing in the binary parses or runs this.** S56 gave
+> it *teeth*: `scripts/verify-closeout.sh` now **requires** this skill's artifact and **fails closeout** on a
+> missing / incomplete / REJECT review, absent an un-forgeable founder waiver. Prototyped live in
 > `sessions/session-55-review.md` (cold re-audit of S54).
 
 ---
@@ -70,13 +71,21 @@ fed** and **how it is framed**, not from the word "QA":
 Emit `sessions/session-NN-review.md` containing, at minimum:
 
 - The **method controls** actually used (so a non-author can trust the independence).
-- The **per-requirement table** (Requirement | Verdict | Evidence) covering **every** numbered requirement.
+- The **per-requirement table** (Requirement | Verdict | Evidence) covering **every** numbered requirement,
+  using the verdict vocabulary `SHIPPED` / `PARTIAL` / `NOT-BUILT` (the gate requires ≥3 such verdicts — a
+  real acceptance table, not a lone heading).
 - The **count** and the **fakest green**.
-- An overall **ACCEPT / REJECT** with the honest fraction delivered.
+- A **canonical machine-readable verdict line** the gate parses — exactly one line of the form
+  `**Verdict:** ACCEPT` or `**Verdict:** REJECT`. A `## Overall verdict` heading with the word buried in
+  prose is *not* enough — the S54 "fakest green" was a heading-grep, so the gate demands a real verdict
+  field, not a heading.
 
-**Closeout rule (S56 teeth):** closeout FAILS if the review is missing, does not address every requirement
-by number, or verdict = REJECT — **absent an explicit, recorded human waiver.** You cannot close a session
-by self-certifying.
+**Closeout rule (S56 teeth, live):** `scripts/verify-closeout.sh` FAILS if the review is missing, is
+present-but-incomplete (no per-requirement table or no canonical `**Verdict:**` line), or `Verdict: REJECT`
+— **absent a founder waiver.** The waiver is the env var `VAJRA_CLOSEOUT_WAIVER=<N>` (session-scoped,
+founder-controlled at launch — mirrors `VAJRA_ALLOW_PUBLISH`), **never a text marker the agent can write
+into a tracked file.** You cannot close a session by self-certifying. Run the gate in isolation with
+`scripts/verify-closeout.sh --fidelity-only <N>`.
 
 ---
 
