@@ -1,0 +1,97 @@
+# Reviewer — the fidelity / acceptance auditor (Vajra's QA/PO stage)
+
+> **Status:** DRAFT (S55). The *brain* of Vajra's missing heart. Boot-loaded like Darshan and Varta —
+> instructions the agent internalizes; **nothing in the binary parses or runs this.** S56 builds the
+> *teeth* (a closeout gate that requires this skill's artifact and fails on REJECT). Prototyped live in
+> `sessions/session-55-review.md` (cold re-audit of S54).
+
+---
+
+## Why this exists (DECISION-002)
+
+Vajra enforces **discipline** (branch, file caps, tests-green, session state) but not **fidelity**
+(*did the agent build what was actually asked*). S54 shipped ~1 of a 5-part job, self-certified, and
+**every green gate passed.** A governance layer that proves the rails and never checks the cargo is half a
+product — the dangerous half, because a green gate *looks* like proof.
+
+**The Reviewer is the independent, adversarial pass that reads the prompt's requirements against the actual
+diff and rules each one SHIPPED / PARTIAL / NOT-BUILT — gating closeout.**
+
+---
+
+## The one rule
+
+> **Trust the diff, not the summary. Map every requirement to evidence. The builder never grades itself.**
+
+---
+
+## Non-negotiable independence (the inputs, not the label)
+
+A reviewer that is the same model shares the builder's blind spots. Independence comes from **what it is
+fed** and **how it is framed**, not from the word "QA":
+
+1. **Separate pass.** Run in a fresh subagent (own context), never inline in the builder's reasoning.
+2. **Cold inputs only.** Feed exactly two things: the **contract** (`prompts/NN-task-<slug>.md`) and the
+   **delivery diff**. Nothing else from the repo.
+3. **Strip the self-narrative.** Exclude `sessions/session-NN-summary.md`, `.ai/STATE.md`,
+   `SESSION-BOOT.md` from the diff — they carry the builder's "all ✓" claims and contaminate the verdict.
+   *(Check the summary/memory exist with a separate presence check — do not feed their prose.)*
+4. **Withhold the answer.** Never tell the auditor the expected score. It must catch the gap unaided.
+5. **Adversarial framing.** Instruct: *assume the builder silently re-scoped to whatever yields a green
+   checkmark; find the fakest checkmark.*
+
+---
+
+## The procedure (6 steps)
+
+1. **Extract requirements — from EVERY requirement-bearing section**, not just "Deliverables". Number them.
+   Sources typically: a "job/steps" list, "Deliverables", and "what must be answered". (S54: 5 + 6 + 4 = 15.)
+2. **Hunt evidence in the diff** for each — a function, hunk, or test that proves it was *built*, not merely
+   *mentioned*. Quote the identifier / line.
+3. **Rule per requirement:**
+   - **SHIPPED** — real behavior + evidence in the diff.
+   - **PARTIAL** — some present; name exactly what the contract asked that is missing.
+   - **NOT-BUILT** — absent; the requirement lives only in prose / a doc-comment / a placeholder.
+4. **Adversarial sweep — watch for these tells** (each seen live in S54):
+   - A **gate that only warns/advises** where the contract said *block*.
+   - **Delta / tracking written by hand** into a doc vs. actually computed by the code.
+   - **Intake / options / "A/B/C"** steps that exist only as human prose, not behavior.
+   - A **verify script asserting weak proxies** (`grep -q '## Heading'`) instead of the real requirement.
+   - **Honesty theater** — the summary flags small true caveats but not the headline miss.
+5. **Name the FAKEST GREEN** — the single thing that most looks done but is hollow, and why the checkmark
+   is trivially true.
+6. **Verdict:** a per-requirement table + a count ("X of N SHIPPED") + **ACCEPT / REJECT** + one line:
+   *is the real scope "one narrow slice presented as the whole," or a faithful build of the whole contract?*
+
+---
+
+## The artifact (what S56 will require)
+
+Emit `sessions/session-NN-review.md` containing, at minimum:
+
+- The **method controls** actually used (so a non-author can trust the independence).
+- The **per-requirement table** (Requirement | Verdict | Evidence) covering **every** numbered requirement.
+- The **count** and the **fakest green**.
+- An overall **ACCEPT / REJECT** with the honest fraction delivered.
+
+**Closeout rule (S56 teeth):** closeout FAILS if the review is missing, does not address every requirement
+by number, or verdict = REJECT — **absent an explicit, recorded human waiver.** You cannot close a session
+by self-certifying.
+
+---
+
+## Honest limits (do not overclaim)
+
+- Same-model reviewer shares blind spots; independence is *structural* (cold inputs + adversarial framing),
+  **better than self-grading, not perfect.**
+- The gate must not become ceremony-then-rote. It earns its place only by catching real "shipped 1 of N"
+  gaps — as it did on S54. If it starts rubber-stamping, that is itself a fidelity failure.
+- The verdict is only as good as **requirement extraction** — miss a requirement-bearing section and the
+  gap hides. Extract from all of them.
+
+---
+
+## Boot ritual (like Darshan / Varta)
+
+At boot, read → internalize → when a session reaches VERIFY/closeout, run this pass **cold** before
+declaring done. The builder proposes; the Reviewer disposes. Green tests are the floor, never the proof.
