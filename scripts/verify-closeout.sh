@@ -153,16 +153,19 @@ check_fidelity_review() {
     return
   fi
 
-  # (2) Real, not present: per-requirement verdict table + a canonical overall verdict.
+  # (2) Real, not present: per-requirement verdict TABLE + a canonical overall verdict.
+  # Count verdict tokens only inside table rows (lines containing '|') so three verdict
+  # WORDS scattered in prose don't fake a table — the gate must not ship the soft-proxy
+  # disease it exists to kill (S56 self-review finding).
   local tokens overall complete=1
-  tokens=$(grep -oiE 'SHIPPED|PARTIAL|NOT-BUILT' "$F" | wc -l | tr -d ' ') || true
+  tokens=$(grep -E '\|' "$F" | grep -oiE 'SHIPPED|PARTIAL|NOT-BUILT' | wc -l | tr -d ' ') || true
   overall=$(grep -iE '^[*_[:space:]]*(overall[[:space:]]+|final[[:space:]]+)?verdict[*_[:space:]]*:' "$F" \
             | grep -ioE 'ACCEPT|REJECT' | head -1 | tr '[:lower:]' '[:upper:]') || true
-  echo "per-requirement verdict tokens: ${tokens:-0}" >> "$LOG"
+  echo "per-requirement verdict rows (in-table): ${tokens:-0}" >> "$LOG"
   echo "canonical overall verdict: ${overall:-<none>}" >> "$LOG"
 
   if [ "${tokens:-0}" -lt 3 ]; then
-    echo "INCOMPLETE: fewer than 3 per-requirement verdicts — not a real acceptance table." >> "$LOG"; complete=0
+    echo "INCOMPLETE: fewer than 3 in-table per-requirement verdicts — not a real acceptance table." >> "$LOG"; complete=0
   fi
   if [ -z "$overall" ]; then
     echo "INCOMPLETE: no canonical '**Verdict:** ACCEPT|REJECT' line (heading-grep is not a verdict)." >> "$LOG"; complete=0

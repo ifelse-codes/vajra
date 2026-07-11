@@ -84,8 +84,16 @@ Emit `sessions/session-NN-review.md` containing, at minimum:
 present-but-incomplete (no per-requirement table or no canonical `**Verdict:**` line), or `Verdict: REJECT`
 — **absent a founder waiver.** The waiver is the env var `VAJRA_CLOSEOUT_WAIVER=<N>` (session-scoped,
 founder-controlled at launch — mirrors `VAJRA_ALLOW_PUBLISH`), **never a text marker the agent can write
-into a tracked file.** You cannot close a session by self-certifying. Run the gate in isolation with
-`scripts/verify-closeout.sh --fidelity-only <N>`.
+into a tracked file.** Run the gate in isolation with `scripts/verify-closeout.sh --fidelity-only <N>`.
+
+**What the teeth do and do NOT enforce (honest limit — do not overclaim).** The gate structurally blocks a
+*missing / hollow / REJECT* review and makes the **waiver** un-forgeable. It enforces the review's **shape**
+(a real in-table verdict list + a canonical verdict line) and the **waiver's authorship** — but it does
+**not** yet enforce the *verdict's* authorship: a builder can still author its own well-formed
+`**Verdict:** ACCEPT`. Verdict independence is enforced by **procedure** (this skill's cold-subagent pass,
+DECISION-002), not yet by code. So the gate retires *silent / heading-grep / missing / REJECT* self-cert;
+it does **not** by itself prove the ACCEPT came from an independent pass. Binding the review to proof of a
+cold pass (e.g. an attested hash of the withheld inputs) is the next hardening.
 
 ---
 
