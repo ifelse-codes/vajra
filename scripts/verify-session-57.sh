@@ -89,8 +89,19 @@ run_gate VAJRA_CLOSEOUT_WAIVER="$N" && ok "founder env waiver clears scaffolded 
 # ---------------------------------------------------------------------------
 # 4. Spine intact — no 8th command, no second store; the propagation rides init.rs.
 # ---------------------------------------------------------------------------
-CMDS="$(grep -oE '"(claude|next|check|init|estimate|meter|hook)"' src/main.rs 2>/dev/null | sort -u | wc -l | tr -d ' ')"
-[ "${CMDS:-0}" -le 7 ] && ok "no 8th top-level command (spine intact: $CMDS)" || no "no 8th top-level command (got $CMDS)"
+# The REAL invariant: adding a top-level command requires editing src/main.rs's dispatch.
+# This session must not touch it. (Not a tautology — it fails the moment main.rs is edited.)
+if git rev-parse --verify -q main >/dev/null 2>&1; then
+  git diff --name-only main...HEAD 2>/dev/null | grep -qx 'src/main.rs' \
+    && no "no new top-level command (src/main.rs untouched this session)" \
+    || ok "no new top-level command (src/main.rs untouched this session)"
+else
+  ok "no new top-level command (main ref absent — check skipped)"
+fi
+# Corroborate: the dispatch still has exactly 7 real command arms. Non-tautological — it matches
+# the ARM PATTERN (`"cmd" => Subcommand::X`), so an added 8th arm increments the count and fails.
+CMDS="$(grep -cE '^[[:space:]]*"[a-z-]+"[[:space:]]*=>[[:space:]]*Subcommand::[A-Z]' src/main.rs 2>/dev/null || echo 0)"
+[ "${CMDS:-0}" -eq 7 ] && ok "dispatch has exactly 7 command arms (spine intact)" || no "command-arm count drifted: got ${CMDS}"
 ! grep -RqiE 'spec\.md|specs/' "$TMP/.ai" 2>/dev/null && ok "no second store scaffolded (spec.md/specs/)" || no "no second store scaffolded"
 
 echo "---"
