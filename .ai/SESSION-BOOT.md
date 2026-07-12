@@ -1,48 +1,44 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 56 — COMPLETE
-- **Type:** **CODE** — **The fidelity GATE (teeth).** Turned S55's proven *brain* (`reviewer/SKILL.md`) into
-  *enforcement*: `scripts/verify-closeout.sh` now structurally requires an independent ACCEPT review and
-  fails closeout on a missing / hollow / REJECT review, absent an un-forgeable founder waiver.
-- **Branch:** `session-56-fidelity-gate`.
-- **Date last updated:** 2026-07-11
+- **Number:** 57 — COMPLETE
+- **Type:** **CODE** — **Propagate the fidelity gate + reviewer into `vajra init`.** Every project scaffolded
+  by `vajra init` now inherits the S56 teeth: `reviewer/SKILL.md` (brain) + `scripts/verify-closeout.sh`
+  (the closeout gate with `check_fidelity_review`), both byte-identical via `include_str!`. A scaffolded
+  project's closeout also structurally requires an independent ACCEPT review — not just discipline.
+- **Branch:** `session-57-propagate-fidelity-gate`.
+- **Date last updated:** 2026-07-12
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 56.
-- S56 output (bash-only, no `src/`): `scripts/verify-closeout.sh` (+ `check_fidelity_review` / `waiver_ok` /
-  `--fidelity-only`) · `scripts/hook-pre-write.sh` (GT whitelist +review/reviewer — the S55 bundle) ·
-  `reviewer/SKILL.md` (canonical `**Verdict:**` contract + honest-limit note) · `sessions/session-54-review.md`
-  (the gate's first live target, REJECT) · `scripts/verify-session-56.sh` (**20/20**) · `demo-session-56.sh`
-  (7 scenes) · `sessions/session-56-summary.md` + `sessions/session-56-review.md`. `cargo test` **140 lib**
-  unchanged; S56 spend **~$0**.
+- `.ai/SESSION` = 57.
+- S57 output (`src/` + bash): `src/cli/init.rs` (+`TPL_REVIEWER`/`TPL_VERIFY_CLOSEOUT` include_str!, scaffold
+  entries, `## Fidelity Review` boot pointer, Session-Loop step 7/8, 2 Hard Rules, CONSTRAINTS `closeout_script`
+  wiring, `reviewer` in `SCAFFOLD_OWNED`, +5 tests) · `Cargo.toml` (un-exclude `!scripts/verify-closeout.sh`) ·
+  `scripts/verify-session-57.sh` (**24/24**) · `scripts/demo-session-57.sh` · `sessions/session-57-summary.md`
+  + `sessions/session-57-review.md`. `cargo test` **145 lib** (+5); fmt+clippy clean; S57 spend **~$0**.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- **The headline:** closeout can no longer pass by self-certifying. A full `verify-closeout.sh` run goes RED
-  on the new `fidelity-review-accept` step while all 8 legacy discipline checks pass. **First live act
-  (dogfood):** `verify-closeout.sh --fidelity-only 54` **BLOCKS** S54's real REJECT — the gate is
-  enforcement, not ceremony.
-- **Independent cold review of S56 = ACCEPT** (16 SHIPPED · 4 PARTIAL · 1 NOT-BUILT). It named two edges —
-  the table check was a word-count proxy + "self-cert retired" was overclaimed — **both fixed after the
-  pass** (table now counts in-row verdicts; `reviewer/SKILL.md` states verdict-authorship independence is
-  procedural, not structural). Honest #1 limit → S57-B.
+- **The headline:** the scaffold never shipped `verify-closeout.sh` at all (the constitution told agents to
+  run it; the file was absent) — the S36-class gap was wider than assumed. The feared "template → include_str!"
+  refactor did not exist (the canonical is already standalone) → no S58 split. **First live act:** a real
+  `vajra init` into a temp repo produces a scaffolded gate that BLOCKS missing/REJECT and PASSES ACCEPT.
+- **Independent cold review of S57 = ACCEPT** (9/9 core SHIPPED · 1 PARTIAL · no split). It named one
+  finding — the `no 8th command` spine check was a tautology — **fixed after the pass** (real invariant:
+  `src/main.rs` untouched + non-tautological arm count). Honest #1 limit unchanged → S58-A.
 
 ## Next Session
-- **Number:** 57
-- **Type:** **CODE** — **Propagate the gate + reviewer into `vajra init`** (the pre-authorized S56 split;
-  the S22/S28/S29/S38 pattern). Every scaffolded project inherits the fidelity gate so its closeout also
-  requires an independent ACCEPT. May split to S58 if the `verify-closeout.sh` `include_str!` refactor fills
-  the session.
-- **Prompt:** `prompts/57-task-propagate-fidelity-gate.md` (APPROVED — founder may reprioritize to S57-B
-  structural verdict-authorship independence, or S57-C the delta ledger; 3 ranked candidates in the summary).
-- **Branch:** `session-57-<slug>` — **new chat.**
+- **Number:** 58
+- **Type:** **CODE** — **Structural verdict-authorship independence** (make the ACCEPT un-forgeable): bind an
+  ACCEPT to attested proof a cold pass consumed the withheld inputs, so a builder can no longer author its
+  own ACCEPT. Closes the standing honest #1.
+- **Prompt:** `prompts/58-task-verdict-authorship-independence.md` (APPROVED — founder may reprioritize to
+  S58-B the delta ledger, or S58-C complete the S54 Analyst; 3 ranked candidates in the S57 summary).
+- **Branch:** `session-58-<slug>` — **new chat.**
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S57; do NOT start it here.
-- **Post-merge:** after S56 merges, checkout `main` + prune merged `session-56-*` / `session-55-*` locals.
-- **Honest #1 limit (S56 self-review):** verdict *authorship* independence is procedural (the cold subagent),
-  not structural — a builder can still author its own ACCEPT. Structural attestation = S57-B.
-- **Waiver boundary (honest):** `VAJRA_CLOSEOUT_WAIVER=<N>` is un-forgeable at the launch-env boundary (S37
-  model); if the agent self-runs the script it could prepend the var inline — same coarseness class as
-  `VAJRA_ALLOW_PUBLISH`.
-- **Use `total_cost_usd`, NOT the vajra receipt** — overstates ~8× (S52). Backlog / governance-credibility.
-- **dogfood_check 🟡 aging** — no paid `vajra claude` since S52 (4 sessions); a paid run is due.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S58; do NOT start it here.
+- **Post-merge:** after S57 merges, checkout `main` + prune merged `session-57-*` / `session-56-*` locals.
+- **Standing honest #1 (S56→S57):** verdict *authorship* independence is procedural (the cold subagent), not
+  structural — a builder can still author its own `**Verdict:** ACCEPT`. → S58-A.
+- **Ledger still 0 code** (headline moat) → S58-B. **S54 Analyst REJECT still open** (Intake/Options/Delta) → S58-C.
+- **Use `total_cost_usd`, NOT the vajra receipt** — overstates ~8× (S52).
+- **dogfood_check 🟡 aging** — no paid `vajra claude` since S52 (5 sessions); a paid run is overdue.

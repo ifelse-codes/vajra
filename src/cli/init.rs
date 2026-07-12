@@ -312,6 +312,7 @@ fn is_brownfield(root: &Path) -> bool {
         "sessions",
         ".claude",
         "darshan",
+        "reviewer",
         "CLAUDE.md",
         "AGENTS.md",
         ".cursorrules",
@@ -551,6 +552,9 @@ fn files(
         f(".cursorrules", TPL_CURSORRULES),
         f(".gitignore", TPL_GITIGNORE),
         f("darshan/SKILL.md", TPL_DARSHAN),
+        // Reviewer skill (S57) — the fidelity/acceptance auditor's brain, boot-loaded like
+        // Darshan. Byte-identical to the canonical reviewer/SKILL.md (include_str!, no drift).
+        f("reviewer/SKILL.md", TPL_REVIEWER),
         f(".claude/settings.json", TPL_CLAUDE_SETTINGS),
         // Hooks live under .ai/hooks/ (S34): they are Vajra's, not the project's —
         // keeps them out of a brownfield project's own scripts/ package. Per-session
@@ -569,6 +573,10 @@ fn files(
         fx(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
+        // The closeout gate with teeth (S57): byte-identical to the vajra repo's own
+        // scripts/verify-closeout.sh (include_str!, one source). Carries the fidelity gate, so a
+        // scaffolded project's closeout also structurally requires an independent ACCEPT review.
+        fx("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT),
         f("prompts/01-task-kickoff.md", TPL_PROMPT),
     ];
     if brownfield {
@@ -597,6 +605,15 @@ it at boot, then speak it all session. One rule: *render the richest visual this
 handle; always glanceable; never drop meaning.* It is a skill, not a renderer — nothing in
 the binary parses or draws it. The user sees Darshan in every reply.
 
+## Fidelity Review (Load at Boot)
+
+**Reviewer** (`reviewer/SKILL.md`) is the independent acceptance auditor — read it at boot.
+At closeout it judges whether you built **what the prompt asked** (fidelity), not just whether
+you followed the rules (discipline). The builder never grades itself: an independent cold pass,
+fed only the prompt + the diff, rules every requirement SHIPPED / PARTIAL / NOT-BUILT and writes
+`sessions/session-NN-review.md`. `scripts/verify-closeout.sh` **requires** that review and fails
+closeout on a missing / incomplete / REJECT verdict, absent a founder waiver.
+
 ## Mandatory Load Order
 
 1. `.ai/AGENTS.md` (this file)
@@ -616,8 +633,8 @@ the binary parses or draws it. The user sees Darshan in every reply.
 4. EXECUTE — Atomic changes. Max 3 files per commit.
 5. VERIFY + DEMO — `scripts/verify-session-NN.sh` exits 0. `scripts/demo-session-NN.sh` shows what was built (cumulative).
 6. PR — Open PR to `main`.
-7. SUMMARY — `sessions/session-NN-summary.md`. 3 next options.
-8. CLOSEOUT — Sync `.ai/` files. `verify-closeout.sh` exits 0.
+7. SUMMARY + FIDELITY REVIEW — `sessions/session-NN-summary.md` + an independent `sessions/session-NN-review.md` (a cold pass; see `reviewer/SKILL.md`). 3 next options.
+8. CLOSEOUT — Sync `.ai/` files. `scripts/verify-closeout.sh` exits 0 (structurally requires an ACCEPT review).
 9. CLOSE — New chat from next prompt file.
 
 ## Hard Rules
@@ -630,6 +647,8 @@ the binary parses or draws it. The user sees Darshan in every reply.
 | No `main` commits | Branch first |
 | Max 3 files per commit | Atomic changes |
 | Verification = exit 0 | Never leave red |
+| Fidelity ≠ discipline | Map every requirement to evidence (SHIPPED/PARTIAL/NOT-BUILT). A green verify script proves discipline, never fidelity. |
+| No self-certification | The builder never accepts its own delivery — an independent review (`reviewer/SKILL.md`) does. |
 
 ## Communication Style
 
@@ -715,6 +734,8 @@ verify:
   script_pattern: 'scripts/verify-session-{NN}.sh'
   template: 'scripts/verify-session-template.sh'
   exit_zero_required: true
+  closeout_script: 'scripts/verify-closeout.sh'
+  closeout_must_pass_before_close: true   # fails on a missing/incomplete/REJECT fidelity review (reviewer/SKILL.md)
 
 demo:
   script_pattern: 'scripts/demo-session-{NN}.sh'
@@ -936,6 +957,22 @@ const TPL_GITIGNORE: &str = r#"# Vajra session-guard owner record (one-session-p
 // `exclude`, so it already ships with `cargo install`. Skill-not-renderer holds: `init`
 // only *copies* the skill + wires the AGENTS.md boot pointer; nothing in Rust renders it.
 const TPL_DARSHAN: &str = include_str!("../../darshan/SKILL.md");
+
+// Reviewer (S55 brain / S56 teeth → S57 propagation) — the independent fidelity / acceptance
+// auditor, embedded verbatim from the canonical file so the scaffolded copy can never drift
+// (S22/S28 one-source pattern). `reviewer/` is not in Cargo.toml's `exclude`, so it already ships
+// with `cargo install` (like `darshan/`). Boot-loaded like Darshan; nothing in the binary parses it.
+const TPL_REVIEWER: &str = include_str!("../../reviewer/SKILL.md");
+
+// Canonical closeout gate (S56 teeth → S57 propagation) — the SAME `scripts/verify-closeout.sh`
+// the vajra repo runs, embedded verbatim so the scaffolded copy can never drift (S22 one-source
+// pattern). It carries `check_fidelity_review` + `waiver_ok` + `--fidelity-only`, so a scaffolded
+// project's closeout also STRUCTURALLY requires an independent ACCEPT review (DECISION-002), not
+// just discipline. Fully portable — it reads only the `.ai/` + `sessions/` + `prompts/` spine every
+// scaffold has, nothing vajra-repo-specific. `scripts/*` is excluded in Cargo.toml, so this file is
+// un-excluded there (per-file negation) so it ships with `cargo install`. Closes the S36-class
+// "the constitution tells the agent to run verify-closeout.sh but the scaffold never shipped it" gap.
+const TPL_VERIFY_CLOSEOUT: &str = include_str!("../../scripts/verify-closeout.sh");
 
 const TPL_VERIFY_TEMPLATE: &str = r#"#!/usr/bin/env bash
 # Template — copy to scripts/verify-session-NN.sh and customize per session.
@@ -1224,6 +1261,94 @@ mod tests {
         assert!(
             agents.contains("darshan/SKILL.md"),
             "AGENTS.md must point at the scaffolded Darshan skill"
+        );
+    }
+
+    // ── Fidelity gate + reviewer propagation (S57) ───────────────────────────
+
+    #[test]
+    fn scaffold_ships_reviewer_skill_verbatim() {
+        let dir = scaffold_tmp();
+        let skill = dir.path().join("reviewer/SKILL.md");
+        assert!(skill.exists(), "reviewer skill not scaffolded");
+        // Byte-identical to the canonical reviewer/SKILL.md — one source, no drift (S22 pattern).
+        assert_eq!(
+            fs::read_to_string(&skill).unwrap(),
+            TPL_REVIEWER,
+            "scaffolded reviewer skill drifted from canonical reviewer/SKILL.md"
+        );
+    }
+
+    #[test]
+    fn scaffold_wires_reviewer_into_constitution() {
+        let dir = scaffold_tmp();
+        let agents = fs::read_to_string(dir.path().join(".ai/AGENTS.md")).unwrap();
+        // Boot pointer (like Darshan) so scaffolded agents load the acceptance auditor.
+        assert!(
+            agents.contains("reviewer/SKILL.md"),
+            "AGENTS.md must point at the scaffolded reviewer skill"
+        );
+        assert!(
+            agents.contains("Fidelity Review"),
+            "missing Fidelity Review boot section"
+        );
+        // The closeout step must promise the gate (an independent ACCEPT review), not just discipline.
+        assert!(
+            agents.contains("FIDELITY REVIEW") && agents.contains("session-NN-review.md"),
+            "Session Loop must require an independent per-session review"
+        );
+    }
+
+    #[test]
+    fn scaffold_ships_verify_closeout_verbatim_and_executable() {
+        let dir = scaffold_tmp();
+        let gate = dir.path().join("scripts/verify-closeout.sh");
+        assert!(gate.exists(), "verify-closeout.sh not scaffolded");
+        // Byte-identical to the vajra repo's own gate — one source of truth, no drift.
+        assert_eq!(
+            fs::read_to_string(&gate).unwrap(),
+            TPL_VERIFY_CLOSEOUT,
+            "scaffolded verify-closeout.sh drifted from canonical scripts/verify-closeout.sh"
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&gate).unwrap().permissions().mode();
+            assert_eq!(mode & 0o111, 0o111, "verify-closeout.sh must be executable");
+        }
+    }
+
+    #[test]
+    fn scaffolded_closeout_carries_the_fidelity_gate() {
+        // The whole point of S57: the scaffolded closeout is not a discipline-only stub — it
+        // carries the S56 teeth (the fidelity gate + un-forgeable waiver + focused entry point).
+        let dir = scaffold_tmp();
+        let gate = fs::read_to_string(dir.path().join("scripts/verify-closeout.sh")).unwrap();
+        for needle in [
+            "check_fidelity_review",
+            "waiver_ok",
+            "--fidelity-only",
+            "VAJRA_CLOSEOUT_WAIVER",
+            "session-${N}-review.md",
+        ] {
+            assert!(
+                gate.contains(needle),
+                "scaffolded closeout gate missing the fidelity-gate token {needle:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn scaffold_wires_closeout_into_constraints() {
+        let dir = scaffold_tmp();
+        let c = fs::read_to_string(dir.path().join(".ai/CONSTRAINTS.yaml")).unwrap();
+        assert!(
+            c.contains("closeout_script: 'scripts/verify-closeout.sh'"),
+            "CONSTRAINTS.yaml must point at the scaffolded closeout gate"
+        );
+        assert!(
+            c.contains("closeout_must_pass_before_close: true"),
+            "CONSTRAINTS.yaml must make the closeout gate mandatory"
         );
     }
 
