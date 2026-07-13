@@ -1,44 +1,50 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 57 — COMPLETE
-- **Type:** **CODE** — **Propagate the fidelity gate + reviewer into `vajra init`.** Every project scaffolded
-  by `vajra init` now inherits the S56 teeth: `reviewer/SKILL.md` (brain) + `scripts/verify-closeout.sh`
-  (the closeout gate with `check_fidelity_review`), both byte-identical via `include_str!`. A scaffolded
-  project's closeout also structurally requires an independent ACCEPT review — not just discipline.
-- **Branch:** `session-57-propagate-fidelity-gate`.
-- **Date last updated:** 2026-07-12
+- **Number:** 58 — COMPLETE
+- **Type:** **CODE** — **Verdict-authorship attestation (make the ACCEPT un-forgeable).** The fidelity gate
+  now verifies the **verdict's** authorship-binding, not just the review's shape + the waiver's authorship.
+  On an ACCEPT, `scripts/verify-closeout.sh` recomputes `sha256(prompt ‖ delivery-diff)` from the repo and
+  FAILS a review whose `**Review-Inputs-SHA:**` is missing / forged / stale, behind the same founder waiver.
+- **Branch:** `session-58-verdict-attestation`.
+- **Date last updated:** 2026-07-13
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 57.
-- S57 output (`src/` + bash): `src/cli/init.rs` (+`TPL_REVIEWER`/`TPL_VERIFY_CLOSEOUT` include_str!, scaffold
-  entries, `## Fidelity Review` boot pointer, Session-Loop step 7/8, 2 Hard Rules, CONSTRAINTS `closeout_script`
-  wiring, `reviewer` in `SCAFFOLD_OWNED`, +5 tests) · `Cargo.toml` (un-exclude `!scripts/verify-closeout.sh`) ·
-  `scripts/verify-session-57.sh` (**24/24**) · `scripts/demo-session-57.sh` · `sessions/session-57-summary.md`
-  + `sessions/session-57-review.md`. `cargo test` **145 lib** (+5); fmt+clippy clean; S57 spend **~$0**.
+- `.ai/SESSION` = 58.
+- S58 output (bash + docs, **no `src/` change**): `scripts/verify-closeout.sh` (+`canonical_inputs_sha` /
+  `check_review_attestation` / `--inputs-sha` / `--attest-only`; wired into the full suite) ·
+  `reviewer/SKILL.md` (cold pass now EMITS the attestation + honest-limit rewrite) ·
+  `docs/decisions/DECISION-003-verdict-input-attestation.md` · `scripts/verify-session-58.sh` (**24/24**) ·
+  `scripts/demo-session-58.sh` · `sessions/session-58-summary.md` + `sessions/session-58-review.md`.
+  `cargo test` **145 lib** unchanged (no src touched); fmt + clippy clean; S58 spend **~$0**.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- **The headline:** the scaffold never shipped `verify-closeout.sh` at all (the constitution told agents to
-  run it; the file was absent) — the S36-class gap was wider than assumed. The feared "template → include_str!"
-  refactor did not exist (the canonical is already standalone) → no S58 split. **First live act:** a real
-  `vajra init` into a temp repo produces a scaffolded gate that BLOCKS missing/REJECT and PASSES ACCEPT.
-- **Independent cold review of S57 = ACCEPT** (9/9 core SHIPPED · 1 PARTIAL · no split). It named one
-  finding — the `no 8th command` spine check was a tautology — **fixed after the pass** (real invariant:
-  `src/main.rs` untouched + non-tautological arm count). Honest #1 limit unchanged → S58-A.
+- **The headline:** the attestation rides the S57 `include_str!` — editing the canonical
+  `scripts/verify-closeout.sh` propagates it byte-identically into every `vajra init` scaffold with **zero
+  `src/` change**. One `canonical_inputs_sha()` drives both the emit side (`--inputs-sha`) and the verify
+  side (no normalization drift). **Live proof:** `--attest-only 58` PASSES on S58's own review
+  (`claimed == expected == 986fbb24…6df4fd`); a forged/missing/stale attestation FAILS (24/24).
+- **Independent cold review of S58 = ACCEPT** (12/16 SHIPPED · 1 PARTIAL · nothing NOT-BUILT · **nothing
+  overclaimed** — the reviewer's strongest praise). Standing honest #1 **downgraded to a bounded limit**, not
+  closed: the same agent can recompute the hash → bar-raising, not tamper-proof.
 
 ## Next Session
-- **Number:** 58
-- **Type:** **CODE** — **Structural verdict-authorship independence** (make the ACCEPT un-forgeable): bind an
-  ACCEPT to attested proof a cold pass consumed the withheld inputs, so a builder can no longer author its
-  own ACCEPT. Closes the standing honest #1.
-- **Prompt:** `prompts/58-task-verdict-authorship-independence.md` (APPROVED — founder may reprioritize to
-  S58-B the delta ledger, or S58-C complete the S54 Analyst; 3 ranked candidates in the S57 summary).
-- **Branch:** `session-58-<slug>` — **new chat.**
+- **Number:** 59
+- **Type:** **CODE** — **The cross-stage delta ledger** (the 0-code headline moat's first attested content):
+  record each session's attested acceptance verdict into a durable, hash-chained, tamper-*evident* ledger.
+  Composes directly on S58 (the attestation is the ledger's payload).
+- **Prompt:** `prompts/59-task-attested-verdict-ledger.md` (APPROVED — founder may reprioritize to S59-B
+  complete the S54 Analyst, or S59-C harden attestation toward real tamper-evidence; 3 ranked candidates in
+  the S58 summary).
+- **Branch:** `session-59-<slug>` — **new chat.** **S60 = next mandatory NO-CODE ground-truth.**
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S58; do NOT start it here.
-- **Post-merge:** after S57 merges, checkout `main` + prune merged `session-57-*` / `session-56-*` locals.
-- **Standing honest #1 (S56→S57):** verdict *authorship* independence is procedural (the cold subagent), not
-  structural — a builder can still author its own `**Verdict:** ACCEPT`. → S58-A.
-- **Ledger still 0 code** (headline moat) → S58-B. **S54 Analyst REJECT still open** (Intake/Options/Delta) → S58-C.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S59; do NOT start it here.
+- **Post-merge:** after S58 merges, checkout `main` + prune merged `session-58-*` / `session-57-*` locals.
+- **Standing honest #1 (S56→S58): DOWNGRADED, not closed.** Verdict *authorship* independence now has a
+  structural binding (the input-attestation ties an ACCEPT to the reviewed delivery) but is **bar-raising,
+  not tamper-proof** — the same agent can recompute the hash. Closing the rest needs an out-of-band signer
+  (a new trust root) → S59-C candidate.
+- **Ledger still 0 code** (headline moat) → **S59-A (recommended next).** **S54 Analyst REJECT still open**
+  (Intake/Options/Delta) → S59-B.
 - **Use `total_cost_usd`, NOT the vajra receipt** — overstates ~8× (S52).
-- **dogfood_check 🟡 aging** — no paid `vajra claude` since S52 (5 sessions); a paid run is overdue.
+- **dogfood_check 🟡 aging** — no paid `vajra claude` since S52 (6 sessions); a paid run is overdue.
