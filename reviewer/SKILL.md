@@ -79,6 +79,11 @@ Emit `sessions/session-NN-review.md` containing, at minimum:
   `**Verdict:** ACCEPT` or `**Verdict:** REJECT`. A `## Overall verdict` heading with the word buried in
   prose is *not* enough — the S54 "fakest green" was a heading-grep, so the gate demands a real verdict
   field, not a heading.
+- **On an ACCEPT: an input-attestation line** (S58 — DECISION-003) — exactly one line of the form
+  `**Review-Inputs-SHA:** <64-hex sha256>`, the hash of the exact cold inputs (contract prompt + delivery
+  diff) the pass consumed. **Compute it with the gate's own function** so it cannot drift from what the gate
+  recomputes: `scripts/verify-closeout.sh --inputs-sha <N>`. Emit it *after* reviewing the committed diff
+  (not a draft), so the hash binds the verdict to what actually shipped. A REJECT needs no attestation.
 
 **Closeout rule (S56 teeth, live):** `scripts/verify-closeout.sh` FAILS if the review is missing, is
 present-but-incomplete (no per-requirement table or no canonical `**Verdict:**` line), or `Verdict: REJECT`
@@ -88,12 +93,20 @@ into a tracked file.** Run the gate in isolation with `scripts/verify-closeout.s
 
 **What the teeth do and do NOT enforce (honest limit — do not overclaim).** The gate structurally blocks a
 *missing / hollow / REJECT* review and makes the **waiver** un-forgeable. It enforces the review's **shape**
-(a real in-table verdict list + a canonical verdict line) and the **waiver's authorship** — but it does
-**not** yet enforce the *verdict's* authorship: a builder can still author its own well-formed
-`**Verdict:** ACCEPT`. Verdict independence is enforced by **procedure** (this skill's cold-subagent pass,
-DECISION-002), not yet by code. So the gate retires *silent / heading-grep / missing / REJECT* self-cert;
-it does **not** by itself prove the ACCEPT came from an independent pass. Binding the review to proof of a
-cold pass (e.g. an attested hash of the withheld inputs) is the next hardening.
+(a real in-table verdict list + a canonical verdict line), the **waiver's authorship**, and — since S58
+(DECISION-003) — an **input-attestation** on every ACCEPT: `check_review_attestation` recomputes
+`sha256(prompt ‖ delivery-diff)` from the repo and FAILS an ACCEPT whose `**Review-Inputs-SHA:**` is
+missing, forged, or **stale** (the delivery changed after the review), behind the same founder waiver.
+
+**This is bar-raising, NOT tamper-proof — and the arc is honest about that.** Because the same agent can run
+`--inputs-sha` and paste the hash, the attestation does **not** prove a *different mind* authored the verdict.
+What it *does* raise the bar against: a review **recycled** from another session (different prompt/diff →
+mismatch), a verdict written against an **earlier** diff then quietly shipped over a changed delivery
+(freshness → mismatch), and a verdict **decoupled** from what actually shipped (the gate recomputes at
+closeout from the live repo, so the attested inputs must equal the delivered ones). So the honest #1 —
+"verdict *authorship* independence is procedural, not structural" — is **downgraded from an open gap to a
+documented, bounded limit**, not closed: procedure (this skill's cold-subagent pass) still carries the
+who-authored-it guarantee; the code now carries the what-was-reviewed binding.
 
 ---
 

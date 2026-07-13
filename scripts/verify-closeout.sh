@@ -184,8 +184,106 @@ check_fidelity_review() {
   fi
 }
 
+# --- Verdict-authorship attestation (S58 — DECISION-003) --------------------
+# check_fidelity_review proves the review's SHAPE + the WAIVER's authorship, but not
+# the VERDICT's authorship: a builder can hand-write its own `**Verdict:** ACCEPT`.
+# The attestation binds an ACCEPT to a hash of the exact COLD INPUTS the reviewer is
+# fed — the contract prompt + the delivery diff — recomputed here from the repo. A
+# stale / recycled / delivery-decoupled ACCEPT no longer matches and FAILS.
+#
+# HONEST LIMIT (do NOT overclaim): the same agent can run `--inputs-sha` and paste the
+# hash, so this is BAR-RAISING, not tamper-proof. It kills a review recycled from
+# another session, one written against an earlier diff (freshness), and one decoupled
+# from what actually shipped — it does NOT prove a different mind authored the verdict.
+
+# Portable SHA-256 (Linux `sha256sum` / macOS `shasum -a 256`). Empty => uncomputable.
+_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum | awk '{print $1}'
+  elif command -v shasum   >/dev/null 2>&1; then shasum -a 256 | awk '{print $1}'
+  else return 1; fi
+}
+
+# The canonical cold inputs, hashed by ONE function used by BOTH the emit side
+# (`--inputs-sha`, what the reviewer embeds) and the verify side (check_review_
+# attestation) — so normalization can never drift between them.
+#   inputs = <prompt file bytes> \0 <delivery diff bytes>
+# Delivery diff = committed changes vs the branch point (merge-base with main),
+# EXCLUDING everything authored/synced at or after the review (so the hash is stable
+# from emit-time to closeout-time): sessions/, the closeout-synced .ai/* files, and
+# the gate's own timestamped verify artifacts. Prints the hash, or nothing if it
+# cannot be computed (no prompt / no git / no sha tool) — the caller fails closed.
+canonical_inputs_sha() {
+  [ -n "$N" ] || return 1
+  local padded; padded="$(printf '%02d' "$N")"
+  shopt -s nullglob
+  local prompts=(prompts/${padded}-task-*.md)
+  (( ${#prompts[@]} == 1 )) || return 1          # 0 or >1 contract => uncomputable
+  local base
+  base="$(git merge-base main HEAD 2>/dev/null)" || return 1
+  [ -n "$base" ] || return 1
+  local diff
+  diff="$(git diff --no-color --no-ext-diff "$base" HEAD -- \
+            ':(exclude)sessions' \
+            ':(exclude).ai/STATE.md' ':(exclude).ai/SESSION-BOOT.md' \
+            ':(exclude).ai/SESSION' ':(exclude).ai/TASK.md' \
+            ':(exclude).ai/ROADMAP.md' ':(exclude).ai/KNOWLEDGE.md' \
+            ':(exclude).ai/verify' ':(exclude).ai/.session-owner' 2>/dev/null)" || return 1
+  { cat "${prompts[0]}"; printf '\0'; printf '%s' "$diff"; } | _sha256
+}
+
+# Require + verify the input-attestation on an ACCEPT review. Orthogonal to
+# check_fidelity_review: a missing / non-ACCEPT review is N/A here (that outcome is
+# owned by the fidelity check — no double-jeopardy). An ACCEPT with a missing, forged,
+# or uncomputable-and-mismatched attestation FAILS, behind the same founder waiver.
+check_review_attestation() {
+  local NAME="review-inputs-attested"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  local F="sessions/session-${N}-review.md"
+  : > "$LOG"
+
+  if [ ! -f "$F" ] || [ ! -s "$F" ]; then
+    echo "N/A: no review file — outcome owned by fidelity-review-accept." >> "$LOG"; ok "$NAME"; return
+  fi
+  local overall
+  overall=$(grep -iE '^[*_[:space:]]*(overall[[:space:]]+|final[[:space:]]+)?verdict[*_[:space:]]*:' "$F" \
+            | grep -ioE 'ACCEPT|REJECT' | head -1 | tr '[:lower:]' '[:upper:]') || true
+  if [ "$overall" != "ACCEPT" ]; then
+    echo "N/A: verdict is ${overall:-<none>} (attestation only gates an ACCEPT)." >> "$LOG"; ok "$NAME"; return
+  fi
+
+  local claimed expected
+  claimed=$(grep -m1 -iE '^[*_[:space:]]*Review-Inputs-SHA[*_[:space:]]*:' "$F" \
+            | grep -oiE '[0-9a-f]{64}' | head -1 | tr '[:upper:]' '[:lower:]') || true
+  expected=$(canonical_inputs_sha 2>/dev/null) || true
+  echo "claimed:  ${claimed:-<none>}" >> "$LOG"
+  echo "expected: ${expected:-<uncomputable>}" >> "$LOG"
+
+  if [ -n "$claimed" ] && [ -n "$expected" ] && [ "$claimed" = "$expected" ]; then
+    echo "OK: ACCEPT attestation matches the canonical cold-input hash." >> "$LOG"; ok "$NAME"; return
+  fi
+  [ -z "$claimed" ]   && echo "BLOCK: ACCEPT with no **Review-Inputs-SHA:** attestation." >> "$LOG"
+  [ -z "$expected" ]  && echo "BLOCK: canonical input hash uncomputable (a check that cannot evaluate FAILS)." >> "$LOG"
+  { [ -n "$claimed" ] && [ -n "$expected" ] && [ "$claimed" != "$expected" ]; } \
+    && echo "BLOCK: attestation MISMATCH — the ACCEPT is stale/recycled/decoupled from the delivered diff." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: re-run the cold review and embed a matching **Review-Inputs-SHA:** (\`verify-closeout.sh --inputs-sha $N\`), or record a founder waiver." >> "$LOG"; bad "$NAME"
+  fi
+}
+
+# Print the canonical cold-input hash the reviewer must embed. `--inputs-sha [N]`.
+if [ "${1:-}" = "--inputs-sha" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file >/dev/null 2>&1; fi
+  if H=$(canonical_inputs_sha); then echo "$H"; exit 0; else
+    echo "ERROR: canonical input hash uncomputable (need a single prompts/NN-task-*.md, git, and a sha tool)." >&2; exit 1
+  fi
+fi
+
 # Focused entry point: run ONLY the fidelity gate against an explicit or resolved N.
 # Used by verify-session-56.sh and the S54 dogfood (`--fidelity-only 54`).
+# S58: --fidelity-only keeps its S56 meaning (shape/verdict/waiver only) so prior
+# harnesses stay green; the attestation has its own focused entry (`--attest-only`).
 if [ "${1:-}" = "--fidelity-only" ]; then
   if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
   check_fidelity_review
@@ -194,6 +292,17 @@ if [ "${1:-}" = "--fidelity-only" ]; then
   for r in "${RESULTS[@]}"; do echo "$r"; done
   cat "$ARTIFACTS/fidelity-review-accept.log" 2>/dev/null || true
   if [ "$FAIL" -eq 0 ]; then echo "FIDELITY: PASS"; exit 0; else echo "FIDELITY: FAIL"; exit 1; fi
+fi
+
+# Focused entry point: run ONLY the verdict-attestation check (S58). `--attest-only [N]`.
+if [ "${1:-}" = "--attest-only" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
+  check_review_attestation
+  echo ""
+  echo "=== Attestation gate (N=${N:-?}) ==="
+  for r in "${RESULTS[@]}"; do echo "$r"; done
+  cat "$ARTIFACTS/review-inputs-attested.log" 2>/dev/null || true
+  if [ "$FAIL" -eq 0 ]; then echo "ATTEST: PASS"; exit 0; else echo "ATTEST: FAIL"; exit 1; fi
 fi
 
 check_session_file
@@ -205,6 +314,7 @@ check_session_pair
 check_roadmap_current
 check_cost_tracking
 check_fidelity_review
+check_review_attestation
 
 ( cd ".ai/verify/closeout" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
 
