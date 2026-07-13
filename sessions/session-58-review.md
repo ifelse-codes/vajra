@@ -72,7 +72,7 @@ Real scope: **a faithful build of the whole contract's mechanism**, honest about
 narrow slice presented as the whole. The only unverifiable gaps are session artifacts the attestation's own
 design excludes from this diff, and no claim about them is inflated.
 
-**Review-Inputs-SHA:** d91d5c20b7aae2fcf6b9e013224e545b3d7d7ee5b8490467ba43a7fa69d59fe5
+**Review-Inputs-SHA:** 986fbb248e8a9f05da30663c74296d0d360e2aca8ae8aaf2d0d20b182c6df4fd
 
 **Verdict:** ACCEPT
 
@@ -80,10 +80,18 @@ design excludes from this diff, and no claim about them is inflated.
 
 ## Builder post-pass note (not part of the cold verdict)
 
-The cold pass ruled **ACCEPT** over the delivery diff at HEAD `2da0333` (commits `282f3ad` + `2da0333`). The
-attestation above hashes **exactly** that reviewed diff — verified: `verify-closeout.sh --inputs-sha 58` =
-`d91d5c20…d59fe5`, embedded verbatim. This review file lives under `sessions/`, which the canonical hash
-excludes, so writing it does not perturb the attestation (dogfooding the design).
+The cold pass ruled **ACCEPT** over the delivery diff at HEAD `2da0333` (commits `282f3ad` + `2da0333`),
+whose hash was `d91d5c20…d59fe5`. **One within-scope closeout-safety fix followed the pass** (commit adds
+`':(exclude)prompts'` to `canonical_inputs_sha`): the next-session prompt `prompts/59-…md` is written at
+closeout and lives in `prompts/`, which the original exclude set missed — committing it would have perturbed
+the hash and broken this very attestation at closeout. The fix is fully **within the mechanism the cold pass
+already ACCEPTED** (J1/J2 — "the delivery diff, canonically normalized, excluding the closeout-authored set");
+it adds one path to that set and changes **no** ruling, verdict, or behavior. Because it touched a hashed file
+(the gate itself), the attestation was **refreshed** to bind the *final shipped* delivery:
+`verify-closeout.sh --inputs-sha 58` = `986fbb24…6df4fd`, embedded above. `verify-session-58.sh` re-run
+**24/24**. This is the freshness property working on the builder's own delivery — the disciplined response to
+changing a hashed file after review is to re-attest, which is exactly what happened. This review lives under
+`sessions/` (excluded), so refreshing the SHA here does not itself perturb the hash.
 
 - **The two `UNVERIFIED-by-design` rulings (D5, G4) are resolved by this very artifact + closeout.** D5's
   `session-58-review.md` is this file (carrying a real matching attestation); the summary + 3 ranked S59

@@ -15,7 +15,7 @@ same founder waiver. **Proven live**, not asserted.
 | Evidence | Result |
 |---|---|
 | `verify-session-58.sh` | **24/24 GREEN** — attestation cases driven live in a real temp git repo |
-| `--attest-only 58` on S58's own review | **PASS** (`claimed == expected == d91d5c20…d59fe5`) — G4 self-dogfood |
+| `--attest-only 58` on S58's own review | **PASS** (`claimed == expected == 986fbb24…6df4fd`) — G4 self-dogfood |
 | `--fidelity-only 58` (S56 shape gate) | **PASS** (13 in-table verdicts, ACCEPT) — unchanged behavior |
 | Independent cold review (subagent, prompt+diff only) | **ACCEPT** — 12/16 SHIPPED, nothing overclaimed |
 | `cargo test --lib` / fmt / clippy `-D warnings` | green — **no `src/` change** (attestation rides the script) |
