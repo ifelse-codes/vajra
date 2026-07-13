@@ -223,7 +223,7 @@ canonical_inputs_sha() {
   [ -n "$base" ] || return 1
   local diff
   diff="$(git diff --no-color --no-ext-diff "$base" HEAD -- \
-            ':(exclude)sessions' \
+            ':(exclude)sessions' ':(exclude)prompts' \
             ':(exclude).ai/STATE.md' ':(exclude).ai/SESSION-BOOT.md' \
             ':(exclude).ai/SESSION' ':(exclude).ai/TASK.md' \
             ':(exclude).ai/ROADMAP.md' ':(exclude).ai/KNOWLEDGE.md' \

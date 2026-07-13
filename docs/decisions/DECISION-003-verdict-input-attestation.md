@@ -34,9 +34,10 @@ sha256( <contract prompt bytes> \0 <delivery diff bytes> )
 
 - **contract prompt** = the single `prompts/NN-task-*.md`.
 - **delivery diff** = `git diff <merge-base(main,HEAD)> HEAD`, **excluding** everything authored or synced at
-  or after the review, so the hash is stable from emit-time to closeout-time: `sessions/`, the closeout-synced
-  `.ai/*` (`STATE.md`, `SESSION-BOOT.md`, `SESSION`, `TASK.md`, `ROADMAP.md`, `KNOWLEDGE.md`), and the gate's
-  own timestamped `.ai/verify/` artifacts + `.ai/.session-owner`.
+  or after the review, so the hash is stable from emit-time to closeout-time: `sessions/`, `prompts/` (the
+  next-session contract is written at closeout — a closeout artifact, not this session's delivery), the
+  closeout-synced `.ai/*` (`STATE.md`, `SESSION-BOOT.md`, `SESSION`, `TASK.md`, `ROADMAP.md`, `KNOWLEDGE.md`),
+  and the gate's own timestamped `.ai/verify/` artifacts + `.ai/.session-owner`.
 
 **One function, both sides.** `canonical_inputs_sha()` in `verify-closeout.sh` computes it. The reviewer
 embeds it via `verify-closeout.sh --inputs-sha <N>`; `check_review_attestation` recomputes it at closeout and
