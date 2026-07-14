@@ -91,13 +91,33 @@ pub enum Approval {
     Unmarked,
 }
 
+/// Substantiveness of the `## Delta` section (S61 — pays down the S54 "fakest green").
+///
+/// The S54 gate proved delta-recorded with `grep -q '## Delta'` — trivially true because the
+/// scaffold hard-codes the heading. This distinguishes a heading from a *recorded* delta so the
+/// gate can enforce a real one, not just its presence. A Rust binary cannot *compute* a semantic
+/// delta (that is the agent's job) — its job is to enforce that a real one was *recorded*.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DeltaState {
+    /// No `## Delta` heading at all (legacy prompts pre-S54). The gate only WARNS — legacy
+    /// prompts stay valid (mirrors the backward-compat stance for required sections).
+    Absent,
+    /// A `## Delta` heading is present but every entry is still the template placeholder
+    /// (`<what this session ADDS…>`) or empty — the S54 "fakest green". Since the Analyst's
+    /// scaffold always emits this, it BLOCKS exactly the Analyst-generated prompts a human has
+    /// not yet filled — at L2/L3.
+    Placeholder,
+    /// At least one real `+`/`~`/`-` entry the human filled in. The gate passes.
+    Substantive,
+}
+
 /// The result of validating one prompt file.
 #[derive(Debug, Clone)]
 pub struct PromptReport {
     /// Canonical names of required sections that are MISSING.
     pub missing_sections: Vec<String>,
-    /// Whether a `## Delta` section is present.
-    pub has_delta: bool,
+    /// State of the `## Delta` section — absent / placeholder / substantive (S61).
+    pub delta: DeltaState,
     /// Approval state parsed from the `Status:` line.
     pub approval: Approval,
 }
@@ -130,14 +150,71 @@ pub fn validate_prompt(content: &str) -> PromptReport {
         }
     }
 
-    let has_delta = headings.iter().any(|h| h.contains("delta"));
+    let delta = parse_delta(content);
     let approval = parse_approval(content);
 
     PromptReport {
         missing_sections,
-        has_delta,
+        delta,
         approval,
     }
+}
+
+/// Classify the `## Delta` section: absent, still-placeholder, or substantive (S61).
+///
+/// Walks the lines of the Delta section (from the `delta` heading to the next heading) and
+/// inspects its bullets. A bullet is *substantive* if, after stripping its `-`/`*` marker and any
+/// leading `+`/`~`/`-` OpenSpec marker (bare or backticked), it has real text that is not itself a
+/// `<template placeholder>`. One substantive bullet is enough.
+fn parse_delta(content: &str) -> DeltaState {
+    let mut in_delta = false;
+    let mut saw_heading = false;
+    let mut saw_substantive = false;
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#') {
+            let heading = trimmed.trim_start_matches('#').trim().to_ascii_lowercase();
+            in_delta = heading.contains("delta");
+            if in_delta {
+                saw_heading = true;
+            }
+            continue;
+        }
+        if in_delta {
+            if let Some(desc) = delta_bullet_description(trimmed) {
+                if !desc.is_empty() && !desc.starts_with('<') {
+                    saw_substantive = true;
+                }
+            }
+        }
+    }
+
+    match (saw_heading, saw_substantive) {
+        (false, _) => DeltaState::Absent,
+        (true, false) => DeltaState::Placeholder,
+        (true, true) => DeltaState::Substantive,
+    }
+}
+
+/// If `line` is a Delta bullet, return the human description with the list marker and the leading
+/// OpenSpec `+`/`~`/`-`/`−` marker (bare or backticked) stripped. `None` for non-bullet lines.
+fn delta_bullet_description(line: &str) -> Option<String> {
+    // Strip the list marker, then (trim first, so leading space can't defeat it) the opening
+    // backtick of a `\`+\`` code-span, then the `+`/`~`/`-`/`−` marker, then the closing backtick.
+    let rest = line
+        .strip_prefix('-')
+        .or_else(|| line.strip_prefix('*'))?
+        .trim()
+        .trim_start_matches('`')
+        .trim_start();
+    let rest = rest
+        .strip_prefix('+')
+        .or_else(|| rest.strip_prefix('~'))
+        .or_else(|| rest.strip_prefix('-'))
+        .or_else(|| rest.strip_prefix('−')) // U+2212, used in prose
+        .unwrap_or(rest);
+    Some(rest.trim_start_matches('`').trim().to_string())
 }
 
 /// Read the first `Status:` line (heading-agnostic — it may live inside a blockquote).
@@ -204,12 +281,14 @@ pub fn detect_second_store(root: &Path) -> Vec<String> {
     found
 }
 
-/// The Analyst gate. Advancing INTO `session` requires a present, well-formed, non-DRAFT prompt.
+/// The Analyst gate. Advancing INTO `session` requires a present, well-formed, non-DRAFT prompt
+/// carrying a substantive (not placeholder) delta.
 ///
 /// Blocking (L2/L3 refuse): no `prompts/NN-task-*.md`; a required section missing (malformed);
-/// or `Status: DRAFT` (generated but not yet approved).
+/// `Status: DRAFT` (generated but not yet approved); or a placeholder `## Delta` (S61 — the
+/// scaffold's untouched `<...>`, never filled in).
 ///
-/// Warning (never blocks): missing `## Delta`, a stray second store.
+/// Warning (never blocks): a wholly absent `## Delta` (legacy prompts), a stray second store.
 pub fn gate(root: &Path, session: u32) -> GateVerdict {
     let mut reasons = Vec::new();
     let mut warnings = Vec::new();
@@ -237,10 +316,19 @@ pub fn gate(root: &Path, session: u32) -> GateVerdict {
                         "{rel} is still DRAFT — the Analyst produced it but it is not APPROVED"
                     ));
                 }
-                if !report.has_delta {
-                    warnings.push(format!(
+                // S61: a delta must be RECORDED, not merely have its heading present. A
+                // placeholder delta (the scaffold's untouched `<...>`) BLOCKS at L2/L3 — the
+                // exact "fakest green" the S54 cold review named. A wholly absent delta only
+                // warns, so legacy prompts (pre-Delta) stay valid.
+                match report.delta {
+                    DeltaState::Substantive => {}
+                    DeltaState::Placeholder => reasons.push(format!(
+                        "{rel} has a placeholder `## Delta` (still the template `<...>`) — \
+                         record real +/~/- entries vs ROADMAP before advancing"
+                    )),
+                    DeltaState::Absent => warnings.push(format!(
                         "{rel} has no `## Delta` section (add +/~/- vs ROADMAP)"
-                    ));
+                    )),
                 }
             }
         },
@@ -312,8 +400,39 @@ Do one thing.
     fn good_prompt_is_well_formed_approved_with_delta() {
         let r = validate_prompt(GOOD);
         assert!(r.well_formed(), "missing: {:?}", r.missing_sections);
-        assert!(r.has_delta);
+        assert_eq!(r.delta, DeltaState::Substantive);
         assert_eq!(r.approval, Approval::Approved);
+    }
+
+    #[test]
+    fn delta_states_absent_placeholder_substantive() {
+        // No `## Delta` heading at all -> Absent (legacy compat).
+        assert_eq!(parse_delta("# S\n## Goal\nx\n"), DeltaState::Absent);
+        // The scaffold's untouched template -> Placeholder (every bullet is a `<...>`).
+        assert_eq!(parse_delta(PROMPT_TEMPLATE), DeltaState::Placeholder);
+        assert_eq!(
+            parse_delta("## Delta\n- `+` <what this session ADDS that did not exist>\n"),
+            DeltaState::Placeholder
+        );
+        // Heading present but no bullets filled -> Placeholder (not a free pass).
+        assert_eq!(
+            parse_delta("## Delta (vs ROADMAP)\n\n"),
+            DeltaState::Placeholder
+        );
+        // A single real entry (bare or backticked marker) -> Substantive.
+        assert_eq!(
+            parse_delta("## Delta\n- `+` Analyst updates the TASK.md pointer on generate\n"),
+            DeltaState::Substantive
+        );
+        assert_eq!(
+            parse_delta("## Delta\n- + a real bare-marker change\n"),
+            DeltaState::Substantive
+        );
+        // One placeholder + one real entry still counts as substantive.
+        assert_eq!(
+            parse_delta("## Delta\n- `+` <placeholder>\n- `-` retires the heading grep\n"),
+            DeltaState::Substantive
+        );
     }
 
     #[test]
@@ -361,7 +480,9 @@ Do one thing.
             "scaffold missing: {:?}",
             r.missing_sections
         );
-        assert!(r.has_delta);
+        // A fresh scaffold's delta is a PLACEHOLDER — that is exactly why the gate blocks it
+        // until a human records a real delta (S61).
+        assert_eq!(r.delta, DeltaState::Placeholder);
         assert_eq!(
             r.approval,
             Approval::Draft,
@@ -382,16 +503,25 @@ Do one thing.
     fn gate_blocks_draft_then_passes_when_approved() {
         let tmp = tempfile::tempdir().unwrap();
         scaffold_prompt(tmp.path(), 56, "planner").unwrap();
+        let rel = tmp.path().join("prompts/56-task-planner.md");
         // Fresh scaffold is DRAFT -> blocked.
         let v = gate(tmp.path(), 56);
         assert!(v.blocked());
         assert!(v.reasons.iter().any(|r| r.contains("DRAFT")));
-        // Approve it -> passes, no blocking reasons.
-        let rel = tmp.path().join("prompts/56-task-planner.md");
+        // Approve it, but the delta is still the scaffold placeholder -> STILL blocked (S61).
         let approved = fs::read_to_string(&rel)
             .unwrap()
             .replace("DRAFT", "APPROVED");
-        fs::write(&rel, approved).unwrap();
+        fs::write(&rel, &approved).unwrap();
+        let v = gate(tmp.path(), 56);
+        assert!(v.blocked(), "placeholder delta must block");
+        assert!(v.reasons.iter().any(|r| r.contains("placeholder")));
+        // Record a real delta -> passes, no blocking reasons.
+        let filled = approved.replace(
+            "<what this session ADDS that did not exist>",
+            "a real, recorded addition",
+        );
+        fs::write(&rel, filled).unwrap();
         let v = gate(tmp.path(), 56);
         assert!(!v.blocked(), "reasons: {:?}", v.reasons);
     }
@@ -408,6 +538,24 @@ Do one thing.
         let v = gate(tmp.path(), 57);
         assert!(v.blocked());
         assert!(v.reasons.iter().any(|r| r.contains("malformed")));
+    }
+
+    #[test]
+    fn gate_blocks_placeholder_delta_passes_substantive() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("prompts")).unwrap();
+        let head = "# S60\n> Status: APPROVED\n## Goal\ng\n## Deliverables\n- d\n\
+                    ## Acceptance\n1. a\n## Guardrails\n- x\n## Delta\n";
+        let rel = tmp.path().join("prompts/60-task-x.md");
+        // Well-formed + approved, but the delta is the untouched placeholder -> BLOCK (S61).
+        fs::write(&rel, format!("{head}- `+` <what this session ADDS>\n")).unwrap();
+        let v = gate(tmp.path(), 60);
+        assert!(v.blocked(), "placeholder delta must block");
+        assert!(v.reasons.iter().any(|r| r.contains("placeholder")));
+        // A real recorded delta -> passes.
+        fs::write(&rel, format!("{head}- `+` a real recorded change\n")).unwrap();
+        let v = gate(tmp.path(), 60);
+        assert!(!v.blocked(), "reasons: {:?}", v.reasons);
     }
 
     #[test]

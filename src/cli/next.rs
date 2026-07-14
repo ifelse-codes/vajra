@@ -51,14 +51,32 @@ fn run_scaffold(nn: Option<&String>, slug: Option<&String>) -> Result<()> {
     let root =
         find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;
 
-    let path = analyst::scaffold_prompt(&root, session, slug).map_err(|e| anyhow::anyhow!(e))?;
-    let rel = path.strip_prefix(&root).unwrap_or(&path);
-    println!("scaffolded {} (DRAFT)", rel.display());
+    // S61 / J3: GENERATE writes the prompt AND updates the `.ai/TASK.md` pointer (the spine).
+    // Previously scaffold only `println!`d advice — the pointer was never moved.
+    let rel = scaffold_and_point(&root, session, slug)?;
+    println!("scaffolded {rel} (DRAFT)");
+    println!("  .ai/TASK.md pointer -> {rel}");
     println!("  fill Goal/Deliverables/Acceptance/Guardrails/Delta, then flip Status -> APPROVED.");
     println!(
         "  the advance gate blocks `vajra next --advance` into session {session:02} until then."
     );
     Ok(())
+}
+
+/// The Analyst's GENERATE step, factored pure (explicit `root`) so a test can drive it without
+/// `current_dir`. Writes `prompts/NN-task-<slug>.md`, then repoints `.ai/TASK.md` at it — closing
+/// the S54 J3 gap ("write the prompt + update TASK.md"). Reuses `update_prompt_pointer` (the same
+/// helper `--advance` uses — one implementation, no second store, no drift). The pointer update is
+/// a no-op if TASK.md lacks a `Read prompt:` line, so it never clobbers unrelated prose.
+fn scaffold_and_point(root: &Path, session: u32, slug: &str) -> Result<String> {
+    let path = analyst::scaffold_prompt(root, session, slug).map_err(|e| anyhow::anyhow!(e))?;
+    let rel = path
+        .strip_prefix(root)
+        .unwrap_or(&path)
+        .to_string_lossy()
+        .into_owned();
+    update_prompt_pointer(root, ".ai/TASK.md", &rel)?;
+    Ok(rel)
 }
 
 /// `vajra next --validate NN` — the Analyst's report: is prompts/NN-*.md well-formed?
@@ -430,6 +448,28 @@ mod tests {
         let result = fs::read_to_string(ai.join("TASK.md")).unwrap();
         assert!(result.contains("`prompts/02-task-add-goodbye.md`"));
         assert!(!result.contains("01-task-kickoff"));
+    }
+
+    #[test]
+    fn scaffold_and_point_writes_prompt_and_repoints_task() {
+        let tmp = tempfile::tempdir().unwrap();
+        let ai = tmp.path().join(".ai");
+        fs::create_dir_all(&ai).unwrap();
+        fs::write(
+            ai.join("TASK.md"),
+            "# Task\nRead prompt: `prompts/60-task-old.md`\n",
+        )
+        .unwrap();
+
+        let rel = scaffold_and_point(tmp.path(), 61, "analyst-generate-delta").unwrap();
+        assert_eq!(rel, "prompts/61-task-analyst-generate-delta.md");
+        // The prompt file was written...
+        assert!(tmp.path().join(&rel).is_file());
+        // ...and the TASK.md pointer now names it (J3), old pointer gone, prose intact.
+        let task = fs::read_to_string(ai.join("TASK.md")).unwrap();
+        assert!(task.contains("`prompts/61-task-analyst-generate-delta.md`"));
+        assert!(!task.contains("60-task-old"));
+        assert!(task.starts_with("# Task"));
     }
 
     #[test]
