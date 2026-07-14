@@ -272,6 +272,76 @@ check_review_attestation() {
   fi
 }
 
+# --- The attested-verdict delta ledger (S59 — DECISION-004) -----------------
+# A DERIVED, regenerable view over sessions/session-*-review.md + git — NOT a new
+# source of truth (feedback-distill-no-drift). Each session that carries a review
+# contributes one record; records are hash-chained so a SINGLE head hash fingerprints
+# the entire ordered verdict history. Editing any past verdict moves the head, and the
+# worktree chain stops matching the committed chain → detectable.
+#
+# HONEST LIMIT (do NOT overclaim): tamper-EVIDENT, not tamper-PROOF. A change is
+# *detectable* (the head moves; git shows the file diff), but a determined in-repo
+# editor can flip a verdict AND recompute every downstream record_hash AND rewrite
+# committed history (force-push). Nothing here is an out-of-band anchor — closing that
+# needs a signer (S59-C). The ledger's verdict/sha extraction uses the SAME patterns as
+# the fidelity gate (check_fidelity_review / check_review_attestation) — hand-synced,
+# byte-identical today, not yet a single shared helper (a future refactor): a review with
+# no canonical `**Verdict:**` line records verdict=NONE, an un-attested one records attested=no.
+
+LEDGER_GENESIS="0000000000000000000000000000000000000000000000000000000000000000"
+LEDGER_HEAD=""
+
+# Canonical verdict from a review's content on stdin — the SAME strict pattern the
+# fidelity gate uses (heading-greps are not verdicts). Prints ACCEPT|REJECT (empty=NONE).
+_ledger_verdict_of() {
+  grep -iE '^[*_[:space:]]*(overall[[:space:]]+|final[[:space:]]+)?verdict[*_[:space:]]*:' \
+    | grep -ioE 'ACCEPT|REJECT' | head -1 | tr '[:lower:]' '[:upper:]'
+}
+# Attested input-sha from a review's content on stdin — same pattern as check_review_attestation.
+_ledger_sha_of() {
+  grep -m1 -iE '^[*_[:space:]]*Review-Inputs-SHA[*_[:space:]]*:' \
+    | grep -oiE '[0-9a-f]{64}' | head -1 | tr '[:upper:]' '[:lower:]'
+}
+# Session numbers (ascending) whose review is COMMITTED at HEAD / present in the WORKTREE.
+_ledger_committed_sessions() {
+  git ls-tree -r --name-only HEAD -- sessions 2>/dev/null \
+    | sed -n 's#^sessions/session-\([0-9][0-9]*\)-review\.md$#\1#p' | sort -n -u
+}
+_ledger_worktree_sessions() {
+  ls sessions/session-*-review.md 2>/dev/null \
+    | sed -n 's#^sessions/session-\([0-9][0-9]*\)-review\.md$#\1#p' | sort -n -u
+}
+# Read one review's content from a source: "committed" (blob at HEAD) | worktree (file).
+# A missing source (a committed review DELETED from the worktree, or a not-yet-committed
+# review) yields EMPTY, never a failure — so under `set -e` the caller keeps going and a
+# deletion surfaces as verdict=NONE (a divergent record), not a silent mid-loop crash.
+_ledger_read() {
+  case "$1" in
+    committed) git show "HEAD:sessions/session-$2-review.md" 2>/dev/null || true ;;
+    *)         cat "sessions/session-$2-review.md" 2>/dev/null || true ;;
+  esac
+}
+# record_hash = sha256( prior_hash \0 N \0 verdict \0 input_sha ). NUL-separated preimage
+# (unambiguous concatenation). prior_hash of the first record is LEDGER_GENESIS.
+_ledger_record_hash() { printf '%s\0%s\0%s\0%s' "$1" "$2" "$3" "$4" | _sha256; }
+
+# Build + print the ledger table from a source over a newline session list; sets LEDGER_HEAD.
+build_ledger() {
+  local source="$1" list="$2" prior="$LEDGER_GENESIS" n content v s att rec
+  printf '%-5s  %-7s  %-8s  %s\n' "SESS" "VERDICT" "ATTESTED" "RECORD-HASH (chained)"
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    content="$(_ledger_read "$source" "$n")"
+    v="$(printf '%s' "$content" | _ledger_verdict_of || true)"; v="${v:-NONE}"
+    s="$(printf '%s' "$content" | _ledger_sha_of || true)"
+    if [ -n "$s" ]; then att="yes"; else att="no"; fi
+    rec="$(_ledger_record_hash "$prior" "$n" "$v" "$s")" || return 1
+    printf '%-5s  %-7s  %-8s  %s\n' "S$n" "$v" "$att" "$rec"
+    prior="$rec"
+  done <<< "$list"
+  LEDGER_HEAD="$prior"
+}
+
 # Print the canonical cold-input hash the reviewer must embed. `--inputs-sha [N]`.
 if [ "${1:-}" = "--inputs-sha" ]; then
   if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file >/dev/null 2>&1; fi
@@ -303,6 +373,48 @@ if [ "${1:-}" = "--attest-only" ]; then
   for r in "${RESULTS[@]}"; do echo "$r"; done
   cat "$ARTIFACTS/review-inputs-attested.log" 2>/dev/null || true
   if [ "$FAIL" -eq 0 ]; then echo "ATTEST: PASS"; exit 0; else echo "ATTEST: FAIL"; exit 1; fi
+fi
+
+# Build + print the ledger as a glanceable table (derived view). `--ledger`.
+if [ "${1:-}" = "--ledger" ]; then
+  list="$(_ledger_worktree_sessions)"
+  echo "=== Vajra attested-verdict delta ledger (derived view over sessions/*-review.md + git) ==="
+  build_ledger worktree "$list"
+  echo "------------------------------------------------------------------------------------------"
+  echo "chain head : ${LEDGER_HEAD:-<empty>}"
+  echo "genesis    : $LEDGER_GENESIS"
+  echo "records    : $(printf '%s\n' "$list" | grep -c . || true)"
+  echo "guarantee  : tamper-EVIDENT (edit any past verdict → head moves; git shows the diff),"
+  echo "             NOT tamper-proof (a determined editor rewrites the chain + history). DECISION-004"
+  exit 0
+fi
+
+# Recompute the chain over COMMITTED sessions from (a) the worktree and (b) the blobs
+# at HEAD; the first record that differs is a tampered/edited/deleted past review.
+# `--ledger-verify` — exits 0 (intact) / 1 (tamper detected).
+if [ "${1:-}" = "--ledger-verify" ]; then
+  csess="$(_ledger_committed_sessions)"
+  prior_wt="$LEDGER_GENESIS"; prior_ct="$LEDGER_GENESIS"; diverged=""
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    wt="$(_ledger_read worktree "$n")"; ct="$(_ledger_read committed "$n")"
+    vwt="$(printf '%s' "$wt" | _ledger_verdict_of || true)"; vwt="${vwt:-NONE}"
+    swt="$(printf '%s' "$wt" | _ledger_sha_of || true)"
+    vct="$(printf '%s' "$ct" | _ledger_verdict_of || true)"; vct="${vct:-NONE}"
+    sct="$(printf '%s' "$ct" | _ledger_sha_of || true)"
+    rwt="$(_ledger_record_hash "$prior_wt" "$n" "$vwt" "$swt")"
+    rct="$(_ledger_record_hash "$prior_ct" "$n" "$vct" "$sct")"
+    if [ "$rwt" != "$rct" ] && [ -z "$diverged" ]; then diverged="$n"; fi
+    prior_wt="$rwt"; prior_ct="$rct"
+  done <<< "$csess"
+  echo "=== Ledger chain-verify (worktree vs committed HEAD) ==="
+  echo "committed head : ${prior_ct}"
+  echo "worktree  head : ${prior_wt}"
+  if [ "$prior_wt" = "$prior_ct" ]; then
+    echo "LEDGER: INTACT — every committed verdict record matches the worktree."; exit 0
+  else
+    echo "LEDGER: TAMPER DETECTED — first divergent session: S${diverged:-?} (a past verdict/attestation changed)."; exit 1
+  fi
 fi
 
 check_session_file
