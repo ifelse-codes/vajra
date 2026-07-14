@@ -67,6 +67,93 @@ pub const PROMPT_TEMPLATE: &str = r#"# Session {{NN}} — {{SLUG}}: <one-line go
 - `-` <what it REMOVES / retires / supersedes>
 "#;
 
+/// The intake inputs the Analyst SURFACES (S62 / J1) so a human authors the next job from real
+/// context, not a bare slug. A Rust binary cannot *author* intent (that is the agent's job) — its
+/// honest job is to put the real inputs in front of the author: the prior session number (the
+/// `.ai/SESSION` SoT) and the ROADMAP "Next builds" block (the ranked candidates the roadmap
+/// already carries). No second store: both are read from the existing `.ai/` spine.
+#[derive(Debug, Clone, Default)]
+pub struct Intake {
+    /// The prior session number read from `.ai/SESSION`, if present/parseable.
+    pub prior_session: Option<u32>,
+    /// The ranked items under the ROADMAP "Next builds" heading (raw item text, order preserved).
+    pub roadmap_next_builds: Vec<String>,
+}
+
+/// Read the intake inputs from the live `.ai/` spine (S62 / J1). Missing/garbled files degrade to
+/// empty fields rather than erroring — surfacing partial context still beats a bare slug.
+pub fn gather_intake(root: &Path) -> Intake {
+    let prior_session = fs::read_to_string(root.join(".ai/SESSION"))
+        .ok()
+        .and_then(|s| s.trim().parse().ok());
+    let roadmap = fs::read_to_string(root.join(".ai/ROADMAP.md")).unwrap_or_default();
+    Intake {
+        prior_session,
+        roadmap_next_builds: extract_next_builds(&roadmap),
+    }
+}
+
+/// Extract the ranked items under the ROADMAP "Next builds" heading. The block runs from that
+/// heading to the next `#` heading or the next `**Prior ·` session entry (every session entry
+/// starts that way), so stray numbered lines in later entries are never captured.
+fn extract_next_builds(roadmap: &str) -> Vec<String> {
+    let mut in_block = false;
+    let mut out = Vec::new();
+    for line in roadmap.lines() {
+        let t = line.trim();
+        let lower = t.to_ascii_lowercase();
+        if !in_block {
+            if t.starts_with('#') && lower.contains("next build") {
+                in_block = true;
+            }
+            continue;
+        }
+        if t.starts_with('#') || t.starts_with("**Prior") {
+            break;
+        }
+        if let Some(item) = ordered_item(t) {
+            out.push(item);
+        }
+    }
+    out
+}
+
+/// If `line` is a top-level ordered-list item (`N. text`), return its text. `None` otherwise.
+fn ordered_item(line: &str) -> Option<String> {
+    let (num, rest) = line.split_once('.')?;
+    if num.is_empty() || !num.chars().all(|c| c.is_ascii_digit()) {
+        return None;
+    }
+    let rest = rest.trim();
+    (!rest.is_empty()).then(|| rest.to_string())
+}
+
+/// Render the intake as a human block (S62 / J1) — what `--scaffold`/`--intake` print so a
+/// non-author sees the real inputs the Goal must fold in.
+pub fn format_intake(intake: &Intake) -> String {
+    let mut s = String::from("=== analyst intake (surface the real inputs — J1) ===\n");
+    match intake.prior_session {
+        Some(n) => s.push_str(&format!("prior session (.ai/SESSION): {n:02}\n")),
+        None => s.push_str("prior session (.ai/SESSION): (unreadable)\n"),
+    }
+    if intake.roadmap_next_builds.is_empty() {
+        s.push_str("ROADMAP next builds: (no \"Next builds\" block found)\n");
+    } else {
+        s.push_str("ROADMAP next builds:\n");
+        for (i, item) in intake.roadmap_next_builds.iter().enumerate() {
+            let clipped: String = item.chars().take(110).collect();
+            let ell = if item.chars().count() > 110 {
+                "…"
+            } else {
+                ""
+            };
+            s.push_str(&format!("  {}. {clipped}{ell}\n", i + 1));
+        }
+    }
+    s.push_str("fold these into the Goal — the job comes from context, not the slug.\n");
+    s
+}
+
 /// The required top-level sections of a well-formed prompt (the substantive gate). All four
 /// appear in every real Vajra prompt, so the gate is backward-compatible with legacy prompts.
 /// Each entry: (canonical name, the lowercased heading-substrings that satisfy it).
@@ -109,6 +196,23 @@ pub enum DeltaState {
     Placeholder,
     /// At least one real `+`/`~`/`-` entry the human filled in. The gate passes.
     Substantive,
+}
+
+/// Whether a session artifact records the mandated **exactly 3** ranked next-session candidates
+/// (S62 / J2 — the same "enforce a *recorded* thing" move S61 made for Delta). The 3 options are
+/// the A/B/C the founder picks from; `end_of_session.must_present_n_options: 3` already requires
+/// them in the summary, so this enforces the *existing* contract — no new artifact, no second
+/// store. A Rust binary cannot *author* the options (the agent does); it enforces the count.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OptionsState {
+    /// No "ranked candidates" section at all (a legacy summary, or none written yet). WARNS only —
+    /// mirrors the DeltaState::Absent backward-compat stance.
+    Unrecorded,
+    /// A candidates section exists but records a number of options other than 3. BLOCKS (L2/L3) —
+    /// a non-author cannot close a session on 2 or 4 options.
+    WrongCount(usize),
+    /// Exactly 3 ranked options recorded. Passes.
+    Exactly3,
 }
 
 /// The result of validating one prompt file.
@@ -234,6 +338,148 @@ fn parse_approval(content: &str) -> Approval {
         }
     }
     Approval::Unmarked
+}
+
+/// Classify a session summary's ranked next-session candidates (S62 / J2).
+///
+/// `Unrecorded` when no "ranked candidates" section exists (legacy compat → WARN); otherwise the
+/// count of distinct ranked options in that section is enforced to be exactly 3.
+pub fn options_state(content: &str) -> OptionsState {
+    if !has_candidate_section(content) {
+        return OptionsState::Unrecorded;
+    }
+    match count_ranked_options(content) {
+        3 => OptionsState::Exactly3,
+        n => OptionsState::WrongCount(n),
+    }
+}
+
+/// True if the artifact has a heading marking the ranked next-session candidates block — the
+/// summary's "N ranked candidates" (per `end_of_session.must_present_n_options`).
+fn has_candidate_section(content: &str) -> bool {
+    content
+        .lines()
+        .filter(|l| l.trim_start().starts_with('#'))
+        .any(is_candidate_heading)
+}
+
+/// A heading opens the candidates block if it names the candidates (e.g. "Next — exactly 3 ranked
+/// candidates", "3 ranked S63 candidates").
+fn is_candidate_heading(line: &str) -> bool {
+    let h = line
+        .trim_start()
+        .trim_start_matches('#')
+        .trim()
+        .to_ascii_lowercase();
+    h.contains("candidate")
+}
+
+/// Count the distinct ranked options (A/B/C…) recorded under the candidates heading (S62 / J2).
+///
+/// Scoped to the candidates section so stray lettered bullets elsewhere are not miscounted, and
+/// distinct-lettered so a multi-line option entry (whose only lettered line is its first) counts
+/// once. Returns 0 when no candidates section exists.
+pub fn count_ranked_options(content: &str) -> usize {
+    let mut in_section = false;
+    let mut letters: Vec<char> = Vec::new();
+    for line in content.lines() {
+        if line.trim_start().starts_with('#') {
+            in_section = is_candidate_heading(line);
+            continue;
+        }
+        if in_section {
+            if let Some(c) = option_letter(line) {
+                if !letters.contains(&c) {
+                    letters.push(c);
+                }
+            }
+        }
+    }
+    letters.len()
+}
+
+/// If `line` is a ranked-option bullet, return its leading letter. A bullet counts only when, after
+/// its `-`/`*` list marker and any `**`/`*` emphasis, it starts with a single uppercase letter
+/// followed by a non-alphanumeric (so `- **A 🥇 — …` / `- A. …` count, but `- **Abstract …` and a
+/// `*Goal:*` sub-bullet do not).
+fn option_letter(line: &str) -> Option<char> {
+    let rest = line
+        .trim()
+        .strip_prefix('-')
+        .or_else(|| line.trim().strip_prefix('*'))?
+        .trim_start()
+        .trim_start_matches('*')
+        .trim_start();
+    let mut chars = rest.chars();
+    let c = chars.next()?;
+    if !c.is_ascii_uppercase() {
+        return None;
+    }
+    match chars.next() {
+        Some(n) if n.is_ascii_alphanumeric() => None,
+        _ => Some(c),
+    }
+}
+
+/// The options gate's decision for one session's summary (S62 / J2). Mirrors `GateVerdict`.
+#[derive(Debug, Clone)]
+pub struct OptionsVerdict {
+    pub session: u32,
+    /// The summary found for `session` (repo-relative), if any.
+    pub summary_path: Option<String>,
+    /// Blocking reasons — non-empty means L2/L3 must refuse the closeout/advance.
+    pub reasons: Vec<String>,
+    /// Non-blocking nudges (e.g. no candidates section at all).
+    pub warnings: Vec<String>,
+}
+
+impl OptionsVerdict {
+    pub fn blocked(&self) -> bool {
+        !self.reasons.is_empty()
+    }
+}
+
+/// The options gate (S62 / J2): closing `session` requires its summary to record **exactly 3**
+/// ranked next-session candidates. A `WrongCount` BLOCKS (L2/L3); a wholly absent candidates
+/// section or missing summary only WARNS (legacy compat). Enforces the existing
+/// `end_of_session.must_present_n_options` contract — no new artifact.
+pub fn options_gate(root: &Path, session: u32) -> OptionsVerdict {
+    let mut reasons = Vec::new();
+    let mut warnings = Vec::new();
+
+    let summary_path = find_summary_for(root, session);
+    match &summary_path {
+        None => warnings.push(format!(
+            "no summary for session {session:02} yet — record exactly 3 ranked next candidates in \
+             sessions/session-{session:02}-summary.md before closing"
+        )),
+        Some(rel) => match fs::read_to_string(root.join(rel)) {
+            Err(e) => reasons.push(format!("cannot read {rel}: {e}")),
+            Ok(content) => match options_state(&content) {
+                OptionsState::Exactly3 => {}
+                OptionsState::WrongCount(n) => reasons.push(format!(
+                    "{rel} records {n} ranked next candidate(s), not exactly 3 — a session must \
+                     present exactly 3 A/B/C options (end_of_session.must_present_n_options)"
+                )),
+                OptionsState::Unrecorded => warnings.push(format!(
+                    "{rel} has no ranked-candidates section (add exactly 3 A/B/C next candidates)"
+                )),
+            },
+        },
+    }
+
+    OptionsVerdict {
+        session,
+        summary_path,
+        reasons,
+        warnings,
+    }
+}
+
+/// Find `sessions/session-NN-summary.md` for a session number.
+pub fn find_summary_for(root: &Path, session: u32) -> Option<String> {
+    let rel = format!("sessions/session-{session:02}-summary.md");
+    root.join(&rel).is_file().then_some(rel)
 }
 
 /// The gate's decision for advancing INTO `session`.
@@ -591,5 +837,149 @@ Do one thing.
         assert!(scaffold_prompt(tmp.path(), 56, "Bad_Slug")
             .unwrap_err()
             .contains("kebab"));
+    }
+
+    // ---- S62 / J1: Intake surfaces the real inputs ----
+
+    const ROADMAP: &str = "\
+# Vajra — Working Roadmap
+
+### Next builds — RE-RANKED S54
+
+Some intro prose that is not a list item.
+
+1. **🥇 The fidelity / acceptance auditor — the missing heart.**
+2. **🥈 The cross-stage delta ledger (durability = evidence).**
+3. **🥉 Pipeline breadth (Planner / Architect / …).**
+
+*Carry: a footnote line, not an option.*
+
+**Prior · Session 53 — a past entry with its own 1. and 2. stray numbers.**
+1. a stray numbered line inside a past entry that must NOT be captured.
+";
+
+    #[test]
+    fn extract_next_builds_collects_only_the_block() {
+        let items = extract_next_builds(ROADMAP);
+        assert_eq!(items.len(), 3, "got: {items:?}");
+        assert!(items[0].contains("fidelity"));
+        assert!(items[2].contains("Pipeline breadth"));
+        // The stray `1.` under the later **Prior** entry is not captured.
+        assert!(!items.iter().any(|i| i.contains("must NOT be captured")));
+    }
+
+    #[test]
+    fn gather_intake_reads_session_and_roadmap() {
+        let tmp = tempfile::tempdir().unwrap();
+        let ai = tmp.path().join(".ai");
+        fs::create_dir_all(&ai).unwrap();
+        fs::write(ai.join("SESSION"), "61\n").unwrap();
+        fs::write(ai.join("ROADMAP.md"), ROADMAP).unwrap();
+
+        let intake = gather_intake(tmp.path());
+        assert_eq!(intake.prior_session, Some(61));
+        assert_eq!(intake.roadmap_next_builds.len(), 3);
+
+        let rendered = format_intake(&intake);
+        assert!(rendered.contains("prior session (.ai/SESSION): 61"));
+        assert!(rendered.contains("fidelity"));
+        assert!(rendered.contains("from context, not the slug"));
+    }
+
+    #[test]
+    fn gather_intake_degrades_when_files_missing() {
+        let tmp = tempfile::tempdir().unwrap();
+        let intake = gather_intake(tmp.path());
+        assert_eq!(intake.prior_session, None);
+        assert!(intake.roadmap_next_builds.is_empty());
+        // Still renders a usable block, not a panic.
+        assert!(format_intake(&intake).contains("(unreadable)"));
+    }
+
+    // ---- S62 / J2: Options enforced (exactly 3 recorded) ----
+
+    fn summary_with(options: &[&str]) -> String {
+        let mut s = String::from("# Session summary\n\n## Next — ranked candidates (S63)\n\n");
+        for o in options {
+            s.push_str(&format!(
+                "- **{o} — a candidate.**\n  *Goal:* do the thing.\n"
+            ));
+        }
+        s
+    }
+
+    #[test]
+    fn count_ranked_options_counts_distinct_letters() {
+        // Sub-bullets like `*Goal:*` and multi-line entries do not inflate the count.
+        assert_eq!(
+            count_ranked_options(&summary_with(&["A 🥇", "B 🥈", "C 🥉"])),
+            3
+        );
+        assert_eq!(count_ranked_options(&summary_with(&["A", "B"])), 2);
+        assert_eq!(
+            count_ranked_options(&summary_with(&["A", "B", "C", "D"])),
+            4
+        );
+        // No candidates heading -> 0 (scoped to the section).
+        assert_eq!(count_ranked_options("# S\n## Notes\n- **A a thing**\n"), 0);
+    }
+
+    #[test]
+    fn options_state_absent_wrong_exact() {
+        assert_eq!(options_state("# S\n## Goal\nx\n"), OptionsState::Unrecorded);
+        assert_eq!(
+            options_state(&summary_with(&["A", "B"])),
+            OptionsState::WrongCount(2)
+        );
+        assert_eq!(
+            options_state(&summary_with(&["A", "B", "C", "D"])),
+            OptionsState::WrongCount(4)
+        );
+        assert_eq!(
+            options_state(&summary_with(&["A 🥇", "B 🥈", "C 🥉"])),
+            OptionsState::Exactly3
+        );
+    }
+
+    #[test]
+    fn options_gate_blocks_wrong_count_passes_three_warns_absent() {
+        let tmp = tempfile::tempdir().unwrap();
+        let sessions = tmp.path().join("sessions");
+        fs::create_dir_all(&sessions).unwrap();
+
+        // No summary at all -> warn, not block (legacy/early compat).
+        let v = options_gate(tmp.path(), 62);
+        assert!(!v.blocked());
+        assert!(v.warnings.iter().any(|w| w.contains("no summary")));
+
+        // 2 options -> BLOCK.
+        fs::write(
+            sessions.join("session-62-summary.md"),
+            summary_with(&["A", "B"]),
+        )
+        .unwrap();
+        let v = options_gate(tmp.path(), 62);
+        assert!(v.blocked(), "2 options must block");
+        assert!(v.reasons.iter().any(|r| r.contains("not exactly 3")));
+
+        // 4 options -> BLOCK.
+        fs::write(
+            sessions.join("session-62-summary.md"),
+            summary_with(&["A", "B", "C", "D"]),
+        )
+        .unwrap();
+        assert!(
+            options_gate(tmp.path(), 62).blocked(),
+            "4 options must block"
+        );
+
+        // Exactly 3 -> PASS.
+        fs::write(
+            sessions.join("session-62-summary.md"),
+            summary_with(&["A 🥇", "B 🥈", "C 🥉"]),
+        )
+        .unwrap();
+        let v = options_gate(tmp.path(), 62);
+        assert!(!v.blocked(), "reasons: {:?}", v.reasons);
     }
 }

@@ -27,12 +27,61 @@ pub fn run(args: &[String]) -> Result<()> {
     if let Some(i) = args.iter().position(|a| a == "--validate") {
         return run_validate(args.get(i + 1));
     }
+    if let Some(i) = args.iter().position(|a| a == "--check-options") {
+        return run_check_options(args.get(i + 1));
+    }
+    if args.iter().any(|a| a == "--intake") {
+        return run_intake();
+    }
 
     if args.iter().any(|a| a == "--advance") {
         run_advance()
     } else {
         run_dump()
     }
+}
+
+/// `vajra next --intake` — the Analyst's INTAKE step (S62 / J1): surface the real inputs (prior
+/// `.ai/SESSION` + the ROADMAP "Next builds" block) so a human authors the next job from context,
+/// not a bare slug. Read-only; the binary surfaces, it does not author.
+fn run_intake() -> Result<()> {
+    let root = repo_root()?;
+    print!("{}", analyst::format_intake(&analyst::gather_intake(&root)));
+    Ok(())
+}
+
+/// `vajra next --check-options NN` — the Analyst's OPTIONS gate (S62 / J2): does
+/// `sessions/session-NN-summary.md` record exactly 3 ranked next candidates? Exit 1 if it records
+/// a wrong count (BLOCK); pass on exactly 3 or a wholly absent section (WARN). Mirrors `--validate`.
+fn run_check_options(nn: Option<&String>) -> Result<()> {
+    let nn = nn.context("usage: vajra next --check-options <NN>")?;
+    let session: u32 = nn
+        .trim()
+        .parse()
+        .with_context(|| format!("session number must be an integer (got {nn:?})"))?;
+    let root = repo_root()?;
+
+    let verdict = analyst::options_gate(&root, session);
+    println!("=== analyst: ranked options for session {session:02} ===");
+    println!(
+        "summary: {}",
+        verdict.summary_path.as_deref().unwrap_or("(none)")
+    );
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
 }
 
 /// `vajra next --scaffold NN <slug>` — the Analyst's GENERATE step: write a well-formed prompt
@@ -47,9 +96,12 @@ fn run_scaffold(nn: Option<&String>, slug: Option<&String>) -> Result<()> {
         .parse()
         .with_context(|| format!("session number must be an integer (got {nn:?})"))?;
 
-    let cwd = env::current_dir().context("failed to read current directory")?;
-    let root =
-        find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;
+    let root = repo_root()?;
+
+    // S62 / J1: surface the real intake inputs FIRST — the prior session + ROADMAP next-builds the
+    // author must fold into the Goal, so the job comes from context, not the bare slug.
+    print!("{}", analyst::format_intake(&analyst::gather_intake(&root)));
+    println!();
 
     // S61 / J3: GENERATE writes the prompt AND updates the `.ai/TASK.md` pointer (the spine).
     // Previously scaffold only `println!`d advice — the pointer was never moved.
@@ -208,6 +260,31 @@ fn run_advance() -> Result<()> {
         }
     }
 
+    // Options gate (S62 / J2): closing `current` requires its summary to record EXACTLY 3 ranked
+    // next candidates (end_of_session.must_present_n_options). A wrong count BLOCKS — a non-author
+    // cannot close a session on 2 or 4 options; a wholly absent section only WARNS (legacy compat).
+    // Same fail-closed-at-L2/L3, advise-at-L1, VAJRA_SKIP_ANALYST_GATE override as the prompt gate.
+    let opts = analyst::options_gate(&root, current);
+    for w in &opts.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if opts.blocked() {
+        eprintln!("[vajra analyst] session {current:02} cannot close — its options are not ready:");
+        for r in &opts.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_ANALYST_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_ANALYST_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {current:02} does not record exactly 3 ranked next \
+                 candidates (Options gate). Fix its summary, or set VAJRA_SKIP_ANALYST_GATE=1."
+            );
+        }
+    }
+
     if maturity != MaturityLevel::L3 {
         if !confirm("Advance to next session?")? {
             eprintln!("Aborted.");
@@ -292,6 +369,12 @@ fn find_repo_root(start: &Path) -> Option<PathBuf> {
         .ancestors()
         .find(|dir| dir.join(".ai").is_dir())
         .map(Path::to_path_buf)
+}
+
+/// The Vajra repo root from the current directory (the `.ai/`-carrying ancestor).
+fn repo_root() -> Result<PathBuf> {
+    let cwd = env::current_dir().context("failed to read current directory")?;
+    find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")
 }
 
 fn current_branch(root: &Path) -> String {
