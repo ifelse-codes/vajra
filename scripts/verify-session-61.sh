@@ -86,9 +86,15 @@ gate_blocks_placeholder_delta() {
   ( cd "$E2E" && ! "$BIN" next --advance ) && [ "$(cat "$E2E/.ai/SESSION")" = "76" ]
 }
 run_check "e2e-placeholder-delta-blocks" gate_blocks_placeholder_delta
-# The refusal names the placeholder delta (not just "DRAFT").
-run_check "e2e-block-reason-is-placeholder" bash -c \
-  "cd '$E2E' && '$BIN' next --advance 2>&1 | grep -qi placeholder || true; '$BIN' next --validate 77 2>&1 | grep -qi placeholder"
+# The refusal itself (the --advance stderr, not just --validate) names the placeholder delta.
+# Capture the output first so `set -o pipefail` isn't tripped by advance's expected non-zero exit.
+e2e_block_reason_is_placeholder() {
+  local adv val
+  adv="$( cd "$E2E" && "$BIN" next --advance 2>&1 || true )"
+  val="$( cd "$E2E" && "$BIN" next --validate 77 2>&1 || true )"
+  echo "$adv" | grep -qi placeholder && echo "$val" | grep -qi placeholder
+}
+run_check "e2e-block-reason-is-placeholder" e2e_block_reason_is_placeholder
 
 # 3. Record a REAL delta -> the advance passes (76 -> 77).
 sed -i.bak 's/<what this session ADDS that did not exist>/a real, recorded addition vs ROADMAP/' "$PROMPT"
