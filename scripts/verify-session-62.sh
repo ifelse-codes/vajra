@@ -170,8 +170,16 @@ advance_passes_three_options() {
 }
 run_check "e2e-advance-passes-3-options" advance_passes_three_options
 
-# --- Real run on THIS repo: intake surfaces this repo's inputs; S61 summary has exactly 3 options ---
-run_check "real-repo-intake"          bash -c "'$BIN' next --intake | grep -q 'prior session (.ai/SESSION): 61'"
+# --- Real run on THIS repo: intake surfaces this repo's live inputs (session-agnostic — the
+#     number legitimately changes at each closeout, so assert the CURRENT .ai/SESSION, not a
+#     pinned constant) + a ROADMAP next-build item; S61 summary has exactly 3 options. ---
+real_repo_intake() {
+  local n out; n="$(cat "$ROOT/.ai/SESSION" | tr -d '[:space:]')"
+  out="$("$BIN" next --intake)"
+  echo "$out" | grep -q "prior session (.ai/SESSION): $n" \
+    && echo "$out" | grep -q 'ROADMAP next builds:'
+}
+run_check "real-repo-intake"          real_repo_intake
 run_check "real-repo-check-options-61" bash -c "'$BIN' next --check-options 61 | grep -q READY"
 
 # --- Summary artifact carries the honest verdict (3-of-5 -> 5-of-5; REJECT ACCEPT-able) ---
