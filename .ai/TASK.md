@@ -2,41 +2,45 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 61 — Analyst: Generate + Delta half made REAL (CODE) — COMPLETE
+## Session 62 — Analyst: Intake + Options (the stage finished, S54 REJECT closed) — COMPLETE
 
-- **Shipped, independently ACCEPT'd.** Turned the S54 Analyst REJECT's two deterministic gaps into real
-  behavior: **J3 Generate** now repoints `.ai/TASK.md` at the generated prompt (`scaffold_and_point` reuses
-  `update_prompt_pointer` — one impl, no second store); **J4 Delta** is enforced, not grepped —
-  `DeltaState{Absent,Placeholder,Substantive}` + `parse_delta`; the gate **BLOCKS** a placeholder `## Delta`
-  at L2/L3, WARNS on a wholly absent one (legacy compat). The S54 `grep -q '## Delta'` fakest-green is retired.
-- **Evidence:** `cargo test --lib` **148** (+3); `verify-session-61.sh` **26/26 GREEN** (real `vajra next` runs
-  in a temp repo); fmt + clippy clean. **Fidelity: independent cold review = ACCEPT** (13 SHIPPED · 3 PARTIAL ·
-  2 NOT-BUILT), attested `Review-Inputs-SHA: 108202fe…`; fidelity + attestation closeout gates PASS.
-- **Honest headline:** the S54 Analyst REJECT is paid down **~1-of-5 → 3-of-5** core stage-steps. Intake (J1) +
-  Options (J2) remain **NOT-BUILT** and explicitly open — S62. One stage is now mostly real; still one stage.
-- **Deliverable:** `sessions/session-61-summary.md` + `sessions/session-61-review.md`.
+- **Shipped, independently ACCEPT'd.** Built the Analyst's last two stage-steps, one story, honestly:
+  **J1 Intake** — `gather_intake`/`format_intake` surface the prior `.ai/SESSION` + the ROADMAP "Next builds"
+  block at `vajra next --intake` and the head of `--scaffold` (the job comes from context, not a bare slug);
+  **J2 Options** — `OptionsState{Unrecorded,WrongCount,Exactly3}` + `count_ranked_options`/`options_gate`
+  enforce a **recorded** count — a summary must carry **exactly 3** ranked next candidates. `vajra next
+  --check-options NN` BLOCKS 2/4, PASSES 3; wired into `--advance` (a session can't close on the wrong count).
+  The binary **surfaces + enforces, never authors** — no faked "generated" (the S54 fakest-green trap).
+- **Evidence:** `cargo test --lib` **154** (+6); `verify-session-62.sh` **24/24 GREEN** (real `--intake`/
+  `--check-options`/`--advance` runs in a temp repo). **Fidelity: independent cold review = ACCEPT** (9 SHIPPED ·
+  0 PARTIAL · 3 outside-code-diff), attested `Review-Inputs-SHA: 973c4d1b…`; `--attest-only 62` + `--fidelity-only
+  62` PASS.
+- **Honest headline:** the S54 Analyst REJECT is **CLOSED, 3-of-5 → 5-of-5** — the first pipeline stage is
+  complete + ACCEPT-able without a waiver. **Still one stage of a pipeline**, and the S55→S62 arc stays
+  UNMEASURED as lived experience (no paid `vajra claude` since S52 — 10 sessions).
+- **Deliverable:** `sessions/session-62-summary.md` + `sessions/session-62-review.md`.
 
-Between sessions. **Founder pick → S62 = A** (Intake + Options — finish the Analyst, close the REJECT) ·
-`prompts/62-task-analyst-intake-options.md`.
+Between sessions. **Founder pick → S63 = A** (paid dogfood run — measure the governed loop as experience) ·
+`prompts/63-task-paid-dogfood-run.md`.
 
-## Next Session (S62 — CODE, founder pick A)
+## Next Session (S63 — PAID DOGFOOD, founder pick A)
 
-- **Type:** CODE. Build the Analyst's **Intake (J1) + Options (J2)** half (NOT-BUILT → SHIPPED): intake surfaces
-  the real inputs (prior `.ai/SESSION` + ROADMAP next-builds) so the job comes from context, not a slug; the gate
-  ENFORCES that a session records **exactly 3** ranked options. Honest: the binary *surfaces + enforces*, it does
-  not *author* — no faked "generated." Moves the cold review **3-of-5 → 5-of-5**, making the S54 REJECT
-  ACCEPT-able without a waiver.
-- **Prompt:** `prompts/62-task-analyst-intake-options.md` (APPROVED). **New chat.** Independent cold fidelity
-  review required (DECISION-002 gate).
+- **Type:** PAID DOGFOOD. Run **one real, non-trivial task** through `vajra claude` and measure the governed loop
+  as **experience** (is it good to USE?): capture the authoritative `total_cost_usd` (NOT the ~8×-overstating
+  receipt), the governance-fired table (Darshan · Varta/co-pilot · Analyst gate · fidelity/attestation/ledger
+  closeout), and `vajra meter` obedience%. Refreshes `dogfood_check` 🟢 after 10 unmeasured sessions. Budget ~$5.
+  Honest null (neutral/worse) is a valid result — do not rescue the thesis.
+- **Prompt:** `prompts/63-task-paid-dogfood-run.md` (APPROVED). **New chat.** Independent cold fidelity review
+  required (DECISION-002 gate).
 
 ## Always-True Reminders
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`. Every 5th session is NO-CODE ground-truth (last = **S60**; next = **S65**).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S62; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S63; do NOT start it here.
 - **Direction:** product = **provable agent governance**, shaped as a **governed multi-agent SDLC pipeline**
   (`DECISION-001`); the load-bearing governance is **fidelity**, verified independently (`DECISION-002`), with
   verdicts **attested** (`DECISION-003`) and chained into a tamper-evident **ledger** (`DECISION-004`). **S60 GT
-  course-correction: pivot to PAYLOAD** — advance the pipeline (finish the Analyst) over more gate-hardening.
-  Memory `vajra-fidelity-over-discipline`, `vajra-positioning`.
+  course-correction: PAYLOAD over gate-hardening** — the Analyst is now complete (S54+S61+S62); S63 measures the
+  loop before adding the Planner. Memory `vajra-fidelity-over-discipline`, `vajra-positioning`.
