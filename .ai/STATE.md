@@ -3,16 +3,16 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S59 complete, S60 not yet started). S59 was CODE: it added the **attested-verdict
-delta ledger** — `--ledger` / `--ledger-verify` on `scripts/verify-closeout.sh` — on branch
-`session-59-attested-verdict-ledger` (**no `src/` change** — the ledger rides S57's `include_str!`). S59
-spend **~$0**.
+None — between sessions (S60 complete, S61 not yet started). **S60 was the mandatory NO-CODE ground-truth**
+(`NN % 5 == 0`; last GT = S55) — 8 `required_audits` + meta-check + a verdict on lead lens A, written to
+`sessions/session-60-ground-truth.md` on the GT-exempt branch `session-60-closeout` (docs only, **no
+`src/`/scripts change**). S60 spend **~$0**.
 
 ## Active PRs
-- S59 PR to `main` — the attested-verdict delta ledger (open at closeout; founder merges).
-- Merged prior: S58 [#55](https://github.com/ifelse-codes/vajra/pull/55) · S57
-  [#54](https://github.com/ifelse-codes/vajra/pull/54) · S56 [#53](https://github.com/ifelse-codes/vajra/pull/53).
-- Housekeeping: after S59 merges, checkout `main` + prune merged `session-59-*` / `session-58-*` locals.
+- None open. S60 is a NO-CODE GT — docs on the exempt `session-60-closeout` branch, no PR (GT forbids PRs).
+- Merged: S59 [#56](https://github.com/ifelse-codes/vajra/pull/56) · S58
+  [#55](https://github.com/ifelse-codes/vajra/pull/55) · S57 [#54](https://github.com/ifelse-codes/vajra/pull/54).
+- Housekeeping: after S60 closeout merges, checkout `main` + prune merged `session-60-*` / `session-59-*` locals.
 
 ## Direction (governance is the product — fidelity is load-bearing; brain → teeth → propagated → attested → ledger)
 - **The product = provable agent governance**, shaped as a **governed multi-agent SDLC pipeline**
@@ -29,6 +29,9 @@ spend **~$0**.
   hooks + `CLAUDE.md`" on enforcement-depth; the headline **ledger** moat is no longer 0 code but is a
   **bounded first slice** (tamper-evident, opt-in). Cross-agent breadth + pipeline breadth remain thin.
 - **"Better work"** stays a **parked n=2-null hypothesis** (S51+S52), not the pitch.
+- **S60 GT course-correction:** the gate arc (S55→S59) is far enough ahead of its payload — **S61+ pivots to
+  advancing the pipeline itself** (pay down the S54 Analyst REJECT), not more gate-hardening. Gate-proof
+  (tamper-*proof* signer, ledger-verify wiring) is deferred until there is real stage work worth signing.
 - **Enforcement moat: COMPLETE + LIVE-VERIFIED (S46); re-touched every session since.** Do not re-open the guard.
 
 ## What Currently Works
@@ -66,20 +69,28 @@ spend **~$0**.
 - **🟡 The S54 Analyst REJECT is still open** (Intake/Options/computed-Delta NOT-BUILT). → S61 candidate.
 - **🔴 The vajra receipt overstates cost ~8× (S52).** Use `total_cost_usd`. Backlog.
 - **🟡 Guard nested-repo blindspot (S52)** · **🟡 cargo/npm/pytest never fold on real CC** (S33/S41) ·
-  install path broken (crates.io name taken → `cargo install --path`) · KNOWLEDGE.md large (compression candidate).
-- **🟡 dogfood_check aging** — no paid `vajra claude` run since S52 (now 7 sessions); a paid refresh is overdue
-  (a sharpened `dogfood_check` is baked into the S60 GT brief).
+  install path broken (crates.io name taken → `cargo install --path`).
+- **🟡🔴 dogfood_check AGING → OVERDUE (S60 GT).** No paid `vajra claude` run since S52 (now 7 sessions; 2
+  consecutive GTs flagged it). The entire S55→S59 gate arc is proven as *machinery* (145 tests green, ledger
+  runs) but **UNMEASURED as *experience*** — flag, do not guess. A paid run is a strong S62 forcing-function.
+- **🟡 KNOWLEDGE.md bloated (S60 GT).** 145 KB / 351 lines, reloaded every session; §6 "Solved Problems" is a
+  per-session changelog that duplicates `sessions/` summaries and violates the file's own "permanent facts
+  only" header. Compression candidate (careful — no hand-maintained second copy, `feedback-distill-no-drift`).
 
 ## What Is In Progress
-- **S59 DONE (ledger built + self-dogfooded), between sessions.** Next = **S60 = mandatory NO-CODE
-  ground-truth** (`prompts/60-task-ground-truth.md`, APPROVED, lens A): is 5 sessions of gate-work the
-  shortest path, or is the pipeline (1 stage + a REJECT) the real gap? Founder may re-aim to B (dogfood/cost)
-  or C (discipline/state). New chat for S60. **S61 resumes CODE** from the GT's ranked candidates.
+- **S60 DONE (mandatory NO-CODE ground-truth), between sessions.** Verdict on lens A = **PARTIAL SCOPE-CREEP**:
+  5 sessions of gate-work (S55→S59) outran the pipeline they govern (still 1 stage + a REJECT, all ~$0). 8
+  audits: vision/roadmap/knowledge/constitution 🟡 · state/constraints/cost ✅ · **dogfood 🟡🔴 AGING** (no
+  paid `vajra claude` since S52). **Meta-check WIN:** no metric measures whether the *pipeline* advances →
+  recommend a pipeline-payload counter. **Founder pick → S61 = A** (pay down the S54 REJECT): make the
+  Analyst's **Generate + Delta half real** (TASK.md pointer on generate; gate BLOCKS a placeholder Delta) —
+  `prompts/61-task-analyst-generate-delta.md` (APPROVED). New chat for S61.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
 - Session 36: ~$61.4 · Session 46: ~$3.84 · Session 51: ~$1.52 · **Session 52: ~$4.95** (authoritative
   `total_cost_usd`, NOT the ~8×-overstating receipt).
-- Session 53–59: ~$0 each (docs/bash + negligible cold-review subagents; S57/S58/S59 no `src/`).
+- Session 53–60: ~$0 each (docs/bash + negligible cold-review subagents; S57/S58/S59 no `src/`; S60 NO-CODE GT).
 - Session 32–35, 37–45, 47–50: ~$0.00 each — build/code + NO-CODE GT sessions.
-- Cumulative: **~$72.3**. Dogfood gate MEASURED 🟢 GREEN at S52 (guards fired live 3×); **🟡 aging** (no paid run since S52).
+- Cumulative: **~$72.3**. Dogfood gate MEASURED 🟢 GREEN at S52 (guards fired live 3×); **🟡🔴 AGING** — no
+  paid `vajra claude` run since S52 (7 sessions); S60 GT ruled a paid run OVERDUE (S62 forcing-function).

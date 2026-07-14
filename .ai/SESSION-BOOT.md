@@ -1,55 +1,50 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 59 — COMPLETE
-- **Type:** **CODE** — **The attested-verdict delta ledger (the headline moat's first code).** Turned the
-  per-session fidelity outputs into a **derived, hash-chained ledger** — no new store. `verify-closeout.sh`
-  gains `--ledger` (build/print the SESS · VERDICT · ATTESTED · RECORD-HASH view over
-  `sessions/session-*-review.md` + git) and `--ledger-verify` (recompute worktree vs blobs at HEAD; name the
-  first divergent past verdict). Chain `record_hash = sha256(prior ‖ N ‖ verdict ‖ input_sha)` → one head
-  fingerprints the ordered verdict history.
-- **Branch:** `session-59-attested-verdict-ledger`.
+- **Number:** 60 — COMPLETE
+- **Type:** **NO-CODE — mandatory ground-truth** (`NN % 5 == 0`; last GT = S55). Ran all 8 `required_audits`
+  + the meta-check + a verdict on lead lens A. No `src/` edits, no code commits, no PRs.
+- **Verdict on lens A: PARTIAL SCOPE-CREEP.** 5 sessions of gate-work (S55→S59:
+  brain→teeth→propagated→attested→ledger) outran the pipeline they govern — the product thesis (a governed
+  multi-agent **pipeline**, DECISION-001) still sits at **1 stage (S54 Analyst) + an open REJECT**, all 5 gate
+  sessions at ~$0. Load-bearing through S56–57; S58–S59 = diminishing returns. **S61 pivots to PAYLOAD** (pay
+  down the REJECT).
+- **Branch:** `session-60-closeout` (GT-exempt suffix — docs only).
 - **Date last updated:** 2026-07-14
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 59.
-- S59 output (bash + docs, **no `src/` change**): `scripts/verify-closeout.sh` (+`build_ledger` /
-  `_ledger_*` / `--ledger` / `--ledger-verify`) · `docs/decisions/DECISION-004-attested-verdict-ledger.md` ·
-  `scripts/verify-session-59.sh` (**26/26**) · `scripts/demo-session-59.sh` · `sessions/session-59-summary.md`
-  + `sessions/session-59-review.md`. `cargo test` **145 lib** unchanged (no src touched); fmt + clippy clean;
-  S59 spend **~$0**.
+- `.ai/SESSION` = 60.
+- S60 output (docs only, **no `src/`/scripts change**): `sessions/session-60-ground-truth.md` (all 8 audits +
+  meta-check + lens-A verdict + 3 ranked S61 candidates) + `prompts/61-task-analyst-generate-delta.md`
+  (APPROVED) + the closeout `.ai/*` sync. S60 spend **~$0**.
+- **Live ground-truth evidence:** SESSION was 59 (now 60), on `main` clean at boot, `cargo test --lib`
+  **145 passed**, 7 commands (claude/next/check/init/estimate/meter/hook), ledger head live `eae0d6f8…`
+  (6 records, S54 REJECT · S55 NONE · S56/57 ACCEPT · S58/59 attested ACCEPT).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- **The headline:** the ledger rides the S57 `include_str!` — editing the canonical
-  `scripts/verify-closeout.sh` propagates it byte-identically into every `vajra init` scaffold with **zero
-  `src/` change**. It is a **derived view** over the existing reviews + git (no second source of truth,
-  `DECISION-004`). **Live proof:** `--ledger` shows S54 REJECT · S55 NONE · S56/57 ACCEPT · S58 attested
-  ACCEPT → head `bf67dfe3…`; flip S54 REJECT→ACCEPT or delete S57 → `--ledger-verify` exits 1 and names the
-  session (24→**26/26**).
-- **Independent cold review of S59 = ACCEPT** (A1–A4 + D1–D4 SHIPPED; two first-pass findings — deletion-path
-  silent crash, a "no drift" overclaim — fixed + re-verified by the reviewer running the code before the
-  verdict). Review carries a matching `**Review-Inputs-SHA:** aa68ee16…` (`--attest-only 59` PASS).
-- **Honest:** tamper-**evident**, NOT tamper-proof (an in-repo editor can rewrite the chain + force-push
-  history → S59-C signer); `--ledger-verify` is opt-in, not yet in the mandatory closeout run; verdict/sha
-  regexes are hand-synced copies (a shared helper is a later refactor).
+- **8 audits:** vision 🟡 · roadmap 🟡 · state ✅ · knowledge 🟡 (145 KB; §6 = a session changelog violating
+  its own "permanent facts only") · constraints ✅ (zero breaches S55→S59) · constitution 🟡 · cost ✅
+  (~$72.3, honest) · **dogfood 🟡🔴 AGING** (no paid `vajra claude` since **S52**, 7 sessions).
+- **Meta-check WIN:** the audit measures *governance* (tests green, ledger runs) but has **no metric for
+  whether the pipeline advances** — green dashboard while the product stalls. The S25 "north-star gap
+  indicator" was recommended, never built. → recommend a standing **pipeline-payload counter**.
 
 ## Next Session
-- **Number:** 60
-- **Type:** **NO-CODE — mandatory ground-truth** (`NN % 5 == 0`; last GT = S55). No `src/` edits, no commits
-  to code, no PRs (hook-enforced). Run all 8 `required_audits` + the meta-check.
-- **Lead lens (A):** is 5 sessions of gate-work (S55→S59: brain→teeth→propagated→attested→ledger) the
-  **shortest path** to the north-star, or scope-creep while the actual multi-agent **pipeline** sits at 1
-  stage (Analyst) + an open REJECT? Founder may re-aim to B (dogfood/cost — no paid run since S52) or C
-  (discipline/state + note-compression) in the new chat; all 8 audits run regardless.
-- **Prompt:** `prompts/60-task-ground-truth.md` (APPROVED). **Branch:** `session-60-<slug>` — **new chat.**
+- **Number:** 61
+- **Type:** **CODE** (founder pick A — complete the Analyst / pay down the S54 REJECT).
+- **Scope (tight, 1 story):** make the Analyst's **Generate + Delta half REAL** (PARTIAL→SHIPPED). (1) the
+  Analyst updates the `.ai/TASK.md` pointer on generate (closes J3); (2) the gate **BLOCKS** a
+  missing/placeholder Delta instead of grepping the `## Delta` heading (kills the S54 "fakest green").
+  **Out of scope:** Intake/Options (the NOT-BUILT front half) = S62. Moves the cold review 1-of-5 → 3-of-5.
+- **Prompt:** `prompts/61-task-analyst-generate-delta.md` (APPROVED). **Branch:** `session-61-<slug>` —
+  **new chat.** Independent cold fidelity review required (DECISION-002 gate).
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S60; do NOT start it here.
-- **Post-merge:** after S59 merges, checkout `main` + prune merged `session-59-*` / `session-58-*` locals.
-- **Standing honest #1 (S56→S59): still open as tamper-*proof*.** S58 bound an ACCEPT to its delivery; S59
-  chained the verdicts (tamper-*evident*). Neither is tamper-*proof* — closing the rest needs an out-of-band
-  signer (a new trust root) → **S61 candidate S59-C**.
-- **Ledger is a first slice, not the finished moat:** opt-in (`--ledger-verify` not in the closeout run) +
-  tamper-evident-only. **S54 Analyst REJECT still open** (Intake/Options/Delta) → S61 candidate.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S61; do NOT start it here.
+- **Post-merge:** after S60 closeout merges, checkout `main` + prune merged `session-60-*` / `session-59-*` locals.
+- **dogfood_check 🟡🔴 AGING → OVERDUE** — no paid `vajra claude` since S52 (7 sessions); the whole S55→S59
+  gate arc is UNMEASURED as *experience*. A paid run is a strong S62 forcing-function (S61 candidate 🥈).
+- **S54 Analyst REJECT: S61 pays down the Generate+Delta half; Intake/Options (front half) stays open → S62.**
+- **Standing honest #1: the ledger is tamper-*evident*, NOT tamper-*proof*** (in-repo editor can rewrite chain
+  + history) → S59-C signer, deferred (S60 lens A flagged gate-hardening as over-built — do it after payload).
+- **KNOWLEDGE.md compression candidate** — 145 KB, §6 duplicates `sessions/` summaries (no-drift compression).
 - **Use `total_cost_usd`, NOT the vajra receipt** — overstates ~8× (S52).
-- **dogfood_check 🟡 aging** — no paid `vajra claude` since S52 (now 7 sessions); a paid run is overdue (a
-  sharpened `dogfood_check` is baked into the S60 GT brief).
