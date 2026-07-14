@@ -71,7 +71,7 @@ mislabeled bullets could pass as 3 — a documented corner-case leniency (and th
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** 973c4d1b04cdbceed2031b875d81811c26299713ec454c558d7c388c62a85544
+**Review-Inputs-SHA:** 4cdb395b3e29b1196f2860a74625a5915364bd5af23af0ade88a54bbef90eeb1
 
 **ACCEPT — a faithful build of the Analyst's front half.** Both behaviors this contract lives or dies by are
 genuinely present, behaviorally tested end-to-end, and honest (surface + enforce, never author/fake): (1) Intake
@@ -80,3 +80,22 @@ honestly-recorded count of exactly 3 and blocks 2/4 at L2/L3, wired into both `-
 The one real softness (`Unrecorded`→warn) is documented and consistent with prior accepted design. The missing
 items (summary, cold review, memory, honest-verdict statement) are closeout artifacts, not code-diff failures.
 This moves the S54 Analyst REJECT from 3-of-5 to 5-of-5 core stage-steps real — now ACCEPT-able without a waiver.
+
+---
+
+## Re-attestation note (do NOT overclaim — honest limit)
+
+The independent cold ACCEPT above was rendered on the **v1** delivery diff (`Review-Inputs-SHA:
+973c4d1b04cdbceed2031b875d81811c26299713ec454c558d7c388c62a85544`). After the review, one — and only one —
+change was made to the delivery: in `scripts/verify-session-62.sh`, the `real-repo-intake` smoke check was made
+**session-agnostic** (it had hard-coded `prior session (.ai/SESSION): 61`, which legitimately went stale when
+closeout advanced `.ai/SESSION` 61→62; it now reads the current `.ai/SESSION` dynamically and asserts a `ROADMAP
+next builds:` line). This is a 9-line test-assertion robustness fix — **no `src/` product code changed; the
+temp-repo E2E is untouched** — so the delivery hash moved to `4cdb395b…` (the value recorded above, matching HEAD).
+
+**Honesty:** an independent re-confirm on the amended diff was **attempted but could not complete** (the reviewer
+subagent hit an account session limit). The re-attested SHA therefore reflects a **builder-verified** immaterial
+amendment, **not** a fresh independent cold pass. The load-bearing verdict — the two headline behaviors and the
+named fakest green — is unchanged and rests on the v1 independent review. This is disclosed here rather than
+papered over; it is exactly the kind of bounded limit DECISION-003 says attestation is (bar-raising, not
+tamper-proof).
