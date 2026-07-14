@@ -64,6 +64,19 @@ TH="$(sed -n 's/^worktree  head : //p' /tmp/s59-lv-tamper.log | head -1)"
 restore
 grep -qE '\*\*Verdict:\*\* REJECT' "$F" && ok "S54 review restored to REJECT after test" || no "S54 restore failed"
 
+# 4b. A DELETED committed review is also detected (not a silent crash) — the read is
+#     guarded so set -e keeps going and the deletion surfaces as a divergent record.
+G="sessions/session-57-review.md"
+restore2(){ git checkout -q -- "$G" 2>/dev/null || true; }
+trap 'restore; restore2' EXIT
+rm -f "$G"
+if bash "$GATE" --ledger-verify >/tmp/s59-lv-del.log 2>&1; then rcd=0; else rcd=1; fi
+[ "$rcd" -eq 1 ] && ok "deleted past review (S57): --ledger-verify FAILS (exit 1)" || no "deleted S57 should fail"
+grep -q 'TAMPER DETECTED' /tmp/s59-lv-del.log && ok "deletion reports TAMPER DETECTED (no silent crash)" || no "deletion should report TAMPER DETECTED"
+grep -qE 'first divergent session: S57' /tmp/s59-lv-del.log && ok "deletion names S57 as divergent" || no "deletion should name S57"
+restore2
+grep -qE 'Verdict' "$G" >/dev/null 2>&1 && ok "S57 review restored after deletion test" || no "S57 restore failed"
+
 # ---------------------------------------------------------------------------
 # 5. Propagation is FREE (S57 include_str!) — a real vajra init scaffolds the
 #    ledger-bearing gate byte-identically. No src/ change, no 8th command, no store.

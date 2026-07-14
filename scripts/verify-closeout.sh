@@ -283,9 +283,10 @@ check_review_attestation() {
 # *detectable* (the head moves; git shows the file diff), but a determined in-repo
 # editor can flip a verdict AND recompute every downstream record_hash AND rewrite
 # committed history (force-push). Nothing here is an out-of-band anchor — closing that
-# needs a signer (S59-C). The ledger's verdict/sha extraction reuses the fidelity
-# gate's own regexes (one definition, no drift): a review with no canonical
-# `**Verdict:**` line records verdict=NONE, an un-attested review records attested=no.
+# needs a signer (S59-C). The ledger's verdict/sha extraction uses the SAME patterns as
+# the fidelity gate (check_fidelity_review / check_review_attestation) — hand-synced,
+# byte-identical today, not yet a single shared helper (a future refactor): a review with
+# no canonical `**Verdict:**` line records verdict=NONE, an un-attested one records attested=no.
 
 LEDGER_GENESIS="0000000000000000000000000000000000000000000000000000000000000000"
 LEDGER_HEAD=""
@@ -311,10 +312,13 @@ _ledger_worktree_sessions() {
     | sed -n 's#^sessions/session-\([0-9][0-9]*\)-review\.md$#\1#p' | sort -n -u
 }
 # Read one review's content from a source: "committed" (blob at HEAD) | worktree (file).
+# A missing source (a committed review DELETED from the worktree, or a not-yet-committed
+# review) yields EMPTY, never a failure — so under `set -e` the caller keeps going and a
+# deletion surfaces as verdict=NONE (a divergent record), not a silent mid-loop crash.
 _ledger_read() {
   case "$1" in
-    committed) git show "HEAD:sessions/session-$2-review.md" 2>/dev/null ;;
-    *)         cat "sessions/session-$2-review.md" 2>/dev/null ;;
+    committed) git show "HEAD:sessions/session-$2-review.md" 2>/dev/null || true ;;
+    *)         cat "sessions/session-$2-review.md" 2>/dev/null || true ;;
   esac
 }
 # record_hash = sha256( prior_hash \0 N \0 verdict \0 input_sha ). NUL-separated preimage

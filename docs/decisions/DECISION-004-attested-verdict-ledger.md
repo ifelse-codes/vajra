@@ -48,8 +48,10 @@ Two flags on `scripts/verify-closeout.sh` (the closeout-gate surface):
   **blobs at HEAD**; the first record that differs is a tampered / edited / deleted past review (exit 1).
 
 The gate is `include_str!`'d into `vajra init` (S57), so this propagates into every scaffolded project
-**byte-identically with zero `src/` change** — the same lever S57/S58 used. Verdict/sha extraction **reuses
-the fidelity gate's own regexes** (one definition, no drift).
+**byte-identically with zero `src/` change** — the same lever S57/S58 used. Verdict/sha extraction uses the
+**same patterns as the fidelity gate** (`check_fidelity_review` / `check_review_attestation`) — hand-synced
+and byte-identical today, **not yet a single shared helper** (a future refactor; noted so the claim isn't
+overstated).
 
 ## What the chain proves — and does NOT (same honesty bar as S58)
 
