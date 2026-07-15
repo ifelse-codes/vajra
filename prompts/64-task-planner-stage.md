@@ -33,6 +33,14 @@
 3. **The binary surfaces + enforces, never authors** — there is no faked "generated" plan; a placeholder `## Plan`
    is treated as absent (mirrors S61 `DeltaState::Placeholder` and S62 options).
 
+## Plan (ordered steps — cite the acceptance criteria each step covers, e.g. `covers: 1, 3`)
+1. Build `src/planner/mod.rs`: extract the prompt's numbered acceptance criteria + parse the `## Plan` section's
+   `covers: N` citations; `vajra next --plan N` surfaces the criteria checklist from the real contract. covers: 1
+2. Add `vajra next --check-plan N` (BLOCK placeholder/uncovered exit 1, PASS covering) and wire `plan_gate` into
+   `--advance` (L2/L3 block · L1 advise · `VAJRA_SKIP_PLANNER_GATE=1`). covers: 2
+3. Treat a placeholder `## Plan` as absent-of-a-real-plan and never author a step; lock it with unit tests + the
+   verify E2E, and state the honest limit (coverage = a recorded number mapping, not semantic proof). covers: 2, 3
+
 ## Deliverables
 - `src/planner/mod.rs` (or an extension of `src/analyst/`) — the plan parse + coverage check + gate, with unit
   tests (acceptance-item extraction, coverage true/false, placeholder detection).
