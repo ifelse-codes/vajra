@@ -56,6 +56,10 @@ pub const PROMPT_TEMPLATE: &str = r#"# Session {{NN}} — {{SLUG}}: <one-line go
 2. <A criterion a non-author could check by running one command.>
 3. <The honest verdict this session must state plainly.>
 
+## Plan (ordered steps — cite the acceptance criteria each step covers, e.g. `covers: 1, 3`)
+1. <first ordered step — replace me; annotate which acceptance criteria it satisfies>
+2. <next step — the Planner gate BLOCKS until every acceptance criterion above is covered>
+
 ## Guardrails
 - Slice to ONE story. Own the `.ai/` spine — no second store, no unapproved 8th command.
 - Darshan every human reply · Varta against the live `.ai/`.
