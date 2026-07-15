@@ -1,0 +1,14 @@
+
+ Obedience baseline · /Users/suman/.claude/projects/-Users-suman-playground-chitra
+ ────────────────────────────────────────────────────────────────────────
+ session         calls  clean  blkd   obed%   top blocking hook
+ 0720dd22-054…       9      9     0  100.0%   —
+ 13f397f8-7e0…      29     29     0  100.0%   —
+ 3eeed811-0d1…      15     15     0  100.0%   —
+ 829a73bc-cd3…      16     16     0  100.0%   —
+ a36cc239-553…      23     23     0  100.0%   —
+ bc0611e8-821…       3      3     0  100.0%   —
+ efa8de85-ded…      22     22     0  100.0%   —
+ ────────────────────────────────────────────────────────────────────────
+ n=7 sessions · median 100.0% · range 100.0–100.0% · 0 total block(s) · 2 empty transcript(s) skipped
+ descriptive, not causal · small n · obedience = obeyed the rails, NOT proof the work was better (a floor, S48)

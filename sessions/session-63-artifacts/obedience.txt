@@ -1,0 +1,6 @@
+─── vajra · 829a73b ───────────────────────────────────────────
+ $5.9665  total  (fable-5 28 lines)
+         input $0.4903 · output $1.4086 · cache-r $0.8898 · cache-w $3.1777
+─────────────────────────────────────────────────────────
+ obedience 100.0%  ·  16 clean / 0 blocked  (16 tool calls)
+ obedience = obeyed the rails, NOT proof the work was better (a floor, S48)

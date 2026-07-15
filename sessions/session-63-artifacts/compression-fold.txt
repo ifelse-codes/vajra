@@ -1,0 +1,5 @@
+# Compression fold check — did the vajra PostToolUse hook fold any tool output on the real CC run?
+# Method: count 'updatedToolOutput' occurrences in the live transcript (each = one folded tool result).
+transcript: /Users/suman/.claude/projects/-Users-suman-playground-chitra/829a73bc-cd3b-4309-b9b4-fbd6b4ccbaf9.jsonl
+updatedToolOutput occurrences: 0
+=> 0 folds. Confirms the known 'never folds on real CC' weakness (S33/S41). Compression = no-op this run.
