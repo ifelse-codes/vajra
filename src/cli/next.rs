@@ -7,6 +7,7 @@ use std::process::Command;
 
 use crate::analyst;
 use crate::maturity::{read_maturity, MaturityLevel};
+use crate::planner;
 
 const PACKET_FILES: &[&str] = &[
     ".ai/AGENTS.md",
@@ -29,6 +30,13 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-options") {
         return run_check_options(args.get(i + 1));
+    }
+    // The Planner stage (S64) also rides `vajra next` — no 8th command.
+    if let Some(i) = args.iter().position(|a| a == "--plan") {
+        return run_plan(args.get(i + 1));
+    }
+    if let Some(i) = args.iter().position(|a| a == "--check-plan") {
+        return run_check_plan(args.get(i + 1));
     }
     if args.iter().any(|a| a == "--intake") {
         return run_intake();
@@ -82,6 +90,55 @@ fn run_check_options(nn: Option<&String>) -> Result<()> {
         std::process::exit(1);
     }
     Ok(())
+}
+
+/// `vajra next --plan NN` — the Planner's SURFACE step (S64): print the acceptance criteria of
+/// session NN's prompt as the checklist to plan against (the plan derives from the contract, not
+/// thin air). Read-only; the binary surfaces, it does not author.
+fn run_plan(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--plan")?;
+    let root = repo_root()?;
+    let verdict = planner::plan_gate(&root, session);
+    print!("{}", planner::format_plan_checklist(&verdict));
+    Ok(())
+}
+
+/// `vajra next --check-plan NN` — the Planner's GATE (S64): does session NN's `## Plan` COVER every
+/// acceptance criterion? Exit 1 on a placeholder/uncovered plan (BLOCK); pass on a covering plan or
+/// a wholly absent one (WARN — legacy compat). Mirrors `--check-options`.
+fn run_check_plan(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-plan")?;
+    let root = repo_root()?;
+
+    let verdict = planner::plan_gate(&root, session);
+    println!("=== planner: plan for session {session:02} ===");
+    println!(
+        "prompt: {}",
+        verdict.prompt_path.as_deref().unwrap_or("(none)")
+    );
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// Parse a `<NN>` session-number argument shared by the Planner subcommands.
+fn parse_session(nn: Option<&String>, flag: &str) -> Result<u32> {
+    let nn = nn.with_context(|| format!("usage: vajra next {flag} <NN>"))?;
+    nn.trim()
+        .parse()
+        .with_context(|| format!("session number must be an integer (got {nn:?})"))
 }
 
 /// `vajra next --scaffold NN <slug>` — the Analyst's GENERATE step: write a well-formed prompt
@@ -281,6 +338,33 @@ fn run_advance() -> Result<()> {
             bail!(
                 "refusing to advance: session {current:02} does not record exactly 3 ranked next \
                  candidates (Options gate). Fix its summary, or set VAJRA_SKIP_ANALYST_GATE=1."
+            );
+        }
+    }
+
+    // Planner gate (S64): the pipeline's 2nd governed handoff. You cannot advance INTO session N+1
+    // unless its prompt's `## Plan` COVERS every acceptance criterion — the pre-execution mirror of
+    // the fidelity Validator. A placeholder/uncovered plan BLOCKS; a wholly absent plan only WARNS
+    // (legacy compat). Same fail-closed-at-L2/L3, advise-at-L1 posture; `VAJRA_SKIP_PLANNER_GATE=1`
+    // is the documented override (distinct from the Analyst gate's, so each stage overrides alone).
+    let plan_verdict = planner::plan_gate(&root, next);
+    for w in &plan_verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if plan_verdict.blocked() {
+        eprintln!("[vajra planner] the plan for session {next:02} does NOT cover its contract:");
+        for r in &plan_verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_PLANNER_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_PLANNER_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {next:02}'s `## Plan` does not cover every acceptance \
+                 criterion (Planner gate). Run `vajra next --plan {next:02}`, record a covering plan, \
+                 or set VAJRA_SKIP_PLANNER_GATE=1 to override."
             );
         }
     }
