@@ -3,79 +3,69 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S62 complete, S63 not yet started). **S62 was CODE** (founder pick A — finish the
-Analyst / close the S54 REJECT): made the Analyst's **Intake + Options half REAL** on branch
-`session-62-analyst-intake-options`. Independently ACCEPT'd (cold review, attested). S62 spend **~$0**.
+`session-63-paid-dogfood` — S63 (PAID DOGFOOD, founder pick A) complete, closeout in progress. **S63 was a
+measurement session** (no `src/` change): ran one real task through `vajra claude` on chitra and measured the
+governed loop as *experience*. Independently ACCEPT'd (cold review, attested `3ccd6365…`). **S63 authoritative
+spend = $1.2662.**
 
 ## Active PRs
-- S62: open a PR from `session-62-analyst-intake-options` → `main` (5 commits: 3× code/scripts/docs + closeout).
-- Merged: S61 [#58](https://github.com/ifelse-codes/vajra/pull/58) · S60 GT
-  [#57](https://github.com/ifelse-codes/vajra/pull/57) · S59 [#56](https://github.com/ifelse-codes/vajra/pull/56).
-- Housekeeping: after S62 merges, checkout `main` + prune merged `session-62-*` / `session-61-*` locals.
+- S63: optional PR from `session-63-paid-dogfood` → `main` (scripts + reports + closeout). **Not yet opened —
+  founder call** (a measurement session; the value is the evidence, already captured).
+- Merged: S62 [#59](https://github.com/ifelse-codes/vajra/pull/59) · S61 [#58](https://github.com/ifelse-codes/vajra/pull/58)
+  · S60 GT [#57](https://github.com/ifelse-codes/vajra/pull/57).
+- Housekeeping: after any S63 merge, checkout `main` + prune merged `session-63-*` / `session-62-*` locals.
 
-## Direction (governance is the product — S60 GT pivot: PAYLOAD over more gate-hardening)
+## Direction (governance is the product — S60 GT pivot: PAYLOAD over gate-hardening)
 - **The product = provable agent governance**, shaped as a **governed multi-agent SDLC pipeline**
-  (`VISION.md` + `DECISION-001`). The load-bearing governance is **FIDELITY** (delivered what was asked),
-  verified **independently** (`DECISION-002`) — not just **discipline** (rules followed).
-- **Fidelity arc: brain (S55) → teeth (S56) → propagated (S57) → attested (S58) → ledger (S59).** Verdicts are
-  attested (`DECISION-003`) and chained into a tamper-**evident** ledger (`DECISION-004`).
-- **S60 GT course-correction (in force):** the gate arc outran the pipeline it governs → **S61+ advances the
-  pipeline itself.** S61 paid down the S54 Analyst REJECT (Generate + Delta); **S62 CLOSED it (Intake + Options
-  → 5-of-5).** The Analyst stage is now complete. **S63 = a paid dogfood run** (measure the loop as *experience*)
-  before adding the Planner stage. Gate-proof (tamper-*proof* signer, ledger-verify wiring) still deferred.
-- **Differentiator test (Q2) = PARTIAL PASS.** Governance beats "git hooks + `CLAUDE.md`" on enforcement-depth;
-  cross-agent breadth + pipeline breadth remain thin. **"Better work"** stays a parked n=2-null hypothesis; the
-  loop's *experience* is UNMEASURED since S52 (the S63 forcing-function).
-- **Enforcement moat: COMPLETE + LIVE-VERIFIED (S46).** Do not re-open the guard.
+  (`VISION.md` + `DECISION-001`). Load-bearing governance = **FIDELITY** (delivered what was asked), verified
+  **independently** (`DECISION-002`), attested (`DECISION-003`), chained into a tamper-**evident** ledger
+  (`DECISION-004`).
+- **S60 GT course-correction (in force): advance the PIPELINE, not the gate.** The Analyst (stage 1) is complete
+  (S54 Gate · S61 Generate+Delta · S62 Intake+Options). **S63 measured the loop as experience** — the missing
+  reading since S52. **S64 = the Planner (stage 2), founder pick A.**
+- **The loop is now MEASURED (S63):** good to USE — cheap ($1.27/run), guided, self-stops at the commit gate;
+  honest nulls on compression (0 fold) and on "better work" (obedience is voluntary, not caught). `dogfood_check`
+  🟢 refreshed.
+- **Enforcement moat: COMPLETE + LIVE-VERIFIED (S46), re-witnessed S63** (co-pilot loader + no-commit gate fired
+  on the governed chitra run). Do not re-open the guard.
 
 ## What Currently Works
-- **The Analyst stage — COMPLETE (S54 + S61 + S62).** All five stage-steps real: Gate (S54) · Generate + Delta
-  (S61) · **Intake + Options (S62, NEW).** **Intake:** `gather_intake`/`format_intake` read the prior
-  `.ai/SESSION` + the ROADMAP "Next builds" block (`extract_next_builds` scopes to the heading, ignores stray
-  numbered lines in later entries) and print them at `vajra next --intake` and the head of `--scaffold` — the job
-  comes from context, not a bare slug. **Options:** `OptionsState{Unrecorded,WrongCount,Exactly3}` +
-  `count_ranked_options` (scoped to a "candidate" heading; distinct A/B/C `option_letter`; rejects sub-bullets) +
-  `options_gate` over `sessions/session-NN-summary.md` → `vajra next --check-options NN` BLOCKS 2/4, PASSES 3;
-  wired into `--advance` (L2/L3 block, L1 advise, `VAJRA_SKIP_ANALYST_GATE` override) so a non-author can't close
-  on the wrong count. The binary **surfaces + enforces, never authors**. **Proven live** (`verify-session-62.sh`
-  **24/24**; cold review = **ACCEPT**, attested `973c4d1b…`). The S54 REJECT is **CLOSED**.
-- **The attested-verdict delta ledger (S59).** `verify-closeout.sh --ledger` / `--ledger-verify` build + verify a
-  derived, hash-chained table over `sessions/session-*-review.md` + git order; tamper-evident. No new store.
-- **Verdict attestation (S58) + fidelity gate (S56) + reviewer brain (S55).** On an ACCEPT, `verify-closeout.sh`
-  recomputes `sha256(prompt ‖ delivery-diff)` and FAILS a missing/forged/stale `Review-Inputs-SHA` (S62's own
-  review passes: `--attest-only 62` + `--fidelity-only 62` PASS). Propagated into every `vajra init` scaffold.
+- **The Analyst stage — COMPLETE (S54+S61+S62).** All five stage-steps real: Gate · Generate + Delta · Intake +
+  Options. `vajra next --intake / --scaffold / --check-options`, wired into `--advance`; surfaces + enforces,
+  never authors. The S54 REJECT is CLOSED (5-of-5).
+- **The governed loop, MEASURED end-to-end (S63).** A paid `vajra claude` run on a real repo booted that repo's
+  own `.ai/` constitution + hooks, did real verified work, and self-halted at the commit gate — captured with
+  authoritative cost + a governance-fired table + obedience 100%.
+- **Fidelity gate (S56) + reviewer brain (S55) + attestation (S58) + ledger (S59).** On an ACCEPT,
+  `verify-closeout.sh` recomputes `sha256(prompt ‖ delivery-diff)` and FAILS a missing/forged/stale
+  `Review-Inputs-SHA`; verdicts chain into a tamper-evident ledger. S63's own review PASSES both gates.
 - **`vajra claude · next (+Analyst) · check · init · estimate · meter · hook`** — 7 commands. `cargo test`
-  **154 lib** (+6). Enforcement moat (10 hooks, L1/L2/L3, fail-closed) + Darshan + Varta hold live.
+  **154 lib**. Enforcement moat (10 hooks, L1/L2/L3, fail-closed) + Darshan + Varta hold live.
 
 ## What Is Broken / Weak
-- **🟡🔴 dogfood_check OVERDUE — now the LEAD gap.** No paid `vajra claude` run since S52 (10 sessions; 2 GTs
-  flagged it). The whole S55→S62 arc is proven as *machinery* (154 tests) but **UNMEASURED as *experience*** →
-  **S63 (pick A) is the paid run that measures it.**
-- **🟡 The Analyst is complete but it is STILL ONE STAGE.** Planner/Architect/… + the cross-agent ledger remain
-  ahead (pipeline breadth = the standing S64+ candidate, earned now that fidelity-depth exists).
-- **🟡 Options gate `Unrecorded`→WARN escape (S62 fakest green).** 0 options under a non-"candidate" heading still
-  advances (legacy back-compat mirroring S61 `DeltaState::Absent`); the 2/4-with-a-section path IS blocked. →
-  S63-C hardening candidate.
-- **🟡 The ledger is tamper-EVIDENT, not tamper-PROOF** and **opt-in** (`--ledger-verify` not in mandatory
-  closeout; verdict/sha regexes are hand-synced copies). → deferred (payload first).
-- **🔴 The vajra receipt overstates cost ~8× (S52).** Use `total_cost_usd`. Backlog (and a first-class concern
-  for the S63 dogfood measurement).
-- **🟡 KNOWLEDGE.md bloated (S60 GT).** 145 KB / 351 lines; §6 "Solved Problems" is a per-session changelog
-  violating its own "permanent facts only" header. No-drift compression candidate.
-- **🟡 Guard nested-repo blindspot (S52)** · **🟡 cargo/npm/pytest never fold on real CC** (S33/S41) · install path
-  broken (crates.io name taken → `cargo install --path`).
+- **🔴 The vajra receipt overstates cost (S63 re-quantified: ~4.71× here; ~8× at S52 — NOT a constant).** Use
+  `total_cost_usd`. → **S64-candidate B** (make the receipt authoritative). First-class trust issue.
+- **🟡 Compression is a no-op on real CC (S63: 0 folds; confirms S33/S41).** The product still implies savings the
+  loop doesn't deliver. → **S64-candidate C** (fix or formally retire the claim).
+- **🟡 The pipeline is still SHORT.** The Analyst is complete but the Planner/Architect/… are unbuilt → **S64 =
+  the Planner** starts closing this.
+- **🟡 "Governance helped" is correlational, not causal (S63).** Obedience was 100% because the agent *complied*;
+  no guard *caught* a violation. "Better work" stays a parked hypothesis.
+- **🟡 Options gate `Unrecorded`→WARN escape (S62)** · **🟡 ledger tamper-EVIDENT not PROOF + opt-in (S59)** ·
+  **🟡 guard nested-repo blindspot (S52)** · install path broken (crates.io name taken → `cargo install --path`).
 
 ## What Is In Progress
-- **S62 DONE (CODE, founder pick A), between sessions.** Made the Analyst's Intake + Options half real (intake
-  surfaces prior-session + ROADMAP; options gate enforces exactly-3 recorded, wired into advance). Independently
-  ACCEPT'd (9 SHIPPED · 0 PARTIAL · 3 outside-code-diff; attested `973c4d1b…`). `verify-session-62.sh` **24/24**;
-  fidelity + attestation gates PASS. **Founder pick → S63 = A** (paid dogfood run — measure the loop as
-  experience) · `prompts/63-task-paid-dogfood-run.md` (APPROVED). New chat for S63. **S65 = next mandatory GT.**
+- **S63 DONE (PAID DOGFOOD, founder pick A), between sessions.** Measured the governed loop on chitra:
+  `$1.2662`, receipt 4.71× over, chitra CI 12/12 + 116 tests + 0 commits, governance-fired table, obedience 100%,
+  honest verdict (net positive-to-neutral, 2 nulls). Independently ACCEPT'd (12 SHIPPED · 1 PARTIAL · 0 NOT-BUILT;
+  attested `3ccd6365…`). `verify-session-63.sh` **14/14**. **Founder pick → S64 = A** (the Planner) ·
+  `prompts/64-task-planner-stage.md` (APPROVED). New chat for S64. **S65 = next mandatory GT.**
+- **chitra byproduct:** real, verified CI work uncommitted on chitra's `session-07-ci-workflows` branch — keep or
+  bin (founder call).
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
-- Session 36: ~$61.4 · Session 46: ~$3.84 · Session 51: ~$1.52 · **Session 52: ~$4.95** (authoritative
-  `total_cost_usd`, NOT the ~8×-overstating receipt).
-- Session 53–62: ~$0 each (docs/bash + negligible cold-review subagents; S61/S62 = small src changes, no paid CC run).
-- Cumulative: **~$72.3**. Dogfood gate MEASURED 🟢 GREEN at S52; **🟡🔴 OVERDUE** — no paid `vajra claude` run
-  since S52 (10 sessions); **S63 (pick A) is the paid run that refreshes it.**
+- Session 36: ~$61.4 · Session 46: ~$3.84 · Session 51: ~$1.52 · Session 52: ~$4.95 · **Session 63: ~$1.27**
+  (authoritative `total_cost_usd`, NOT the ~4.7×-overstating receipt).
+- Session 53–62: ~$0 each (docs/bash + negligible cold-review subagents).
+- Cumulative: **~$73.6**. Dogfood gate **MEASURED 🟢 GREEN at S63** (refreshed after 11 unmeasured sessions).
