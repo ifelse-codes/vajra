@@ -121,6 +121,11 @@ Filed honestly: (a) evidence the close gates fire on a real session, (b) one mor
 example — the gate enforces the letter-first shape, not the recorded meaning. Parser tolerance for
 emoji-first bullets = a candidate S71+ minor.
 
+**Closeout disclosure:** `verify-closeout.sh` = **ALL GREEN 10/10** with `VAJRA_CLOSEOUT_WAIVER=70`
+(founder-authorized in-chat — the S60 precedent: a NO-CODE GT has no delivery to review, so the
+fidelity gate is cleared by the founder waiver, never by a self-written ACCEPT). The S60 hardening
+candidate — teach the gate GT-awareness so GTs don't need the waiver — remains open.
+
 ## Founder decisions (recorded in-session, 2026-07-16)
 
 | Finding | Founder call |
