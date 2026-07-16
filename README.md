@@ -52,7 +52,7 @@ Vajra enforces disciplined sessions: the `.ai/` rules, one branch per session, a
 | 1 | **Guides the workflow** | Tells the agent the right step, in the right order, start to finish |
 | 2 | **Keeps memory** | Feeds the agent what the product is, the roadmap, the rules — so it never forgets between chats |
 | 3 | **Enforces discipline** | One branch per step, one step at a time — no drift, no chaos |
-| 4 | **Saves a few tokens** *(bonus)* | Trims long successful output before the agent sees it; failures pass through untouched |
+| 4 | **Saves a few tokens** *(bonus — unproven)* | The trim mechanism ships, but the last measured real run folded 0 lines and saved $0 (S63) — an aspiration we're working on, not a claim |
 
 ## How You Use It
 
@@ -84,7 +84,7 @@ This is different from prompting the agent to "ignore verbose output" — that s
 | Non-Bash tools (Read, Edit, etc.) | **Verbatim — not touched** |
 | `VAJRA_RAW=1 vajra claude` | **Everything verbatim — full bypass** |
 
-Blended savings are modest — roughly 6-8% of input token cost. The receipt shows you the real number; decide for yourself if it's worth it. The bigger value is context window space: compressed output means more room for the agent to think before hitting the context limit.
+**Honest status (measured, not estimated): the last paid real run (S63) folded 0 lines and saved $0.** The mechanism works on long successful output, but real agent sessions rarely produce output that triggers it. We do not claim savings until a measured run shows them — the receipt prints the real number either way. When a fold does land, the bigger value is context-window space, not dollars.
 
 ## The Receipt
 
