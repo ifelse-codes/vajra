@@ -64,6 +64,9 @@ pub const PROMPT_TEMPLATE: &str = r#"# Session {{NN}} — {{SLUG}}: <one-line go
 1. <first ordered step — replace me; annotate which acceptance criteria it satisfies>
 2. <next step — the Planner gate BLOCKS until every acceptance criterion above is covered>
 
+## Execution (the Coder gate — record each plan step's landing commit as work lands)
+- step 1 — done: <sha — the real commit that landed this step; the Coder gate BLOCKS closing the session until every numbered plan step records a commit that EXISTS>
+
 ## Guardrails
 - Slice to ONE story. Own the `.ai/` spine — no second store, no unapproved 8th command.
 - Darshan every human reply · Varta against the live `.ai/`.
