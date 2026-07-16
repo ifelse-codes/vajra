@@ -56,17 +56,17 @@ skip leaves no evidence behind. Never pitch this station as "the code is verifie
 ~$0 (local Rust + one cold-review subagent).
 
 ## 3 ranked candidates for **S71** (⚠ **S70 is the mandatory NO-CODE ground-truth**, every 5th)
-- **🥇 A — the Demo-er station (crew next, founder direction).** *Goal:* the demo becomes a
+- **A 🥇 — the Demo-er station (crew next, founder direction).** *Goal:* the demo becomes a
   governed station — surface the demo contract (`demo.script_pattern`, cumulative, required
   elements) and enforce it at close the way QA enforces verify. *Why:* founder direction at S68
   close — finish the crew, one per session (QA ✓ → **Demo-er** → Releaser). *Risk:* an honest
   mechanism that isn't a hollow re-run of QA — demo proves *show*, not *checks*; the
   required-elements floor (header/cases/scorecard) may be the only enforceable form.
-- **🥈 B — compression truth: fix or formally retire the 0-fold no-op.** *Goal:* compression
+- **B 🥈 — compression truth: fix or formally retire the 0-fold no-op.** *Goal:* compression
   folds on real CC traffic, or the savings claim is retired honestly. *Why:* carried since S63
   (measured 0 folds while the product implies savings) — S70's GT will flag it again; truth-debt
   ages badly. *Risk:* the honest outcome may be retirement, not a fix.
-- **🥉 C — the pipeline-payload counter.** *Goal:* one measured number for "did the pipeline
+- **C 🥉 — the pipeline-payload counter.** *Goal:* one measured number for "did the pipeline
   advance real payload this session?" *Why:* recommended by THREE ground-truths (S25 · S60 ·
   S65) and still unbuilt — the longest-standing measurement gap. *Risk:* metric design (avoiding
   a vanity counter) is the hard part, not the code.

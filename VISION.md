@@ -84,7 +84,7 @@ Vajra's session loop generalises into a **pipeline of specialised agents**, one 
 | 2 | **Keeps memory + feeds context** | The agent never forgets the vision, roadmap, rules between chats; the co-pilot surfaces the right rule at the right corner | ✅ |
 | 3 | **Delta-tracks each stage** | Every handoff records +added/~changed/−removed → a provable trail across the pipeline | 🔴 not shipped (the pipeline build, S54+) |
 | 4 | **Works across agents** | One governance layer over Claude, Cursor, Codex, others | 🔴 Claude-only today |
-| 5 | **Saves a few tokens** *(bonus)* | Trims long successful output; failures pass through | ✅ (small $) |
+| 5 | **Saves a few tokens** *(bonus)* | Trims long successful output; failures pass through | 🔴 **measured $0 / 0 folds on a real run (S63)** — make it real (compression and/or Varta token-efficiency) before ever claiming it; never in README/marketing until measured (S70 founder decision) |
 
 ## The differentiator — the make-or-break
 

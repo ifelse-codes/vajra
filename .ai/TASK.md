@@ -2,49 +2,48 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 69 — The QA station (pipeline WORKS gate — the 6th governed station) — COMPLETE (CODE)
+## Session 70 — Ground Truth (mandatory NO-CODE, every 5th; last = S65) — COMPLETE
 
-- **Shipped:** verification upgraded from house rule to enforced, live-executed station.
-  `vajra next --qa NN` surfaces the session's verify contract read-only (script from
-  `CONSTRAINTS.yaml#verify` `script_pattern`, recorded `.ai/verify/` runs + `latest` — nothing
-  executes); `--check-qa NN` **RE-RUNS the script LIVE** and BLOCKS (exit 1) on non-zero — a
-  recorded green is never accepted (no stale-green: the one marker that is *executable* gets
-  re-executed, not trusted); wired into `--advance` on the session being **CLOSED**
-  (`VAJRA_SKIP_QA_GATE=1`, distinct; skips the slow live run itself — disclosed). No script
-  (NO-CODE GT / legacy) WARNs with the deletion dodge named. Surfaces + enforces, never authors.
-- **Evidence:** `cargo test --lib` **203** (+9); `verify-session-69.sh` **30/30**; dogfooded —
-  closing S69 live-re-ran `verify-session-68.sh` at `--advance` (31/31, the gate's first real
-  firing). Cold review **ACCEPT** (5/5 SHIPPED, 16 adversarial probes — stale-green dead in
-  every configuration; all unevaluable paths fail closed), attested `4d90402d…`.
-- **Honest edge (reviewer-named):** QA's authority is as real as the author lets it be — the
-  deletion dodge (mandated legacy compat) + **hollow-green** (a verify asserting `true` is a
-  live green; QA proves the checks PASS, not that they SUFFICE) + the override skips the check
-  itself. Never pitch as "the code is verified."
-- **S70 = the mandatory NO-CODE ground-truth** (every 5th; last = S65).
+- **Ran:** all 8 `required_audits` + meta-check over the S66→S69 crew arc, evidence re-run live.
+  Verdicts: state/constraints/cost 🟢 · vision/roadmap/knowledge/constitution 🟡 · **dogfood 🔴**
+  (last paid run S63, 7 sessions stale — measured from the cost ledger, not guessed).
+- **Lens A verdict: PARTIAL PASS — the risk moved.** The five-wide form-floor class is honest and
+  S69's live re-run RAISED the floor; the honest worry is now **machinery-without-measurement**
+  (6 verified stations, 0 paid runs through them). New finding: VISION/README carried a
+  measured-false compression ✅ — **corrected this closeout** (S63 measured 0 folds / $0).
+- **Meta-check 🟢 (win): recommendation-rot** — the payload counter was recommended by S25/S60/S65
+  and hand-derived a 4th time here; a recommendation with no owner/age is a polite "no".
+- **Founder decisions (recorded in the GT report §Founder decisions):** S71 = **B, the Demo-er**
+  (sprint-demo: seeing it, the user knows what the session delivered + before→after) · dogfood
+  **deferred by decision** (finish the crew, then founder runs it manually) · compression = make
+  real eventually, **never claim in README/marketing until measured** · payload counter =
+  **backlog, do not lose**.
+- Report: `sessions/session-70-ground-truth.md`. No code, no PRs during audit; closeout on
+  `session-70-closeout` (exempt suffix). S70 spend ~$0.
 
-Between sessions. **Next = S70, NO-CODE GT** (`prompts/70-task-ground-truth.md`, APPROVED +
-gate-checked READY through all three into-stations, new chat).
+Between sessions. **Next = S71, CODE — the Demo-er station**
+(`prompts/71-task-demoer-stage.md`, APPROVED, gate-checked READY through Analyst+Architect+Planner.
+**New chat.**)
 
-## Next Session (S70 — NO-CODE ground-truth)
-- **Type:** GT (mandatory). All 8 `required_audits` + meta-check over the S66→S69 crew arc.
-  Lead lens A: the crew is 6 stations deep — is depth-vs-breadth still honest? (the five-wide
-  disclosed form-floor class · compression 0-fold carried since S63 · payload counter unbuilt
-  across 3 GTs · dogfood 7 sessions stale). Output: `sessions/session-70-ground-truth.md` +
-  exactly 3 ranked S71 CODE candidates (standing: Demo-er · compression truth · payload counter).
-- **New chat.** No code, no PRs; `session-70-closeout` branch for closeout commits only.
-  Closeout still runs `scripts/verify-closeout.sh` (exit 0).
+## Next Session (S71 — the Demo-er station, pipeline station 7: the SHOW gate)
+- **Type:** CODE (founder pick B at the S70 GT close, sharpened: a *sprint demo* — before→after,
+  "seeing it the user knows what this session delivered").
+- `vajra next --demo NN` surfaces the demo contract read-only; `--check-demo NN` RE-RUNS the demo
+  script LIVE (S69 house pattern) and blocks on non-zero/missing elements; rides `--advance` on the
+  CLOSING session (`VAJRA_SKIP_DEMOER_GATE=1` distinct); `before_after` becomes a required demo
+  element; the missing `scripts/demo-session-template.sh` gets created; scaffold propagation.
+- Branch `session-71-demoer-stage`. **S75 = the next mandatory NO-CODE GT.**
 
 ## Always-True Reminders
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
-- Branch: `session-NN-<slug>`. Every 5th session is NO-CODE ground-truth (last = **S65**; next = **S70**).
+- Branch: `session-NN-<slug>`. Every 5th session is NO-CODE ground-truth (last = **S70**; next = **S75**).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S70; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S71; do NOT start it here.
 - **Direction:** product = **provable agent governance**, shaped as a **governed multi-agent SDLC
   pipeline** (`DECISION-001`); fidelity is the load-bearing governance (`DECISION-002`), verdicts
   attested (`DECISION-003`) + chained into a tamper-evident ledger (`DECISION-004`).
   **Pipeline = 6 governed stations** (Analyst WHAT · Architect DESIGN · Planner HOW-plan ·
-  Coder DID · **QA WORKS** · Reviewer/ledger REVIEW) + the authoritative receipt.
-  Founder direction: **finish the crew** — Demo-er → Releaser after the S70 GT, one per session.
-  Also open: truth (compression claim), depth (semantic floors), measurement (payload counter,
-  dogfood cadence), breadth (2nd agent, owner-gated), adoption (install path), readable-roadmap
-  one-pager (derived).
+  Coder DID · QA WORKS · Reviewer/ledger REVIEW) + the authoritative receipt.
+  Founder direction: **finish the crew** — Demo-er (S71) → Releaser, one per session.
+  **S70 founder decisions:** dogfood = founder-led manual run after the crew is done (deferred by
+  decision) · compression = never claimed until measured real · payload counter = backlog.
