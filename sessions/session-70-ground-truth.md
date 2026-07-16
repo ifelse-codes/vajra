@@ -110,6 +110,17 @@ The audit set measures governance and (since S60) knows to ask about payload —
 - All 8 audits answered with verdicts + evidence (AC-1 ✓) · lens-A verdict + 3 ranked candidates (AC-2 ✓) · dogfood + payload stated from ledger/verify/cost evidence, nothing estimated (AC-3 ✓).
 - **No source-code edits, no PRs during audit.** Closeout commits on `session-70-closeout` (exempt).
 
+## Live finding at close (the gates fired for real)
+
+At `vajra next --advance` (69→70) the **Options gate BLOCKED this GT's own close**:
+`sessions/session-69-summary.md` wrote its candidates as `- **🥇 A — …` (emoji before the letter),
+which `option_letter` cannot parse (letter-first contract, S62) → counted 0, exit refused. The 3
+candidates were genuinely recorded; the *form* defeated the parser. Fixed by reordering to the
+parseable `- **A 🥇 — …` (content untouched; ledger unaffected — it reads reviews, not summaries).
+Filed honestly: (a) evidence the close gates fire on a real session, (b) one more form-floor
+example — the gate enforces the letter-first shape, not the recorded meaning. Parser tolerance for
+emoji-first bullets = a candidate S71+ minor.
+
 ## Founder decisions (recorded in-session, 2026-07-16)
 
 | Finding | Founder call |
