@@ -19,8 +19,8 @@
 - **Honest edge (reviewer-named):** the gate's **jurisdiction is self-granted** — deleting
   `## Execution` downgrades to a legacy WARN; any real sha counts, even pre-session. Form +
   existence, not semantics. Never pitch as "execution verified."
-- **S69 = compression truth (fix-or-retire)** — founder delegated the pick ("no preference") →
-  agent call per `feedback-guide-dont-menu`.
+- **S69 = the QA station** — founder pick at close: "finish the crew — QA next" (overrode the
+  agent's compression call; compression carried).
 - **Branch:** `session-68-coder-handoff`. **S68 spend ~$0.**
 - **Date last updated:** 2026-07-16
 
@@ -29,7 +29,7 @@
 - S68 output: `src/coder/mod.rs` + `src/lib.rs` + `src/cli/next.rs` + `src/analyst/mod.rs`
   (template) + `scripts/verify-session-68.sh` + `scripts/demo-session-68.sh` +
   `sessions/session-68-summary.md` + `sessions/session-68-review.md` + `prompts/68` `## Execution`
-  trace (dogfood) + `prompts/69-task-compression-truth.md` (APPROVED, gate-checked READY) + the
+  trace (dogfood) + `prompts/69-task-qa-stage.md` (APPROVED, gate-checked READY) + the
   closeout `.ai/*` sync.
 - **Live evidence:** `cargo test --lib` **194 passed**; 7 commands; **pipeline = 5/5 stations**;
   ledger DERIVED from committed reviews — S68's attested ACCEPT is its next record; commits ≤3
@@ -38,19 +38,20 @@
 
 ## Next Session
 - **Number:** 69
-- **Type:** **CODE** (truth-in-claims). Compression **fix-or-retire**: close the S33
-  `exit_code == Some(0)` gap (real CC never sends it → cargo/npm/pytest always passthrough),
-  MEASURE folds on the captured real corpus (S63 artifacts + `research/`), then make
-  README/VISION/receipt match the measured number — or retire the savings claim. Decided
-  in-session by the measurement; no unmeasured claim survives.
-- **Prompt:** `prompts/69-task-compression-truth.md` (APPROVED, READY through all 3 into-gates).
+- **Type:** **CODE** (founder pick — finish the crew). The **QA station** — pipeline station 6:
+  `vajra next --qa NN` surfaces the verify contract (`scripts/verify-session-NN.sh` +
+  `.ai/verify/` artifacts); `--check-qa NN` **RE-RUNS the script live** and BLOCKS on non-zero
+  (no stale-green); wired into `--advance` on the CLOSING session (`VAJRA_SKIP_QA_GATE=1`);
+  no-script (NO-CODE GT / legacy) WARNs with the dodge named. Crew after: Demo-er → Releaser.
+- **Prompt:** `prompts/69-task-qa-stage.md` (APPROVED, READY through all 3 into-gates).
   **Branch:** `session-69-<slug>` from `main` — **new chat.**
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S69; do NOT start it here.
-- **The 5-station spine is COMPLETE** (Analyst WHAT · Architect DESIGN · Planner HOW · Coder DID ·
-  Reviewer/ledger REVIEW) + authoritative receipt. What remains: depth · truth (S69) · measurement
-  · breadth (owner-gated) · adoption.
+- **The 5-station core is COMPLETE** (Analyst WHAT · Architect DESIGN · Planner HOW · Coder DID ·
+  Reviewer/ledger REVIEW) + authoritative receipt. **Founder direction: finish the crew** — QA
+  (S69) → Demo-er → Releaser (Monitor later). Also open: truth (compression, carried) · depth ·
+  measurement · breadth (owner-gated) · adoption · readable-roadmap one-pager (derived).
 - **House pattern (S67, reapplied S68): existence-gate every recorded marker** — spine ids,
   git shas (`^{commit}` peel).
 - **Deferred debts after S68:** the self-granted-jurisdiction class across all 4 form-floor gates

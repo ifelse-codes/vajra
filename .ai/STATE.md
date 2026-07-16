@@ -24,9 +24,11 @@ attested `f7fddd3b…`. **S68 spend ~$0** (local Rust + one cold-review subagent
 - **All 5 stations built (S68 closed the last gap):** Analyst WHAT (S54+61+62) · Architect DESIGN
   (S67) · Planner HOW-plan (S64) · **Coder DID (S68)** · Reviewer/fidelity+ledger REVIEW (S55–59),
   riding one `vajra next` + the authoritative receipt (S66).
-- **What remains is not more spine:** depth (semantic floors past form+existence), truth
-  (compression claim — **S69, picked**), measurement (payload counter, dogfood cadence), breadth
-  (2nd agent, owner-gated), adoption (crates.io name / install path).
+- **Founder direction at S68 close: FINISH THE CREW.** The vision's full crew is 9 stations; the
+  core 5 are built. Next: **QA (S69, picked)** → Demo-er → Releaser, one per session (Monitor
+  later). Also open: truth (compression claim, carried), depth (semantic floors), measurement
+  (payload counter, dogfood cadence), breadth (2nd agent, owner-gated), adoption (install path),
+  readable-roadmap one-pager (derived, never hand-kept — founder hit the notebook-bloat wall).
 - **House pattern (S67, reapplied S68):** recorded markers must be **existence-gated** — spine ids
   against `docs/adr/`+`docs/decisions/`; execution shas against git objects (`^{commit}` peel).
 
@@ -51,7 +53,9 @@ attested `f7fddd3b…`. **S68 spend ~$0** (local Rust + one cold-review subagent
   Form + existence, not semantics. Same class as the Planner digit-tag + Architect form floor.
   → semantic-check hardening = standing candidate.
 - **🟡 Compression is a no-op on real CC (S63: 0 folds)** while the product implies savings —
-  **S69 (picked) = fix-or-retire.**
+  fix-or-retire, carried candidate (was the agent's S69 call; founder overrode → QA first).
+- **🟡 Verification is a house rule, not a gate** — nothing checks verify-session-NN.sh
+  exists/ran/passed at close (the S69 QA station closes this).
 - **🟡 Planner digit-tag** (S64) · **🟡 Architect form floor** (S67) · **🟡 unknown-model estimate
   = opus upper-bound** (S66; fable-5 price unregistered) · 🟡 Options `Unrecorded`→WARN escape
   (S62) · 🟡 ledger tamper-EVIDENT not PROOF + opt-in (S59) · 🟡 guard nested-repo blindspot (S52)
@@ -60,10 +64,10 @@ attested `f7fddd3b…`. **S68 spend ~$0** (local Rust + one cold-review subagent
 
 ## What Is In Progress
 - **S68 DONE (CODE), closeout committed.** Coder shipped; `verify-session-68.sh` 31/31; cold review
-  ACCEPT (attested `f7fddd3b…`); `--attest-only 68` + `--fidelity-only 68` PASS. **S69 = compression
-  truth (fix-or-retire)** — founder delegated the pick ("no preference") → agent call per
-  `feedback-guide-dont-menu`; `prompts/69-task-compression-truth.md` APPROVED, gate-checked READY
-  through Analyst+Architect+Planner. New chat for S69.
+  ACCEPT (attested `f7fddd3b…`); `--attest-only 68` + `--fidelity-only 68` PASS. **S69 = the QA
+  station** — founder pick at close ("finish the crew — QA next", overriding the agent's
+  compression call); `prompts/69-task-qa-stage.md` APPROVED, gate-checked READY through
+  Analyst+Architect+Planner. New chat for S69.
 - **S70 = the next mandatory NO-CODE GT** (every 5th; last = S65).
 
 ## Cost Tracking

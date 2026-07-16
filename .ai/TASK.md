@@ -18,16 +18,18 @@
 - **Honest edge (reviewer-sharpened):** the gate's jurisdiction is self-granted — deleting
   `## Execution` downgrades to a legacy WARN, and any real sha counts (even pre-session). Form +
   existence, not semantics; never pitch as "execution verified".
-- **S69 = agent call (founder delegated):** compression truth — fix-or-retire the 0-fold claim.
+- **S69 = founder pick: "finish the crew — QA next"** (overrides the agent's compression call;
+  compression stays a carried candidate).
 
-Between sessions. **Next = S69, CODE** (`prompts/69-task-compression-truth.md`, APPROVED +
-gate-checked READY through all three into-stations, new chat).
+Between sessions. **Next = S69, CODE** (`prompts/69-task-qa-stage.md`, APPROVED + gate-checked
+READY through all three into-stations, new chat).
 
-## Next Session (S69 — CODE, truth-in-claims)
-- **Type:** CODE. Compression fix-or-retire: close the S33 `exit_code == Some(0)` gap (real CC
-  never sends it → cargo/npm/pytest always passthrough), MEASURE folds on the real captured corpus
-  (S63 + research/), then make README/VISION/receipt match the measured number — or retire the
-  savings claim entirely. No unmeasured claim survives.
+## Next Session (S69 — CODE, the QA station)
+- **Type:** CODE. QA becomes the 6th governed station: `vajra next --qa NN` surfaces the verify
+  contract (script + `.ai/verify/` artifacts); `--check-qa NN` RE-RUNS the script live and BLOCKS
+  on non-zero (no stale-green); wired into `--advance` on the CLOSING session
+  (`VAJRA_SKIP_QA_GATE=1`); no script (NO-CODE GT / legacy) WARNs, dodge named. Crew next:
+  Demo-er, then Releaser.
 - **New chat.** Branch `session-69-<slug>` from `main`. Closeout runs `scripts/verify-closeout.sh`
   (exit 0). **S70 = mandatory NO-CODE GT.**
 
@@ -41,5 +43,7 @@ gate-checked READY through all three into-stations, new chat).
   attested (`DECISION-003`) + chained into a tamper-evident ledger (`DECISION-004`).
   **The station spine is COMPLETE: 5 governed stations** (Analyst WHAT · Architect DESIGN ·
   Planner HOW-plan · Coder DID · Reviewer/ledger REVIEW) + the authoritative receipt.
-  What remains = depth (semantic floors), truth (compression claim — S69), measurement
-  (payload counter, dogfood cadence), breadth (2nd agent, owner-gated), adoption (install path).
+  Founder direction at S68 close: **finish the crew** — QA (S69) → Demo-er → Releaser, one per
+  session. Also open: truth (compression claim), depth (semantic floors), measurement (payload
+  counter, dogfood cadence), breadth (2nd agent, owner-gated), adoption (install path),
+  readable-roadmap one-pager (derived).
