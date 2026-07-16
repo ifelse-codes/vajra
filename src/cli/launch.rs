@@ -169,7 +169,9 @@ fn print_receipt(session_start: SystemTime, stats_path: &Path) -> Option<f64> {
 
     match meter::meter_session(&jsonl.0, jsonl.1.as_deref(), compression_stats) {
         Ok(cost) => {
-            let total = cost.total_dollars;
+            // Budget against the authoritative charge when the JSONL carried it, else the
+            // estimate — never the inflated token recompute of an unknown model (S66).
+            let total = cost.billed_dollars();
             eprint!("\n{}", meter::format_receipt(&cost));
             Some(total)
         }

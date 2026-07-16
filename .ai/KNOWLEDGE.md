@@ -155,6 +155,7 @@ pub struct CompressionRequest {
 - **stderr-on-exit-0:** `cargo build` with warnings (exit 0) compresses stdout, folding individual warning details. stderr summary ("N warnings emitted") is preserved. Agent may need to re-run to see warning specifics.
 - **Savings estimate:** receipt uses ~12 tokens/line to estimate saved tokens. Rough, labeled as estimate.
 - **Pricing compiled-in:** binary update needed when Anthropic changes pricing. Stale pricing shows slightly wrong numbers but the receipt's `[estimated]` marker flags schema drift.
+- **Receipt authoritative-first (S66, permanent):** the receipt headline is the JSONL's own `total_cost_usd` (the headless `type:"result"` line) when present — `SessionCost::billed_dollars()` = authoritative-or-estimate, used by both the headline and the budget cap. The compiled-in token recompute is a **labeled `[estimate]` fallback**, never "the bill." A model absent from `MODEL_PRICING` (`is_known_model` = false, e.g. `claude-fable-5`) is estimated at the opus upper bound but **flagged** (`not in pricing table` warning + `[estimate · … priced as opus upper bound]` label), never silently billed as opus — the root cause of the retired ~4.71× overstatement (S63: $5.9665 est vs $1.2662 real). Seam: a fable run with **no** `total_cost_usd` still headlines the labeled inflated estimate (headless always carries it → disclosed-not-billed). The `line_dollars` formula (ADR-0004 §2.5) is unchanged — only the source-of-truth preference is new, so ADR-0004 was not amended.
 
 ## 10. Ground-Truth Track Record
 
