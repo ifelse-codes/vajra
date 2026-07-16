@@ -73,7 +73,9 @@ COMPLETE plus a 6th station whose gate re-executes evidence live. Interrogate ho
    signs off before code resumes. covers: 1, 2
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha — the GT report/closeout commits are recordable; the Coder gate BLOCKS closing S70 until every numbered plan step records a commit that EXISTS>
+- step 1 — done: 7a2ea22
+- step 2 — done: 7a2ea22
+- step 3 — done: 7a2ea22
 
 ## Guardrails
 - **NO CODE.** No `src/`/scripts edits, no commits outside a `-closeout`/`-enforcement` branch,
