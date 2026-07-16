@@ -43,7 +43,7 @@ disclosed-class, but the deletion dodge must be named as loudly as the sha one (
 summary).
 
 ## Verdict
-**ACCEPT** — "All five acceptance criteria are shipped with real, executable evidence — including
+**Verdict:** ACCEPT — "All five acceptance criteria are shipped with real, executable evidence — including
 the one behavior the S67 lesson demanded (existence-gating, which my blob/tree/short-sha probes
 could not defeat) — and every guardrail holds. The two holes I could construct (section-deletion
 bypass, pre-session-sha pass) are consequences of behavior the contract itself mandates or
