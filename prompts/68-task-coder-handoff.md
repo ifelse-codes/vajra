@@ -58,6 +58,12 @@ spine (no new store, no `execution.md`).
 4. `scripts/verify-session-68.sh` + `scripts/demo-session-68.sh` proving all behaviors E2E in a
    temp git repo (real commits, real + fake shas). covers: 5
 
+## Execution (the Coder gate — recorded as each plan step landed)
+- step 1 — done: b06444d
+- step 2 — done: db15486
+- step 3 — done: db15486
+- step 4 — done: 9763568
+
 ## Guardrails
 - **One story.** New `src/coder/mod.rs` + `src/cli/next.rs` + `src/analyst/mod.rs` (template) +
   `src/lib.rs` + verify/demo. Max 3 files per atomic commit. **No 8th command** (rides `vajra next`).

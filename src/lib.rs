@@ -3,6 +3,7 @@ pub mod analyst;
 pub mod architect;
 pub mod budget;
 pub mod cli;
+pub mod coder;
 pub mod engine;
 pub mod launcher;
 pub mod maturity;

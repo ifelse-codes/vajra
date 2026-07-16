@@ -7,6 +7,7 @@ use std::process::Command;
 
 use crate::analyst;
 use crate::architect;
+use crate::coder;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
 
@@ -45,6 +46,13 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-design") {
         return run_check_design(args.get(i + 1));
+    }
+    // The Coder stage (S68) also rides `vajra next` — no 8th command.
+    if let Some(i) = args.iter().position(|a| a == "--exec") {
+        return run_exec(args.get(i + 1));
+    }
+    if let Some(i) = args.iter().position(|a| a == "--check-exec") {
+        return run_check_exec(args.get(i + 1));
     }
     if args.iter().any(|a| a == "--intake") {
         return run_intake();
@@ -163,6 +171,48 @@ fn run_check_design(nn: Option<&String>) -> Result<()> {
 
     let verdict = architect::design_gate(&root, session);
     println!("=== architect: design for session {session:02} ===");
+    println!(
+        "prompt: {}",
+        verdict.prompt_path.as_deref().unwrap_or("(none)")
+    );
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --exec NN` — the Coder's SURFACE step (S68): print session NN's plan steps as the
+/// execution checklist with each step's recorded state (done `<sha>` / unrecorded). Read-only;
+/// the binary surfaces the trace, it never codes.
+fn run_exec(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--exec")?;
+    let root = repo_root()?;
+    let verdict = coder::exec_gate(&root, session);
+    print!("{}", coder::format_exec_checklist(&verdict));
+    Ok(())
+}
+
+/// `vajra next --check-exec NN` — the Coder's GATE (S68): does session NN record a `done: <sha>`
+/// naming a commit that EXISTS for every numbered plan step? Exit 1 on an unrecorded/fake trace
+/// (BLOCK); pass on a fully recorded one; a legacy prompt (no `## Execution`) WARNS at most.
+/// Mirrors `--check-design`.
+fn run_check_exec(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-exec")?;
+    let root = repo_root()?;
+
+    let verdict = coder::exec_gate(&root, session);
+    println!("=== coder: execution for session {session:02} ===");
     println!(
         "prompt: {}",
         verdict.prompt_path.as_deref().unwrap_or("(none)")
@@ -389,6 +439,37 @@ fn run_advance() -> Result<()> {
             bail!(
                 "refusing to advance: session {current:02} does not record exactly 3 ranked next \
                  candidates (Options gate). Fix its summary, or set VAJRA_SKIP_ANALYST_GATE=1."
+            );
+        }
+    }
+
+    // Coder gate (S68): the pipeline's CODE/execution bookend. Like the Options gate it binds on
+    // the session being CLOSED — execution happened during `current`, so closing it requires each
+    // numbered plan step to record a `done: <sha>` naming a commit that EXISTS (`git cat-file -e`
+    // — the S67 existence lesson, git-shaped). An unrecorded/fake trace BLOCKS at L2/L3; a legacy
+    // prompt (no `## Execution`) WARNS at most. `VAJRA_SKIP_CODER_GATE=1` is the documented
+    // override (distinct from the other stages', so each stage overrides alone).
+    let exec_verdict = coder::exec_gate(&root, current);
+    for w in &exec_verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if exec_verdict.blocked() {
+        eprintln!(
+            "[vajra coder] session {current:02} cannot close — its execution trace is not recorded:"
+        );
+        for r in &exec_verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_CODER_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_CODER_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {current:02}'s plan steps lack a recorded, existing \
+                 commit (Coder gate). Run `vajra next --exec {current:02}`, record \
+                 `step N — done: <sha>` per step in the prompt's `## Execution`, or set \
+                 VAJRA_SKIP_CODER_GATE=1 to override."
             );
         }
     }

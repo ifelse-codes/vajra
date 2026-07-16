@@ -3,66 +3,76 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-`session-67-architect-stage` — S67 (CODE, founder pick A) complete, closeout in progress. Shipped the
-**Architect** — the pipeline's DESIGN gate: recorded `design-significant:` marker + a substantive
-`## Design` rationale citing a spine record that EXISTS. Two-pass independent cold review = **ACCEPT**
-(pass 1 found + we closed the made-up-id hole; fresh pass 2 re-accepted), attested `fb09c94b…`.
-**S67 spend ~$0** (local Rust + two cold-review subagents).
+`session-68-coder-handoff` — S68 (CODE) complete, closeout committed, PR open — founder call to
+merge. Shipped the **Coder** — the pipeline's CODE/execution gate (the LAST station): each numbered
+plan step must record `step N — done: <sha>` in the prompt's `## Execution`, existence-gated
+(`git cat-file -e <sha>^{commit}`). Cold review **ACCEPT** (5/5 SHIPPED, 9 adversarial probes),
+attested `f7fddd3b…`. **S68 spend ~$0** (local Rust + one cold-review subagent).
 
 ## Active PRs
-- S67: closeout from `session-67-architect-stage` → `main` (architect module + CLI + verify/demo +
-  `.ai/` sync). Founder call to merge.
-- Merged: **S66 [#63](https://github.com/ifelse-codes/vajra/pull/63)** · S65 GT [#62](https://github.com/ifelse-codes/vajra/pull/62)
-  · S64 [#61](https://github.com/ifelse-codes/vajra/pull/61) · S62 [#59](https://github.com/ifelse-codes/vajra/pull/59).
-- Housekeeping: after any S67 merge, checkout `main` + prune merged `session-67-*` / `session-66-*` locals.
+- S68: `session-68-coder-handoff` → `main` (coder module + CLI + template + verify/demo + `.ai/`
+  sync + S69 prompt). Founder call to merge.
+- Merged: **S67 [#64](https://github.com/ifelse-codes/vajra/pull/64)** · S66
+  [#63](https://github.com/ifelse-codes/vajra/pull/63) · S65 GT [#62](https://github.com/ifelse-codes/vajra/pull/62)
+  · S64 [#61](https://github.com/ifelse-codes/vajra/pull/61).
+- Housekeeping: after the S68 merge, checkout `main` + prune merged `session-68-*` / `session-67-*` locals.
 
-## Direction (governance is the product — S60 GT pivot "PAYLOAD over gate-hardening" still in force)
+## Direction (governance is the product — the station spine is now COMPLETE)
 - **The product = provable agent governance**, shaped as a **governed multi-agent SDLC pipeline**
-  (`VISION.md` + `DECISION-001`). Load-bearing governance = **FIDELITY** (delivered what was asked), verified
-  **independently** (`DECISION-002`), attested (`DECISION-003`), chained into a tamper-**evident** ledger (`DECISION-004`).
-- **The pipeline has FOUR governed stations + a Reviewer/ledger gate.** Analyst (S54+S61+S62) governs the WHAT;
-  **Architect (S67) governs the DESIGN** (recorded, existence-gated spine citations); Planner (S64) the HOW-plan
-  (coverage-checked `## Plan`); the fidelity gate + attested ledger (S55–59) is the REVIEW bookend.
-  **Gap = the governed CODE handoff (Coder)** — S68 (A, picked) closes the last station.
-- **House pattern hardened (S67):** recorded markers must be **existence-gated** — a citation must name a
-  record that exists (spine ids today; git shas for the Coder next).
+  (`VISION.md` + `DECISION-001`). Fidelity is the load-bearing governance (`DECISION-002`),
+  verdicts attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
+- **All 5 stations built (S68 closed the last gap):** Analyst WHAT (S54+61+62) · Architect DESIGN
+  (S67) · Planner HOW-plan (S64) · **Coder DID (S68)** · Reviewer/fidelity+ledger REVIEW (S55–59),
+  riding one `vajra next` + the authoritative receipt (S66).
+- **Founder direction at S68 close: FINISH THE CREW.** The vision's full crew is 9 stations; the
+  core 5 are built. Next: **QA (S69, picked)** → Demo-er → Releaser, one per session (Monitor
+  later). Also open: truth (compression claim, carried), depth (semantic floors), measurement
+  (payload counter, dogfood cadence), breadth (2nd agent, owner-gated), adoption (install path),
+  readable-roadmap one-pager (derived, never hand-kept — founder hit the notebook-bloat wall).
+- **House pattern (S67, reapplied S68):** recorded markers must be **existence-gated** — spine ids
+  against `docs/adr/`+`docs/decisions/`; execution shas against git objects (`^{commit}` peel).
 
 ## What Currently Works
-- **The Architect stage (S67).** `vajra next --design NN` surfaces `docs/adr/` + `docs/decisions/` with the
-  prompt's citations ✓-marked; `--check-design NN` BLOCKS Missing/Placeholder/made-up-id (exit 1); explicit
-  `no` + legacy prompts WARN at most; rides `--advance` between the Analyst and Planner gates
-  (`VAJRA_SKIP_ARCHITECT_GATE=1`, each stage alone); scaffold carries the `## Design` placeholder.
-  Empty-spine repos (fresh `vajra init`) waive the citation requirement.
-- **The Analyst (S54+S61+S62) + Planner (S64) stages** riding the same `vajra next`; the receipt is
-  **AUTHORITATIVE** (S66 — headline = JSONL `total_cost_usd`, estimate labeled, unknown models flagged).
-- **Fidelity gate (S56) + reviewer brain (S55) + attestation (S58) + tamper-evident ledger (S59).** The ledger
-  is DERIVED from committed `sessions/session-*-review.md` — S67's attested ACCEPT is its next record.
+- **The Coder stage (S68).** `vajra next --exec NN` surfaces the plan → recorded-commit checklist
+  (✓ done / ✗ fake-classified-unrecorded / blank); `--check-exec NN` BLOCKS unrecorded/fake (exit 1);
+  legacy prompts (no `## Execution`) + plan-less prompts WARN only; rides `--advance` on the
+  **CLOSING** session (`VAJRA_SKIP_CODER_GATE=1`, distinct override); scaffold carries the
+  `## Execution` placeholder. Blob/tree/short/uppercase shas handled (commit-peel).
+- **Analyst + Architect + Planner + Reviewer/ledger** riding the same `vajra next`; receipt
+  AUTHORITATIVE (S66). The ledger is DERIVED from committed `sessions/session-*-review.md` —
+  S68's attested ACCEPT is its next record.
 - **The governed loop, MEASURED end-to-end (S63 paid dogfood, $1.27, ACCEPT).**
-- **`vajra claude · next (+Analyst +Architect +Planner) · check · init · estimate · meter · hook`** — 7 commands.
-  `cargo test --lib` **183 passed**. Enforcement moat (10 hooks, L1/L2/L3, fail-closed) + Darshan + Varta hold live.
+- **`vajra claude · next (+4 station gates) · check · init · estimate · meter · hook`** — 7 commands.
+  `cargo test --lib` **194 passed**. Enforcement moat (10 hooks, L1/L2/L3, fail-closed) + Darshan +
+  Varta hold live.
 
 ## What Is Broken / Weak
-- **🟡 The Architect gate is a form floor (S67 fakest green, reviewer-sharpened).** A bare `ADR-0001` line
-  satisfies both rationale and citation; an **ADR deviation passes by citing the ADR it deviates from**
-  (nothing reconciles it); `design-significant: no` is self-declared. Disclosed everywhere; same class as the
-  Planner digit-tag. → semantic-check hardening = S69 candidate.
-- **🟡 Compression is a no-op on real CC (S63: 0 folds).** The product still implies savings the loop doesn't
-  deliver. → S69 candidate (fix or formally retire the claim).
-- **🟡 Planner coverage is a self-asserted digit-tag** (S64) · **🟡 unknown-model estimate is opus upper-bound**
-  (S66; register real fable-5 price when known) · **🟡 L1-advise branch of the Architect advance-wiring is
-  implemented but unexercised** (S67 review PARTIAL) · 🟡 Options `Unrecorded`→WARN escape (S62) · 🟡 ledger
-  tamper-EVIDENT not PROOF + opt-in (S59) · 🟡 guard nested-repo blindspot (S52) · install path (crates.io name
-  taken) · 🟡 KNOWLEDGE.md §6 changelog bloat (GT decision: leave).
-- **🟡 The pipeline-payload counter (recommended S25, S60, S65) is STILL unbuilt** — GTs re-derive by hand.
+- **🟡 The Coder gate's jurisdiction is self-granted (S68 fakest green, reviewer-sharpened).**
+  Deleting `## Execution` downgrades a red gate to a legacy WARN (AC-4's mandated back-compat
+  cannot tell a pre-S68 prompt from a dodge); any real sha counts, even one predating the session.
+  Form + existence, not semantics. Same class as the Planner digit-tag + Architect form floor.
+  → semantic-check hardening = standing candidate.
+- **🟡 Compression is a no-op on real CC (S63: 0 folds)** while the product implies savings —
+  fix-or-retire, carried candidate (was the agent's S69 call; founder overrode → QA first).
+- **🟡 Verification is a house rule, not a gate** — nothing checks verify-session-NN.sh
+  exists/ran/passed at close (the S69 QA station closes this).
+- **🟡 Planner digit-tag** (S64) · **🟡 Architect form floor** (S67) · **🟡 unknown-model estimate
+  = opus upper-bound** (S66; fable-5 price unregistered) · 🟡 Options `Unrecorded`→WARN escape
+  (S62) · 🟡 ledger tamper-EVIDENT not PROOF + opt-in (S59) · 🟡 guard nested-repo blindspot (S52)
+  · install path (crates.io name taken) · 🟡 KNOWLEDGE.md §6 changelog bloat (GT decision: leave).
+- **🟡 The pipeline-payload counter (recommended S25, S60, S65) is STILL unbuilt.**
 
 ## What Is In Progress
-- **S67 DONE (CODE), closeout in progress.** Architect shipped; `verify-session-67.sh` 31/31; two-pass cold
-  review ACCEPT (attested `fb09c94b…`). **Founder pick → S68 = A** (the Coder handoff — the LAST station) ·
-  `prompts/68-task-coder-handoff.md` (APPROVED, gate-checked READY through Analyst+Architect+Planner). New chat for S68.
+- **S68 DONE (CODE), closeout committed.** Coder shipped; `verify-session-68.sh` 31/31; cold review
+  ACCEPT (attested `f7fddd3b…`); `--attest-only 68` + `--fidelity-only 68` PASS. **S69 = the QA
+  station** — founder pick at close ("finish the crew — QA next", overriding the agent's
+  compression call); `prompts/69-task-qa-stage.md` APPROVED, gate-checked READY through
+  Analyst+Architect+Planner. New chat for S69.
 - **S70 = the next mandatory NO-CODE GT** (every 5th; last = S65).
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
 - Session 36: ~$61.4 · Session 46: ~$3.84 · Session 51: ~$1.52 · Session 52: ~$4.95 · Session 63: ~$1.27.
-- Session 53–62, 64, 65, 66, 67: ~$0 each (docs/code + negligible cold-review subagents).
-- Cumulative: **~$73.6**. Dogfood gate 🟢 GREEN — last paid run S63 ($1.27); measured, not guessed.
+- Session 53–62, 64–68: ~$0 each (docs/code + negligible cold-review subagents).
+- Cumulative: **~$73.6**. Dogfood gate 🟢→🟡 aging — last paid run S63 ($1.27), 5 sessions ago;
+  measured, not guessed.
