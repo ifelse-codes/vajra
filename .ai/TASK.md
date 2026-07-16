@@ -2,38 +2,44 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 67 — The Architect stage (pipeline DESIGN gate) — COMPLETE (CODE)
+## Session 68 — The Coder handoff (pipeline CODE gate — the LAST station) — COMPLETE (CODE)
 
-- **Shipped:** the pipeline's 4th governed station. `vajra next --design NN` surfaces the locked design
-  spine (`docs/adr/` + `docs/decisions/`) with the prompt's citations ✓-marked; `--check-design NN` BLOCKS
-  (exit 1) a design-significant prompt (recorded `design-significant: yes` marker, never guessed) whose
-  `## Design` is missing/placeholder/citing no record that EXISTS; wired into `--advance` between the
-  Analyst and Planner gates (`VAJRA_SKIP_ARCHITECT_GATE=1`). Surfaces + enforces, never authors.
-- **Reviewer loop win:** cold pass 1 (ACCEPT) found made-up `ADR-9999` passing the citation check →
-  closed in-session (existence-gated) → fresh pass 2 = **ACCEPT**, attested `fb09c94b…`.
-- **Evidence:** `cargo test --lib` **183** (+13); `verify-session-67.sh` **31/31**; dogfooded (the S67
-  prompt passes its own gate; the S68 prompt gate-checked READY through all three stations).
-- **Honest edge:** a form floor — a bare `ADR-0001` line satisfies rationale + citation; an ADR deviation
-  passes by citing the ADR it deviates from. Same class as the Planner digit-tag; never pitch as "design verified".
-- **Founder pick → S68 = A** (the Coder handoff — governed CODE stage, the LAST station).
+- **Shipped:** the pipeline's 5th and last governed station. `vajra next --exec NN` surfaces the
+  covered plan as the execution checklist (each step's recorded state ✓/✗/blank); `--check-exec NN`
+  BLOCKS (exit 1) when any numbered plan step lacks a recorded `step N — done: <sha>` in the
+  prompt's `## Execution` whose sha names a commit that **EXISTS** (`git cat-file -e <sha>^{commit}`
+  — the S67 existence lesson, git-shaped); wired into `--advance` on the session being **CLOSED**
+  (`VAJRA_SKIP_CODER_GATE=1`). Legacy prompts (no `## Execution`) WARN at most. Scaffold gains the
+  `## Execution` placeholder. Surfaces + enforces, never codes.
+- **Evidence:** `cargo test --lib` **194** (+11); `verify-session-68.sh` **31/31** (incl. the
+  S67-flagged L1-advise branch, now exercised); dogfooded (the S68 prompt records + passes its own
+  trace; live tamper blocked). Cold review **ACCEPT** (5/5 SHIPPED, 9 adversarial probes —
+  blob/tree/short-sha all defeated), attested `f7fddd3b…`.
+- **Honest edge (reviewer-sharpened):** the gate's jurisdiction is self-granted — deleting
+  `## Execution` downgrades to a legacy WARN, and any real sha counts (even pre-session). Form +
+  existence, not semantics; never pitch as "execution verified".
+- **S69 = agent call (founder delegated):** compression truth — fix-or-retire the 0-fold claim.
 
-Between sessions. **Next = S68, CODE** (`prompts/68-task-coder-handoff.md`, APPROVED + gate-checked READY, new chat).
+Between sessions. **Next = S69, CODE** (`prompts/69-task-compression-truth.md`, APPROVED +
+gate-checked READY through all three into-stations, new chat).
 
-## Next Session (S68 — CODE, founder pick A)
-- **Type:** CODE. Add the pipeline's **Coder** — a governed CODE/execution gate on the session being CLOSED:
-  `vajra next --exec NN` surfaces the covered plan as the execution checklist; `--check-exec NN` BLOCKS a
-  covered plan whose steps lack a recorded `done: <sha>` where the sha EXISTS (`git cat-file -e` — the S67
-  existence lesson); wired into `--advance` on the closing session (`VAJRA_SKIP_CODER_GATE=1`).
-  Rides `vajra next` (no 8th command); surfaces + enforces a recorded execution trace, never codes.
-- **New chat.** Branch `session-68-<slug>` from `main`. Closeout runs `scripts/verify-closeout.sh` (exit 0).
+## Next Session (S69 — CODE, truth-in-claims)
+- **Type:** CODE. Compression fix-or-retire: close the S33 `exit_code == Some(0)` gap (real CC
+  never sends it → cargo/npm/pytest always passthrough), MEASURE folds on the real captured corpus
+  (S63 + research/), then make README/VISION/receipt match the measured number — or retire the
+  savings claim entirely. No unmeasured claim survives.
+- **New chat.** Branch `session-69-<slug>` from `main`. Closeout runs `scripts/verify-closeout.sh`
+  (exit 0). **S70 = mandatory NO-CODE GT.**
 
 ## Always-True Reminders
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`. Every 5th session is NO-CODE ground-truth (last = **S65**; next = **S70**).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S68; do NOT start it here.
-- **Direction:** product = **provable agent governance**, shaped as a **governed multi-agent SDLC pipeline**
-  (`DECISION-001`); fidelity is the load-bearing governance (`DECISION-002`), verdicts attested
-  (`DECISION-003`) + chained into a tamper-evident ledger (`DECISION-004`). Pipeline = **4 governed stations**
-  (Analyst WHAT · Architect DESIGN · Planner HOW-plan · Reviewer/ledger REVIEW) + the authoritative receipt.
-  **S68 = A adds the CODE station (Coder)** — the last station gap; the spine is then complete.
+- **New session = new chat** — open a fresh chat for S69; do NOT start it here.
+- **Direction:** product = **provable agent governance**, shaped as a **governed multi-agent SDLC
+  pipeline** (`DECISION-001`); fidelity is the load-bearing governance (`DECISION-002`), verdicts
+  attested (`DECISION-003`) + chained into a tamper-evident ledger (`DECISION-004`).
+  **The station spine is COMPLETE: 5 governed stations** (Analyst WHAT · Architect DESIGN ·
+  Planner HOW-plan · Coder DID · Reviewer/ledger REVIEW) + the authoritative receipt.
+  What remains = depth (semantic floors), truth (compression claim — S69), measurement
+  (payload counter, dogfood cadence), breadth (2nd agent, owner-gated), adoption (install path).
