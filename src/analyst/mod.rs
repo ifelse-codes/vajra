@@ -56,6 +56,10 @@ pub const PROMPT_TEMPLATE: &str = r#"# Session {{NN}} — {{SLUG}}: <one-line go
 2. <A criterion a non-author could check by running one command.>
 3. <The honest verdict this session must state plainly.>
 
+## Design (the Architect gate — record the decision, cite the ADR/DECISION it rests on)
+- design-significant: <yes — new/changed interface, new module, or an ADR deviation | no — pure fix>
+- <rationale — why this shape and not the alternative, citing the ADR/DECISION ids it rests on; the Architect gate BLOCKS a design-significant prompt until this is substantive>
+
 ## Plan (ordered steps — cite the acceptance criteria each step covers, e.g. `covers: 1, 3`)
 1. <first ordered step — replace me; annotate which acceptance criteria it satisfies>
 2. <next step — the Planner gate BLOCKS until every acceptance criterion above is covered>

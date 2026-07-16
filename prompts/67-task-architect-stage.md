@@ -36,6 +36,15 @@ owns the existing `.ai/` + `docs/adr/` + `prompts/` spine (no new store, no `des
 6. **WHEN** `scripts/verify-session-67.sh` runs **THEN** it proves surface + block-placeholder +
    pass-substantive + non-significant-warn + advance-wiring in a temp git repo; exit 0.
 
+## Design (the Architect gate — recorded rationale; this prompt dogfoods its own gate)
+- design-significant: yes — new module `src/architect/` + new `vajra next --design/--check-design` surface
+- The gate reuses the pipeline's proven "enforce a RECORDED thing" shape (DECISION-001's governed
+  stations; DECISION-002's independent-verification posture): significance is a recorded marker
+  (mirrors S64's `covers:` digit-tag), substance = a non-placeholder rationale citing the locked
+  spine. Rides `vajra next` as a sibling of the `planner` module per ADR-0002's thin-CLI module
+  layout — no 8th command, no new store (`docs/adr/` + `docs/decisions/` + the prompt ARE the
+  design record), no new dependency.
+
 ## Plan (ordered steps — cite the acceptance criteria each step covers)
 1. New `src/architect/mod.rs` (registered in `lib.rs`): parse the prompt's design-significance marker +
    `## Design` rationale → `DesignState{NotSignificant, Missing, Placeholder, Substantive}`; surface the
