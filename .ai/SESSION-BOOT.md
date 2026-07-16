@@ -1,43 +1,47 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 66 — COMPLETE
-- **Type:** **CODE** (founder pick B). Make the vajra receipt **authoritative** — retire the 🔴 ~4.71× overstatement.
-- **What shipped:** the receipt headline is now the JSONL's own `total_cost_usd` when present; the token
-  recompute is demoted to a labeled `[estimate]`; unknown models (`claude-fable-5`) are flagged, never silently
-  priced as opus. `SessionCost::billed_dollars()` (authoritative-or-estimate) drives the headline + the budget cap.
-- **Root cause retired (S65):** `src/meter/mod.rs` recomputed from a table lacking fable-5 → opus default (15/75);
-  `total_cost_usd` never read. S63 proof: $5.9665 estimate vs $1.2662 real (4.71×) — reproduced exactly + demoted.
-- **Evidence:** `cargo test --lib` **170** (+2); `verify-session-66.sh` **17/17**; fidelity gate + attestation
-  **PASS** (`3788c443…`). Independent cold review = **ACCEPT** (5 SHIPPED · 0 PARTIAL · 0 NOT-BUILT).
-- **Honest edge (reviewer-named):** `UNKNOWN_MODEL_PRICING` is a behavioral no-op rename; the real fix is the
-  authoritative preference. A no-`total_cost_usd` fable run still headlines the labeled inflated number (headless
-  always carries it → disclosed-not-billed). Real fable-5 pricing deferred (no confirmed number).
-- **Founder pick → S67 = A** (the Architect / DESIGN gate), the standing recommendation + roadmap next.
-- **Branch:** `session-66-receipt-authoritative`. **S66 spend ~$0.**
+- **Number:** 67 — COMPLETE
+- **Type:** **CODE** (founder pick A). The **Architect** — the pipeline's DESIGN gate (4th governed station).
+- **What shipped:** `src/architect/mod.rs` — significance = a **recorded marker** (`design-significant: yes|no`,
+  never guessed); substance = a non-placeholder `## Design` rationale citing a spine record that **EXISTS**
+  (`docs/adr/` + `docs/decisions/`; made-up `ADR-9999` blocks). `vajra next --design NN` surfaces the spine
+  (citations ✓-marked); `--check-design NN` blocks exit 1; rides `--advance` between the Analyst and Planner
+  gates (`VAJRA_SKIP_ARCHITECT_GATE=1`). Scaffold gains the `## Design` placeholder. No 8th command, no new
+  dep, no second store.
+- **Evidence:** `cargo test --lib` **183** (+13); `verify-session-67.sh` **31/31**; **two-pass** independent
+  cold review — pass 1 (ACCEPT) found the made-up-id hole → closed → fresh pass 2 = **ACCEPT** (4 SHIPPED ·
+  2 PARTIAL-minor), attested `fb09c94b…`. Dogfood: the S67 prompt passes its own gate.
+- **Honest edge (reviewer-named):** a form floor — a bare `ADR-0001` line satisfies rationale + citation; an
+  ADR deviation passes by citing the ADR it deviates from. Never pitch as "design verified."
+- **Founder pick → S68 = A** (the Coder handoff — the governed CODE stage, the LAST station).
+- **Branch:** `session-67-architect-stage`. **S67 spend ~$0.**
 - **Date last updated:** 2026-07-16
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 66.
-- S66 output: `src/meter/mod.rs` + `src/cli/launch.rs` + `scripts/verify-session-66.sh` +
-  `scripts/demo-session-66.sh` + `sessions/session-66-summary.md` + `sessions/session-66-review.md` +
-  `prompts/67-task-architect-stage.md` (APPROVED, Planner-gate READY) + the closeout `.ai/*` sync.
-- **Live evidence:** `cargo test --lib` **170 passed**; 7 commands; ledger **INTACT**, 10 records S54→S64,
-  head `202ff2c1…`; git clean at boot. 3 commits, ≤3 files each.
+- `.ai/SESSION` = 67.
+- S67 output: `src/architect/mod.rs` + `src/lib.rs` + `src/analyst/mod.rs` (template) + `src/cli/next.rs` +
+  `scripts/verify-session-67.sh` + `scripts/demo-session-67.sh` + `sessions/session-67-summary.md` +
+  `sessions/session-67-review.md` + `prompts/67` design section (dogfood) +
+  `prompts/68-task-coder-handoff.md` (APPROVED, gate-checked READY) + the closeout `.ai/*` sync.
+- **Live evidence:** `cargo test --lib` **183 passed**; 7 commands; ledger DERIVED from committed reviews —
+  S67's attested ACCEPT is its next record; commits ≤3 files each.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 67
-- **Type:** **CODE** (founder pick A). The **Architect** stage — a governed DESIGN gate: `vajra next --design NN`
-  surfaces the relevant locked ADRs; `--check-design NN` BLOCKS a design-significant prompt with no real
-  `## Design` rationale (exit 1); wired into `--advance` (`VAJRA_SKIP_ARCHITECT_GATE=1`). Surfaces + enforces, never authors.
-- **Prompt:** `prompts/67-task-architect-stage.md` (APPROVED). **Branch:** `session-67-<slug>` from `main` — **new chat.**
+- **Number:** 68
+- **Type:** **CODE** (founder pick A). The **Coder** handoff — the governed CODE stage (the LAST station):
+  `vajra next --exec NN` surfaces the covered plan as the execution checklist; `--check-exec NN` BLOCKS a
+  covered plan whose steps lack a recorded `done: <sha>` that EXISTS (`git cat-file -e`); wired into
+  `--advance` on the CLOSING session (`VAJRA_SKIP_CODER_GATE=1`). Surfaces + enforces, never codes.
+- **Prompt:** `prompts/68-task-coder-handoff.md` (APPROVED). **Branch:** `session-68-<slug>` from `main` — **new chat.**
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S67; do NOT start it here.
-- **Three governed stations + a Reviewer/ledger gate + an authoritative receipt.** DESIGN (Architect) = S67;
-  the Coder/CODE handoff is the last pipeline gap → S68+.
-- **Deferred debts after S66:** unknown-model estimate = opus upper-bound (🟡, register real fable-5 price when known)
-  + compression 0-fold no-op (🟡, S68 candidate) + strengthen a gate beyond a recorded-marker digit-tag (🟡)
-  + KNOWLEDGE.md compression (🟡, flat-bloated, low ROI).
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S68; do NOT start it here.
+- **Four governed stations + Reviewer/ledger + authoritative receipt.** CODE (Coder) = S68 → the 5-station
+  spine is complete.
+- **House pattern (S67): existence-gate every recorded marker** — spine ids today, git shas for the Coder.
+- **Deferred debts after S67:** Architect/Planner form floors (🟡, semantic-check = S69 candidate) +
+  compression 0-fold no-op (🟡, S69 candidate) + unknown-model opus upper-bound (🟡) + L1-advise branch
+  unexercised (🟡) + pipeline-payload counter still unbuilt (S25/S60/S65) + KNOWLEDGE.md §6 bloat (leave).
 - **S70 = the next mandatory NO-CODE GT.**
