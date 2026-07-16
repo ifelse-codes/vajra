@@ -133,6 +133,14 @@ check_design_blocks_uncited() {
 }
 run_check "e2e-check-design-blocks-uncited" check_design_blocks_uncited
 
+# Significant + real text citing a MADE-UP record (ADR-9999) -> BLOCK (the S67 cold-review hole:
+# a citation only counts when the record EXISTS in the spine).
+check_design_blocks_nonexistent_ref() {
+  write_p51 $'## Design\n- design-significant: yes — new interface\n- fine per ADR-9999.'
+  ( cd "$E2E" && ! "$BIN" next --check-design 51 >/dev/null 2>&1 )
+}
+run_check "e2e-check-design-blocks-made-up-ref" check_design_blocks_nonexistent_ref
+
 # --- PASS (Acceptance #3): a substantive, spine-citing rationale -> READY (exit 0). ---
 check_design_passes_substantive() {
   write_p51 $'## Design\n- design-significant: yes — new interface\n- mirrors DECISION-001; rides ADR-0001.'

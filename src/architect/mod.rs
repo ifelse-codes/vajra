@@ -75,8 +75,8 @@ pub enum DesignState {
     /// Recorded design-significant but NO `## Design` section at all. BLOCKS.
     Missing,
     /// Recorded design-significant with a `## Design` that is not substantive: still the template
-    /// `<...>`/empty, or (when the repo has a design spine) citing no `ADR-000N`/`DECISION-00N`.
-    /// BLOCKS.
+    /// `<...>`/empty, or (when the repo has a design spine) citing no record that EXISTS in the
+    /// spine — a made-up `ADR-9999` does not count. BLOCKS.
     Placeholder,
     /// Recorded design-significant with a real, spine-citing rationale. Passes.
     Substantive,
@@ -177,10 +177,12 @@ fn cited_refs_on(line: &str, out: &mut Vec<(DesignRefKind, u32)>) {
 /// - marker `yes` + placeholder/uncited `## Design`      → `Placeholder` (BLOCK)
 /// - marker `yes` + real rationale citing the spine      → `Substantive` (PASS)
 ///
-/// `require_citation` is false when the repo has no `docs/adr/`+`docs/decisions/` records at all
-/// (a fresh `vajra init` project) — demanding a citation of a spine that does not exist would
+/// `spine_refs` are the repo's real locked records: a citation only counts toward substance when
+/// it names a record that EXISTS in the spine (the S67 cold review's hole — `ADR-9999` must not
+/// pass). An empty spine (a fresh `vajra init` project has no `docs/adr/`+`docs/decisions/` yet)
+/// waives the citation requirement — demanding a citation of a spine that does not exist would
 /// block forever, so substance then means a real, non-placeholder rationale.
-pub fn parse_design(content: &str, require_citation: bool) -> DesignReport {
+pub fn parse_design(content: &str, spine_refs: &[(DesignRefKind, u32)]) -> DesignReport {
     let significance = design_significance(content);
 
     let mut in_design = false;
@@ -205,12 +207,13 @@ pub fn parse_design(content: &str, require_citation: bool) -> DesignReport {
         }
     }
 
+    let cites_real_record = cited.iter().any(|r| spine_refs.contains(r));
     let state = match &significance {
         Significance::Unrecorded | Significance::No(_) => DesignState::NotSignificant,
         Significance::Yes(_) => {
             if !saw_heading {
                 DesignState::Missing
-            } else if !saw_real_rationale || (require_citation && cited.is_empty()) {
+            } else if !saw_real_rationale || (!spine_refs.is_empty() && !cites_real_record) {
                 DesignState::Placeholder
             } else {
                 DesignState::Substantive
@@ -353,7 +356,9 @@ pub fn design_gate(root: &Path, session: u32) -> DesignVerdict {
         Some(rel) => match fs::read_to_string(root.join(rel)) {
             Err(e) => reasons.push(format!("cannot read {rel}: {e}")),
             Ok(content) => {
-                let r = parse_design(&content, !spine.is_empty());
+                let spine_refs: Vec<(DesignRefKind, u32)> =
+                    spine.iter().map(|s| (s.kind, s.num)).collect();
+                let r = parse_design(&content, &spine_refs);
                 match &r.state {
                     DesignState::Substantive => {}
                     DesignState::NotSignificant => {
@@ -377,8 +382,8 @@ pub fn design_gate(root: &Path, session: u32) -> DesignVerdict {
                     } else {
                         format!(
                             "{rel} is design-significant but its `## Design` has no substantive, \
-                             spine-citing rationale — record why this shape, citing the \
-                             `ADR-000N`/`DECISION-00N` it rests on, before advancing"
+                             spine-citing rationale — record why this shape, citing a real \
+                             `ADR-000N`/`DECISION-00N` that exists in the spine, before advancing"
                         )
                     }),
                 }
@@ -492,6 +497,9 @@ Do one thing.
         format!("{PROMPT}## Design\n{design}\n")
     }
 
+    /// A real spine for parse tests: ADR-0002 + DECISION-001 exist; anything else is made up.
+    const SPINE: &[(DesignRefKind, u32)] = &[(DesignRefKind::Adr, 2), (DesignRefKind::Decision, 1)];
+
     #[test]
     fn significance_marker_is_recorded_never_guessed() {
         assert_eq!(design_significance(PROMPT), Significance::Unrecorded);
@@ -550,18 +558,18 @@ Do one thing.
     #[test]
     fn not_significant_never_blocks() {
         // No marker at all (legacy prompt).
-        let r = parse_design(PROMPT, true);
+        let r = parse_design(PROMPT, SPINE);
         assert_eq!(r.state, DesignState::NotSignificant);
         assert!(!r.state.blocks());
         // Explicit `no`.
         let p = with_design("- design-significant: no — pure fix");
-        assert_eq!(parse_design(&p, true).state, DesignState::NotSignificant);
+        assert_eq!(parse_design(&p, SPINE).state, DesignState::NotSignificant);
     }
 
     #[test]
     fn significant_without_section_is_missing_and_blocks() {
         let p = format!("{PROMPT}\ndesign-significant: yes — new module\n");
-        let r = parse_design(&p, true);
+        let r = parse_design(&p, SPINE);
         assert_eq!(r.state, DesignState::Missing);
         assert!(r.state.blocks());
     }
@@ -571,12 +579,29 @@ Do one thing.
         // Template placeholder rationale.
         let p =
             with_design("- design-significant: yes — new interface\n- <rationale — replace me>");
-        assert_eq!(parse_design(&p, true).state, DesignState::Placeholder);
+        assert_eq!(parse_design(&p, SPINE).state, DesignState::Placeholder);
         // Real text but citing no ADR/DECISION (spine exists) → still placeholder.
         let p = with_design("- design-significant: yes — new interface\n- because it felt right");
-        assert_eq!(parse_design(&p, true).state, DesignState::Placeholder);
+        assert_eq!(parse_design(&p, SPINE).state, DesignState::Placeholder);
         // …but with NO spine in the repo, the citation requirement is waived.
-        assert_eq!(parse_design(&p, false).state, DesignState::Substantive);
+        assert_eq!(parse_design(&p, &[]).state, DesignState::Substantive);
+    }
+
+    #[test]
+    fn citation_must_name_a_record_that_exists() {
+        // The S67 cold review's hole: a made-up id must NOT satisfy the citation requirement —
+        // existence in the spine gates substance; the checklist ✓-marks are not display-only.
+        let p = with_design(
+            "- design-significant: yes — new interface\n- fine per ADR-9999 and DECISION-042.",
+        );
+        let r = parse_design(&p, SPINE);
+        assert_eq!(r.state, DesignState::Placeholder);
+        assert!(r.state.blocks());
+        // A real record alongside a made-up one is enough (the real citation carries it).
+        let p = with_design(
+            "- design-significant: yes — new interface\n- per ADR-9999, but really ADR-0002.",
+        );
+        assert_eq!(parse_design(&p, SPINE).state, DesignState::Substantive);
     }
 
     #[test]
@@ -586,7 +611,7 @@ Do one thing.
              - Mirrors the Planner's recorded-marker shape per DECISION-001; rides `vajra next` \
              per ADR-0002's thin-CLI layout.",
         );
-        let r = parse_design(&p, true);
+        let r = parse_design(&p, SPINE);
         assert_eq!(r.state, DesignState::Substantive);
         assert!(!r.state.blocks());
         assert_eq!(
@@ -600,7 +625,7 @@ Do one thing.
         // The scaffold ships a placeholder marker: the Architect alone must not block a fresh
         // prompt (the Analyst's DRAFT/Delta gates already do); it nudges via the gate's warning.
         let scaffold = crate::analyst::render_scaffold(67, "architect-stage");
-        let r = parse_design(&scaffold, true);
+        let r = parse_design(&scaffold, SPINE);
         assert_eq!(r.significance, Significance::Unrecorded);
         assert_eq!(r.state, DesignState::NotSignificant);
         // But the moment the author records `yes`, the placeholder rationale BLOCKS until filled.
@@ -608,7 +633,7 @@ Do one thing.
             "- design-significant: <yes — new/changed interface, new module, or an ADR deviation | no — pure fix>",
             "- design-significant: yes — new module",
         );
-        assert_eq!(parse_design(&marked, true).state, DesignState::Placeholder);
+        assert_eq!(parse_design(&marked, SPINE).state, DesignState::Placeholder);
     }
 
     fn spine_fixture(root: &Path) {
