@@ -113,17 +113,21 @@ pub fn missing_elements(text: &str, required: &[String]) -> Vec<String> {
 }
 
 /// Resolve session NN's demo contract from the spine (read-only — nothing executes here).
+/// Existence is `is_file()`, NOT readability: an unreadable script still EXISTS, so the gate
+/// re-runs it and blocks on the failure — `chmod 000` must not turn a BLOCK into the no-script
+/// WARN (that would extend the deletion dodge to a permission dodge). Unreadable text degrades
+/// to every element missing-in-file; the live run is the enforced scan anyway.
 pub fn gather_contract(root: &Path, session: u32) -> DemoContract {
     let (script_pattern, required_elements) = demo_patterns(&root.join(".ai/CONSTRAINTS.yaml"));
     let script = script_pattern.replace("{NN}", &format!("{session:02}"));
-    let script_text = fs::read_to_string(root.join(&script)).ok();
-    let missing_in_file = match &script_text {
-        Some(text) => missing_elements(text, &required_elements),
-        None => required_elements.clone(),
+    let path = root.join(&script);
+    let missing_in_file = match fs::read_to_string(&path) {
+        Ok(text) => missing_elements(&text, &required_elements),
+        Err(_) => required_elements.clone(),
     };
     DemoContract {
         session,
-        script_exists: script_text.is_some(),
+        script_exists: path.is_file(),
         script,
         required_elements,
         missing_in_file,
@@ -499,6 +503,27 @@ demo:
         assert!(!v.blocked(), "reasons: {:?}", v.reasons);
         assert_eq!(v.state, DemoState::LiveGreen);
         assert!(v.warnings.is_empty());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn unreadable_script_still_exists_and_blocks_fail_closed() {
+        // chmod 000 must not turn a BLOCK into the no-script WARN — existence is is_file(),
+        // not readability, and the live run then fails (bash exit 126), which BLOCKS.
+        use std::os::unix::fs::PermissionsExt;
+        let tmp = repo_with_constraints(CONSTRAINTS);
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        let path = root.join("scripts/demo-session-71.sh");
+        fs::write(&path, "echo hi\n").unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o000)).unwrap();
+
+        let c = gather_contract(root, 71);
+        assert!(c.script_exists, "an unreadable script still EXISTS");
+        assert_eq!(c.missing_in_file, c.required_elements);
+        let v = demo_gate(root, 71);
+        assert!(v.blocked(), "must block fail-closed, not warn as no-script");
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
     }
 
     #[test]
