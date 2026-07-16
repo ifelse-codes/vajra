@@ -8,6 +8,7 @@ use std::process::Command;
 use crate::analyst;
 use crate::architect;
 use crate::coder;
+use crate::demoer;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
 use crate::qa;
@@ -61,6 +62,13 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-qa") {
         return run_check_qa(args.get(i + 1));
+    }
+    // The Demo-er stage (S71) also rides `vajra next` — no 8th command.
+    if let Some(i) = args.iter().position(|a| a == "--demo") {
+        return run_demo(args.get(i + 1));
+    }
+    if let Some(i) = args.iter().position(|a| a == "--check-demo") {
+        return run_check_demo(args.get(i + 1));
     }
     if args.iter().any(|a| a == "--intake") {
         return run_intake();
@@ -265,6 +273,49 @@ fn run_check_qa(nn: Option<&String>) -> Result<()> {
 
     println!("=== qa: verify for session {session:02} ===");
     let verdict = qa::qa_gate(&root, session);
+    println!("script: {}", verdict.contract.script);
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --demo NN` — the Demo-er station's SURFACE step (S71): print session NN's
+/// recorded sprint-demo contract (expected script, required elements found/missing in the script
+/// text) read-only — nothing executes here. The contract derives from `CONSTRAINTS.yaml#demo`,
+/// not thin air.
+fn run_demo(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--demo")?;
+    let root = repo_root()?;
+    print!(
+        "{}",
+        demoer::format_demo_contract(&demoer::gather_contract(&root, session))
+    );
+    Ok(())
+}
+
+/// `vajra next --check-demo NN` — the Demo-er station's GATE (S71): RE-RUN session NN's demo
+/// script LIVE and exit 1 on a non-zero exit OR on required elements missing from the live
+/// output (BLOCK) — a recorded green is never accepted, and a hollow exit-0 demo fails the
+/// element scan. A missing script (NO-CODE GT / legacy) WARNS at most, the dodge named.
+/// Mirrors `--check-qa`. Honest cost: the live run executes the demo — real seconds.
+fn run_check_demo(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-demo")?;
+    let root = repo_root()?;
+
+    println!("=== demoer: sprint demo for session {session:02} ===");
+    let verdict = demoer::demo_gate(&root, session);
     println!("script: {}", verdict.contract.script);
     if verdict.blocked() {
         println!("verdict: NOT READY");
@@ -553,6 +604,46 @@ fn run_advance() -> Result<()> {
                     "refusing to advance: session {current:02}'s verify script does not pass a \
                      live re-run (QA gate). Run `vajra next --check-qa {current:02}`, fix the \
                      verify until it is green live, or set VAJRA_SKIP_QA_GATE=1 to override."
+                );
+            }
+        }
+    }
+
+    // Demo-er gate (S71): the pipeline's SHOW bookend. Like the QA gate it binds on the session
+    // being CLOSED — closing `current` requires its sprint demo to run green LIVE and to SHOW
+    // every required element (header · cases · summary_table · before_after) in that live
+    // output: "seeing it, the user knows what this session delivered, and the before-and-after."
+    // A hollow exit-0 demo fails the element scan; a recorded green is never trusted. A missing
+    // script (NO-CODE ground-truth / legacy) WARNS at most, the dodge named.
+    // `VAJRA_SKIP_DEMOER_GATE=1` is the documented override (distinct from the other stages',
+    // so each overrides alone) — like QA's it skips the slow live run ITSELF, disclosed: an
+    // opted-out close records no live demo evidence.
+    if env::var("VAJRA_SKIP_DEMOER_GATE").is_ok() {
+        eprintln!("  ⚠ [vajra demoer] VAJRA_SKIP_DEMOER_GATE set — live demo re-run skipped.");
+    } else {
+        eprintln!(
+            "  [vajra demoer] re-running session {current:02}'s demo LIVE (real seconds, on purpose):"
+        );
+        let demo_verdict = demoer::demo_gate(&root, current);
+        for w in &demo_verdict.warnings {
+            eprintln!("  ⚠ {w}");
+        }
+        if demo_verdict.blocked() {
+            eprintln!(
+                "[vajra demoer] session {current:02} cannot close — its sprint demo does not \
+                 show live:"
+            );
+            for r in &demo_verdict.reasons {
+                eprintln!("    ✗ {r}");
+            }
+            if maturity == MaturityLevel::L1 {
+                eprintln!("  (L1 advise — advancing anyway.)");
+            } else {
+                bail!(
+                    "refusing to advance: session {current:02}'s demo does not pass a live \
+                     re-run showing every required element (Demo-er gate). Run `vajra next \
+                     --check-demo {current:02}`, fix the demo until it shows green live, or set \
+                     VAJRA_SKIP_DEMOER_GATE=1 to override."
                 );
             }
         }
