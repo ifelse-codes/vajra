@@ -68,7 +68,9 @@ authors a test.
    both advance outcomes E2E. covers: 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha — the real commit that landed this step; the Coder gate BLOCKS closing the session until every numbered plan step records a commit that EXISTS>
+- step 1 — done: a591dad
+- step 2 — done: 6a7c885
+- step 3 — done: 52c5b19
 
 ## Guardrails
 - **One story.** New `src/qa/mod.rs` + `src/cli/next.rs` + `src/lib.rs` + verify/demo. Max 3 files
