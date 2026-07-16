@@ -10,4 +10,5 @@ pub mod maturity;
 pub mod meter;
 pub mod obedience;
 pub mod planner;
+pub mod qa;
 pub mod varta;
