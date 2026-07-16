@@ -69,10 +69,10 @@ enforces, never authors the demo.
    covers: 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: be263a4
+- step 2 — done: 95f8b39
+- step 3 — done: e13f02c
+- step 4 — done: a3cd5b0
 
 ## Guardrails
 - **One story:** the Demo-er station. The readable-roadmap one-pager is a NATURAL RIDER only if it
