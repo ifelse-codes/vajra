@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::analyst;
+use crate::architect;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
 
@@ -37,6 +38,13 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-plan") {
         return run_check_plan(args.get(i + 1));
+    }
+    // The Architect stage (S67) also rides `vajra next` — no 8th command.
+    if let Some(i) = args.iter().position(|a| a == "--design") {
+        return run_design(args.get(i + 1));
+    }
+    if let Some(i) = args.iter().position(|a| a == "--check-design") {
+        return run_check_design(args.get(i + 1));
     }
     if args.iter().any(|a| a == "--intake") {
         return run_intake();
@@ -112,6 +120,49 @@ fn run_check_plan(nn: Option<&String>) -> Result<()> {
 
     let verdict = planner::plan_gate(&root, session);
     println!("=== planner: plan for session {session:02} ===");
+    println!(
+        "prompt: {}",
+        verdict.prompt_path.as_deref().unwrap_or("(none)")
+    );
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --design NN` — the Architect's SURFACE step (S67): print the locked design spine
+/// (`docs/adr/` + `docs/decisions/`) as the checklist session NN's `## Design` rationale must cite
+/// from, with the prompt's current citations marked. Read-only; the binary surfaces, it does not
+/// author a design.
+fn run_design(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--design")?;
+    let root = repo_root()?;
+    let verdict = architect::design_gate(&root, session);
+    print!("{}", architect::format_design_checklist(&verdict));
+    Ok(())
+}
+
+/// `vajra next --check-design NN` — the Architect's GATE (S67): a design-significant prompt
+/// (recorded `design-significant: yes`) must carry a substantive, spine-citing `## Design`
+/// rationale. Exit 1 on a missing/placeholder rationale (BLOCK); pass on a substantive one or a
+/// non-significant prompt (WARN at most — legacy compat). Mirrors `--check-plan`.
+fn run_check_design(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-design")?;
+    let root = repo_root()?;
+
+    let verdict = architect::design_gate(&root, session);
+    println!("=== architect: design for session {session:02} ===");
     println!(
         "prompt: {}",
         verdict.prompt_path.as_deref().unwrap_or("(none)")
@@ -338,6 +389,37 @@ fn run_advance() -> Result<()> {
             bail!(
                 "refusing to advance: session {current:02} does not record exactly 3 ranked next \
                  candidates (Options gate). Fix its summary, or set VAJRA_SKIP_ANALYST_GATE=1."
+            );
+        }
+    }
+
+    // Architect gate (S67): the pipeline's DESIGN handoff, between the Analyst's WHAT and the
+    // Planner's HOW-plan. You cannot advance INTO session N+1 when its prompt records
+    // `design-significant: yes` but carries no substantive, spine-citing `## Design` rationale.
+    // Non-significant/legacy prompts WARN at most. Same fail-closed-at-L2/L3, advise-at-L1
+    // posture; `VAJRA_SKIP_ARCHITECT_GATE=1` is the documented override (distinct from the
+    // Analyst's and Planner's, so each stage overrides alone).
+    let design_verdict = architect::design_gate(&root, next);
+    for w in &design_verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if design_verdict.blocked() {
+        eprintln!(
+            "[vajra architect] session {next:02} is design-significant with no recorded design:"
+        );
+        for r in &design_verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_ARCHITECT_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_ARCHITECT_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {next:02} is design-significant but records no \
+                 substantive `## Design` rationale (Architect gate). Run `vajra next --design \
+                 {next:02}`, record the rationale citing the ADR/DECISION it rests on, or set \
+                 VAJRA_SKIP_ARCHITECT_GATE=1 to override."
             );
         }
     }
