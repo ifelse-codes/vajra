@@ -2,7 +2,13 @@
 
 **Method:** Fed only `prompts/69-task-qa-stage.md` and the delivery diff (merge-base main..HEAD, sessions/prompts/.ai-state excluded; 5 files, +902 lines: `src/qa/mod.rs`, `src/cli/next.rs`, `src/lib.rs`, verify+demo scripts). I built the binary myself, ran `cargo test --lib` (203 pass), ran `bash scripts/verify-session-69.sh` once, and drove `target/debug/vajra` against temp git fixtures of my own construction through 16 adversarial probes. Single pass; no builder summary, session notes, or commit messages read.
 
-**Review-Inputs-SHA:** 51e8c27af2a92066d8608bf2dec878dc93ade29e880e1f77c6de763c2fe1c29f
+**Review-Inputs-SHA:** 4d90402d5c8da241005d54c26ebfbce7863838c51c1b41149ce22c7aeb0a0177
+
+> Attestation correction (builder, disclosed): the hash first embedded here was emitted while
+> `.ai/SESSION` still read 68, so `--inputs-sha` (no explicit N) bound the *wrong prompt file*.
+> Recomputed as `--inputs-sha 69` against the byte-identical inputs the reviewer was actually fed
+> (prompt 69 + the delivery diff, unchanged since the review — only excluded `sessions/` paths
+> were committed after). The closeout gate caught the mismatch — working as designed.
 
 ## Acceptance criteria (reviewer's table)
 
