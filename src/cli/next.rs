@@ -10,6 +10,7 @@ use crate::architect;
 use crate::coder;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
+use crate::qa;
 
 const PACKET_FILES: &[&str] = &[
     ".ai/AGENTS.md",
@@ -53,6 +54,13 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-exec") {
         return run_check_exec(args.get(i + 1));
+    }
+    // The QA stage (S69) also rides `vajra next` — no 8th command.
+    if let Some(i) = args.iter().position(|a| a == "--qa") {
+        return run_qa(args.get(i + 1));
+    }
+    if let Some(i) = args.iter().position(|a| a == "--check-qa") {
+        return run_check_qa(args.get(i + 1));
     }
     if args.iter().any(|a| a == "--intake") {
         return run_intake();
@@ -217,6 +225,47 @@ fn run_check_exec(nn: Option<&String>) -> Result<()> {
         "prompt: {}",
         verdict.prompt_path.as_deref().unwrap_or("(none)")
     );
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --qa NN` — the QA station's SURFACE step (S69): print session NN's recorded
+/// verify contract (expected script, recorded `.ai/verify/` runs, latest) read-only — nothing
+/// executes here. The contract derives from `CONSTRAINTS.yaml#verify`, not thin air.
+fn run_qa(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--qa")?;
+    let root = repo_root()?;
+    print!(
+        "{}",
+        qa::format_qa_contract(&qa::gather_contract(&root, session))
+    );
+    Ok(())
+}
+
+/// `vajra next --check-qa NN` — the QA station's GATE (S69): RE-RUN session NN's verify script
+/// LIVE and exit 1 on non-zero (BLOCK) — a previously recorded green is never accepted as proof
+/// (no stale-green). A missing script (NO-CODE GT / legacy) WARNS at most, the dodge named.
+/// Mirrors `--check-exec`. Honest cost: the live run executes cargo build/test — slow, on purpose.
+fn run_check_qa(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-qa")?;
+    let root = repo_root()?;
+
+    println!("=== qa: verify for session {session:02} ===");
+    let verdict = qa::qa_gate(&root, session);
+    println!("script: {}", verdict.contract.script);
     if verdict.blocked() {
         println!("verdict: NOT READY");
         for r in &verdict.reasons {
@@ -471,6 +520,41 @@ fn run_advance() -> Result<()> {
                  `step N — done: <sha>` per step in the prompt's `## Execution`, or set \
                  VAJRA_SKIP_CODER_GATE=1 to override."
             );
+        }
+    }
+
+    // QA gate (S69): the pipeline's WORKS bookend. Like the Coder gate it binds on the session
+    // being CLOSED — closing `current` requires its verify script to pass a LIVE re-run (a
+    // recorded green is never trusted; no stale-green). Honest cost: the re-run executes the
+    // session's verify (cargo build/test — slow, on purpose: live evidence). A missing script
+    // (NO-CODE ground-truth / legacy) WARNS at most, the dodge named. `VAJRA_SKIP_QA_GATE=1`
+    // is the documented override (distinct from the other stages', so each overrides alone).
+    if env::var("VAJRA_SKIP_QA_GATE").is_ok() {
+        // The one gate where the override skips the CHECK itself, not just the block: a live
+        // re-run is slow and side-effectful, and the author explicitly opted out.
+        eprintln!("  ⚠ [vajra qa] VAJRA_SKIP_QA_GATE set — live verify re-run skipped.");
+    } else {
+        eprintln!("  [vajra qa] re-running session {current:02}'s verify LIVE (slow, on purpose):");
+        let qa_verdict = qa::qa_gate(&root, current);
+        for w in &qa_verdict.warnings {
+            eprintln!("  ⚠ {w}");
+        }
+        if qa_verdict.blocked() {
+            eprintln!(
+                "[vajra qa] session {current:02} cannot close — its verify does not pass live:"
+            );
+            for r in &qa_verdict.reasons {
+                eprintln!("    ✗ {r}");
+            }
+            if maturity == MaturityLevel::L1 {
+                eprintln!("  (L1 advise — advancing anyway.)");
+            } else {
+                bail!(
+                    "refusing to advance: session {current:02}'s verify script does not pass a \
+                     live re-run (QA gate). Run `vajra next --check-qa {current:02}`, fix the \
+                     verify until it is green live, or set VAJRA_SKIP_QA_GATE=1 to override."
+                );
+            }
         }
     }
 
