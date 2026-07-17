@@ -41,22 +41,24 @@
 
 ## Next Session
 - **Number:** 73
-- **Type:** **MEASURE** — the **founder-led dogfood ride-along** (paid): the S70 decision's own
-  sequence ("crew first, then a founder-led manual run") — the crew condition is now MET. One
-  real task through `vajra claude` on the full 8-station pipeline, **founder driving**, agent
-  preparing/capturing/measuring (authoritative cost, receipt fidelity, compression folds,
-  gates fired/helped/hindered, obedience) + writing the honest dogfood report. Bugs recorded,
-  not fixed. Refreshes `dogfood_check`; produces the compression fix-or-retire dataset.
-- **Prompt:** `prompts/73-task-dogfood-ride-along.md` (READY ×3 — Analyst/Architect/Planner;
-  swap to B compression-truth / C payload-counter is one message).
-  **Branch:** `session-73-dogfood-ride-along`. **New chat.**
+- **Type:** **CODE** — **close-path RELIABILITY** ("fix the brakes first" — founder pick at
+  the S72 board review, over the payload counter and the parked dogfood): (a) root-cause +
+  FIX the `tests/hook_adapter.rs` intermittent flake by isolating the leaked state (no
+  retries / ignores / deletions; ≥10-run green loop as proof); (b) a recorded, fail-closed
+  TIMEOUT on the QA + Demo-er live gate runs (kill + BLOCK naming itself) with scaffold
+  defaults + propagation. Normal green closes byte-identical; no CLI change, no 8th command.
+- **Prompt:** `prompts/73-task-close-path-reliability.md` (READY ×3 — Analyst/Architect/
+  Planner). **Branch:** `session-73-close-path-reliability`. **New chat.**
+- Dogfood ride-along = **PARKED by founder call** (`prompts/parked-dogfood-ride-along.md`,
+  READY-shaped, re-enters by rename; the S70 decision stays binding, GTs report its age).
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S73; do NOT start it here.
 - **⚠ The Releaser gate is LIVE from the S73 close:** merge the S72 PR, sync main, prune
   `session-72-*` locals before closing S73 — or `--advance` refuses (that is the feature).
 - **S70 founder decisions (binding):** compression never-claim-until-measured · payload
-  counter = backlog, do not lose. Dogfood deferral RETIRED (condition met → S73).
+  counter = backlog, do not lose · dogfood: crew condition MET, run **PARKED by founder
+  call at the S73 pick** (GTs report age against the decision, not as drift).
 - **House patterns:** existence-gate recorded markers (S67/S68) · re-run executable markers
   live (S69) · element-scan live output (S71) · re-derive git-state markers from refs (S72) ·
   existence = `is_file()` never readability (S71) · the gate never performs the human act it
