@@ -12,6 +12,7 @@ use crate::demoer;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
 use crate::qa;
+use crate::releaser;
 
 const PACKET_FILES: &[&str] = &[
     ".ai/AGENTS.md",
@@ -69,6 +70,13 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-demo") {
         return run_check_demo(args.get(i + 1));
+    }
+    // The Releaser stage (S72) also rides `vajra next` — no 8th command.
+    if let Some(i) = args.iter().position(|a| a == "--release") {
+        return run_release(args.get(i + 1));
+    }
+    if let Some(i) = args.iter().position(|a| a == "--check-release") {
+        return run_check_release(args.get(i + 1));
     }
     if args.iter().any(|a| a == "--intake") {
         return run_intake();
@@ -317,6 +325,59 @@ fn run_check_demo(nn: Option<&String>) -> Result<()> {
     println!("=== demoer: sprint demo for session {session:02} ===");
     let verdict = demoer::demo_gate(&root, session);
     println!("script: {}", verdict.contract.script);
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --release NN` — the Releaser station's SURFACE step (S72): print session NN's
+/// ship state (branch merged into main or not, local main vs origin/main, unpruned merged
+/// `session-*` locals) re-derived from LOCAL git refs, read-only — nothing is fetched, pushed,
+/// merged, or deleted here or anywhere in the station.
+fn run_release(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--release")?;
+    let root = repo_root()?;
+    print!(
+        "{}",
+        releaser::format_release_report(&releaser::release_gate(&root, session))
+    );
+    Ok(())
+}
+
+/// `vajra next --check-release NN` — the Releaser station's GATE (S72): exit 1 when session
+/// NN's ship hygiene is unfinished — its branch is not an ancestor of main, local main is
+/// behind/diverged from the last-fetched origin/main, or merged `session-*` branches (other
+/// than the current one) are unpruned. Derived live from git; a repo where the state cannot
+/// be derived FAILS, never silently passes. Mirrors `--check-demo`.
+fn run_check_release(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-release")?;
+    let root = repo_root()?;
+
+    println!("=== releaser: ship for session {session:02} ===");
+    let verdict = releaser::release_gate(&root, session);
+    if let Some(state) = &verdict.state {
+        println!("main: {} · branch: {}", state.main, {
+            match &state.branch {
+                releaser::BranchShip::Merged(refs) => format!("{} (merged)", refs.join(", ")),
+                releaser::BranchShip::Unmerged(refs) => {
+                    format!("{} (NOT merged)", refs.join(", "))
+                }
+                releaser::BranchShip::NoBranch => "not found (pruned or never created)".into(),
+            }
+        });
+    }
     if verdict.blocked() {
         println!("verdict: NOT READY");
         for r in &verdict.reasons {
@@ -646,6 +707,47 @@ fn run_advance() -> Result<()> {
                      VAJRA_SKIP_DEMOER_GATE=1 to override."
                 );
             }
+        }
+    }
+
+    // Releaser gate (S72): the pipeline's SHIP bookend — the last closing gate. Unlike the
+    // QA/Demo-er gates it binds on the PRIOR session (the newest session at-or-below `current`
+    // that left a branch or prompt, skipping the branch currently checked out): `current`'s own
+    // PR merges AFTER this close, so the freshest verifiable ship is the previous one. Its work
+    // must be merged into main (git ancestry), local main synced with the last-fetched
+    // origin/main, and merged session-* branches pruned — the S37 founder-flagged
+    // return-to-main step, enforced instead of remembered. Everything is re-derived from LOCAL
+    // git refs at check time (nothing recorded to forge; no network, no gh) and the gate never
+    // pushes, merges, or deletes — shipping stays a human act it waits for. A fresh repo (no
+    // prior evidence) WARNS at most, the dodge named. `VAJRA_SKIP_RELEASER_GATE=1` is the
+    // documented override (distinct — the check itself is cheap git reads, so unlike QA's it
+    // still runs and prints; the env only bypasses the block).
+    let ship = releaser::release_gate_for_close(&root, current);
+    for w in &ship.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if ship.blocked() {
+        let target = ship
+            .session
+            .map(|s| format!("{s:02}"))
+            .unwrap_or_else(|| "??".into());
+        eprintln!(
+            "[vajra releaser] session {target}'s ship hygiene is unfinished — the close waits:"
+        );
+        for r in &ship.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_RELEASER_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_RELEASER_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {target}'s release is unfinished (Releaser gate). \
+                 Run `vajra next --release {target}`, finish the ship (merge the PR / sync main \
+                 / prune merged session-* branches), or set VAJRA_SKIP_RELEASER_GATE=1 to \
+                 override."
+            );
         }
     }
 
