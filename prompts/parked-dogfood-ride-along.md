@@ -1,9 +1,15 @@
-# Session 73 — The founder-led dogfood RIDE-ALONG (paid): measure the 8-station pipeline as lived experience
+# Session NN (PARKED) — The founder-led dogfood RIDE-ALONG (paid): measure the 8-station pipeline as lived experience
+
+> **PARKED** (founder call at the S73 pick, 2026-07-17: "not feeling the dogfood session
+> next" → S73 = close-path reliability instead). Deliberately renamed OUT of the
+> `NN-task-*` pattern so no gate binds on it; content stays READY-shaped. When picked,
+> rename to `prompts/NN-task-dogfood-ride-along.md`, set the session number, and re-run the
+> three gate checks. The S70 decision ② (crew first → founder-led run) remains binding;
+> GTs report its age against the decision.
 
 > **Status:** APPROVED (executes the founder's recorded S70 decision ② — "finish the crew,
-> then a founder-led manual run"; the crew's core completed at S72 with the Releaser. Standing
-> approval "all approved" recorded at the S72 kickoff; swap is one message if the founder
-> prefers B/C from the S72 summary.) **Type: MEASURE — paid dogfood, founder at the wheel.**
+> then a founder-led manual run"; the crew's core completed at S72 with the Releaser.)
+> **Type: MEASURE — paid dogfood, founder at the wheel.**
 > The standing risk every GT since S60 names is machinery-without-measurement: the 8-station
 > pipeline is built, attested, and ~$0-proven — and UNMEASURED as experience since S63
 > ($1.27, 6-station era). This session measures it; it builds no station.
