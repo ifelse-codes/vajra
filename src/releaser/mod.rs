@@ -486,10 +486,12 @@ pub fn format_release_report(v: &ReleaseVerdict) -> String {
         s.push_str(&format!(
             "branch:   {}\n",
             match &state.branch {
-                BranchShip::Merged(refs) => format!("{} (merged into {})", refs.join(", "), state.main),
+                BranchShip::Merged(refs) =>
+                    format!("{} (merged into {})", refs.join(", "), state.main),
                 BranchShip::Unmerged(refs) =>
                     format!("{} (NOT merged into {})", refs.join(", "), state.main),
-                BranchShip::NoBranch => "not found (pruned after merge, or never created)".to_string(),
+                BranchShip::NoBranch =>
+                    "not found (pruned after merge, or never created)".to_string(),
             }
         ));
         s.push_str(&format!(
@@ -687,10 +689,7 @@ release:
         fs::write(root.join("ahead.txt"), "a").unwrap();
         git_in(root, &["add", "-A"]);
         git_in(root, &["commit", "-qm", "local-only"]);
-        assert_eq!(
-            derive_ship_state(root, 1).unwrap().sync,
-            MainSync::Ahead(1)
-        );
+        assert_eq!(derive_ship_state(root, 1).unwrap().sync, MainSync::Ahead(1));
 
         // origin/main moved past main (exactly what a fetch would record): put two commits on
         // a scratch branch, point origin/main at its tip, park main back at the base → Behind(2).
@@ -702,7 +701,10 @@ release:
         let remote_tip = head_sha(root);
         git_in(root, &["checkout", "-q", "main"]);
         git_in(root, &["branch", "-qD", "remote-work"]);
-        git_in(root, &["update-ref", "refs/remotes/origin/main", &remote_tip]);
+        git_in(
+            root,
+            &["update-ref", "refs/remotes/origin/main", &remote_tip],
+        );
         git_in(root, &["reset", "-q", "--hard", &base]);
         assert_eq!(
             derive_ship_state(root, 1).unwrap().sync,
