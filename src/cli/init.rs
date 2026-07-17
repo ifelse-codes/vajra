@@ -736,6 +736,9 @@ verify:
   exit_zero_required: true
   closeout_script: 'scripts/verify-closeout.sh'
   closeout_must_pass_before_close: true   # fails on a missing/incomplete/REJECT fidelity review (reviewer/SKILL.md)
+  # The bound (S73): the QA gate re-runs this script LIVE at close; a run past timeout_secs is
+  # killed and BLOCKS (cannot-evaluate → FAIL). Missing key → a generous built-in default (600s).
+  timeout_secs: 600
 
 demo:
   script_pattern: 'scripts/demo-session-{NN}.sh'
@@ -744,6 +747,8 @@ demo:
   # The sprint-demo contract (S71): the demo must SHOW each element (a `demo:<element>` marker
   # in its live output) — the Demo-er gate re-runs the script at close and blocks otherwise.
   required_elements: [header, cases, summary_table, before_after]
+  # Same bound (S73) on the Demo-er live re-run — killed past timeout_secs → cannot-evaluate BLOCK.
+  timeout_secs: 600
 
 release:
   # The ship contract (S72): the Releaser gate re-derives these facts from git LIVE at close —
@@ -1155,6 +1160,27 @@ mod tests {
         }
         let contract = crate::releaser::release_contract(&dir.path().join(".ai/CONSTRAINTS.yaml"));
         assert_eq!(contract, crate::releaser::ReleaseContract::default());
+    }
+
+    #[test]
+    fn scaffold_records_the_gate_timeout_bound() {
+        // S73: the live-gate bound is recorded on the spine (verify: + demo:), and the reader
+        // resolves it per-section from a fresh scaffold. A pre-S73 repo without the key still
+        // resolves to the built-in default — so this propagation adds a bound, never a break.
+        let dir = scaffold_tmp();
+        let path = dir.path().join(".ai/CONSTRAINTS.yaml");
+        assert!(fs::read_to_string(&path)
+            .unwrap()
+            .contains("timeout_secs: 600"));
+        use std::time::Duration;
+        assert_eq!(
+            crate::gate_run::gate_timeout(&path, "verify"),
+            Duration::from_secs(600)
+        );
+        assert_eq!(
+            crate::gate_run::gate_timeout(&path, "demo"),
+            Duration::from_secs(600)
+        );
     }
 
     #[test]
