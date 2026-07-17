@@ -12,4 +12,5 @@ pub mod meter;
 pub mod obedience;
 pub mod planner;
 pub mod qa;
+pub mod releaser;
 pub mod varta;
