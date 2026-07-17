@@ -6,6 +6,7 @@ pub mod cli;
 pub mod coder;
 pub mod demoer;
 pub mod engine;
+pub mod gate_run;
 pub mod launcher;
 pub mod maturity;
 pub mod meter;

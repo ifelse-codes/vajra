@@ -32,7 +32,6 @@
 
 use std::fs;
 use std::path::Path;
-use std::process::Command;
 
 /// `CONSTRAINTS.yaml#verify` defaults — the spine's recorded contract when the file or keys are
 /// missing (the same patterns `vajra init` scaffolds).
@@ -152,14 +151,15 @@ pub fn qa_report(contract: &QaContract, run: impl FnOnce(&str) -> Option<i32>) -
 }
 
 /// Re-run `script` (repo-relative) LIVE at `root`, streaming its output — the run IS the
-/// evidence, shown as it happens. Returns the real exit code; `None` when it cannot run.
+/// evidence, shown as it happens. Returns the real exit code; `None` when it cannot run. Delegates
+/// to the shared bounded runner (S73) with the scaffold-default timeout; `qa_gate` passes the
+/// recorded bound. Kept as the thin production entry point + the injection-free test seam.
 pub fn run_verify_script(root: &Path, script: &str) -> Option<i32> {
-    Command::new("bash")
-        .arg(script)
-        .current_dir(root)
-        .status()
-        .ok()
-        .and_then(|s| s.code())
+    crate::gate_run::run_streamed(
+        root,
+        script,
+        std::time::Duration::from_secs(crate::gate_run::DEFAULT_TIMEOUT_SECS),
+    )
 }
 
 /// The QA station's decision for CLOSING `session`. Mirrors the Coder's `ExecVerdict`.
@@ -219,9 +219,13 @@ pub fn qa_gate_with(root: &Path, session: u32, run: impl FnOnce(&str) -> Option<
     }
 }
 
-/// The QA gate against the real repo — re-runs the session's verify script live.
+/// The QA gate against the real repo — re-runs the session's verify script live, bounded by the
+/// recorded `verify.timeout_secs` (S73). A run past the bound is killed → cannot-evaluate → BLOCK.
 pub fn qa_gate(root: &Path, session: u32) -> QaVerdict {
-    qa_gate_with(root, session, |script| run_verify_script(root, script))
+    let timeout = crate::gate_run::gate_timeout(&root.join(".ai/CONSTRAINTS.yaml"), "verify");
+    qa_gate_with(root, session, |script| {
+        crate::gate_run::run_streamed(root, script, timeout)
+    })
 }
 
 /// Render the `--qa N` surface: the session's recorded QA contract, read-only — script present
