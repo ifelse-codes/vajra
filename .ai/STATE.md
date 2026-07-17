@@ -51,8 +51,8 @@ from LOCAL git refs live) at `--advance`, binding on the prior session. Closeout
   no network, no `gh` in the gate.
 - **`vajra claude · next · check · init · estimate · meter · hook`** — 7 commands. `cargo test
   --lib` **229 passed** (+15 at S72). Enforcement moat (10 hooks, L1/L2/L3, fail-closed) +
-  Darshan + Varta hold live. Ledger intact (S71's attested ACCEPT + S72's two-pass ACCEPT
-  `1cfde331…` append on merge).
+  Darshan + Varta hold live. Ledger intact (S71's attested ACCEPT + S72's three-pass ACCEPT
+  `40823a40…` append on merge).
 
 ## What Is Broken / Weak
 - **🟡 The self-granted-jurisdiction class is SEVEN gates wide** (Options Unrecorded→WARN ·
@@ -67,6 +67,10 @@ from LOCAL git refs live) at `--advance`, binding on the prior session. Closeout
 - **🟢→ Dogfood: the S70 deferral condition is MET (crew complete)** — S73 = the founder-led
   ride-along on the full 8-station pipeline (last paid run S63, $1.27, 6-station era).
 - **🟡 Payload counter (S25/S60/S65/S70) — BACKLOG by founder decision, do not lose.**
+- **🟡 `tests/hook_adapter.rs` compression tests FLAKE under repeated runs** (found live at the
+  S72 close: intermittent fold-vs-passthrough, both directions observed; state leak suspected;
+  S33/S41-era, untouched by S72) — isolate-or-fix candidate; a flaky full suite now
+  intermittently reddens ANY later close via the QA live re-run.
 - 🟡 Releaser minors, S72 reviewer-found (one-close deferral window — unmerged work caught at
   the NEXT close, by design · `origin` hardcoded, other remote names degrade to vacuous WARNs ·
   `session_number_of` accepts an empty slug · `vajra init` blocks on an open stdin,
@@ -77,7 +81,7 @@ from LOCAL git refs live) at `--advance`, binding on the prior session. Closeout
   changelog bloat (GT S65+S70: leave, growth slowed) · readable-roadmap one-pager (backlog).
 
 ## What Is In Progress
-- **S72 DONE (CODE, independent cold review ACCEPT ×2 passes, attested `1cfde331…`), closeout
+- **S72 DONE (CODE, independent cold review ACCEPT ×3 passes, attested `40823a40…`), closeout
   committed.** **Next = S73, MEASURE — the founder-led dogfood ride-along**
   (`prompts/73-task-dogfood-ride-along.md`, READY ×3: founder drives one real paid task through
   the full 8-station pipeline; agent captures + measures receipt/folds/gates-fired/obedience;
