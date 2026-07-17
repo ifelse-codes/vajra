@@ -127,7 +127,7 @@ ok "advanced — SESSION now $(cat "$E2E/.ai/SESSION"); ship hygiene held (VAJRA
 
 header "6 · DOGFOOD — this repo, live: the S72 close binds on session 71's ship state"
 "$BIN" next --release 71 || true
-ok "session 71 is merged (PR #68) + pruned + main synced — the vacuous-ancestry warning above is the gate being honest about a pruned branch"
+ok "session 71 passes on what the gate can actually derive: merge-evidence VACUOUS (branch pruned — the warning above names it), main synced, nothing unpruned; the gate stays honest rather than inventing a green"
 
 header "Scorecard  [demo:summary_table]"
 printf "  %-56s %s\n" "surface: ship state re-derived from git, read-only"      "PASS"
