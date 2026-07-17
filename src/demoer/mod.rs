@@ -36,9 +36,7 @@
 //! prints demonstrates anything. Never pitch this as "the demo is verified."
 
 use std::fs;
-use std::io::Write as _;
 use std::path::Path;
-use std::process::Command;
 
 /// `CONSTRAINTS.yaml#demo` defaults — the spine's recorded contract when the file or keys are
 /// missing (the same patterns `vajra init` scaffolds).
@@ -187,16 +185,11 @@ pub fn demo_report(
 /// echoing it so the demo is still SEEN — the run is the evidence, shown and scanned. Returns
 /// the real exit code (`None` when it cannot run) + the combined stdout/stderr text.
 pub fn run_demo_script(root: &Path, script: &str) -> (Option<i32>, String) {
-    match Command::new("bash").arg(script).current_dir(root).output() {
-        Ok(out) => {
-            let _ = std::io::stdout().write_all(&out.stdout);
-            let _ = std::io::stderr().write_all(&out.stderr);
-            let mut text = String::from_utf8_lossy(&out.stdout).into_owned();
-            text.push_str(&String::from_utf8_lossy(&out.stderr));
-            (out.status.code(), text)
-        }
-        Err(_) => (None, String::new()),
-    }
+    crate::gate_run::run_captured(
+        root,
+        script,
+        std::time::Duration::from_secs(crate::gate_run::DEFAULT_TIMEOUT_SECS),
+    )
 }
 
 /// The Demo-er station's decision for CLOSING `session`. Mirrors QA's `QaVerdict`.
@@ -271,7 +264,10 @@ pub fn demo_gate_with(
 
 /// The Demo-er gate against the real repo — re-runs the session's demo script live.
 pub fn demo_gate(root: &Path, session: u32) -> DemoVerdict {
-    demo_gate_with(root, session, |script| run_demo_script(root, script))
+    let timeout = crate::gate_run::gate_timeout(&root.join(".ai/CONSTRAINTS.yaml"), "demo");
+    demo_gate_with(root, session, |script| {
+        crate::gate_run::run_captured(root, script, timeout)
+    })
 }
 
 /// Render the `--demo N` surface: the session's recorded sprint-demo contract, read-only —
