@@ -56,11 +56,15 @@ run_check "test-gate-red-hollow-full"      cargo test --lib demoer::tests::gate_
 run_check "no-8th-command"    bash -c 'git diff --quiet main -- src/main.rs && ! grep -q demoer src/main.rs'
 run_check "rides-next"        bash -c "grep -q -- '--demo' '$ROOT/src/cli/next.rs' && grep -q -- '--check-demo' '$ROOT/src/cli/next.rs'"
 # Cargo.toml changed this session — but ONLY the exclude-negation that ships the demo template
-# with the crate. No new [dependencies] line; exactly one added line, and it is the negation.
+# with the crate. No new [dependencies] line. Branch-agnostic (S72 lesson — the QA gate
+# re-runs this script LIVE at every later close, from a branch where S71 is already merged):
+# pre-merge the diff vs main is exactly the one negation line; post-merge it is empty.
 no_new_dependency() {
-  local added; added="$(git diff main -- Cargo.toml | grep '^+[^+]' || true)"
-  [ "$(printf '%s\n' "$added" | grep -c .)" -eq 1 ] \
-    && printf '%s' "$added" | grep -q 'demo-session-template.sh'
+  local added n
+  added="$(git diff main -- Cargo.toml | grep '^+[^+]' || true)"
+  n="$(printf '%s\n' "$added" | grep -c . || true)"
+  [ "$n" -eq 0 ] \
+    || { [ "$n" -eq 1 ] && printf '%s' "$added" | grep -q 'demo-session-template.sh'; }
 }
 run_check "no-new-dependency" no_new_dependency
 run_check "no-second-store"   bash -c '! test -e "'"$ROOT"'/demo.md" && ! test -e "'"$ROOT"'/qa.md" && ! test -e "'"$ROOT"'/plan.md" && ! test -e "'"$ROOT"'/spec.md"'

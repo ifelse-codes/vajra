@@ -48,6 +48,15 @@ demo:
     - include auto-play and keyboard nav
     - bash script stays for CI/verify — presentation is agent's job for user
 
+release:
+  # The ship contract (S72): the Releaser gate re-derives these facts from git LIVE at close —
+  # prior session's branch merged into main (ancestry) · local main synced with the last-fetched
+  # origin/main · merged session-* locals pruned (the S37 return-to-main step, enforced). Never
+  # a recorded claim; the gate surfaces + enforces and never pushes, merges, or deletes.
+  require_merged_prior: true
+  require_main_synced: true
+  require_pruned: true
+
 state:
   state_md_mode: snapshot
   knowledge_md_mode: append-permanent-only

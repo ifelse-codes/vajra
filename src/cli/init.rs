@@ -745,6 +745,15 @@ demo:
   # in its live output) — the Demo-er gate re-runs the script at close and blocks otherwise.
   required_elements: [header, cases, summary_table, before_after]
 
+release:
+  # The ship contract (S72): the Releaser gate re-derives these facts from git LIVE at close —
+  # prior session's branch merged into main (ancestry) · local main synced with the last-fetched
+  # origin/main · merged session-* locals pruned. Never a recorded claim; the gate surfaces +
+  # enforces and never pushes, merges, or deletes.
+  require_merged_prior: true
+  require_main_synced: true
+  require_pruned: true
+
 state:
   state_md_mode: snapshot
   knowledge_md_mode: append-permanent-only
@@ -1128,6 +1137,24 @@ mod tests {
         ] {
             assert!(c.contains(needle), "TPL_CONSTRAINTS missing {needle:?}");
         }
+    }
+
+    #[test]
+    fn scaffold_records_the_release_contract() {
+        // S72: the ship contract is recorded, not implied — a fresh scaffold carries the
+        // `release:` section the Releaser gate reads (missing keys default true either way).
+        let dir = scaffold_tmp();
+        let c = fs::read_to_string(dir.path().join(".ai/CONSTRAINTS.yaml")).unwrap();
+        for needle in [
+            "release:",
+            "require_merged_prior: true",
+            "require_main_synced: true",
+            "require_pruned: true",
+        ] {
+            assert!(c.contains(needle), "TPL_CONSTRAINTS missing {needle:?}");
+        }
+        let contract = crate::releaser::release_contract(&dir.path().join(".ai/CONSTRAINTS.yaml"));
+        assert_eq!(contract, crate::releaser::ReleaseContract::default());
     }
 
     #[test]
