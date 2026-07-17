@@ -81,10 +81,10 @@ claim); surfaces + enforces, never pushes, merges, or deletes anything.
    (`--inputs-sha 72` emitted at review time). covers: 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: dcd1676 (releaser core + lib.rs; fmt rewrap followed in bb84ac2)
+- step 2 — done: fc42d71
+- step 3 — done: f01f5b5
+- step 4 — done: 2971277
 
 ## Guardrails
 - **One story:** the Releaser station. No PR-body generation, no `gh` calls, no auto-prune —
