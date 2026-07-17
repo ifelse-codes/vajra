@@ -1,7 +1,7 @@
 # Session 72 — Independent Cold Fidelity Review (DECISION-002)
 
 **Reviewer:** independent cold subagent — inputs: the S72 contract + the delivery diff only (summary/STATE withheld).
-**Review-Inputs-SHA:** 1cfde3317a50676bb2c37deab6e9051dbe30a3064b0ece66fe918a6a46bf0d54
+**Review-Inputs-SHA:** 40823a4025671ac40d077c50560b2944b9ce65e089b6b1203e05ce93fa5c3d2b
 
 ## Verdict
 
@@ -67,4 +67,16 @@ The pass-1 minor finding on demo case 6's narration was accepted and fixed in-se
 - **The demo still proves itself.** `bash scripts/demo-session-72.sh` exits 0 with all four required markers (`demo:header`, `demo:cases`, `demo:summary_table`, `demo:before_after`), six PASS rows, and the corrected line running live.
 - **The new hash reproduces.** `bash scripts/verify-closeout.sh --inputs-sha 72` emits `1cfde3317a50676bb2c37deab6e9051dbe30a3064b0ece66fe918a6a46bf0d54`, exactly the Review-Inputs-SHA embedded above.
 
-No code, gate, contract, or test changed; every pass-1 probe result stands. **The verdict of record is this pass-2 ACCEPT on the new hash** (`1cfde331…`); the pass-1 ACCEPT on `3f824fcc…` is superseded by it.
+No code, gate, contract, or test changed; every pass-1 probe result stands. The pass-2 ACCEPT on `1cfde331…` superseded the pass-1 ACCEPT on `3f824fcc…` — and is itself superseded by the pass-3 ACCEPT below.
+
+## Pass 3 (harness-fix delta)
+
+After the pass-2 ACCEPT, the gate chain itself forced one more delta: at the S72 closeout, `vajra next --advance` ran the S69 QA gate, which re-ran `scripts/verify-session-71.sh` LIVE — and its `no-new-dependency` check went RED, correctly refusing the close. The check asserted `git diff main -- Cargo.toml` contains exactly one added line (true on S71's branch, but an EMPTY diff post-merge). This is the same latent class as this review's pass-1 minor finding about verify-72's `no-gh-no-network-in-gate` grep: cumulative live re-runs demand branch-agnostic assertions. The fix (commit `269f1c3`, touching only `scripts/verify-session-71.sh`) makes `no_new_dependency` pass on an empty diff (post-merge cumulative re-run) OR exactly the one demo-template negation line (pre-merge).
+
+**What I re-verified (cold, against the regenerated inputs):**
+- **Delta is exactly that one function.** Diffed the regenerated delivery diff against my pass-2 snapshot: 23 added lines, zero removed, all inside a single new `scripts/verify-session-71.sh` section containing only the `no_new_dependency` comment + body change. The three other post-pass-2 commits (closeout `.ai` sync, the S73 prompt scaffold, `sessions/` artifacts) are all outside the canonical attestation scope — by the recipe itself (`verify-closeout.sh` excludes `sessions`, `prompts`, and the closeout-synced `.ai/*`), not by hand-pruning.
+- **The hash reproduces from raw bytes, emitter untrusted.** I reconstructed the canonical diff with the recipe's own git command (`git diff <merge-base> HEAD` with its exclusions), confirmed it content-identical to the regenerated delivery diff, and computed `sha256(prompt ‖ NUL ‖ diff)` myself: `40823a4025671ac40d077c50560b2944b9ce65e089b6b1203e05ce93fa5c3d2b` — exactly the Review-Inputs-SHA above, independently matching `verify-closeout.sh --inputs-sha 72`. Contract byte-identical to `prompts/72-task-releaser-stage.md`, unchanged since pass 1; working tree == HEAD for the attested scope.
+- **The fix is proven live.** A quiet `bash scripts/verify-session-71.sh` from this post-merge branch: ALL GREEN (43 pass, 0 fail), exit 0 — `no-new-dependency` PASS. Two earlier contended runs showed one-off fails (`no-8th-command` once in my run while the author's closeout was active; `cargo-test` once in an overlapping run's `tests/hook_adapter.rs` while my run relinked `target/`) — both concurrency artifacts of two verify runs sharing one repo/`target/`, not code defects, and both gone when the repo is quiet. Noted below as the same latent class, third instance.
+- **Residual honesty note on the fix:** the check is branch-agnostic for the merged and S71 shapes, but a future branch that legitimately adds a real dependency would still flip this check red if verify-71 is re-run there (n ≥ 1, not the negation line) — the assertion still reasons about `git diff main` from whatever branch runs it. Same class, smaller window; disclosed, not blocking.
+
+**The verdict of record is this pass-3 ACCEPT on `40823a40…`**; the pass-2 ACCEPT on `1cfde331…` and the pass-1 ACCEPT on `3f824fcc…` are superseded by it.

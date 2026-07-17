@@ -39,10 +39,31 @@ dependency, no second store, no network and no `gh` in the gate.
   `vajra init`'s template — a fresh scaffold parses to the default contract (scaffold test +
   E2E). `Cargo.toml` untouched (no new file embedded — verified in the harness).
 - **Independent cold review = ACCEPT** (DECISION-002): **5 SHIPPED / 0 PARTIAL / 0 NOT-BUILT**,
-  **20 adversarial probes** all PASS. Two-pass loop worked again (the S67 pattern): pass 1
-  ACCEPT flagged the demo's case-6 narration overclaiming "merged (PR #68)" — a fact the gate
-  cannot derive from a pruned branch — closed in-session, and the same reviewer re-verified
-  the one-line delta cold (pass 2 ACCEPT, re-attested `1cfde331…`).
+  **20 adversarial probes** all PASS, across **three passes**: pass 1 ACCEPT flagged the
+  demo's case-6 narration overclaiming "merged (PR #68)" — a fact the gate cannot derive from
+  a pruned branch — closed in-session and delta re-reviewed cold (pass 2 ACCEPT); pass 3
+  re-attested the close-time harness fix below. **Verdict of record: pass-3 ACCEPT, attested
+  `40823a40…`.**
+
+## Found LIVE at the close (the gate chain earning its keep)
+
+- **The QA gate refused this session's own close — correctly.** At `--advance`, the S69 QA
+  gate re-ran `verify-session-71.sh` live and it went RED: its `no-new-dependency` check
+  asserted `git diff main -- Cargo.toml` shows *exactly one added line* — true on S71's
+  branch, an **empty diff post-merge**. The close stayed refused until the check was made
+  branch-agnostic (commit `269f1c3`; pass on empty-diff OR exactly-the-negation). **Lesson
+  (recorded in KNOWLEDGE): the S69 re-run-live pattern demands branch-agnostic verify
+  scripts** — any "`git diff main` shows exactly my change" assertion goes red at later
+  closes. Same class as the reviewer's pass-1 minor about verify-72's grep.
+- **A pre-existing flake surfaced under repetition:** `tests/hook_adapter.rs` compression
+  tests (`compression_bash_cargo_build_produces_updated_output`,
+  `git_log_no_exit_code_folds_after_s41`) fail intermittently across repeated full-suite
+  runs (engine chose passthrough over fold; S33/S41-era code, untouched this session; both
+  directions observed — fails via gate + green direct, and the reverse). Recorded as debt:
+  isolate the shared state; not fixed here (1-story discipline).
+- **Operational gotcha:** `--advance` runs its gates *before* the L2 confirm, and the E2E
+  fixtures inside a re-run verify script inherit stdin — a single piped `y` gets consumed,
+  aborting the real confirm at EOF. Drive closeout advances with `yes |` (or L3).
 
 ## Fidelity map (every numbered acceptance criterion → the independent reviewer's verdict)
 
