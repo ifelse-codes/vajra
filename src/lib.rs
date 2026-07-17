@@ -4,6 +4,7 @@ pub mod architect;
 pub mod budget;
 pub mod cli;
 pub mod coder;
+pub mod demoer;
 pub mod engine;
 pub mod launcher;
 pub mod maturity;

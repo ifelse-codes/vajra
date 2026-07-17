@@ -36,7 +36,9 @@ demo:
   script_pattern: 'scripts/demo-session-{NN}.sh'
   template: 'scripts/demo-session-template.sh'
   cumulative: true
-  required_elements: [header, cases, summary_table]
+  # The sprint-demo contract (S71): the demo must SHOW each element (a `demo:<element>` marker
+  # in its live output) — the Demo-er gate re-runs the script at close and blocks otherwise.
+  required_elements: [header, cases, summary_table, before_after]
   presentation: interactive_html
   presentation_rules:
     - run demo script or commands to capture real output
