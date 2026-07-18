@@ -20,7 +20,7 @@
     repo + propagated into `vajra init` (S22/S57 pattern); recorded wins, missing → 600s default
     (generous: kills HANGS, not slow truth), section-scoped; pre-S73 repos valid. No CLI change, no
     8th command, no new dependency, no second store.
-- **Proof:** `cargo test --lib` **239 passed** (+10) · `verify-session-73.sh` all green (36 checks,
+- **Proof:** `cargo test --lib` **239 passed** (+10) · `verify-session-73.sh` all green (33 checks,
   incl. verify-71 + verify-72 re-run green) · demo-73 green (4 markers) · **independent cold review
   ACCEPT 13/13**, attested `1bfb4593…` — it caught that the `timeout_notice` changes to `gate_run.rs`
   were uncommitted while the two scripts depending on them were committed (HEAD inconsistent); fixed

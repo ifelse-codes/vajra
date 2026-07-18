@@ -33,7 +33,7 @@ product's brakes. Two real defects, both observed at S72's own close, are retire
 ## Proof
 - `cargo test --lib` **239 passed** (+10 at S73: 9 `gate_run` + 1 init-propagation; the ≥10-run
   deflake loop lives in the `hook_adapter` integration binary, not `--lib`). fmt/clippy clean.
-- `scripts/verify-session-73.sh` **all green (36 checks)** — the deflake 10×-loop + full suite ×2;
+- `scripts/verify-session-73.sh` **all green (33 checks)** — the deflake 10×-loop + full suite ×2;
   a hanging verify/demo script BLOCKS within a recorded 1s bound naming the timeout (recorded 1s
   WINS over the 600s default, proven by wall-clock `elapsed<20s` on a `sleep 30` script); a green
   script still passes; the default path passes; scaffold records the key via a real `vajra init`;
