@@ -93,12 +93,18 @@ ground_truth:
   # Every GT must catch BOTH direction drift (vision+roadmap) and discipline drift (rules+constitution+state).
   # Rules exist to serve the vision — auditing rule-following without auditing the vision is the trap S20 caught.
   drift_axes: [vision, roadmap, rules, constitution, state, cost, usage]
-  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check]
+  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check, pipeline_advance_check]
   # dogfood_check added S30: 7 audits passed green while the product sat un-dogfooded (~$0 spend since S07).
   # No audit measured USAGE — the S25 false-green finding one level deeper. The cost ledger is the evidence.
+  # pipeline_advance_check added S74: no audit measured whether the PIPELINE advances (the S25/S60/S65/S70
+  # meta-gap). The payload counter is the evidence — `vajra next --stations NN`, a DERIVED K-of-8 (never a
+  # self-asserted digit), read live at GT time; no new store.
   dogfood_questions:
     - Has real work run through `vajra claude` since the last ground-truth? (The cost ledger is the proof, not test counts.)
     - If not, any "is Vajra-on-Claude satisfying?" verdict is unmeasured by definition — flag it, do not guess.
+  pipeline_advance_questions:
+    - For each session since the last ground-truth, run `vajra next --stations NN` and read the K-of-8. Is the pipeline advancing (stations demonstrably passed), or is the machinery growing while the payload stalls? (The counter is the proof, not test counts.)
+    - Any station ABSENT across many recent sessions is a systemic gap, not per-session noise — name it. A count that never reaches 8/8 in this repo (SHIP needs a synced origin; Reviewer needs an attested ACCEPT) is expected — read the SHAPE, not just the number.
   vision_questions:
     - Is the north-star still the right destination?
     - Is current work the shortest path to it, or intellectually-fun scope creep?
