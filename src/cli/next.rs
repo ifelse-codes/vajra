@@ -13,6 +13,7 @@ use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
 use crate::qa;
 use crate::releaser;
+use crate::stations;
 
 const PACKET_FILES: &[&str] = &[
     ".ai/AGENTS.md",
@@ -81,6 +82,10 @@ pub fn run(args: &[String]) -> Result<()> {
     if args.iter().any(|a| a == "--intake") {
         return run_intake();
     }
+    // The payload counter (S74) rides `vajra next` — no 8th command. Read-only, nothing executes.
+    if let Some(i) = args.iter().position(|a| a == "--stations") {
+        return run_stations(args.get(i + 1));
+    }
 
     if args.iter().any(|a| a == "--advance") {
         run_advance()
@@ -95,6 +100,22 @@ pub fn run(args: &[String]) -> Result<()> {
 fn run_intake() -> Result<()> {
     let root = repo_root()?;
     print!("{}", analyst::format_intake(&analyst::gather_intake(&root)));
+    Ok(())
+}
+
+/// `vajra next --stations NN` — the payload counter (S74): print, per governed station, whether
+/// session NN's prompt DEMONSTRABLY passed it (PASSED / ABSENT) plus the derived `K of 8`. Each
+/// verdict is read from that station's OWN classifier — never a self-asserted digit. Read-only:
+/// nothing executes (the two LIVE stations are read statically). This retires the S25/S60/S65/S70
+/// meta-gap — "did the PIPELINE advance?" becomes a measured question. Always exits 0 (a report,
+/// not a gate).
+fn run_stations(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--stations")?;
+    let root = repo_root()?;
+    print!(
+        "{}",
+        stations::format_station_report(&stations::station_report(&root, session))
+    );
     Ok(())
 }
 

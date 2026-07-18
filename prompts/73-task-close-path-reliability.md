@@ -82,10 +82,13 @@ design-significant: yes
    covers: 1, 4, 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+<!-- Recorded at the S74 close: S73 shipped with these left as `<sha>` placeholders; the Coder
+     gate defers its check to the next session's advance, which surfaced the omission. These are
+     S73's real landing commits (merged to main via PR #71). -->
+- step 1 — done: 131206f
+- step 2 — done: 506a8a3
+- step 3 — done: 8e02768
+- step 4 — done: d229391
 
 ## Guardrails
 - **One story:** close-path reliability. No gate-semantics changes beyond the bound (no new

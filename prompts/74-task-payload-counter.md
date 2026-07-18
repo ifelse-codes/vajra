@@ -1,7 +1,7 @@
 # Session 74 — The payload counter: measure whether the PIPELINE advances
 
-> **Status:** DRAFT — recommended S74 pick (agent's call, pending founder confirmation at the S73
-> board review). **Type: CODE.** The meta-gap named at S25, S60, S65, and S70 and STILL unbuilt:
+> **Status:** APPROVED — founder confirmed the S74 pick ("all approved", S74 boot). **Type: CODE.**
+> The meta-gap named at S25, S60, S65, and S70 and STILL unbuilt:
 > every gate measures whether the RAILS are followed (branch, files, tests-green, fidelity), but
 > NOTHING measures whether the PIPELINE itself advances — how many governed stations a session
 > actually moved a prompt through. A GT cannot answer "is the pipeline progressing?" because no
@@ -51,10 +51,10 @@ design-significant: yes
    attestation. covers: 4, 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: 921728e6564ef71bb2014d201c899ac869f8a56d
+- step 2 — done: 09ad1d6381a251fc7bb035ab616181b756804232
+- step 3 — done: 418b65e818372619c9d17de472167abc1eb401ec
+- step 4 — done: ea9a017f5781a936095274b9a45670a0403c14b2
 
 ## Guardrails
 - **One story:** the pipeline-advance metric. No station-behavior changes, no gate-semantics
