@@ -6,7 +6,7 @@
   ⚡is    "Vajra is one CLI that guides any AI coding agent through a project step by step — keeping it on track, in context, and in order";
   ⚡stack "Rust, single static binary (`vajra`; package `vajractl`), Apache-2.0 OSS";
   ⚡goal  "VISION.md";
-  ⚡now   "session 69 — **CODE** (founder pick at S68 close";
+  ⚡now   "session 75 — **NO-CODE";
 }
 
 ⚡forbid {                       // hard rules. violation = STOP and ask.
@@ -55,5 +55,5 @@
 }
 
 ⚡enum next {                   // end-of-session. A/B/C authored at closeout; here = committed pointer.
-  A: "session 70 — **NO-CODE ground-truth** (mandatory, every 5th; last = S65). Lead lens A: the crew is";
+  A: "session 76 — **MEASURE";
 }
