@@ -2,37 +2,38 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 72 — The Releaser station (pipeline station 8, the SHIP gate) — COMPLETE
+## Session 73 — Close-path RELIABILITY: fix the brakes — COMPLETE
 
-- **Shipped:** ship hygiene enforced at close — `vajra next --release NN` surfaces session
-  NN's ship state re-derived from LOCAL git refs read-only; `--check-release NN` BLOCKS on an
-  unmerged session branch (ancestry) / main behind-diverged from the last-fetched origin/main
-  / unpruned merged `session-*` locals, naming each failure + the fix; rides `--advance` as
-  the LAST closing gate binding on the PRIOR session (`VAJRA_SKIP_RELEASER_GATE=1` distinct;
-  fresh repo WARNs, dodge named). `CONSTRAINTS.yaml#release` recorded + scaffold propagation.
-  The gate never pushes, merges, prunes, or fetches. The S37 return-to-main checklist line is
-  now enforcement.
-- **Proof:** 229 lib tests (+15) · `verify-session-72.sh` 43/43 (E2E incl. a REAL bare origin)
-  · cold review ACCEPT ×3 passes (20 probes) attested `40823a40…`. Fakest green disclosed:
-  refs-gone blindness (ship tidiness for actors who keep their evidence, not ship truth).
-  The QA gate refused this close once, correctly — verify-71's branch-relative check fixed
-  (`269f1c3`); verify scripts must be branch-agnostic. **S72 spend ~$0.**
-- Read prompt: `prompts/72-task-releaser-stage.md`
+- **Shipped:** (a) the `tests/hook_adapter.rs` flake FIXED at the ROOT — a `static ENV_LOCK`
+  isolates the process-global `VAJRA_RAW` leak across parallel test threads (no assertion
+  weakened, no `#[ignore]`, no retry, no deletion; ≥10-run loop + full `cargo test` ×2 = proof);
+  (b) the QA + Demo-er live gate runs BOUNDED by a recorded, fail-closed timeout — new shared
+  `src/gate_run.rs` (`run_streamed`/`run_captured`) kills a run past the bound by process group
+  and BLOCKS as the existing cannot-evaluate FAIL, `timeout_notice` naming the timeout + script
+  (never a silent pass, never a hang). `verify/demo.timeout_secs` recorded + `vajra init`
+  propagated (600s default, section-scoped, pre-S73 repos valid). No CLI change, no 8th command,
+  no new dependency, no second store; normal green closes byte-identical.
+- **Proof:** 240 lib tests (+11) · `verify-session-73.sh` all green (36 checks incl. verify-71 +
+  verify-72 re-run green) · demo-73 green (4 markers) · independent cold review **ACCEPT 13/13**
+  attested `619ce8f2…` (it caught a committed-script-depends-on-uncommitted-source inconsistency —
+  fixed in-session `S73 step 2c` + re-attested). Fakest green disclosed: QA streamed path
+  collapses timeout + spawn-failure into one `None` (naming rides an `eprintln!` side-channel).
+  **S73 spend ~$0.**
+- Read prompt: `prompts/73-task-close-path-reliability.md`
 
-Between sessions. **Next = S73, CODE — close-path RELIABILITY** ("fix the brakes first" —
-founder pick at the S72 board review; `prompts/73-task-close-path-reliability.md`, READY ×3
-through Analyst+Architect+Planner. **New chat.**)
+Between sessions. **Next = S74 (recommended: the payload counter, CODE)** — founder confirms/
+re-picks at the board review; `prompts/74-task-payload-counter.md` (DRAFT). **New chat.**
 
-## Next Session (S73 — close-path reliability, CODE)
-- Fix the brakes: (a) root-cause + FIX the `tests/hook_adapter.rs` intermittent flake by
-  isolating the leaked state (assertions stay exactly as strong — no retries, no ignore, no
-  deletions; ≥10-run green loop as regression proof); (b) give the QA + Demo-er live gate
-  runs a recorded, fail-closed TIMEOUT (kill + BLOCK naming itself; never a silent pass,
-  never a hang) with scaffold defaults + propagation. Normal green closes byte-identical.
-- Branch `session-73-close-path-reliability`. **S75 = the next mandatory NO-CODE GT.**
+## Next Session (S74 — payload counter [recommended], CODE)
+- Record, per session, how many of the 8 governed stations a prompt DEMONSTRABLY passed —
+  derived from each station's existing gate classifier (never a self-asserted digit), surfaced
+  (`vajra next --stations NN`, K-of-8, read-only) and made a GT input, retiring the
+  S25/S60/S65/S70 meta-gap (no gate measures whether the PIPELINE advances). No new store, no
+  8th command. Alt picks: dogfood ride-along [parked] · typed cannot-evaluate + depth hardening.
+- Branch `session-74-payload-counter`. **S75 = the next mandatory NO-CODE GT.**
 - Dogfood ride-along = **PARKED by founder call** (`prompts/parked-dogfood-ride-along.md`,
-  READY-shaped; re-enters by rename). S72 PR #69 merged + main cleaned + pruned ✓ — the
-  Releaser gate at the S73 close will find session 72 shipped.
+  READY-shaped; re-enters by rename). Merge the S73 PR + sync main + prune `session-73-*` before
+  the S74 close — the Releaser gate enforces it.
 
 ## Always-True Reminders
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.

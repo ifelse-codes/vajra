@@ -1,5 +1,23 @@
+use std::sync::Mutex;
 use vajractl::adapter::ClaudeCodeHookAdapter;
 use vajractl::engine::DefaultEngine;
+
+/// ── S73 deflake: process-global env isolation ──────────────────────────────
+/// Root cause of the S72-found flake: `std::env` is process-WIDE, and Rust runs `#[test]`s on
+/// parallel threads that share it. `passthrough_vajra_raw_env` does `set_var("VAJRA_RAW", …)`;
+/// with no serialization that value leaked into a concurrently-running compression test, whose
+/// adapter then read `VAJRA_RAW` and PASSED THROUGH instead of folding — flipping the fold
+/// assertion `assert_ne!(out, "{}")` red at random (both directions seen: red-via-gate /
+/// green-direct and the reverse). The fix is isolation at the ROOT, not the assertions: the one
+/// env-mutating test and every fold-asserting reader take this lock, so they never overlap. No
+/// assertion weakened, no retry loop, no `#[ignore]`, no test deleted.
+static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+/// Take the env lock, recovering from poisoning so one panicking test can't cascade-fail the
+/// rest — a poisoned lock still guarantees the mutual exclusion this isolation needs.
+fn env_guard() -> std::sync::MutexGuard<'static, ()> {
+    ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+}
 
 fn run_adapter(json_in: &str) -> String {
     let adapter = ClaudeCodeHookAdapter::new(DefaultEngine);
@@ -60,6 +78,7 @@ fn passthrough_malformed_json() {
 
 #[test]
 fn passthrough_vajra_raw_env() {
+    let _env = env_guard(); // held across set→remove so the leak window never overlaps a fold test
     std::env::set_var("VAJRA_RAW", "1");
     let json = real_cc_payload_with_exit_code(
         "cargo build",
@@ -73,6 +92,7 @@ fn passthrough_vajra_raw_env() {
 
 #[test]
 fn compression_bash_cargo_build_produces_updated_output() {
+    let _env = env_guard(); // reads VAJRA_RAW via the adapter — must not overlap the setter test
     let raw = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/research/compression-fixtures/raw/cargo-build.txt"
@@ -118,6 +138,7 @@ fn real_cc_payload_folds_not_passthrough() {
     // gaps out of this fix's scope: cargo/npm/pytest heuristics key off `exit_code ==
     // Some(0)` directly rather than the engine's inferred success, and `infer_success`
     // has no generic-command success signal at all when exit_code is absent.)
+    let _env = env_guard(); // reads VAJRA_RAW via the adapter — must not overlap the setter test
     let lines: Vec<String> = (0..450).map(|i| format!("src/file_{i}.rs")).collect();
     let raw = lines.join("\n");
     let json = real_cc_payload("find . -name *.rs", &raw);
@@ -173,6 +194,7 @@ fn passthrough_short_bash_output() {
 fn git_log_no_exit_code_folds_after_s41() {
     // THE WIN: a large `git log` with no exitCode passed through before S41
     // (silently — the S36 "0 folds live" bug); it must fold now.
+    let _env = env_guard(); // reads VAJRA_RAW via the adapter — must not overlap the setter test
     let raw: String = (0..60)
         .map(|i| format!("{i:04x} commit message {i}"))
         .collect::<Vec<_>>()
@@ -229,4 +251,25 @@ fn generic_ls_no_exit_code_stays_conservative() {
         out, "{}",
         "generic ls (no exitCode, under cap) stays passthrough — conservative"
     );
+}
+
+#[test]
+fn compression_stays_green_under_repeated_runs() {
+    // S73 regression proof (in-suite): the S72 flake only surfaced under repetition + parallelism.
+    // Fold back-to-back ≥10×, re-taking the env lock each iteration so the setter test CAN grab it
+    // between iterations but never DURING one — before the isolation, an interleaved VAJRA_RAW set
+    // turned some of these runs into "{}". The verify harness runs the heavier full-suite loop.
+    let raw = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/research/compression-fixtures/raw/cargo-build.txt"
+    ));
+    for i in 0..12 {
+        let _env = env_guard();
+        let json = real_cc_payload_with_exit_code("cargo build", raw, 0);
+        let out = run_adapter(&json);
+        assert_ne!(
+            out, "{}",
+            "run {i}: cargo build fixture must fold every time"
+        );
+    }
 }

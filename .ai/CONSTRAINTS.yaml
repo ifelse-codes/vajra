@@ -31,6 +31,10 @@ verify:
   exit_zero_required: true
   closeout_script: 'scripts/verify-closeout.sh'
   closeout_must_pass_before_close: true
+  # The bound (S73): the QA gate re-runs this script LIVE at close; a run past timeout_secs is
+  # killed and BLOCKS (cannot-evaluate → FAIL), never a silent pass, never a hang. Generous on
+  # purpose — kills hangs, not slow truth. Missing key → gate_run::DEFAULT_TIMEOUT_SECS (600).
+  timeout_secs: 600
 
 demo:
   script_pattern: 'scripts/demo-session-{NN}.sh'
@@ -39,6 +43,8 @@ demo:
   # The sprint-demo contract (S71): the demo must SHOW each element (a `demo:<element>` marker
   # in its live output) — the Demo-er gate re-runs the script at close and blocks otherwise.
   required_elements: [header, cases, summary_table, before_after]
+  # Same bound (S73) on the Demo-er live re-run — killed past timeout_secs → cannot-evaluate BLOCK.
+  timeout_secs: 600
   presentation: interactive_html
   presentation_rules:
     - run demo script or commands to capture real output
