@@ -118,9 +118,19 @@ pub fn run_streamed(root: &Path, script: &str, timeout: Duration) -> Option<i32>
         Some(status) => status.code(),
         None => {
             kill_tree(&mut child);
+            eprintln!("{}", timeout_notice(script, timeout));
             None
         }
     }
+}
+
+/// The line a killed run prints (streamed → live stderr; captured → stderr + folded into the
+/// returned text) so the BLOCK NAMES the timeout and the script — never a silent None.
+fn timeout_notice(script: &str, timeout: Duration) -> String {
+    format!(
+        "[vajra: TIMEOUT — killed `{script}` after exceeding the {}s gate bound; a check that cannot evaluate FAILS the close]",
+        timeout.as_secs()
+    )
 }
 
 /// Like [`run_streamed`] but CAPTURES stdout+stderr (for the Demo-er element scan) and echoes them
@@ -137,11 +147,11 @@ pub fn run_captured(root: &Path, script: &str, timeout: Duration) -> (Option<i32
     };
     let out_reader = read_to_end(child.stdout.take());
     let err_reader = read_to_end(child.stderr.take());
-    let code = match wait_or_timeout(&mut child, timeout) {
-        Some(status) => status.code(),
+    let (code, timed_out) = match wait_or_timeout(&mut child, timeout) {
+        Some(status) => (status.code(), false),
         None => {
             kill_tree(&mut child);
-            None
+            (None, true)
         }
     };
     // Kill (above) closes the child's write ends, so both readers reach EOF and join.
@@ -151,6 +161,12 @@ pub fn run_captured(root: &Path, script: &str, timeout: Duration) -> (Option<i32
     let _ = std::io::stderr().write_all(&err_bytes);
     let mut text = String::from_utf8_lossy(&out_bytes).into_owned();
     text.push_str(&String::from_utf8_lossy(&err_bytes));
+    if timed_out {
+        let notice = timeout_notice(script, timeout);
+        eprintln!("{notice}");
+        text.push('\n');
+        text.push_str(&notice);
+    }
     (code, text)
 }
 
@@ -259,12 +275,20 @@ mod tests {
     }
 
     #[test]
-    fn run_captured_hang_is_killed_and_blocks() {
+    fn run_captured_hang_is_killed_and_names_the_timeout() {
         let tmp = repo_with("#!/usr/bin/env bash\necho started\nsleep 5\n");
-        let (code, _text) = run_captured(tmp.path(), "scripts/s.sh", Duration::from_millis(300));
+        let (code, text) = run_captured(tmp.path(), "scripts/s.sh", Duration::from_millis(300));
         assert_eq!(
             code, None,
             "a hung demo run is killed → cannot-evaluate → BLOCK"
+        );
+        assert!(
+            text.contains("started"),
+            "output-before-kill survives: {text:?}"
+        );
+        assert!(
+            text.contains("TIMEOUT") && text.contains("scripts/s.sh"),
+            "the returned text names the timeout + script: {text:?}"
         );
     }
 
