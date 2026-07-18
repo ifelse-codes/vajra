@@ -129,7 +129,10 @@ fn analyst_status(root: &Path, session: u32) -> StationStatus {
 fn architect_status(root: &Path, session: u32) -> StationStatus {
     const N: &str = "Architect";
     const L: &str = "DESIGN";
-    match architect::design_gate(root, session).report.map(|r| r.state) {
+    match architect::design_gate(root, session)
+        .report
+        .map(|r| r.state)
+    {
         Some(DesignState::Substantive) => {
             StationStatus::passed(N, L, "substantive, spine-citing `## Design`")
         }
@@ -150,9 +153,11 @@ fn planner_status(root: &Path, session: u32) -> StationStatus {
         Some(PlanState::Covered) => StationStatus::passed(N, L, "plan covers all criteria"),
         Some(PlanState::Placeholder) => StationStatus::absent(N, L, "placeholder `## Plan`"),
         Some(PlanState::Absent) => StationStatus::absent(N, L, "no `## Plan`"),
-        Some(PlanState::Uncovered(missing)) => {
-            StationStatus::absent(N, L, format!("plan misses criteria {}", join_nums(&missing)))
-        }
+        Some(PlanState::Uncovered(missing)) => StationStatus::absent(
+            N,
+            L,
+            format!("plan misses criteria {}", join_nums(&missing)),
+        ),
         None => StationStatus::absent(N, L, "no prompt"),
     }
 }
@@ -197,12 +202,19 @@ fn demoer_status(root: &Path, session: u32) -> StationStatus {
     if !c.script_exists {
         StationStatus::absent(N, L, "no demo script recorded")
     } else if c.missing_in_file.is_empty() {
-        StationStatus::passed(N, L, "demo script + all elements [static — not live-scanned]")
+        StationStatus::passed(
+            N,
+            L,
+            "demo script + all elements [static — not live-scanned]",
+        )
     } else {
         StationStatus::absent(
             N,
             L,
-            format!("demo script missing elements: {}", c.missing_in_file.join(", ")),
+            format!(
+                "demo script missing elements: {}",
+                c.missing_in_file.join(", ")
+            ),
         )
     }
 }
@@ -242,11 +254,15 @@ fn reviewer_status(root: &Path, session: u32) -> StationStatus {
     match fs::read_to_string(root.join(&rel)) {
         Err(_) => StationStatus::absent(N, L, "no review artifact"),
         Ok(text) => {
-            let attested = text.lines().any(|l| l.to_lowercase().contains("review-inputs-sha"));
+            let attested = text
+                .lines()
+                .any(|l| l.to_lowercase().contains("review-inputs-sha"));
             match review_verdict_accept(&text) {
                 None => StationStatus::absent(N, L, "review records no canonical verdict"),
                 Some(false) => StationStatus::absent(N, L, "review verdict is REJECT"),
-                Some(true) if !attested => StationStatus::absent(N, L, "ACCEPT review not attested"),
+                Some(true) if !attested => {
+                    StationStatus::absent(N, L, "ACCEPT review not attested")
+                }
                 Some(true) => StationStatus::passed(N, L, "attested ACCEPT review"),
             }
         }
@@ -294,7 +310,8 @@ fn read_prompt(root: &Path, session: u32) -> Option<String> {
 /// `verify-closeout.sh`: a line whose text contains `verdict:` and then `accept`/`reject`. `None`
 /// when no canonical verdict line exists ("No expected verdict supplied" has no colon — not a match).
 fn review_verdict_accept(text: &str) -> Option<bool> {
-    text.lines()
+    let verdicts: Vec<bool> = text
+        .lines()
         .map(|l| l.to_lowercase())
         .filter(|l| l.contains("verdict:"))
         .filter_map(|l| {
@@ -306,7 +323,8 @@ fn review_verdict_accept(text: &str) -> Option<bool> {
                 None
             }
         })
-        .last()
+        .collect();
+    verdicts.last().copied()
 }
 
 fn join_nums(nums: &[u32]) -> String {
@@ -391,11 +409,7 @@ release:
     }
 
     fn write_prompt(root: &Path, nn: u32, body: &str) {
-        fs::write(
-            root.join(format!("prompts/{nn:02}-task-fixture.md")),
-            body,
-        )
-        .unwrap();
+        fs::write(root.join(format!("prompts/{nn:02}-task-fixture.md")), body).unwrap();
     }
 
     fn head_sha(root: &Path) -> String {
@@ -472,7 +486,11 @@ release:
         assert_eq!(outcome(root, 40, "Demo-er"), Outcome::Absent);
 
         // Verify script present → QA static PASS.
-        fs::write(root.join("scripts/verify-session-40.sh"), "#!/bin/sh\ntrue\n").unwrap();
+        fs::write(
+            root.join("scripts/verify-session-40.sh"),
+            "#!/bin/sh\ntrue\n",
+        )
+        .unwrap();
         assert_eq!(outcome(root, 40, "QA"), Outcome::Passed);
 
         // Demo script must carry EVERY required element in its text.
@@ -505,7 +523,10 @@ release:
         git_in(root, &["add", "-A"]);
         git_in(root, &["commit", "-qm", "s50"]);
         git_in(root, &["checkout", "-q", "main"]);
-        git_in(root, &["merge", "-q", "--no-ff", "session-50-x", "-m", "merge 50"]);
+        git_in(
+            root,
+            &["merge", "-q", "--no-ff", "session-50-x", "-m", "merge 50"],
+        );
         assert_eq!(outcome(root, 50, "Releaser"), Outcome::Absent); // unpruned
 
         // Prune it → merged + pruned; no origin remote means sync is unverifiable → still ABSENT
@@ -556,7 +577,11 @@ release:
 \n## Plan\n1. <step>\n\n## Execution\n- step 1 — done: <sha>\n\n## Delta\n- `+` <adds>\n";
         write_prompt(root, 70, scaffold);
         let r = station_report(root, 70);
-        assert_eq!(r.passed(), 0, "a fresh scaffold demonstrably passes nothing");
+        assert_eq!(
+            r.passed(),
+            0,
+            "a fresh scaffold demonstrably passes nothing"
+        );
     }
 
     #[test]
@@ -568,7 +593,11 @@ release:
         // Releaser derives a shipped state. Origin is absent, so SHIP stays ABSENT (no synced main
         // to verify) — the honest ceiling in a no-remote fixture is 7/8.
         write_prompt(root, 80, "placeholder");
-        fs::write(root.join("scripts/verify-session-80.sh"), "#!/bin/sh\ntrue\n").unwrap();
+        fs::write(
+            root.join("scripts/verify-session-80.sh"),
+            "#!/bin/sh\ntrue\n",
+        )
+        .unwrap();
         fs::write(
             root.join("scripts/demo-session-80.sh"),
             "#!/bin/sh\necho demo:header demo:cases demo:summary_table demo:before_after\n",
@@ -588,7 +617,10 @@ release:
         git_in(root, &["add", "-A"]);
         git_in(root, &["commit", "-qm", "s80 work"]);
         git_in(root, &["checkout", "-q", "main"]);
-        git_in(root, &["merge", "-q", "--no-ff", "session-80-x", "-m", "merge 80"]);
+        git_in(
+            root,
+            &["merge", "-q", "--no-ff", "session-80-x", "-m", "merge 80"],
+        );
         git_in(root, &["branch", "-D", "session-80-x"]);
 
         let r = station_report(root, 80);
@@ -608,7 +640,11 @@ release:
                 && passed.contains(&"Reviewer"),
             "seven non-SHIP stations should pass on a fully-filled fixture, got {passed:?}"
         );
-        assert_eq!(r.passed(), 7, "no-remote fixture ceiling is 7/8 (SHIP needs synced origin)");
+        assert_eq!(
+            r.passed(),
+            7,
+            "no-remote fixture ceiling is 7/8 (SHIP needs synced origin)"
+        );
     }
 
     #[test]
