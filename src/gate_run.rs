@@ -65,6 +65,10 @@ pub fn gate_timeout(constraints_path: &Path, section: &str) -> Duration {
 fn bash(root: &Path, script: &str) -> Command {
     let mut cmd = Command::new("bash");
     cmd.arg(script).current_dir(root);
+    // A gate re-run must NEVER read the operator's stdin: the old Demo-er `.output()` nulled it,
+    // and a verify/demo script that reads stdin during a close would race — and silently consume —
+    // the `--advance` confirm prompt (observed live at the S73 close). Null it for both runners.
+    cmd.stdin(Stdio::null());
     #[cfg(unix)]
     cmd.process_group(0);
     cmd
@@ -105,8 +109,9 @@ fn wait_or_timeout(child: &mut Child, timeout: Duration) -> Option<ExitStatus> {
     }
 }
 
-/// Re-run `script` (repo-relative) LIVE at `root` with INHERITED stdio (streamed — the run is the
-/// evidence, shown as it happens), bounded by `timeout`. Returns the real exit code, or `None`
+/// Re-run `script` (repo-relative) LIVE at `root` with inherited stdout/stderr (streamed — the run
+/// is the evidence, shown as it happens) but NULL stdin (see `bash`), bounded by `timeout`. Returns
+/// the real exit code, or `None`
 /// when it cannot be evaluated: a spawn failure OR a timeout (the child is killed and reaped, then
 /// classified `None`). Used by the QA gate — replaces its old unbounded `.status()`.
 pub fn run_streamed(root: &Path, script: &str, timeout: Duration) -> Option<i32> {
@@ -289,6 +294,22 @@ mod tests {
         assert!(
             text.contains("TIMEOUT") && text.contains("scripts/s.sh"),
             "the returned text names the timeout + script: {text:?}"
+        );
+    }
+
+    #[test]
+    fn run_captured_does_not_inherit_stdin() {
+        // A gate re-run must not consume the operator's stdin: a script that `read`s must see EOF
+        // (null), not block or eat input. The S73 confirm-drain regression was exactly this —
+        // inherited stdin let a re-run swallow the `--advance` 'y'.
+        let tmp = repo_with(
+            "#!/usr/bin/env bash\nif read -r l; then echo \"got:$l\"; else echo noinput; fi\n",
+        );
+        let (code, text) = run_captured(tmp.path(), "scripts/s.sh", Duration::from_secs(30));
+        assert_eq!(code, Some(0));
+        assert!(
+            text.contains("noinput"),
+            "stdin must be null (EOF): {text:?}"
         );
     }
 
