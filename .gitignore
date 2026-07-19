@@ -16,3 +16,17 @@ demo-output.txt
 # Kimchi session artifacts
 .kimchi/
 kimchi-session-*.html
+
+# S76 dogfood: commit only the curated evidence (harness, task, checklist, the 2
+# receipts). Raw captures + 285KB transcripts stay LOCAL — the receipts carry the
+# authoritative-absent warning + cost lines the report cites.
+sessions/session-76-artifacts/*
+!sessions/session-76-artifacts/capture.sh
+!sessions/session-76-artifacts/task-prompt.txt
+!sessions/session-76-artifacts/measurement-checklist.md
+!sessions/session-76-artifacts/run1
+!sessions/session-76-artifacts/run2
+sessions/session-76-artifacts/run1/*
+sessions/session-76-artifacts/run2/*
+!sessions/session-76-artifacts/run1/receipt.stderr.txt
+!sessions/session-76-artifacts/run2/receipt.stderr.txt

@@ -1,0 +1,7 @@
+
+─── vajra · 5284c9f ───────────────────────────────────────────
+ $14.3894  total  [estimate · fable-5 priced as opus upper bound, not real rates]  (fable-5 64 lines)
+         input $0.4942 · output $6.2622 · cache-r $3.6427 · cache-w $3.9903
+─────────────────────────────────────────────────────────
+[vajra warn] model(s) claude-fable-5 not in pricing table — token estimate uses the opus upper bound, not real rates; trust the authoritative total, not the estimate
+[vajra warn] no total_cost_usd in JSONL — headline is a token estimate, not the authoritative charge

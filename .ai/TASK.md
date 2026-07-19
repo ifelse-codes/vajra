@@ -2,52 +2,40 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 75 — Ground Truth (mandatory NO-CODE, every 5th; last = S70) — COMPLETE
+## Session 76 — Dogfood ride-along (paid MEASURE) — COMPLETE
 
-- **Ran all 9 `required_audits`** (incl. the new `pipeline_advance_check`, its first real reading) +
-  the meta-check + a lens-A verdict over the S71→S74 arc. **Headline:** `vajra next --stations NN` run
-  live across every S54→S74 prompt climbs **1/8 → 8/8**, landing exactly on each station's real ship
-  session — genuine, measured advance, not guessed.
-- **Two new findings the counter itself surfaced:** (1) **Releaser evidence decay** — `--stations` goes
-  blind on the SHIP dimension once a session's branch refs are pruned (the normal cleanup outcome);
-  reliable as a point-in-time snapshot, not a durable historical ledger. (2) **Debt-label drift** — "the
-  S25/S60 payload counter, retired at S74" conflates two different asks: S25's original text wanted a
-  cross-agent BREADTH indicator (still zero code, 50 sessions later); S60 quietly redefined it into the
-  pipeline-DEPTH counter S74 actually built. Corrected in this closeout, not overclaimed as closed.
-- **Lens A verdict: PARTIAL PASS.** The payload demonstrably moves — real, not theater — held short of a
-  clean pass only by the two disclosed counter caveats above.
-- **State/knowledge/constraint/constitution/cost/dogfood audits:** all 🟢/🟡, no 🔴, zero constraint
-  violations S71→S74. `vajra.varta` re-rendered (was stale 5 sessions); STATE/BOOT PR-status drift
-  (S15/S20/S25 recurring class) corrected.
-- Read prompt: `prompts/75-task-ground-truth.md`. Report: `sessions/session-75-ground-truth.md`.
-- No `src/`/scripts change, no commits outside `session-75-closeout`, no PR-worthy code. **S75 spend ~$0.**
+- **One real task (chitra's S07 CI) through `vajra claude` headless**, governed instance in chitra, agent
+  preparing/capturing/deriving. Two paid runs: run 1 read-only wall (headless has no approval channel →
+  obeyed "3rd-failure→escalate", stopped clean); run 2 (`--dangerously-skip-permissions`) delivered a
+  green CI workflow (independent verify re-run = 13/13).
+- **Headline: governance is real + voluntary** — run 2 bypassed every permission hook yet **refused to
+  auto-commit "per CONSTRAINTS"** + held the 2-assumption cap (chitra doesn't wire the no-commit hook).
+- **Weak station = receipt (🔴):** fable-5 unpriced (opus-upper-bound estimate) + no `total_cost_usd`
+  (regression vs S63) → no truthful dollar figure. Compression 0 folds. → S77 fixes this.
+- **Caveat (disclosed):** run was agent-invoked of a founder-authored + founder-directed prompt.
+- Read prompt: `prompts/76-task-dogfood-ride-along.md`. Reports: `sessions/session-76-dogfood.md` +
+  `-summary.md` + `-review.md` (ACCEPT, attested `4b87434c…`). `verify-session-76.sh` 14/14; demo 4/4.
+- No `src/` change (`cargo test --lib` 248 unchanged). **S76 spend real but unknown $ (fable-5 unpriced).**
 
-Between sessions. **Next = S76 — the founder-led paid dogfood ride-along** (MEASURE, un-parked founder
-pick A of 3 ranked S76 candidates); `prompts/76-task-dogfood-ride-along.md` (APPROVED). **New chat.**
+Between sessions. **Next = S77 — CODE, receipt truth** (founder pick A of 3 ranked S77 candidates);
+`prompts/77-task-receipt-truth.md` (APPROVED). **New chat.**
 
-## Next Session (S76 — MEASURE, founder-led dogfood ride-along)
-- One real task through `vajra claude` end-to-end, founder driving, agent capturing: authoritative cost
-  (JSONL `total_cost_usd`), receipt fidelity, compression folds, gates fired/helped/hindered, obedience.
-  Refreshes `dogfood_check` — last paid run S63 ($1.2662), 12 sessions stale at the S75 pick; the crew has
-  doubled from 3 to 8 stations since. Bugs found are recorded as S77 debt, not fixed (1-story discipline).
-- Branch `session-76-dogfood-ride-along`. **S80 = the next mandatory NO-CODE GT.**
-- Standing S77 candidates (should this session surface no sharper pick): typed cannot-evaluate + depth
-  hardening · ship-evidence durability for `--stations` (S75 GT finding, candidate C) · compression
-  fix-or-retire on this run's data.
+## Next Session (S77 — CODE, receipt truth on real runs)
+- Add `claude-fable-5` to `meter::MODEL_PRICING` (real rates + source, or documented flagged handling) +
+  diagnose/repair the missing headless `total_cost_usd` (regression vs S63) so a real dogfood produces a
+  truthful dollar figure. Within ADR-0004; no new command. Use S76 captured fixtures — **no new paid runs**.
+- Branch `session-77-receipt-truth`. **S80 = the next mandatory NO-CODE GT.**
+- Standing S78 candidates (if S77 surfaces no sharper pick): read-only-headless UX + typed
+  `CannotEvaluate::{Timeout,SpawnFailure}` · `--stations` ship-evidence durability (S75 GT finding) ·
+  whatever the receipt-truth work surfaces.
 
 ## Always-True Reminders
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`. Every 5th session is NO-CODE ground-truth (next = **S80**).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S76; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S77; do NOT start it here.
 - **Direction:** product = **provable agent governance**, shaped as a **governed multi-agent SDLC
-  pipeline** (`DECISION-001`); fidelity is the load-bearing governance (`DECISION-002`), verdicts
-  attested (`DECISION-003`) + chained into a tamper-evident ledger (`DECISION-004`).
-  **Pipeline = 8 governed stations** (Analyst WHAT · Architect DESIGN · Planner HOW-plan · Coder DID ·
-  QA WORKS · Demo-er SHOW · Releaser SHIP · Reviewer/ledger REVIEW) + the authoritative receipt, now
-  **MEASURED** (S74's `--stations` counter, GT-verified live at S75: 1/8→8/8 tracking real builds).
-  **The core crew is COMPLETE (S72); Monitor stays later.**
-  **S70 founder decisions:** dogfood = founder-led run, crew condition met, **un-parked at S75** ·
-  compression = never claimed until measured real · payload counter = **BUILT + GT-verified (S74/S75)**.
-  **S75 correction:** the cross-agent-breadth gap S25 originally named is a SEPARATE, still-open debt
-  from the pipeline-depth counter S74 built — do not conflate the two in future closeouts.
+  pipeline** (`DECISION-001`); fidelity is load-bearing (`DECISION-002`), verdicts attested
+  (`DECISION-003`) + chained tamper-evident (`DECISION-004`). **Pipeline = 8 governed stations + the
+  authoritative receipt, now MEASURED as experience (S76).** **S76 finding: the receipt can't tell $ truth
+  on real fable-5/headless runs — S77 fixes it.** **dogfood = DONE at S76** (founder-driven, agent-measured).

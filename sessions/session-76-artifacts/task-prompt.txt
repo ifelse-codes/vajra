@@ -1,0 +1,21 @@
+chitra Session 07 — add CI workflows (the natural next step after S06's real dist build).
+
+Context: @chitra/core now produces a real publishable dist (ESM+CJS+.d.ts, S06) but the
+repo has no CI. The README references .github/workflows/* that don't exist. Add CI now.
+
+Follow chitra's own workflow in .ai/AGENTS.md (branch session-07-ci-workflows from main;
+one story; verify green before you call it done).
+
+Do:
+1. Add .github/workflows/ci.yml. On push to `main` and on every pull_request, with pinned
+   Node + pnpm and a frozen-lockfile install, run these gates:
+     - @chitra/core:            test, typecheck, build
+     - @workspace/chitra-docs:  typecheck, build
+     - chart-generation drift:  gen:charts:check   (fails if generated charts are stale)
+2. Add scripts/verify-session-07.sh that proves: the workflow file exists, is valid YAML,
+   pins Node + pnpm, wires each gate above, and that @chitra/core still passes its 116 tests.
+3. Add scripts/demo-session-07.sh showing the CI gates and a green verify run.
+4. Run scripts/verify-session-07.sh and make it green.
+
+Stop there and report — do NOT git push or open a PR (I'll review the branch first).
+Keep zero runtime deps and the public @chitra/core API unchanged.
