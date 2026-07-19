@@ -50,10 +50,10 @@ design-significant: no
    summary + independent cold review + attestation (`Review-Inputs-SHA`). covers: 4, 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: 086a1b6  (investigation: root-cause comment + real fixture landed with the fix)
+- step 2 — done: 086a1b6  (fable-5 priced; receipt no-authoritative headline)
+- step 3 — done: 086a1b6  (authoritative read = documented known limit; on-disk transcript carries none)
+- step 4 — done: 35a6165  (regression test in 086a1b6; verify-session-77 11/11 + demo 4/4 in 35a6165)
 
 ## Guardrails
 - **One story:** receipt truth. No new command, no compression work, no station changes.
