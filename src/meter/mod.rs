@@ -27,6 +27,16 @@ const MODEL_PRICING: &[ModelPricing] = &[
         input_per_mtok: 0.80,
         output_per_mtok: 4.0,
     },
+    // claude-fable-5 — Anthropic's most capable widely released model. Real rates $10 input /
+    // $50 output per MTok, from the Claude model catalog (claude-api skill · shared/models.md,
+    // cached 2026-06-24). Added S77: the S76 dogfood ran headless on fable-5, which was absent
+    // here and so got priced at UNKNOWN_MODEL_PRICING (the opus upper bound, $15/$75) — an
+    // overstatement. These real rates (below the upper bound) stop that. Compiled-in per ADR-0004.
+    ModelPricing {
+        prefix: "claude-fable-5",
+        input_per_mtok: 10.0,
+        output_per_mtok: 50.0,
+    },
 ];
 
 const WEB_SEARCH_PER_REQUEST: f64 = 0.01;
@@ -198,7 +208,8 @@ pub fn meter_session(
     }
     if authoritative_dollars.is_none() {
         warnings.push(
-            "no total_cost_usd in JSONL — headline is a token estimate, not the authoritative charge"
+            "no total_cost_usd in JSONL — no authoritative cost available; the figure shown is a \
+             token estimate only, not the charge"
                 .into(),
         );
     }
@@ -238,6 +249,18 @@ fn parse_jsonl(
 
         // The SDK-authoritative charge: the headless run's terminal `type:"result"` line carries
         // `total_cost_usd`. Prefer it over any token recompute (S66). Last one wins if repeated.
+        //
+        // S77 root-cause finding (criterion 3 — NOT a nesting artifact, NOT cost-on-another-line):
+        // the JSONL `find_session_jsonl` locates is the on-disk CC *session transcript*
+        // (`~/.claude/projects/<slug>/<uuid>.jsonl`), whose top-level line types are
+        // queue-operation / user / assistant / attachment / last-prompt. That file carries NO cost
+        // field anywhere — `total_cost_usd` is emitted only on the terminal `type:"result"` line of
+        // a headless `claude -p --output-format json|stream-json` *stdout stream*, a different
+        // artifact vajra does not capture. So the S76 real runs had no authoritative figure to read;
+        // this branch simply never fires for them (verified against both S76 transcripts: 0 result
+        // lines, 0 cost keys). Repairing the read would require capturing the -p stdout stream (a
+        // launcher change, out of ADR-0004 scope); the honest fix here is the receipt saying "no
+        // authoritative cost available" instead of dressing the token estimate up as a total.
         if parsed["type"].as_str() == Some("result") {
             if let Some(cost) = parsed["total_cost_usd"].as_f64() {
                 *authoritative_dollars = Some(cost);
@@ -343,8 +366,12 @@ pub fn format_receipt(cost: &SessionCost) -> String {
         .collect();
 
     // Headline = the authoritative `total_cost_usd` when the JSONL carried it; the token recompute
-    // is then demoted to a labeled `[estimate]` line beneath it. Absent an authoritative figure,
-    // the headline IS the estimate and is labeled as such — never presented as the charge (S66).
+    // is then demoted to a labeled `[estimate]` line beneath it. When NO authoritative figure
+    // exists, the headline is NOT a dollar total at all — it says "no authoritative cost available"
+    // and the token estimate rides a clearly-secondary `~$… token estimate` line (S77, criterion 2:
+    // an estimate is never presented as a total). The estimate tag also flags any unknown model
+    // whose rate fell back to the opus upper bound (S66) — though S77 priced fable-5, so the S76
+    // fixture now shows the plain `[estimate]` tag at real rates, not the opus-bound one.
     let estimate_tag = if cost.unknown_models.is_empty() {
         "[estimate]".to_string()
     } else {
@@ -367,10 +394,12 @@ pub fn format_receipt(cost: &SessionCost) -> String {
         }
         None => {
             out.push_str(&format!(
-                " ${:.4}  total  {}  ({})\n",
-                cost.total_dollars,
-                estimate_tag,
+                " no authoritative cost available  ({})\n",
                 model_summary.join(" · ")
+            ));
+            out.push_str(&format!(
+                "         ~${:.4}  token estimate  {}\n",
+                cost.total_dollars, estimate_tag
             ));
         }
     }
@@ -641,13 +670,16 @@ mod tests {
         assert!(receipt.contains("[estimate]"), "receipt: {receipt}");
     }
 
-    /// A JSONL with an unknown model (fable-5) AND an authoritative `total_cost_usd`: the S63
-    /// reproduction. Headline must be the authoritative figure, the token estimate demoted +
-    /// labeled, and the fable-priced-as-opus overstatement never presented as the charge (S66).
-    fn fable_fixture_with_authoritative() -> String {
-        // fable-5 assistant line with opus-scale cache tokens (would estimate ~opus rates), plus
-        // the headless terminal result line carrying the real bill.
-        r#"{"type":"assistant","message":{"model":"claude-fable-5","usage":{"input_tokens":1000,"output_tokens":2000,"cache_read_input_tokens":500000,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":100000},"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0}}}}
+    /// A JSONL with a model absent from `MODEL_PRICING` (so priced at the opus upper bound) AND an
+    /// authoritative `total_cost_usd`. Headline must be the authoritative figure, the token estimate
+    /// demoted + labeled, and the opus-priced overstatement never presented as the charge (S66).
+    /// Uses `claude-mythos-5` — a real model the table doesn't price — standing in for the generic
+    /// "unknown model" case. (S77 priced fable-5, which used to play this role; swap the id here if
+    /// mythos-5 is ever added to the table.)
+    fn unpriced_model_fixture_with_authoritative() -> String {
+        // Unpriced-model assistant line with opus-scale cache tokens (would estimate ~opus rates),
+        // plus the headless terminal result line carrying the real bill.
+        r#"{"type":"assistant","message":{"model":"claude-mythos-5","usage":{"input_tokens":1000,"output_tokens":2000,"cache_read_input_tokens":500000,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":100000},"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0}}}}
 {"type":"result","subtype":"success","total_cost_usd":1.2662,"num_turns":17}"#
             .to_string()
     }
@@ -657,16 +689,16 @@ mod tests {
         let dir = std::env::temp_dir().join("vajra-test-authoritative");
         let _ = fs::create_dir_all(&dir);
         let jsonl_path = dir.join("auth-session.jsonl");
-        fs::write(&jsonl_path, fable_fixture_with_authoritative()).unwrap();
+        fs::write(&jsonl_path, unpriced_model_fixture_with_authoritative()).unwrap();
 
         let result = meter_session(&jsonl_path, None, None).unwrap();
 
         // Authoritative figure is captured and is what we bill against.
         assert_eq!(result.authoritative_dollars, Some(1.2662));
         assert!((result.billed_dollars() - 1.2662).abs() < 1e-9);
-        // fable-5 is flagged unknown, and the token estimate is the inflated opus-priced number
-        // (proving the S63 overstatement is real) — but it is NOT the billed figure.
-        assert_eq!(result.unknown_models, vec!["claude-fable-5".to_string()]);
+        // The unpriced model is flagged unknown, and the token estimate is the inflated opus-priced
+        // number (proving the overstatement is real) — but it is NOT the billed figure.
+        assert_eq!(result.unknown_models, vec!["claude-mythos-5".to_string()]);
         assert!(
             result.total_dollars > result.billed_dollars() * 2.0,
             "estimate {} should dwarf the authoritative {}",
@@ -723,5 +755,75 @@ mod tests {
         );
 
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    /// S77 regression on the REAL S76 dogfood data: headless `vajra claude` on chitra, model
+    /// `claude-fable-5`, an on-disk session transcript with NO `type:"result"` line. Proves the
+    /// two S77 fixes together — (1) fable-5 is priced at its real rates ($10/$50), not the opus
+    /// upper bound; (2) with no authoritative `total_cost_usd`, the receipt says "no authoritative
+    /// cost available" and never dresses the estimate up as a total. The fixture is real captured
+    /// data (see its `_provenance` line), read from the repo tree at test time.
+    #[test]
+    fn s76_fable_headless_fixture_prices_fable_and_reports_no_authoritative() {
+        // fable-5 is now a known, priced model — no opus-upper-bound fallback (criterion 1).
+        assert!(is_known_model("claude-fable-5"));
+        assert_eq!(pricing_for("claude-fable-5"), (10.0, 50.0));
+
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("sessions/session-76-artifacts/fixtures/s76-fable-headless.jsonl");
+        let result = meter_session(&fixture, None, None).unwrap();
+
+        // The on-disk transcript carries no `total_cost_usd` (the S76 finding) ...
+        assert!(result.authoritative_dollars.is_none());
+        // ... and fable-5 is priced, so it is NOT flagged as an unknown/opus-bound model.
+        assert!(
+            result.unknown_models.is_empty(),
+            "fable-5 should be priced, got unknown: {:?}",
+            result.unknown_models
+        );
+        assert_eq!(result.model_breakdown.len(), 1);
+        assert_eq!(result.model_breakdown[0].model, "claude-fable-5");
+        assert_eq!(result.model_breakdown[0].assistant_lines, 2);
+
+        // Estimate is at REAL fable rates, not the opus upper bound. Hand calc over the two real
+        // turns (input 7918, output 700, cache_read 45969, cache_write_1h 4494) at $10/$50:
+        //   input:   7918  * 10        / 1e6 = 0.079180
+        //   output:  700   * 50        / 1e6 = 0.035000
+        //   cache_r: 45969 * 10 * 0.10 / 1e6 = 0.045969
+        //   cache_w: 4494  * 10 * 2.00 / 1e6 = 0.089880
+        //   total = 0.250029
+        assert!(
+            (result.total_dollars - 0.250029).abs() < 1e-4,
+            "expected fable-priced estimate ~0.2500, got {}",
+            result.total_dollars
+        );
+
+        let receipt = format_receipt(&result);
+        // No authoritative figure → the headline is the honest statement, never a `$… total`
+        // (criterion 2).
+        assert!(
+            receipt.contains("no authoritative cost available"),
+            "receipt: {receipt}"
+        );
+        assert!(
+            !receipt.contains("  total"),
+            "estimate must not masquerade as a total: {receipt}"
+        );
+        // The estimate is still shown, labeled — and NOT with the opus-upper-bound tag anymore.
+        assert!(receipt.contains("token estimate"), "receipt: {receipt}");
+        assert!(receipt.contains("[estimate]"), "receipt: {receipt}");
+        assert!(
+            !receipt.contains("priced as opus upper bound"),
+            "fable-5 is priced now — no opus-bound tag: {receipt}"
+        );
+        // The authoritative-absent warning still fires so the reason is explicit.
+        assert!(
+            result
+                .warnings
+                .iter()
+                .any(|w| w.contains("no total_cost_usd")),
+            "warnings: {:?}",
+            result.warnings
+        );
     }
 }

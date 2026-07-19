@@ -30,3 +30,6 @@ sessions/session-76-artifacts/run1/*
 sessions/session-76-artifacts/run2/*
 !sessions/session-76-artifacts/run1/receipt.stderr.txt
 !sessions/session-76-artifacts/run2/receipt.stderr.txt
+# S77 regression fixture — real captured message.usage slice, small + committed (the
+# meter/receipt tests + verify-session-77 depend on it; the raw run.jsonl stays local).
+!sessions/session-76-artifacts/fixtures
