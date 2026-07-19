@@ -118,6 +118,63 @@ impl SessionCost {
     pub fn billed_dollars(&self) -> f64 {
         self.authoritative_dollars.unwrap_or(self.total_dollars)
     }
+
+    /// Apply an authoritative `total_cost_usd` captured from the coding tool's OWN end-of-session
+    /// output — the headless `-p` `type:"result"` stdout line (S78). The on-disk transcript the
+    /// meter reads never carries this figure (S77 root cause), so on real headless runs the
+    /// launcher captures the result stream and hands the value here. The stream figure IS the real
+    /// bill, so it supersedes the "no authoritative cost available" state: the field is set and the
+    /// authoritative-absent warning is dropped. A transcript that already carried its own
+    /// `total_cost_usd` is left untouched (it is equally authoritative — no double-source override).
+    /// `None` (interactive run, or text-mode headless with no result line) is a no-op: S77's honest
+    /// fallback stands (criterion 2).
+    pub fn apply_captured_cost(&mut self, captured: Option<f64>) {
+        if let Some(cost) = captured {
+            if self.authoritative_dollars.is_none() {
+                self.authoritative_dollars = Some(cost);
+                self.warnings.retain(|w| !w.contains("no total_cost_usd"));
+            }
+        }
+    }
+}
+
+/// Extract the SDK-authoritative `total_cost_usd` from a headless run's captured stdout — the
+/// terminal `type:"result"` line of `claude -p --output-format json|stream-json` (S78). This is
+/// the figure the on-disk transcript never carries (S77 root cause); the launcher tees the `-p`
+/// stdout and hands the bytes here. Precedence: the last `type:"result"` line wins (stream-json
+/// emits one terminal result). Also tolerates `--output-format json`, which is a single
+/// (possibly pretty-printed, multi-line) JSON object rather than line-delimited. Returns `None`
+/// for text-mode headless output (no result line) and for anything that is not valid JSON — never
+/// guesses a cost from a non-result line.
+pub fn extract_result_cost(stdout: &[u8]) -> Option<f64> {
+    let text = std::str::from_utf8(stdout).ok()?;
+
+    // stream-json / json-lines: scan each line; last terminal result wins.
+    let mut found: Option<f64> = None;
+    for line in text.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(line) {
+            if v["type"].as_str() == Some("result") {
+                if let Some(c) = v["total_cost_usd"].as_f64() {
+                    found = Some(c);
+                }
+            }
+        }
+    }
+    if found.is_some() {
+        return found;
+    }
+
+    // `--output-format json`: a single JSON object spanning the whole (possibly multi-line) buffer.
+    if let Ok(v) = serde_json::from_str::<serde_json::Value>(text.trim()) {
+        if v["type"].as_str() == Some("result") {
+            return v["total_cost_usd"].as_f64();
+        }
+    }
+    None
 }
 
 // ─── core ──────────────────────────────────────────────────────────
@@ -755,6 +812,161 @@ mod tests {
         );
 
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    // ─── S78: recover the true $ from the tool's own result stream ───
+
+    #[test]
+    fn extract_result_cost_reads_stream_json_terminal_result() {
+        // stream-json: line-delimited; the terminal `type:"result"` carries the bill. Earlier
+        // non-result lines (system/assistant) must be ignored; only the result's cost is read.
+        let stdout = concat!(
+            r#"{"type":"system","subtype":"init","session_id":"abc"}"#,
+            "\n",
+            r#"{"type":"assistant","message":{"model":"claude-fable-5"}}"#,
+            "\n",
+            r#"{"type":"result","subtype":"success","total_cost_usd":0.4211,"num_turns":9}"#,
+            "\n"
+        )
+        .as_bytes();
+        assert_eq!(extract_result_cost(stdout), Some(0.4211));
+    }
+
+    #[test]
+    fn extract_result_cost_reads_single_json_object() {
+        // `--output-format json`: one (here pretty-printed, multi-line) JSON object, not lines.
+        let stdout = r#"{
+  "type": "result",
+  "subtype": "success",
+  "total_cost_usd": 1.9032,
+  "result": "done"
+}"#
+        .as_bytes();
+        assert_eq!(extract_result_cost(stdout), Some(1.9032));
+    }
+
+    #[test]
+    fn extract_result_cost_none_for_text_and_garbage() {
+        // Text-mode headless output (plain answer, no result line) → None → honest fallback stands.
+        assert_eq!(
+            extract_result_cost(b"here is your answer, no json at all"),
+            None
+        );
+        // A result line without a cost field, and a non-result line with a cost-shaped field, are
+        // both ignored — we never guess a bill from a non-`result` line.
+        assert_eq!(
+            extract_result_cost(br#"{"type":"result","subtype":"error_max_turns"}"#),
+            None
+        );
+        assert_eq!(
+            extract_result_cost(br#"{"type":"assistant","total_cost_usd":99.0}"#),
+            None
+        );
+        assert_eq!(extract_result_cost(b""), None);
+    }
+
+    #[test]
+    fn apply_captured_cost_supersedes_absent_and_drops_the_warning() {
+        // A known model, no `total_cost_usd` in the transcript → honest "no authoritative" state.
+        let dir = std::env::temp_dir().join("vajra-test-apply-captured");
+        let _ = fs::create_dir_all(&dir);
+        let jsonl_path = dir.join("s.jsonl");
+        fs::write(&jsonl_path, fixture_jsonl()).unwrap();
+        let mut cost = meter_session(&jsonl_path, None, None).unwrap();
+        assert!(cost.authoritative_dollars.is_none());
+        assert!(cost
+            .warnings
+            .iter()
+            .any(|w| w.contains("no total_cost_usd")));
+
+        // Feed the tool's own captured cost (S78) → it becomes the bill and the absent-warning goes.
+        cost.apply_captured_cost(Some(0.4211));
+        assert_eq!(cost.authoritative_dollars, Some(0.4211));
+        assert!((cost.billed_dollars() - 0.4211).abs() < 1e-9);
+        assert!(
+            !cost
+                .warnings
+                .iter()
+                .any(|w| w.contains("no total_cost_usd")),
+            "authoritative-absent warning must be dropped: {:?}",
+            cost.warnings
+        );
+        let receipt = format_receipt(&cost);
+        assert!(receipt.contains("$0.4211  total"), "receipt: {receipt}");
+        assert!(
+            !receipt.contains("no authoritative cost available"),
+            "receipt: {receipt}"
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn apply_captured_cost_none_is_a_noop_and_does_not_override_existing() {
+        // None (interactive / text-mode) is a no-op: S77's honest fallback stands (criterion 2).
+        let dir = std::env::temp_dir().join("vajra-test-apply-noop");
+        let _ = fs::create_dir_all(&dir);
+        let jsonl_path = dir.join("s.jsonl");
+        fs::write(&jsonl_path, fixture_jsonl()).unwrap();
+        let mut cost = meter_session(&jsonl_path, None, None).unwrap();
+        cost.apply_captured_cost(None);
+        assert!(cost.authoritative_dollars.is_none());
+        assert!(cost
+            .warnings
+            .iter()
+            .any(|w| w.contains("no total_cost_usd")));
+
+        // A transcript that already carried its own authoritative figure is not overridden.
+        fs::write(&jsonl_path, unpriced_model_fixture_with_authoritative()).unwrap();
+        let mut cost = meter_session(&jsonl_path, None, None).unwrap();
+        assert_eq!(cost.authoritative_dollars, Some(1.2662));
+        cost.apply_captured_cost(Some(9.99));
+        assert_eq!(
+            cost.authoritative_dollars,
+            Some(1.2662),
+            "an existing authoritative figure must not be overridden by a captured one"
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    /// S78 regression on a REAL captured headless result stream: a `claude -p
+    /// --output-format stream-json` stdout slice whose terminal `type:"result"` line carries the
+    /// SDK-authoritative `total_cost_usd`. Proves the end-to-end recovery — the launcher tees this
+    /// stream, `extract_result_cost` reads the figure, and `apply_captured_cost` makes it the
+    /// receipt headline (what S77 could not do). Real captured data (see the fixture's provenance).
+    #[test]
+    fn s78_real_captured_result_stream_yields_authoritative_headline() {
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("sessions/session-78-artifacts/fixtures/s78-headless-result-stream.txt");
+        let stdout = fs::read(&fixture).expect("real captured result-stream fixture");
+
+        // The tool's own end-of-session cost is recoverable from the captured stream ...
+        let captured = extract_result_cost(&stdout);
+        assert!(
+            captured.is_some(),
+            "expected a real total_cost_usd in the captured stream"
+        );
+
+        // ... and feeding it to the meter (which, on an on-disk transcript, has no figure) makes it
+        // the authoritative headline — the S77→S78 promotion from "no authoritative" to a real $.
+        let transcript = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("sessions/session-76-artifacts/fixtures/s76-fable-headless.jsonl");
+        let mut cost = meter_session(&transcript, None, None).unwrap();
+        assert!(
+            cost.authoritative_dollars.is_none(),
+            "transcript has no cost"
+        );
+        cost.apply_captured_cost(captured);
+        assert_eq!(cost.authoritative_dollars, captured);
+        assert!((cost.billed_dollars() - captured.unwrap()).abs() < 1e-9);
+
+        let receipt = format_receipt(&cost);
+        assert!(receipt.contains("  total"), "receipt: {receipt}");
+        assert!(
+            !receipt.contains("no authoritative cost available"),
+            "captured cost must supersede the honest fallback: {receipt}"
+        );
     }
 
     /// S77 regression on the REAL S76 dogfood data: headless `vajra claude` on chitra, model
