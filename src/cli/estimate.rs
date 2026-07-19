@@ -19,7 +19,12 @@ const CONTEXT_FILES: &[&str] = &[
 
 const CHARS_PER_TOKEN: f64 = 4.0;
 const OUTPUT_INPUT_RATIO: f64 = 3.0;
-const DEFAULT_MODEL: &str = "claude-opus-4";
+// The current default Claude model (claude-api skill, cached 2026-06-24). Was the bare
+// "claude-opus-4", which used to resolve to the same rate as every opus-4-x id; since S79 split
+// current opus (claude-opus-4-6/7/8, $5/$25) from the legacy opus-4.0/4.1-era fallback ($15/$75),
+// the bare prefix now falls through to the legacy rate and this pre-run estimate needs the
+// specific current id to price correctly.
+const DEFAULT_MODEL: &str = "claude-opus-4-8";
 
 pub fn run() -> Result<()> {
     let cwd = env::current_dir().context("failed to read current directory")?;
@@ -160,11 +165,11 @@ mod tests {
         let output_cost = output_tokens as f64 * output_price / 1_000_000.0;
         let total = input_cost + output_cost;
 
-        // opus: input $15/MTok, output $75/MTok
-        // 10k * 15 / 1M = 0.15
-        // 30k * 75 / 1M = 2.25
-        // total = 2.40
-        assert!((total - 2.40).abs() < 0.001, "got {total}, expected 2.40");
+        // claude-opus-4-8 (S79 current rate): input $5/MTok, output $25/MTok
+        // 10k * 5 / 1M = 0.05
+        // 30k * 25 / 1M = 0.75
+        // total = 0.80
+        assert!((total - 0.80).abs() < 0.001, "got {total}, expected 0.80");
     }
 
     #[test]
