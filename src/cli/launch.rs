@@ -2,8 +2,9 @@ use crate::budget::{self, BudgetVerdict};
 use crate::launcher::{command_exists, merge_hook_settings, TempSettings};
 use crate::meter;
 use anyhow::{Context, Result};
+use std::io::{Read, Write};
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::{ChildStdout, Command, Stdio};
 use std::time::SystemTime;
 
 pub fn run(args: &[String]) -> Result<()> {
@@ -25,6 +26,11 @@ pub fn run(args: &[String]) -> Result<()> {
     let mut command = Command::new("claude");
     command.env("VAJRA_SESSION_STATS", &stats_path);
 
+    // A headless `-p`/`--print` run emits the SDK-authoritative cost on its terminal
+    // `type:"result"` stdout line (S78); only these runs are tee-captured. Interactive runs have
+    // no result stream and must keep an inherited TTY — piping one would break its UI.
+    let headless = is_headless(args);
+
     match merge_hook_settings().and_then(TempSettings::write) {
         Ok(temp_settings) => {
             if std::env::var("VAJRA_DEBUG").ok().as_deref() == Some("1") {
@@ -37,14 +43,30 @@ pub fn run(args: &[String]) -> Result<()> {
                 .arg("--settings")
                 .arg(temp_settings.path())
                 .args(args);
-            wait_and_meter(command, Some(temp_settings), session_start, &stats_path)
+            wait_and_meter(
+                command,
+                Some(temp_settings),
+                session_start,
+                &stats_path,
+                headless,
+            )
         }
         Err(e) => {
             eprintln!("[vajra] warning: settings injection failed; running bare claude ({e})");
             command.args(args);
-            wait_and_meter(command, None, session_start, &stats_path)
+            wait_and_meter(command, None, session_start, &stats_path, headless)
         }
     }
+}
+
+/// A headless `claude -p`/`--print` invocation runs non-interactively and (with
+/// `--output-format json|stream-json`) emits a terminal `type:"result"` line carrying the
+/// SDK-authoritative `total_cost_usd` — the figure the on-disk transcript never has (S77/S78).
+/// Interactive runs (no `-p`) have no such stream. Detection is a plain arg scan; text-mode `-p`
+/// (no `--output-format`) is still headless but simply carries no result line, so capture yields
+/// nothing and S77's honest fallback stands.
+fn is_headless(args: &[String]) -> bool {
+    args.iter().any(|a| a == "-p" || a == "--print")
 }
 
 /// Fail fast if Claude Code has no credentials (S34, gap noted S18): an unauthenticated
@@ -101,19 +123,41 @@ fn wait_and_meter(
     temp_settings: Option<TempSettings>,
     session_start: SystemTime,
     stats_path: &Path,
+    headless: bool,
 ) -> Result<()> {
-    let mut child = command
+    command
         .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()
-        .context("failed to spawn claude")?;
+        // Headless: pipe stdout so we can tee + scan it for the tool's own `total_cost_usd`
+        // (S78). Interactive: inherit the TTY unchanged (piping would break the UI).
+        .stdout(if headless {
+            Stdio::piped()
+        } else {
+            Stdio::inherit()
+        });
+
+    let mut child = command.spawn().context("failed to spawn claude")?;
+
+    // On headless runs, drain the child's stdout to EOF — streaming every byte straight through to
+    // our own stdout (never swallowed, criterion 3) while keeping a copy to scan afterwards. stderr
+    // is inherited (not piped), so there is no second pipe to deadlock against. Read-to-EOF happens
+    // before `wait()`: the child closes stdout at exit, then we reap.
+    let captured_cost = if headless {
+        child
+            .stdout
+            .take()
+            .map(tee_and_capture)
+            .and_then(|buf| meter::extract_result_cost(&buf))
+    } else {
+        None
+    };
+
     let status = child.wait();
     std::mem::drop(temp_settings);
     let status = status.context("failed to wait on claude")?;
 
     let session_cost = if std::env::var("VAJRA_QUIET").ok().as_deref() != Some("1") {
-        print_receipt(session_start, stats_path)
+        print_receipt(session_start, stats_path, captured_cost)
     } else {
         None
     };
@@ -151,7 +195,15 @@ fn check_budget_cap(session_cost: f64) -> Result<()> {
     Ok(())
 }
 
-fn print_receipt(session_start: SystemTime, stats_path: &Path) -> Option<f64> {
+/// `captured_cost` is the authoritative `total_cost_usd` teed from a headless run's result stream
+/// (S78), or `None` for interactive/text-mode runs. When present it supersedes the transcript's
+/// absent figure (the transcript never carries one — S77), so the receipt headline becomes the
+/// real bill instead of "no authoritative cost available".
+fn print_receipt(
+    session_start: SystemTime,
+    stats_path: &Path,
+    captured_cost: Option<f64>,
+) -> Option<f64> {
     let compression_stats = meter::read_compression_stats(stats_path);
 
     let jsonl = match meter::find_session_jsonl(session_start) {
@@ -163,23 +215,50 @@ fn print_receipt(session_start: SystemTime, stats_path: &Path) -> Option<f64> {
                     stats.lines_folded, stats.calls_compressed
                 );
             }
-            return None;
+            // No transcript to meter, but a headless run may still have teed its own cost — report
+            // it rather than dropping the one authoritative figure we have (S78).
+            return captured_cost;
         }
     };
 
     match meter::meter_session(&jsonl.0, jsonl.1.as_deref(), compression_stats) {
-        Ok(cost) => {
-            // Budget against the authoritative charge when the JSONL carried it, else the
-            // estimate — never the inflated token recompute of an unknown model (S66).
+        Ok(mut cost) => {
+            // Feed the tool's own end-of-session cost into the S66 authoritative path before we
+            // read/format anything (so the headline, budget, and warnings all agree) — S78.
+            cost.apply_captured_cost(captured_cost);
+            // Budget against the authoritative charge when known (transcript or captured stream),
+            // else the estimate — never the inflated token recompute of an unknown model (S66).
             let total = cost.billed_dollars();
             eprint!("\n{}", meter::format_receipt(&cost));
             Some(total)
         }
         Err(e) => {
             eprintln!("\n[vajra] meter error: {e}");
-            None
+            captured_cost
         }
     }
+}
+
+/// Drain `out` to EOF, streaming every byte straight to our stdout (the user sees the agent's own
+/// output untouched — criterion 3) while returning a full copy for cost extraction (S78). Byte-for
+/// byte: no line reassembly, no re-encoding, so text/json/stream-json all pass through verbatim.
+fn tee_and_capture(mut out: ChildStdout) -> Vec<u8> {
+    let mut buf = Vec::new();
+    let mut chunk = [0u8; 8192];
+    let stdout = std::io::stdout();
+    let mut handle = stdout.lock();
+    loop {
+        match out.read(&mut chunk) {
+            Ok(0) => break,
+            Ok(n) => {
+                let _ = handle.write_all(&chunk[..n]);
+                let _ = handle.flush();
+                buf.extend_from_slice(&chunk[..n]);
+            }
+            Err(_) => break,
+        }
+    }
+    buf
 }
 
 #[cfg(test)]
@@ -204,6 +283,27 @@ mod tests {
         fs::create_dir_all(home.path().join(".claude")).unwrap();
         fs::write(home.path().join(".claude/.credentials.json"), "{}").unwrap();
         assert!(auth_evidence(None, Some(home.path())));
+    }
+
+    #[test]
+    fn is_headless_detects_print_flags_only() {
+        assert!(is_headless(&["-p".into(), "do a thing".into()]));
+        assert!(is_headless(&["--print".into()]));
+        assert!(is_headless(&[
+            "-p".into(),
+            "x".into(),
+            "--output-format".into(),
+            "stream-json".into()
+        ]));
+        // Interactive launches (no -p/--print) must NOT be tee-captured — the TTY stays inherited.
+        assert!(!is_headless(&[]));
+        assert!(!is_headless(&["--model".into(), "opus".into()]));
+        assert!(!is_headless(&["--dangerously-skip-permissions".into()]));
+        // A -p buried in a value string is not the flag (exact-token match, no substring).
+        assert!(!is_headless(&[
+            "--append-system-prompt".into(),
+            "keep -p short".into()
+        ]));
     }
 
     #[test]

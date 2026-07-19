@@ -57,10 +57,10 @@ design-significant: yes
    (`Review-Inputs-SHA`). covers: 4, 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: 46b2352
+- step 2 — done: 46b2352
+- step 3 — done: 46b2352
+- step 4 — done: 613f7d1
 
 ## Guardrails
 - **One story:** recover the authoritative cost on headless runs. No new command; no re-pricing of the
