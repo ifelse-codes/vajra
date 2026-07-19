@@ -12,6 +12,31 @@ struct ModelPricing {
 }
 
 const MODEL_PRICING: &[ModelPricing] = &[
+    // Current opus tier — confirmed via the `claude-api` skill / shared/models.md (cached
+    // 2026-06-24): Opus 4.8, 4.7, and 4.6 all price at $5/$25 per MTok, well below the stale
+    // $15/$75 the generic "claude-opus-4" prefix used to apply to every opus-4-x id alike (S79;
+    // that rate dates to the opus-4.0/4.1 era). Specific-before-generic: these three entries MUST
+    // stay ahead of the generic "claude-opus-4" fallback below, since `pricing_for` returns the
+    // first prefix match and every one of these strings also starts with "claude-opus-4".
+    ModelPricing {
+        prefix: "claude-opus-4-8",
+        input_per_mtok: 5.0,
+        output_per_mtok: 25.0,
+    },
+    ModelPricing {
+        prefix: "claude-opus-4-7",
+        input_per_mtok: 5.0,
+        output_per_mtok: 25.0,
+    },
+    ModelPricing {
+        prefix: "claude-opus-4-6",
+        input_per_mtok: 5.0,
+        output_per_mtok: 25.0,
+    },
+    // Legacy/unconfirmed opus fallback: 4.0, 4.1, 4.5, and any other "claude-opus-4*" id not
+    // matched above. The current pricing table has no published rate for these deprecated ids, so
+    // this keeps the historical opus-4.0/4.1-era rate ($15/$75) as a conservative, non-decreasing
+    // estimate rather than guessing at their present-day billing (S79 granularity decision).
     ModelPricing {
         prefix: "claude-opus-4",
         input_per_mtok: 15.0,
@@ -43,10 +68,16 @@ const WEB_SEARCH_PER_REQUEST: f64 = 0.01;
 const WEB_FETCH_PER_REQUEST: f64 = 0.01;
 const TOKENS_PER_LINE_ESTIMATE: f64 = 12.0;
 
-/// Rate used to *estimate* a model absent from `MODEL_PRICING`. It is opus (the priciest
-/// tier) so the estimate is an upper bound, never an undercount — but an unknown model priced
-/// this way is always surfaced (`is_known_model` → `SessionCost.unknown_models`) and labeled in
-/// the receipt, so it can never be silently reported as the authoritative charge (S66).
+/// Rate used to *estimate* a model absent from `MODEL_PRICING`. Re-confirmed at S79: opus is no
+/// longer the priciest tier (Opus 4.6/4.7/4.8 are $5/$25 — see `MODEL_PRICING` above), so this is
+/// kept as a deliberate ceiling instead — 1.5x Claude Fable 5's $10/$50, the priciest rate
+/// actually in the table (claude-api skill cache, 2026-06-24). Same numeric value as before
+/// (unchanged — it was already an upper bound over every known rate), just decoupled from the
+/// "opus" framing that stopped being true. An unknown model priced this way is always surfaced
+/// (`is_known_model` → `SessionCost.unknown_models`) and labeled in the receipt, so it can never
+/// be silently reported as the authoritative charge (S66). See the
+/// `unknown_model_pricing_still_exceeds_every_known_rate` test below for the invariant this
+/// preserves.
 const UNKNOWN_MODEL_PRICING: (f64, f64) = (15.0, 75.0);
 
 pub(crate) fn pricing_for(model: &str) -> (f64, f64) {
@@ -59,8 +90,9 @@ pub(crate) fn pricing_for(model: &str) -> (f64, f64) {
 }
 
 /// Is this model in the compiled-in pricing table? A `false` here means `pricing_for` fell back
-/// to `UNKNOWN_MODEL_PRICING` (opus upper bound) — the token estimate for it is unreliable and
-/// must be labeled, not presented as the bill (S66 root cause: `claude-fable-5` priced as opus).
+/// to `UNKNOWN_MODEL_PRICING` (the intentional upper-bound rate) — the token estimate for it is
+/// unreliable and must be labeled, not presented as the bill (S66 root cause: `claude-fable-5`
+/// priced as opus, back when opus was still the priciest tier).
 pub(crate) fn is_known_model(model: &str) -> bool {
     MODEL_PRICING.iter().any(|p| model.starts_with(p.prefix))
 }
@@ -258,8 +290,8 @@ pub fn meter_session(
 
     if !unknown_models.is_empty() {
         warnings.push(format!(
-            "model(s) {} not in pricing table — token estimate uses the opus upper bound, not real \
-             rates; trust the authoritative total, not the estimate",
+            "model(s) {} not in pricing table — token estimate uses an intentional upper-bound \
+             rate, not real rates; trust the authoritative total, not the estimate",
             unknown_models.join(", ")
         ));
     }
@@ -427,13 +459,13 @@ pub fn format_receipt(cost: &SessionCost) -> String {
     // exists, the headline is NOT a dollar total at all — it says "no authoritative cost available"
     // and the token estimate rides a clearly-secondary `~$… token estimate` line (S77, criterion 2:
     // an estimate is never presented as a total). The estimate tag also flags any unknown model
-    // whose rate fell back to the opus upper bound (S66) — though S77 priced fable-5, so the S76
-    // fixture now shows the plain `[estimate]` tag at real rates, not the opus-bound one.
+    // whose rate fell back to the unknown-model upper bound (S66) — though S77 priced fable-5 and
+    // S79 corrected opus, so the S76 fixture now shows the plain `[estimate]` tag at real rates.
     let estimate_tag = if cost.unknown_models.is_empty() {
         "[estimate]".to_string()
     } else {
         format!(
-            "[estimate · {} priced as opus upper bound, not real rates]",
+            "[estimate · {} priced at the unknown-model upper bound, not real rates]",
             cost.unknown_models.join(", ").replace("claude-", "")
         )
     };
@@ -476,7 +508,7 @@ pub fn format_receipt(cost: &SessionCost) -> String {
         .model_breakdown
         .first()
         .map(|m| pricing_for(&m.model))
-        .unwrap_or((15.0, 75.0));
+        .unwrap_or(UNKNOWN_MODEL_PRICING);
     let input_cost = total_tokens.input as f64 * primary_input / 1e6;
     let output_cost = total_tokens.output as f64 * primary_output / 1e6;
     let cache_r_cost = total_tokens.cache_read as f64 * primary_input * 0.10 / 1e6;
@@ -654,14 +686,15 @@ mod tests {
 
         let result = meter_session(&jsonl_path, None, None).unwrap();
 
-        // Hand calculation for opus (input=$15/MTok, output=$75/MTok):
-        // input:  60 * 15 / 1e6 = 0.000900
-        // output: 332 * 75 / 1e6 = 0.024900
-        // cache_read: 16586 * 15 * 0.10 / 1e6 = 0.024879
-        // cache_write_5m: 300 * 15 * 1.25 / 1e6 = 0.005625
-        // cache_write_1h: 7628 * 15 * 2.0 / 1e6 = 0.228840
-        // total = 0.285144
-        let expected = 0.285144;
+        // Hand calculation for claude-opus-4-8 at the corrected current rate (S79: input
+        // $5/MTok, output $25/MTok — was $15/$75, the stale opus-4.0/4.1-era rate):
+        // input:  60 * 5 / 1e6 = 0.000300
+        // output: 332 * 25 / 1e6 = 0.008300
+        // cache_read: 16586 * 5 * 0.10 / 1e6 = 0.008293
+        // cache_write_5m: 300 * 5 * 1.25 / 1e6 = 0.001875
+        // cache_write_1h: 7628 * 5 * 2.0 / 1e6 = 0.076280
+        // total = 0.095048
+        let expected = 0.095048;
         assert!(
             (result.total_dollars - expected).abs() < 0.0001,
             "got {}, expected {}",
@@ -670,6 +703,43 @@ mod tests {
         );
 
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn opus_4_8_prices_at_current_rate_legacy_opus_keeps_historical_rate() {
+        // S79: opus-4-8 (and 4-7 / 4-6) now price at the confirmed current rate ($5/$25 per
+        // MTok — claude-api skill / shared/models.md, cached 2026-06-24), correcting the stale
+        // $15/$75 the generic "claude-opus-4" prefix used to apply to every opus-4-x id alike.
+        assert_eq!(pricing_for("claude-opus-4-8"), (5.0, 25.0));
+        assert_eq!(pricing_for("claude-opus-4-7"), (5.0, 25.0));
+        assert_eq!(pricing_for("claude-opus-4-6"), (5.0, 25.0));
+        // Granularity decision: legacy/unconfirmed opus ids (4.0, 4.1, 4.5, and any dated
+        // snapshot of them) fall through to the generic "claude-opus-4" entry, which keeps the
+        // historical opus-4.0/4.1-era rate rather than guessing at their present-day billing.
+        assert_eq!(pricing_for("claude-opus-4-1-20250805"), (15.0, 75.0));
+        assert_eq!(pricing_for("claude-opus-4-20250514"), (15.0, 75.0));
+    }
+
+    #[test]
+    fn unknown_model_pricing_still_exceeds_every_known_rate() {
+        // Criterion 3 (S79): the unknown-model fallback must never undercount, even now that
+        // opus (the fallback's original namesake) is cheaper than Claude Fable 5. Reconfirm the
+        // fallback is still >= every real rate in MODEL_PRICING on both dimensions.
+        let (unknown_in, unknown_out) = UNKNOWN_MODEL_PRICING;
+        for p in MODEL_PRICING {
+            assert!(
+                unknown_in >= p.input_per_mtok,
+                "unknown input rate ${unknown_in} must be >= {}'s ${}",
+                p.prefix,
+                p.input_per_mtok
+            );
+            assert!(
+                unknown_out >= p.output_per_mtok,
+                "unknown output rate ${unknown_out} must be >= {}'s ${}",
+                p.prefix,
+                p.output_per_mtok
+            );
+        }
     }
 
     #[test]
@@ -727,9 +797,10 @@ mod tests {
         assert!(receipt.contains("[estimate]"), "receipt: {receipt}");
     }
 
-    /// A JSONL with a model absent from `MODEL_PRICING` (so priced at the opus upper bound) AND an
-    /// authoritative `total_cost_usd`. Headline must be the authoritative figure, the token estimate
-    /// demoted + labeled, and the opus-priced overstatement never presented as the charge (S66).
+    /// A JSONL with a model absent from `MODEL_PRICING` (so priced at the unknown-model upper
+    /// bound) AND an authoritative `total_cost_usd`. Headline must be the authoritative figure,
+    /// the token estimate demoted + labeled, and the inflated overstatement never presented as
+    /// the charge (S66).
     /// Uses `claude-mythos-5` — a real model the table doesn't price — standing in for the generic
     /// "unknown model" case. (S77 priced fable-5, which used to play this role; swap the id here if
     /// mythos-5 is ever added to the table.)
@@ -753,8 +824,8 @@ mod tests {
         // Authoritative figure is captured and is what we bill against.
         assert_eq!(result.authoritative_dollars, Some(1.2662));
         assert!((result.billed_dollars() - 1.2662).abs() < 1e-9);
-        // The unpriced model is flagged unknown, and the token estimate is the inflated opus-priced
-        // number (proving the overstatement is real) — but it is NOT the billed figure.
+        // The unpriced model is flagged unknown, and the token estimate is the inflated
+        // upper-bound number (proving the overstatement is real) — but it is NOT the billed figure.
         assert_eq!(result.unknown_models, vec!["claude-mythos-5".to_string()]);
         assert!(
             result.total_dollars > result.billed_dollars() * 2.0,
@@ -764,11 +835,11 @@ mod tests {
         );
 
         let receipt = format_receipt(&result);
-        // Headline = authoritative; estimate present but labeled; opus-mispricing disclosed.
+        // Headline = authoritative; estimate present but labeled; upper-bound mispricing disclosed.
         assert!(receipt.contains("$1.2662  total"), "receipt: {receipt}");
         assert!(receipt.contains("token estimate"), "receipt: {receipt}");
         assert!(
-            receipt.contains("priced as opus upper bound"),
+            receipt.contains("priced at the unknown-model upper bound"),
             "receipt: {receipt}"
         );
         assert!(
@@ -997,7 +1068,7 @@ mod tests {
         assert_eq!(result.model_breakdown[0].model, "claude-fable-5");
         assert_eq!(result.model_breakdown[0].assistant_lines, 2);
 
-        // Estimate is at REAL fable rates, not the opus upper bound. Hand calc over the two real
+        // Estimate is at REAL fable rates, not the unknown-model upper bound. Hand calc over the two real
         // turns (input 7918, output 700, cache_read 45969, cache_write_1h 4494) at $10/$50:
         //   input:   7918  * 10        / 1e6 = 0.079180
         //   output:  700   * 50        / 1e6 = 0.035000
@@ -1021,12 +1092,12 @@ mod tests {
             !receipt.contains("  total"),
             "estimate must not masquerade as a total: {receipt}"
         );
-        // The estimate is still shown, labeled — and NOT with the opus-upper-bound tag anymore.
+        // The estimate is still shown, labeled — and NOT with the unknown-model tag anymore.
         assert!(receipt.contains("token estimate"), "receipt: {receipt}");
         assert!(receipt.contains("[estimate]"), "receipt: {receipt}");
         assert!(
-            !receipt.contains("priced as opus upper bound"),
-            "fable-5 is priced now — no opus-bound tag: {receipt}"
+            !receipt.contains("priced at the unknown-model upper bound"),
+            "fable-5 is priced now — no unknown-model tag: {receipt}"
         );
         // The authoritative-absent warning still fires so the reason is explicit.
         assert!(
