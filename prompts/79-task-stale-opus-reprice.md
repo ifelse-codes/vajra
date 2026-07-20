@@ -61,10 +61,10 @@ design-significant: no
    attestation (`Review-Inputs-SHA`). covers: 4, 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: research-only, no commit (sourced current rates via the claude-api skill; no source file changed)
+- step 2 — done: 079d27f
+- step 3 — done: 079d27f
+- step 4 — done: e9b6ff3
 
 ## Guardrails
 - **One story:** correct the stale opus *estimate* rate. No new command; no launcher/capture change
