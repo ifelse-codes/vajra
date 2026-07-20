@@ -92,9 +92,9 @@ this arc with a real dollar cost already paid, not a theoretical one.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
+- step 1 — done: 17279d8
+- step 2 — done: 17279d8
+- step 3 — done: 17279d8
 
 ## Delta (the Analyst gate — what this session ADDS to the governed pipeline)
 
