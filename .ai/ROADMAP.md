@@ -1,6 +1,59 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-20 · **Session 83 — Warn before a headless read-only run (CODE) — DONE.**
+**Updated:** 2026-07-20 · **Session 84 — Typed `CannotEvaluate::{Timeout, SpawnFailure}` (CODE) — DONE.**
+The QA and Demo-er gates' live re-run (S73) bounds a script by a recorded timeout, but
+`src/gate_run.rs`'s `run_streamed`/`run_captured` collapsed two structurally different unevaluable
+outcomes — the script hung past its bound and was killed (slow-truth) vs the child process never
+spawned at all (an environment problem: bash missing, permission denied, a broken path) — into the
+same untyped `None`. Every downstream BLOCK message read the identical generic "could not be
+evaluated (no exit code)" — the S73 fakest-green finding, disclosed at the time and carried across
+7 sessions (S76-S83) without a fix. **Fix:** new `CannotEvaluate { Timeout, SpawnFailure }`; both
+runners retyped to `Result<i32, CannotEvaluate>` (`run_captured` keeps its `String` output
+alongside); the `.spawn()` `Err` arm returns `SpawnFailure`, the killed-timeout arm returns
+`Timeout`, a real exit code is unchanged. **The signal-death edge** (a process that exits before
+the timeout but without a numeric code, killed by an EXTERNAL signal that is not our own timeout
+kill) resolves via `code_or_conservative(status) = status.code().unwrap_or(1)` — a real,
+still-blocking exit code, deliberately not a third `CannotEvaluate` variant (the Design section
+forbade reintroducing a second `Option`-shaped ambiguity). **New house pattern: a deterministic
+spawn-failure test needs an injectable program name, not a global `PATH` mutation** — `cargo test
+--lib` runs this suite's tests on parallel threads alongside others that spawn real subprocesses,
+so a global env mutation is a flakiness landmine (the same class of hazard S73's `static ENV_LOCK`
+fixed for a different global); `command_for(program, root, script)` takes the program name as a
+parameter, with `#[cfg(test)]`-only `run_streamed_with_program`/`run_captured_with_program` calling
+it with an absolute, guaranteed-nonexistent path. Propagated into `src/qa/mod.rs`/
+`src/demoer/mod.rs`: `QaState`/`DemoState` drop `LiveRed(Option<i32>)` for a
+`CannotEvaluate(CannotEvaluate)` variant + a bare `LiveRed(i32)` that only ever carries a real exit
+code — the same "don't leave a second `Option`-shaped ambiguity" rule applied one level up, exactly
+as the Design section required; both gates' BLOCK message now names `TIMEOUT` or `SPAWN FAILURE`
+distinctly. **`scripts/verify-session-84.sh`/`demo-session-84.sh` prove it live via the REAL
+compiled binary against a synthetic temp repo** — timeout forced by a `sleep` past a 1s bound,
+spawn failure forced by overriding `PATH` to a nonexistent directory for a single invocation (no
+stub binary needed, contrast S83's stub-`claude`-on-`PATH` technique) — the full warn/no-warn
+matrix proven live for $0, no credentials needed. **Independent cold review = ACCEPT** (all 6
+numbered criteria SHIPPED, independently verified by running the real code twice, not trusting the
+diff — including cross-checking per-file `#[test]` counts against `main` to confirm the +4 delta
+is genuinely new tests, not deletions elsewhere masking a shrink), attested **`0e172ca7…`**. **Live
+proof:** `verify-session-84.sh` **16/16** · `cargo test --lib` **267** (+4) · clippy+fmt clean.
+**Fakest green (disclosed, reviewer-sharpened):** the signal-death edge case has no dedicated
+automated test — verified live by the reviewer (a self-`kill -9` script) instead, and the
+resulting BLOCK message ("exited 1") could read to an operator as an explicit `exit 1` rather than
+a signal death with a synthesized placeholder code; low severity, behavior fails closed. Also
+disclosed: a pre-existing (S73, not S84) `wait_or_timeout` `Err(_) => None` (a `try_wait()`
+OS-level error) still classifies as `CannotEvaluate::Timeout`, out of this session's scope.
+**Closeout-verify-premerge lesson APPLIED:** ran the full `verify-closeout.sh` (with `.ai/SESSION`
+bumped to 84) on the session branch BEFORE merging the PR, per the S83 finding that
+`canonical_inputs_sha`'s merge-base collapses once main absorbs the branch. **Spend ~$0**
+(bash-only source fix; cold review used the local `general-purpose` subagent). **3 ranked S86
+candidates → 🥇 A** S76 retroactive sha fix (short, standing since S81, now **8 sessions
+overdue**) · **🥈 B** harden the attestation substring-check itself (S82 finding, re-disclosed at
+S84, load-bearing for 2 stations, standing 3 sessions) · **🥉 C** the readable-roadmap one-pager
+(backlog since ~S69, founder-flagged notebook-bloat pain). **Next = S85, the mandatory NO-CODE
+ground truth** (`prompts/85-task-ground-truth.md`, APPROVED, new chat, `session-85-closeout`-only
+branch) — lead lens: did S81→S84's 4 hardening/UX sessions advance the pipeline, or repeat the
+S80-flagged easy-green-detour pattern? Dogfood is now 8 sessions stale since S76 — state the exact
+age, do not guess. Reports: `sessions/session-84-summary.md` + `sessions/session-84-review.md`.
+
+**Prior · Session 83 — Warn before a headless read-only run (CODE) — DONE.**
 `vajra claude -p "..."` with no `--dangerously-skip-permissions`/`--permission-mode` on argv used
 to run as a silent read-only agent — headless Claude Code has no approval channel, so every
 Write/Edit/Bash call is denied with no explanation. S76's paid dogfood ride-along burned a real

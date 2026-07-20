@@ -1,64 +1,68 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 83 — COMPLETE
-- **Type:** **CODE** — one new function (`has_permission_flag`) + one helper
-  (`should_warn_readonly_headless`) + one call site in `src/cli/launch.rs`. Founder pick B
-  (UX-warning half) at S82 close.
-- **Headline result:** `vajra claude -p "..."` with no `--dangerously-skip-permissions`/
-  `--permission-mode` on argv now prints an advisory stderr warning BEFORE `claude` is spawned —
-  headless Claude Code has no approval channel, so every Write/Edit/Bash call is silently denied,
-  and nothing said so before the run started. S76's paid dogfood ride-along burned a real call
-  against exactly this wall; the fix was carried as a debt across S73/S76/S77/S78/S81 (5
-  sessions). Advisory only — never blocks, never changes the exit code, never mutates `args`.
-- **Verify:** `scripts/verify-session-83.sh` **11/11 GREEN** — E2E via a stub `claude` binary
-  prepended onto `PATH` (no real API call, no credentials needed, $0) · `cargo test --lib` **263**
-  (+2) · clippy+fmt clean.
-- **Cold review:** `sessions/session-83-review.md` — ACCEPT (6/6 SHIPPED), independent subagent
-  fed only the prompt + diff. Disclosed findings: the verify script's
-  `ac5-advisory-exit-code-untouched` check is a near-tautology (the stub always exits 0); the AC4
-  "interactive + permission-flag-present" combination is untested, only manually confirmed by the
-  reviewer.
-- **Commits:** `17279d8` (source fix + tests) · `159741f` (verify + demo) · `e5e098d` (prompt
-  Execution shas filled) · `f566004` (summary + review).
-- **PR:** [#81](https://github.com/ifelse-codes/vajra/pull/81) → merged into main. Branch pruned
-  (local + remote). New chat for S84.
+- **Number:** 84 — COMPLETE
+- **Type:** **CODE** — one new enum (`CannotEvaluate`) in `src/gate_run.rs` + a return-type change
+  propagated to its two call sites (`src/qa/mod.rs`, `src/demoer/mod.rs`). Founder pick A at S83
+  close (the other half of S82's candidate B split).
+- **Headline result:** the QA and Demo-er gates' live re-run used to collapse two structurally
+  different unevaluable outcomes — the script hung past its timeout bound and was killed vs the
+  child process never spawned at all — into the same untyped `None`, so a blocked close's message
+  always said the same generic "could not be evaluated (no exit code)." This was the S73
+  fakest-green finding, carried across 7 sessions (S76–S83) without a fix. `run_streamed`/
+  `run_captured` now return `Result<i32, CannotEvaluate>`; `QaState`/`DemoState` carry a
+  `CannotEvaluate(CannotEvaluate)` variant instead of `LiveRed(Option<i32>)`; both gates' BLOCK
+  messages now name TIMEOUT or SPAWN FAILURE distinctly.
+- **Verify:** `scripts/verify-session-84.sh` **16/16 GREEN** — unit tests for spawn-failure vs
+  timeout distinctness (both runners) + live E2E via the real compiled binary against a synthetic
+  temp repo (`vajra next --check-qa/--check-demo`, $0, no credentials) proving timeout-blocks,
+  spawn-failure-blocks (empty `PATH`), real-nonzero-unchanged, exit-zero-unchanged · `cargo test
+  --lib` **267** (+4) · clippy+fmt clean.
+- **Cold review:** `sessions/session-84-review.md` — ACCEPT (6/6 SHIPPED), independent subagent
+  fed only the prompt + diff, verified everything by running the real code (not trusting the diff
+  or commit messages). Disclosed findings: the signal-death edge case has no dedicated automated
+  test (verified live by the reviewer instead); a pre-existing (S73) `try_wait()` OS-error
+  collapse remains, out of this session's scope.
+- **Commits:** `d0cf43f` (source fix + tests, 3 files) · `b01c34e` (verify + demo) · `fc16aba`
+  (prompt Execution shas filled).
+- **PR:** [#83](https://github.com/ifelse-codes/vajra/pull/83) → merged into main. Branch pruned
+  (local + remote). New chat for S85.
 - **Date last updated:** 2026-07-20.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 83.
-- **Pipeline = 8 governed stations + a receipt that is authoritative on headless runs (S78),
-  honest on interactive (S77), correctly priced on the interactive estimate (S79), with a
-  closeout gate hardened against unfilled execution shas (S81), a station counter whose Releaser
-  dimension is durable across branch pruning (S82), and a pre-flight warning before a headless
-  launch hits the silent read-only wall (S83).** 7 commands, no 8th.
-- `verify-closeout.sh` still 10 checks (unchanged in S83 — the launch-warning fix has no
-  governance-gate surface; no CONSTRAINTS.yaml key was added).
+- `.ai/SESSION` = 84.
+- **Pipeline = 8 governed stations + a receipt authoritative on headless runs (S78), honest on
+  interactive (S77), correctly priced (S79), a closeout gate hardened against unfilled execution
+  shas (S81), a station counter durable across branch pruning (S82), a pre-flight warning before a
+  headless launch hits the silent read-only wall (S83), and QA/Demo-er gates whose cannot-evaluate
+  BLOCK now names WHICH of two reasons occurred (S84).** 7 commands, no 8th.
+- `verify-closeout.sh` still 10 checks + the attestation gate (unchanged in S84 — the typed
+  cannot-evaluate fix has no governance-gate surface; no CONSTRAINTS.yaml key was added).
+- **Closeout-verify-premerge lesson applied this session:** ran the full `verify-closeout.sh`
+  (with `.ai/SESSION` bumped to 84) on the session branch BEFORE merging the PR, per the S83
+  finding that `canonical_inputs_sha`'s merge-base collapses once main absorbs the branch.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 84
-- **Type:** **CODE** — APPROVED. Typed `CannotEvaluate::{Timeout, SpawnFailure}` in
-  `src/gate_run.rs`, propagated into `src/qa/mod.rs` + `src/demoer/mod.rs` — closes the S73
-  fakest-green finding (both gates' cannot-evaluate BLOCK messages currently collapse "the script
-  hung" and "the process never spawned" into the same untyped `None`).
-- **Scope split:** the other half of S82's candidate B — S83 shipped the read-only-headless UX
-  warning; S84 is this half.
-- **Prompt:** `prompts/84-task-typed-cannot-evaluate.md`. **Branch:**
-  `session-84-typed-cannot-evaluate`. **New chat.**
+- **Number:** 85
+- **Type:** **NO-CODE ground truth** (`85 % 5 == 0`, mandatory). Audits the S81→S84 arc
+  (execution-sha guard · Releaser ledger fallback · read-only-headless UX warning · typed
+  `CannotEvaluate`). Lead lens A: did 4 hardening/UX sessions advance the pipeline, or repeat the
+  S80-flagged easy-green-detour pattern? Dogfood is now 9 sessions stale since S76 (2026-07-03) —
+  state the exact age, do not guess a satisfaction verdict.
+- **Prompt:** `prompts/85-task-ground-truth.md`. **Branch:** `session-85-closeout` (or
+  `-enforcement`) only, for authorized hardening — no feature branch, no code. **New chat.**
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S84; do NOT start here.
-- **⚠ The Releaser gate is LIVE:** before closing S84 — ensure the S84 PR is merged, checkout
-  `main`, pull, prune `session-84-*` branches. Skip it and `--advance` refuses the close.
-- **S76 still has unfilled `<sha>` placeholders** (S81 true positive, not yet fixed) — carried as
-  an S84+ candidate B (not picked for S84).
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S85; do NOT start here.
+- **S76 still has unfilled `<sha>` placeholders** — S81 true positive, now standing since S81 (8
+  sessions overdue). Ranked 🥇 A for S86.
 - **The attestation "review-inputs-sha" check is a substring match, not a hash recompute** — S82
-  finding, load-bearing for 2 stations. Carried as an S84+ candidate C (not picked for S84).
-- **S83's own `ac5-advisory-exit-code-untouched` verify check is a near-tautology** against the $0
-  stub `claude` binary — new finding, disclosed, not fixed.
-- **S85 = the next mandatory NO-CODE GT** (`85 % 5 == 0`).
-- **Deferred debts:** S76 sha retroactive fix (candidate B) · harden the attestation
-  substring-check (candidate C) · compression make-it-real (0 folds, never claim) · `vajra init`
-  template omits `pipeline_advance_check` · nested-repo blindspot · install path ·
-  readable-roadmap one-pager (backlog).
+  finding, disclosed again at S84, load-bearing for 2 stations, standing 3 sessions. Ranked 🥈 B
+  for S86.
+- **The signal-death edge case (`code_or_conservative`) has no dedicated automated test** — S84's
+  own cold review finding, low severity (behavior fails closed, verified live by the reviewer).
+- **Deferred debts:** S76 sha retroactive fix · harden the attestation substring-check · the
+  readable-roadmap one-pager (backlog, ranked 🥉 C for S86) · compression make-it-real (0 folds,
+  never claim) · `vajra init` template omits `pipeline_advance_check` · nested-repo blindspot ·
+  install path.
