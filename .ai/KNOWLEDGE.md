@@ -121,6 +121,36 @@ Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
 
 - 2026-07-17 Session 72 (the Releaser station — pipeline SHIP gate, the 8th governed station; standing founder direction "finish the crew" — the core crew is COMPLETE, Monitor stays later): ship hygiene upgraded from the S37 checklist line to an enforced close gate. **Permanent contracts:** (1) the ship contract is `CONSTRAINTS.yaml#release` (`require_merged_prior` · `require_main_synced` · `require_pruned`, section-scoped line scan, missing keys default **true**; recorded in this repo + the `vajra init` scaffold); (2) **the marker class is *derived git state*** — nothing recorded to forge: merged = `merge-base --is-ancestor` over `session-NN-*` refs (local + `origin/` remote-tracking; **pruned-everywhere = vacuous WARN with the dodge named, never a block** — post-prune is the desired end-state), sync = `rev-list --left-right --count main...origin/main` (behind/diverged BLOCK · **ahead-only discloses, never blocks** — publishing is a human act · no-remote WARNs), prune = merged `session-*` LOCALS excluding the current branch; (3) **the gate never mutates** — no fetch/push/merge/delete anywhere (origin/main is read as of the LAST FETCH, an unfetched remote merge is invisible — disclosed limit); no-git / no-main(+master) / no-evidence FAIL closed; (4) at `--advance` the Releaser is the LAST closing gate and **binds on the PRIOR session**: the newest session ≤ the closing one with a prompt or branch, **skipping the session whose branch is currently checked out** (a GT closing on its own `-closeout` branch binds one lower); fresh repo → WARN, dodge named; (5) `VAJRA_SKIP_RELEASER_GATE=1` distinct both directions — and unlike QA/Demo-er's, the cheap check still RUNS (env bypasses only the block). **Honest-edge (reusable, the seventh self-granted-jurisdiction gate):** the SHIP gate cannot see a ship once branch refs are gone — force-delete an UNMERGED branch and it reads identical to shipped-and-cleaned: **ship tidiness for actors who keep their evidence, not ship truth**; "merged" proves ancestry, not that the merge was the reviewed PR. **Operational fact (from S73 on):** merge the prior PR + sync main + prune `session-*` locals BEFORE closing, or `--advance` refuses — that is the feature, not a bug. **Carried minors (reviewer-found):** one-close deferral window (unmerged work is caught at the NEXT close) · `origin` hardcoded · `session_number_of` accepts an empty slug · `vajra init` blocks on an open stdin (pre-existing). **PERMANENT LESSON (caught LIVE by the gate chain at this very close): verify scripts must be BRANCH-AGNOSTIC** — the QA gate (S69) re-runs `verify-session-NN.sh` at every later close from a branch where session NN is already MERGED, so any assertion shaped as "`git diff main` shows exactly my change" goes red post-merge (verify-71's `no-new-dependency` demanded exactly-one-added-Cargo.toml-line; post-merge the diff is empty → the S72 close was correctly REFUSED until the check was made pre/post-merge-safe). Write cumulative-safe assertions: empty-diff-OR-exactly-my-change; the same latent class lives in any `git diff main` shaped check. **Two more close-time facts:** `tests/hook_adapter.rs` compression tests FLAKE intermittently under repeated full-suite runs (fold-vs-passthrough, both directions observed, state-leak suspected — recorded debt; a flaky suite now intermittently reddens ANY close via the QA live re-run) · `--advance`'s L2 confirm reads stdin AFTER all gates run, and E2E fixtures inside a re-run verify inherit stdin — a single piped `y` gets consumed and the real confirm aborts at EOF: **drive closeout advances with `yes |`** (or L3). 229 lib tests; verify-72 43/43 (E2E against a REAL bare origin — `git push` updates remote-tracking refs, so a local bare origin exercises the sync/merge paths with zero network); cold review ACCEPT (2 delivery passes + a pass-3 harness-fix delta) attested `40823a40…`.
 
+- 2026-07-20 Session 85 (ground-truth, NO-CODE, mandatory every-5th; lens A — did S81→S84's 4
+  gate-hardening/UX sessions advance the pipeline?): `vajra next --stations NN` run live for
+  S80→S84 reads a **dead flat 7/8** across all four CODE sessions (S81-S84), zero variation,
+  Architect the only absence throughout — sharper than S80's own 5→6→7→5 reading one axis over
+  (the S76→S79 receipt arc). **Lens A verdict: easy-green detour CONFIRMED, now a 2nd consecutive
+  GT finding the identical shape** — each session was individually real, but the four-session
+  pattern chose small, certain wins over two older, higher-stakes standing debts. **Direct finding
+  on "disclosed, not hidden": it stopped being sufficient cover at 3 sessions of standing** — the
+  attestation substring-check (`src/stations/mod.rs`'s `reviewer_status`/`session_attested_accept`,
+  `.contains("review-inputs-sha")` not a hash recompute) is disclosed since S82, carried S83,
+  re-disclosed S84, reconfirmed unfixed here, and is load-bearing for 2 governed stations TODAY — a
+  forged/stale attestation could silently fake-pass Reviewer or Releaser. Re-ranked to **🥇 for
+  S86**, ahead of the older (but lower live-risk) S76 sha-placeholder fix. **PERMANENT nuance for
+  reading any future flat-or-improving `--stations` reading:** a raw K-of-8 number cannot
+  distinguish "the counter got more accurate" from "the pipeline stalled" — S82's Releaser-ledger
+  fix genuinely made the S81-S84 readings durable/correct for the first time (before S82, every one
+  of those sessions would have read Releaser ABSENT per the S75/S80 structural-decay finding), yet
+  the K-of-8 number alone looks identical to pure stagnation. Read the SHAPE (which station, why),
+  not just the digit. **New finding:** `ROADMAP.md`'s own "Where We Are" quick-reference table
+  (`~line 301`) is **24 sessions stale** (`Today | 2026-07-14`, `Session 60`) inside an otherwise
+  current document (`## Rules For This Document` rule 1 says "update at every closeout" — this
+  section hasn't been) — sharper, concrete evidence for the standing readable-roadmap-one-pager
+  backlog pain (since ~S69), not just a vague bloat complaint. **Dogfood escalated 🟡→🔴:** 8
+  sessions (S77-S84) / 17 calendar days since S76 (2026-07-03→2026-07-20, computed against the real
+  date) — no satisfaction verdict rendered; four gates shipped in that window are test/E2E-verified
+  but live-agent-unverified. **9 audits:** vision 🟡 · roadmap 🟡 · state 🟢 · knowledge 🟡 ·
+  constraints 🟢 · constitution 🟡 · cost 🟢 · dogfood 🔴 · pipeline_advance 🔴. Founder pick at
+  close: **S86 = A (harden the attestation check)**. NO code / commits to main / PRs; doc-only
+  closeout on `session-85-closeout`. Report: `sessions/session-85-ground-truth.md`.
+
 ## 7. Engine + Adapter Type Shapes (S03 — permanent)
 
 ```rust
