@@ -1,6 +1,24 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-19 · **Session 79 — Re-price the stale static opus rate (CODE) — DONE.**
+**Updated:** 2026-07-20 · **Session 80 — Ground Truth (mandatory NO-CODE, every 5th; last = S75) — DONE.**
+Audited the S76→S79 receipt-accuracy arc. Lead lens A verdict: **easy-green detour confirmed** —
+four receipt sessions fixed real problems (fable-5 pricing · honest null · headless $ recovery ·
+opus estimate corrected) but the `pipeline_advance_check` found the K-of-8 shape flat S75→S79: no
+new governed stations, no new classifiers, same 5–7 stations passing. **New finding:** S79 closed
+with the Coder gate ABSENT — `prompts/79-task-stale-opus-reprice.md` has `<sha>` placeholder
+literals in `## Execution`; real shas went only to the summary; `verify-closeout.sh` never checks
+this. **S81 will fix this gap** (`check_execution_shas` bash guard, retroactive S79 prompt fix,
+founder pick A). Recurring finding: Releaser ABSENT post-merge in every historical session (S75
+structural-decay finding, confirmed 2nd consecutive GT). **Dogfood:** 3 sessions / ~2 days since
+S76 — intentionally stale (receipt-focused $0 sessions); 8-station dogfood refresh = deferred
+MEASURE session, founder-un-parkable. **9 audits:** vision 🟡 · roadmap 🟡 · state 🟢 · knowledge
+🟡 · constraints 🟡 · constitution 🟡 · cost 🟢 · dogfood 🟡 · pipeline_advance 🟡. **No PR**
+(NO-CODE GT); closeout on `session-80-closeout`; `VAJRA_CLOSEOUT_WAIVER=80`. **Spend ~$0.**
+**3 ranked S81+ candidates:** 🥇 A `check_execution_shas` guard [**PICKED → S81**] · 🥈 B
+`--stations` Releaser durability (S82) · 🥉 C read-only-headless UX + typed `CannotEvaluate`
+(S82). Report: `sessions/session-80-ground-truth.md`.
+
+**Prior · Session 79 — Re-price the stale static opus rate (CODE) — DONE.**
 Founder pick A of the 3 ranked S78 candidates; **finishes the receipt-accuracy story S76→S78 for
 the interactive/estimate path S78 left untouched.** Within ADR-0004, a compiled-in pricing-value
 change, no new command. **What shipped:** sourced current Claude pricing LIVE from the `claude-api`
