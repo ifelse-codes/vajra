@@ -15,7 +15,7 @@ from the bare `"claude-opus-4"` to `"claude-opus-4-8"` — the actual interactiv
 numeric value is unchanged ($15/$75) but its rationale corrected (opus is no longer the priciest
 tier; Claude Fable 5 is) and reconfirmed `>=` every real rate by a new test. `cargo test --lib`
 **258** (+2) · verify 11/11 · demo 4 markers · clippy+fmt clean · cold review ACCEPT (attested
-`efdc652b…`) · live-verified (`vajra estimate` shows `$5/MTok`, not `$15/MTok`). **Spend ~$0**
+`c6111ba5…`) · live-verified (`vajra estimate` shows `$5/MTok`, not `$15/MTok`). **Spend ~$0**
 (compiled-in rate correction, no paid run needed). Closeout on `session-79-stale-opus-reprice`.
 
 ## Active PRs
@@ -74,7 +74,7 @@ tier; Claude Fable 5 is) and reconfirmed `>=` every real rate by a new test. `ca
 - **`vajra claude · next · check · init · estimate · meter · hook`** — 7 commands, no 8th. `cargo
   test --lib` **258 passed** (+2 S79).
 - **S79 evidence:** `sessions/session-79-summary.md` + `-review.md` (ACCEPT, attested
-  `efdc652b…`) · `verify-session-79.sh` 11/11 · `demo-session-79.sh` 4 markers · live `vajra
+  `c6111ba5…`) · `verify-session-79.sh` 11/11 · `demo-session-79.sh` 4 markers · live `vajra
   estimate` before→after.
 
 ## What Is Broken / Weak

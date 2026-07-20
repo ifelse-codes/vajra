@@ -23,7 +23,7 @@
   reviewer).
 - **Proof:** `verify-session-79.sh` **11/11** · `demo-session-79.sh` 4 markers, genuinely live
   (`vajra estimate` re-executed independently by the reviewer) · cold review **ACCEPT** attested
-  **`efdc652b…`** · `cargo test --lib` **258** (+2) · clippy+fmt clean. **Spend ~$0** (compiled-in
+  **`c6111ba5…`** · `cargo test --lib` **258** (+2) · clippy+fmt clean. **Spend ~$0** (compiled-in
   rate correction, no paid run needed).
 - **Branch:** `session-79-stale-opus-reprice` (PR to `main` — founder call).
 - **Date last updated:** 2026-07-19.

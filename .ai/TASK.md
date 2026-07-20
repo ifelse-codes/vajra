@@ -14,7 +14,7 @@
 - **Result:** `vajra estimate` now prices at $5/MTok input, $25/MTok output (was $15/$75 — a ~3x
   overstatement). `UNKNOWN_MODEL_PRICING` unchanged numerically, reconfirmed as an upper bound.
 - Read prompt: `prompts/79-task-stale-opus-reprice.md`. Reports: `sessions/session-79-summary.md` +
-  `-review.md` (ACCEPT, attested `efdc652b…`). `verify-session-79.sh` 11/11; demo 4 markers.
+  `-review.md` (ACCEPT, attested `c6111ba5…`). `verify-session-79.sh` 11/11; demo 4 markers.
 - `cargo test --lib` **258** (+2). **Spend ~$0** (compiled-in rate correction, no paid run).
 
 Between sessions. **Next = S80 — the mandatory NO-CODE ground truth** (every 5th session). **New
