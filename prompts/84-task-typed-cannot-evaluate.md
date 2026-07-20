@@ -121,10 +121,10 @@ from S82's candidate B specifically so it would not get lost in the read-only-he
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: d0cf43f
+- step 2 — done: d0cf43f
+- step 3 — done: d0cf43f
+- step 4 — done: d0cf43f
 
 ## Delta (the Analyst gate — what this session ADDS to the governed pipeline)
 
