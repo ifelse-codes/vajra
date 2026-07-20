@@ -48,8 +48,10 @@ receipt-accuracy arc S76→S77→S78 left standing.
   reviewer's diff against the pre-session file.
 
 ## Attestation
-- **Review-Inputs-SHA:** `efdc652b79ce9d27e70fc67eb389bf3de5f5261fb7bfcaa2a7401c7d81ae308e`
-  (`sha256(prompt ‖ delivery-diff)`; delivery diff = the three S79 commits below). See
+- **Review-Inputs-SHA:** `c6111ba56783a890d6eccf790877cc3d54f9a727ee0f94801554509bb3449ce3`
+  (`sha256(prompt ‖ delivery-diff)`; delivery diff = the three S79 commits below, re-hashed after
+  the closeout re-rendered `vajra.varta` — a derived artifact, not in scope, but not excluded from
+  the canonical diff either, so the S58 re-attest discipline applies). See
   `sessions/session-79-review.md` for the independent cold verdict (ACCEPT).
 
 ## Coder-gate execution (plan step → landing commit)

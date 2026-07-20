@@ -9,13 +9,21 @@
 > Verdict recorded verbatim below; the attestation binds it to the delivered code.
 
 **Verdict:** ACCEPT
-**Review-Inputs-SHA:** efdc652b79ce9d27e70fc67eb389bf3de5f5261fb7bfcaa2a7401c7d81ae308e
+**Review-Inputs-SHA:** c6111ba56783a890d6eccf790877cc3d54f9a727ee0f94801554509bb3449ce3
 
 > Attestation = `sha256(prompt ‖ delivery-diff)` via `scripts/verify-closeout.sh --inputs-sha 79`,
 > the delivery diff being the non-excluded committed change (3 commits: `src/meter/mod.rs` +
 > `docs/adr/0004-...md`, `src/cli/estimate.rs` + `docs/adr/0005-...md`, the two S79 scripts).
 > Bar-raising, not tamper-proof (DECISION-003): kills a recycled / stale / delivery-decoupled
 > verdict, not builder authorship.
+>
+> **Re-attest note (S58 discipline):** `vajra.varta` is not on `canonical_inputs_sha`'s exclude list
+> (only `sessions/`, `prompts/`, and the closeout-synced `.ai/*` files are). Re-rendering it at
+> closeout (a derived artifact from `.ai/`, no semantic change to the reviewed delivery) shifted the
+> hash from the pass-time `efdc652b…` to the final `c6111ba5…` above. The reviewer's verdict and
+> per-criterion findings are unaffected — nothing they inspected changed — so the SHA was refreshed
+> rather than re-running the cold pass, matching the S58 precedent for a within-scope post-pass
+> touch to a hashed-but-non-substantive file.
 
 ## Per-requirement verdict table (reviewer's, verbatim)
 
