@@ -1,6 +1,36 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-20 · **Session 82 — Releaser station reads from ledger when branch is pruned (CODE) — DONE.**
+**Updated:** 2026-07-20 · **Session 83 — Warn before a headless read-only run (CODE) — DONE.**
+`vajra claude -p "..."` with no `--dangerously-skip-permissions`/`--permission-mode` on argv used
+to run as a silent read-only agent — headless Claude Code has no approval channel, so every
+Write/Edit/Bash call is denied with no explanation. S76's paid dogfood ride-along burned a real
+call against exactly this wall; the fix was carried as a debt across S73/S76/S77/S78/S81 (5
+sessions). **Fix (`src/cli/launch.rs`):** new `has_permission_flag(args)` (exact-token scan, same
+style as the existing `is_headless`) + `should_warn_readonly_headless(args)` = `is_headless(args)
+&& !has_permission_flag(args)`; `run()` prints one advisory stderr warning right after computing
+`headless`, before `merge_hook_settings()`/spawn. Advisory only — no exit-code change, no `args`
+mutation, no CONSTRAINTS.yaml key. 2 new unit tests mirroring `is_headless_detects_print_flags_only`'s
+exact-token style. **`scripts/verify-session-83.sh`/`demo-session-83.sh` run the REAL launch path
+E2E via a stub `claude` binary prepended onto `PATH`** — the full warn/no-warn matrix proven live
+for $0, no credentials needed. **Independent cold review = ACCEPT** (all 6 numbered criteria
+SHIPPED, verified by running the real code, not trusting the diff), attested **`7b15529e…`**.
+**Live proof:** `verify-session-83.sh` **11/11** · `cargo test --lib` **263** (+2) · clippy+fmt
+clean. **Fakest green (disclosed, reviewer-sharpened):** the verify script's
+`ac5-advisory-exit-code-untouched` check is a near-tautology against the stub `claude` (which
+always exits 0, regardless of whether the warning logic does anything) — the AC5 property itself
+holds by code-reading, but this specific check is decorative. Also disclosed: the AC4
+"interactive + permission-flag-present" combination is untested by any test/demo/verify case, only
+manually confirmed by the reviewer. Neither is a delivery gap. **Spend ~$0** (bash-only source fix;
+cold review used the local `general-purpose` subagent). **3 ranked S84 candidates → 🥇 A** typed
+`CannotEvaluate::{Timeout,SpawnFailure}` (the other half of S82's candidate B split)
+[**PICKED → S84**] · **🥈 B** S76 retroactive sha fix (short, standing since S81, now 7 sessions
+overdue) · **🥉 C** harden the attestation check itself (S82's disclosed finding, still load-bearing
+for 2 stations). **Next = S84, CODE — typed cannot-evaluate distinction**
+(`prompts/84-task-typed-cannot-evaluate.md`, APPROVED, new chat, branch
+`session-84-typed-cannot-evaluate`). **S85 = the next mandatory NO-CODE GT.** Reports:
+`sessions/session-83-summary.md` + `sessions/session-83-review.md`.
+
+**Prior · Session 82 — Releaser station reads from ledger when branch is pruned (CODE) — DONE.**
 `vajra next --stations NN` mapped `BranchShip::NoBranch` (a branch merged then pruned — the S37
 REQUIRED close step) to `[ABSENT] Releaser SHIP — branch not merged into main` unconditionally,
 indistinguishable from a session whose branch never existed. Flagged by S75's GT, confirmed a
