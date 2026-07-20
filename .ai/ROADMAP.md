@@ -1,6 +1,41 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-20 · **Session 84 — Typed `CannotEvaluate::{Timeout, SpawnFailure}` (CODE) — DONE.**
+**Updated:** 2026-07-20 · **Session 85 — Ground Truth (mandatory NO-CODE, every 5th; last = S80) — DONE.**
+Audited the S81→S84 arc (execution-sha closeout guard · Releaser ledger fallback · read-only-headless
+UX warning · typed `CannotEvaluate`). **Headline (`pipeline_advance_check`, measured live via
+`vajra next --stations NN` for S80→S84):** S80(GT) 2/8 → S81 **7/8** → S82 **7/8** → S83 **7/8** →
+S84 **7/8** — dead flat, zero variation, Architect the only absence throughout every session.
+Sharper than S80's own 5→6→7→5 reading of the S76→S79 arc. **Nuance:** part of the flatness is the
+S82 fix genuinely working — before S82, Releaser read ABSENT for every branch-pruned session (the
+S75/S80 structural-decay finding); today's counter reads it PASSED via the ledger fallback for all
+four, a real durability win the raw K-of-8 number doesn't separate from "no new station." **Lens A
+verdict: easy-green detour CONFIRMED — now a 2nd consecutive GT finding the identical shape** (S80
+found it in the S76→S79 receipt arc; S85 finds it one axis over, in gate-hardening/UX). Each of
+S81-S84 was individually real (closed genuine, previously-disclosed gaps) but the four-session
+pattern repeats: small, certain wins over two older, higher-stakes debts. **New finding:**
+`ROADMAP.md`'s own "Where We Are" quick-reference table (line ~301) is **24 sessions stale** (reads
+`Today | 2026-07-14`, `Session 60`) inside an otherwise-current document — a concrete instance of
+the standing readable-roadmap pain, not just a vague bloat complaint. **dogfood_check escalated to
+🔴** (from S80's 🟡): **8 sessions / 17 calendar days** since S76 (2026-07-03 → 2026-07-20, computed
+against today's real date, not guessed) — no satisfaction verdict rendered; 4 new/changed gates
+(S81-S84) are live-agent-unverified. **Direct answer on "disclosed, not hidden":** no longer
+sufficient — the attestation substring-check (`src/stations/mod.rs:279,362`,
+`.contains("review-inputs-sha")`, not a hash recompute) has stood disclosed 3 sessions (S82→S84)
+while remaining load-bearing for 2 governed stations TODAY; it should have outranked S84's
+diagnostic-only fix. **9 audits:** vision 🟡 · roadmap 🟡 · state 🟢 · knowledge 🟡 · constraints 🟢 ·
+constitution 🟡 · cost 🟢 · dogfood 🔴 · pipeline_advance 🔴. **Meta-check:** the GT's own
+`pipeline_advance_check` conflates "counter got more accurate" with "pipeline stalled" — both
+produce a flat/improving K-of-8; `dogfood_check` still lacks the severity gradient S80 already
+flagged as missing (unresolved 1 GT later). **No `src`/scripts change, no PR** (NO-CODE GT);
+**S85 spend ~$0.** **3 ranked S86 candidates (re-ranked from S84's carried list) → 🥇 A** harden the
+attestation substring-check into a real recompute-and-compare [**PICKED → S86**] · **🥈 B** S76
+retroactive sha fix (oldest standing, 8 sessions overdue, but lower live risk than A) · **🥉 C** fix
+`ROADMAP.md`'s stale "Where We Are" table (new evidence for the standing readable-roadmap pain).
+**Next = S86, CODE — harden the attestation check** (`prompts/86-task-harden-attestation-check.md`,
+APPROVED, new chat, branch `session-86-harden-attestation-check`). **S90 = the next mandatory
+NO-CODE GT.** Report: `sessions/session-85-ground-truth.md`.
+
+**Prior · Session 84 — Typed `CannotEvaluate::{Timeout, SpawnFailure}` (CODE) — DONE.**
 The QA and Demo-er gates' live re-run (S73) bounds a script by a recorded timeout, but
 `src/gate_run.rs`'s `run_streamed`/`run_captured` collapsed two structurally different unevaluable
 outcomes — the script hung past its bound and was killed (slow-truth) vs the child process never
