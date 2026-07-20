@@ -31,6 +31,13 @@ pub fn run(args: &[String]) -> Result<()> {
     // no result stream and must keep an inherited TTY — piping one would break its UI.
     let headless = is_headless(args);
 
+    // Headless Claude Code has no approval channel: every Write/Edit/Bash call is silently
+    // denied unless the launch already carries a permission decision (S76 dogfood run 1 burned a
+    // paid call against exactly this wall). Advisory only — never blocks, never mutates `args`.
+    if should_warn_readonly_headless(args) {
+        eprintln!("{}", READONLY_HEADLESS_WARNING);
+    }
+
     match merge_hook_settings().and_then(TempSettings::write) {
         Ok(temp_settings) => {
             if std::env::var("VAJRA_DEBUG").ok().as_deref() == Some("1") {
@@ -67,6 +74,26 @@ pub fn run(args: &[String]) -> Result<()> {
 /// nothing and S77's honest fallback stands.
 fn is_headless(args: &[String]) -> bool {
     args.iter().any(|a| a == "-p" || a == "--print")
+}
+
+const READONLY_HEADLESS_WARNING: &str =
+    "[vajra] warning: headless run with no permission-mode flag — \
+Claude Code has no approval channel, so every Write/Edit/Bash call will be silently denied.\n  \
+Fix: pass --dangerously-skip-permissions or --permission-mode <mode>.\n  \
+(A read-only probe is fine if that's what you intended — this warning is advisory only.)";
+
+/// A headless run with no permission decision on argv is about to hit the silent read-only wall
+/// (S76). Exact-token scan, same style as `is_headless`/`has_permission_flag` — no substring
+/// false-positives. Interactive runs never warn: the TTY is its own approval channel.
+fn should_warn_readonly_headless(args: &[String]) -> bool {
+    is_headless(args) && !has_permission_flag(args)
+}
+
+/// `true` if the launch already carries a permission decision — either flag is accepted as-is;
+/// vajra does not second-guess which mode the user chose.
+fn has_permission_flag(args: &[String]) -> bool {
+    args.iter()
+        .any(|a| a == "--dangerously-skip-permissions" || a == "--permission-mode")
 }
 
 /// Fail fast if Claude Code has no credentials (S34, gap noted S18): an unauthenticated
@@ -303,6 +330,51 @@ mod tests {
         assert!(!is_headless(&[
             "--append-system-prompt".into(),
             "keep -p short".into()
+        ]));
+    }
+
+    #[test]
+    fn has_permission_flag_detects_either_flag_exact_token() {
+        assert!(has_permission_flag(&[
+            "--dangerously-skip-permissions".into()
+        ]));
+        assert!(has_permission_flag(&[
+            "--permission-mode".into(),
+            "acceptEdits".into()
+        ]));
+        assert!(!has_permission_flag(&[]));
+        assert!(!has_permission_flag(&["-p".into(), "do a thing".into()]));
+        // Exact-token match, no substring: a flag name buried in a value string doesn't count.
+        assert!(!has_permission_flag(&[
+            "--append-system-prompt".into(),
+            "use --permission-mode wisely".into()
+        ]));
+    }
+
+    #[test]
+    fn should_warn_readonly_headless_matrix() {
+        // AC1: headless + no permission flag -> warn.
+        assert!(should_warn_readonly_headless(&[
+            "-p".into(),
+            "do a thing".into()
+        ]));
+        // AC2: headless + --dangerously-skip-permissions -> no warn.
+        assert!(!should_warn_readonly_headless(&[
+            "-p".into(),
+            "x".into(),
+            "--dangerously-skip-permissions".into()
+        ]));
+        // AC3: headless + --permission-mode <anything> -> no warn (vajra doesn't judge the mode).
+        assert!(!should_warn_readonly_headless(&[
+            "--print".into(),
+            "--permission-mode".into(),
+            "plan".into()
+        ]));
+        // AC4: interactive (no -p/--print) -> never warn, regardless of permission flags.
+        assert!(!should_warn_readonly_headless(&[]));
+        assert!(!should_warn_readonly_headless(&[
+            "--model".into(),
+            "opus".into()
         ]));
     }
 
