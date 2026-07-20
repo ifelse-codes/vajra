@@ -1,6 +1,21 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-20 · **Session 80 — Ground Truth (mandatory NO-CODE, every 5th; last = S75) — DONE.**
+**Updated:** 2026-07-20 · **Session 81 — Harden verify-closeout: execution-sha placeholder guard (CODE) — DONE.**
+`check_execution_shas` added to `scripts/verify-closeout.sh`: detects `done: <sha>` placeholder
+literals in a session's `## Execution` section → BLOCK exit 1 with step names; warns (never blocks)
+on absent section (pre-S68 backward-compat); waivered by `VAJRA_CLOSEOUT_WAIVER=N` (GT/NO-CODE
+sessions intentionally leave `## Execution` unfilled). Also adds `--check-exec-shas [N]` focused
+entry (mirrors `--fidelity-only`/`--attest-only`). `prompts/79-task-stale-opus-reprice.md`
+retroactively fixed (steps 1–4: research-only annotation · `079d27f` · `079d27f` · `e9b6ff3`).
+**Cold reviewer found the self-application gap (S81 prompt's own `## Execution` unfilled); shas
+`22232f7` + `84dc73e` propagated before closeout; re-attested `c11797a9…`**. S76 corpus scan finds
+a true positive (also has `<sha>` — separate debt, not S81 scope). **verify-session-81.sh 7/7** ·
+**cargo test --lib 258** · ACCEPT cold review (6/6 SHIPPED). **Spend ~$0** (bash-only, no paid run).
+**3 ranked S82 candidates:** **A** S76 sha retroactive fix · **B** `--stations` Releaser durability
+(S75 finding, 2nd GT confirmation) · **C** read-only-headless UX + typed `CannotEvaluate`.
+Reports: `sessions/session-81-summary.md` + `sessions/session-81-review.md`. **PR:** TBD.
+
+**Prior · Session 80 — Ground Truth (mandatory NO-CODE, every 5th; last = S75) — DONE.**
 Audited the S76→S79 receipt-accuracy arc. Lead lens A verdict: **easy-green detour confirmed** —
 four receipt sessions fixed real problems (fable-5 pricing · honest null · headless $ recovery ·
 opus estimate corrected) but the `pipeline_advance_check` found the K-of-8 shape flat S75→S79: no
