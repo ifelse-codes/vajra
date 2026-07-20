@@ -173,7 +173,10 @@ fn line_dollars(tokens: &TokenUsage, model: &str, pricing: &Pricing) -> f64 {
 }
 ```
 
-Unknown model → push a warning and use a safe default (opus pricing, the most expensive, so we never undercount).
+Unknown model → push a warning and use a safe default (an intentional upper-bound rate — 1.5x the
+priciest model actually in the table, so we never undercount). Originally framed as "opus pricing,
+the most expensive" — no longer accurate since S79 corrected opus to $5/$25, cheaper than Claude
+Fable 5's $10/$50; the fallback value itself is unchanged, only decoupled from the "opus" framing.
 
 ### 2.6 Pricing source
 

@@ -1,72 +1,74 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 78 — COMPLETE
-- **Type:** **CODE — recover the true $** (founder pick A of 3 ranked S77 candidates). Extends
-  ADR-0004 (meter/receipt) with a capture path in the launcher; no new command. **Closes the
-  receipt arc: S77 stopped the lie, S78 recovers the truth.**
-- **Headline result:** on a headless `vajra claude -p` run, the receipt headline is now the coding
-  tool's OWN end-of-session cost — a real **`$0.0277 total`** in the live smoke run — where S77
-  could only say "no authoritative cost available". Read from the terminal `type:"result"` line of
-  the run's stdout stream, not from Vajra's price list.
-- **What shipped:** `src/cli/launch.rs` — `is_headless(args)` gates a byte-level tee: headless runs
-  pipe stdout, stream every byte through (never swallowed — criterion 3) + keep a copy; interactive
-  runs keep an inherited TTY, unchanged (criterion 2). `src/meter/mod.rs` — `extract_result_cost`
-  reads `total_cost_usd` from the result line (stream-json + single `json` object); `None` for
-  text/interactive/non-JSON. `SessionCost::apply_captured_cost` promotes it to S66's
-  `authoritative_dollars`, fill-only (never overrides a transcript's own figure).
-- **Honest limit (disclosed):** headless-only (interactive genuinely has no result stream — S77's
-  honest fallback stays); whole-stdout buffered in RAM for the scan (bounded by output size);
-  Claude Code only; the stale static opus estimate is untouched (S79 candidate).
-- **Proof:** `verify-session-78.sh` **15/15** · `demo-session-78.sh` 4 markers · cold review
-  **ACCEPT** attested **`daabaa7a…`** · `cargo test --lib` **256** (+7) · clippy+fmt clean · **live
-  end-to-end** (real `-p` run headlined a true `$… total`, stdout untouched). **Spend ~$0.055**
-  (two cheap haiku smoke runs).
-- **Branch:** `session-78-recover-true-cost` (PR to `main` — founder call).
-- **Date last updated:** 2026-07-19
+- **Number:** 79 — COMPLETE
+- **Type:** **CODE — re-price the stale static opus rate** (founder pick A of 3 ranked S78
+  candidates). Extends ADR-0004 (meter/receipt) with a compiled-in pricing-value change; no new
+  command. **Finishes the receipt-accuracy story S76→S78 for the interactive/estimate path S78 left
+  untouched.**
+- **Headline result:** `vajra estimate` — the only cost figure an interactive user sees (no result
+  stream to recover a true $ from) — now prices the current default model at the confirmed
+  **$5/$25 per MTok**, not the stale $15/$75 (opus-4.0/4.1-era). Sourced live from the `claude-api`
+  skill (cached 2026-06-24), not from memory.
+- **What shipped:** `src/meter/mod.rs` — specific-before-generic `MODEL_PRICING` entries for
+  `claude-opus-4-8`/`-4-7`/`-4-6` at $5/$25, ahead of the generic `claude-opus-4` fallback (now
+  explicitly "legacy/unconfirmed opus" — 4.0/4.1/4.5 — at the historical $15/$75, a recorded
+  granularity decision). `UNKNOWN_MODEL_PRICING`'s value is unchanged ($15/$75) but its rationale
+  corrected (opus is no longer the priciest tier; Fable 5 is) and reconfirmed `>=` every real rate.
+  `src/cli/estimate.rs` — `DEFAULT_MODEL` bumped from the bare `"claude-opus-4"` (which now falls
+  through to the legacy rate) to `"claude-opus-4-8"` — the actual interactive-path fix.
+- **Honest limit (disclosed):** legacy opus ids (4.0/4.1/4.5) have no confirmed current-rate source
+  in the cached pricing table, so they keep the historical rate as a conservative estimate, not a
+  guess. The S66/S78 authoritative-cost path is untouched (confirmed byte-identical by the cold
+  reviewer).
+- **Proof:** `verify-session-79.sh` **11/11** · `demo-session-79.sh` 4 markers, genuinely live
+  (`vajra estimate` re-executed independently by the reviewer) · cold review **ACCEPT** attested
+  **`c6111ba5…`** · `cargo test --lib` **258** (+2) · clippy+fmt clean. **Spend ~$0** (compiled-in
+  rate correction, no paid run needed).
+- **Branch:** `session-79-stale-opus-reprice` (PR to `main` — founder call).
+- **Date last updated:** 2026-07-19.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 78.
-- **Pipeline = 8 governed stations + a receipt that now RECOVERS the true $ on headless runs** (and
-  stays honestly null on interactive). 7 commands, no 8th.
+- `.ai/SESSION` = 79.
+- **Pipeline = 8 governed stations + a receipt that is authoritative on headless runs (S78), honest
+  on interactive (S77), and now correctly priced on the interactive estimate (S79).** 7 commands, no
+  8th.
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 79
-- **Type:** **CODE — founder pick pending** from the 3 ranked S79 candidates below. S80 is the next
-  mandatory NO-CODE ground truth.
-- **3 ranked S79 candidates:**
-  - **🥇 A — stale-opus re-pricing:** re-price the static `claude-opus-4` rate ($15/$75 →
-    opus-4-8 $5/$25) so the token *estimate* stops overstating opus runs ~3× — finishes receipt
-    accuracy for the interactive/estimate path S78 left untouched. Risk: low value now that headless
-    is authoritative; sharpens only the estimate path.
-  - **🥈 B — `--stations` ship-evidence durability** (S75 GT finding): the Releaser dimension of the
-    payload counter decays once branch refs are pruned; harden the GT's own mandatory instrument
-    right before S80. Risk: meatier than it looks (needs a durable ship-evidence source).
-  - **🥉 C — read-only-headless UX + typed `CannotEvaluate::{Timeout,SpawnFailure}`:** surface that
-    `-p` without a permission flag is silently read-only + split the S73 untyped-`None` fakest-green.
-    Risk: two loosely-related things bundled.
-- **Prompt:** to be written on the founder's pick (`prompts/79-task-<slug>.md`). **Branch:**
-  `session-79-<slug>`. **New chat.**
+- **Number:** 80
+- **Type:** **The mandatory NO-CODE ground truth** (every 5th session; last was S75). Docs only —
+  `forbid_code_changes: true`, `forbid_commits: true`, `forbid_prs: true`.
+- **Prompt:** `prompts/80-task-ground-truth.md` (to be authored at S79 closeout, per the standard
+  8-audit template). **Branch:** `session-80-ground-truth` (or a GT-exempt `-closeout`/`-enforcement`
+  suffix). **New chat.**
+- **3 ranked S81 candidates** (post-GT — the founder may re-aim these; see
+  `sessions/session-79-summary.md` for full rationale):
+  - 🥇 A — `--stations` ship-evidence durability (S75 finding; the Releaser dimension decays once
+    branch refs are pruned — relevant right before/after S80 leans on the counter again).
+  - 🥈 B — read-only-headless UX + typed `CannotEvaluate::{Timeout,SpawnFailure}` (S76/S73).
+  - 🥉 C — readable-roadmap one-pager (backlog; a derived summary, no hand-maintained second copy).
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S79; do NOT start it here.
-- **⚠ The Releaser gate is LIVE:** merge the S78 PR, sync main, prune `session-78-recover-true-cost`
-  before closing S79 — or `--advance` refuses (that is the feature). (S77's PR #75 is already merged
-  + pruned, so S78's own Releaser gate was pre-satisfied.)
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S80; do NOT start it here.
+- **⚠ The Releaser gate is LIVE:** merge the S79 PR, sync main, prune `session-79-stale-opus-reprice`
+  before closing S80 — or `--advance` refuses (that is the feature).
 - **S70 founder decisions (binding):** compression never-claim-until-measured · payload counter BUILT
-  + GT-verified · dogfood DONE at S76.
+  + GT-verified · dogfood DONE at S76 (aging — no paid `vajra claude` run since S76; S80 should
+  re-check this).
 - **House patterns:** existence-gate recorded markers (S67/S68) · re-run executable markers live
   (S69) · element-scan live (S71) · re-derive git-state from refs (S72, limit S75) · bound+kill live
   gate (S73) · derived metric reuses each gate's classifier (S74) · re-read a debt's origin before
   retiring it (S75) · dogfood pins a CURRENT binary + headless needs a permission flag (S76) · an
-  honest null beats a confident fake (S77) · **NEW (S78): capture the tool's OWN end-of-session
-  number by tee-inspecting its result stream byte-for-byte — never reconstruct it, never grow the
-  price list; pipe only stdout (stdin/stderr inherited) so the tee can't deadlock.**
-- **Deferred debts after S78:** stale static opus rate ($15/$75 → $5/$25) = **S79 pick A** ·
-  `--stations` ship durability = **B** · read-only-headless UX + typed `CannotEvaluate` = **C** ·
-  whole-stdout RAM buffer on headless capture (bound if a long run ever needs it) · cross-agent cost
-  (Codex/Grok's own figure) = the founder-gated breadth ask · compression make-it-real (0 folds,
-  never claim) · `vajra init` template lacks `pipeline_advance_check` · guard nested-repo blindspot ·
-  install path · readable-roadmap one-pager (backlog).
-- **S80 = the mandatory NO-CODE GT after S75.**
+  honest null beats a confident fake (S77) · capture the tool's OWN end-of-session number by
+  tee-inspecting its result stream, never reconstruct it (S78) · **NEW (S79): when a generic
+  model-id prefix stops being uniform-rate (a version split), audit every OTHER caller of that
+  pricing function for a bare/ambiguous default string that will now silently fall through to the
+  wrong bucket** — `vajra estimate`'s `DEFAULT_MODEL` was exactly such a caller, not caught by the
+  meter's own tests.
+- **Deferred debts after S79:** `--stations` ship durability = **S81 pick A** · read-only-headless UX
+  + typed `CannotEvaluate` = **B** · readable-roadmap one-pager = **C** · whole-stdout RAM buffer on
+  headless capture (bound if a long run ever needs it) · cross-agent cost (Codex/Grok's own figure)
+  = the founder-gated breadth ask · compression make-it-real (0 folds, never claim) · `vajra init`
+  template lacks `pipeline_advance_check` · guard nested-repo blindspot · install path.
+- **S80 = the mandatory NO-CODE GT.**

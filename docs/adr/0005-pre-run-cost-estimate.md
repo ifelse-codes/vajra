@@ -70,4 +70,6 @@ output_tokens = input_tokens × 3
 total_cost    = (input_tokens × input_price + output_tokens × output_price) / 1,000,000
 ```
 
-Where `input_price` and `output_price` come from `meter::pricing_for("claude-opus-4")`.
+Where `input_price` and `output_price` come from `meter::pricing_for("claude-opus-4-8")` (S79: the
+bare `"claude-opus-4"` prefix now covers only legacy/unconfirmed opus ids at the historical
+$15/$75 rate; the current default model needs the specific id to price at $5/$25).
