@@ -126,6 +126,74 @@ check_cost_tracking() {
   fi
 }
 
+# --- Execution-sha placeholder guard (S81) -----------------------------------
+# Catches the S79 failure mode: a CODE session that closes with `step N — done: <sha>`
+# placeholders still in its `## Execution` section. The Coder gate (src/coder/mod.rs)
+# blocks a running session, but only if the closing `--advance` is invoked; verify-closeout.sh
+# is the last line of defence for the session's own prompt file.
+#
+# Pattern: the literal string 'done: <sha>' (angle-bracket placeholder from the session
+# template). Absent section → WARN only (backward-compat with pre-S68 prompts). Respects
+# `VAJRA_CLOSEOUT_WAIVER` (same escape hatch as the fidelity gate — GT/NO-CODE sessions
+# intentionally leave ## Execution unfilled).
+check_execution_shas() {
+  local NAME="execution-shas-filled"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  local padded; padded="$(printf '%02d' "$N")"
+  shopt -s nullglob
+  local prompts; prompts=(prompts/${padded}-task-*.md)
+  : > "$LOG"
+
+  if (( ${#prompts[@]} == 0 )); then
+    echo "N/A: no prompt file prompts/${padded}-task-*.md" >> "$LOG"; ok "$NAME"; return
+  fi
+
+  local F="${prompts[0]}"
+  echo "prompt: $F" >> "$LOG"
+
+  # Walk the prompt; collect lines in ## Execution that still say 'done: <sha>'.
+  local in_exec=0 has_exec=0
+  local bad_lines=() count=0
+  while IFS= read -r line; do
+    local lline; lline="$(echo "$line" | tr '[:upper:]' '[:lower:]')"
+    if [[ "$lline" =~ ^#{1,6}[[:space:]] ]]; then
+      local first_word; first_word="$(echo "$lline" | sed 's/^#* *//' | awk '{print $1}')"
+      if [ "$first_word" = "execution" ]; then
+        in_exec=1; has_exec=1
+      else
+        in_exec=0
+      fi
+      continue
+    fi
+    if [[ "$in_exec" -eq 1 ]]; then
+      if echo "$line" | grep -qF 'done: <sha>'; then
+        bad_lines+=("  $line"); count=$((count+1))
+      fi
+    fi
+  done < "$F"
+
+  if [[ "$has_exec" -eq 0 ]]; then
+    echo "WARN: no ## Execution section (pre-S68 prompt — backward-compat WARN only, not a block)" >> "$LOG"
+    ok "$NAME"; return
+  fi
+
+  if [[ "$count" -eq 0 ]]; then
+    echo "OK: no 'done: <sha>' placeholders in ## Execution" >> "$LOG"; ok "$NAME"; return
+  fi
+
+  for bl in "${bad_lines[@]}"; do echo "PLACEHOLDER:$bl" >> "$LOG"; done
+  echo "BLOCK: $count step(s) in $F still have 'done: <sha>' placeholder(s)" >> "$LOG"
+
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
+    ok "$NAME"
+  else
+    echo "FAIL: fill every 'done: <sha>' in ## Execution with the landing commit sha," >> "$LOG"
+    echo "      or set VAJRA_CLOSEOUT_WAIVER=$N (GT / NO-CODE sessions only)." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
 # --- Fidelity gate (S56 — DECISION-002 teeth) -------------------------------
 # Un-forgeable waiver: a founder-controlled env var, NOT a text marker the agent
 # can Write into a tracked file. Mirrors VAJRA_ALLOW_PUBLISH (S37). Session-scoped:
@@ -364,6 +432,17 @@ if [ "${1:-}" = "--fidelity-only" ]; then
   if [ "$FAIL" -eq 0 ]; then echo "FIDELITY: PASS"; exit 0; else echo "FIDELITY: FAIL"; exit 1; fi
 fi
 
+# Focused entry point: run ONLY the execution-sha placeholder check (S81). `--check-exec-shas [N]`.
+if [ "${1:-}" = "--check-exec-shas" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
+  check_execution_shas
+  echo ""
+  echo "=== Execution-sha check (N=${N:-?}) ==="
+  for r in "${RESULTS[@]}"; do echo "$r"; done
+  cat "$ARTIFACTS/execution-shas-filled.log" 2>/dev/null || true
+  if [ "$FAIL" -eq 0 ]; then echo "EXEC-SHAS: PASS"; exit 0; else echo "EXEC-SHAS: FAIL"; exit 1; fi
+fi
+
 # Focused entry point: run ONLY the verdict-attestation check (S58). `--attest-only [N]`.
 if [ "${1:-}" = "--attest-only" ]; then
   if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
@@ -425,6 +504,7 @@ check_state_sections
 check_session_pair
 check_roadmap_current
 check_cost_tracking
+check_execution_shas
 check_fidelity_review
 check_review_attestation
 

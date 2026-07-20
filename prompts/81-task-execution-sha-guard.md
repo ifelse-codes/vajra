@@ -70,9 +70,9 @@ waives, as for GT/NO-CODE sessions).
    cold review + attestation. covers: 1, 3, 4, 6
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
+- step 1 — done: 22232f7
+- step 2 — done: 22232f7
+- step 3 — done: 84dc73e
 
 ## Guardrails
 - **One story:** add the `<sha>` placeholder check + retroactive S79 fix. Nothing else.
