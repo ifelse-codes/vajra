@@ -22,7 +22,7 @@ price correctly. Live-verified: `vajra estimate` now prints `@ $5/MTok` / `@ $25
 the cold reviewer). **Independent cold review = ACCEPT** (all 5 criteria SHIPPED; reviewer
 re-sourced the pricing itself from the `claude-api` skill rather than trusting the diff, reran the
 full suite + verify + demo + independently re-ran `vajra estimate`; no material bug; scope clean —
-6 files across 3 commits, no new command, no station changes), attested **`efdc652b…`**. **Live
+6 files across 3 commits, no new command, no station changes), attested **`c6111ba5…`**. **Live
 proof:** `verify-session-79.sh` **11/11** (incl. a live `vajra estimate` check) · `demo-session-79.sh`
 four markers, genuinely live · `cargo test --lib` **258** (+2) · clippy+fmt clean. **Spend ~$0**
 (compiled-in rate correction, no paid run needed). **Honest limit (disclosed):** legacy opus ids
