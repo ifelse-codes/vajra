@@ -1,6 +1,39 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-20 · **Session 81 — Harden verify-closeout: execution-sha placeholder guard (CODE) — DONE.**
+**Updated:** 2026-07-20 · **Session 82 — Releaser station reads from ledger when branch is pruned (CODE) — DONE.**
+`vajra next --stations NN` mapped `BranchShip::NoBranch` (a branch merged then pruned — the S37
+REQUIRED close step) to `[ABSENT] Releaser SHIP — branch not merged into main` unconditionally,
+indistinguishable from a session whose branch never existed. Flagged by S75's GT, confirmed a
+second consecutive time by S80's GT. **Fix (`src/stations/mod.rs`):** `releaser_status` now
+matches explicitly on `BranchShip` — `Unmerged` and `Merged` paths are algebraically unchanged
+(pure restructure into `match` arms); `NoBranch` falls back to a new `session_attested_accept`
+helper, which reads `sessions/session-NN-review.md` and reuses the existing `review_verdict_accept`
+(the same read path `reviewer_status` already uses) — an attested ACCEPT review is evidence the
+session shipped. 3 new tests (ledger-attested-passes · no-ledger-stays-absent ·
+reject-verdict-stays-absent); `fully_filled_session_counts_high` corrected from a "7/8 ceiling"
+(the bug, mislabeled as a limitation) to the honest 8/8. `src/releaser/mod.rs` (the `--advance`
+blocking close gate) is untouched — confirmed by an explicit empty-diff check in the verify script;
+only the read-only station counter changed. **Independent cold review = ACCEPT** (all 6 numbered
+criteria SHIPPED, independently verified against live commands — not just the diff; hand-traced
+the `Unmerged`/`Merged` match arms against `main` and confirmed byte-for-byte message/condition
+equivalence), attested **`dfde19f1…`**. **Live proof:** `verify-session-82.sh` **11/11** ·
+`cargo test --lib` **261** (+3) · clippy+fmt clean · live corpus check: `vajra next --stations 81`
+→ `[PASSED] Releaser SHIP` naming the ledger, `7 of 8` (Architect correctly ABSENT — S81 was
+`design-significant: no`). **Fakest green (disclosed, reviewer-sharpened):
+`session_attested_accept`'s "attested" check is a bare substring match on `"review-inputs-sha"`,
+not a recomputed hash — a direct, disclosed reuse of `reviewer_status`'s pre-existing check, but
+S82 makes it load-bearing for a SECOND station, doubling the blast radius of a forgeable
+attestation string** — carried as an S83+ candidate, not fixed here. **Spend ~$0** (no paid API
+call; the cold review used the local `general-purpose` subagent). **3 ranked S83 candidates → 🥇
+A** S76 retroactive sha fix (short, standing since S81) · **🥈 B** read-only-headless UX + typed
+`CannotEvaluate::{Timeout,SpawnFailure}` (carried 5 sessions) [**PICKED, split into S83 = the
+UX-warning half only; the typed-CannotEvaluate half carries to S84**] · **🥉 C** harden the
+attestation check itself (new finding, this session's own cold review). **Next = S83, CODE — warn
+before a headless run hits the read-only wall** (`prompts/83-task-readonly-headless-warning.md`,
+APPROVED, new chat, branch `session-83-readonly-headless-warning`). **S85 = the next mandatory
+NO-CODE GT.** Reports: `sessions/session-82-summary.md` + `sessions/session-82-review.md`.
+
+**Prior · Session 81 — Harden verify-closeout: execution-sha placeholder guard (CODE) — DONE.**
 `check_execution_shas` added to `scripts/verify-closeout.sh`: detects `done: <sha>` placeholder
 literals in a session's `## Execution` section → BLOCK exit 1 with step names; warns (never blocks)
 on absent section (pre-S68 backward-compat); waivered by `VAJRA_CLOSEOUT_WAIVER=N` (GT/NO-CODE
