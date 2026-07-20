@@ -220,26 +220,46 @@ fn demoer_status(root: &Path, session: u32) -> StationStatus {
 }
 
 /// Releaser (SHIP): the session's branch is merged into main, main is synced, and merged locals are
-/// pruned — re-derived live from git refs (`releaser::derive_ship_state`), never a recorded claim.
+/// pruned — re-derived live from git refs (`releaser::derive_ship_state`). Pruning the merged branch
+/// is the REQUIRED end-state (the S37 close step), so a properly-shipped session reads `NoBranch` —
+/// indistinguishable in git alone from a branch that never existed. When no ref survives, fall back
+/// to the attested ledger (`session_attested_accept`): an attested ACCEPT review is evidence the
+/// session shipped and was reviewed, so `NoBranch` + that evidence is PASSED, not a false ABSENT.
 fn releaser_status(root: &Path, session: u32) -> StationStatus {
     const N: &str = "Releaser";
     const L: &str = "SHIP";
     match releaser::derive_ship_state(root, session) {
         Err(_) => StationStatus::absent(N, L, "ship state underivable (no git / no main)"),
-        Ok(s) => {
-            let merged = matches!(s.branch, BranchShip::Merged(_));
-            let synced = s.sync == MainSync::Synced;
-            let pruned = s.unpruned.is_empty();
-            if merged && synced && pruned {
-                StationStatus::passed(N, L, "branch merged, main synced, locals pruned")
-            } else if !merged {
-                StationStatus::absent(N, L, "branch not merged into main")
-            } else if !synced {
-                StationStatus::absent(N, L, "main not synced with origin")
-            } else {
-                StationStatus::absent(N, L, "merged session locals not pruned")
+        Ok(s) => match &s.branch {
+            BranchShip::Unmerged(_) => StationStatus::absent(N, L, "branch not merged into main"),
+            BranchShip::NoBranch => {
+                if session_attested_accept(root, session) {
+                    StationStatus::passed(
+                        N,
+                        L,
+                        "no branch ref survives, but the ledger's attested ACCEPT review \
+                         evidences it shipped",
+                    )
+                } else {
+                    StationStatus::absent(
+                        N,
+                        L,
+                        "no branch ref and no attested ACCEPT review in the ledger",
+                    )
+                }
             }
-        }
+            BranchShip::Merged(_) => {
+                let synced = s.sync == MainSync::Synced;
+                let pruned = s.unpruned.is_empty();
+                if synced && pruned {
+                    StationStatus::passed(N, L, "branch merged, main synced, locals pruned")
+                } else if !synced {
+                    StationStatus::absent(N, L, "main not synced with origin")
+                } else {
+                    StationStatus::absent(N, L, "merged session locals not pruned")
+                }
+            }
+        },
     }
 }
 
@@ -325,6 +345,24 @@ fn review_verdict_accept(text: &str) -> Option<bool> {
         })
         .collect();
     verdicts.last().copied()
+}
+
+/// Does session `session`'s independent review carry a canonical, attested `**Verdict:** ACCEPT`?
+/// The same evidence `reviewer_status` reads (`review_verdict_accept` + the `Review-Inputs-SHA`
+/// attestation line) — reused as the Releaser's `NoBranch` fallback: a branch pruned after a proper
+/// merge (the required S37 end-state) is indistinguishable in git alone from a branch that never
+/// existed; the attested ledger disambiguates the two.
+fn session_attested_accept(root: &Path, session: u32) -> bool {
+    let rel = format!("sessions/session-{session:02}-review.md");
+    match fs::read_to_string(root.join(&rel)) {
+        Err(_) => false,
+        Ok(text) => {
+            let attested = text
+                .lines()
+                .any(|l| l.to_lowercase().contains("review-inputs-sha"));
+            attested && review_verdict_accept(&text) == Some(true)
+        }
+    }
 }
 
 fn join_nums(nums: &[u32]) -> String {
@@ -529,10 +567,69 @@ release:
         );
         assert_eq!(outcome(root, 50, "Releaser"), Outcome::Absent); // unpruned
 
-        // Prune it → merged + pruned; no origin remote means sync is unverifiable → still ABSENT
-        // (strict: SHIP needs a synced main). This is the honest read for a no-remote fixture.
+        // Prune it → no ref survives at all (NoBranch); no attested review exists for this
+        // session, so the ledger fallback finds no evidence either → still ABSENT.
         git_in(root, &["branch", "-D", "session-50-x"]);
         assert_eq!(outcome(root, 50, "Releaser"), Outcome::Absent);
+    }
+
+    #[test]
+    fn releaser_passes_when_no_branch_but_ledger_attested() {
+        let tmp = repo();
+        let root = tmp.path();
+
+        // Merge + prune → NoBranch, indistinguishable in git alone from "never created".
+        git_in(root, &["checkout", "-qb", "session-51-x"]);
+        fs::write(root.join("f51.txt"), "w\n").unwrap();
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", "s51"]);
+        git_in(root, &["checkout", "-q", "main"]);
+        git_in(
+            root,
+            &["merge", "-q", "--no-ff", "session-51-x", "-m", "merge 51"],
+        );
+        git_in(root, &["branch", "-D", "session-51-x"]);
+
+        // An attested ACCEPT review is the ledger evidence that disambiguates: PASSED.
+        fs::write(
+            root.join("sessions/session-51-review.md"),
+            "**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** abc123\n",
+        )
+        .unwrap();
+        assert_eq!(outcome(root, 51, "Releaser"), Outcome::Passed);
+    }
+
+    #[test]
+    fn releaser_absent_when_no_branch_and_no_ledger() {
+        let tmp = repo();
+        let root = tmp.path();
+        // No branch ever existed and no review artifact — a ghost session must not earn PASSED.
+        assert_eq!(outcome(root, 52, "Releaser"), Outcome::Absent);
+    }
+
+    #[test]
+    fn releaser_absent_when_no_branch_but_ledger_rejects() {
+        let tmp = repo();
+        let root = tmp.path();
+
+        git_in(root, &["checkout", "-qb", "session-53-x"]);
+        fs::write(root.join("f53.txt"), "w\n").unwrap();
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", "s53"]);
+        git_in(root, &["checkout", "-q", "main"]);
+        git_in(
+            root,
+            &["merge", "-q", "--no-ff", "session-53-x", "-m", "merge 53"],
+        );
+        git_in(root, &["branch", "-D", "session-53-x"]);
+
+        // A REJECT verdict (even attested) is not shipping evidence — still ABSENT.
+        fs::write(
+            root.join("sessions/session-53-review.md"),
+            "**Verdict:** REJECT\n\n**Review-Inputs-SHA:** abc123\n",
+        )
+        .unwrap();
+        assert_eq!(outcome(root, 53, "Releaser"), Outcome::Absent);
     }
 
     #[test]
@@ -590,8 +687,8 @@ release:
         let root = tmp.path();
 
         // Land the fixture prompt + scripts + review on a session branch, then merge + prune so the
-        // Releaser derives a shipped state. Origin is absent, so SHIP stays ABSENT (no synced main
-        // to verify) — the honest ceiling in a no-remote fixture is 7/8.
+        // Releaser derives a shipped state from the pruned branch's attested ledger evidence — the
+        // honest ceiling on a fully-evidenced fixture is 8/8.
         write_prompt(root, 80, "placeholder");
         fs::write(
             root.join("scripts/verify-session-80.sh"),
@@ -637,13 +734,14 @@ release:
                 && passed.contains(&"Coder")
                 && passed.contains(&"QA")
                 && passed.contains(&"Demo-er")
+                && passed.contains(&"Releaser")
                 && passed.contains(&"Reviewer"),
-            "seven non-SHIP stations should pass on a fully-filled fixture, got {passed:?}"
+            "all eight stations should pass on a fully-evidenced fixture, got {passed:?}"
         );
         assert_eq!(
             r.passed(),
-            7,
-            "no-remote fixture ceiling is 7/8 (SHIP needs synced origin)"
+            8,
+            "a fully-evidenced fixture (attested ACCEPT ledger) reaches 8/8"
         );
     }
 
