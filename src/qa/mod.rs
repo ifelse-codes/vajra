@@ -33,6 +33,8 @@
 use std::fs;
 use std::path::Path;
 
+use crate::gate_run::CannotEvaluate;
+
 /// `CONSTRAINTS.yaml#verify` defaults — the spine's recorded contract when the file or keys are
 /// missing (the same patterns `vajra init` scaffolds).
 const DEFAULT_SCRIPT_PATTERN: &str = "scripts/verify-session-{NN}.sh";
@@ -121,9 +123,14 @@ pub enum QaState {
     /// No verify script recorded (NO-CODE ground-truth / legacy sessions). WARNS at most — and
     /// the dodge is named: deleting the script downgrades the gate.
     NoScript,
-    /// The script re-ran LIVE and exited non-zero — BLOCKS. `None` means the run could not even
-    /// be evaluated (unrunnable script / killed by signal): a check that cannot evaluate FAILS.
-    LiveRed(Option<i32>),
+    /// The run could not be evaluated at all — BLOCKS, naming WHICH of the two reasons (S84):
+    /// `Timeout` (ran past its bound, killed) or `SpawnFailure` (the process never started). A
+    /// check that cannot evaluate FAILS.
+    CannotEvaluate(CannotEvaluate),
+    /// The script re-ran LIVE and exited a REAL non-zero code — BLOCKS. Never an `Option`: once a
+    /// process has run to completion this always carries an actual exit code (see
+    /// `gate_run::code_or_conservative` for the signal-death edge, which still lands here).
+    LiveRed(i32),
     /// The script re-ran LIVE and exited 0 — passes. Only a live green passes.
     LiveGreen,
 }
@@ -132,29 +139,33 @@ impl QaState {
     /// A blocking state refuses the close at L2/L3. Only a live green or a missing script
     /// (legacy WARN) does not block.
     pub fn blocks(&self) -> bool {
-        matches!(self, QaState::LiveRed(_))
+        matches!(self, QaState::LiveRed(_) | QaState::CannotEvaluate(_))
     }
 }
 
 /// Classify the contract by RE-RUNNING its script via `run` (injected so classification is
-/// testable without spawning). `run` returns the live exit code, `None` when the script could
-/// not be evaluated at all — which FAILS, never silently passes.
-pub fn qa_report(contract: &QaContract, run: impl FnOnce(&str) -> Option<i32>) -> QaState {
+/// testable without spawning). `run` returns the live exit code, or `Err(CannotEvaluate)` naming
+/// WHY the script could not be evaluated — which FAILS, never silently passes.
+pub fn qa_report(
+    contract: &QaContract,
+    run: impl FnOnce(&str) -> Result<i32, CannotEvaluate>,
+) -> QaState {
     if !contract.script_exists {
         return QaState::NoScript;
     }
     match run(&contract.script) {
-        Some(0) => QaState::LiveGreen,
-        Some(code) => QaState::LiveRed(Some(code)),
-        None => QaState::LiveRed(None),
+        Ok(0) => QaState::LiveGreen,
+        Ok(code) => QaState::LiveRed(code),
+        Err(reason) => QaState::CannotEvaluate(reason),
     }
 }
 
 /// Re-run `script` (repo-relative) LIVE at `root`, streaming its output — the run IS the
-/// evidence, shown as it happens. Returns the real exit code; `None` when it cannot run. Delegates
-/// to the shared bounded runner (S73) with the scaffold-default timeout; `qa_gate` passes the
-/// recorded bound. Kept as the thin production entry point + the injection-free test seam.
-pub fn run_verify_script(root: &Path, script: &str) -> Option<i32> {
+/// evidence, shown as it happens. Returns the real exit code, or `Err(CannotEvaluate)` naming why
+/// it cannot run. Delegates to the shared bounded runner (S73) with the scaffold-default timeout;
+/// `qa_gate` passes the recorded bound. Kept as the thin production entry point + the
+/// injection-free test seam.
+pub fn run_verify_script(root: &Path, script: &str) -> Result<i32, CannotEvaluate> {
     crate::gate_run::run_streamed(
         root,
         script,
@@ -183,7 +194,11 @@ impl QaVerdict {
 /// The QA gate (S69): CLOSING `session` requires its verify script to pass a LIVE re-run —
 /// executes `run` and blocks on non-zero. A missing script (NO-CODE GT / legacy) WARNS at most,
 /// the dodge named. Callers pass `run_verify_script` for the real thing; tests inject.
-pub fn qa_gate_with(root: &Path, session: u32, run: impl FnOnce(&str) -> Option<i32>) -> QaVerdict {
+pub fn qa_gate_with(
+    root: &Path,
+    session: u32,
+    run: impl FnOnce(&str) -> Result<i32, CannotEvaluate>,
+) -> QaVerdict {
     let contract = gather_contract(root, session);
     let state = qa_report(&contract, run);
     let mut reasons = Vec::new();
@@ -197,17 +212,22 @@ pub fn qa_gate_with(root: &Path, session: u32, run: impl FnOnce(&str) -> Option<
              gate to a warning (self-granted jurisdiction, disclosed)",
             session, contract.script
         )),
-        QaState::LiveRed(code) => reasons.push(match code {
-            Some(c) => format!(
-                "{} re-ran LIVE and exited {c} — a recorded green is not accepted as proof; \
-                 fix the verify until it passes live before closing",
-                contract.script
-            ),
-            None => format!(
-                "{} could not be evaluated (no exit code) — a check that cannot evaluate FAILS",
-                contract.script
-            ),
-        }),
+        QaState::LiveRed(code) => reasons.push(format!(
+            "{} re-ran LIVE and exited {code} — a recorded green is not accepted as proof; \
+             fix the verify until it passes live before closing",
+            contract.script
+        )),
+        QaState::CannotEvaluate(CannotEvaluate::Timeout) => reasons.push(format!(
+            "{} could not be evaluated — TIMEOUT: it ran past its recorded timeout bound and \
+             was killed — a check that cannot evaluate FAILS",
+            contract.script
+        )),
+        QaState::CannotEvaluate(CannotEvaluate::SpawnFailure) => reasons.push(format!(
+            "{} could not be evaluated — SPAWN FAILURE: the process never started (missing \
+             interpreter, permission denied, or a broken script path) — a check that cannot \
+             evaluate FAILS",
+            contract.script
+        )),
     }
 
     QaVerdict {
@@ -356,19 +376,29 @@ demo:
 
     #[test]
     fn qa_report_live_green_passes_live_red_blocks() {
-        assert_eq!(qa_report(&contract(true), |_| Some(0)), QaState::LiveGreen);
+        assert_eq!(qa_report(&contract(true), |_| Ok(0)), QaState::LiveGreen);
         assert!(!QaState::LiveGreen.blocks());
-        let red = qa_report(&contract(true), |_| Some(2));
-        assert_eq!(red, QaState::LiveRed(Some(2)));
+        let red = qa_report(&contract(true), |_| Ok(2));
+        assert_eq!(red, QaState::LiveRed(2));
         assert!(red.blocks());
     }
 
     #[test]
     fn qa_report_unevaluable_run_fails_never_silently_passes() {
-        // "A check that cannot evaluate FAILS" (AGENTS.md) — no exit code is a BLOCK, not a pass.
-        let state = qa_report(&contract(true), |_| None);
-        assert_eq!(state, QaState::LiveRed(None));
-        assert!(state.blocks());
+        // "A check that cannot evaluate FAILS" (AGENTS.md) — neither reason is a pass, and the
+        // two reasons must stay visibly distinct (S84 — the S73 fakest-green finding).
+        let timeout = qa_report(&contract(true), |_| Err(CannotEvaluate::Timeout));
+        assert_eq!(timeout, QaState::CannotEvaluate(CannotEvaluate::Timeout));
+        assert!(timeout.blocks());
+
+        let spawn = qa_report(&contract(true), |_| Err(CannotEvaluate::SpawnFailure));
+        assert_eq!(spawn, QaState::CannotEvaluate(CannotEvaluate::SpawnFailure));
+        assert!(spawn.blocks());
+
+        assert_ne!(
+            timeout, spawn,
+            "timeout and spawn-failure must not collapse into the same state"
+        );
     }
 
     #[test]
@@ -378,8 +408,8 @@ demo:
         fs::create_dir_all(root.join("scripts")).unwrap();
         fs::write(root.join("scripts/green.sh"), "exit 0\n").unwrap();
         fs::write(root.join("scripts/red.sh"), "exit 3\n").unwrap();
-        assert_eq!(run_verify_script(root, "scripts/green.sh"), Some(0));
-        assert_eq!(run_verify_script(root, "scripts/red.sh"), Some(3));
+        assert_eq!(run_verify_script(root, "scripts/green.sh"), Ok(0));
+        assert_eq!(run_verify_script(root, "scripts/red.sh"), Ok(3));
     }
 
     #[test]
@@ -406,6 +436,34 @@ demo:
         assert!(!v.blocked(), "reasons: {:?}", v.reasons);
         assert_eq!(v.state, QaState::LiveGreen);
         assert!(v.warnings.is_empty());
+    }
+
+    #[test]
+    fn gate_block_message_names_timeout_distinctly_from_spawn_failure() {
+        // The S73/S84 headline: an operator reading a blocked close must be able to tell WHICH of
+        // the two cannot-evaluate reasons occurred, not one generic "no exit code" message.
+        let tmp = repo_with_constraints(CONSTRAINTS);
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(root.join("scripts/verify-session-69.sh"), "exit 0\n").unwrap();
+
+        let timed_out = qa_gate_with(root, 69, |_| Err(CannotEvaluate::Timeout));
+        assert!(timed_out.blocked());
+        assert!(timed_out.reasons.iter().any(|r| r.contains("TIMEOUT")));
+        assert!(!timed_out
+            .reasons
+            .iter()
+            .any(|r| r.contains("SPAWN FAILURE")));
+
+        let unspawnable = qa_gate_with(root, 69, |_| Err(CannotEvaluate::SpawnFailure));
+        assert!(unspawnable.blocked());
+        assert!(unspawnable
+            .reasons
+            .iter()
+            .any(|r| r.contains("SPAWN FAILURE")));
+        assert!(!unspawnable.reasons.iter().any(|r| r.contains("TIMEOUT")));
+
+        assert_ne!(timed_out.reasons, unspawnable.reasons);
     }
 
     #[test]

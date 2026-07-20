@@ -38,6 +38,8 @@
 use std::fs;
 use std::path::Path;
 
+use crate::gate_run::CannotEvaluate;
+
 /// `CONSTRAINTS.yaml#demo` defaults — the spine's recorded contract when the file or keys are
 /// missing (the same patterns `vajra init` scaffolds).
 const DEFAULT_SCRIPT_PATTERN: &str = "scripts/demo-session-{NN}.sh";
@@ -138,9 +140,14 @@ pub enum DemoState {
     /// No demo script recorded (NO-CODE ground-truth / legacy sessions). WARNS at most — and
     /// the dodge is named: deleting the script downgrades the gate.
     NoScript,
-    /// The script re-ran LIVE and exited non-zero — BLOCKS. `None` means the run could not even
-    /// be evaluated (unrunnable script / killed by signal): a check that cannot evaluate FAILS.
-    LiveRed(Option<i32>),
+    /// The run could not be evaluated at all — BLOCKS, naming WHICH of the two reasons (S84):
+    /// `Timeout` (ran past its bound, killed) or `SpawnFailure` (the process never started). A
+    /// check that cannot evaluate FAILS.
+    CannotEvaluate(CannotEvaluate),
+    /// The script re-ran LIVE and exited a REAL non-zero code — BLOCKS. Never an `Option`: once a
+    /// process has run to completion this always carries an actual exit code (see
+    /// `gate_run::code_or_conservative` for the signal-death edge, which still lands here).
+    LiveRed(i32),
     /// The script re-ran LIVE and exited 0 but its OUTPUT lacks these required elements —
     /// BLOCKS. The hollow demo (exit 0, nothing shown) dies here, by construction.
     MissingElements(Vec<String>),
@@ -152,23 +159,27 @@ impl DemoState {
     /// A blocking state refuses the close at L2/L3. Only a live green or a missing script
     /// (legacy WARN) does not block.
     pub fn blocks(&self) -> bool {
-        matches!(self, DemoState::LiveRed(_) | DemoState::MissingElements(_))
+        matches!(
+            self,
+            DemoState::LiveRed(_) | DemoState::MissingElements(_) | DemoState::CannotEvaluate(_)
+        )
     }
 }
 
 /// Classify the contract by RE-RUNNING its script via `run` (injected so classification is
-/// testable without spawning). `run` returns the live exit code + captured output; a `None`
-/// exit code means the run could not be evaluated — which FAILS, never silently passes.
+/// testable without spawning). `run` returns the live exit code + captured output, or
+/// `Err(CannotEvaluate)` naming WHY the run could not be evaluated — which FAILS, never silently
+/// passes.
 pub fn demo_report(
     contract: &DemoContract,
-    run: impl FnOnce(&str) -> (Option<i32>, String),
+    run: impl FnOnce(&str) -> (Result<i32, CannotEvaluate>, String),
 ) -> DemoState {
     if !contract.script_exists {
         return DemoState::NoScript;
     }
     let (code, output) = run(&contract.script);
     match code {
-        Some(0) => {
+        Ok(0) => {
             let missing = missing_elements(&output, &contract.required_elements);
             if missing.is_empty() {
                 DemoState::LiveGreen
@@ -176,15 +187,16 @@ pub fn demo_report(
                 DemoState::MissingElements(missing)
             }
         }
-        Some(c) => DemoState::LiveRed(Some(c)),
-        None => DemoState::LiveRed(None),
+        Ok(c) => DemoState::LiveRed(c),
+        Err(reason) => DemoState::CannotEvaluate(reason),
     }
 }
 
 /// Re-run `script` (repo-relative) LIVE at `root`, capturing its output for the element scan and
 /// echoing it so the demo is still SEEN — the run is the evidence, shown and scanned. Returns
-/// the real exit code (`None` when it cannot run) + the combined stdout/stderr text.
-pub fn run_demo_script(root: &Path, script: &str) -> (Option<i32>, String) {
+/// the real exit code, or `Err(CannotEvaluate)` naming why it cannot run, + the combined
+/// stdout/stderr text.
+pub fn run_demo_script(root: &Path, script: &str) -> (Result<i32, CannotEvaluate>, String) {
     crate::gate_run::run_captured(
         root,
         script,
@@ -217,7 +229,7 @@ impl DemoVerdict {
 pub fn demo_gate_with(
     root: &Path,
     session: u32,
-    run: impl FnOnce(&str) -> (Option<i32>, String),
+    run: impl FnOnce(&str) -> (Result<i32, CannotEvaluate>, String),
 ) -> DemoVerdict {
     let contract = gather_contract(root, session);
     let state = demo_report(&contract, run);
@@ -240,17 +252,22 @@ pub fn demo_gate_with(
             missing.join(", "),
             contract.required_elements.join(" · ")
         )),
-        DemoState::LiveRed(code) => reasons.push(match code {
-            Some(c) => format!(
-                "{} re-ran LIVE and exited {c} — a recorded green is not accepted as proof; \
-                 fix the demo until it runs green live before closing",
-                contract.script
-            ),
-            None => format!(
-                "{} could not be evaluated (no exit code) — a check that cannot evaluate FAILS",
-                contract.script
-            ),
-        }),
+        DemoState::LiveRed(code) => reasons.push(format!(
+            "{} re-ran LIVE and exited {code} — a recorded green is not accepted as proof; \
+             fix the demo until it runs green live before closing",
+            contract.script
+        )),
+        DemoState::CannotEvaluate(CannotEvaluate::Timeout) => reasons.push(format!(
+            "{} could not be evaluated — TIMEOUT: it ran past its recorded timeout bound and \
+             was killed — a check that cannot evaluate FAILS",
+            contract.script
+        )),
+        DemoState::CannotEvaluate(CannotEvaluate::SpawnFailure) => reasons.push(format!(
+            "{} could not be evaluated — SPAWN FAILURE: the process never started (missing \
+             interpreter, permission denied, or a broken script path) — a check that cannot \
+             evaluate FAILS",
+            contract.script
+        )),
     }
 
     DemoVerdict {
@@ -425,19 +442,34 @@ demo:
 
     #[test]
     fn demo_report_live_red_blocks_and_unevaluable_fails() {
-        let red = demo_report(&contract(true), |_| (Some(3), String::new()));
-        assert_eq!(red, DemoState::LiveRed(Some(3)));
+        let red = demo_report(&contract(true), |_| (Ok(3), String::new()));
+        assert_eq!(red, DemoState::LiveRed(3));
         assert!(red.blocks());
-        // "A check that cannot evaluate FAILS" — no exit code is a BLOCK, not a pass.
-        let dead = demo_report(&contract(true), |_| (None, String::new()));
-        assert_eq!(dead, DemoState::LiveRed(None));
-        assert!(dead.blocks());
+        // "A check that cannot evaluate FAILS" — neither reason is a pass, and the two reasons
+        // must stay visibly distinct (S84 — the S73 fakest-green finding).
+        let timeout = demo_report(&contract(true), |_| {
+            (Err(CannotEvaluate::Timeout), String::new())
+        });
+        assert_eq!(timeout, DemoState::CannotEvaluate(CannotEvaluate::Timeout));
+        assert!(timeout.blocks());
+        let spawn = demo_report(&contract(true), |_| {
+            (Err(CannotEvaluate::SpawnFailure), String::new())
+        });
+        assert_eq!(
+            spawn,
+            DemoState::CannotEvaluate(CannotEvaluate::SpawnFailure)
+        );
+        assert!(spawn.blocks());
+        assert_ne!(
+            timeout, spawn,
+            "timeout and spawn-failure must not collapse into the same state"
+        );
     }
 
     #[test]
     fn demo_report_hollow_green_fails_the_element_scan() {
         // The hollow demo: exit 0, nothing shown — passes the run, DIES on the element scan.
-        let hollow = demo_report(&contract(true), |_| (Some(0), "all fine\n".to_string()));
+        let hollow = demo_report(&contract(true), |_| (Ok(0), "all fine\n".to_string()));
         assert_eq!(
             hollow,
             DemoState::MissingElements(elements(&[
@@ -449,7 +481,7 @@ demo:
         );
         assert!(hollow.blocks());
         // Exit 0 + every marker in the LIVE output → the only green.
-        let green = demo_report(&contract(true), |_| (Some(0), FULL_OUTPUT.to_string()));
+        let green = demo_report(&contract(true), |_| (Ok(0), FULL_OUTPUT.to_string()));
         assert_eq!(green, DemoState::LiveGreen);
         assert!(!green.blocks());
     }
@@ -462,9 +494,9 @@ demo:
         fs::write(root.join("scripts/green.sh"), "echo 'demo:header shown'\n").unwrap();
         fs::write(root.join("scripts/red.sh"), "exit 3\n").unwrap();
         let (code, out) = run_demo_script(root, "scripts/green.sh");
-        assert_eq!(code, Some(0));
+        assert_eq!(code, Ok(0));
         assert!(out.contains("demo:header"));
-        assert_eq!(run_demo_script(root, "scripts/red.sh").0, Some(3));
+        assert_eq!(run_demo_script(root, "scripts/red.sh").0, Ok(3));
     }
 
     #[test]
@@ -499,6 +531,36 @@ demo:
         assert!(!v.blocked(), "reasons: {:?}", v.reasons);
         assert_eq!(v.state, DemoState::LiveGreen);
         assert!(v.warnings.is_empty());
+    }
+
+    #[test]
+    fn gate_block_message_names_timeout_distinctly_from_spawn_failure() {
+        // The S73/S84 headline: an operator reading a blocked close must be able to tell WHICH of
+        // the two cannot-evaluate reasons occurred, not one generic "no exit code" message.
+        let tmp = repo_with_constraints(CONSTRAINTS);
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(root.join("scripts/demo-session-71.sh"), "exit 0\n").unwrap();
+
+        let timed_out = demo_gate_with(root, 71, |_| (Err(CannotEvaluate::Timeout), String::new()));
+        assert!(timed_out.blocked());
+        assert!(timed_out.reasons.iter().any(|r| r.contains("TIMEOUT")));
+        assert!(!timed_out
+            .reasons
+            .iter()
+            .any(|r| r.contains("SPAWN FAILURE")));
+
+        let unspawnable = demo_gate_with(root, 71, |_| {
+            (Err(CannotEvaluate::SpawnFailure), String::new())
+        });
+        assert!(unspawnable.blocked());
+        assert!(unspawnable
+            .reasons
+            .iter()
+            .any(|r| r.contains("SPAWN FAILURE")));
+        assert!(!unspawnable.reasons.iter().any(|r| r.contains("TIMEOUT")));
+
+        assert_ne!(timed_out.reasons, unspawnable.reasons);
     }
 
     #[cfg(unix)]
