@@ -1,6 +1,57 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-20 · **Session 85 — Ground Truth (mandatory NO-CODE, every 5th; last = S80) — DONE.**
+**Updated:** 2026-07-21 · **Session 86 — Harden the attestation check (CODE) — DONE.**
+`reviewer_status`/`session_attested_accept` (`src/stations/mod.rs`) accepted any review file
+containing the label `Review-Inputs-SHA` anywhere, without checking the value — a
+forged/stale/recycled attestation silently passed both stations. Disclosed since S82, re-disclosed
+S83/S84, ranked 🥇 (top live-exploit-surface finding) at the S85 GT close. **Neither prompt-suggested
+design option survived contact with this repo's real history — both were tested directly, not
+assumed:** (a) live recompute via `git merge-base main HEAD` is confirmed BROKEN post-merge (S84's
+hash recomputes to a materially different, WRONG value today — `7a202b14…` vs. the real
+`0e172ca7…`, proven live). (b) the S59 ledger (`--ledger`, `build_ledger`/`_ledger_sha_of`) never
+validates a hash — it only checks a well-formed 64-hex value is PRESENT, never compares it against
+`canonical_inputs_sha`. **Built instead:** `attested_hash_outcome`, a shared helper both call sites
+use, that searches every RECONSTRUCTABLE diff (the live not-yet-merged branch, plus every `--no-ff`
+merge commit reachable from `main` — this repo's merge convention preserves both parents forever,
+even after the branch ref is pruned) for one whose `sha256(prompt bytes \0 diff)` matches the
+claimed hash. The claimed hash is anchored to the session's OWN prompt bytes, so a value recycled
+from a different session's genuine attestation cannot match without a SHA-256 collision.
+**Empirically validated against this repo's real history, not just unit-tested:** searched all 20
+currently-committed ACCEPT reviews — 16 reproduce their claimed hash exactly via a real merge
+commit; 4 (S64, S69, S73, S79) reproduce under NO candidate even after exhaustively searching every
+merge commit in the repo — most plausibly because `canonical_inputs_sha`'s own exclude-list changed
+since their hash was computed, not forgery. Those 4 correctly flip from a false PASSED (pre-S86) to
+a disclosed, fail-closed `Unverifiable`/ABSENT — a deliberate trade-off (AC5), not a silent
+regression; a garbage/forged/recycled value can no longer silently pass either station. **Two real
+bugs self-caught before commit**, found by testing against this repo's OWN historical review files
+rather than only synthetic fixtures: (1) a trailing-newline mismatch — bash's `$(...)` command
+substitution strips trailing newlines before hashing, the first Rust cut didn't, so every recompute
+mismatched even for a genuinely correct hash; (2) an unanchored label search — the first
+`claimed_inputs_sha` used the SAME `.contains("review-inputs-sha")` mistake this session exists to
+fix, one level down, and it misread `sessions/session-82-review.md` (which discusses the label in
+prose before its real attestation line) as unattested. Both fixed to mirror
+`verify-closeout.sh`'s exact algorithm (trailing-newline-stripped diff; anchored
+`^[*_\s]*Review-Inputs-SHA[*_\s]*:` line match). **New house pattern:** a "recompute and compare"
+hardening fix must be tested against the SAME class of real, messy historical data the old bug
+actually failed on — a clean synthetic fixture alone will not surface encoding mismatches or
+unanchored-text-matching bugs. `cargo test --lib` **270** (+3: 3 new tests proving genuine/forged/
+recycled hashes classify correctly, 3 existing tests updated — their fake `"abc123"`/`"abc"` hashes
+no longer count as attested). Clippy + fmt clean. **Independent cold review = ACCEPT** (all 6
+numbered criteria SHIPPED; the reviewer independently re-derived the 16/20 empirical split itself
+by re-running the compiled binary against real history, not trusting the write-up), attested
+**`b21c7c5b…`**. **Live proof:** `verify-session-86.sh` **16/16** (real git repo with genuine
+`--no-ff` merges, not mocked) · `demo-session-86.sh` shows genuine/forged/recycled/Releaser-fallback
+cases live. **Spend ~$0** (Rust/bash-only source fix; cold review used the local `general-purpose`
+subagent). **3 ranked S87 candidates → 🥇 A (recommended, NOT picked)** the dogfood refresh — now
+**10 sessions (S77-S86) / 18 calendar days** stale since S76, founder-un-parkable per S70/S85 · **🥈
+B (PICKED)** fill S76's `## Execution` unfilled `<sha>` placeholders — oldest standing debt, 9
+sessions overdue, pure record-hygiene (no live exploit surface, unlike what S86 just closed) · **🥉
+C** fix `ROADMAP.md`'s stale "Where We Are" table (still not touched). **Next = S87, CODE
+(docs-only) — fill S76's Execution shas** (`prompts/87-task-fix-s76-execution-shas.md`, APPROVED,
+new chat, branch `session-87-fix-s76-execution-shas`). **S90 = the next mandatory NO-CODE GT.**
+Report: `sessions/session-86-review.md`.
+
+**Prior · Session 85 — Ground Truth (mandatory NO-CODE, every 5th; last = S80) — DONE.**
 Audited the S81→S84 arc (execution-sha closeout guard · Releaser ledger fallback · read-only-headless
 UX warning · typed `CannotEvaluate`). **Headline (`pipeline_advance_check`, measured live via
 `vajra next --stations NN` for S80→S84):** S80(GT) 2/8 → S81 **7/8** → S82 **7/8** → S83 **7/8** →
