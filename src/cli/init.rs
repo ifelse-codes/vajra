@@ -564,6 +564,7 @@ fn files(
         fx(".ai/hooks/hook-copilot-murmur.sh", TPL_HOOK_COPILOT_MURMUR),
         fx(".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
         fx(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
+        fx(".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
         // Git-level belt (S43): tracked pre-commit/pre-push, an independent L2 layer
         // (git-native) beneath the L3 .claude/ hooks. Byte-identical to the vajra repo's
         // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
@@ -903,6 +904,10 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-publish-guard.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-commit-guard.sh\""
           }
         ]
       },
@@ -952,6 +957,15 @@ const TPL_HOOK_SESSION_GUARD: &str = include_str!("../../scripts/hook-session-gu
 // projects run the real autonomous sessions. Un-excluded in Cargo.toml so it ships with
 // `cargo install`.
 const TPL_HOOK_PUBLISH_GUARD: &str = include_str!("../../scripts/hook-publish-guard.sh");
+
+// Canonical commit-guard (S93) — the un-forgeable teeth on `git commit`: a PreToolUse(Bash)
+// hook that BLOCKS an autonomous commit unless VAJRA_ALLOW_COMMIT (== the session number) is in
+// the hook's own launch env — beyond an inline prefix's reach, and firing even on `--no-verify`.
+// Embedded verbatim so the scaffolded copy can never drift (S22 one-source pattern). The scaffold
+// ships NO `commit_guard: off` line, so new projects get it ON (the vajra repo turns it off to
+// avoid bricking the build agent's own commits — see .ai/CONSTRAINTS.yaml). Un-excluded in
+// Cargo.toml so it ships with `cargo install`.
+const TPL_HOOK_COMMIT_GUARD: &str = include_str!("../../scripts/hook-commit-guard.sh");
 
 // Canonical git-level hooks (S43) — the SAME files the vajra repo runs, embedded verbatim
 // so the scaffolded copy can never drift (S22 one-source pattern). An independent L2 belt
@@ -1462,6 +1476,51 @@ mod tests {
         assert!(
             s.contains("hook-session-guard.sh"),
             "session-guard wiring lost"
+        );
+    }
+
+    // ── Commit-guard propagation (S93) ───────────────────────────────────────
+
+    #[test]
+    fn scaffold_ships_commit_guard_verbatim() {
+        let dir = scaffold_tmp();
+        let hook = dir.path().join(".ai/hooks/hook-commit-guard.sh");
+        assert!(hook.exists(), "commit-guard not scaffolded");
+        // Byte-identical to canonical — one source of truth, no drift (S22 pattern).
+        assert_eq!(
+            fs::read_to_string(&hook).unwrap(),
+            TPL_HOOK_COMMIT_GUARD,
+            "scaffolded commit-guard drifted from canonical hook-commit-guard.sh"
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&hook).unwrap().permissions().mode();
+            assert_eq!(mode & 0o111, 0o111, "commit-guard must be executable");
+        }
+    }
+
+    #[test]
+    fn scaffold_wires_commit_guard_into_settings() {
+        let dir = scaffold_tmp();
+        let s = fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+        assert_eq!(
+            s.matches("hook-commit-guard.sh").count(),
+            1,
+            "commit-guard must be wired once (PreToolUse Bash)"
+        );
+    }
+
+    #[test]
+    fn scaffold_ships_commit_guard_on_no_off_toggle() {
+        // The un-forgeable teeth must ship ON in new projects: the scaffolded CONSTRAINTS must
+        // NOT carry `commit_guard: off` (that line is the vajra repo's own build-agent exemption).
+        let dir = scaffold_tmp();
+        let c = fs::read_to_string(dir.path().join(".ai/CONSTRAINTS.yaml")).unwrap();
+        assert!(
+            !c.lines()
+                .any(|l| l.trim_start().starts_with("commit_guard:") && l.contains("off")),
+            "scaffold must not disable the commit-guard (no `commit_guard: off`)"
         );
     }
 
