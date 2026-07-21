@@ -98,10 +98,10 @@ attestation hardening, both marked not design-significant.
    `cargo test --lib` to confirm green. `covers: 4`
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: `b297675` (read ROADMAP + STATE.md + SESSION at session boot)
+- step 2 — done: `b297675` (rewrote table + full ROADMAP consolidation per founder expansion)
+- step 3 — done: `af8bcbf` (verify-session-89.sh, 16/16; no src/ change confirmed)
+- step 4 — done: `af8bcbf` (demo-session-89.sh; cargo test --lib 271 green)
 
 ## Guardrails
 
