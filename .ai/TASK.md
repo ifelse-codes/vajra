@@ -2,46 +2,47 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 86 — Harden the attestation check (CODE) — COMPLETE
+## Session 87 — Fill S76's unfilled Execution shas (CODE, docs-only) — COMPLETE
 
-- **Goal:** `reviewer_status`/`session_attested_accept` (`src/stations/mod.rs`) accepted any
-  review file containing the label `Review-Inputs-SHA` anywhere, without checking the value — a
-  forged/stale/recycled attestation silently passed. Fix: recompute-and-compare against the
-  canonical hash. Delivered.
-- **Headline:** neither prompt-suggested option (a) live recompute or (b) read the S59 ledger
-  actually satisfied the acceptance criteria — both were tested directly against this repo's real
-  history and found insufficient. Built a third approach: search every reconstructable diff (live
-  branch + every `--no-ff` merge commit reachable from `main`), anchored to the session's own
-  prompt bytes. Empirically validated: reproduces 16 of 20 real historical ACCEPT reviews' claimed
-  hashes exactly; the remaining 4 (S64, S69, S73, S79) fail closed as `Unverifiable`, disclosed not
-  hidden. Two real bugs (trailing-newline handling, unanchored label matching) self-caught before
-  commit by testing against this repo's own historical review files.
-- 270 lib tests (+3), clippy + fmt clean. Independent cold review: **ACCEPT** (all 6 criteria
-  SHIPPED). Attested `b21c7c5b…`.
-- Report: `sessions/session-86-review.md`. Prompt: `prompts/86-task-harden-attestation-check.md`.
+- **Goal:** `prompts/76-task-dogfood-ride-along.md`'s `## Execution` section carried 4 unfilled
+  `<sha>` placeholders since before the S81 closeout-gate existed to catch them. Match each Plan
+  step to the commit that actually delivers its substance and fill in the real shas. Delivered.
+- **Headline:** matched by reading every candidate commit's real diff, not the "(N/4)"
+  commit-message numbering (confirmed scrambled relative to Plan-step order, as the prompt warned).
+  A real, unplanned side effect surfaced live while proving AC3: filling in S76's shas retroactively
+  un-attests S76's OWN review (S86's `canonical_inputs_sha` hashes live prompt bytes, not a
+  review-time snapshot) — disclosed immediately, not fixed here, and picked as the S88 target.
+- Independent cold review: **pass 1 REJECT** (this session's OWN verify/demo scripts didn't actually
+  prove what they claimed for AC3/AC5 — a real hollow-green instance) → fixed in-session → **pass 2
+  ACCEPT**, adversarially re-verified by the same reviewer. Mirrors the S67 two-pass pattern.
+- Report: `sessions/session-87-review.md`. Summary: `sessions/session-87-summary.md`. Prompt:
+  `prompts/87-task-fix-s76-execution-shas.md`.
 
-Between sessions. **Next = S87 — CODE (docs-only), fill S76's Execution shas.** New chat.
+Between sessions. **Next = S88 — CODE, fix `canonical_inputs_sha` to hash a review-time snapshot.**
+New chat.
 
-## Next Session (S87 — CODE, founder pick, APPROVED)
+## Next Session (S88 — CODE, founder pick A, APPROVED)
 
-- **Goal:** `prompts/76-task-dogfood-ride-along.md`'s `## Execution` section still has 4 unfilled
-  `<sha>` placeholders (S76 predates the S81 closeout-gate hardening that would now block this).
-  Match each Plan step to the real commit that delivers it (6 candidate commits identified between
-  S76's merge-commit parents) and fill in the real shas — oldest standing debt, 9 sessions overdue.
-- Prompt: `prompts/87-task-fix-s76-execution-shas.md`.
-- **Branch:** `session-87-fix-s76-execution-shas`. One story, docs-only, no new command/CONSTRAINTS
-  key.
+- **Goal:** both hashing call sites (`src/stations/mod.rs#attested_hash_outcome`/`read_prompt`,
+  `scripts/verify-closeout.sh#canonical_inputs_sha`) read the prompt file's CURRENT live bytes, never
+  a snapshot from review time. Fix: read each candidate's prompt bytes from that candidate's OWN
+  commit tree, not one shared live read. Re-validate against the real historical Verified/
+  Unverifiable split (S76 must flip back to Verified — the direct proof the fix works).
+- Prompt: `prompts/88-task-fix-canonical-inputs-sha-snapshot.md`.
+- **Branch:** `session-88-fix-canonical-inputs-sha-snapshot`. One story, no new command/CONSTRAINTS
+  key, no change to the hash's shape — only which prompt bytes feed it.
 
 ## Always-True Reminders
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`. Every 5th session is NO-CODE ground truth (next = **S90**).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S87; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S88; do NOT start it here.
 - **Direction:** product = **provable agent governance**, shaped as a **governed multi-agent SDLC
   pipeline** (`DECISION-001`); fidelity is load-bearing (`DECISION-002`), verdicts attested
   (`DECISION-003`) + chained tamper-evident (`DECISION-004`). **Pipeline = 8 governed stations.
-  S86 closed the top live-exploit-surface finding from the S85 GT (attestation hash recompute);
-  S87 closes the oldest standing record-hygiene debt (S76's Execution shas). Dogfood remains 🔴
-  (10 sessions / 18 days stale) and founder-un-parkable — not picked this round, watch it keep
-  aging.**
+  S87 closed the oldest standing record-hygiene debt (S76's Execution shas) — but in doing so, LIVE
+  PROOF surfaced that DECISION-003's attestation hash is not actually review-time-stable: it hashes
+  the prompt file's current bytes, so ANY future edit to a historical prompt un-attests that
+  session's review. S88 fixes the root cause. Dogfood remains 🔴 (11 sessions / 18+ days stale) and
+  founder-un-parkable — not picked again this round, watch it keep aging.**

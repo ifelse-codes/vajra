@@ -1,6 +1,46 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-21 · **Session 86 — Harden the attestation check (CODE) — DONE.**
+**Updated:** 2026-07-21 · **Session 87 — Fill S76's unfilled Execution shas (CODE, docs-only) —
+DONE.** `prompts/76-task-dogfood-ride-along.md`'s `## Execution` section carried 4 unfilled `<sha>`
+placeholders since before the S81 closeout-gate existed to catch them — oldest standing debt, 9
+sessions overdue at pick time. **Matched each Plan step to its real landing commit by reading every
+candidate commit's actual diff, not the "(N/4)" commit-message numbering** (the prompt itself warned
+this was scrambled relative to Plan-step order — confirmed: the commit labeled "(4/4)" is actually
+step 2's evidence, not step 4's). step 1 → `16d30aa` (harness+task+checklist) · step 2 → `08e4718`
+(the two run receipts, the only committed live-run evidence) · step 3 → `9f0cab0` (the dogfood
+report's derived numbers) · step 4 → `9f0cab0` also, disclosed to also span `76190f1` (verify/demo
+scripts landed separately) per AC4 rather than forcing an artificial 1:1. **A real, unplanned side
+effect surfaced live while proving AC3, not guessed at:** filling in S76's shas retroactively
+un-attests S76's OWN review — S86's `canonical_inputs_sha` hashes the prompt file's LIVE on-disk
+bytes, not a review-time snapshot, so this legitimate record-hygiene fix flips S76's
+Reviewer/Releaser dimensions PASSED → ABSENT (`--stations 76` 6/8 → 5/8) even as Coder (this
+session's actual target) correctly flips ABSENT → PASSED. Confirmed via `verify-closeout.sh
+--attest-only 76` (claimed `4b87434c…` vs. recomputed `8a5d84a6…`, `BLOCK: attestation MISMATCH`).
+Disclosed immediately, not fixed here (docs-only scope) — a fresh, previously-unknown gap in the
+S86 mechanism: **any** future edit to a historical prompt file will retroactively invalidate that
+session's own review attestation. **Independent cold review caught a real problem in this session's
+OWN proof scripts (not the core fix): pass 1 REJECT** — `demo-session-87.sh`'s before/after silently
+broke (printed identical output) once its own commit made `HEAD~1` the fix commit itself, while its
+summary table still claimed the transition was shown; `verify-session-87.sh`'s `scope_is_one_file`
+check was structurally tautological (a pathspec that starts positive-restricted-to-`$TARGET` can
+never see a change anywhere else) — both scripts still exited 0 and printed all-green while not
+actually proving what they claimed, the exact "hollow green" class this project's culture exists to
+catch. **Fixed in-session** (demo diffs against `main` instead of a fragile relative offset; scope
+check diffs the whole tree, excluding only the session's own 2 scripts) **and adversarially
+re-verified by the SAME independent reviewer** (made the scope check fail on purpose; read the
+demo's real live output) — **pass 2 ACCEPT**. Mirrors the S67 two-pass house pattern. `cargo test
+--lib` unchanged (no `src/` change). **Spend ~$0** (2 cold-review subagent passes, local). **3
+ranked S88 candidates → 🥇 A (recommended)** fix S86's `canonical_inputs_sha` to hash a review-time
+snapshot instead of live bytes — this session just proved the gap is real and will recur every time
+a historical prompt is legitimately edited · **🥈 B** the dogfood refresh — now **11 sessions
+(S77-S87) / 18+ calendar days** stale since S76, founder-un-parkable per S70/S85, not picked S86 or
+S87 · **🥉 C** fix `ROADMAP.md`'s stale "Where We Are" table (still not touched, 3 sessions
+deferred). **Founder picked A.** **Next = S88, CODE — fix `canonical_inputs_sha` to hash a review-time
+snapshot, not live bytes** (`prompts/88-task-fix-canonical-inputs-sha-snapshot.md`, APPROVED, new
+chat, branch `session-88-fix-canonical-inputs-sha-snapshot`). **S90 = the next mandatory NO-CODE
+GT.** Reports: `sessions/session-87-summary.md` + `sessions/session-87-review.md`.
+
+**Prior · Session 86 — Harden the attestation check (CODE) — DONE.**
 `reviewer_status`/`session_attested_accept` (`src/stations/mod.rs`) accepted any review file
 containing the label `Review-Inputs-SHA` anywhere, without checking the value — a
 forged/stale/recycled attestation silently passed both stations. Disclosed since S82, re-disclosed
