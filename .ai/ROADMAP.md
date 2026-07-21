@@ -1,7 +1,8 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-21 · **Session 89 (in progress)** — full ROADMAP consolidation (founder request;
-prior 710-line version → compact; per-session detail lives in `sessions/session-NN-summary.md`).
+**Updated:** 2026-07-21 · **Session 89 — ROADMAP consolidation (CODE docs-only) — DONE.**
+Full cleanup: 710→219 lines; per-session detail lives in `sessions/session-NN-summary.md`.
+**Next = S90, mandatory NO-CODE GT.**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -105,6 +106,7 @@ GT-verified S75/S80/S85).
 | S86 | CODE | Harden attestation: recompute-and-compare (16/26 verified live) |
 | S87 | CODE (docs) | Fill S76's `## Execution` shas; discovered live-bytes attestation bug |
 | S88 | CODE | Fix `canonical_inputs_sha` to hash review-time snapshot; repaired S73+S79 as bonus |
+| S89 | CODE (docs) | ROADMAP consolidation: 710→219 lines; fixed stale "Where We Are" table (27 sessions stale) |
 
 ---
 
@@ -112,8 +114,8 @@ GT-verified S75/S80/S85).
 
 | Session | Status | Goal |
 |---|---|---|
-| **S89** | **In progress** | Fix stale "Where We Are" table + ROADMAP consolidation (this session) |
-| **S90** | Upcoming | Mandatory NO-CODE ground truth (`90 % 5 == 0`) — lead lens: dogfood 🔴 age |
+| S89 | Complete | ROADMAP consolidation + stale table fix — DONE |
+| **S90** | **Next** | Mandatory NO-CODE ground truth (`90 % 5 == 0`) — lead lens: dogfood 🔴 (12+ sessions stale) |
 
 ---
 
