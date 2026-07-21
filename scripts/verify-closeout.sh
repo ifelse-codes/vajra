@@ -296,7 +296,14 @@ canonical_inputs_sha() {
             ':(exclude).ai/SESSION' ':(exclude).ai/TASK.md' \
             ':(exclude).ai/ROADMAP.md' ':(exclude).ai/KNOWLEDGE.md' \
             ':(exclude).ai/verify' ':(exclude).ai/.session-owner' 2>/dev/null)" || return 1
-  { cat "${prompts[0]}"; printf '\0'; printf '%s' "$diff"; } | _sha256
+  # Read the prompt as COMMITTED at HEAD (`git show`), never the live working-tree file
+  # (`cat`) — an uncommitted stray edit to the prompt must not silently change the hash about
+  # to be embedded/verified (S88). Pre-check existence with `cat-file -e` so a missing blob
+  # fails closed via `return 1`, same as every other guard in this function; only then stream
+  # `git show` directly into the hash pipe (not through `$(...)`, which would strip the
+  # blob's trailing newline and desync from the Rust side's byte-exact preimage).
+  git cat-file -e "HEAD:${prompts[0]}" 2>/dev/null || return 1
+  { git show "HEAD:${prompts[0]}"; printf '\0'; printf '%s' "$diff"; } | _sha256
 }
 
 # Require + verify the input-attestation on an ACCEPT review. Orthogonal to
