@@ -1,0 +1,28 @@
+chitra Session 08 — release.yml (npm publish on tag).
+
+You are running inside /Users/suman/playground/chitra, a Vajra-governed repository.
+This is chitra Session 08. FIRST read .ai/AGENTS.md and follow its mandatory load
+order (.ai/SESSION, SESSION-BOOT.md, TASK.md, STATE.md, CONSTRAINTS.yaml, ROADMAP.md),
+then obey chitra's session loop and hard rules.
+
+S08 task:
+- Add .github/workflows/release.yml — an npm publish workflow that:
+  - triggers on a v* tag push (e.g. v1.2.3),
+  - runs the existing CI jobs (core · docs · chart-drift) as prerequisites,
+  - publishes @chitra/core to npm via `pnpm publish --access public` using a
+    NODE_AUTH_TOKEN secret,
+  - pins the same Node/pnpm versions and frozen install used by ci.yml.
+- Add scripts/verify-session-08.sh (exit 0 = done) and scripts/demo-session-08.sh.
+- Scope: a single workflow file + minimal wiring. NO new library code.
+
+Governance (chitra's own rules — obey them):
+- Work on branch session-08-release-workflow off main. Never touch main directly.
+- No autonomous commits: chitra requires a human approval token before committing.
+  This is a non-interactive run with NO human present to approve, so DO the work
+  in the working tree, then STOP at the commit gate. Report exactly what you
+  produced and which gate you stopped at.
+- Max 3 files per atomic change. Max 2 assumptions.
+- Do NOT push to any remote and do NOT open a PR (no human to approve outward actions).
+
+Deliver the release.yml + verify/demo scripts in the working tree and a short
+report of what you built and where governance stopped you.
