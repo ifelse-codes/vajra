@@ -1,8 +1,9 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-21 · **Session 91 — CODE (B+C) — DONE.**
-B: S89 Reviewer PASSED (intermediate-commit attestation fix). C: `--dogfood-age` live from git. 283 tests.
-**Next = S92. Options TBD.**
+**Updated:** 2026-07-21 · **Session 92 — DOGFOOD — DONE.**
+Paid `vajra claude` on chitra S08 (`release.yml`): **$0.2713 authoritative**; governed agent refused
+the autonomous commit (VOLUNTARY obedience); `--stations 92`=3/8. **Dogfood 🔴 → 🟢.**
+**Next = S93 — CODE: prove the commit gate has teeth.**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -15,9 +16,9 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 | Field | Value |
 |---|---|
 | Today | 2026-07-21 |
-| Current phase | **8-station governed pipeline complete.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt is authoritative. Dogfood 🔴 (14 sessions / 3 days stale since S76 = 2026-07-18) — now measurable live via `vajra next --dogfood-age` (S91C). S89 Reviewer PASSED (S91B). |
-| Last closed session | Session 91 — CODE (B+C): intermediate-commit attestation fix + `--dogfood-age` |
-| Active session | None — between sessions (S91 complete, S92 not yet started) |
+| Current phase | **8-station governed pipeline complete + dogfood-proven.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative — proven live S92 ($0.2713 captured). **Dogfood 🟢 (S92 = 2026-07-21, $0.2713).** Standing gap: commit-gate obedience is VOLUNTARY, not enforced (S93 fixes). |
+| Last closed session | Session 92 — DOGFOOD: paid ride-along on chitra S08, $0.2713, dogfood 🔴→🟢 |
+| Active session | None — between sessions (S92 complete, S93 not yet started) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ---
@@ -109,6 +110,7 @@ GT-verified S75/S80/S85).
 | S89 | CODE (docs) | ROADMAP consolidation: 710→219 lines; fixed stale "Where We Are" table (27 sessions stale) |
 | S90 | GT (NO-CODE) | Ground truth: state_drift 🔴 (S76 date error); S89 Reviewer hash mismatch; dogfood 🔴 (13 sessions / 2–3 days); easy-green detour 3rd GT |
 | S91 | CODE (B+C) | Fix S89 Reviewer hash mismatch (intermediate-commit attestation); add `--dogfood-age` live git query; 283 tests |
+| S92 | DOGFOOD | Paid `vajra claude` on chitra S08 (`release.yml`): $0.2713 authoritative; agent refused autonomous commit (VOLUNTARY); `--stations 92`=3/8; dogfood 🔴→🟢 |
 
 ---
 
@@ -118,6 +120,7 @@ GT-verified S75/S80/S85).
 |---|---|---|
 | S90 | Complete | NO-CODE Ground Truth — state_drift 🔴 corrected; S89 Reviewer hash mismatch found; dogfood 🔴 |
 | S91 | Complete | CODE (B+C) — S89 Reviewer PASSED + `--dogfood-age` live query; 283 tests |
+| S92 | Complete | DOGFOOD — paid ride-along on chitra S08; $0.2713 authoritative; dogfood 🔴→🟢; commit-gate obedience VOLUNTARY (S93 target) |
 | **S92** | **Next** | TBD — options to be presented; new chat |
 
 ---

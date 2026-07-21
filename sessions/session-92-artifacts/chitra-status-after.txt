@@ -1,0 +1,4 @@
+?? .github/workflows/release.yml
+?? pbcopy
+?? scripts/demo-session-08.sh
+?? scripts/verify-session-08.sh
