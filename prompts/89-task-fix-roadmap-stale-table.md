@@ -4,14 +4,16 @@
 
 ## Goal
 
-`.ai/ROADMAP.md`'s "Where We Are" quick-reference table (currently around line 462-470) reads
-`Today | 2026-07-14`, `Current phase | S59 done…`, `Last closed session | Session 60…`, `Active
-session | None — S60 closed; S61 (CODE, pick A…) not yet started` — **27 sessions and 7 calendar
-days stale**, inside an otherwise-current document (the file's own top-of-file "Updated:" banner is
-correctly current every session; only this ONE table has been silently left behind since it was
-written). Rewrite it to reflect real, current state: today's date, the actual current phase (8
-governed stations complete + the S86-S88 attestation-hardening arc), the actual last-closed session
-(88), and the actual active-session state (none — between sessions, 89 not yet started).
+**Expanded at session start (founder request, supersedes original narrow scope):** full
+`.ai/ROADMAP.md` consolidation. The original task was to fix the stale "Where We Are" table;
+the founder explicitly asked to also remove unnecessary information, consolidate the 710-line
+document, and organize complete / in-progress / backlog items. Scope extended to a full rewrite
+of `.ai/ROADMAP.md`, from 710 lines to ~220 lines. Still docs-only, no `src/` change.
+
+**Original narrow scope (included within the expanded goal):** `.ai/ROADMAP.md`'s "Where We Are"
+quick-reference table read `Today | 2026-07-14`, `Current phase | S59 done…`, `Last closed session
+| Session 60…`, `Active session | None — S60 closed; S61 (CODE, pick A…) not yet started` —
+**27 sessions and 7 calendar days stale**. Rewrite every field to match ground truth.
 
 ## Why this session
 
