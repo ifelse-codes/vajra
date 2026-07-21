@@ -1,8 +1,8 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-21 · **Session 89 — ROADMAP consolidation (CODE docs-only) — DONE.**
-Full cleanup: 710→219 lines; per-session detail lives in `sessions/session-NN-summary.md`.
-**Next = S90, mandatory NO-CODE GT.**
+**Updated:** 2026-07-21 · **Session 90 — NO-CODE Ground Truth — DONE.**
+Key findings: state_drift 🔴 (S76 date error corrected); S89 = 5/8 (Reviewer hash mismatch); dogfood 🔴.
+**Next = S91, CODE (B+C): fix S89 Reviewer hash + add `--dogfood-age` live query.**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -15,9 +15,9 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 | Field | Value |
 |---|---|
 | Today | 2026-07-21 |
-| Current phase | **8-station governed pipeline complete + attestation-hardening arc done (S86–S88).** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt is authoritative. Dogfood 🔴 (12 sessions / 19+ days stale since S76). |
-| Last closed session | Session 88 — fix `canonical_inputs_sha` to hash review-time snapshot (CODE) |
-| Active session | None — between sessions (S89 in progress, branch open) |
+| Current phase | **8-station governed pipeline complete.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt is authoritative. Dogfood 🔴 (13 sessions / 2–3 days stale since S76 = 2026-07-18). S89 Reviewer hash mismatch = S91 target. |
+| Last closed session | Session 90 — NO-CODE Ground Truth (`90 % 5 == 0`) |
+| Active session | None — between sessions (S90 complete, S91 not yet started) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ---
@@ -107,6 +107,7 @@ GT-verified S75/S80/S85).
 | S87 | CODE (docs) | Fill S76's `## Execution` shas; discovered live-bytes attestation bug |
 | S88 | CODE | Fix `canonical_inputs_sha` to hash review-time snapshot; repaired S73+S79 as bonus |
 | S89 | CODE (docs) | ROADMAP consolidation: 710→219 lines; fixed stale "Where We Are" table (27 sessions stale) |
+| S90 | GT (NO-CODE) | Ground truth: state_drift 🔴 (S76 date error); S89 Reviewer hash mismatch; dogfood 🔴 (13 sessions / 2–3 days); easy-green detour 3rd GT |
 
 ---
 
@@ -114,8 +115,8 @@ GT-verified S75/S80/S85).
 
 | Session | Status | Goal |
 |---|---|---|
-| S89 | Complete | ROADMAP consolidation + stale table fix — DONE |
-| **S90** | **Next** | Mandatory NO-CODE ground truth (`90 % 5 == 0`) — lead lens: dogfood 🔴 (12+ sessions stale) |
+| S90 | Complete | NO-CODE Ground Truth — state_drift 🔴 corrected; S89 Reviewer hash mismatch found; dogfood 🔴 |
+| **S91** | **Next** | CODE (B+C): fix S89 Reviewer hash mismatch + add `--dogfood-age` live query |
 
 ---
 
@@ -153,8 +154,9 @@ GT-verified S75/S80/S85).
 
 Priority order within each tier:
 
-**High (likely S90 GT findings or near-term picks):**
-- 🔴 **Dogfood refresh** — measure the full 8-station pipeline live against a real task; overdue since S76
+**High (near-term picks):**
+- 🔴 **S91 (picked):** fix S89 Reviewer hash mismatch + add `--dogfood-age` live query
+- 🔴 **Dogfood refresh** — measure the full 8-station pipeline live against a real task; overdue since S76 (2026-07-18)
 - 🟡 **Compression: `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it; those 3 still won't fold typical output
 - 🟡 **Guard nested-repo blindspot** (S52) — session-guard / copilot-loader can't distinguish Vajra's `session-NN` branches from a subject repo's own
 
