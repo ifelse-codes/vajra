@@ -106,10 +106,10 @@ does not deviate from or supersede it.
    file and the earlier session's hash is proven unaffected. `covers: 1, 4`
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: 70c47af67ceda357fec55e3d05ba60b91003f3a0
+- step 2 — done: 70c47af67ceda357fec55e3d05ba60b91003f3a0
+- step 3 — done: 9b1d0061ef7b189b53505375f438a4d6c8f2c201
+- step 4 — done: 70c47af67ceda357fec55e3d05ba60b91003f3a0
 
 ## Guardrails
 
