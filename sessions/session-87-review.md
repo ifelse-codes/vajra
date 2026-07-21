@@ -130,10 +130,12 @@ by deliberately making it fail, the demo's before/after by reading its actual li
 disclosed Reviewer/Releaser regression is real, was found live (not hidden), and is correctly
 scoped out of this session as a strong S88 candidate.
 
-**Review-Inputs-SHA:** 83874bd1b7fdea2dfe338d3549b2f08bbd288ed62f1bc1d49fe1526b73738f9c
+**Review-Inputs-SHA:** 0e19c14349d00971fabb3909a461fa09aced1702e1fd92172300c41d4b04d0f3
 
-(Re-hashed after this session's own `## Execution` self-application fix, committed
-`447a8ba` — S58's freshness discipline: touching a hashed file after the pass requires
-a re-hash. The independent review's findings and verdict are unaffected — the fix
-only filled in this session's own Coder-gate record, already described in the "Scope
-/ guardrails check" section above.)
+(Re-hashed TWICE after the reviewer's pass 2: once for this session's own `## Execution`
+self-application fix (`447a8ba`), again after re-scoping `verify-session-87.sh`'s scope
+check to what AC5 actually means (`3d7f8d9`, since `scripts/` IS part of the hashed
+delivery diff, unlike `prompts/`/`sessions/`) — S58's freshness discipline: touching a
+hashed file after the pass requires a re-hash, each time. The reviewer's findings and
+verdict are unaffected by either fix; both are described in the "Scope / guardrails
+check" section above and in `sessions/session-87-summary.md`'s honest-limits section.)

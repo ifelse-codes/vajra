@@ -71,6 +71,19 @@ work were explicitly out of scope and untouched.
 
 ## Honest limits (fakest green, reviewer-sharpened)
 
+- **Two more issues surfaced AFTER the reviewer's pass 2 ACCEPT — self-caught by actually running
+  `verify-closeout.sh` pre-merge (the S83 lesson), not by the reviewer, since neither existed yet at
+  review time:** (1) this session's OWN prompt file, `prompts/87-task-fix-s76-execution-shas.md`,
+  had never had its own `## Execution` section filled in — the S81 gate reads THAT file, not the
+  "Coder-gate execution" table in this summary; the closeout gate correctly BLOCKed on it. (2) once
+  fixed, the follow-up commit made `verify-session-87.sh`'s "scope-one-file-only" check — the SAME
+  check the reviewer adversarially proved sound on pass 2 — start failing on the session's own
+  legitimate closeout bookkeeping (the summary/review pair, this session's Execution self-record,
+  the next session's prompt, the `.ai/*` sync), because that check's underlying CLAIM ("exactly one
+  file changed") was never actually true for a real session; only the narrower "no `src/` change"
+  claim is. Re-scoped to that. Neither issue changes AC1–AC5's substance; both are precision fixes
+  to this session's own bookkeeping, adversarially self-verified the same way the reviewer's pass 2
+  was (a real throwaway `src/` probe commit, made to fail on purpose, then reset).
 - **Pass 1's actual finding, stated plainly:** this session's first cut of its OWN verify/demo
   scripts exited 0 and printed all-green while NOT actually proving what they claimed for AC3
   (identical before/after output) and AC5 (a scope check that could never fail). The letter of
@@ -93,13 +106,15 @@ work were explicitly out of scope and untouched.
 
 ## Attestation
 
-- **Review-Inputs-SHA:** `83874bd1b7fdea2dfe338d3549b2f08bbd288ed62f1bc1d49fe1526b73738f9c`
+- **Review-Inputs-SHA:** `0e19c14349d00971fabb3909a461fa09aced1702e1fd92172300c41d4b04d0f3`
   (`sha256(prompt ‖ delivery-diff)`; delivery diff = `scripts/verify-session-87.sh` +
   `scripts/demo-session-87.sh`, per `scripts/verify-closeout.sh --inputs-sha 87` — the exclude list
   structurally omits `prompts/`, so the `prompts/76-...md` fix itself is not part of the hashed
   diff, only the scripts are; this session's OWN `prompts/87-...md` prompt bytes ARE hashed
-  directly, which is why filling in this file's own `## Execution` section after the first hash was
-  computed required a re-hash — S58's freshness discipline, applied live). See
+  directly). **Re-hashed twice after the reviewer's pass 2 ACCEPT** — once for this session's own
+  `## Execution` self-application fix (below), once for re-scoping the verify script's scope check
+  (also below) — both are post-review, in-scope bookkeeping/precision fixes, not new findings; S58's
+  freshness discipline (re-hash any time a hashed file is touched) applied live, twice. See
   `sessions/session-87-review.md` for the independent two-pass cold verdict (pass 1 REJECT →
   in-session fix → pass 2 ACCEPT).
 
