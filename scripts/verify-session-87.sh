@@ -50,10 +50,14 @@ run_check "check-exec-76-ready" check_exec_ready
 stations_coder_passed() { "$BIN" next --stations 76 | grep -q '\[PASSED\] Coder'; }
 run_check "stations-76-coder-passed" stations_coder_passed
 
-# ── (4) scope: exactly the one chartered file changed on this branch ───────
+# ── (4) scope: exactly the one chartered file changed on this branch, beyond ──
+# the session's own required verify+demo scaffolding (CONSTRAINTS.yaml#verify.required_for_done).
+# Diffs the WHOLE tree (not pre-restricted to $TARGET — a pathspec that starts positive on
+# $TARGET can never see a change anywhere else) and excludes only this session's own two scripts.
 scope_is_one_file() {
   local changed
-  changed=$(git diff --name-only main -- "$TARGET" ':!scripts' ':!sessions' ':!.ai' 2>/dev/null | sort)
+  changed=$(git diff --name-only main..HEAD -- . \
+              ":!scripts/verify-session-87.sh" ":!scripts/demo-session-87.sh" 2>/dev/null | sort)
   [ "$changed" = "$TARGET" ]
 }
 run_check "scope-one-file-only" scope_is_one_file

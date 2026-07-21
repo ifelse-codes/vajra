@@ -34,10 +34,10 @@ BIN="$ROOT/target/release/vajra"
 
 TARGET="prompts/76-task-dogfood-ride-along.md"
 header "Before → After  [demo:before_after]"
-label "BEFORE (the pre-S87 commit's content, swapped in temporarily):"
+label "BEFORE (main's content — the pre-S87 baseline, swapped in temporarily):"
 cp "$TARGET" "$TARGET.s87-after"
 trap '[ -f "$TARGET.s87-after" ] && mv -f "$TARGET.s87-after" "$TARGET"' EXIT
-git show HEAD~1:"$TARGET" > "$TARGET"
+git show main:"$TARGET" > "$TARGET"
 ("$BIN" next --check-exec 76 | sed 's/^/   /') || true
 ("$BIN" next --stations 76 | grep -E 'Coder|stations passed' | sed 's/^/   /') || true
 mv "$TARGET.s87-after" "$TARGET"
