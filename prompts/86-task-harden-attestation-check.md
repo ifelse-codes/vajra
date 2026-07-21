@@ -140,9 +140,9 @@ to Vajra's own architecture; it hardens an existing internal classifier's correc
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
+- step 1 — done: cd6661bd8696163558615fd097e8638e78594369
+- step 2 — done: 39a9d587fb86f99005d09c19ae7a087a3b9e7b2d
+- step 3 — done: 39a9d587fb86f99005d09c19ae7a087a3b9e7b2d
 
 ## Guardrails
 
