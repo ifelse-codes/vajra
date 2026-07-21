@@ -1,6 +1,44 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-21 · **Session 87 — Fill S76's unfilled Execution shas (CODE, docs-only) —
+**Updated:** 2026-07-21 · **Session 88 — Hash a review-time snapshot, not the live prompt file
+(CODE) — DONE.** Fixed the root cause S87 discovered live: both hashing call sites that verify a
+session review's attestation — `attested_hash_outcome` (`src/stations/mod.rs`) and
+`canonical_inputs_sha` (`scripts/verify-closeout.sh`) — read the prompt file's CURRENT bytes, never
+a snapshot from review time, so editing ANY historical prompt file silently un-attested that
+session's already-ACCEPTed review. **Rust fix:** each `(base, tip)` historical candidate now reads
+its OWN prompt bytes from `tip`'s git tree (new helper `prompt_bytes_at`, `git show <tip>:<rel>`)
+instead of one shared live-read buffer reused across every candidate. **Bash fix:**
+`canonical_inputs_sha` reads via `git cat-file -e` + `git show HEAD:path` instead of `cat`, so an
+uncommitted stray edit can't silently change the hash about to be embedded. **Direct proof:** `vajra
+next --stations 76` — Reviewer + Releaser both flip back `ABSENT → PASSED`, live, against this
+repo's real S76→S87 history. **A real bonus finding, not anticipated by the prompt:** the full
+26-review historical scan shows **S73 and S79 were ALSO victims of this exact bug** — previously
+misdiagnosed by S86 as "genuinely unreconstructable." `git log --follow` proves a later session
+touched each prompt file (S74 → `prompts/73-…md`, S81 → `prompts/79-…md`), the identical shape as
+S87 → S76. New split: **22 Verified / 4 Absent out of 26** (2 NotAttested pre-attestation-era
+sessions + 2 genuinely-different-cause Unverifiable sessions, S64/S69, confirmed via the same
+`git log --follow` method to have NO later edit). **Independent cold review (fed only the prompt +
+diff): pass 1 REJECT** — the session's OWN bash-side proof fixture for AC3 was hollow-green: it used
+a single-digit session number (`5`), which tripped a pre-existing, unrelated padding bug in
+`check_review_attestation` (unpadded `$N` vs. every emit path's zero-padded
+`session-NN-review.md`), so the lookup always fell through to an unconditional `PASS` regardless of
+whether the fix under test was present. The underlying bash fix was independently confirmed correct;
+the proof of it was not. **Fixed in-session** (2-digit fixture number + an explicit negative control
+proving discrimination against a genuine pre-fix checkout; also fixed a second, unrelated S32
+SIGPIPE/pipefail gotcha hit live while rebuilding the check) **and adversarially re-verified by hand
+by the SAME independent reviewer — pass 2 ACCEPT.** Mirrors the S67/S87 two-pass house pattern.
+`cargo test --lib` 271 pass (270 + 1 new regression test, independently confirmed to fail without
+the fix). **Spend ~$0** (bash/Rust-only source fix, 2 local cold-review subagent passes). **3 ranked
+S89 candidates → 🥇 A (recommended)** the dogfood refresh — now **12 sessions / 19+ calendar days**
+stale since S76, founder-un-parkable per S70/S85, not picked S86, S87, or S88 · **🥈 B** fix
+`ROADMAP.md`'s stale "Where We Are" table (deferred 5 sessions running) · **🥉 C** extend this
+session's historical-scan method into a standing audit that catches a future S73/S76/S79 shape
+automatically. **Founder picked B.** **Next = S89, CODE (docs-only) — fix `.ai/ROADMAP.md`'s stale
+"Where We Are" table** (`prompts/89-task-fix-roadmap-stale-table.md`, APPROVED, new chat, branch
+`session-89-fix-roadmap-stale-table`). **S90 = the next mandatory NO-CODE GT.** Reports:
+`sessions/session-88-summary.md` + `sessions/session-88-review.md`.
+
+**Prior · Session 87 — Fill S76's unfilled Execution shas (CODE, docs-only) —
 DONE.** `prompts/76-task-dogfood-ride-along.md`'s `## Execution` section carried 4 unfilled `<sha>`
 placeholders since before the S81 closeout-gate existed to catch them — oldest standing debt, 9
 sessions overdue at pick time. **Matched each Plan step to its real landing commit by reading every
