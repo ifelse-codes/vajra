@@ -75,7 +75,11 @@ may be appropriate (or amend an existing one).
 
 ## Execution
 
-*(Fill in `step N — done: <sha>` as steps complete.)*
+- step 1 (reproduce + diagnose Reviewer ABSENT) — done: 720cc44
+- step 2 (fix: enumerate intermediate commits in candidate_diffs) — done: 720cc44
+- step 3 (add --dogfood-age: src/dogfood/mod.rs + next.rs + lib.rs) — done: aaf56ff
+- step 4 (CONSTRAINTS.yaml: dogfood_staleness in required_audits) — done: a7e7ecb
+- step 5 (cargo test --lib green, 283 tests) — done: a7e7ecb
 
 ## Guardrails
 
