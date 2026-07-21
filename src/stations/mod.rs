@@ -520,6 +520,13 @@ fn git_out(root: &Path, args: &[&str]) -> Option<(i32, String)> {
 /// nothing has been pruned yet — plus every 2-parent merge commit reachable from `main`, whose own
 /// two parents ARE the original merge-base and branch tip even after the branch ref itself was
 /// pruned (a `--no-ff` merge, this repo's convention, preserves both parents forever).
+///
+/// For each historical `(base, tip)`, we also enumerate EVERY intermediate commit on the branch
+/// (`git log base..tip` minus `tip` itself) and add it as a separate `(base, intermediate)`
+/// candidate. This handles sessions where `--inputs-sha` was computed before the final closeout
+/// commit (e.g. S89: execution shas were added to the prompt in the same commit that committed
+/// the review, so the hash necessarily captured the state one commit earlier — the branch tip
+/// carries a different prompt, so `(base, tip)` alone never matches).
 fn candidate_diffs(root: &Path) -> Vec<(String, String)> {
     let mut out = Vec::new();
     if let (Some((0, head)), Some((0, base))) = (
@@ -532,8 +539,23 @@ fn candidate_diffs(root: &Path) -> Vec<(String, String)> {
         for line in log.lines() {
             let mut parents = line.split_whitespace();
             if let (Some(p1), Some(p2)) = (parents.next(), parents.next()) {
-                if let Some((0, base)) = git_out(root, &["merge-base", p1, p2]) {
-                    out.push((base.trim().to_string(), p2.to_string()));
+                if let Some((0, base_raw)) = git_out(root, &["merge-base", p1, p2]) {
+                    let base = base_raw.trim().to_string();
+                    // Primary candidate: the branch tip.
+                    out.push((base.clone(), p2.to_string()));
+                    // Intermediate candidates: every commit on the branch between base and tip.
+                    // `git log base..p2` lists them newest-first; `tip` is the first entry.
+                    if let Some((0, commits)) = git_out(
+                        root,
+                        &["log", "--format=%H", &format!("{base}..{p2}")],
+                    ) {
+                        for commit in commits.lines().skip(1) {
+                            let c = commit.trim();
+                            if !c.is_empty() {
+                                out.push((base.clone(), c.to_string()));
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1178,5 +1200,62 @@ release:
     fn report_has_exactly_eight_stations() {
         let tmp = repo();
         assert_eq!(station_report(tmp.path(), 1).stations.len(), STATION_COUNT);
+    }
+
+    /// Reproduces the S89 live incident: `--inputs-sha` was computed at an intermediate commit
+    /// on the branch (before execution shas were added to the prompt file in a later closeout
+    /// commit). Pre-fix, `candidate_diffs` only tried the branch tip — the intermediate hash
+    /// never matched. Post-fix, every commit on the branch is tried; the intermediate one matches.
+    #[test]
+    fn reviewer_passes_when_hash_computed_at_intermediate_branch_commit() {
+        let tmp = repo();
+        let root = tmp.path();
+
+        // Session 95 branch: two commits.
+        // Commit 1 — the state when `--inputs-sha` was computed (prompt v1 + verify script).
+        let prompt_v1 = "prompt for session 95 — v1 (state when --inputs-sha was run)\n";
+        write_prompt(root, 95, prompt_v1);
+        let base = head_sha(root);
+        git_in(root, &["checkout", "-qb", "session-95-x"]);
+        fs::write(root.join("scripts/verify-session-95.sh"), "#!/bin/sh\ntrue\n").unwrap();
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", "s95 work"]);
+        let intermediate = head_sha(root);
+
+        // Hash computed HERE (at `intermediate`) — before the prompt was updated.
+        let real_hash = diff_hash(root, &base, &intermediate, prompt_v1.as_bytes())
+            .expect("diff hash computable at intermediate commit");
+
+        // Commit 2 — the final closeout commit: add execution shas to the prompt (changes it!)
+        // and embed the review (which already carries the hash from commit 1).
+        let prompt_v2 = "prompt for session 95 — v2 (execution shas added in closeout)\n";
+        write_prompt(root, 95, prompt_v2);
+        fs::write(
+            root.join("sessions/session-95-review.md"),
+            format!("**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {real_hash}\n"),
+        )
+        .unwrap();
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", "s95 closeout: exec shas + review"]);
+
+        // Merge + prune — now the branch ref is gone.
+        git_in(root, &["checkout", "-q", "main"]);
+        git_in(
+            root,
+            &["merge", "-q", "--no-ff", "session-95-x", "-m", "merge 95"],
+        );
+        git_in(root, &["branch", "-D", "session-95-x"]);
+
+        // The tip's prompt is v2; hashing `(base, tip, prompt_v2)` must NOT match the review
+        // (the pre-fix failure mode: tip-only candidate_diffs would call this Unverifiable).
+        let tip_hash = diff_hash(root, &base, &head_sha(root), prompt_v2.as_bytes());
+        assert!(tip_hash.map_or(true, |h| h != real_hash), "tip should NOT match the review hash");
+
+        // Post-fix: the intermediate commit IS tried → Verified.
+        assert_eq!(
+            outcome(root, 95, "Reviewer"),
+            Outcome::Passed,
+            "Reviewer must PASS when hash was computed at an intermediate branch commit"
+        );
     }
 }
