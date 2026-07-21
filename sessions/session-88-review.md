@@ -85,14 +85,13 @@ script's own report:
 
 ## Final Acceptance Criteria
 
-1. **AC1** (a later session's edit no longer un-attests an earlier one) — **SHIPPED.**
-2. **AC2** (historical scan re-run, split stated plainly, S76 confirmed flipped to Verified) —
-   **SHIPPED** (was reporting-gap-flagged in pass 1; now an explicit, artifact-logged,
-   arithmetic-reverified headline).
-3. **AC3** (live-branch emit/verify pairing survives an uncommitted stray edit) — **SHIPPED**
-   (was PARTIAL/hollow-green in pass 1; fixed and independently re-verified by hand in pass 2).
-4. **AC4** (`cargo test --lib` green with a genuine, non-hollow regression test) — **SHIPPED.**
-5. **AC5** (scope held to the two hashing call sites + tests) — **SHIPPED.**
+| # | Acceptance criterion | Verdict | Evidence |
+|---|-----------------------|---------|----------|
+| 1 | A later session's edit no longer un-attests an earlier one | **SHIPPED** | Reviewer independently reverted the Rust fix in an isolated worktree and confirmed the new regression test genuinely fails without it; confirmed `--stations 76` flips live against this repo's real history. |
+| 2 | Historical scan re-run, split stated plainly, S76 confirmed flipped to Verified | **SHIPPED** | Was reporting-gap-flagged in pass 1 (5-session spot-check, no headline artifact) — now an explicit, artifact-logged `HISTORICAL SCAN: 22 Verified / 4 Absent … out of 26` line, independently arithmetic-reverified by the reviewer against their own pass-1 count. |
+| 3 | Live-branch emit/verify pairing survives an uncommitted stray edit | **SHIPPED** | Was PARTIAL/hollow-green in pass 1 (a single-digit fixture number silently defeated by an unrelated pre-existing padding bug, printing an unconditional PASS). Fixed with a 2-digit fixture + an explicit negative control; reviewer independently reproduced the full positive/negative/positive sequence by hand in pass 2, outside the delivered script. |
+| 4 | `cargo test --lib` green with a genuine, non-hollow regression test | **SHIPPED** | Reviewer independently reverted the fix and confirmed the specific new test fails without it; re-confirmed 271 pass / clippy clean / fmt clean directly (not just via the verify script) in pass 2. |
+| 5 | Scope held to the two hashing call sites + tests | **SHIPPED** | `git diff --name-only main..HEAD` re-checked in pass 2: same 5 files as pass 1, no `src/cli`, no `CONSTRAINTS.yaml` change, hash preimage shape unchanged. |
 
 **Verdict:** ACCEPT
 
