@@ -1,59 +1,55 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 86 — COMPLETE
-- **Type:** **CODE**. Hardened `reviewer_status`/`session_attested_accept`
-  (`src/stations/mod.rs`) — a bare `.contains("review-inputs-sha")` label match is now a real
-  recompute-and-compare against the canonical `sha256(prompt bytes \0 delivery diff)` hash.
-- **Headline result:** Neither prompt-suggested design option satisfied the acceptance criteria
-  as literally written — both were tested directly against this repo's real history before
-  picking (not assumed). (a) live recompute via `git merge-base main HEAD` is confirmed BROKEN
-  post-merge (S84's hash recomputes to a materially different, WRONG value today). (b) the S59
-  ledger never validates a hash, only checks a well-formed value is present. Built a third
-  approach: search every reconstructable diff — the live not-yet-merged branch, plus every
-  `--no-ff` merge commit reachable from `main` — anchored to the session's own prompt bytes so a
-  recycled hash from another session can't match. **Empirically validated, not just
-  unit-tested:** reproduces 16 of 20 real historical ACCEPT reviews' claimed hashes exactly; the
-  remaining 4 (S64, S69, S73, S79) fail closed as `Unverifiable` — disclosed as a deliberate
-  trade-off (AC5), not a silent regression. **Two real bugs self-caught before commit** by testing
-  against this repo's OWN historical review files (not just synthetic fixtures): a trailing-newline
-  mismatch (bash's `$(...)` strips them, the first Rust cut didn't) and an unanchored label search
-  (misread `sessions/session-82-review.md`, which discusses the label in prose before its real
-  attestation line). Both fixed to mirror `verify-closeout.sh`'s exact algorithm.
-- **270 lib tests** (+3: 3 new, 3 existing updated). Clippy + fmt clean. Independent cold review:
-  **ACCEPT**, all 6 acceptance criteria SHIPPED (subagent independently re-derived the 16/20 split
-  itself, not trusting the write-up).
-- **Report:** `sessions/session-86-review.md`, attested `b21c7c5b…`.
+- **Number:** 87 — COMPLETE
+- **Type:** **CODE** (docs-only). Filled `prompts/76-task-dogfood-ride-along.md`'s 4 unfilled
+  `## Execution` `<sha>` placeholders — content-matched to their real landing commits, not the
+  scrambled "(N/4)" commit-message numbering the prompt itself warned about.
+- **Headline result:** the core fix is solid (AC1/AC4, confirmed by an independent reviewer reading
+  all 6 candidate commits' diffs itself). Two things surfaced live during this session that were
+  NOT anticipated by the prompt:
+  1. **A real, unplanned side effect:** filling in S76's shas retroactively un-attests S76's OWN
+     review. S86's `canonical_inputs_sha` hashes the prompt file's LIVE bytes, not a review-time
+     snapshot — so this legitimate fix flips S76's Reviewer/Releaser `--stations` dimensions from
+     PASSED to ABSENT (6/8 → 5/8), even as Coder (this session's actual target) correctly flips
+     ABSENT → PASSED. Confirmed live via `verify-closeout.sh --attest-only 76`. Disclosed
+     immediately, picked as the S88 target (founder pick A of 3 ranked candidates).
+  2. **A hollow-green finding in this session's OWN proof scripts**, caught by the independent
+     cold reviewer on pass 1 (REJECT): `demo-session-87.sh`'s before/after silently broke (printed
+     identical output) once its own commit made `HEAD~1` the fix commit itself, while its summary
+     table still claimed the transition was shown; `verify-session-87.sh`'s scope check was
+     structurally tautological (could never fail). Both scripts still exited 0 and printed
+     all-green. Fixed in-session, adversarially re-verified by the SAME reviewer (made the scope
+     check fail on purpose; read the demo's real live output) — pass 2 **ACCEPT**. Mirrors the S67
+     two-pass house pattern.
+- **Independent cold review:** pass 1 REJECT → in-session fix → pass 2 **ACCEPT**, all 5 acceptance
+  criteria SHIPPED.
+- **Report:** `sessions/session-87-review.md`, attested `d2e4c1ac…`.
 - **Date last updated:** 2026-07-21.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 86.
-- **Pipeline = 8 governed stations, unchanged in COUNT** — the Reviewer/Releaser attestation
-  dimension is now cryptographically verified rather than label-trusted. 7 commands, no 8th.
-- `verify-closeout.sh` unchanged (no scripts edit this session — the fix lives entirely in
-  `src/stations/mod.rs`, the Rust-side classifier; the bash gate's own `check_review_attestation`
-  was already correct and unchanged).
+- `.ai/SESSION` = 87.
+- **Pipeline = 8 governed stations, unchanged in COUNT.** Session 76's Reviewer/Releaser dimensions
+  now correctly (if unfortunately) read ABSENT — a disclosed, live consequence of this session's
+  fix, not a new bug in the pipeline machinery itself.
+- `verify-closeout.sh` unchanged (this session added `scripts/verify-session-87.sh` +
+  `scripts/demo-session-87.sh`; no change to the closeout gate script itself).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 87
-- **Type:** **CODE** (docs-only) — fill S76's `## Execution` section's 4 unfilled `<sha>`
-  placeholders with the real landing commits, matched by content not by coincidental numbering.
-- **Prompt:** `prompts/87-task-fix-s76-execution-shas.md`. **Branch:**
-  `session-87-fix-s76-execution-shas`. **New chat.**
+- **Number:** 88
+- **Type:** **CODE** — fix `canonical_inputs_sha`/`attested_hash_outcome` to hash a review-time
+  snapshot of the prompt file, not its current live bytes (the root cause this session's own fix
+  exposed).
+- **Prompt:** `prompts/88-task-fix-canonical-inputs-sha-snapshot.md`. **Branch:**
+  `session-88-fix-canonical-inputs-sha-snapshot`. **New chat.**
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S87; do NOT start here.
-- **S76's Execution shas are the S87 pick** — 6 candidate commits identified between S76's merge
-  parents; do not assume the "(N/4)" commit-message numbering matches the Plan's step-N order,
-  verify by reading each diff's actual content.
-- **`ROADMAP.md`'s "Where We Are" table is still stale** — ranked 🥉, not picked at S86's close
-  either. Still open.
-- **Dogfood is 🔴 — now 10 sessions (S77-S86) / 18 calendar days stale since S76.** Recommended 🥇
-  at this close but NOT picked by the founder (S76 sha fix picked instead) — founder-un-parkable
-  per S70/S85, watch it keep aging past S87.
-- **Two new low-severity findings from S86's own independent cold review** (both pre-existing or
-  low-risk, neither blocking): `read_prompt`/`analyst::find_prompt_for` picks the first prompt
-  file matching a session's prefix on directory-order (not S86-introduced); no dedicated test
-  isolates the "still on the open, not-yet-merged branch" live-candidate path of
-  `attested_hash_outcome` (verbatim copy of the pre-existing bash algorithm, low risk).
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S88; do NOT start here.
+- **S88's fix must re-validate the real historical Verified/Unverifiable split** (16/20 at S86, now
+  effectively 16/21 after S87's edit un-attested S76) — S76 flipping back to Verified is the
+  clearest proof the fix works; report the new split plainly, don't silently let it drift.
+- **Dogfood is 🔴 — now 11 sessions (S77-S87) / 18+ calendar days stale since S76.** Not picked at
+  S86 or S87 — founder-un-parkable per S70/S85, watch it keep aging past S88.
+- **`ROADMAP.md`'s "Where We Are" table is still stale** — deferred 3 sessions running now
+  (ranked 🥉 again at this close, not picked).
