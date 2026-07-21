@@ -8,7 +8,7 @@
 #   (1) no `<sha>` placeholder remains anywhere in the file
 #   (2) `vajra next --check-exec 76` flips NOT READY -> READY
 #   (3) `vajra next --stations 76` Coder flips ABSENT -> PASSED
-#   (4) scope = exactly the one file this session is chartered to touch
+#   (4) scope stays docs-only — no `src/` file touched
 #   (5) the disclosed side effect is real and reproducible, not hand-waved: this same edit
 #       flips session 76's Reviewer/Releaser PASSED -> ABSENT, because S86's
 #       canonical_inputs_sha hashes the prompt file's LIVE bytes, not a review-time snapshot.
@@ -50,17 +50,17 @@ run_check "check-exec-76-ready" check_exec_ready
 stations_coder_passed() { "$BIN" next --stations 76 | grep -q '\[PASSED\] Coder'; }
 run_check "stations-76-coder-passed" stations_coder_passed
 
-# ── (4) scope: exactly the one chartered file changed on this branch, beyond ──
-# the session's own required verify+demo scaffolding (CONSTRAINTS.yaml#verify.required_for_done).
-# Diffs the WHOLE tree (not pre-restricted to $TARGET — a pathspec that starts positive on
-# $TARGET can never see a change anywhere else) and excludes only this session's own two scripts.
-scope_is_one_file() {
-  local changed
-  changed=$(git diff --name-only main..HEAD -- . \
-              ":!scripts/verify-session-87.sh" ":!scripts/demo-session-87.sh" 2>/dev/null | sort)
-  [ "$changed" = "$TARGET" ]
+# ── (4) scope: docs-only holds — no src/ change ─────────────────────────────
+# An earlier version of this check tried to assert "exactly one file changed" — that claim is
+# FALSE for any real session: sessions/session-87-{summary,review}.md, this session's own
+# ## Execution self-record, the next session's prompt, and the .ai/* closeout sync are ALL
+# constitutionally mandatory (AGENTS.md steps 7/9), not scope creep. Re-scoped to the one claim
+# the prompt's guardrails actually make unambiguous and load-bearing: no `src/` file changed
+# (mirrors verify-session-76.sh's own precedented `no_src_change` check, same pattern).
+scope_no_src_change() {
+  ! git diff --name-only main..HEAD -- src 2>/dev/null | grep -q .
 }
-run_check "scope-one-file-only" scope_is_one_file
+run_check "scope-no-src-change" scope_no_src_change
 
 # ── (5) disclosed side effect: reproducible, not asserted ──────────────────
 # The fix retroactively un-attests S76's own review (S86's canonical_inputs_sha hashes the

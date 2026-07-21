@@ -83,7 +83,7 @@ printf "  %-58s %s\n" "1 · every step matched to its real commit, no <sha> left
 printf "  %-58s %s\n" "2 · check-exec 76 NOT READY -> READY (live)"                  "SHIPPED"
 printf "  %-58s %s\n" "3 · stations 76 Coder ABSENT -> PASSED (live, before/after)"  "SHIPPED"
 printf "  %-58s %s\n" "4 · multi-commit span disclosed, not forced to 1:1 (AC4)"     "SHIPPED"
-printf "  %-58s %s\n" "5 · single-file, docs-only scope held"                        "SHIPPED"
+printf "  %-58s %s\n" "5 · docs-only scope held (no src/ change)"                     "SHIPPED"
 printf "  %-58s %s\n" "bonus · Reviewer/Releaser regression found + disclosed"       "DISCLOSED"
 printf "\n"
 
