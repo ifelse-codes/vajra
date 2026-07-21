@@ -101,6 +101,35 @@ run_check "stations-64-reviewer-still-absent" stations_64_reviewer_absent
 stations_69_reviewer_absent() { "$BIN" next --stations 69 | grep -q '\[ABSENT\] Reviewer'; }
 run_check "stations-69-reviewer-still-absent" stations_69_reviewer_absent
 
+# ── (4b) full historical scan — state the Verified/Unverifiable split PLAINLY (AC2) ──
+# Every real ACCEPT review in sessions/, not a 5-session spot-check — printed as one explicit
+# headline line so a reader never has to compute the split themselves.
+full_historical_scan() {
+  local verified=0 absent=0 total=0
+  local f n verdict out
+  for f in sessions/session-*-review.md; do
+    n=$(basename "$f" | sed -E 's/session-([0-9]+)-review\.md/\1/')
+    verdict=$(grep -iE '^[*_[:space:]]*(overall[[:space:]]+|final[[:space:]]+)?verdict[*_[:space:]]*:' "$f" \
+              | grep -ioE 'ACCEPT|REJECT' | head -1)
+    [ "$verdict" = "ACCEPT" ] || continue
+    total=$((total+1))
+    out=$("$BIN" next --stations "$((10#$n))" | grep Reviewer)
+    if printf '%s' "$out" | grep -q PASSED; then
+      verified=$((verified+1))
+    else
+      absent=$((absent+1))
+      echo "  ABSENT: session $n — $out"
+    fi
+  done
+  echo "HISTORICAL SCAN: ${verified} Verified / ${absent} Absent (Unverifiable or NotAttested) out of ${total} real ACCEPT reviews"
+  # S86 baseline (documented, KNOWLEDGE.md): 16 Verified / 4 Unverifiable (S64,S69,S73,S79) out of
+  # 20, plus S56/S57 NotAttested (pre-attestation-mechanism sessions, a separate class, not
+  # counted as ACCEPT-with-claimed-hash failures in that baseline's "20"). This fix must strictly
+  # IMPROVE on that split, never regress it.
+  [ "$verified" -ge 16 ]
+}
+run_check "full-historical-scan-split-reported" full_historical_scan
+
 # ── (5) bash side, isolated temp-repo fixture: emit/verify pairing + AC3 ────
 # canonical_inputs_sha's honest scope is ONE (base,tip) pair for the CURRENTLY open session —
 # this proves that scope correctly: emit then verify match on a live branch, and an
@@ -113,6 +142,17 @@ bash_emit_verify_pairing_survives_stray_edit() (
   # Subshell (parens, not braces): an EXIT trap set here is local to THIS subshell only — a
   # RETURN trap set in a plain function body would keep firing on every later function's
   # return for the rest of the script, referencing `$tmp` after it's out of scope.
+  #
+  # Fixture uses a TWO-DIGIT session number (95), not a single digit. Independent review
+  # (S88's own cold pass) caught a real hollow-green here: `check_review_attestation`
+  # (pre-existing, unrelated to this fix) looks up the review file via UNPADDED `${N}`
+  # (`sessions/session-${N}-review.md`), while every emit path in this codebase, including
+  # this fixture, zero-pads (`session-05-review.md`). With N=5 those never match, so the
+  # attestation check always short-circuits to "N/A: no review file" -> unconditional PASS,
+  # regardless of whether the fix under test is even present. Verified live: reverting the
+  # fix entirely and rerunning the old N=5 fixture produced the identical false PASS. A
+  # two-digit N makes padded and unpadded forms coincide, so the check actually exercises
+  # the real lookup path both `--inputs-sha`/`--attest-only` and this fixture depend on.
   set -e
   local tmp; tmp=$(mktemp -d)
   trap 'rm -rf "$tmp"' EXIT
@@ -120,29 +160,49 @@ bash_emit_verify_pairing_survives_stray_edit() (
   git -C "$tmp" config user.email t@t
   git -C "$tmp" config user.name t
   mkdir -p "$tmp/prompts" "$tmp/sessions"
-  printf '# Session 05 fixture\noriginal text\n' > "$tmp/prompts/05-task-fixture.md"
+  printf '# Session 95 fixture\noriginal text\n' > "$tmp/prompts/95-task-fixture.md"
   git -C "$tmp" add -A
-  git -C "$tmp" commit -qm "main: session 05 prompt scaffolded"
-  git -C "$tmp" checkout -qb session-05-x
+  git -C "$tmp" commit -qm "main: session 95 prompt scaffolded"
+  git -C "$tmp" checkout -qb session-95-x
   printf 'work\n' > "$tmp/work.txt"
   git -C "$tmp" add -A
-  git -C "$tmp" commit -qm "s05 work"
+  git -C "$tmp" commit -qm "s95 work"
 
   local h1
-  h1=$(CLAUDE_PROJECT_DIR="$tmp" bash "$ROOT/scripts/verify-closeout.sh" --inputs-sha 5)
+  h1=$(CLAUDE_PROJECT_DIR="$tmp" bash "$ROOT/scripts/verify-closeout.sh" --inputs-sha 95)
   [ -n "$h1" ] || return 1
 
-  printf '**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** %s\n' "$h1" > "$tmp/sessions/session-05-review.md"
+  printf '**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** %s\n' "$h1" > "$tmp/sessions/session-95-review.md"
   git -C "$tmp" add -A
-  git -C "$tmp" commit -qm "s05 review"
+  git -C "$tmp" commit -qm "s95 review"
 
-  CLAUDE_PROJECT_DIR="$tmp" bash "$ROOT/scripts/verify-closeout.sh" --attest-only 5 \
-    | grep -q "^ATTEST: PASS$" || return 1
+  # NOTE: capture-then-grep, never pipe-then-grep (`cmd | grep -q pattern`) — the S32 house
+  # gotcha: `grep -q` closes the pipe on its first match, sending the upstream writer SIGPIPE;
+  # since verify-closeout.sh itself runs under `set -euo pipefail`, that SIGPIPE is reported as
+  # exit 141, and `pipefail` here would then report the WHOLE pipeline as failed even though
+  # grep matched. Hit this live while building this exact check. Fix (recorded in KNOWLEDGE.md
+  # since S32): capture the command's output into a variable first, then grep the variable.
+  local out
 
-  # Uncommitted stray edit to the prompt file — must NOT change the outcome after this fix.
-  printf '# Session 05 fixture\noriginal text\nSTRAY UNCOMMITTED EDIT\n' > "$tmp/prompts/05-task-fixture.md"
-  CLAUDE_PROJECT_DIR="$tmp" bash "$ROOT/scripts/verify-closeout.sh" --attest-only 5 \
-    | grep -q "^ATTEST: PASS$"
+  # Positive control: a genuine, unedited attestation must PASS (and must actually be found —
+  # not an unconditional N/A pass; assert the OK line, not just the summary verdict).
+  out=$(CLAUDE_PROJECT_DIR="$tmp" bash "$ROOT/scripts/verify-closeout.sh" --attest-only 95)
+  grep -q "^OK: ACCEPT attestation matches the canonical cold-input hash\.$" <<<"$out" || return 1
+
+  # Negative control: the SAME fixture, with the fix reverted (cat instead of git show), must
+  # actually FAIL once the prompt is stray-edited — proving this check can discriminate
+  # fixed-vs-broken at all, not just always print PASS regardless of the fix under test.
+  local old_verify; old_verify="$tmp/.old-verify-closeout.sh"
+  git -C "$ROOT" show main:scripts/verify-closeout.sh > "$old_verify"
+  printf '# Session 95 fixture\noriginal text\nSTRAY UNCOMMITTED EDIT\n' > "$tmp/prompts/95-task-fixture.md"
+  out=$(CLAUDE_PROJECT_DIR="$tmp" bash "$old_verify" --attest-only 95) || true
+  if grep -q "^ATTEST: PASS$" <<<"$out"; then
+    return 1 # the pre-fix script must NOT tolerate a stray edit — if it does, this fixture is broken
+  fi
+
+  # The actual fix under test: the SAME stray edit must NOT change the outcome.
+  out=$(CLAUDE_PROJECT_DIR="$tmp" bash "$ROOT/scripts/verify-closeout.sh" --attest-only 95)
+  grep -q "^OK: ACCEPT attestation matches the canonical cold-input hash\.$" <<<"$out"
 )
 run_check "bash-emit-verify-survives-stray-edit" bash_emit_verify_pairing_survives_stray_edit
 

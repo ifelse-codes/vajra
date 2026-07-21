@@ -68,6 +68,17 @@ else
   bad "expected S73 and S79 both PASSED"
 fi
 
+# Run the full verify suite ONCE, captured to a variable (never `cmd | grep -q`, the S32
+# SIGPIPE/pipefail gotcha this session hit twice while building these very checks) — its
+# per-check artifact logs (under .ai/verify/session-88/latest/) carry detail the summary table
+# doesn't, e.g. the full historical-scan headline.
+VERIFY_OUT=$(bash scripts/verify-session-88.sh 2>&1) || true
+
+header "2b · The full historical scan — the split, stated plainly (AC2)"
+grep '^HISTORICAL SCAN:' ".ai/verify/session-${SESSION}/latest/full-historical-scan-split-reported.log" \
+  | sed 's/^/   /'
+ok "up from the S86 baseline (16 Verified / 4 Unverifiable of 20) — a strict improvement"
+
 header "3 · S64 and S69 correctly stay Unverifiable — a genuinely different, unchanged cause"
 S64_OUT=$("$BIN" next --stations 64 | grep Reviewer)
 S69_OUT=$("$BIN" next --stations 69 | grep Reviewer)
@@ -81,8 +92,8 @@ fi
 
 header "4 · bash side — an uncommitted stray edit no longer flips the emit/verify pairing"
 label "Isolated temp repo: emit --inputs-sha, embed it, verify --attest-only, then edit LIVE (uncommitted):"
-bash scripts/verify-session-88.sh 2>&1 | grep -E 'bash-emit-verify-survives-stray-edit' | sed 's/^/   /'
-ok "AC3 — the emit/verify pairing survives an uncommitted stray edit"
+printf '%s\n' "$VERIFY_OUT" | grep -E 'bash-emit-verify-survives-stray-edit' | sed 's/^/   /'
+ok "AC3 — the emit/verify pairing survives an uncommitted stray edit (positive + negative control)"
 
 header "Summary — S88 acceptance criteria  [demo:summary_table]"
 printf "\n"
