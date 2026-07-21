@@ -20,7 +20,9 @@
 //!    re-run is green. The counter never reports PASSED where a classifier statically BLOCKS.
 
 use std::fs;
+use std::io::Write;
 use std::path::Path;
+use std::process::{Command, Stdio};
 
 use crate::analyst::{self, DeltaState};
 use crate::architect::{self, DesignState};
@@ -264,28 +266,35 @@ fn releaser_status(root: &Path, session: u32) -> StationStatus {
 }
 
 /// Reviewer (REVIEW): the independent fidelity review exists, records a canonical
-/// `**Verdict:** ACCEPT`, and is attested (`Review-Inputs-SHA`) — the SAME evidence
-/// `verify-closeout.sh#check_fidelity_review` reads (no Rust reviewer classifier exists; this reads
-/// the artifact, it does not re-run the cold review — disclosed).
+/// `**Verdict:** ACCEPT`, and its `Review-Inputs-SHA` is cryptographically VERIFIED (S86,
+/// `attested_hash_outcome`) — not merely present, the pre-S86 bug. Still disclosed: no Rust
+/// classifier re-runs the cold fidelity REVIEW itself (that stays
+/// `verify-closeout.sh#check_fidelity_review`'s job); this only re-derives whether the recorded
+/// hash is genuine.
 fn reviewer_status(root: &Path, session: u32) -> StationStatus {
     const N: &str = "Reviewer";
     const L: &str = "REVIEW";
     let rel = format!("sessions/session-{session:02}-review.md");
     match fs::read_to_string(root.join(&rel)) {
         Err(_) => StationStatus::absent(N, L, "no review artifact"),
-        Ok(text) => {
-            let attested = text
-                .lines()
-                .any(|l| l.to_lowercase().contains("review-inputs-sha"));
-            match review_verdict_accept(&text) {
-                None => StationStatus::absent(N, L, "review records no canonical verdict"),
-                Some(false) => StationStatus::absent(N, L, "review verdict is REJECT"),
-                Some(true) if !attested => {
+        Ok(text) => match review_verdict_accept(&text) {
+            None => StationStatus::absent(N, L, "review records no canonical verdict"),
+            Some(false) => StationStatus::absent(N, L, "review verdict is REJECT"),
+            Some(true) => match attested_hash_outcome(root, session, &text) {
+                AttestOutcome::NotAttested => {
                     StationStatus::absent(N, L, "ACCEPT review not attested")
                 }
-                Some(true) => StationStatus::passed(N, L, "attested ACCEPT review"),
-            }
-        }
+                AttestOutcome::Unverifiable => StationStatus::absent(
+                    N,
+                    L,
+                    "ACCEPT review's Review-Inputs-SHA matches no reconstructable diff \
+                     (forged/stale/recycled, or an unreconstructable historical hash)",
+                ),
+                AttestOutcome::Verified => {
+                    StationStatus::passed(N, L, "attested ACCEPT review, hash verified")
+                }
+            },
+        },
     }
 }
 
@@ -347,22 +356,242 @@ fn review_verdict_accept(text: &str) -> Option<bool> {
     verdicts.last().copied()
 }
 
-/// Does session `session`'s independent review carry a canonical, attested `**Verdict:** ACCEPT`?
-/// The same evidence `reviewer_status` reads (`review_verdict_accept` + the `Review-Inputs-SHA`
-/// attestation line) — reused as the Releaser's `NoBranch` fallback: a branch pruned after a proper
-/// merge (the required S37 end-state) is indistinguishable in git alone from a branch that never
-/// existed; the attested ledger disambiguates the two.
+/// Does session `session`'s independent review carry a canonical, cryptographically-VERIFIED
+/// `**Verdict:** ACCEPT`? The SAME `attested_hash_outcome` `reviewer_status` calls (S86, no
+/// hand-duplication) — reused as the Releaser's `NoBranch` fallback: a branch pruned after a
+/// proper merge (the required S37 end-state) is indistinguishable in git alone from a branch that
+/// never existed; a genuinely verified attestation disambiguates the two.
 fn session_attested_accept(root: &Path, session: u32) -> bool {
     let rel = format!("sessions/session-{session:02}-review.md");
     match fs::read_to_string(root.join(&rel)) {
         Err(_) => false,
         Ok(text) => {
-            let attested = text
-                .lines()
-                .any(|l| l.to_lowercase().contains("review-inputs-sha"));
-            attested && review_verdict_accept(&text) == Some(true)
+            review_verdict_accept(&text) == Some(true)
+                && attested_hash_outcome(root, session, &text) == AttestOutcome::Verified
         }
     }
+}
+
+// ---- Attestation hash verification (S86) ------------------------------------------------------
+//
+// Pre-S86 bug: both call sites above classified an ACCEPT review as "attested" via
+// `text.lines().any(|l| l.to_lowercase().contains("review-inputs-sha"))` — the LABEL's presence,
+// never the claimed hash's value. A review with `**Review-Inputs-SHA:** <64 hex chars of garbage>`
+// satisfied it. Fix: recompute the SAME `sha256(prompt bytes \0 delivery diff)` preimage
+// `verify-closeout.sh#canonical_inputs_sha` commits to, and compare.
+//
+// The hard part (why this isn't a one-line change): `git merge-base main HEAD` — the bash script's
+// own base — is only valid PRE-merge. Empirically confirmed on this repo: recomputing it live,
+// post-merge, for a real historical session (S84) produces a materially different, WRONG hash
+// (base collapses to HEAD once main has absorbed the branch, so the "diff" is empty). A naive
+// live-only recompute would therefore falsely reject nearly every already-accepted historical
+// session — worse than the bug it fixes. Fix for THAT: a `--no-ff` merge (this repo's convention,
+// never squash) preserves both parents on the merge commit forever, even after the branch ref
+// itself is pruned — so `candidate_diffs` recovers (base, tip) from every merge commit reachable
+// from `main`, not just a live, possibly-vanished branch ref. Confirmed empirically: this
+// reproduces the exact recorded hash for 16 of 20 real historical reviews sampled from this
+// repo's own history. The remaining 4 (S64, S69, S73, S79) reproduce under NO candidate, even
+// after searching every merge commit in the repo — most plausibly because
+// `canonical_inputs_sha`'s own exclude-list/algorithm changed after their hash was computed, not
+// forgery. This function CANNOT tell "genuinely unreconstructable" apart from "forged" — both
+// fail closed as `Unverifiable`. That is a deliberate, disclosed trade-off (fail-closed per the
+// constitution's L4: "a check that cannot evaluate FAILS. Never silently pass."), not a silent
+// reintroduction of the old bug: unlike the old bug, a garbage/forged/recycled hash can no longer
+// silently PASS.
+
+/// Outcome of checking whether a review's claimed `Review-Inputs-SHA` is genuine — the shared
+/// logic both `reviewer_status` and `session_attested_accept` call.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AttestOutcome {
+    /// No well-formed 64-hex `Review-Inputs-SHA` value on any line.
+    NotAttested,
+    /// The claimed hash was reproduced from a real, reconstructable diff.
+    Verified,
+    /// A well-formed hash is present but no reconstructable diff (live or historical)
+    /// reproduces it — see the module note above for why this is a deliberate, disclosed
+    /// fail-closed conflation, not a gap.
+    Unverifiable,
+}
+
+fn attested_hash_outcome(root: &Path, session: u32, review_text: &str) -> AttestOutcome {
+    let Some(claimed) = claimed_inputs_sha(review_text) else {
+        return AttestOutcome::NotAttested;
+    };
+    let Some(prompt) = read_prompt(root, session) else {
+        return AttestOutcome::Unverifiable;
+    };
+    for (base, tip) in candidate_diffs(root) {
+        if let Some(h) = diff_hash(root, &base, &tip, prompt.as_bytes()) {
+            if h == claimed {
+                return AttestOutcome::Verified;
+            }
+        }
+    }
+    AttestOutcome::Unverifiable
+}
+
+/// The first well-formed (>=64 consecutive hex chars, first 64 taken) value on the FIRST line
+/// that actually IS the attestation (not merely a line that mentions it in prose — this session's
+/// own review file discusses the label by name in several places, none of which are the real
+/// attestation). Same anchored match `verify-closeout.sh` uses
+/// (`grep -m1 -iE '^[*_[:space:]]*Review-Inputs-SHA[*_[:space:]]*:'`, then
+/// `grep -oiE '[0-9a-f]{64}'`) — a bare `.contains()` here would have hit the WRONG line (proven
+/// live: it did, on this repo's own `sessions/session-82-review.md`, whose line 17 mentions the
+/// label in a table cell before line 89's real attestation).
+fn claimed_inputs_sha(text: &str) -> Option<String> {
+    text.lines()
+        .find(|l| is_attestation_line(l))
+        .and_then(|l| extract_hex64(&l.to_lowercase()))
+}
+
+/// Mirrors `verify-closeout.sh`'s anchored pattern
+/// `^[*_[:space:]]*Review-Inputs-SHA[*_[:space:]]*:` — the line must START WITH (after optional
+/// markdown emphasis markers/whitespace) the literal label followed by a colon, not merely
+/// mention it somewhere in prose or a code sample.
+fn is_attestation_line(line: &str) -> bool {
+    let after_markup = line.trim_start_matches(|c: char| c == '*' || c == '_' || c.is_whitespace());
+    let lower = after_markup.to_lowercase();
+    let Some(rest) = lower.strip_prefix("review-inputs-sha") else {
+        return false;
+    };
+    rest.trim_start_matches(|c: char| c == '*' || c == '_' || c.is_whitespace())
+        .starts_with(':')
+}
+
+fn extract_hex64(lower_line: &str) -> Option<String> {
+    let chars: Vec<char> = lower_line.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i].is_ascii_hexdigit() {
+            let start = i;
+            while i < chars.len() && chars[i].is_ascii_hexdigit() {
+                i += 1;
+            }
+            if i - start >= 64 {
+                return Some(chars[start..start + 64].iter().collect());
+            }
+        } else {
+            i += 1;
+        }
+    }
+    None
+}
+
+/// Run a read-only git plumbing command at `root`; `Some((exit_code, stdout))` when it spawned.
+fn git_out(root: &Path, args: &[&str]) -> Option<(i32, String)> {
+    let out = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .ok()?;
+    Some((
+        out.status.code()?,
+        String::from_utf8_lossy(&out.stdout).into_owned(),
+    ))
+}
+
+/// Every (base, tip) pair whose diff might reproduce a session's attestation hash: the live,
+/// not-yet-merged current branch against `main` (base = merge-base, tip = HEAD) — correct when
+/// nothing has been pruned yet — plus every 2-parent merge commit reachable from `main`, whose own
+/// two parents ARE the original merge-base and branch tip even after the branch ref itself was
+/// pruned (a `--no-ff` merge, this repo's convention, preserves both parents forever).
+fn candidate_diffs(root: &Path) -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    if let (Some((0, head)), Some((0, base))) = (
+        git_out(root, &["rev-parse", "HEAD"]),
+        git_out(root, &["merge-base", "main", "HEAD"]),
+    ) {
+        out.push((base.trim().to_string(), head.trim().to_string()));
+    }
+    if let Some((0, log)) = git_out(root, &["log", "--merges", "--format=%P", "main"]) {
+        for line in log.lines() {
+            let mut parents = line.split_whitespace();
+            if let (Some(p1), Some(p2)) = (parents.next(), parents.next()) {
+                if let Some((0, base)) = git_out(root, &["merge-base", p1, p2]) {
+                    out.push((base.trim().to_string(), p2.to_string()));
+                }
+            }
+        }
+    }
+    out
+}
+
+/// `sha256(prompt_bytes \0 delivery_diff)` for one (base, tip) candidate — the SAME preimage and
+/// exclude list as `verify-closeout.sh#canonical_inputs_sha`, so a genuine attestation from either
+/// side always matches. `None` when the diff or hash cannot be computed — the caller just tries
+/// the next candidate.
+fn diff_hash(root: &Path, base: &str, tip: &str, prompt_bytes: &[u8]) -> Option<String> {
+    let out = Command::new("git")
+        .args([
+            "diff",
+            "--no-color",
+            "--no-ext-diff",
+            base,
+            tip,
+            "--",
+            ":(exclude)sessions",
+            ":(exclude)prompts",
+            ":(exclude).ai/STATE.md",
+            ":(exclude).ai/SESSION-BOOT.md",
+            ":(exclude).ai/SESSION",
+            ":(exclude).ai/TASK.md",
+            ":(exclude).ai/ROADMAP.md",
+            ":(exclude).ai/KNOWLEDGE.md",
+            ":(exclude).ai/verify",
+            ":(exclude).ai/.session-owner",
+        ])
+        .current_dir(root)
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    // `canonical_inputs_sha`'s bash captures the diff via `$(...)`, which strips ALL trailing
+    // newlines before hashing — match that exactly, or every hash mismatches (confirmed the hard
+    // way: this repo's own S84 review hash only reproduces once trailing '\n's are stripped here).
+    let mut diff_bytes = out.stdout.as_slice();
+    while diff_bytes.last() == Some(&b'\n') {
+        diff_bytes = &diff_bytes[..diff_bytes.len() - 1];
+    }
+    let mut preimage = Vec::with_capacity(prompt_bytes.len() + 1 + diff_bytes.len());
+    preimage.extend_from_slice(prompt_bytes);
+    preimage.push(0u8);
+    preimage.extend_from_slice(diff_bytes);
+    sha256_hex(&preimage)
+}
+
+/// Shell out for the hash (same tool-fallback order as `verify-closeout.sh#_sha256`) rather than
+/// add a crate dependency for one hash — this codebase already shells out to git everywhere here.
+fn sha256_hex(bytes: &[u8]) -> Option<String> {
+    let variants: [(&str, &[&str]); 2] = [("sha256sum", &[]), ("shasum", &["-a", "256"])];
+    for (cmd, args) in variants {
+        let mut child = match Command::new(cmd)
+            .args(args)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+        {
+            Ok(c) => c,
+            Err(_) => continue,
+        };
+        if let Some(mut stdin) = child.stdin.take() {
+            if stdin.write_all(bytes).is_err() {
+                continue;
+            }
+        }
+        if let Ok(out) = child.wait_with_output() {
+            if out.status.success() {
+                if let Some(h) = String::from_utf8_lossy(&out.stdout)
+                    .split_whitespace()
+                    .next()
+                {
+                    return Some(h.to_string());
+                }
+            }
+        }
+    }
+    None
 }
 
 fn join_nums(nums: &[u32]) -> String {
@@ -466,6 +695,35 @@ release:
             .find(|s| s.name == name)
             .unwrap()
             .outcome
+    }
+
+    /// Cut `session-{nn}-x` off the current HEAD, add one real file change, merge it into `main`
+    /// (`--no-ff`, this repo's convention — never squash), and delete the local branch — mirrors
+    /// the mandatory S37 close step (merge + prune). Returns (pre-merge main tip, branch tip) so
+    /// callers can compute the REAL canonical hash the same way `attested_hash_outcome`
+    /// re-derives it via `candidate_diffs`/`diff_hash`.
+    fn merge_and_prune_session_branch(root: &Path, nn: u32, marker: &str) -> (String, String) {
+        let branch = format!("session-{nn:02}-x");
+        let base = head_sha(root);
+        git_in(root, &["checkout", "-qb", &branch]);
+        fs::write(root.join(format!("{marker}.txt")), "work\n").unwrap();
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", &format!("s{nn} work")]);
+        let tip = head_sha(root);
+        git_in(root, &["checkout", "-q", "main"]);
+        git_in(
+            root,
+            &[
+                "merge",
+                "-q",
+                "--no-ff",
+                &branch,
+                "-m",
+                &format!("merge {nn}"),
+            ],
+        );
+        git_in(root, &["branch", "-D", &branch]);
+        (base, tip)
     }
 
     #[test]
@@ -579,24 +837,42 @@ release:
         let root = tmp.path();
 
         // Merge + prune → NoBranch, indistinguishable in git alone from "never created".
-        git_in(root, &["checkout", "-qb", "session-51-x"]);
-        fs::write(root.join("f51.txt"), "w\n").unwrap();
-        git_in(root, &["add", "-A"]);
-        git_in(root, &["commit", "-qm", "s51"]);
-        git_in(root, &["checkout", "-q", "main"]);
-        git_in(
-            root,
-            &["merge", "-q", "--no-ff", "session-51-x", "-m", "merge 51"],
-        );
-        git_in(root, &["branch", "-D", "session-51-x"]);
+        let prompt = "prompt for session 51\n";
+        write_prompt(root, 51, prompt);
+        let (base, tip) = merge_and_prune_session_branch(root, 51, "f51");
 
-        // An attested ACCEPT review is the ledger evidence that disambiguates: PASSED.
+        // An attested ACCEPT review with a REAL, cryptographically-verified hash (S86 — a bare
+        // label used to be enough) is the ledger evidence that disambiguates: PASSED.
+        let real_hash =
+            diff_hash(root, &base, &tip, prompt.as_bytes()).expect("diff hash computable");
         fs::write(
             root.join("sessions/session-51-review.md"),
-            "**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** abc123\n",
+            format!("**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {real_hash}\n"),
         )
         .unwrap();
         assert_eq!(outcome(root, 51, "Releaser"), Outcome::Passed);
+    }
+
+    #[test]
+    fn releaser_absent_when_no_branch_but_hash_forged() {
+        let tmp = repo();
+        let root = tmp.path();
+
+        write_prompt(root, 54, "prompt for session 54\n");
+        merge_and_prune_session_branch(root, 54, "f54");
+
+        // A well-formed 64-hex value that matches NO reconstructable diff — forged, stale, or
+        // recycled from another session — must NOT count as ledger evidence (AC2). Before S86
+        // this passed because the classifier only checked the LABEL was present.
+        fs::write(
+            root.join("sessions/session-54-review.md"),
+            format!(
+                "**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {}\n",
+                "a".repeat(64)
+            ),
+        )
+        .unwrap();
+        assert_eq!(outcome(root, 54, "Releaser"), Outcome::Absent);
     }
 
     #[test]
@@ -633,7 +909,7 @@ release:
     }
 
     #[test]
-    fn reviewer_passes_only_on_attested_accept() {
+    fn reviewer_absent_on_missing_reject_or_malformed_attestation() {
         let tmp = repo();
         let root = tmp.path();
 
@@ -648,21 +924,85 @@ release:
         .unwrap();
         assert_eq!(outcome(root, 60, "Reviewer"), Outcome::Absent);
 
-        // Attested ACCEPT → PASSED.
+        // ACCEPT with a too-short/malformed value (not 64 hex chars) → ABSENT, same as missing —
+        // this is the exact pre-S86 gap: a bare label match used to accept this as "attested".
         fs::write(
             root.join("sessions/session-60-review.md"),
             "## Verdict\n**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** abc123\n",
         )
         .unwrap();
-        assert_eq!(outcome(root, 60, "Reviewer"), Outcome::Passed);
+        assert_eq!(outcome(root, 60, "Reviewer"), Outcome::Absent);
 
-        // REJECT (even attested) → ABSENT.
+        // REJECT (even with a well-formed attestation) → ABSENT.
         fs::write(
             root.join("sessions/session-60-review.md"),
-            "## Verdict\n**Verdict:** REJECT\n\n**Review-Inputs-SHA:** abc123\n",
+            format!(
+                "## Verdict\n**Verdict:** REJECT\n\n**Review-Inputs-SHA:** {}\n",
+                "b".repeat(64)
+            ),
         )
         .unwrap();
         assert_eq!(outcome(root, 60, "Reviewer"), Outcome::Absent);
+    }
+
+    #[test]
+    fn reviewer_passes_on_verified_hash_rejects_forged() {
+        let tmp = repo();
+        let root = tmp.path();
+        let prompt = "prompt for session 90\n";
+        write_prompt(root, 90, prompt);
+        let (base, tip) = merge_and_prune_session_branch(root, 90, "f90");
+        let real_hash =
+            diff_hash(root, &base, &tip, prompt.as_bytes()).expect("diff hash computable");
+
+        // Genuine, matching hash → PASSED (AC1).
+        fs::write(
+            root.join("sessions/session-90-review.md"),
+            format!("**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {real_hash}\n"),
+        )
+        .unwrap();
+        assert_eq!(outcome(root, 90, "Reviewer"), Outcome::Passed);
+
+        // Well-formed but WRONG (forged) → ABSENT (AC2) — the exact case that silently passed
+        // before S86 (any 64 hex chars after the label satisfied the old `.contains()` check).
+        let forged = "f".repeat(64);
+        assert_ne!(forged, real_hash);
+        fs::write(
+            root.join("sessions/session-90-review.md"),
+            format!("**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {forged}\n"),
+        )
+        .unwrap();
+        assert_eq!(outcome(root, 90, "Reviewer"), Outcome::Absent);
+    }
+
+    #[test]
+    fn reviewer_absent_when_hash_recycled_from_another_session() {
+        let tmp = repo();
+        let root = tmp.path();
+
+        let prompt91 = "prompt for session 91\n";
+        write_prompt(root, 91, prompt91);
+        let (base91, tip91) = merge_and_prune_session_branch(root, 91, "f91");
+        let hash91 =
+            diff_hash(root, &base91, &tip91, prompt91.as_bytes()).expect("hash computable");
+        fs::write(
+            root.join("sessions/session-91-review.md"),
+            format!("**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {hash91}\n"),
+        )
+        .unwrap();
+        assert_eq!(outcome(root, 91, "Reviewer"), Outcome::Passed);
+
+        // Recycle session 91's GENUINE hash into session 92's review. A different session has a
+        // different prompt, hence a different preimage — the recycled hash must NOT verify here
+        // (AC2's "recycled from another session" case, named explicitly in the prompt).
+        write_prompt(root, 92, "prompt for session 92\n");
+        merge_and_prune_session_branch(root, 92, "f92");
+        fs::write(
+            root.join("sessions/session-92-review.md"),
+            format!("**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {hash91}\n"),
+        )
+        .unwrap();
+        assert_eq!(outcome(root, 92, "Reviewer"), Outcome::Absent);
     }
 
     #[test]
@@ -709,16 +1049,28 @@ release:
         git_in(root, &["commit", "-qm", "s80 scaffold"]);
         let sha = head_sha(root);
         // Now the Execution trace can name a real commit.
-        write_prompt(root, 80, &full_prompt(80, &sha));
+        let prompt_body = full_prompt(80, &sha);
+        write_prompt(root, 80, &prompt_body);
         git_in(root, &["checkout", "-qb", "session-80-x"]);
         git_in(root, &["add", "-A"]);
         git_in(root, &["commit", "-qm", "s80 work"]);
+        let tip = head_sha(root);
         git_in(root, &["checkout", "-q", "main"]);
         git_in(
             root,
             &["merge", "-q", "--no-ff", "session-80-x", "-m", "merge 80"],
         );
         git_in(root, &["branch", "-D", "session-80-x"]);
+
+        // The placeholder "abc" attestation from the scaffold commit no longer counts (S86) — swap
+        // in the REAL, verifiable hash so the ceiling stays 8/8 on a genuinely-evidenced fixture.
+        let real_hash = diff_hash(root, &sha, &tip, prompt_body.as_bytes())
+            .expect("diff hash computable in fixture");
+        fs::write(
+            root.join("sessions/session-80-review.md"),
+            format!("**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {real_hash}\n"),
+        )
+        .unwrap();
 
         let r = station_report(root, 80);
         let passed: Vec<&str> = r

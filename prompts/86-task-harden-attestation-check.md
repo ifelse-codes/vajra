@@ -94,9 +94,40 @@ Two known-sound directions exist; pick one and record why:
 Recommend (b) given the direct precedent and the AC5 fragility risk in (a), but this session's own
 Architect step makes the final call with the actual ledger-coverage facts in hand.
 
+### Decision actually made: neither (a) nor (b) as literally written — a third, empirically-tested
+approach
+
+Both were tried against THIS repo's real history before picking, not assumed:
+
+- **(a) live recompute** was tested directly: `git merge-base main HEAD` for a real merged session
+  (S84) run today, on main, does NOT fail closed — it silently computes a DIFFERENT, WRONG hash
+  (base collapses to HEAD, diff goes empty), which would have made the classifier falsely reject
+  nearly every historical ACCEPT this repo already has. Confirmed, not assumed: recomputing S84's
+  hash this way today gives `7a202b14…`; the review's real claim is `0e172ca7…`.
+- **(b) reading the S59 ledger** was inspected directly (`scripts/verify-closeout.sh#_ledger_sha_of`
+  /`build_ledger`): the ledger's "ATTESTED" column only records whether a well-formed 64-hex value
+  is PRESENT — it never calls `canonical_inputs_sha` or compares anything. Reading it would upgrade
+  the check from "label present" to "well-formed value present," but a well-formed **wrong** value
+  (AC2's forged/recycled case) would still pass. (b) does not satisfy AC2 as written.
+
+**What was actually built:** recompute-and-compare, but searching every RECONSTRUCTABLE diff
+instead of trusting one (possibly-pruned) branch ref — the live not-yet-merged branch AND every
+`--no-ff` merge commit reachable from `main` (this repo's merge convention preserves both parents
+forever, even after the branch ref is deleted). The claimed hash is anchored to the session's OWN
+prompt bytes, so a value recycled from a different session's genuine hash cannot match (different
+preimage) without a SHA-256 collision. **Empirically validated against this repo's real history**
+(not merely unit-tested): searched all 20 currently-committed ACCEPT reviews — 16 reproduce exactly
+via a merge commit's parents; 4 (S64, S69, S73, S79) reproduce under NO candidate, even after
+exhaustively searching every merge commit in the repo's history — most plausibly because
+`canonical_inputs_sha`'s own exclude-list/algorithm changed since their hash was computed, not
+forgery. Those 4 correctly read as `Unverifiable` (fails closed) under the new check; this is a
+disclosed, deliberate trade-off (AC5), not a silent bug reintroduction — a garbage/forged/recycled
+value can no longer silently PASS, which is the property this session exists to deliver.
+
 design-significant: **no** (precedent: S82's Releaser ledger-fallback fix, same shape of change,
-was also marked not design-significant) — unless the chosen direction turns out to need a new
-data dependency significant enough to warrant an ADR note; state plainly if that changes mid-session.
+was also marked not design-significant). The chosen approach reads existing git history and the
+existing prompt file — no new crate dependency, no new store, no new command, no ADR-level change
+to Vajra's own architecture; it hardens an existing internal classifier's correctness.
 
 ## Plan (ordered steps — cite the acceptance criteria each step covers)
 
@@ -109,9 +140,9 @@ data dependency significant enough to warrant an ADR note; state plainly if that
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
+- step 1 — done: cd6661bd8696163558615fd097e8638e78594369
+- step 2 — done: 39a9d587fb86f99005d09c19ae7a087a3b9e7b2d
+- step 3 — done: 39a9d587fb86f99005d09c19ae7a087a3b9e7b2d
 
 ## Guardrails
 
