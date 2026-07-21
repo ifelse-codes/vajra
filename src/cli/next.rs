@@ -9,6 +9,7 @@ use crate::analyst;
 use crate::architect;
 use crate::coder;
 use crate::demoer;
+use crate::dogfood;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
 use crate::qa;
@@ -86,6 +87,10 @@ pub fn run(args: &[String]) -> Result<()> {
     if let Some(i) = args.iter().position(|a| a == "--stations") {
         return run_stations(args.get(i + 1));
     }
+    // The dogfood-staleness query (S91) rides `vajra next` — no 8th command. Read-only.
+    if args.iter().any(|a| a == "--dogfood-age") {
+        return run_dogfood_age();
+    }
 
     if args.iter().any(|a| a == "--advance") {
         run_advance()
@@ -115,6 +120,26 @@ fn run_stations(nn: Option<&String>) -> Result<()> {
     print!(
         "{}",
         stations::format_station_report(&stations::station_report(&root, session))
+    );
+    Ok(())
+}
+
+/// `vajra next --dogfood-age` — the live dogfood-staleness query (S91): scan
+/// `sessions/session-NN-artifacts/` for the most recent real `vajra claude` run, derive its date
+/// from git (not from STATE.md), and report sessions-elapsed + calendar-days-elapsed. Always
+/// exits 0 (a report, not a gate).
+fn run_dogfood_age() -> Result<()> {
+    let root = repo_root()?;
+    let session_str =
+        fs::read_to_string(root.join(".ai/SESSION")).context("failed to read .ai/SESSION")?;
+    let current: u32 = session_str
+        .trim()
+        .parse()
+        .context(".ai/SESSION is not a valid integer")?;
+    let report = dogfood::dogfood_age(&root, current);
+    print!(
+        "{}",
+        dogfood::format_dogfood_age(current, report.as_ref())
     );
     Ok(())
 }
