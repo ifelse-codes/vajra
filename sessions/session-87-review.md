@@ -130,4 +130,10 @@ by deliberately making it fail, the demo's before/after by reading its actual li
 disclosed Reviewer/Releaser regression is real, was found live (not hidden), and is correctly
 scoped out of this session as a strong S88 candidate.
 
-**Review-Inputs-SHA:** d2e4c1ace116ad353303d41f60fb3eb826c7e34c4f064a2c31c7cbae06409a12
+**Review-Inputs-SHA:** 83874bd1b7fdea2dfe338d3549b2f08bbd288ed62f1bc1d49fe1526b73738f9c
+
+(Re-hashed after this session's own `## Execution` self-application fix, committed
+`447a8ba` — S58's freshness discipline: touching a hashed file after the pass requires
+a re-hash. The independent review's findings and verdict are unaffected — the fix
+only filled in this session's own Coder-gate record, already described in the "Scope
+/ guardrails check" section above.)

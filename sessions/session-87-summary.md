@@ -93,12 +93,15 @@ work were explicitly out of scope and untouched.
 
 ## Attestation
 
-- **Review-Inputs-SHA:** `d2e4c1ace116ad353303d41f60fb3eb826c7e34c4f064a2c31c7cbae06409a12`
+- **Review-Inputs-SHA:** `83874bd1b7fdea2dfe338d3549b2f08bbd288ed62f1bc1d49fe1526b73738f9c`
   (`sha256(prompt ‖ delivery-diff)`; delivery diff = `scripts/verify-session-87.sh` +
   `scripts/demo-session-87.sh`, per `scripts/verify-closeout.sh --inputs-sha 87` — the exclude list
   structurally omits `prompts/`, so the `prompts/76-...md` fix itself is not part of the hashed
-  diff, only the scripts are). See `sessions/session-87-review.md` for the independent two-pass
-  cold verdict (pass 1 REJECT → in-session fix → pass 2 ACCEPT).
+  diff, only the scripts are; this session's OWN `prompts/87-...md` prompt bytes ARE hashed
+  directly, which is why filling in this file's own `## Execution` section after the first hash was
+  computed required a re-hash — S58's freshness discipline, applied live). See
+  `sessions/session-87-review.md` for the independent two-pass cold verdict (pass 1 REJECT →
+  in-session fix → pass 2 ACCEPT).
 
 ## Coder-gate execution (plan step → landing commit)
 
