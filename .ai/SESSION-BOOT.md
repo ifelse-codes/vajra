@@ -1,41 +1,35 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 89 — COMPLETE
-- **Type:** **CODE (docs-only).** Full `.ai/ROADMAP.md` consolidation (710→219 lines, 69%
-  reduction) + fixed the stale "Where We Are" table (27 sessions stale since S60, longest-standing
-  deferred item). Founder expanded scope at session start from "fix the table" to a complete
-  cleanup: per-session prose blocks replaced with a compact session-log table, backlog pruned
-  (removed already-shipped items), sections reorganized, Rule 5 added ("per-session detail goes in
-  `sessions/session-NN-summary.md`, not here").
-- **Headline result:** `.ai/ROADMAP.md` 710 → 219 lines. Stale strings (2026-07-14, S59, Session
-  60) gone. Correct values (2026-07-21, S88, 8-station pipeline, "None — between sessions") present.
-  Cold review: **ACCEPT** (4 SHIPPED, 1 PARTIAL/disclosed). `verify-session-89.sh` 16/16.
-- **Independent cold review:** ACCEPT. AC5 PARTIAL/disclosed — the verify script confirms structure
-  (section headers, line count) but cannot assert the consolidation's content accuracy (session-log
-  entries sourced from reading the old ROADMAP, not cross-checked row-by-row). Low severity.
-- **Report:** `sessions/session-89-summary.md` + `sessions/session-89-review.md`.
+- **Number:** 90 — COMPLETE
+- **Type:** **NO-CODE Ground Truth** (`90 % 5 == 0`; last GT = S85). 9 required audits run for
+  S86–S89. Key findings: (1) STATE.md date error — "19+ days since S76 (2026-07-03)" cited S36's
+  date; corrected to S76 = 2026-07-18 (13 sessions / 2–3 calendar days stale). (2) S89 station
+  check = 5/8: Demo-er missing markers + Reviewer hash mismatch. (3) Easy-green detour, 3rd
+  consecutive GT. Verdicts: state_drift 🔴 · dogfood 🔴 · pipeline 🟡 · all others 🟢/🟡.
+- **Headline result:** `sessions/session-90-ground-truth.md`. All 9 audits complete. `cargo test
+  --lib` = 271 (unchanged). No src/ change.
+- **Independent cold review:** N/A — NO-CODE GT session; no fidelity review required.
+- **Report:** `sessions/session-90-ground-truth.md`.
 - **Date last updated:** 2026-07-21.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 89.
-- **Pipeline = 8 governed stations, unchanged in COUNT.** ROADMAP.md now compact and current.
+- `.ai/SESSION` = 90.
+- **Pipeline = 8 governed stations, unchanged.** S90 was NO-CODE.
 - No `src/` change. `cargo test --lib` = 271 (unchanged).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 90
-- **Type:** **NO-CODE mandatory ground truth** (`90 % 5 == 0`; last GT = S85).
-- **Lead lens:** dogfood 🔴 — 12+ sessions / 19+ calendar days stale since S76 (2026-07-03).
-  Near-certain S90 GT top finding. State exact sessions + days stale from the real date, not guessed.
-- **Prompt:** `prompts/90-task-ground-truth.md`. **Branch:** `session-90-closeout` (exempt suffix).
-  **New chat.**
+- **Number:** 91
+- **Type:** **CODE** — fix S89 Reviewer hash mismatch (B) + add live `--dogfood-age` query (C).
+  Founder-approved B+C combination (like S39 A+B). B → C order.
+- **Prompt:** `prompts/91-task-fix-attestation-and-dogfood-staleness.md`. **New chat.**
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S90.
-- **Dogfood is 🔴 — now 12 sessions (S77–S89) / 19+ calendar days stale since S76.** Founder-
-  un-parkable per S70/S85; NOT picked at S86, S87, S88, or S89. S90 GT's near-certain top finding.
-- **S90 is a NO-CODE GT** — hook-enforced. No src/ edits, no commits on the main session branch,
-  no PRs. Closeout on `session-90-closeout` branch. `VAJRA_CLOSEOUT_WAIVER=90`.
-- **ROADMAP.md is now 219 lines** — Rule 5 added requires adding a one-row session entry at every
-  closeout to prevent re-bloat.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S91.
+- **Dogfood is 🔴 — 13 sessions (S77–S90) / 2–3 calendar days stale since S76 (2026-07-18).**
+  The "19+ calendar days" figure in prior state docs was wrong (S36's date cited). Corrected here.
+  Founder-un-parkable per S70; NOT picked through S90.
+- **S89 Reviewer ABSENT** — `--stations 89` shows hash mismatch for docs-only diff. S91 B fixes.
+- **S91 = CODE (B+C).** No waiver. Fill `## Execution` shas.
+- **ROADMAP.md is 219 lines** — Rule 5: add a one-row session entry at closeout.
