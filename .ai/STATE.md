@@ -3,40 +3,38 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S89 complete, S90 not yet started).
-S89 = **CODE (docs-only)** — full ROADMAP consolidation (710→219 lines, 69% reduction) + fixed
-stale "Where We Are" table (27 sessions stale since S60). Founder expanded scope at session start
-from "fix the table" to a full cleanup. Independent cold review: **ACCEPT** (4 SHIPPED, 1
-PARTIAL/disclosed — AC5 content-accuracy not script-verified). Report: `sessions/session-89-review.md`.
+None — between sessions (S90 complete, S91 not yet started).
+S90 = **NO-CODE Ground Truth** (`90 % 5 == 0`). 9 required audits run. Key findings:
+(1) STATE.md date error: "19+ days since S76 (2026-07-03)" cited S36's date — S76 was 2026-07-18;
+actual staleness = 13 sessions / 2–3 calendar days. (2) S89 station check = 5/8: Demo-er missing
+`demo:<element>` markers + Reviewer hash mismatch (docs-only diff unverifiable by
+`canonical_inputs_sha`). (3) Easy-green detour, 3rd consecutive GT finding this shape. Full
+report: `sessions/session-90-ground-truth.md`.
 
 ## Active PRs
-- Merged: S88 [#87](https://github.com/ifelse-codes/vajra/pull/87) · S87
+- Merged: S89 [#88](https://github.com/ifelse-codes/vajra/pull/88) · S88
+  [#87](https://github.com/ifelse-codes/vajra/pull/87) · S87
   [#86](https://github.com/ifelse-codes/vajra/pull/86) · S86
   [#85](https://github.com/ifelse-codes/vajra/pull/85) · S85 (docs-only GT closeout,
-  `session-85-closeout`) · S84 [#83](https://github.com/ifelse-codes/vajra/pull/83).
-- **S89 PR:** TBD (`session-89-fix-roadmap-stale-table`) — 2 commits (ROADMAP + prompt; verify +
-  demo scripts).
+  `session-85-closeout`).
+- **S90 PR:** TBD (`session-90-closeout`) — docs-only GT closeout.
 
 ## Direction (governance is the product — 8 governed stations + durable station counter)
 - **The product = provable agent governance**, shaped as a **governed multi-agent SDLC pipeline**
   (`VISION.md` + `DECISION-001`). Fidelity is the load-bearing governance (`DECISION-002`), verdicts
   attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
-- **S89 consolidated the ROADMAP** — 710 lines of dense per-session prose replaced with compact
-  tables. The "Where We Are" table now correctly reflects: 2026-07-21, 8-station pipeline + S86–S88
-  attestation-hardening arc, last=S88, active="None — between sessions". Rule 5 added: per-session
-  detail belongs in `sessions/session-NN-summary.md`, not in ROADMAP.md.
-- **S70 founder decisions (binding until revisited):** ① crew DONE (8 stations) ✓. ② dogfood: S76
-  baseline, now **12 sessions (S77–S89) / 19+ calendar days** stale (2026-07-03 → 2026-07-21) — 🔴,
-  founder-un-parkable, not re-picked through S89. ③ compression: never claimed until measured (0
-  folds). ④ payload counter = BUILT (S74) + GT-verified (S75/S80/S85) + hardened (S82).
-- **House patterns (carried):** a raw K-of-8 reading cannot distinguish "counter got more accurate"
-  from "pipeline stalled" — read the shape, not just the digit (S85). A "recompute and compare" fix
-  must be tested against real historical data the old bug actually failed on (S86). A fix to a
-  historical record can retroactively break a different governance mechanism that depends on that
-  record's bytes staying stable — check downstream dependents (S87). A session's own proof fixture
-  can be hollow for a reason unrelated to the fix under test — verify a test fails without the fix
-  by actually reverting and re-running (S88). **NEW (S89): a 710→219 line consolidation's content
-  accuracy is not script-verifiable — the green is structural, not semantic.**
+- **S90 GT verdicts:** vision/roadmap/constraints/constitution 🟡🟢 · state_drift 🔴 (date error
+  fixed in this STATE.md) · dogfood 🔴 (13 sessions / 2–3 days since S76 = 2026-07-18) ·
+  pipeline 🟡 (S89 = 5/8; S86–S88 = 7/8).
+- **S70 founder decisions (binding until revisited):** ① crew DONE (8 stations) ✓. ② dogfood:
+  S76 baseline (2026-07-18), now **13 sessions (S77–S89) / 2–3 calendar days** stale — 🔴,
+  founder-un-parkable, not re-picked through S90. ③ compression: never claimed until measured
+  (0 folds). ④ payload counter = BUILT (S74) + GT-verified (S75/S80/S85/S90) + hardened (S82).
+- **House patterns (carried):** a 710→219 line consolidation's content accuracy is not
+  script-verifiable — the green is structural, not semantic (S89). Dogfood staleness must be
+  computed from git/receipts, not read from STATE.md — the "19+ days" date error survived 3 GTs
+  (S90 meta-check finding). Easy-green detour: 3rd consecutive GT flagging the same shape (S80,
+  S85, S90).
 
 ## What Currently Works
 - **The 8-station governed pipeline** riding `vajra next` (+ station gates at `--advance`): Analyst ·
@@ -50,16 +48,24 @@ PARTIAL/disclosed — AC5 content-accuracy not script-verified). Report: `sessio
   trusting a bare label (S86), S76's Execution trace is fully recorded (S87), the attestation hash
   is review-time-stable (S88, which also repaired S73 and S79 as a bonus). ROADMAP.md is now
   compact and current (S89).
-- **`cargo test --lib` 271** (unchanged — docs-only session).
+- **`cargo test --lib` 271** (unchanged — NO-CODE GT session).
 - **`vajra claude · next · check · init · estimate · meter · hook`** — 7 commands, no 8th.
 
 ## What Is Broken / Weak
-- **🔴 Dogfood: stale since S76 — now 12 sessions (S77–S89) / 19+ calendar days.** Escalated 🟡→🔴
-  at S85, still not re-picked through S89. Refresh = founder-un-parkable MEASURE session. S90 GT
-  is next — this is near-certain to be its top finding.
+- **🔴 Dogfood: 13 sessions (S77–S89) / 2–3 calendar days stale since S76 (2026-07-18).** The
+  previous "19+ calendar days since S76 (2026-07-03)" was a date error — S36's date (2026-07-03)
+  was cited instead of S76's actual date. Staleness by session count (13) was correct. Still
+  founder-un-parkable; not picked through S90.
+- **🔴 S89 Reviewer station ABSENT** — `--stations 89` shows Reviewer ABSENT (hash mismatch):
+  docs-only sessions produce a `Review-Inputs-SHA` that `canonical_inputs_sha` cannot reconstruct.
+  Breaks the ledger chain at S89. S91 fixes this (B).
+- **🟡 S89 Demo-er station ABSENT** — `demo-session-89.sh` exists but does not emit
+  `demo:<element>` markers. The script exits 0 but the element scan fails. Docs-only sessions
+  didn't retroactively get the S71 marker contract applied.
+- **🟡 No live dogfood-staleness query** — STATE.md's date was wrong for 3+ GTs because staleness
+  was read from docs, not computed. S91 adds `--dogfood-age` (C).
 - **🟡 ROADMAP consolidation content fidelity not script-verified** — S89 cold review AC5 PARTIAL.
-  The session-log table entries sourced from reading the old ROADMAP; not row-by-row cross-checked
-  against `sessions/session-NN-summary.md`. Low severity, reference content.
+  Low severity, reference content.
 - **🟡 Legacy opus ids (4.0/4.1/4.5) have no confirmed current-rate source** — kept at historical
   $15/$75 as a conservative estimate (disclosed S79).
 - **🟡 The signal-death edge case (`gate_run::code_or_conservative`) has no dedicated automated
@@ -84,14 +90,14 @@ PARTIAL/disclosed — AC5 content-accuracy not script-verified). Report: `sessio
   PROOF + opt-in · guard nested-repo blindspot · install path.
 
 ## What Is In Progress
-- **S89 DONE (CODE docs-only).** Founder picked **S90 = mandatory NO-CODE ground truth**
-  (`90 % 5 == 0`). Lead lens: dogfood 🔴 (12+ sessions stale). `prompts/90-task-ground-truth.md`
+- **S90 DONE (NO-CODE GT).** Founder picked **S91 = B+C** (fix S89 Reviewer hash mismatch +
+  add live dogfood-staleness query). `prompts/91-task-fix-attestation-and-dogfood-staleness.md`
   written and approved. **New chat.**
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
 - Session 36: ~$61.4 · Session 46: ~$3.84 · Session 51: ~$1.52 · Session 52: ~$4.95 · Session 63: ~$1.27.
 - Session 53–75: ~$0 each. **Session 76: real but UNKNOWN** (fable-5 unpriced; opus-estimate ≤ ~$26.6).
-  **Session 77–89: ~$0 each** (S78 ~$0.055; the rest docs-only, bash/Rust-only source fixes, or
+  **Session 77–90: ~$0 each** (S78 ~$0.055; the rest docs-only, bash/Rust-only source fixes, or
   local-subagent cold reviews).
 - Cumulative: **~$73.7 + S76 (unknown, ≤ ~$26.6 opus-estimate).**

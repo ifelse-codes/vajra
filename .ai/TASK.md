@@ -2,33 +2,34 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 89 — ROADMAP consolidation + stale table fix (CODE docs-only) — COMPLETE
+## Session 90 — NO-CODE Ground Truth (`90 % 5 == 0`) — COMPLETE
 
-- **Goal:** fix `.ai/ROADMAP.md`'s stale "Where We Are" table (27 sessions stale since S60) —
-  founder expanded scope to full ROADMAP consolidation (710→219 lines, 69% reduction). Per-session
-  prose replaced with compact session-log table; backlog pruned; sections reorganized.
-- Independent cold review: **ACCEPT** (4 SHIPPED, 1 PARTIAL/disclosed — AC5 content-accuracy not
-  script-verified). Report: `sessions/session-89-review.md`.
+- **Goal:** run all 9 required audits for S86–S89. Output: `sessions/session-90-ground-truth.md`.
+- **Headline findings:** (1) STATE.md date error — "19+ days since S76 (2026-07-03)" cited S36's
+  date; S76 was 2026-07-18; actual staleness = 13 sessions / 2–3 calendar days. (2) S89 = 5/8
+  stations: Demo-er missing markers + Reviewer hash mismatch. (3) Easy-green detour, 3rd
+  consecutive GT finding the same shape.
+- Report: `sessions/session-90-ground-truth.md`. Branch: `session-90-closeout`.
 
-Between sessions. **Next = S90 — mandatory NO-CODE ground truth (`90 % 5 == 0`).**
+Between sessions. **Next = S91 — fix S89 Reviewer hash mismatch + dogfood-staleness live query.**
 New chat.
 
-## Next Session (S90 — mandatory NO-CODE GT, APPROVED)
+## Next Session (S91 — CODE, APPROVED)
 
-- **Goal:** run all 9 required audits (vision/roadmap/state/knowledge/constraints/constitution/cost/
-  dogfood/pipeline_advance). Lead lens: dogfood 🔴 (12+ sessions stale since S76). Output:
-  `sessions/session-90-ground-truth.md`. No src/ changes, no PRs.
-- Prompt: `prompts/90-task-ground-truth.md`.
-- **Branch:** `session-90-closeout` (exempt suffix — NO-CODE GT).
+- **Goal:** (B) fix `--stations 89` Reviewer ABSENT (hash mismatch for docs-only sessions); (C)
+  add live `--dogfood-age` query computed from receipts (not STATE.md). Founder-approved B+C
+  combination (like S39 A+B).
+- Prompt: `prompts/91-task-fix-attestation-and-dogfood-staleness.md`.
+- **Branch:** `session-91-<slug>`.
 
 ## Always-True Reminders
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
-- Branch: `session-NN-<slug>`. Every 5th session is NO-CODE ground truth (next = **S90**).
+- Branch: `session-NN-<slug>`. Every 5th session is NO-CODE ground truth (next = **S95**).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
-- **New session = new chat** — open a fresh chat for S90; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S91; do NOT start it here.
 - **Direction:** product = **provable agent governance**, shaped as a **governed multi-agent SDLC
   pipeline** (`DECISION-001`); fidelity is load-bearing (`DECISION-002`), verdicts attested
   (`DECISION-003`), chained tamper-evident (`DECISION-004`). **Pipeline = 8 governed stations.
-  S89 fixed the ROADMAP bloat (710→219 lines). Dogfood 🔴 (12+ sessions stale since S76) remains
-  the highest-priority open item and near-certain S90 GT top finding.**
+  Dogfood (13 sessions / 2–3 days since S76 = 2026-07-18) is the standing highest-priority open
+  item. S90 GT also found S89 Reviewer hash mismatch — S91 fixes it.**
