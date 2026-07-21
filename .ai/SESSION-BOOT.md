@@ -1,57 +1,59 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 85 — COMPLETE
-- **Type:** **NO-CODE ground truth** (`85 % 5 == 0`, mandatory). Audited the S81→S84 arc
-  (execution-sha closeout guard · Releaser ledger fallback · read-only-headless UX warning · typed
-  `CannotEvaluate`). No `src`/scripts change.
-- **Headline result:** `vajra next --stations NN` run live for S80→S84 shows a **dead flat 7/8**
-  across all four CODE sessions (Architect the only absence throughout) — sharper than S80's own
-  5→6→7→5 reading of the S76→S79 receipt arc. **Lens A verdict: easy-green detour CONFIRMED, now a
-  2nd consecutive GT finding the identical shape.** Each of S81-S84 was individually real, but the
-  pattern — four small, certain wins over two older debts — repeats one axis over. The attestation
-  substring-check (disclosed since S82, carried S83, re-disclosed S84) ran out of "disclosed, not
-  hidden" cover — re-ranked to 🥇 for S86, ahead of the older S76 sha fix, because it is a LIVE
-  exploit surface (2 governed stations) not a historical record gap. **New finding:** `ROADMAP.md`'s
-  own "Where We Are" table is 24 sessions stale inside an otherwise-current document. **Dogfood
-  escalated 🟡→🔴:** 8 sessions (S77-S84) / 17 calendar days since S76 (2026-07-03→2026-07-20,
-  computed not guessed) — no satisfaction verdict rendered.
-- **9 audits:** vision 🟡 · roadmap 🟡 · state 🟢 · knowledge 🟡 · constraints 🟢 · constitution 🟡 ·
-  cost 🟢 · dogfood 🔴 · pipeline_advance 🔴.
-- **Report:** `sessions/session-85-ground-truth.md`.
-- **No PR for the GT report itself** — bundled into the S85 closeout PR (docs-only:
-  `.ai/*`, `prompts/86-*`, `sessions/session-85-ground-truth.md`), mirroring S80's closeout shape.
-- **Date last updated:** 2026-07-20.
+- **Number:** 86 — COMPLETE
+- **Type:** **CODE**. Hardened `reviewer_status`/`session_attested_accept`
+  (`src/stations/mod.rs`) — a bare `.contains("review-inputs-sha")` label match is now a real
+  recompute-and-compare against the canonical `sha256(prompt bytes \0 delivery diff)` hash.
+- **Headline result:** Neither prompt-suggested design option satisfied the acceptance criteria
+  as literally written — both were tested directly against this repo's real history before
+  picking (not assumed). (a) live recompute via `git merge-base main HEAD` is confirmed BROKEN
+  post-merge (S84's hash recomputes to a materially different, WRONG value today). (b) the S59
+  ledger never validates a hash, only checks a well-formed value is present. Built a third
+  approach: search every reconstructable diff — the live not-yet-merged branch, plus every
+  `--no-ff` merge commit reachable from `main` — anchored to the session's own prompt bytes so a
+  recycled hash from another session can't match. **Empirically validated, not just
+  unit-tested:** reproduces 16 of 20 real historical ACCEPT reviews' claimed hashes exactly; the
+  remaining 4 (S64, S69, S73, S79) fail closed as `Unverifiable` — disclosed as a deliberate
+  trade-off (AC5), not a silent regression. **Two real bugs self-caught before commit** by testing
+  against this repo's OWN historical review files (not just synthetic fixtures): a trailing-newline
+  mismatch (bash's `$(...)` strips them, the first Rust cut didn't) and an unanchored label search
+  (misread `sessions/session-82-review.md`, which discusses the label in prose before its real
+  attestation line). Both fixed to mirror `verify-closeout.sh`'s exact algorithm.
+- **270 lib tests** (+3: 3 new, 3 existing updated). Clippy + fmt clean. Independent cold review:
+  **ACCEPT**, all 6 acceptance criteria SHIPPED (subagent independently re-derived the 16/20 split
+  itself, not trusting the write-up).
+- **Report:** `sessions/session-86-review.md`, attested `b21c7c5b…`.
+- **Date last updated:** 2026-07-21.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 85.
-- **Pipeline = 8 governed stations, unchanged by this NO-CODE session** — receipt authoritative on
-  headless runs (S78), honest on interactive (S77), correctly priced (S79), closeout gate hardened
-  against unfilled execution shas (S81), station counter durable across branch pruning (S82,
-  reconfirmed live this GT), pre-flight warning before a headless launch hits the read-only wall
-  (S83), QA/Demo-er gates' cannot-evaluate BLOCK names WHICH of two reasons occurred (S84). 7
-  commands, no 8th.
-- `verify-closeout.sh` unchanged (NO-CODE session, no scripts edit); `VAJRA_CLOSEOUT_WAIVER=85`
-  used for the GT's intentionally-unfilled `## Execution`... N/A this session (GT report has no
-  Coder-gate `## Execution` section; the S86 prompt does, left unfilled until S86 lands).
+- `.ai/SESSION` = 86.
+- **Pipeline = 8 governed stations, unchanged in COUNT** — the Reviewer/Releaser attestation
+  dimension is now cryptographically verified rather than label-trusted. 7 commands, no 8th.
+- `verify-closeout.sh` unchanged (no scripts edit this session — the fix lives entirely in
+  `src/stations/mod.rs`, the Rust-side classifier; the bash gate's own `check_review_attestation`
+  was already correct and unchanged).
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 86
-- **Type:** **CODE** — harden `reviewer_status`/`session_attested_accept`'s attestation check from
-  a bare `.contains("review-inputs-sha")` label match into a real recompute-and-compare, closing
-  the live weakness in 2 governed stations disclosed since S82.
-- **Prompt:** `prompts/86-task-harden-attestation-check.md`. **Branch:**
-  `session-86-harden-attestation-check`. **New chat.**
+- **Number:** 87
+- **Type:** **CODE** (docs-only) — fill S76's `## Execution` section's 4 unfilled `<sha>`
+  placeholders with the real landing commits, matched by content not by coincidental numbering.
+- **Prompt:** `prompts/87-task-fix-s76-execution-shas.md`. **Branch:**
+  `session-87-fix-s76-execution-shas`. **New chat.**
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S86; do NOT start here.
-- **The attestation substring-check is the S86 pick** — see prompt for the (a) vs (b) design fork
-  (live recompute vs read the S59 ledger; ledger recommended, mirrors S82's precedent).
-- **S76 still has unfilled `<sha>` placeholders** — standing since S81, now 8 sessions overdue.
-  Ranked 🥈 B for S86 (not picked this round).
-- **`ROADMAP.md`'s "Where We Are" table is 24 sessions stale** — new S85 finding. Ranked 🥉 C.
-- **Dogfood is 🔴 — 8 sessions / 17 calendar days stale since S76.** A founder-un-parkable MEASURE
-  session, not yet re-picked; watch for it to keep aging past S86.
-- **The signal-death edge case (`code_or_conservative`) has no dedicated automated test** — S84's
-  own cold review finding, low severity, unchanged.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S87; do NOT start here.
+- **S76's Execution shas are the S87 pick** — 6 candidate commits identified between S76's merge
+  parents; do not assume the "(N/4)" commit-message numbering matches the Plan's step-N order,
+  verify by reading each diff's actual content.
+- **`ROADMAP.md`'s "Where We Are" table is still stale** — ranked 🥉, not picked at S86's close
+  either. Still open.
+- **Dogfood is 🔴 — now 10 sessions (S77-S86) / 18 calendar days stale since S76.** Recommended 🥇
+  at this close but NOT picked by the founder (S76 sha fix picked instead) — founder-un-parkable
+  per S70/S85, watch it keep aging past S87.
+- **Two new low-severity findings from S86's own independent cold review** (both pre-existing or
+  low-risk, neither blocking): `read_prompt`/`analyst::find_prompt_for` picks the first prompt
+  file matching a session's prefix on directory-order (not S86-introduced); no dedicated test
+  isolates the "still on the open, not-yet-merged branch" live-candidate path of
+  `attested_hash_outcome` (verbatim copy of the pre-existing bash algorithm, low risk).
