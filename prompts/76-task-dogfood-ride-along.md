@@ -68,10 +68,12 @@ design-significant: no
    (`--inputs-sha 76` at review time). covers: 4, 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: 16d30aa70e26d189e27cc89b7043efc007bc8c26
+- step 2 — done: 08e4718d499c90a310ca2893f89a92977371785d
+- step 3 — done: 9f0cab0521a72907c07e93fe2023cabbf157dc3e
+- step 4 — done: 9f0cab0521a72907c07e93fe2023cabbf157dc3e (dogfood.md + summary.md +
+  review.md/attestation; verify-session-76.sh + demo-session-76.sh, also named by this step,
+  landed in a separate commit — see S87 summary for the disclosed 2-commit span)
 
 ## Guardrails
 - **One story:** measure the pipeline as experience. No `src/` changes, no station work, no compression
