@@ -89,9 +89,11 @@ shas. No new mechanism, no new gate, no new store.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
+- step 1 — done: f7f14e8 (read S76's Plan + all 6 candidate diffs, matched by substance)
+- step 2 — done: f7f14e8 (same commit — the edit landed together with the match)
+- step 3 — done: 863672b (first attempt `5346920` had 2 bugs the independent cold review caught —
+  a false before/after and a tautological scope check; the genuinely live-verified, adversarially
+  proven confirmation this step requires lands at `863672b`, disclosed in the S87 summary/review)
 
 ## Guardrails
 
