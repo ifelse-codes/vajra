@@ -335,6 +335,23 @@ fn read_prompt(root: &Path, session: u32) -> Option<String> {
     fs::read_to_string(root.join(&rel)).ok()
 }
 
+/// Read a session's prompt file bytes **as they existed in one specific commit's tree**
+/// (`git show <tip>:<rel>`), never the live working tree. This is the per-candidate twin of
+/// `read_prompt`: `attested_hash_outcome` tries several historical `(base, tip)` candidates, and
+/// each one's hash must be checked against the prompt bytes AS THEY STOOD AT THAT TIP — a later
+/// commit editing the same prompt path (the S87→S76 live incident: filling in unrelated `<sha>`
+/// placeholders un-attested an already-ACCEPTed review) must never change an earlier candidate's
+/// hash. `None` when the blob doesn't exist at `tip` (e.g. the file was added/renamed after that
+/// commit) — the caller just skips this candidate, same as any other unreconstructable one.
+fn prompt_bytes_at(root: &Path, tip: &str, rel: &str) -> Option<Vec<u8>> {
+    let out = Command::new("git")
+        .args(["show", &format!("{tip}:{rel}")])
+        .current_dir(root)
+        .output()
+        .ok()?;
+    out.status.success().then_some(out.stdout)
+}
+
 /// The final canonical `**Verdict:** ACCEPT|REJECT` line resolves the review. Mirrors
 /// `verify-closeout.sh`: a line whose text contains `verdict:` and then `accept`/`reject`. `None`
 /// when no canonical verdict line exists ("No expected verdict supplied" has no colon — not a match).
@@ -417,11 +434,19 @@ fn attested_hash_outcome(root: &Path, session: u32, review_text: &str) -> Attest
     let Some(claimed) = claimed_inputs_sha(review_text) else {
         return AttestOutcome::NotAttested;
     };
-    let Some(prompt) = read_prompt(root, session) else {
+    // The FILENAME is resolved once, live (a prompt is never renamed post-merge — the same
+    // accepted limitation `find_prompt_for` already carries elsewhere). The BYTES are re-read
+    // per candidate, from that candidate's own `tip` tree — never one shared live buffer (the
+    // S87-discovered bug: a later, unrelated commit editing this same path used to retroactively
+    // change every earlier candidate's hash too).
+    let Some(rel) = analyst::find_prompt_for(root, session) else {
         return AttestOutcome::Unverifiable;
     };
     for (base, tip) in candidate_diffs(root) {
-        if let Some(h) = diff_hash(root, &base, &tip, prompt.as_bytes()) {
+        let Some(prompt) = prompt_bytes_at(root, &tip, &rel) else {
+            continue;
+        };
+        if let Some(h) = diff_hash(root, &base, &tip, &prompt) {
             if h == claimed {
                 return AttestOutcome::Verified;
             }
@@ -1003,6 +1028,58 @@ release:
         )
         .unwrap();
         assert_eq!(outcome(root, 92, "Reviewer"), Outcome::Absent);
+    }
+
+    #[test]
+    fn reviewer_stays_verified_after_a_later_session_edits_the_same_prompt_file() {
+        // Reproduces the S87→S76 live incident exactly: session 93 merges first with a genuine
+        // attestation; a LATER session (94) legitimately edits session 93's own prompt file
+        // (any reason — a typo fix, filling in a placeholder, S87's real case) and merges too.
+        // Pre-S88, `attested_hash_outcome` re-hashed the LIVE (now-edited) prompt bytes against
+        // every candidate, including 93's own — which could never match 93's ORIGINAL diff, so
+        // an already-ACCEPTed review silently flipped Verified -> Unverifiable.
+        let tmp = repo();
+        let root = tmp.path();
+
+        let original_prompt = "prompt for session 93 — original text\n";
+        write_prompt(root, 93, original_prompt);
+        let (base93, tip93) = merge_and_prune_session_branch(root, 93, "f93");
+        let hash93 =
+            diff_hash(root, &base93, &tip93, original_prompt.as_bytes()).expect("hash computable");
+        fs::write(
+            root.join("sessions/session-93-review.md"),
+            format!("**Verdict:** ACCEPT\n\n**Review-Inputs-SHA:** {hash93}\n"),
+        )
+        .unwrap();
+        assert_eq!(outcome(root, 93, "Reviewer"), Outcome::Passed);
+
+        // Session 94 edits session 93's OWN prompt file, on its own branch, and merges.
+        let edited_prompt = "prompt for session 93 — EDITED by a later session\n";
+        git_in(root, &["checkout", "-qb", "session-94-x"]);
+        write_prompt(root, 93, edited_prompt);
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", "s94 edits s93's prompt"]);
+        git_in(root, &["checkout", "-q", "main"]);
+        git_in(
+            root,
+            &["merge", "-q", "--no-ff", "session-94-x", "-m", "merge 94"],
+        );
+        git_in(root, &["branch", "-D", "session-94-x"]);
+
+        // Sanity: the live file really did change underneath session 93's review.
+        assert_eq!(
+            fs::read_to_string(root.join("prompts/93-task-fixture.md")).unwrap(),
+            edited_prompt
+        );
+
+        // Session 93's attestation must be UNAFFECTED by session 94's later, unrelated edit —
+        // the direct fix this session ships (AC1/AC4).
+        assert_eq!(outcome(root, 93, "Reviewer"), Outcome::Passed);
+        let review_text = fs::read_to_string(root.join("sessions/session-93-review.md")).unwrap();
+        assert_eq!(
+            attested_hash_outcome(root, 93, &review_text),
+            AttestOutcome::Verified
+        );
     }
 
     #[test]
