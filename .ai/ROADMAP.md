@@ -1,8 +1,8 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-21 · **Session 90 — NO-CODE Ground Truth — DONE.**
-Key findings: state_drift 🔴 (S76 date error corrected); S89 = 5/8 (Reviewer hash mismatch); dogfood 🔴.
-**Next = S91, CODE (B+C): fix S89 Reviewer hash + add `--dogfood-age` live query.**
+**Updated:** 2026-07-21 · **Session 91 — CODE (B+C) — DONE.**
+B: S89 Reviewer PASSED (intermediate-commit attestation fix). C: `--dogfood-age` live from git. 283 tests.
+**Next = S92. Options TBD.**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -15,9 +15,9 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 | Field | Value |
 |---|---|
 | Today | 2026-07-21 |
-| Current phase | **8-station governed pipeline complete.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt is authoritative. Dogfood 🔴 (13 sessions / 2–3 days stale since S76 = 2026-07-18). S89 Reviewer hash mismatch = S91 target. |
-| Last closed session | Session 90 — NO-CODE Ground Truth (`90 % 5 == 0`) |
-| Active session | None — between sessions (S90 complete, S91 not yet started) |
+| Current phase | **8-station governed pipeline complete.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt is authoritative. Dogfood 🔴 (14 sessions / 3 days stale since S76 = 2026-07-18) — now measurable live via `vajra next --dogfood-age` (S91C). S89 Reviewer PASSED (S91B). |
+| Last closed session | Session 91 — CODE (B+C): intermediate-commit attestation fix + `--dogfood-age` |
+| Active session | None — between sessions (S91 complete, S92 not yet started) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ---
@@ -108,6 +108,7 @@ GT-verified S75/S80/S85).
 | S88 | CODE | Fix `canonical_inputs_sha` to hash review-time snapshot; repaired S73+S79 as bonus |
 | S89 | CODE (docs) | ROADMAP consolidation: 710→219 lines; fixed stale "Where We Are" table (27 sessions stale) |
 | S90 | GT (NO-CODE) | Ground truth: state_drift 🔴 (S76 date error); S89 Reviewer hash mismatch; dogfood 🔴 (13 sessions / 2–3 days); easy-green detour 3rd GT |
+| S91 | CODE (B+C) | Fix S89 Reviewer hash mismatch (intermediate-commit attestation); add `--dogfood-age` live git query; 283 tests |
 
 ---
 
@@ -116,7 +117,8 @@ GT-verified S75/S80/S85).
 | Session | Status | Goal |
 |---|---|---|
 | S90 | Complete | NO-CODE Ground Truth — state_drift 🔴 corrected; S89 Reviewer hash mismatch found; dogfood 🔴 |
-| **S91** | **Next** | CODE (B+C): fix S89 Reviewer hash mismatch + add `--dogfood-age` live query |
+| S91 | Complete | CODE (B+C) — S89 Reviewer PASSED + `--dogfood-age` live query; 283 tests |
+| **S92** | **Next** | TBD — options to be presented; new chat |
 
 ---
 
@@ -130,19 +132,20 @@ GT-verified S75/S80/S85).
 | Attestation | ✅ Recompute-and-compare (S86); review-time snapshot (S88); 22/26 historical verified |
 | Releaser durability | ✅ Reads ledger when branch is pruned (S82) |
 | Fidelity gate | ✅ `verify-closeout.sh` blocks without independent ACCEPT review |
-| `cargo test --lib` | ✅ 271 tests |
+| `cargo test --lib` | ✅ 283 tests |
+| `vajra next --dogfood-age` | ✅ Git-derived staleness; never reads STATE.md |
 
 ## What Is Weak / Broken
 
 | Item | Severity | Notes |
 |---|---|---|
-| **Dogfood** | 🔴 | 12 sessions (S77–S88) / 19+ days stale since S76; founder-un-parkable; S90 GT's likely top finding |
+| **Dogfood** | 🔴 | 14 sessions (S77–S90) / 3 days stale since S76 (2026-07-18); founder-un-parkable; now measurable via `--dogfood-age` |
 | Compression | 🟡 | 0 folds on real CC (S63 + S76); never claim until measured |
 | `full_historical_scan` pass bar | 🟡 | Floor (`verified >= 16`), not strict zero-regression assertion (S88 reviewer note) |
 | Signal-death edge case | 🟡 | `gate_run::code_or_conservative` has no dedicated automated test (S84) |
 | `wait_or_timeout` Err | 🟡 | Pre-existing (S73) OS-level error classifies as `CannotEvaluate::Timeout` |
 | Legacy opus ids (4.0/4.1/4.5) | 🟡 | No confirmed current rate; held at historical $15/$75 conservative estimate |
-| `candidate_diffs` full-rescan | 🟡 | Rescans all merge commits per query (~2s today, O(n) scalability note) |
+| `candidate_diffs` intermediate-commit scan | 🟡 | Enumerates all commits in base..p2 per merge (S91B fix); O(n·k) scalability; post-merge-tip case still ABSENT |
 | `read_prompt` ambiguous match | 🟡 | Picks first on >1 prompt file match; bash side fails-closed; rare |
 | Cross-agent breadth | 🟡 | 0 code; founder-gated (S26/S70) |
 | `canonical_inputs_sha` is single-candidate | 🟡 | Can only verify current open session; historical re-verification requires Rust side |
@@ -155,8 +158,7 @@ GT-verified S75/S80/S85).
 Priority order within each tier:
 
 **High (near-term picks):**
-- 🔴 **S91 (picked):** fix S89 Reviewer hash mismatch + add `--dogfood-age` live query
-- 🔴 **Dogfood refresh** — measure the full 8-station pipeline live against a real task; overdue since S76 (2026-07-18)
+- 🔴 **Dogfood refresh** — measure the full 8-station pipeline live against a real task; overdue since S76 (2026-07-18); staleness now measurable via `--dogfood-age`
 - 🟡 **Compression: `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it; those 3 still won't fold typical output
 - 🟡 **Guard nested-repo blindspot** (S52) — session-guard / copilot-loader can't distinguish Vajra's `session-NN` branches from a subject repo's own
 
