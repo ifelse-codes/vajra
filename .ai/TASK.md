@@ -15,9 +15,10 @@
   `--stations` counter is consulted but only its per-station SHAPE (not K) catches machinery-vs-payload.
 - Report: `sessions/session-95-ground-truth.md`. Branch: `session-95-closeout` (exempt).
 
-Between sessions. **Next = S96** (DOGFOOD — founder pick A): end-to-end 8-station pipeline dogfood
-on chitra (resume the dangling S08 → real ACCEPT closeout; diagnose the Coder-dark pattern).
-`prompts/96-task-e2e-pipeline-dogfood.md`. **New chat.**
+Between sessions. **Next = S96** (CODE — founder-directed): fix the pre-existing rustfmt 1.9.0 drift
+making CI red on main (3 files, `cargo fmt`, zero logic). `prompts/96-task-fmt-drift-fix.md`.
+**Then S97** (DOGFOOD — founder pick A): end-to-end 8-station pipeline dogfood on chitra
+(`prompts/97-task-e2e-pipeline-dogfood.md`). Both **new chat** each.
 
 ## Always-True Reminders
 
@@ -31,4 +32,5 @@ on chitra (resume the dangling S08 → real ACCEPT closeout; diagnose the Coder-
   pipeline** (`DECISION-001`); fidelity load-bearing (`DECISION-002`), verdicts attested
   (`DECISION-003`), chained tamper-evident (`DECISION-004`). **8 governed stations, dogfood-proven
   (S92, $0.27); commit gate ENFORCED (S93); guards repo-identity-aware (S94). S95 GT: pipeline not
-  advanced since S72; Coder station dark 4-for-4 — S96 dogfoods the full pipeline end-to-end.**
+  advanced since S72; Coder station dark 4-for-4 — S96 fixes CI (fmt), S97 dogfoods the pipeline
+  end-to-end.**
