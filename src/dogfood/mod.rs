@@ -149,7 +149,14 @@ fn parse_artifacts_session(name: &str) -> Option<u32> {
 /// path has no history.
 fn git_first_date(root: &Path, rel: &str) -> Option<String> {
     let out = Command::new("git")
-        .args(["log", "--follow", "--format=%ai", "--diff-filter=A", "--", rel])
+        .args([
+            "log",
+            "--follow",
+            "--format=%ai",
+            "--diff-filter=A",
+            "--",
+            rel,
+        ])
         .current_dir(root)
         .output()
         .ok()?;
@@ -215,8 +222,7 @@ fn jdn(y: i32, m: u32, d: u32) -> i64 {
     let m = m as i64;
     let d = d as i64;
     let y = y as i64;
-    (1461 * (y + 4800 + (m - 14) / 12)) / 4
-        + (367 * (m - 2 - 12 * ((m - 14) / 12))) / 12
+    (1461 * (y + 4800 + (m - 14) / 12)) / 4 + (367 * (m - 2 - 12 * ((m - 14) / 12))) / 12
         - (3 * ((y + 4900 + (m - 14) / 12) / 100)) / 4
         + d
         - 32075
@@ -234,7 +240,11 @@ mod tests {
     fn write_artifacts(root: &Path, nn: u32, receipt: &str, cost_json: Option<f64>) {
         let dir = root.join(format!("sessions/session-{nn:02}-artifacts"));
         fs::create_dir_all(&dir).unwrap();
-        fs::write(dir.join(receipt), format!("─── vajra receipt for s{nn} ───\n")).unwrap();
+        fs::write(
+            dir.join(receipt),
+            format!("─── vajra receipt for s{nn} ───\n"),
+        )
+        .unwrap();
         if let Some(cost) = cost_json {
             fs::write(
                 dir.join("run-result.json"),

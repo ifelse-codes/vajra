@@ -545,10 +545,9 @@ fn candidate_diffs(root: &Path) -> Vec<(String, String)> {
                     out.push((base.clone(), p2.to_string()));
                     // Intermediate candidates: every commit on the branch between base and tip.
                     // `git log base..p2` lists them newest-first; `tip` is the first entry.
-                    if let Some((0, commits)) = git_out(
-                        root,
-                        &["log", "--format=%H", &format!("{base}..{p2}")],
-                    ) {
+                    if let Some((0, commits)) =
+                        git_out(root, &["log", "--format=%H", &format!("{base}..{p2}")])
+                    {
                         for commit in commits.lines().skip(1) {
                             let c = commit.trim();
                             if !c.is_empty() {
@@ -1217,7 +1216,11 @@ release:
         write_prompt(root, 95, prompt_v1);
         let base = head_sha(root);
         git_in(root, &["checkout", "-qb", "session-95-x"]);
-        fs::write(root.join("scripts/verify-session-95.sh"), "#!/bin/sh\ntrue\n").unwrap();
+        fs::write(
+            root.join("scripts/verify-session-95.sh"),
+            "#!/bin/sh\ntrue\n",
+        )
+        .unwrap();
         git_in(root, &["add", "-A"]);
         git_in(root, &["commit", "-qm", "s95 work"]);
         let intermediate = head_sha(root);
@@ -1249,7 +1252,10 @@ release:
         // The tip's prompt is v2; hashing `(base, tip, prompt_v2)` must NOT match the review
         // (the pre-fix failure mode: tip-only candidate_diffs would call this Unverifiable).
         let tip_hash = diff_hash(root, &base, &head_sha(root), prompt_v2.as_bytes());
-        assert!(tip_hash.map_or(true, |h| h != real_hash), "tip should NOT match the review hash");
+        assert!(
+            tip_hash.map_or(true, |h| h != real_hash),
+            "tip should NOT match the review hash"
+        );
 
         // Post-fix: the intermediate commit IS tried → Verified.
         assert_eq!(
