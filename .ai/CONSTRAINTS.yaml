@@ -160,6 +160,13 @@ enforcement:
   # no env var. Re-arm the block with VAJRA_ENFORCE_PUBLISH=1, or delete this line. The `vajra
   # init` scaffold does NOT carry this line, so new projects keep the guard on.
   publish_guard: off
+  # S93: the L3 commit-guard (hook-commit-guard.sh) is the un-forgeable teeth on `git commit`.
+  # It is OFF in THIS repo because a live L3 block would brick the build agent's own commits
+  # (it cannot set its launch env mid-session) — the always-on L2 `.githooks/pre-commit` belt
+  # governs this repo, and L3 is proven by payload test (verify-session-93.sh). Re-arm with
+  # VAJRA_ENFORCE_COMMIT=1. The `vajra init` scaffold ships NO such line — the SAME byte-identical
+  # hook, gated by config — so every NEW project gets the un-forgeable guard ON.
+  commit_guard: off
   closeout_not_done_until: scripts/verify-closeout.sh exits 0
 
 trust:

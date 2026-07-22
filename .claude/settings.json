@@ -15,6 +15,7 @@
       {"matcher": "Bash", "hooks": [
         {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-pre-bash.sh\""},
         {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-publish-guard.sh\""},
+        {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-commit-guard.sh\""},
         {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-session-guard.sh\""},
         {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-copilot-loader.sh\""}
       ]},

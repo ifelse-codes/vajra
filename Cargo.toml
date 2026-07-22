@@ -25,6 +25,7 @@ exclude = [
   "!scripts/hook-copilot-loader.sh",
   "!scripts/hook-copilot-murmur.sh",
   "!scripts/hook-publish-guard.sh",
+  "!scripts/hook-commit-guard.sh",
   "!scripts/hook-session-guard.sh",
   "!scripts/hook-session-start.sh",
   "!scripts/verify-closeout.sh",

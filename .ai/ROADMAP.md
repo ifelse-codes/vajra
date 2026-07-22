@@ -1,9 +1,10 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-21 · **Session 92 — DOGFOOD — DONE.**
-Paid `vajra claude` on chitra S08 (`release.yml`): **$0.2713 authoritative**; governed agent refused
-the autonomous commit (VOLUNTARY obedience); `--stations 92`=3/8. **Dogfood 🔴 → 🟢.**
-**Next = S93 — CODE: prove the commit gate has teeth.**
+**Updated:** 2026-07-21 · **Session 93 — CODE — DONE.**
+Commit gate now has teeth: no-autonomous-commit went **voluntary → ENFORCED**. L2 `.githooks/pre-commit`
+belt + L3 un-forgeable `hook-commit-guard.sh` (own-launch-env `VAJRA_ALLOW_COMMIT==NN`; fires on
+`--no-verify`); scaffolded ON, `commit_guard: off` in this repo. Verify 27/27, cold review ACCEPT, 286 tests.
+**Next = S94 — CODE: close the nested-repo guard blindspot (S52). S95 = mandatory NO-CODE GT.**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -16,9 +17,9 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 | Field | Value |
 |---|---|
 | Today | 2026-07-21 |
-| Current phase | **8-station governed pipeline complete + dogfood-proven.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative — proven live S92 ($0.2713 captured). **Dogfood 🟢 (S92 = 2026-07-21, $0.2713).** Standing gap: commit-gate obedience is VOLUNTARY, not enforced (S93 fixes). |
-| Last closed session | Session 92 — DOGFOOD: paid ride-along on chitra S08, $0.2713, dogfood 🔴→🟢 |
-| Active session | None — between sessions (S92 complete, S93 not yet started) |
+| Current phase | **8-station governed pipeline complete + dogfood-proven; commit gate ENFORCED.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713). **Dogfood 🟢 (S92 = 2026-07-21).** The S76/S92 standing gap "commit obedience is VOLUNTARY" is CLOSED (S93: un-forgeable `VAJRA_ALLOW_COMMIT` marker, L2 belt + L3 teeth). |
+| Last closed session | Session 93 — CODE: commit gate voluntary → ENFORCED (L2 belt + L3 un-forgeable guard) |
+| Active session | None — between sessions (S93 complete, S94 not yet started) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ---
@@ -111,6 +112,7 @@ GT-verified S75/S80/S85).
 | S90 | GT (NO-CODE) | Ground truth: state_drift 🔴 (S76 date error); S89 Reviewer hash mismatch; dogfood 🔴 (13 sessions / 2–3 days); easy-green detour 3rd GT |
 | S91 | CODE (B+C) | Fix S89 Reviewer hash mismatch (intermediate-commit attestation); add `--dogfood-age` live git query; 283 tests |
 | S92 | DOGFOOD | Paid `vajra claude` on chitra S08 (`release.yml`): $0.2713 authoritative; agent refused autonomous commit (VOLUNTARY); `--stations 92`=3/8; dogfood 🔴→🟢 |
+| S93 | CODE | Commit gate voluntary → ENFORCED: L2 `pre-commit` belt + L3 un-forgeable `hook-commit-guard.sh` (`VAJRA_ALLOW_COMMIT==NN`); scaffolded ON; 27/27 verify; ACCEPT |
 
 ---
 
@@ -121,7 +123,9 @@ GT-verified S75/S80/S85).
 | S90 | Complete | NO-CODE Ground Truth — state_drift 🔴 corrected; S89 Reviewer hash mismatch found; dogfood 🔴 |
 | S91 | Complete | CODE (B+C) — S89 Reviewer PASSED + `--dogfood-age` live query; 283 tests |
 | S92 | Complete | DOGFOOD — paid ride-along on chitra S08; $0.2713 authoritative; dogfood 🔴→🟢; commit-gate obedience VOLUNTARY (S93 target) |
-| **S92** | **Next** | TBD — options to be presented; new chat |
+| S93 | Complete | CODE — commit gate voluntary → ENFORCED (L2 belt + L3 un-forgeable `VAJRA_ALLOW_COMMIT` guard); scaffolded ON |
+| **S94** | **Next** | CODE — close the nested-repo guard blindspot (S52); new chat |
+| **S95** | Upcoming | **NO-CODE ground truth** (`95 % 5 == 0`) |
 
 ---
 
@@ -142,7 +146,10 @@ GT-verified S75/S80/S85).
 
 | Item | Severity | Notes |
 |---|---|---|
-| **Dogfood** | 🔴 | 14 sessions (S77–S90) / 3 days stale since S76 (2026-07-18); founder-un-parkable; now measurable via `--dogfood-age` |
+| **Dogfood** | 🟢 | Fresh — S92 = 2026-07-21, $0.2713 authoritative (`--dogfood-age` shows S92) |
+| **Commit gate in THIS repo** | 🟡 | Un-forgeable only at L3, which is `commit_guard: off` here (build-agent exemption); L2 belt is inline-forgeable + `--no-verify` bypasses both. Teeth proven by test + ON in scaffolds (S93 fakest green) |
+| **Nested-repo guard blindspot** | 🟡 | session-guard / copilot / commit-guard can't tell Vajra's `session-NN` from a subject repo's during dogfood (S52); **S94 target** |
+| Repo-wide rustfmt 1.9.0 drift | 🟡 | `next.rs` / `dogfood/mod.rs` / `stations/mod.rs` fail crate-wide `cargo fmt --check` (S91-era; found S93) |
 | Compression | 🟡 | 0 folds on real CC (S63 + S76); never claim until measured |
 | `full_historical_scan` pass bar | 🟡 | Floor (`verified >= 16`), not strict zero-regression assertion (S88 reviewer note) |
 | Signal-death edge case | 🟡 | `gate_run::code_or_conservative` has no dedicated automated test (S84) |
@@ -222,7 +229,7 @@ Priority order within each tier:
 ## Rules For This Document
 
 1. Update at every closeout — the "Where We Are" table and session log row are mandatory.
-2. `NN % 5 == 0` → mandatory NO-CODE GT. Next = **S90**.
+2. `NN % 5 == 0` → mandatory NO-CODE GT. Next = **S95**.
 3. Mark items done only when they work in a real session, not just tests.
 4. Never exceed 7 top-level commands without explicit user approval.
 5. Per-session detail goes in `sessions/session-NN-summary.md`, not here.
