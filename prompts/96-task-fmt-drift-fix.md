@@ -57,8 +57,11 @@ Cite `docs/decisions/DECISION-001-governance-as-product.md`.
 
 ## Execution
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
+- step 1 (confirm rustfmt 1.9.0-stable + re-confirm the 3-file drift set) — done: c41a8fa
+- step 2 (run `cargo fmt`; diff is formatting-only) — done: c41a8fa
+- step 3 (`clippy -D warnings` + `cargo test --lib` 286 green at the fmt commit) — done: c41a8fa
+- step 4 (commit + push + PR #97; CI asserted by verify/demo scripts) — done: d2b9b28
+- step 5 (fill `## Execution` shas at closeout — the closeout sync) — done: 3e3b11d
 
 ## Guardrails
 

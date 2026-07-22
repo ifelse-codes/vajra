@@ -2,23 +2,21 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 95 — NO-CODE Ground Truth — COMPLETE
+## Session 96 — CODE (CI fmt-fix) — COMPLETE
 
-- **Goal:** run the full mandatory GT audit for S91–S94 (`95 % 5 == 0`). No `src/` edits, no
-  commits on non-exempt branches, no PRs. Output `sessions/session-95-ground-truth.md`.
-- **Results:** all 10 audits run with live evidence. **7 🟢 / 3 🟡, 0 🔴.** State clean (286 tests,
-  dates match `--dogfood-age`), no rule violations, costs honest, dogfood fresh (S92). **Findings:**
-  (1) **Coder station dark 4-for-4** (S91–S94, incl. 2 code-shipping sessions) — the pipeline's
-  EXECUTE station is unused; (2) **machinery-vs-payload gradient, 4th consecutive GT** — enforcement
-  arc now complete, pipeline unchanged since S72; (3) KNOWLEDGE §6 bloat (416 lines / 69 entries /
-  ~85K tokens); (4) stale ROADMAP "dogfood refresh 🔴" backlog item (S92 did it). **Meta-check:** the
-  `--stations` counter is consulted but only its per-station SHAPE (not K) catches machinery-vs-payload.
-- Report: `sessions/session-95-ground-truth.md`. Branch: `session-95-closeout` (exempt).
+- **Goal:** make `main`'s CI green — the only red step was `cargo fmt --check` on 3 pre-existing
+  rustfmt-1.9.0-drifted files. Fix = `cargo fmt`, zero logic.
+- **Results:** all 5 acceptance criteria SHIPPED. `cargo fmt --check` + `clippy -D warnings` +
+  `cargo test --lib` **286** green; exactly the 3 known `src/` files reformatted (fmt-only) + 2 session
+  scripts; CI green on **both** ubuntu-latest and macos-latest (PR [#97]). Cold review **ACCEPT** with a
+  byte-identical `rustfmt(main)==HEAD` zero-logic proof. `verify-session-96.sh` **4/4**. Coder
+  `## Execution` shas filled (Coder non-dark for the first time since S72 — trivial-mapping caveat).
+- Report: `sessions/session-96-summary.md` · review: `sessions/session-96-review.md`.
+  Branch: `session-96-fmt-drift-fix`.
 
-Between sessions. **Next = S96** (CODE — founder-directed): fix the pre-existing rustfmt 1.9.0 drift
-making CI red on main (3 files, `cargo fmt`, zero logic). `prompts/96-task-fmt-drift-fix.md`.
-**Then S97** (DOGFOOD — founder pick A): end-to-end 8-station pipeline dogfood on chitra
-(`prompts/97-task-e2e-pipeline-dogfood.md`). Both **new chat** each.
+Between sessions. **Next = S97** (DOGFOOD, paid — founder pick A, locked at S95): drive a real task
+end-to-end through all 8 stations on chitra; high honest K-of-8 with **Coder PASSED live** + Coder-dark
+diagnosis. `prompts/97-task-e2e-pipeline-dogfood.md`. **New chat.**
 
 ## Always-True Reminders
 
@@ -27,10 +25,9 @@ making CI red on main (3 files, `cargo fmt`, zero logic). `prompts/96-task-fmt-d
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
 - **Commits are ENFORCED (S93):** on a session branch, supply the un-forgeable marker —
   `VAJRA_ALLOW_COMMIT=NN git commit …`.
-- **New session = new chat** — open a fresh chat for S96; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S97; do NOT start it here.
 - **Direction:** product = **provable agent governance**, shaped as a **governed multi-agent SDLC
   pipeline** (`DECISION-001`); fidelity load-bearing (`DECISION-002`), verdicts attested
   (`DECISION-003`), chained tamper-evident (`DECISION-004`). **8 governed stations, dogfood-proven
-  (S92, $0.27); commit gate ENFORCED (S93); guards repo-identity-aware (S94). S95 GT: pipeline not
-  advanced since S72; Coder station dark 4-for-4 — S96 fixes CI (fmt), S97 dogfoods the pipeline
-  end-to-end.**
+  (S92, $0.27); commit gate ENFORCED (S93); guards repo-identity-aware (S94); CI green on main (S96).
+  S95 GT still stands: pipeline not advanced since S72 — S97 dogfoods it end-to-end.**

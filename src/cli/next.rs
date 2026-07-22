@@ -137,10 +137,7 @@ fn run_dogfood_age() -> Result<()> {
         .parse()
         .context(".ai/SESSION is not a valid integer")?;
     let report = dogfood::dogfood_age(&root, current);
-    print!(
-        "{}",
-        dogfood::format_dogfood_age(current, report.as_ref())
-    );
+    print!("{}", dogfood::format_dogfood_age(current, report.as_ref()));
     Ok(())
 }
 
