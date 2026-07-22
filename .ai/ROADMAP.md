@@ -117,7 +117,8 @@ GT-verified S75/S80/S85).
 | S92 | DOGFOOD | Paid `vajra claude` on chitra S08 (`release.yml`): $0.2713 authoritative; agent refused autonomous commit (VOLUNTARY); `--stations 92`=3/8; dogfood 🔴→🟢 |
 | S93 | CODE | Commit gate voluntary → ENFORCED: L2 `pre-commit` belt + L3 un-forgeable `hook-commit-guard.sh` (`VAJRA_ALLOW_COMMIT==NN`); scaffolded ON; 27/27 verify; ACCEPT |
 | S94 | CODE | Repo-identity-aware guards (nested-repo blindspot S52 closed): git facts pinned to own top-level; governed project surfaced; fail-closed when no own repo; two-pass review (pass 1 caught fail-open → fixed); 23/23 verify; ACCEPT |
-| S95 | GT (NO-CODE) | Audited S91–S94: 7 🟢 / 3 🟡 / 0 🔴. Enforcement arc complete but **pipeline unadvanced since S72**; **Coder station dark 4-for-4**; 4th consecutive easy-green GT; KNOWLEDGE §6 bloat + stale dogfood backlog item flagged. Founder pick A → S96 pipeline dogfood |
+| S95 | GT (NO-CODE) | Audited S91–S94: 7 🟢 / 3 🟡 / 0 🔴. Enforcement arc complete but **pipeline unadvanced since S72**; **Coder station dark 4-for-4**; 4th consecutive easy-green GT; KNOWLEDGE §6 bloat + stale dogfood backlog item flagged. Founder pick A → S96 pipeline dogfood (re-sequenced: fmt-fix first) |
+| S96 | CODE | CI green: `cargo fmt` the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`), **zero logic**; clippy + 286 tests green; CI green **both OS** (#97); cold review ACCEPT (byte-identical `rustfmt(main)==HEAD`); Coder `## Execution` shas filled (first non-dark since S72, trivial-mapping caveat) |
 
 ---
 
@@ -131,8 +132,8 @@ GT-verified S75/S80/S85).
 | S93 | Complete | CODE — commit gate voluntary → ENFORCED (L2 belt + L3 un-forgeable `VAJRA_ALLOW_COMMIT` guard); scaffolded ON |
 | S94 | Complete | CODE — repo-identity-aware guards; nested-repo blindspot (S52) closed; fail-closed when no own git repo |
 | S95 | Complete | NO-CODE GT — enforcement arc complete but pipeline unadvanced since S72; Coder dark 4-for-4; founder pick A |
-| **S96** | **Next** | **CODE** — CI fmt-fix (rustfmt 1.9.0 drift, red since S92; `cargo fmt` the 3 files, zero logic); new chat |
-| S97 | Queued | **DOGFOOD (paid)** — end-to-end 8-station pipeline on chitra; diagnose the Coder-dark pattern; new chat |
+| S96 | Complete | **CODE** — CI fmt-fix (rustfmt 1.9.0 drift; `cargo fmt` the 3 files, zero logic); CI green both OS (#97); cold review ACCEPT |
+| **S97** | **Next** | **DOGFOOD (paid)** — end-to-end 8-station pipeline on chitra; diagnose the Coder-dark pattern; new chat |
 
 ---
 
@@ -147,6 +148,7 @@ GT-verified S75/S80/S85).
 | Releaser durability | ✅ Reads ledger when branch is pruned (S82) |
 | Fidelity gate | ✅ `verify-closeout.sh` blocks without independent ACCEPT review |
 | `cargo test --lib` | ✅ 286 tests |
+| CI on `main` (both OS) | ✅ Green (S96) — `fmt --check` + `clippy -D warnings` + `test --lib`; rustfmt pinned 1.9.0-stable |
 | `vajra next --dogfood-age` | ✅ Git-derived staleness; never reads STATE.md |
 
 ## What Is Weak / Broken
@@ -160,7 +162,7 @@ GT-verified S75/S80/S85).
 | **KNOWLEDGE §6 bloat** | 🟡 | 416 lines / 69 entries / ~85K tokens; header "Reloaded every session" false; flagged since S60, unremediated |
 | **Commit gate in THIS repo** | 🟡 | Un-forgeable only at L3, which is `commit_guard: off` here (build-agent exemption); L2 belt is inline-forgeable + `--no-verify` bypasses both. Teeth proven by test + ON in scaffolds (S93 fakest green) |
 | ~~Nested-repo guard blindspot~~ | ✅ | CLOSED S94: git facts pinned to own git top-level; fail-closed when no own repo; governed project surfaced. Residual (🟡): own-git **non-session-branch** marker fallthrough left intact (zero-regression); worktree/submodule/symlink shapes fail-closed but untested |
-| Repo-wide rustfmt 1.9.0 drift | 🟡 | `next.rs` / `dogfood/mod.rs` / `stations/mod.rs` fail crate-wide `cargo fmt --check` (S91-era; found S93) |
+| ~~Repo-wide rustfmt 1.9.0 drift~~ | ✅ | CLOSED S96: `cargo fmt` reformatted the 3 files; `cargo fmt --check` clean crate-wide; CI green both OS. Keep local rustfmt = 1.9.0-stable (CI's `@stable`) to avoid recurrence |
 | Compression | 🟡 | 0 folds on real CC (S63 + S76); never claim until measured |
 | `full_historical_scan` pass bar | 🟡 | Floor (`verified >= 16`), not strict zero-regression assertion (S88 reviewer note) |
 | Signal-death edge case | 🟡 | `gate_run::code_or_conservative` has no dedicated automated test (S84) |
