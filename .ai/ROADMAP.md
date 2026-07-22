@@ -1,13 +1,13 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-22 · **Session 95 — NO-CODE Ground Truth — DONE.**
-Audited S91–S94. All 10 required audits run with LIVE evidence: **7 🟢 / 3 🟡 / 0 🔴.** Headline
-(lead lens A, machinery vs. payload): the enforcement arc is now genuinely complete (S93/S94), but
-the **pipeline has not advanced since S72** and the **Coder/EXECUTE station is dark 4-for-4** across
-S91–S94 (incl. two code-shipping sessions) — the **4th consecutive GT** flagging the easy-green
-gradient. Meta-check: the `--stations` counter is consulted but only its per-station SHAPE catches
-this, not the K number. Founder signed off, **picked A**. **Next = S96 — CI fmt-fix** (rustfmt 1.9.0
-drift, red since S92); **then S97 — end-to-end pipeline dogfood (paid) on chitra.**
+**Updated:** 2026-07-22 · **Session 96 — CODE (CI fmt-fix) — DONE.**
+`cargo fmt` on the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`),
+**zero logic**; `fmt --check` + `clippy -D warnings` + `cargo test --lib` **286** green; CI green on
+**both** OS (PR #97); cold review ACCEPT (byte-identical `rustfmt(main)==HEAD` proof). Coder
+`## Execution` shas filled → `vajra next --stations 96` = **5/8** with **Coder PASSED** (first non-dark
+since S72; trivial-mapping caveat). The chronic rustfmt weak-item is closed. This was bounded hygiene,
+**not** a pipeline advance — the S95 machinery-vs-payload finding still stands. **Next = S97 —
+end-to-end pipeline dogfood (paid) on chitra** (founder pick A, locked at S95).
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -21,8 +21,8 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 |---|---|
 | Today | 2026-07-22 |
 | Current phase | **8-station governed pipeline complete; enforcement arc complete; pipeline unchanged since S72.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713). **Dogfood 🟢 (S92 = 2026-07-21) — but LAUNCHER only (2/8); pipeline never dogfooded end-to-end (S95 finding).** Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). **S95 GT: Coder station dark 4-for-4; next move = pipeline dogfood, not more guardrails.** |
-| Last closed session | Session 95 — NO-CODE GT: enforcement arc complete but pipeline unadvanced since S72; Coder dark 4-for-4 |
-| Active session | None — between sessions (S95 complete, S96 not yet started) |
+| Last closed session | Session 96 — CODE (CI fmt-fix): rustfmt 1.9.0 drift closed; CI green both OS (#97); Coder non-dark (5/8) |
+| Active session | None — between sessions (S96 complete, S97 not yet started) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ---
