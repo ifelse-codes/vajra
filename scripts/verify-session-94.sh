@@ -115,16 +115,26 @@ mur() {  # <root> <statedir>   → sets MUR_OUT
 }
 
 # ==============================================================================================
-# AC1 — commit-guard governs the intended project when NESTED (no enclosing-session bleed).
+# AC1 — commit-guard governs the intended project when NESTED. The AUTHORIZATION property (not
+# just message text): when the project has no git of its own, NO marker — not the enclosing repo's,
+# not an arbitrary one — can authorize a commit here (fail-closed; cannot-evaluate FAILS).
 # ==============================================================================================
-chk_cg_nested_blocks() {                     # nested, no marker → still fail-closed (rc 2)
+chk_cg_nested_blocks_no_marker() {           # nested, no marker → fail-closed (rc 2)
   cg "" 1 "$SUBJ"; echo "rc=$CG_RC"; echo "$CG_OUT"
   [ "$CG_RC" -eq 2 ]
 }
-chk_cg_nested_no_enclosing_leak() {          # the fix: block message must NOT adopt session 94
-  cg "" 1 "$SUBJ"; echo "rc=$CG_RC"; echo "$CG_OUT"
-  grep -q "VAJRA_ALLOW_COMMIT=NN" <<<"$CG_OUT" || return 1
-  grep -q "VAJRA_ALLOW_COMMIT=94" <<<"$CG_OUT" && return 1   # enclosing session must not leak
+chk_cg_nested_foreign_marker_blocked() {     # the enclosing repo's session marker cannot authorize here
+  cg "94" 1 "$SUBJ"; echo "rc=$CG_RC"; echo "$CG_OUT"
+  [ "$CG_RC" -eq 2 ]
+}
+chk_cg_nested_any_marker_blocked() {         # an arbitrary marker cannot authorize here either (fail-closed)
+  cg "banana" 1 "$SUBJ"; echo "rc=$CG_RC"; echo "$CG_OUT"
+  [ "$CG_RC" -eq 2 ]
+}
+chk_cg_nested_no_enclosing_leak() {          # the block must NOT name/adopt the enclosing session 94
+  cg "94" 1 "$SUBJ"; echo "rc=$CG_RC"; echo "$CG_OUT"
+  grep -q "VAJRA_ALLOW_COMMIT=94" <<<"$CG_OUT" && return 1     # enclosing session must never leak
+  grep -q "no git repo of this project's own" <<<"$CG_OUT" || return 1
   return 0
 }
 chk_cg_nested_names_project() {              # AC2: surfaces the governed subject + flags nesting
@@ -133,9 +143,11 @@ chk_cg_nested_names_project() {              # AC2: surfaces the governed subjec
   grep -q "nested inside git repo $OUTER_REAL" <<<"$CG_OUT" || return 1
   return 0
 }
-run_check "cg-nested-blocks-no-marker"    chk_cg_nested_blocks
-run_check "cg-nested-no-enclosing-leak"   chk_cg_nested_no_enclosing_leak
-run_check "cg-nested-names-project"       chk_cg_nested_names_project
+run_check "cg-nested-blocks-no-marker"       chk_cg_nested_blocks_no_marker
+run_check "cg-nested-foreign-marker-blocked" chk_cg_nested_foreign_marker_blocked
+run_check "cg-nested-any-marker-blocked"     chk_cg_nested_any_marker_blocked
+run_check "cg-nested-no-enclosing-leak"      chk_cg_nested_no_enclosing_leak
+run_check "cg-nested-names-project"          chk_cg_nested_names_project
 
 # ==============================================================================================
 # AC4 — non-nested (own git) behavior UNCHANGED + the governed project surfaced (AC2).

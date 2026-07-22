@@ -41,10 +41,12 @@ STAND="$FX/standalone"; mkdir -p "$STAND/scripts" "$STAND/.ai"
 cp "$G_COMMIT" "$G_MURMUR" "$G_SESSION" "$STAND/scripts/"
 printf '%s' "$BODY" > "$STAND/.ai/CONSTRAINTS.yaml"; printf '7\n' > "$STAND/.ai/SESSION"
 
-cg_out() {  # <marker> <root> → prints combined guard output
-  echo '{"tool_input":{"command":"git commit -m x"}}' \
+cg_run() {  # <marker> <root> → sets DOUT (combined guard output) + DRC (exit code)
+  set +e
+  DOUT=$(echo '{"tool_input":{"command":"git commit -m x"}}' \
     | VAJRA_ALLOW_COMMIT="$1" VAJRA_ENFORCE_COMMIT=1 CLAUDE_PROJECT_DIR="$2" \
-        bash "$2/scripts/hook-commit-guard.sh" 2>&1 || true
+        bash "$2/scripts/hook-commit-guard.sh" 2>&1); DRC=$?
+  set -e
 }
 
 # --- demo:header ---
@@ -59,23 +61,24 @@ echo  "  \`git -C \$ROOT\`, which walks UP to the nearest .git. A subject checke
 echo  "  (on session-94) had its commit-guard read Vajra's branch → demanded VAJRA_ALLOW_COMMIT=94"
 echo  "  and Vajra's own founder marker could authorize a commit in the SUBJECT. Silent mis-fire."
 label "AFTER — git facts are pinned to the project's OWN git top-level; the governed project is"
-echo  "  surfaced on every advise/block. A nested subject no longer adopts the enclosing session."
+echo  "  surfaced on every advise/block. A subject with no git of its own is fail-CLOSED: no marker"
+echo  "  (not even the enclosing repo's) can authorize a commit there."
 
 # --- demo:cases ---
 header "Cases  [demo:cases]"
 
-header "1 · NESTED commit-guard no longer leaks the enclosing session (94)"
-OUT=$(cg_out "" "$SUBJ")
-if grep -q "VAJRA_ALLOW_COMMIT=NN" <<<"$OUT" && ! grep -q "VAJRA_ALLOW_COMMIT=94" <<<"$OUT"; then
-  ok "block says =NN, not =94 (enclosing session not adopted)"
-  printf "    %s\n" "$(grep -m1 'Governing project' <<<"$OUT" | sed -E 's/^[[:space:]]+//')"
-else no "enclosing session leaked into the block message"; fi
+header "1 · NESTED commit-guard: no marker can authorize a commit in the subject (fail-closed)"
+cg_run "94" "$SUBJ"   # 94 = the ENCLOSING repo's own founder marker
+if [ "$DRC" = 2 ] && ! grep -q "VAJRA_ALLOW_COMMIT=94" <<<"$DOUT"; then
+  ok "even VAJRA_ALLOW_COMMIT=94 (the enclosing repo's marker) → exit 2 (blocked; no bleed)"
+  printf "    %s\n" "$(grep -m1 'Governing project' <<<"$DOUT" | sed -E 's/^[[:space:]]+//')"
+else no "a foreign marker authorized a commit in the subject (bleed)"; fi
 
 header "2 · NON-NESTED (own git, session-07) still binds correctly — zero regression"
-OUT=$(cg_out "99" "$STAND")
-grep -q "VAJRA_ALLOW_COMMIT=07" <<<"$OUT" && ok "wrong marker 99 → blocked, demands this repo's =07" || no "binding changed"
-OUT=$(cg_out "07" "$STAND")
-grep -q "ALLOWED" <<<"$OUT" && ok "correct marker 07 → allowed, names its own project" || no "correct marker rejected"
+cg_run "99" "$STAND"
+{ [ "$DRC" = 2 ] && grep -q "VAJRA_ALLOW_COMMIT=07" <<<"$DOUT"; } && ok "wrong marker 99 → blocked, demands this repo's =07" || no "binding changed"
+cg_run "07" "$STAND"
+{ [ "$DRC" = 0 ] && grep -q "ALLOWED" <<<"$DOUT"; } && ok "correct marker 07 → allowed, names its own project" || no "correct marker rejected"
 
 header "3 · NESTED co-pilot murmur stays quiet (won't murmur the enclosing repo's changes)"
 MOUT=$(echo '{"session_id":"d94"}' | CLAUDE_PROJECT_DIR="$SUBJ" VAJRA_COPILOT_STATE_DIR="$FX/ms" bash "$SUBJ/scripts/hook-copilot-murmur.sh" 2>&1 || true)
