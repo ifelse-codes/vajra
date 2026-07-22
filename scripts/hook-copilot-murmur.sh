@@ -29,14 +29,24 @@ ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 CONSTRAINTS="$ROOT/.ai/CONSTRAINTS.yaml"
 [ -f "$CONSTRAINTS" ] || exit 0
 
+# ── Repo-identity: read the working tree of THIS project only (S94, closes the S52 blindspot) ──
+# During a dogfood ROOT (the subject repo) can sit nested inside another git repo. `git status` in
+# ROOT walks UP to the nearest .git, so a plain-dir ROOT would list the ENCLOSING repo's changes and
+# murmur about the wrong project. Read git only when ROOT is its OWN git top-level; else stay quiet.
+ROOT_REAL=$(cd "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")
+GIT_TOP=$(git -C "$ROOT" rev-parse --show-toplevel 2>/dev/null || echo "")
+OWN_GIT=""
+[ -n "$GIT_TOP" ] && [ "$GIT_TOP" = "$ROOT_REAL" ] && OWN_GIT="$ROOT_REAL"
+
 SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "nosession")
 
 # Current-work signal: the files already in play this session (working-tree changes), repo-relative.
 # `--untracked-files=all` lists individual new files (not a collapsed `dir/`, which would over-match
 # a `dir/*` glob on mere existence). Columns are fixed — status in cols 1-2, path from col 4 — so
 # `cut -c4-` keeps paths that contain spaces intact (unlike a whitespace split).
-CHANGED=$(cd "$ROOT" && git status --porcelain --untracked-files=all 2>/dev/null | cut -c4- || true)
-[ -n "$CHANGED" ] || exit 0     # nothing in play yet — nothing to murmur (stay quiet)
+CHANGED=""
+[ -n "$OWN_GIT" ] && CHANGED=$(git -C "$OWN_GIT" status --porcelain --untracked-files=all 2>/dev/null | cut -c4- || true)
+[ -n "$CHANGED" ] || exit 0     # nothing in play (or not this project's own git) — stay quiet
 
 STATE_DIR="${VAJRA_COPILOT_STATE_DIR:-${TMPDIR:-/tmp}/vajra-copilot/$SID}"
 mkdir -p "$STATE_DIR" 2>/dev/null || true

@@ -36,6 +36,19 @@ ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 CONSTRAINTS="$ROOT/.ai/CONSTRAINTS.yaml"
 [ -f "$CONSTRAINTS" ] || exit 0
 
+# ── Repo-identity: govern only the project this hook belongs to (S94, closes the S52 blindspot) ─
+# This guard's session number ($ROOT/.ai/SESSION) and owner record ($ROOT/.ai/.session-owner) are
+# ALREADY pinned to ROOT (never git), so no enclosing repo can bleed in. But during a dogfood ROOT
+# can sit nested inside another git repo — surface the governed project (and flag the nesting) so a
+# CLAUDE_PROJECT_DIR mis-fire is visible, not silent.
+ROOT_REAL=$(cd "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")
+GIT_TOP=$(git -C "$ROOT" rev-parse --show-toplevel 2>/dev/null || echo "")
+if [ -n "$GIT_TOP" ] && [ "$GIT_TOP" != "$ROOT_REAL" ]; then
+  GOVERNS="project $ROOT_REAL (nested inside git repo $GIT_TOP)"
+else
+  GOVERNS="project $ROOT_REAL"
+fi
+
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "nosession")
 
@@ -82,13 +95,14 @@ record() { printf '%s\t%s\n' "$NN" "$SID" > "$OWNER_FILE"; }
 # Block only the N->N+1 boundary FROM THE SAME CHAT that owned N.
 if [ -n "$OWNER_NN" ] && [ "$NN" -eq "$((OWNER_NN + 1))" ] && [ "$SID" = "$OWNER_SID" ]; then
   if [ "$MATURITY" = "L1" ]; then
-    echo "[vajra session-guard] one-session-per-chat: this chat owns session $OWNER_NN."
+    echo "[vajra session-guard] one-session-per-chat: this chat owns session $OWNER_NN. Governing $GOVERNS."
     echo "  Starting session $NN here breaks the rule — open a NEW chat. (L1 advise, not blocking.)"
     record
     exit 0
   fi
   {
     echo "[vajra session-guard] BLOCKED: this chat already owns session $OWNER_NN."
+    echo "  Governing $GOVERNS."
     echo "  One vajra-session per chat (AGENTS.md step 10). Start session $NN in a NEW chat:"
     echo "    open a fresh chat, then run: git checkout -b session-$NN-<slug>"
     echo "  (Set one_session_per_chat: false or maturity: L1 in CONSTRAINTS.yaml to override.)"
