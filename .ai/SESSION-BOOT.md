@@ -28,19 +28,23 @@
 
 ## Next Session
 - **Number:** 96
-- **Type:** **DOGFOOD** (founder pick A) — end-to-end 8-station pipeline dogfood on chitra.
-- **Prompt:** `prompts/96-task-e2e-pipeline-dogfood.md`. **New chat.**
-- Drive chitra's dangling S08 (`session-08-release-workflow`) to a real ACCEPT closeout; the goal is
-  a high honest K-of-8 with **Coder PASSED** (populated `## Execution` shas) + a diagnosis of the
-  Coder-dark pattern. Paid run (~$0.3–3). `VAJRA_CLOSEOUT_WAIVER=dogfood-no-src-changes`.
+- **Type:** **CODE** (founder-directed after S95 close) — fix the rustfmt 1.9.0 drift making CI red.
+- **Prompt:** `prompts/96-task-fmt-drift-fix.md`. **New chat.**
+- Only failing CI step is `cargo fmt --check` on 3 pre-existing drifted files (`next.rs` /
+  `dogfood/mod.rs` / `stations/mod.rs`); red since S92, NOT S95's doing (S95 was NO-CODE). Fix =
+  `cargo fmt` (zero logic); clippy + test already confirmed green. `VAJRA_ALLOW_COMMIT=96`.
+- **Then S97** (DOGFOOD, founder pick A) — end-to-end 8-station pipeline dogfood on chitra's dangling
+  S08; goal = high honest K-of-8 with **Coder PASSED** + Coder-dark diagnosis. Paid (~$0.3–3).
+  `prompts/97-task-e2e-pipeline-dogfood.md`. New chat.
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S96.
-- **S96 is a paid DOGFOOD** — real `total_cost_usd`; capture receipt + `run-result.json` into
-  `sessions/session-96-artifacts/`. The S83 headless read-only wall may apply.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S96, then another for S97.
+- **S96 = CI fmt-fix (CODE)** — `cargo fmt` the 3 drifted files; pin rustfmt 1.9.0-stable (CI's
+  `@stable`); scope to exactly those 3; fidelity gate + `## Execution` shas apply (bonus: a real shot
+  at Coder PASSED). CI must be green on the PR (both OS).
+- **S97 is a paid DOGFOOD** — real `total_cost_usd`; capture receipt + `run-result.json` into
+  `sessions/session-97-artifacts/`. The S83 headless read-only wall may apply.
 - **chitra is mid-flight** — SESSION=07 but on `session-08-release-workflow` with uncommitted
   `release.yml` + a stray `pbcopy`. Resume S08 (preferred) or reset + fresh task; clean the `pbcopy`.
-- **Dogfood is 🟢** (S92 = 2026-07-21, $0.2713) but launcher-only — S96 measures the PIPELINE.
-- **Pre-existing rustfmt 1.9.0 drift** in `next.rs`/`dogfood/mod.rs`/`stations/mod.rs` — housekeeping.
-- **S95 closeout PR** (`session-95-closeout`) merges the GT report + `.ai/` sync into main.
+- **Dogfood is 🟢** (S92 = 2026-07-21, $0.2713) but launcher-only — S97 measures the PIPELINE.
 - **Next NO-CODE GT = S100.**

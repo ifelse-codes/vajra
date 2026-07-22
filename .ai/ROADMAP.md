@@ -6,8 +6,8 @@ Audited S91–S94. All 10 required audits run with LIVE evidence: **7 🟢 / 3 �
 the **pipeline has not advanced since S72** and the **Coder/EXECUTE station is dark 4-for-4** across
 S91–S94 (incl. two code-shipping sessions) — the **4th consecutive GT** flagging the easy-green
 gradient. Meta-check: the `--stations` counter is consulted but only its per-station SHAPE catches
-this, not the K number. Founder signed off, **picked A**. **Next = S96 — end-to-end pipeline dogfood
-(paid) on chitra.**
+this, not the K number. Founder signed off, **picked A**. **Next = S96 — CI fmt-fix** (rustfmt 1.9.0
+drift, red since S92); **then S97 — end-to-end pipeline dogfood (paid) on chitra.**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -131,7 +131,8 @@ GT-verified S75/S80/S85).
 | S93 | Complete | CODE — commit gate voluntary → ENFORCED (L2 belt + L3 un-forgeable `VAJRA_ALLOW_COMMIT` guard); scaffolded ON |
 | S94 | Complete | CODE — repo-identity-aware guards; nested-repo blindspot (S52) closed; fail-closed when no own git repo |
 | S95 | Complete | NO-CODE GT — enforcement arc complete but pipeline unadvanced since S72; Coder dark 4-for-4; founder pick A |
-| **S96** | **Next** | **DOGFOOD (paid)** — end-to-end 8-station pipeline on chitra; diagnose the Coder-dark pattern; new chat |
+| **S96** | **Next** | **CODE** — CI fmt-fix (rustfmt 1.9.0 drift, red since S92; `cargo fmt` the 3 files, zero logic); new chat |
+| S97 | Queued | **DOGFOOD (paid)** — end-to-end 8-station pipeline on chitra; diagnose the Coder-dark pattern; new chat |
 
 ---
 
@@ -178,7 +179,8 @@ GT-verified S75/S80/S85).
 Priority order within each tier:
 
 **High (near-term picks):**
-- 🟢→⏳ **End-to-end pipeline dogfood** (S96, founder pick A) — drive a real task through all 8 stations to a genuine ACCEPT closeout; S92 refreshed the LAUNCHER dogfood (2/8) but the pipeline has never run end-to-end. Diagnose the **Coder-dark** pattern (S95: Coder ABSENT 4-for-4).
+- ⏳ **CI fmt-fix** (S96, founder-directed) — `cargo fmt` the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`); CI red on main since S92; zero logic; green main before the paid dogfood.
+- 🟢→⏳ **End-to-end pipeline dogfood** (S97, founder pick A) — drive a real task through all 8 stations to a genuine ACCEPT closeout; S92 refreshed the LAUNCHER dogfood (2/8) but the pipeline has never run end-to-end. Diagnose the **Coder-dark** pattern (S95: Coder ABSENT 4-for-4).
 - 🟡 **KNOWLEDGE §6 prune** (S95 finding, chronic since S60) — 416 lines / 69 entries / ~85K tokens; cut to permanent lessons, move per-session narrative to `sessions/`, fix the false "Reloaded every session" header
 - 🟡 **Compression: `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it; those 3 still won't fold typical output
 - 🟡 **Guard identity: exotic git shapes** (S94 residual) — worktree / submodule / symlinked-root detection is untested (all resolve fail-closed today); and the own-git non-session-branch marker fallthrough still authorizes any non-empty marker off a `session-NN` branch
