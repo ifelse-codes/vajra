@@ -1,10 +1,12 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-21 · **Session 93 — CODE — DONE.**
-Commit gate now has teeth: no-autonomous-commit went **voluntary → ENFORCED**. L2 `.githooks/pre-commit`
-belt + L3 un-forgeable `hook-commit-guard.sh` (own-launch-env `VAJRA_ALLOW_COMMIT==NN`; fires on
-`--no-verify`); scaffolded ON, `commit_guard: off` in this repo. Verify 27/27, cold review ACCEPT, 286 tests.
-**Next = S94 — CODE: close the nested-repo guard blindspot (S52). S95 = mandatory NO-CODE GT.**
+**Updated:** 2026-07-22 · **Session 94 — CODE — DONE.**
+Nested-repo guard blindspot (S52) CLOSED. The PreToolUse guards are now **repo-identity-aware**:
+git facts pinned to the project's OWN git top-level (never an enclosing repo), governed project
+surfaced on every advise/block, and a subject with no git of its own is **fail-CLOSED** (no marker
+authorizes a commit there). Two-pass cold review (pass 1 caught a fail-open → fixed → pass 2 ACCEPT,
+attested `8a05903e…`). Verify **23/23**, 286 tests, guards ride `include_str!` into the scaffold.
+**Next = S95 — mandatory NO-CODE ground truth (`95 % 5 == 0`).**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -16,10 +18,10 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 
 | Field | Value |
 |---|---|
-| Today | 2026-07-21 |
-| Current phase | **8-station governed pipeline complete + dogfood-proven; commit gate ENFORCED.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713). **Dogfood 🟢 (S92 = 2026-07-21).** The S76/S92 standing gap "commit obedience is VOLUNTARY" is CLOSED (S93: un-forgeable `VAJRA_ALLOW_COMMIT` marker, L2 belt + L3 teeth). |
-| Last closed session | Session 93 — CODE: commit gate voluntary → ENFORCED (L2 belt + L3 un-forgeable guard) |
-| Active session | None — between sessions (S93 complete, S94 not yet started) |
+| Today | 2026-07-22 |
+| Current phase | **8-station governed pipeline complete + dogfood-proven; commit gate ENFORCED; guards repo-identity-aware.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713). **Dogfood 🟢 (S92 = 2026-07-21).** Commit obedience ENFORCED (S93); nested-repo guard blindspot CLOSED (S94: git facts pinned to own top-level, fail-closed when no own repo). |
+| Last closed session | Session 94 — CODE: repo-identity-aware guards (nested-repo blindspot S52 closed) |
+| Active session | None — between sessions (S94 complete, S95 not yet started) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ---
@@ -113,6 +115,7 @@ GT-verified S75/S80/S85).
 | S91 | CODE (B+C) | Fix S89 Reviewer hash mismatch (intermediate-commit attestation); add `--dogfood-age` live git query; 283 tests |
 | S92 | DOGFOOD | Paid `vajra claude` on chitra S08 (`release.yml`): $0.2713 authoritative; agent refused autonomous commit (VOLUNTARY); `--stations 92`=3/8; dogfood 🔴→🟢 |
 | S93 | CODE | Commit gate voluntary → ENFORCED: L2 `pre-commit` belt + L3 un-forgeable `hook-commit-guard.sh` (`VAJRA_ALLOW_COMMIT==NN`); scaffolded ON; 27/27 verify; ACCEPT |
+| S94 | CODE | Repo-identity-aware guards (nested-repo blindspot S52 closed): git facts pinned to own top-level; governed project surfaced; fail-closed when no own repo; two-pass review (pass 1 caught fail-open → fixed); 23/23 verify; ACCEPT |
 
 ---
 
@@ -124,8 +127,8 @@ GT-verified S75/S80/S85).
 | S91 | Complete | CODE (B+C) — S89 Reviewer PASSED + `--dogfood-age` live query; 283 tests |
 | S92 | Complete | DOGFOOD — paid ride-along on chitra S08; $0.2713 authoritative; dogfood 🔴→🟢; commit-gate obedience VOLUNTARY (S93 target) |
 | S93 | Complete | CODE — commit gate voluntary → ENFORCED (L2 belt + L3 un-forgeable `VAJRA_ALLOW_COMMIT` guard); scaffolded ON |
-| **S94** | **Next** | CODE — close the nested-repo guard blindspot (S52); new chat |
-| **S95** | Upcoming | **NO-CODE ground truth** (`95 % 5 == 0`) |
+| S94 | Complete | CODE — repo-identity-aware guards; nested-repo blindspot (S52) closed; fail-closed when no own git repo |
+| **S95** | **Next** | **NO-CODE ground truth** (`95 % 5 == 0`); new chat |
 
 ---
 
@@ -139,7 +142,7 @@ GT-verified S75/S80/S85).
 | Attestation | ✅ Recompute-and-compare (S86); review-time snapshot (S88); 22/26 historical verified |
 | Releaser durability | ✅ Reads ledger when branch is pruned (S82) |
 | Fidelity gate | ✅ `verify-closeout.sh` blocks without independent ACCEPT review |
-| `cargo test --lib` | ✅ 283 tests |
+| `cargo test --lib` | ✅ 286 tests |
 | `vajra next --dogfood-age` | ✅ Git-derived staleness; never reads STATE.md |
 
 ## What Is Weak / Broken
@@ -148,7 +151,7 @@ GT-verified S75/S80/S85).
 |---|---|---|
 | **Dogfood** | 🟢 | Fresh — S92 = 2026-07-21, $0.2713 authoritative (`--dogfood-age` shows S92) |
 | **Commit gate in THIS repo** | 🟡 | Un-forgeable only at L3, which is `commit_guard: off` here (build-agent exemption); L2 belt is inline-forgeable + `--no-verify` bypasses both. Teeth proven by test + ON in scaffolds (S93 fakest green) |
-| **Nested-repo guard blindspot** | 🟡 | session-guard / copilot / commit-guard can't tell Vajra's `session-NN` from a subject repo's during dogfood (S52); **S94 target** |
+| ~~Nested-repo guard blindspot~~ | ✅ | CLOSED S94: git facts pinned to own git top-level; fail-closed when no own repo; governed project surfaced. Residual (🟡): own-git **non-session-branch** marker fallthrough left intact (zero-regression); worktree/submodule/symlink shapes fail-closed but untested |
 | Repo-wide rustfmt 1.9.0 drift | 🟡 | `next.rs` / `dogfood/mod.rs` / `stations/mod.rs` fail crate-wide `cargo fmt --check` (S91-era; found S93) |
 | Compression | 🟡 | 0 folds on real CC (S63 + S76); never claim until measured |
 | `full_historical_scan` pass bar | 🟡 | Floor (`verified >= 16`), not strict zero-regression assertion (S88 reviewer note) |
@@ -170,7 +173,7 @@ Priority order within each tier:
 **High (near-term picks):**
 - 🔴 **Dogfood refresh** — measure the full 8-station pipeline live against a real task; overdue since S76 (2026-07-18); staleness now measurable via `--dogfood-age`
 - 🟡 **Compression: `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it; those 3 still won't fold typical output
-- 🟡 **Guard nested-repo blindspot** (S52) — session-guard / copilot-loader can't distinguish Vajra's `session-NN` branches from a subject repo's own
+- 🟡 **Guard identity: exotic git shapes** (S94 residual) — worktree / submodule / symlinked-root detection is untested (all resolve fail-closed today); and the own-git non-session-branch marker fallthrough still authorizes any non-empty marker off a `session-NN` branch
 
 **Medium (known gaps, lower blast radius):**
 - `full_historical_scan` pass bar → strict zero-regression assertion (S88 reviewer note)
