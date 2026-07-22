@@ -1,12 +1,13 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-22 · **Session 94 — CODE — DONE.**
-Nested-repo guard blindspot (S52) CLOSED. The PreToolUse guards are now **repo-identity-aware**:
-git facts pinned to the project's OWN git top-level (never an enclosing repo), governed project
-surfaced on every advise/block, and a subject with no git of its own is **fail-CLOSED** (no marker
-authorizes a commit there). Two-pass cold review (pass 1 caught a fail-open → fixed → pass 2 ACCEPT,
-attested `8a05903e…`). Verify **23/23**, 286 tests, guards ride `include_str!` into the scaffold.
-**Next = S95 — mandatory NO-CODE ground truth (`95 % 5 == 0`).**
+**Updated:** 2026-07-22 · **Session 95 — NO-CODE Ground Truth — DONE.**
+Audited S91–S94. All 10 required audits run with LIVE evidence: **7 🟢 / 3 🟡 / 0 🔴.** Headline
+(lead lens A, machinery vs. payload): the enforcement arc is now genuinely complete (S93/S94), but
+the **pipeline has not advanced since S72** and the **Coder/EXECUTE station is dark 4-for-4** across
+S91–S94 (incl. two code-shipping sessions) — the **4th consecutive GT** flagging the easy-green
+gradient. Meta-check: the `--stations` counter is consulted but only its per-station SHAPE catches
+this, not the K number. Founder signed off, **picked A**. **Next = S96 — end-to-end pipeline dogfood
+(paid) on chitra.**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -19,9 +20,9 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 | Field | Value |
 |---|---|
 | Today | 2026-07-22 |
-| Current phase | **8-station governed pipeline complete + dogfood-proven; commit gate ENFORCED; guards repo-identity-aware.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713). **Dogfood 🟢 (S92 = 2026-07-21).** Commit obedience ENFORCED (S93); nested-repo guard blindspot CLOSED (S94: git facts pinned to own top-level, fail-closed when no own repo). |
-| Last closed session | Session 94 — CODE: repo-identity-aware guards (nested-repo blindspot S52 closed) |
-| Active session | None — between sessions (S94 complete, S95 not yet started) |
+| Current phase | **8-station governed pipeline complete; enforcement arc complete; pipeline unchanged since S72.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713). **Dogfood 🟢 (S92 = 2026-07-21) — but LAUNCHER only (2/8); pipeline never dogfooded end-to-end (S95 finding).** Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). **S95 GT: Coder station dark 4-for-4; next move = pipeline dogfood, not more guardrails.** |
+| Last closed session | Session 95 — NO-CODE GT: enforcement arc complete but pipeline unadvanced since S72; Coder dark 4-for-4 |
+| Active session | None — between sessions (S95 complete, S96 not yet started) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ---
@@ -116,6 +117,7 @@ GT-verified S75/S80/S85).
 | S92 | DOGFOOD | Paid `vajra claude` on chitra S08 (`release.yml`): $0.2713 authoritative; agent refused autonomous commit (VOLUNTARY); `--stations 92`=3/8; dogfood 🔴→🟢 |
 | S93 | CODE | Commit gate voluntary → ENFORCED: L2 `pre-commit` belt + L3 un-forgeable `hook-commit-guard.sh` (`VAJRA_ALLOW_COMMIT==NN`); scaffolded ON; 27/27 verify; ACCEPT |
 | S94 | CODE | Repo-identity-aware guards (nested-repo blindspot S52 closed): git facts pinned to own top-level; governed project surfaced; fail-closed when no own repo; two-pass review (pass 1 caught fail-open → fixed); 23/23 verify; ACCEPT |
+| S95 | GT (NO-CODE) | Audited S91–S94: 7 🟢 / 3 🟡 / 0 🔴. Enforcement arc complete but **pipeline unadvanced since S72**; **Coder station dark 4-for-4**; 4th consecutive easy-green GT; KNOWLEDGE §6 bloat + stale dogfood backlog item flagged. Founder pick A → S96 pipeline dogfood |
 
 ---
 
@@ -128,7 +130,8 @@ GT-verified S75/S80/S85).
 | S92 | Complete | DOGFOOD — paid ride-along on chitra S08; $0.2713 authoritative; dogfood 🔴→🟢; commit-gate obedience VOLUNTARY (S93 target) |
 | S93 | Complete | CODE — commit gate voluntary → ENFORCED (L2 belt + L3 un-forgeable `VAJRA_ALLOW_COMMIT` guard); scaffolded ON |
 | S94 | Complete | CODE — repo-identity-aware guards; nested-repo blindspot (S52) closed; fail-closed when no own git repo |
-| **S95** | **Next** | **NO-CODE ground truth** (`95 % 5 == 0`); new chat |
+| S95 | Complete | NO-CODE GT — enforcement arc complete but pipeline unadvanced since S72; Coder dark 4-for-4; founder pick A |
+| **S96** | **Next** | **DOGFOOD (paid)** — end-to-end 8-station pipeline on chitra; diagnose the Coder-dark pattern; new chat |
 
 ---
 
@@ -149,7 +152,11 @@ GT-verified S75/S80/S85).
 
 | Item | Severity | Notes |
 |---|---|---|
-| **Dogfood** | 🟢 | Fresh — S92 = 2026-07-21, $0.2713 authoritative (`--dogfood-age` shows S92) |
+| **Dogfood (launcher)** | 🟢 | Fresh — S92 = 2026-07-21, $0.2713 authoritative (`--dogfood-age` shows S92) |
+| **Dogfood (pipeline end-to-end)** | 🟡 | NEVER — S92 was 2/8 (launcher loop only); the stations (Coder/QA/Demo-er/Releaser on a real task) are unmeasured live (S95). S96 targets this |
+| **Coder/EXECUTE station dark** | 🟡 | S95: Coder ABSENT 4-for-4 (S91–S94, incl. 2 code-shipping sessions) via `vajra next --stations NN`; `## Execution` shas not populated even by code sessions |
+| **Machinery-vs-payload gradient** | 🟡 | 4th consecutive GT (S80/S85/S90/S95); enforcement arc complete, pipeline unchanged since S72; next session must be a pattern-breaker |
+| **KNOWLEDGE §6 bloat** | 🟡 | 416 lines / 69 entries / ~85K tokens; header "Reloaded every session" false; flagged since S60, unremediated |
 | **Commit gate in THIS repo** | 🟡 | Un-forgeable only at L3, which is `commit_guard: off` here (build-agent exemption); L2 belt is inline-forgeable + `--no-verify` bypasses both. Teeth proven by test + ON in scaffolds (S93 fakest green) |
 | ~~Nested-repo guard blindspot~~ | ✅ | CLOSED S94: git facts pinned to own git top-level; fail-closed when no own repo; governed project surfaced. Residual (🟡): own-git **non-session-branch** marker fallthrough left intact (zero-regression); worktree/submodule/symlink shapes fail-closed but untested |
 | Repo-wide rustfmt 1.9.0 drift | 🟡 | `next.rs` / `dogfood/mod.rs` / `stations/mod.rs` fail crate-wide `cargo fmt --check` (S91-era; found S93) |
@@ -171,9 +178,11 @@ GT-verified S75/S80/S85).
 Priority order within each tier:
 
 **High (near-term picks):**
-- 🔴 **Dogfood refresh** — measure the full 8-station pipeline live against a real task; overdue since S76 (2026-07-18); staleness now measurable via `--dogfood-age`
+- 🟢→⏳ **End-to-end pipeline dogfood** (S96, founder pick A) — drive a real task through all 8 stations to a genuine ACCEPT closeout; S92 refreshed the LAUNCHER dogfood (2/8) but the pipeline has never run end-to-end. Diagnose the **Coder-dark** pattern (S95: Coder ABSENT 4-for-4).
+- 🟡 **KNOWLEDGE §6 prune** (S95 finding, chronic since S60) — 416 lines / 69 entries / ~85K tokens; cut to permanent lessons, move per-session narrative to `sessions/`, fix the false "Reloaded every session" header
 - 🟡 **Compression: `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it; those 3 still won't fold typical output
 - 🟡 **Guard identity: exotic git shapes** (S94 residual) — worktree / submodule / symlinked-root detection is untested (all resolve fail-closed today); and the own-git non-session-branch marker fallthrough still authorizes any non-empty marker off a `session-NN` branch
+- 🟡 **GT flag: chronically-absent station** (S95 meta-check) — make "any station ABSENT for N consecutive sessions" an explicit GT tripwire, since the `--stations` K number can't distinguish new-capability from new-hook
 
 **Medium (known gaps, lower blast radius):**
 - `full_historical_scan` pass bar → strict zero-regression assertion (S88 reviewer note)
@@ -232,7 +241,7 @@ Priority order within each tier:
 ## Rules For This Document
 
 1. Update at every closeout — the "Where We Are" table and session log row are mandatory.
-2. `NN % 5 == 0` → mandatory NO-CODE GT. Next = **S95**.
+2. `NN % 5 == 0` → mandatory NO-CODE GT. Next = **S100**.
 3. Mark items done only when they work in a real session, not just tests.
 4. Never exceed 7 top-level commands without explicit user approval.
 5. Per-session detail goes in `sessions/session-NN-summary.md`, not here.
