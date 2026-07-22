@@ -46,6 +46,26 @@ INPUT=$(cat 2>/dev/null || echo "{}")
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 CONSTRAINTS="$ROOT/.ai/CONSTRAINTS.yaml"
 
+# ── Repo-identity: govern only the project this hook belongs to (S94, closes the S52 blindspot) ─
+# ROOT is the project this hook was scaffolded into. During a dogfood the agent runs `vajra claude`
+# with cwd = a SUBJECT repo that may sit nested inside another git repo (e.g. a subject tree checked
+# out under Vajra, which itself is on a session-NN-* branch). `git -C "$ROOT"` walks UP to the
+# nearest .git, so when ROOT has no .git of its own it would read the ENCLOSING repo's branch and
+# derive the wrong session number — authorizing (or mis-labelling) a commit against the wrong repo.
+# Derive git facts from the project's OWN git repo only: require ROOT to BE the git top-level.
+ROOT_REAL=$(cd "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")
+GIT_TOP=$(git -C "$ROOT" rev-parse --show-toplevel 2>/dev/null || echo "")
+OWN_GIT=""
+[ -n "$GIT_TOP" ] && [ "$GIT_TOP" = "$ROOT_REAL" ] && OWN_GIT="$ROOT_REAL"
+# Human-readable identity, surfaced on every advise/block (AC2): a nested mis-fire is visible.
+if [ -n "$OWN_GIT" ]; then
+  GOVERNS="project $ROOT_REAL"
+elif [ -n "$GIT_TOP" ]; then
+  GOVERNS="project $ROOT_REAL (nested inside git repo $GIT_TOP — its branch is NOT this project's)"
+else
+  GOVERNS="project $ROOT_REAL (no git repo of its own)"
+fi
+
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 [ -n "$CMD" ] || exit 0
 
@@ -58,10 +78,12 @@ SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
 # so a short-circuiting grep -q can never SIGPIPE a producer under `set -o pipefail` (S32 gotcha).
 grep -qE '(^|[^[:alnum:]_])git[[:space:]]+commit([^[:alnum:]]|$)' <<<"$SCAN" || exit 0
 
-# Session number for this launch (from the session-NN-* branch). A commit off a session branch
-# is already policed elsewhere (pre-commit blocks main); if we can't resolve one, fail-closed
-# by requiring the marker to be simply non-empty below.
-BRANCH=$(git -C "$ROOT" symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
+# Session number for this launch (from the session-NN-* branch OF THIS PROJECT'S OWN git repo —
+# never an enclosing one, per the repo-identity block above). A commit off a session branch is
+# already policed elsewhere (pre-commit blocks main); if we can't resolve one, fail-closed by
+# requiring the marker to be simply non-empty below.
+BRANCH=""
+[ -n "$OWN_GIT" ] && BRANCH=$(git -C "$OWN_GIT" symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
 SESS=""
 [[ "$BRANCH" =~ ^session-([0-9]+)- ]] && SESS="${BASH_REMATCH[1]}"
 
@@ -79,20 +101,21 @@ fi
 
 # Explicit founder approval for this launch: the marker in THIS hook's env, session-scoped.
 if [ -n "${VAJRA_ALLOW_COMMIT:-}" ] && { [ -z "$SESS" ] || [ "${VAJRA_ALLOW_COMMIT}" = "$SESS" ]; }; then
-  echo "[vajra commit-guard] ALLOWED (git commit) — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT}."
+  echo "[vajra commit-guard] ALLOWED (git commit) — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT}. Governing $GOVERNS."
   exit 0
 fi
 
 MATURITY="${VAJRA_GUARD_MATURITY:-$(grep -m1 '^maturity:' "$CONSTRAINTS" 2>/dev/null | awk '{print $2}' || echo "L2")}"
 
 if [ "$MATURITY" = "L1" ]; then
-  echo "[vajra commit-guard] git commit — L1 advise (not blocking)."
+  echo "[vajra commit-guard] git commit — L1 advise (not blocking). Governing $GOVERNS."
   echo "  no-autonomous-commit: confirm explicit founder approval per .ai/AGENTS.md."
   exit 0
 fi
 
 {
   echo "[vajra commit-guard] BLOCKED: git commit without approval evidence."
+  echo "  Governing $GOVERNS."
   echo "  no-autonomous-commit is ENFORCED (S93). A commit needs explicit founder approval,"
   echo "  supplied as an un-forgeable env marker set at launch (mirrors VAJRA_CLOSEOUT_WAIVER):"
   echo "      VAJRA_ALLOW_COMMIT=${SESS:-NN} vajra claude"
