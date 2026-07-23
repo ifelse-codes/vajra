@@ -1,10 +1,10 @@
 # Session 98 — Direction lock: AUTOPILOT TRUST (reposition + the 6-month ladder roadmap)
 
-> **Status:** DRAFT
-> *(Founder: after reading, rewrite the line above so it ends in the approval word — the Analyst
-> gate blocks `--advance` into 98 until then. Kept off that line deliberately: `parse_approval`
-> in `src/analyst/mod.rs:342-348` matches the approval word BEFORE the draft word on the same
-> line — a live-found false-positive bug, reported at authoring time, 2026-07-22.)*
+> **Status:** APPROVED — founder said "start session 98, all approved" (chat, 2026-07-23).
+> *(Approval recorded into the prompt per the founder's chat instruction. Bug note preserved from
+> authoring: `parse_approval` in `src/analyst/mod.rs:342-348` matches the approval word BEFORE the
+> draft word on the same line — so "DRAFT" alone was kept here until approval to avoid a
+> false-positive; approving replaces DRAFT outright rather than appending. 2026-07-22.)*
 > **Provenance:** 2026-07-22 — independent external CTO audit (`~/vajra-cto-audit-2026-07-22.md`,
 > verdict **PAUSE TO PROVE**) + an 11-question founder interview the same day. This prompt encodes
 > the founder's own answers into the governed system; it is not the auditor's plan imposed.
@@ -147,10 +147,10 @@ section did (reposition recorded as a decision, not code). Cite DECISION-001 and
 
 ## Execution
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 (DECISION-005-autopilot-trust.md) — done: 8f8dcfe
+- step 2 (VISION.md autopilot-trust lead; pipeline = engine; honesty rows preserved) — done: 7092e4b
+- step 3 (.ai/ROADMAP.md 6-Month Autopilot Plan + machinery-freeze rule + backlog re-rank) — done: fc898fe
+- step 4 (independent cold review ACCEPT + summary; attestation embedded at closeout) — done: 6f06a34
 
 ## Guardrails
 
