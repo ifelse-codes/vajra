@@ -1,0 +1,8 @@
+binary   : /Users/suman/playground/vajra/target/release/vajra
+sha256   : 1c736a161a9f13b95e724cb5752e3e04e80a12a75593810021154662c434dc0c
+claude   : /opt/homebrew/bin/claude  2.1.183 (Claude Code)
+cwd      : /Users/suman/playground/chitra  (branch session-08-release-workflow)
+maturity : maturity: L3
+flags    : --dangerously-skip-permissions
+start    : 2026-07-23T09:32:07Z
+end : 2026-07-23T09:33:51Z

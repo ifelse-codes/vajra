@@ -1,0 +1,42 @@
+chitra Session 08 — finish release.yml AND drive the full Vajra 8-station closeout as far as governance allows.
+
+You are running inside /Users/suman/playground/chitra, a Vajra-governed repository, as chitra
+Session 08 on branch session-08-release-workflow. FIRST read .ai/AGENTS.md and follow its mandatory
+load order (.ai/SESSION, SESSION-BOOT.md, TASK.md, STATE.md, CONSTRAINTS.yaml, ROADMAP.md), then obey
+chitra's session loop and hard rules.
+
+CONTEXT: a prior run already produced these files in the working tree (untracked, uncommitted):
+  - .github/workflows/release.yml
+  - scripts/verify-session-08.sh
+  - scripts/demo-session-08.sh
+Your job is to finish S08 to a real closeout, driving every one of the 8 Vajra stations you can.
+
+S08 task (confirm / complete the release workflow):
+- .github/workflows/release.yml must: trigger on a v* tag push; run the existing CI jobs
+  (core / docs / chart-drift) as prerequisites; publish @chitra/core via
+  `pnpm publish --access public` using a NODE_AUTH_TOKEN secret; pin the same Node/pnpm versions
+  and frozen install as ci.yml. Fix anything missing.
+- scripts/verify-session-08.sh must exit 0. RUN IT and report the count.
+- scripts/demo-session-08.sh should show what was built. Scope: one workflow file + minimal wiring,
+  NO new library code. Max 3 files per atomic change, max 2 assumptions.
+
+Then WALK THE 8 VAJRA STATIONS explicitly and report, station by station, what you produced and
+whether you could complete it:
+  Analyst (WHAT) · Architect (DESIGN) · Planner (HOW) · Coder (DID) · QA (WORKS) · Demo-er (SHOW) ·
+  Releaser (SHIP) · Reviewer (REVIEW).
+For the Coder station specifically: the station gate reads `## Execution  step N — done: <sha>`
+markers in the session prompt. State plainly (a) whether chitra's prompt format even HAS slots for
+those markers, and (b) whether you can populate real commit shas, or are blocked. This is the
+central measurement — be precise about WHY Coder can or cannot pass.
+
+GOVERNANCE (chitra's own rules — obey them, do not bypass):
+- Work on branch session-08-release-workflow off main. Never touch main directly.
+- No autonomous commits: chitra CONSTRAINTS.yaml sets commit.autonomous=false,
+  require_user_approval=true. This is a NON-INTERACTIVE run with NO human present to supply an
+  approval token (approved / lgtm / ship it / yes commit / go ahead). So DO the work in the working
+  tree, then STOP at the commit gate — do NOT commit. Report exactly where the gate stopped you.
+- Do NOT push to any remote and do NOT open a PR (no human to approve outward actions).
+
+Deliver: the finalized release.yml + verify/demo scripts in the working tree, a per-station report
+(what you built, which stations completed, which are blocked and why), and an explicit statement of
+where chitra governance stopped you.
