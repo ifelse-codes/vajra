@@ -1,19 +1,22 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-23 · **Session 97 — DOGFOOD (paid, Ladder Rung 1) — DONE.**
-One real `vajra claude -p` turn drove chitra S08 through the stations: **$1.2758 authoritative**
-(fable-5, exit 0), `--stations 08` = **2/8**, **Coder `[ABSENT]` — doubly-blocked** (chitra's
-older scaffold has no `## Execution` marker slots **and** headless can't supply a commit-approval
-token → zero shas). Agent **refused to self-commit even under `--dangerously-skip-permissions`
-against chitra's teeth-less convention gate** — 3rd reconfirmation (S76/S92/S97) of voluntary
-obedience, now under the weakest gate. **No green forced** — the honest partial IS the finding.
-Recs feed prompt 98 (scaffold marker slots · env-marker commit path for unattended runs · agents
-write markers/Vajra verifies). **Next = S98 — autopilot-trust reposition (founder pre-drafted,
-`prompts/98-task-autopilot-trust-reposition.md`).**
+**Updated:** 2026-07-23 · **Session 98 — CODE (docs): AUTOPILOT-TRUST REPOSITION — DONE.**
+The **lead** is now the *outcome*: **the autopilot trust layer — leave your agent working for days,
+come back, and trust the result.** The 8-station pipeline stops being the pitch and becomes the
+**engine** that earns the trust (`DECISION-005`). Feelings-based release bar → the **falsifiable
+Autopilot Ladder** + a **2026-09-15 release backstop**; a **machinery-freeze rule** (a session runs
+the ladder or fixes what a run broke — nothing else) kills the 4-GT easy-green gradient by
+construction. Docs only — no `src/`.
+*Prior: S97 — DOGFOOD (paid, Ladder Rung 1): chitra S08 e2e, $1.2758 authoritative, `--stations 08`
+= 2/8, **Coder doubly-blocked** (older scaffold has no marker slots + headless can't approve a
+commit → zero shas); agent refused self-commit even under `--dangerously-skip-permissions`; no green
+forced. Recs fed this reposition (scaffold marker slots · env-marker commit path · agents write
+markers/Vajra verifies).*
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
-multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
-attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
+multi-agent SDLC pipeline** (`DECISION-001`), sold as **the autopilot trust layer** — pipeline =
+engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), verdicts attested
+(`DECISION-003`), chained tamper-evident (`DECISION-004`).
 
 ---
 
@@ -22,10 +25,71 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 | Field | Value |
 |---|---|
 | Today | 2026-07-23 |
-| Current phase | **8-station governed pipeline complete; enforcement arc complete; pipeline unchanged since S72.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713 · S97 $1.2758). **Dogfood 🟢 (S97 = 2026-07-23, end-to-end). S97 measured the PIPELINE (not just launcher): `--stations 08`=2/8, Coder doubly-blocked — chitra's older scaffold lacks marker slots AND headless can't approve commits.** Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). **Reposition next: S98 = autopilot-trust (pipeline = engine, not pitch).** |
-| Last closed session | Session 97 — DOGFOOD (paid): chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions |
-| Active session | None — between sessions (S97 complete, S98 not yet started) |
-| Crate | package `vajractl` · binary `vajra` |
+| Current phase | **Repositioned to the AUTOPILOT TRUST LAYER (S98, `DECISION-005`)** — pipeline = engine, not pitch. The 8-station governed pipeline is complete and dogfood-proven e2e once (S97, Rung 1, disclosed partial). The next six months = **climb the Autopilot Ladder** (Rung 2 one-day unattended → Rung 3 two–three days, ≥2 repos, merge-without-review), under a **machinery-freeze rule** + a **2026-09-15 release backstop**. Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer. Receipt authoritative (S92 $0.2713 · S97 $1.2758). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). |
+| Last closed session | Session 97 — DOGFOOD (paid, Ladder Rung 1): chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions |
+| Active session | Session 98 — CODE (docs): autopilot-trust reposition (DECISION-005 + VISION lead + this ROADMAP) |
+| Crate | package `vajractl` · binary `vajra` (rename in scope of the v0.1 release task — current name taken) |
+
+---
+
+## 6-Month Autopilot Plan (S98 · `DECISION-005`)
+
+**Lead = the outcome:** *leave your agent working for days, come back, trust the result.* The
+pipeline is the engine. This section is the falsifiable path from "machinery built" to "trust
+proven + shipped." Deadline: **≈ 2027-01** (6-month founder proof window).
+
+### The Autopilot Ladder (replaces the feelings-based release bar)
+
+| Rung | Autonomy | Pass condition (ALL required — falsifiable) |
+|---|---|---|
+| **1** (= S97, DONE) | ~1 task, hours, 1 repo (chitra) | Full station shape recorded · Coder-dark diagnosed |
+| **2** | **1 day unattended**, multi-task, chitra | **Zero governance leaks** · **honest receipts** · **fidelity verdicts correct on founder spot-check** |
+| **3** | **2–3 days unattended, ≥2 repos** | All of Rung 2 **+ the merge test: founder merges the work WITHOUT line-by-line review** |
+
+- **Guards ON for every ladder run** (`publish_guard`/`commit_guard` armed) — autopilot-trust demos
+  need the real teeth; this also retires the audit's "teeth off in own house" finding.
+- **Rung 2 design owes to S97:** fix the Coder-dark cause — **agents write the markers, Vajra
+  verifies** + an **env-marker commit path** (`VAJRA_ALLOW_COMMIT` shape) so an unattended `-p` run
+  can reach a full closeout. chitra's older scaffold needs the marker slots too.
+
+### Release backstop (kills the moving bar)
+
+**v0.1 ships when Rung 3 passes once OR on 2026-09-15 — whichever comes FIRST.** Release =
+installable by a stranger: final crate name (rename — current is taken), tagged binaries, a README
+**truth-pass** (retire the stale ~8× receipt claim + unverifiable install paths — scheduled INSIDE
+this task, **not** S98), a 10-minute quickstart. **Release ≠ launch; no feelings required.**
+
+### Evidence-content machine (weeks ~6–12)
+
+Every ladder run **auto-drafts content from its own artifacts** — the ledger, blocked actions, and
+receipts ARE the material. Weekly AI-drafted / founder-edited posts → 2–3 real launches (Show HN,
+r/ClaudeAI, X). Publishing becomes an *output of the loop*, routing around the comfort-zone blocker.
+
+### Signal → scale (months 3–6)
+
+Ten named 1:1s (agent-tool builders, agency founders) with the Rung-3 demo. On signal: spend to
+**$1k/mo**, more repos, and cross-agent starts with the **cheap middle move** — a **neutral evidence
+format** (align ledger/receipts with the open `agent-trace` spec) **before** any second runtime.
+Cross-agent = the acquisition-legibility card (a category, not a Claude plugin). Still **0 cross-agent
+code today** — sequenced, not claimed.
+
+### Scoreboard
+
+| Checkpoint | Target |
+|---|---|
+| **Wk 8** | Rung 3 passed once · v0.1 installable by a stranger |
+| **Month 4** | 3 launches done · weekly evidence posts running · 10 named 1:1s attempted |
+| **Month 6** | ≥1 of — 100+ stars / 5 external repos running it / 1 acquirer-adjacent conversation |
+
+### Two kill signals
+
+- **Kill A (founder's — technical):** the trust loop keeps failing at Rung 2–3 (drift, leaks, gamed
+  gates) → thesis broken; stop or rebuild.
+- **Kill B (auditor's — market):** the loop HOLDS but the market stays silent after 3 real launches
+  → **pivot the fidelity auditor into a standalone agent-PR acceptance checker** (the one component
+  with demand outside the full-pipeline bet).
+
+**S100 (next NO-CODE GT) lead lens:** *is the ladder being climbed, or did machinery resume?*
 
 ---
 
@@ -122,6 +186,7 @@ GT-verified S75/S80/S85).
 | S95 | GT (NO-CODE) | Audited S91–S94: 7 🟢 / 3 🟡 / 0 🔴. Enforcement arc complete but **pipeline unadvanced since S72**; **Coder station dark 4-for-4**; 4th consecutive easy-green GT; KNOWLEDGE §6 bloat + stale dogfood backlog item flagged. Founder pick A → S96 pipeline dogfood (re-sequenced: fmt-fix first) |
 | S96 | CODE | CI green: `cargo fmt` the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`), **zero logic**; clippy + 286 tests green; CI green **both OS** (#97); cold review ACCEPT (byte-identical `rustfmt(main)==HEAD`); Coder `## Execution` shas filled (first non-dark since S72, trivial-mapping caveat) |
 | S97 | DOGFOOD | Paid e2e `vajra claude -p` on chitra S08: $1.2758 authoritative (fable-5, exit 0); `--stations 08`=2/8; **Coder doubly-blocked** — chitra's older scaffold has no `## Execution` slots AND headless can't supply a commit-approval token; agent refused self-commit under `--dangerously-skip-permissions` vs a teeth-less gate (3rd voluntary-obedience reconfirm); no green forced; recs → prompt 98 |
+| S98 | CODE (docs) | **Autopilot-trust reposition** (`DECISION-005` + VISION lead + this ROADMAP): pipeline = engine, not pitch; falsifiable Autopilot Ladder replaces the feelings bar; 2026-09-15 release backstop; machinery-freeze rule; scoreboard + 2 kill signals. Docs only, no `src/`; honesty rows preserved |
 
 ---
 
@@ -137,7 +202,8 @@ GT-verified S75/S80/S85).
 | S95 | Complete | NO-CODE GT — enforcement arc complete but pipeline unadvanced since S72; Coder dark 4-for-4; founder pick A |
 | S96 | Complete | **CODE** — CI fmt-fix (rustfmt 1.9.0 drift; `cargo fmt` the 3 files, zero logic); CI green both OS (#97); cold review ACCEPT |
 | S97 | Complete | **DOGFOOD (paid)** — chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions; recs → prompt 98 |
-| **S98** | **Next** | **CODE (docs)** — autopilot-trust reposition (founder pre-drafted): DECISION-005 + VISION lead + ROADMAP 6-month ladder; pipeline = engine not pitch; new chat |
+| S98 | In progress | **CODE (docs)** — autopilot-trust reposition: DECISION-005 + VISION lead + ROADMAP 6-month ladder; pipeline = engine not pitch |
+| **S99** | **Next** | **DOGFOOD — Autopilot Ladder Rung 2** (one day unattended, multi-task, chitra): zero governance leaks · honest receipts · fidelity verdicts correct on founder spot-check. Guards ON. First move under the machinery-freeze rule |
 | S100 | Upcoming | **NO-CODE Ground Truth** — lead lens: is the autopilot ladder being climbed, or did machinery resume? |
 
 ---
@@ -181,32 +247,28 @@ GT-verified S75/S80/S85).
 
 ---
 
-## Backlog (parked — not yet scheduled)
+## Backlog (governed by the machinery-freeze rule — S98)
 
-Priority order within each tier:
+**The active queue is the 6-Month Autopilot Plan above** (Rung 2 → Rung 3 → release backstop). Per
+the **machinery-freeze rule** (`DECISION-005`): a session either runs the Autopilot Ladder or fixes
+something a ladder run broke — **nothing below gets built on its own merit.** Every item is now
+"**only if a ladder run breaks it**", ordered by how likely a run is to force it.
 
-**High (near-term picks):**
-- ⏳ **CI fmt-fix** (S96, founder-directed) — `cargo fmt` the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`); CI red on main since S92; zero logic; green main before the paid dogfood.
-- 🟢→⏳ **End-to-end pipeline dogfood** (S97, founder pick A) — drive a real task through all 8 stations to a genuine ACCEPT closeout; S92 refreshed the LAUNCHER dogfood (2/8) but the pipeline has never run end-to-end. Diagnose the **Coder-dark** pattern (S95: Coder ABSENT 4-for-4).
-- 🟡 **KNOWLEDGE §6 prune** (S95 finding, chronic since S60) — 416 lines / 69 entries / ~85K tokens; cut to permanent lessons, move per-session narrative to `sessions/`, fix the false "Reloaded every session" header
-- 🟡 **Compression: `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it; those 3 still won't fold typical output
-- 🟡 **Guard identity: exotic git shapes** (S94 residual) — worktree / submodule / symlinked-root detection is untested (all resolve fail-closed today); and the own-git non-session-branch marker fallthrough still authorizes any non-empty marker off a `session-NN` branch
-- 🟡 **GT flag: chronically-absent station** (S95 meta-check) — make "any station ABSENT for N consecutive sessions" an explicit GT tripwire, since the `--stations` K number can't distinguish new-capability from new-hook
+**🧊 Frozen machinery — pull ONLY when a ladder run breaks it:**
+- **Coder-marker fix** (S97 — likeliest first pull; Rung 2 will demand it): *agents write the
+  `## Execution`/`## Delta` markers, Vajra verifies*; add an **env-marker commit path**
+  (`VAJRA_ALLOW_COMMIT` shape) so an unattended `-p` run can reach a full closeout; marker slots
+  ride the `vajra init` scaffold (chitra's older scaffold lacks them).
+- **KNOWLEDGE §6 prune** (chronic since S60) — 416 lines / 69 entries / ~85K tokens; cut to permanent lessons, move per-session narrative to `sessions/`, fix the false "Reloaded every session" header
+- **Compression `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it
+- **Guard identity: exotic git shapes** (S94 residual) — worktree / submodule / symlinked-root untested (fail-closed today); own-git non-session-branch marker fallthrough
+- **GT tripwire: chronically-absent station** (S95 meta-check) — "any station ABSENT for N consecutive sessions" as an explicit GT flag
+- **Hardening bin:** `full_historical_scan` → strict zero-regression bar (S88) · `--ledger-verify` into mandatory closeout · budget cap per-session/kill-mode (S36) · silent-parse-failure signal (S36) · `canonical_inputs_sha` single-candidate limit
 
-**Medium (known gaps, lower blast radius):**
-- `full_historical_scan` pass bar → strict zero-regression assertion (S88 reviewer note)
-- `--ledger-verify` added to mandatory closeout run (currently opt-in)
-- Budget cap reconsider (S36) — per-session vs cumulative; kill-mode; cap never fired live
-- Silent-parse-failure blindness (S36) — compression hook fails open with no signal on parse failure
-- `canonical_inputs_sha` / `--attest-only` single-candidate limitation — historical re-verification is Rust's job
-
-**Parked (owner-gated or low-priority):**
-- Cross-agent (2nd agent) — moat-proving; returns when founder declares Claude experience satisfying
-- North-star breadth indicator (S25 meta-finding) — RED until ≥2 agents
-- Crates.io name taken — install path is `cargo install --path` or crate rename
-- Trace-mine missing `⚡on` advisories (S49-C) — look-only detector proposing new copilot rules
-- `vajra bench` — codify the A/B value-gap harness into a repeatable script (S52 candidate B)
-- Canned workflow patterns, additional agents, policy enforcement, governed memory — after core loop proven and users exist
+**🔒 Owner-gated (unfrozen only by an explicit founder call):**
+- Cross-agent (2nd agent) — now **sequenced in the plan**: neutral evidence format (`agent-trace`) first (months 3–6), a second runtime only on signal
+- North-star breadth indicator (S25) — RED until ≥2 agents · Crates.io name taken — rename is in the v0.1 release task
+- `vajra bench` (S52) · trace-mine `⚡on` advisories (S49-C) · canned workflows / policy enforcement / governed memory — after users exist
 
 ---
 
@@ -250,7 +312,8 @@ Priority order within each tier:
 ## Rules For This Document
 
 1. Update at every closeout — the "Where We Are" table and session log row are mandatory.
-2. `NN % 5 == 0` → mandatory NO-CODE GT. Next = **S100**.
+2. `NN % 5 == 0` → mandatory NO-CODE GT. Next = **S100** (lead lens: is the ladder being climbed, or did machinery resume?).
 3. Mark items done only when they work in a real session, not just tests.
 4. Never exceed 7 top-level commands without explicit user approval.
 5. Per-session detail goes in `sessions/session-NN-summary.md`, not here.
+6. **Machinery-freeze rule (S98, `DECISION-005`):** a session either **runs the Autopilot Ladder** (the active queue) **or fixes something a ladder run broke.** Nothing else gets built. The Backlog is frozen — every item is "only if a ladder run breaks it." This is the by-construction fix for the 4-GT easy-green gradient (S80/S85/S90/S95).
