@@ -2,6 +2,7 @@
 # verify-session-98.sh — Session 98: autopilot-trust reposition (docs-only)
 # Asserts the S98 acceptance criteria hold in the repo (grep the committed docs, not the diff —
 # robust after merge), plus scope (no src/ change) and cargo test green.
+# AC7 added by the S98 closeout-hardening follow-up: the verify-closeout.sh script-presence gate.
 set -euo pipefail
 
 DECISION="docs/decisions/DECISION-005-autopilot-trust.md"
@@ -81,6 +82,25 @@ fi
 check "review exists"                                    "$([ -f "$REVIEW" ] && echo ok || echo fail)"
 check "review Verdict = ACCEPT"                          "$(hasre "$REVIEW" '^[*_[:space:]]*(overall |final )?verdict[*_[:space:]]*:.*accept')"
 check "review carries a 64-hex Review-Inputs-SHA"        "$(grep -iE 'Review-Inputs-SHA' "$REVIEW" | grep -qoiE '[0-9a-f]{64}' && echo ok || echo fail)"
+echo
+
+# --- AC7: the closeout script-presence gate (S98 follow-up hardening) ---
+# This session adds check_verify_demo_scripts to verify-closeout.sh: a CODE session that
+# closes WITHOUT its verify/demo scripts (the exact S98 miss) now FAILS closeout. Drive its
+# focused entry (--scripts-only) across every branch.
+echo "[AC7] verify-closeout.sh closeout script-presence gate"
+gate() { # desc  expected_exit  expected_substr  cmd...
+  local desc="$1" xexit="$2" xsub="$3"; shift 3
+  local out ec=0; out=$("$@" 2>&1) || ec=$?
+  if [ "$ec" -eq "$xexit" ] && echo "$out" | grep -qF "$xsub"; then check "$desc" "ok"
+  else check "$desc" "fail"; fi
+}
+gate "CODE session missing scripts -> FAIL"     1 "SCRIPTS: FAIL" bash scripts/verify-closeout.sh --scripts-only 99
+gate "founder waiver -> PASS (WAIVED)"          0 "WAIVED"        env VAJRA_CLOSEOUT_WAIVER=99 bash scripts/verify-closeout.sh --scripts-only 99
+gate "NO-CODE GT (N%5==0) -> PASS (N/A)"        0 "N/A"           bash scripts/verify-closeout.sh --scripts-only 100
+gate "scripts present -> PASS (OK)"             0 "SCRIPTS: PASS" bash scripts/verify-closeout.sh --scripts-only 96
+gate "dogfood no-waiver -> FAIL"                1 "SCRIPTS: FAIL" bash scripts/verify-closeout.sh --scripts-only 97
+gate "this session (98) -> PASS (OK)"           0 "SCRIPTS: PASS" bash scripts/verify-closeout.sh --scripts-only 98
 echo
 
 # --- cargo test --lib stays green (docs-only session — must not regress) ---
