@@ -8,10 +8,25 @@
 > **Sharpened 2026-07-10 (S54, DECISION-002):** the heart of provable governance is **fidelity** (the
 > agent delivered what was asked), verified *independently* — not just **discipline** (the rules were
 > followed). S54 proved green gates ≠ faithful delivery. The fidelity auditor is the missing heart, in build.
+> **Repositioned 2026-07-23 (S98, DECISION-005):** the **lead** becomes the *outcome* — **the autopilot
+> trust layer: leave your agent working for days, come back, and trust the result.** The governed pipeline
+> (below) stops being the pitch and becomes the **engine** that earns the trust. This changes the lead,
+> not the disclosures — every honesty row below survives. See
+> `docs/decisions/DECISION-005-autopilot-trust.md`.
 
 ## One sentence
 
-**Vajra is one command-line tool that makes any AI coding agent follow your rules — provably — and gives you an auditable record of what it did, while the agent does the actual coding.**
+**Vajra is the autopilot trust layer for AI coding agents: leave your agent working for days, come back, and trust the result — because every action it tried, everything Vajra blocked, the fidelity verdicts, and the receipt are on the record, and it provably followed your rules the whole time while the agent did the actual coding.**
+
+*How it earns that trust (the engine):* one command-line tool that makes any AI coding agent follow your rules — provably — and gives you an auditable record of what it did. The outcome is the lead now; the governance pipeline is what makes the outcome true.
+
+## The lead — autopilot trust (S98)
+
+**The crown jewel is the loop you can bet on while away for days.** The canonical demo, for Hacker News and for an acquirer alike:
+
+> *"I left Claude alone on a real repo for 3 days. Here's every action it tried, what got blocked, the fidelity verdicts, the receipt. I merged without reading every line."*
+
+The 8-station governed pipeline (below) is the **engine** that makes that sentence true — the gates block the leaks, the fidelity auditor catches the illusions, the ledger + receipt make it all reviewable. You don't buy the engine; you buy the trust it earns. **How that trust gets proven** is the falsifiable **Autopilot Ladder** (Rung 1 hours → Rung 2 one day → Rung 3 two–three days across ≥2 repos, ending in the *merge-without-line-by-line-review* test) in `.ai/ROADMAP.md`.
 
 ## The simple picture
 
@@ -52,9 +67,9 @@ mean *provably delivered what you asked*, not just *provably followed the rules.
 | **Discipline** — rules followed, provably (branch, caps, gates, session state) | ✅ real today |
 | **Fidelity** — delivery == what was asked, judged independently + adversarially | 🔴 the missing heart — in build (S55 prove the brain → S56 the gate) |
 
-## The shape — a governed multi-agent SDLC pipeline
+## The engine — a governed multi-agent SDLC pipeline
 
-Vajra's session loop generalises into a **pipeline of specialised agents**, one per SDLC stage — each with a single duty and a scoped context. They don't chatter; they **hand off through governed artifacts** (a blackboard), and Vajra **enforces every handoff**: preflight → entry gate → run the specialist → exit gate (verify exit-0 / human token) → write the artifact → **record a delta (+added / ~changed / −removed)** → log the decision → checkpoint.
+**This is the engine, not the pitch (S98).** The pipeline is *how* autopilot trust is earned and made demonstrable: every stage a gate, every handoff enforced and delta-tracked, the whole run reviewable afterward. Vajra's session loop generalises into a **pipeline of specialised agents**, one per SDLC stage — each with a single duty and a scoped context. They don't chatter; they **hand off through governed artifacts** (a blackboard), and Vajra **enforces every handoff**: preflight → entry gate → run the specialist → exit gate (verify exit-0 / human token) → write the artifact → **record a delta (+added / ~changed / −removed)** → log the decision → checkpoint.
 
 | Stage | Specialist | Duty | Artifact | Gate |
 |---|---|---|---|---|
