@@ -1,0 +1,11 @@
+=== stations: pipeline advance for session 08 ===
+  [ABSENT] Analyst   WHAT   — no prompt
+  [ABSENT] Architect DESIGN — no prompt
+  [ABSENT] Planner   HOW    — no prompt
+  [ABSENT] Coder     DID    — no prompt
+  [PASSED] QA        WORKS  — verify script recorded [static — not live-green]
+  [ABSENT] Demo-er   SHOW   — demo script missing elements: header, cases, summary_table
+  [PASSED] Releaser  SHIP   — branch merged, main synced, locals pruned
+  [ABSENT] Reviewer  REVIEW — no review artifact
+
+  2 of 8 stations passed (derived from each gate's evidence — read-only, nothing executed)
