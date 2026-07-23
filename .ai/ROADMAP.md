@@ -186,7 +186,7 @@ GT-verified S75/S80/S85).
 | S95 | GT (NO-CODE) | Audited S91–S94: 7 🟢 / 3 🟡 / 0 🔴. Enforcement arc complete but **pipeline unadvanced since S72**; **Coder station dark 4-for-4**; 4th consecutive easy-green GT; KNOWLEDGE §6 bloat + stale dogfood backlog item flagged. Founder pick A → S96 pipeline dogfood (re-sequenced: fmt-fix first) |
 | S96 | CODE | CI green: `cargo fmt` the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`), **zero logic**; clippy + 286 tests green; CI green **both OS** (#97); cold review ACCEPT (byte-identical `rustfmt(main)==HEAD`); Coder `## Execution` shas filled (first non-dark since S72, trivial-mapping caveat) |
 | S97 | DOGFOOD | Paid e2e `vajra claude -p` on chitra S08: $1.2758 authoritative (fable-5, exit 0); `--stations 08`=2/8; **Coder doubly-blocked** — chitra's older scaffold has no `## Execution` slots AND headless can't supply a commit-approval token; agent refused self-commit under `--dangerously-skip-permissions` vs a teeth-less gate (3rd voluntary-obedience reconfirm); no green forced; recs → prompt 98 |
-| S98 | CODE (docs) | **Autopilot-trust reposition** (`DECISION-005` + VISION lead + this ROADMAP): pipeline = engine, not pitch; falsifiable Autopilot Ladder replaces the feelings bar; 2026-09-15 release backstop; machinery-freeze rule; scoreboard + 2 kill signals. Docs only, no `src/`; honesty rows preserved |
+| S98 | CODE (docs) | **Autopilot-trust reposition** (`DECISION-005` + VISION lead + this ROADMAP): pipeline = engine, not pitch; falsifiable Autopilot Ladder replaces the feelings bar; 2026-09-15 release backstop; machinery-freeze rule; scoreboard + 2 kill signals. Docs only, no `src/`; honesty rows preserved. **+2 closeout-hardening follow-ups:** #100 added S98's own verify/demo scripts (step-5 miss); #101 made `verify-closeout.sh` BLOCK a scriptless CODE session (`check_verify_demo_scripts`) |
 
 ---
 
@@ -202,7 +202,7 @@ GT-verified S75/S80/S85).
 | S95 | Complete | NO-CODE GT — enforcement arc complete but pipeline unadvanced since S72; Coder dark 4-for-4; founder pick A |
 | S96 | Complete | **CODE** — CI fmt-fix (rustfmt 1.9.0 drift; `cargo fmt` the 3 files, zero logic); CI green both OS (#97); cold review ACCEPT |
 | S97 | Complete | **DOGFOOD (paid)** — chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions; recs → prompt 98 |
-| S98 | In progress | **CODE (docs)** — autopilot-trust reposition: DECISION-005 + VISION lead + ROADMAP 6-month ladder; pipeline = engine not pitch |
+| S98 | Complete | **CODE (docs)** — autopilot-trust reposition (DECISION-005 + VISION lead + ROADMAP 6-month ladder); +2 closeout-hardening follow-ups (#100 scripts · #101 scriptless-CODE-session block) |
 | **S99** | **Next** | **DOGFOOD — Autopilot Ladder Rung 2** (one day unattended, multi-task, chitra): zero governance leaks · honest receipts · fidelity verdicts correct on founder spot-check. Guards ON. First move under the machinery-freeze rule |
 | S100 | Upcoming | **NO-CODE Ground Truth** — lead lens: is the autopilot ladder being climbed, or did machinery resume? |
 
@@ -218,6 +218,7 @@ GT-verified S75/S80/S85).
 | Attestation | ✅ Recompute-and-compare (S86); review-time snapshot (S88); 22/26 historical verified |
 | Releaser durability | ✅ Reads ledger when branch is pruned (S82) |
 | Fidelity gate | ✅ `verify-closeout.sh` blocks without independent ACCEPT review |
+| Closeout script-presence gate | ✅ `verify-closeout.sh` blocks a CODE session missing its `verify/demo-session-NN.sh` (S98 follow-up #101; `--scripts-only`; GT + `VAJRA_CLOSEOUT_WAIVER` exempt) |
 | `cargo test --lib` | ✅ 286 tests |
 | CI on `main` (both OS) | ✅ Green (S96) — `fmt --check` + `clippy -D warnings` + `test --lib`; rustfmt pinned 1.9.0-stable |
 | `vajra next --dogfood-age` | ✅ Git-derived staleness; never reads STATE.md |

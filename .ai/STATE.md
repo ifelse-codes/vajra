@@ -13,12 +13,15 @@ frozen backlog). Docs only — **no `src/`**. Independent cold review **ACCEPT 6
 (`Review-Inputs-SHA: bc06d4d6…`), ledger extended. No honesty row softened. ~$0.
 
 ## Active PRs
-- **S98 PR:** `session-98-autopilot-trust-reposition` (DECISION-005 + VISION + ROADMAP; docs-only) —
-  to be opened.
-- Merged: S97 [#98](https://github.com/ifelse-codes/vajra/pull/98) ·
+- None open — between sessions.
+- Merged (S98 + its two closeout-hardening follow-ups): docs
+  [#99](https://github.com/ifelse-codes/vajra/pull/99) ·
+  [#100](https://github.com/ifelse-codes/vajra/pull/100) (per-session verify/demo scripts — S98's own,
+  added post-hoc) · [#101](https://github.com/ifelse-codes/vajra/pull/101) (`verify-closeout.sh` blocks
+  a scriptless CODE session).
+- Earlier: S97 [#98](https://github.com/ifelse-codes/vajra/pull/98) ·
   S96 [#97](https://github.com/ifelse-codes/vajra/pull/97) ·
-  S95 [#95](https://github.com/ifelse-codes/vajra/pull/95)/[#96](https://github.com/ifelse-codes/vajra/pull/96) ·
-  S94 [#94](https://github.com/ifelse-codes/vajra/pull/94).
+  S95 [#95](https://github.com/ifelse-codes/vajra/pull/95)/[#96](https://github.com/ifelse-codes/vajra/pull/96).
 
 ## Direction (governance is the product — now sold as the autopilot trust layer)
 - **The product = provable agent governance**, shaped as a **governed multi-agent SDLC pipeline**
@@ -55,6 +58,11 @@ frozen backlog). Docs only — **no `src/`**. Independent cold review **ACCEPT 6
   query (S91).
 - **The reposition is installed in `.ai/`** (S98): `DECISION-005` + VISION lead + ROADMAP 6-Month
   Autopilot Plan — the next six months inherit the autopilot-trust direction from `.ai/`, not a chat.
+- **Closeout gate hardened (S98 follow-up, #100/#101):** every CODE session carries its own
+  `verify-session-NN.sh` + `demo-session-NN.sh` (step 5); `verify-closeout.sh` now BLOCKS a CODE
+  session that closes without them (`check_verify_demo_scripts` / `--scripts-only`; NO-CODE GT `N%5==0`
+  and `VAJRA_CLOSEOUT_WAIVER` exempt). Closes the hole that let S98 itself ship scriptless at a false
+  11/11 green.
 - **CI is green on `main`** (S96): `cargo fmt --check` + `clippy -D warnings` + `cargo test --lib` on
   ubuntu + macos; rustfmt pinned 1.9.0-stable.
 - **Commit gate ENFORCED (S93):** L2 `.githooks/pre-commit` + L3 un-forgeable `hook-commit-guard.sh`
@@ -89,7 +97,8 @@ frozen backlog). Docs only — **no `src/`**. Independent cold review **ACCEPT 6
 - **🟡 Legacy opus ids (4.0/4.1/4.5) have no confirmed current-rate source** — held at $15/$75 (S79).
 
 ## What Is In Progress
-- **S98 DONE (CODE / docs — autopilot-trust reposition).** Next = **S99** (founder picks from 3 ranked
+- **S98 DONE (CODE / docs — autopilot-trust reposition) + 2 closeout-hardening follow-ups merged**
+  (#100 per-session scripts · #101 the scriptless-CODE-session block). Next = **S99** (founder picks from 3 ranked
   candidates in `sessions/session-98-summary.md`: **A** Coder-marker fix [recommended] · **B** Rung 2
   ladder dogfood · **C** release-backstop slice). **New chat.** Then **S100 = NO-CODE GT** (lead lens:
   is the ladder being climbed, or did machinery resume?).
