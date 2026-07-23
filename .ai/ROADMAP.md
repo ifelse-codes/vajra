@@ -1,13 +1,15 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-22 · **Session 96 — CODE (CI fmt-fix) — DONE.**
-`cargo fmt` on the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`),
-**zero logic**; `fmt --check` + `clippy -D warnings` + `cargo test --lib` **286** green; CI green on
-**both** OS (PR #97); cold review ACCEPT (byte-identical `rustfmt(main)==HEAD` proof). Coder
-`## Execution` shas filled → `vajra next --stations 96` = **5/8** with **Coder PASSED** (first non-dark
-since S72; trivial-mapping caveat). The chronic rustfmt weak-item is closed. This was bounded hygiene,
-**not** a pipeline advance — the S95 machinery-vs-payload finding still stands. **Next = S97 —
-end-to-end pipeline dogfood (paid) on chitra** (founder pick A, locked at S95).
+**Updated:** 2026-07-23 · **Session 97 — DOGFOOD (paid, Ladder Rung 1) — DONE.**
+One real `vajra claude -p` turn drove chitra S08 through the stations: **$1.2758 authoritative**
+(fable-5, exit 0), `--stations 08` = **2/8**, **Coder `[ABSENT]` — doubly-blocked** (chitra's
+older scaffold has no `## Execution` marker slots **and** headless can't supply a commit-approval
+token → zero shas). Agent **refused to self-commit even under `--dangerously-skip-permissions`
+against chitra's teeth-less convention gate** — 3rd reconfirmation (S76/S92/S97) of voluntary
+obedience, now under the weakest gate. **No green forced** — the honest partial IS the finding.
+Recs feed prompt 98 (scaffold marker slots · env-marker commit path for unattended runs · agents
+write markers/Vajra verifies). **Next = S98 — autopilot-trust reposition (founder pre-drafted,
+`prompts/98-task-autopilot-trust-reposition.md`).**
 
 **Direction (binding):** the product is **provable agent governance**, shaped as a **governed
 multi-agent SDLC pipeline** (`DECISION-001`). Fidelity is load-bearing (`DECISION-002`), verdicts
@@ -19,10 +21,10 @@ attested (`DECISION-003`), chained tamper-evident (`DECISION-004`).
 
 | Field | Value |
 |---|---|
-| Today | 2026-07-22 |
-| Current phase | **8-station governed pipeline complete; enforcement arc complete; pipeline unchanged since S72.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713). **Dogfood 🟢 (S92 = 2026-07-21) — but LAUNCHER only (2/8); pipeline never dogfooded end-to-end (S95 finding).** Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). **S95 GT: Coder station dark 4-for-4; next move = pipeline dogfood, not more guardrails.** |
-| Last closed session | Session 96 — CODE (CI fmt-fix): rustfmt 1.9.0 drift closed; CI green both OS (#97); Coder non-dark (5/8) |
-| Active session | None — between sessions (S96 complete, S97 not yet started) |
+| Today | 2026-07-23 |
+| Current phase | **8-station governed pipeline complete; enforcement arc complete; pipeline unchanged since S72.** Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt authoritative (S92 $0.2713 · S97 $1.2758). **Dogfood 🟢 (S97 = 2026-07-23, end-to-end). S97 measured the PIPELINE (not just launcher): `--stations 08`=2/8, Coder doubly-blocked — chitra's older scaffold lacks marker slots AND headless can't approve commits.** Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). **Reposition next: S98 = autopilot-trust (pipeline = engine, not pitch).** |
+| Last closed session | Session 97 — DOGFOOD (paid): chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions |
+| Active session | None — between sessions (S97 complete, S98 not yet started) |
 | Crate | package `vajractl` · binary `vajra` |
 
 ---
@@ -119,6 +121,7 @@ GT-verified S75/S80/S85).
 | S94 | CODE | Repo-identity-aware guards (nested-repo blindspot S52 closed): git facts pinned to own top-level; governed project surfaced; fail-closed when no own repo; two-pass review (pass 1 caught fail-open → fixed); 23/23 verify; ACCEPT |
 | S95 | GT (NO-CODE) | Audited S91–S94: 7 🟢 / 3 🟡 / 0 🔴. Enforcement arc complete but **pipeline unadvanced since S72**; **Coder station dark 4-for-4**; 4th consecutive easy-green GT; KNOWLEDGE §6 bloat + stale dogfood backlog item flagged. Founder pick A → S96 pipeline dogfood (re-sequenced: fmt-fix first) |
 | S96 | CODE | CI green: `cargo fmt` the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`), **zero logic**; clippy + 286 tests green; CI green **both OS** (#97); cold review ACCEPT (byte-identical `rustfmt(main)==HEAD`); Coder `## Execution` shas filled (first non-dark since S72, trivial-mapping caveat) |
+| S97 | DOGFOOD | Paid e2e `vajra claude -p` on chitra S08: $1.2758 authoritative (fable-5, exit 0); `--stations 08`=2/8; **Coder doubly-blocked** — chitra's older scaffold has no `## Execution` slots AND headless can't supply a commit-approval token; agent refused self-commit under `--dangerously-skip-permissions` vs a teeth-less gate (3rd voluntary-obedience reconfirm); no green forced; recs → prompt 98 |
 
 ---
 
@@ -133,7 +136,9 @@ GT-verified S75/S80/S85).
 | S94 | Complete | CODE — repo-identity-aware guards; nested-repo blindspot (S52) closed; fail-closed when no own git repo |
 | S95 | Complete | NO-CODE GT — enforcement arc complete but pipeline unadvanced since S72; Coder dark 4-for-4; founder pick A |
 | S96 | Complete | **CODE** — CI fmt-fix (rustfmt 1.9.0 drift; `cargo fmt` the 3 files, zero logic); CI green both OS (#97); cold review ACCEPT |
-| **S97** | **Next** | **DOGFOOD (paid)** — end-to-end 8-station pipeline on chitra; diagnose the Coder-dark pattern; new chat |
+| S97 | Complete | **DOGFOOD (paid)** — chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions; recs → prompt 98 |
+| **S98** | **Next** | **CODE (docs)** — autopilot-trust reposition (founder pre-drafted): DECISION-005 + VISION lead + ROADMAP 6-month ladder; pipeline = engine not pitch; new chat |
+| S100 | Upcoming | **NO-CODE Ground Truth** — lead lens: is the autopilot ladder being climbed, or did machinery resume? |
 
 ---
 
