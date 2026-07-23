@@ -194,6 +194,52 @@ check_execution_shas() {
   fi
 }
 
+# --- Verify/Demo script-presence guard (S98 follow-up — the step-5 gap) ------
+# Catches the S98 miss: a CODE session that closes WITHOUT its own
+# scripts/verify-session-NN.sh + demo-session-NN.sh. Every CODE session carries
+# both (Session Loop step 5, VERIFY + DEMO). The QA / Demo-er gates in `vajra next`
+# only RE-RUN them at the FOLLOWING --advance and merely WARN when absent (legacy /
+# NO-CODE pass), so a forgotten script slips through a green closeout unnoticed —
+# which is exactly how S98 shipped scriptless. This is the last line of defence for
+# the session's OWN scripts, at its own close.
+#
+# Exempt (both mirror how the exec-sha + fidelity gates already treat non-CODE work):
+#   * NO-CODE ground-truth (N % 5 == 0) — no code, no scripts — passes N/A.
+#   * DOGFOOD / founder-waived (VAJRA_CLOSEOUT_WAIVER=N) — a dogfood produces no
+#     session scripts; the same escape hatch the other gates use — passes WAIVED.
+# Everything else is a CODE session and must have BOTH scripts (non-empty).
+check_verify_demo_scripts() {
+  local NAME="verify-demo-scripts-present"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+
+  if [ "$((N % 5))" -eq 0 ]; then
+    echo "N/A: session $N is a NO-CODE ground-truth (N % 5 == 0) — no session scripts expected." >> "$LOG"
+    ok "$NAME"; return
+  fi
+
+  local V="scripts/verify-session-${N}.sh"
+  local D="scripts/demo-session-${N}.sh"
+  local missing=()
+  { [ -f "$V" ] && [ -s "$V" ]; } || missing+=("$V")
+  { [ -f "$D" ] && [ -s "$D" ]; } || missing+=("$D")
+
+  if [ "${#missing[@]}" -eq 0 ]; then
+    echo "OK: $V + $D both present and non-empty." >> "$LOG"; ok "$NAME"; return
+  fi
+
+  for m in "${missing[@]}"; do echo "MISSING: $m" >> "$LOG"; done
+  echo "BLOCK: session $N is a CODE session but is missing the step-5 script(s) above." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>} (DOGFOOD / NO-CODE — no scripts)." >> "$LOG"
+    ok "$NAME"
+  else
+    echo "FAIL: add scripts/verify-session-${N}.sh + scripts/demo-session-${N}.sh (step 5, VERIFY + DEMO)," >> "$LOG"
+    echo "      or set VAJRA_CLOSEOUT_WAIVER=$N for a DOGFOOD / NO-CODE session that produces none." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
 # --- Fidelity gate (S56 — DECISION-002 teeth) -------------------------------
 # Un-forgeable waiver: a founder-controlled env var, NOT a text marker the agent
 # can Write into a tracked file. Mirrors VAJRA_ALLOW_PUBLISH (S37). Session-scoped:
@@ -450,6 +496,17 @@ if [ "${1:-}" = "--check-exec-shas" ]; then
   if [ "$FAIL" -eq 0 ]; then echo "EXEC-SHAS: PASS"; exit 0; else echo "EXEC-SHAS: FAIL"; exit 1; fi
 fi
 
+# Focused entry point: run ONLY the verify/demo script-presence check (S98). `--scripts-only [N]`.
+if [ "${1:-}" = "--scripts-only" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
+  check_verify_demo_scripts
+  echo ""
+  echo "=== Verify/Demo script-presence check (N=${N:-?}) ==="
+  for r in "${RESULTS[@]}"; do echo "$r"; done
+  cat "$ARTIFACTS/verify-demo-scripts-present.log" 2>/dev/null || true
+  if [ "$FAIL" -eq 0 ]; then echo "SCRIPTS: PASS"; exit 0; else echo "SCRIPTS: FAIL"; exit 1; fi
+fi
+
 # Focused entry point: run ONLY the verdict-attestation check (S58). `--attest-only [N]`.
 if [ "${1:-}" = "--attest-only" ]; then
   if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
@@ -512,6 +569,7 @@ check_session_pair
 check_roadmap_current
 check_cost_tracking
 check_execution_shas
+check_verify_demo_scripts
 check_fidelity_review
 check_review_attestation
 

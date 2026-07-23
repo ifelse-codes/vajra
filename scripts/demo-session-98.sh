@@ -55,6 +55,14 @@ show "$VISION" '0 cross-agent code'                            "cross-agent stil
 show "$VISION" 'never in README/marketing until measured'     "compression never-claim"
 show "$VISION" 'stated hypothesis'                             "'better work' stays a hypothesis"
 
+header "6 · Closeout hardening (follow-up) — the step-5 gate that would have caught this"
+CM=$(bash scripts/verify-closeout.sh --scripts-only 99 2>&1 | grep -m1 'SCRIPTS:' || true)
+CP=$(bash scripts/verify-closeout.sh --scripts-only 96 2>&1 | grep -m1 'SCRIPTS:' || true)
+printf "    CODE session missing its scripts (S99 e.g.): %s\n" "$CM"
+printf "    CODE session WITH its scripts   (S96 e.g.): %s\n" "$CP"
+[ "${CM##*: }" = "FAIL" ] && ok "verify-closeout.sh now BLOCKS a scriptless CODE session (S98 would have failed)" \
+                          || no "gate not blocking"
+
 # --- demo:summary_table ---
 header "Summary  [demo:summary_table]"
 printf "\n"
