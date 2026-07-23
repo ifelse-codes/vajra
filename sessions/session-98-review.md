@@ -72,4 +72,4 @@ lines (survival inferred from no deletion + independent re-assertion). Neither i
 ---
 
 **Verdict:** ACCEPT
-**Review-Inputs-SHA:** <pending — computed via `scripts/verify-closeout.sh --inputs-sha 98` after the prompt is finalized, then embedded>
+**Review-Inputs-SHA:** bc06d4d6df49d08e8eb036f498ff2e43268d7f3e2b18cbfbfe54fa5a55bfccb0
