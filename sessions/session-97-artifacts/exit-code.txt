@@ -1,0 +1,2 @@
+exit_code=0
+run_jsonl=/Users/suman/.claude/projects/-Users-suman-playground-chitra/24ca508e-f803-478b-9862-fb668886cb33.jsonl

@@ -1,0 +1,7 @@
+=== dogfood age (derived from git — not from STATE.md) ===
+  last dogfood session : 97
+  date (git-derived)   : <unresolvable from git log>
+  cost (authoritative) : $1.2758
+  receipt file         : receipt.stderr.txt
+  sessions since       : 0 (S97 → current S96)
+  calendar days since  : <unresolvable from git date>

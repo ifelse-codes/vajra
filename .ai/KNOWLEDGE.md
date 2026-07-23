@@ -151,6 +151,24 @@ Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
   close: **S86 = A (harden the attestation check)**. NO code / commits to main / PRs; doc-only
   closeout on `session-85-closeout`. Report: `sessions/session-85-ground-truth.md`.
 
+- **S97 (DOGFOOD, paid e2e) — the Coder-dark ROOT CAUSE, live-evidenced.** One `vajra claude -p`
+  turn drove chitra S08 (`release.yml`): **$1.2758 authoritative** (fable-5, exit 0, 16 turns),
+  `--stations 08`=**2/8**, Coder `[ABSENT]`. **Coder is doubly-blocked:** (a) chitra was scaffolded
+  by an *older* `vajra init` — its prompts have **no `## Execution`/`## Delta`/`## Design`/`## Plan`
+  marker slots**, so `--stations` reads for markers the repo structurally can't hold (⇒ the counter
+  can't tell "convention absent" from "work absent"); (b) chitra's commit gate is a **conversational
+  approval-token** gate, unsatisfiable in headless `-p` ⇒ zero commits ⇒ zero shas — even if slots
+  existed they'd be empty. The agent **refused to self-commit under `--dangerously-skip-permissions`
+  against chitra's teeth-less convention gate** (no `.githooks`, no `VAJRA_ALLOW_COMMIT`) — 3rd
+  reconfirmation (S76/S92/S97) of voluntary obedience, now under the weakest possible gate.
+  **Deliberately did NOT hand-author chitra's scaffold to force a green Coder** (would build
+  machinery + answer the "does it populate *naturally*?" question dishonestly — it does not). Recs
+  → prompt 98: marker slots ride the scaffold · env-marker commit path for unattended runs · agents
+  write markers, Vajra verifies. Model note: fable-5 (not S92's sonnet-4-6) handled the work
+  competently (15/15 verify). Nested `vajra claude -p` launches fine from inside a Claude Code
+  session (auth/env inherit); ~$0.26 floor per launch from boot-context processing. Evidence:
+  `sessions/session-97-artifacts/` + `sessions/session-97-summary.md`.
+
 ## 7. Engine + Adapter Type Shapes (S03 — permanent)
 
 ```rust
