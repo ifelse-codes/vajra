@@ -121,10 +121,38 @@ else
   H_BAD=$(cd "$ROOT" && VAJRA_ALLOW_COMMIT="$OTHER" bash scripts/hook-session-start.sh 2>/dev/null | tail -5 || true)
   check "boot hook: wrong-session -> NOT VALID HERE" "$(sin "$H_BAD" '[commit approval] NOT VALID HERE')"
 
-  # The two surfaces must agree on the same launch environment (no Rust/bash drift).
-  A=$(sin "$P_OK" 'PRE-GRANTED')
-  B=$(sin "$H_OK" 'PRE-GRANTED')
-  check "both surfaces agree on the same environment" "$([ "$A" = "$B" ] && echo ok || echo fail)"
+  # The two surfaces must classify the SAME launch env into the same category — a real cross-
+  # surface comparison (not two booleans already asserted equal). Extract the category word from
+  # each surface and diff them, for all three env conditions.
+  cat_of() { # stdin -> REQUIRED | PRE-GRANTED | NOTVALID | UNKNOWN
+    if   echo "$1" | grep -q 'PRE-GRANTED'; then echo PRE-GRANTED
+    elif echo "$1" | grep -q 'NOT VALID';  then echo NOTVALID
+    elif echo "$1" | grep -q 'REQUIRED';   then echo REQUIRED
+    else echo UNKNOWN; fi
+  }
+  for pair in "NONE:$P_NONE|$H_NONE" "OK:$P_OK|$H_OK" "BAD:$P_BAD|$H_BAD"; do
+    tag=${pair%%:*}; rest=${pair#*:}; pcat=$(cat_of "${rest%%|*}"); hcat=$(cat_of "${rest##*|}")
+    check "surfaces agree for env $tag ($pcat)" \
+      "$([ "$pcat" = "$hcat" ] && [ "$pcat" != UNKNOWN ] && echo ok || echo fail)"
+  done
+
+  # REAL parity with the enforcing guard (not asserted from memory): drive hook-commit-guard.sh
+  # with a git-commit PreToolUse payload under each env, forcing enforcement (VAJRA_ENFORCE_COMMIT=1
+  # past this repo's `commit_guard: off`). The guard's decision — allow(0) / block(2) — must match
+  # what the packet told the agent. This is the check the S99 review demanded.
+  GUARD="$ROOT/scripts/hook-commit-guard.sh"
+  PAYLOAD='{"tool_input":{"command":"git commit -m x"}}'
+  guard_exit() { # $@ = extra env spec placed FIRST (so `-u NAME` options precede assignments)
+    local ec=0
+    echo "$PAYLOAD" | env "$@" CLAUDE_PROJECT_DIR="$ROOT" VAJRA_ENFORCE_COMMIT=1 bash "$GUARD" >/dev/null 2>&1 || ec=$?
+    echo "$ec"
+  }
+  E_OK=$(guard_exit "VAJRA_ALLOW_COMMIT=$SESS")
+  E_BAD=$(guard_exit "VAJRA_ALLOW_COMMIT=$OTHER")
+  E_NONE=$(guard_exit -u VAJRA_ALLOW_COMMIT)
+  check "guard ALLOWs (0) when packet says PRE-GRANTED"       "$([ "$E_OK" = "0" ] && echo ok || echo fail)"
+  check "guard BLOCKs (2) when packet says NOT VALID HERE"    "$([ "$E_BAD" = "2" ] && echo ok || echo fail)"
+  check "guard BLOCKs (2) when packet says REQUIRED"          "$([ "$E_NONE" = "2" ] && echo ok || echo fail)"
 fi
 
 # --- Regression: the suite stays green ----------------------------------------------------------

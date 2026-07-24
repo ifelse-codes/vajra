@@ -70,8 +70,16 @@ label "marker scoped to the WRONG session — never reported as permission:"
 header "4 · The same answer on the surface a headless run always reads (the boot packet)"
 ( VAJRA_ALLOW_COMMIT="$SESS" bash scripts/hook-session-start.sh 2>/dev/null | tail -4 || true ) \
   | sed 's/^/    /' | cut -c1-104
-ok "both surfaces classify the launch env exactly as hook-commit-guard.sh does"
-printf "${YELLOW}! ADVISORY, not permission — the L3 guard reads its OWN launch env, keeps the teeth${RESET}\n"
+header "5 · Parity is VERIFIED against the enforcing guard, not asserted"
+label "drive hook-commit-guard.sh (enforcement forced) with the same three launch envs:"
+GUARD="$ROOT/scripts/hook-commit-guard.sh"; PAYLOAD='{"tool_input":{"command":"git commit -m x"}}'
+gx() { local ec=0; echo "$PAYLOAD" | env "$@" CLAUDE_PROJECT_DIR="$ROOT" VAJRA_ENFORCE_COMMIT=1 bash "$GUARD" >/dev/null 2>&1 || ec=$?; echo "$ec"; }
+printf "    packet PRE-GRANTED   -> guard exit %s (0=allow)\n" "$(gx VAJRA_ALLOW_COMMIT=$SESS)"
+printf "    packet NOT VALID     -> guard exit %s (2=block)\n" "$(gx VAJRA_ALLOW_COMMIT=$((10#$SESS - 1)))"
+printf "    packet REQUIRED      -> guard exit %s (2=block)\n" "$(gx -u VAJRA_ALLOW_COMMIT)"
+ok "the packet word and the guard's real allow/block decision agree on every env"
+printf "${YELLOW}! ADVISORY + AGENT-FORGEABLE — the packet reads its own process env, which the agent${RESET}\n"
+printf "${YELLOW}  controls; the un-forgeable teeth stay in the L3 guard (reads its OWN launch env).${RESET}\n"
 
 # --- demo:summary_table ---
 header "Summary  [demo:summary_table]"
