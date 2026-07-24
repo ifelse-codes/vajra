@@ -1711,33 +1711,57 @@ mod tests {
         assert!(dir.path().join("prompts/01-task-kickoff.md").exists());
     }
 
-    /// S99 (AC1): the kickoff prompt is DERIVED from the one canonical station-marker template,
-    /// so a fresh repo is measurable by `vajra next --stations` from session 01. Fails loudly if
-    /// a second copy of the template is reintroduced, or if a template reword silently stops the
-    /// founder's goal from being substituted.
+    /// S99 (AC1): the kickoff is the ONE canonical station-marker template — nothing hand-copied.
+    ///
+    /// The ratchet must catch a REGRESSION where someone re-forks the kickoff into an inline stub
+    /// (the pre-S99 `TPL_PROMPT` shape). It does NOT compare the output to itself: it ties the
+    /// kickoff to strings authored in a DIFFERENT module (`analyst::PROMPT_TEMPLATE`) and to this
+    /// file's own source text.
+    ///   1. Every `## ` heading line the canonical template authors — parentheticals and all —
+    ///      must appear VERBATIM in the kickoff. A hand-written stub (`## Goal`/`## Deliverables`/
+    ///      `## Exit Criteria`) cannot reproduce `## Execution (the Coder gate — record each plan
+    ///      step's landing commit as work lands)`, so it trips here.
+    ///   2. This file must carry no second prompt-template constant. A re-added `const TPL_PROMPT:`
+    ///      (the exact byte pattern S99 deleted) fails the source check below.
     #[test]
-    fn kickoff_prompt_carries_goal_and_markers() {
+    fn kickoff_is_the_one_canonical_template_no_second_copy() {
         let goal = "ship the first slice";
         let out = kickoff_prompt(goal, "kickoff");
 
-        for heading in [
-            "## Type",
-            "## Goal",
-            "## Deliverables",
-            "## Acceptance",
-            "## Design",
-            "## Plan",
-            "## Execution",
-            "## Guardrails",
-            "## Delta",
-        ] {
-            assert!(out.contains(heading), "kickoff prompt lost {heading:?}");
+        // (1) Heading lines are authored once, in analyst::PROMPT_TEMPLATE. Pull them live (not a
+        // hardcoded list) and require each verbatim in the kickoff — the cross-module tie.
+        let canonical = crate::analyst::render_scaffold(1, "kickoff");
+        let headings: Vec<&str> = canonical.lines().filter(|l| l.starts_with("## ")).collect();
+        assert!(
+            headings.len() >= 6,
+            "canonical template is not the expected multi-section shape ({} headings)",
+            headings.len()
+        );
+        for line in &headings {
+            // Skip the `## Goal` heading's body-substituted case is irrelevant — the heading LINE
+            // itself is unchanged by substitution, so it must survive verbatim.
             assert!(
-                crate::analyst::render_scaffold(1, "kickoff").contains(heading),
-                "canonical template lost {heading:?} — kickoff would drift"
+                out.contains(line),
+                "kickoff diverged from the canonical template — missing verbatim {line:?}. A \
+                 hand-written second copy is the likely cause."
             );
         }
-        // Both goal placeholders substituted — the drift alarm for a reworded template.
+
+        // (2) Source ratchet: this file must not re-introduce the inline template constant S99
+        // removed. `include_str!` reads THIS file's bytes at compile time. Anchor on a line whose
+        // trimmed start is the DEFINITION `const TPL_PROMPT:` — the onboarding template
+        // (`const TPL_PROMPT_ONBOARD:`) does not match, and this test's own string-literal mention
+        // (indented, preceded by `(`) does not start a line with `const`, so it does not match.
+        const SELF_SRC: &str = include_str!("init.rs");
+        assert!(
+            !SELF_SRC
+                .lines()
+                .any(|l| l.trim_start().starts_with("const TPL_PROMPT:")),
+            "a second inline prompt template (const TPL_PROMPT) was reintroduced — the kickoff \
+             must derive from analyst::PROMPT_TEMPLATE, not a local copy"
+        );
+
+        // Substitution + identity sanity — the founder's goal lands, session is 01, no raw tokens.
         assert!(
             !out.contains("<one-line goal>"),
             "title goal not substituted"
@@ -1747,7 +1771,6 @@ mod tests {
             "`## Goal` placeholder not substituted"
         );
         assert_eq!(out.matches(goal).count(), 2, "goal not placed twice");
-        // Session number is the kickoff's, not the template's raw token.
         assert!(out.contains("# Session 01 —"), "kickoff is not session 01");
         assert!(!out.contains("{{NN}}"), "unsubstituted template token");
     }

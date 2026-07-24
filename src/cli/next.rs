@@ -1118,8 +1118,11 @@ fn extract_backticked_prompt(line: &str) -> Option<String> {
 mod tests {
     use super::*;
 
-    /// S99 (AC3): the packet's commit-approval line mirrors `hook-commit-guard.sh` exactly — it
-    /// must never say "pre-granted" where the guard would block.
+    /// S99 (AC3): the packet's classification encodes the SAME rule `hook-commit-guard.sh` applies
+    /// (session digits from a `session-NN-*` branch; off such a branch any non-empty marker is
+    /// accepted) — so the packet can never say "pre-granted" where the guard would block. This
+    /// test checks the Rust classification table; LIVE parity against the actual guard script (its
+    /// real allow/block exit code under each env) is proven in `scripts/verify-session-99.sh`.
     #[test]
     fn commit_authorization_mirrors_the_guard() {
         // Marker matches the branch-derived session -> the guard ALLOWs.
