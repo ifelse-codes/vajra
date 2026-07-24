@@ -578,7 +578,9 @@ fn files(
         // scripts/verify-closeout.sh (include_str!, one source). Carries the fidelity gate, so a
         // scaffolded project's closeout also structurally requires an independent ACCEPT review.
         fx("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT),
-        f("prompts/01-task-kickoff.md", TPL_PROMPT),
+        // S99: the kickoff carries the station markers, rendered from the one canonical
+        // template — a fresh repo is measurable by `vajra next --stations` from session 01.
+        f("prompts/01-task-kickoff.md", &kickoff_prompt(goal, slug)),
     ];
     if brownfield {
         entries.push(f(
@@ -1056,19 +1058,37 @@ else echo "RED ($PASS pass, $FAIL fail)"; exit 1; fi
 // the S70 GT finding); now the file IS the source and this embed cannot drift from it.
 const TPL_DEMO_TEMPLATE: &str = include_str!("../../scripts/demo-session-template.sh");
 
-const TPL_PROMPT: &str = r#"# Session 01 — {GOAL}
-
-## Goal
-{GOAL}
-
-## Deliverables
-- (define before starting)
-
-## Exit Criteria
-- `scripts/verify-session-01.sh` exits 0
-- `scripts/demo-session-01.sh` shows what was built
-- Session summary with 3 next options
-"#;
+/// The session-01 kickoff prompt, rendered from the ONE canonical station-marker template
+/// (`analyst::PROMPT_TEMPLATE`) rather than a second inline copy (S99).
+///
+/// Until S99 this was a hand-written stub carrying Goal/Deliverables/Exit-Criteria and **none**
+/// of the station markers (`## Acceptance`/`## Design`/`## Plan`/`## Execution`/`## Delta`). A
+/// repo scaffolded that way was structurally unmeasurable by `vajra next --stations`: four of the
+/// eight stations read for sections the prompt could never contain (the S97 Ladder-Rung-1 finding,
+/// live-evidenced on chitra). Sourcing the kickoff from `render_scaffold` means the scaffold and
+/// the gates can no longer drift apart — there is exactly one template.
+///
+/// The founder's goal (asked at `vajra init` time) replaces the template's title + goal
+/// placeholders; every other placeholder stays, because the human is meant to fill them in
+/// before flipping `Status: DRAFT` to APPROVED.
+fn kickoff_prompt(goal: &str, slug: &str) -> String {
+    let rendered = crate::analyst::render_scaffold(1, slug).replace("<one-line goal>", goal);
+    // Replace the `## Goal` placeholder paragraph by its stable prefix, so a reworded template
+    // still substitutes. If it ever stops matching, the placeholder simply survives (harmless)
+    // and `kickoff_prompt_carries_goal_and_markers` fails loudly rather than shipping drift.
+    rendered
+        .lines()
+        .map(|l| {
+            if l.starts_with("<One paragraph") {
+                goal
+            } else {
+                l
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n"
+}
 
 // Session-0 brief for brownfield repos (S34): the codebase existed before Vajra, so the
 // first session studies it and seeds the .ai/ files with reality — no feature work.
@@ -1689,6 +1709,70 @@ mod tests {
         assert!(task.contains("Session 00 — Brownfield onboarding"));
         assert!(task.contains("prompts/00-task-brownfield-onboarding.md"));
         assert!(dir.path().join("prompts/01-task-kickoff.md").exists());
+    }
+
+    /// S99 (AC1): the kickoff prompt is DERIVED from the one canonical station-marker template,
+    /// so a fresh repo is measurable by `vajra next --stations` from session 01. Fails loudly if
+    /// a second copy of the template is reintroduced, or if a template reword silently stops the
+    /// founder's goal from being substituted.
+    #[test]
+    fn kickoff_prompt_carries_goal_and_markers() {
+        let goal = "ship the first slice";
+        let out = kickoff_prompt(goal, "kickoff");
+
+        for heading in [
+            "## Type",
+            "## Goal",
+            "## Deliverables",
+            "## Acceptance",
+            "## Design",
+            "## Plan",
+            "## Execution",
+            "## Guardrails",
+            "## Delta",
+        ] {
+            assert!(out.contains(heading), "kickoff prompt lost {heading:?}");
+            assert!(
+                crate::analyst::render_scaffold(1, "kickoff").contains(heading),
+                "canonical template lost {heading:?} — kickoff would drift"
+            );
+        }
+        // Both goal placeholders substituted — the drift alarm for a reworded template.
+        assert!(
+            !out.contains("<one-line goal>"),
+            "title goal not substituted"
+        );
+        assert!(
+            !out.contains("<One paragraph"),
+            "`## Goal` placeholder not substituted"
+        );
+        assert_eq!(out.matches(goal).count(), 2, "goal not placed twice");
+        // Session number is the kickoff's, not the template's raw token.
+        assert!(out.contains("# Session 01 —"), "kickoff is not session 01");
+        assert!(!out.contains("{{NN}}"), "unsubstituted template token");
+    }
+
+    /// S99 (AC1): the scaffolded file on disk — not just the renderer — carries the markers.
+    #[test]
+    fn scaffolded_kickoff_file_is_station_measurable() {
+        let dir = scaffold_tmp();
+        let p = fs::read_to_string(dir.path().join("prompts/01-task-kickoff.md")).unwrap();
+        for heading in [
+            "## Acceptance",
+            "## Design",
+            "## Plan",
+            "## Execution",
+            "## Delta",
+        ] {
+            assert!(
+                p.contains(heading),
+                "scaffolded kickoff missing {heading:?}"
+            );
+        }
+        assert!(
+            p.contains("Status:** DRAFT"),
+            "kickoff must ship DRAFT — the human approves before the session starts"
+        );
     }
 
     #[test]
