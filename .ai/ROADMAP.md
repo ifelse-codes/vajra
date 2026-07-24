@@ -187,6 +187,7 @@ GT-verified S75/S80/S85).
 | S96 | CODE | CI green: `cargo fmt` the 3 rustfmt-1.9.0-drifted files (`next.rs`/`dogfood/mod.rs`/`stations/mod.rs`), **zero logic**; clippy + 286 tests green; CI green **both OS** (#97); cold review ACCEPT (byte-identical `rustfmt(main)==HEAD`); Coder `## Execution` shas filled (first non-dark since S72, trivial-mapping caveat) |
 | S97 | DOGFOOD | Paid e2e `vajra claude -p` on chitra S08: $1.2758 authoritative (fable-5, exit 0); `--stations 08`=2/8; **Coder doubly-blocked** — chitra's older scaffold has no `## Execution` slots AND headless can't supply a commit-approval token; agent refused self-commit under `--dangerously-skip-permissions` vs a teeth-less gate (3rd voluntary-obedience reconfirm); no green forced; recs → prompt 98 |
 | S98 | CODE (docs) | **Autopilot-trust reposition** (`DECISION-005` + VISION lead + this ROADMAP): pipeline = engine, not pitch; falsifiable Autopilot Ladder replaces the feelings bar; 2026-09-15 release backstop; machinery-freeze rule; scoreboard + 2 kill signals. Docs only, no `src/`; honesty rows preserved. **+2 closeout-hardening follow-ups:** #100 added S98's own verify/demo scripts (step-5 miss); #101 made `verify-closeout.sh` BLOCK a scriptless CODE session (`check_verify_demo_scripts`) |
+| S99 | CODE | **Coder reachable unattended** (pick A; the S97 Rung-1 fix-what-broke): (1) `vajra init` kickoff from the ONE canonical `analyst::PROMPT_TEMPLATE` — fresh repo station-measurable from S01; (2) `Outcome::Legacy` — convention-absent ≠ work-absent, never counts toward K/8; (3) commit pre-authorization surfaced on `vajra next` + boot packet, mirroring `hook-commit-guard.sh` (advisory + agent-forgeable; guard keeps the teeth). Two-pass cold review REJECT→ACCEPT (4 real pass-1 defects fixed), attested `6dbcf20a…`; 293 tests, verify 32/32; PR #103. **Does NOT retro-fit chitra's on-disk prompts** |
 
 ---
 
@@ -203,8 +204,9 @@ GT-verified S75/S80/S85).
 | S96 | Complete | **CODE** — CI fmt-fix (rustfmt 1.9.0 drift; `cargo fmt` the 3 files, zero logic); CI green both OS (#97); cold review ACCEPT |
 | S97 | Complete | **DOGFOOD (paid)** — chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions; recs → prompt 98 |
 | S98 | Complete | **CODE (docs)** — autopilot-trust reposition (DECISION-005 + VISION lead + ROADMAP 6-month ladder); +2 closeout-hardening follow-ups (#100 scripts · #101 scriptless-CODE-session block) |
-| **S99** | **Next** | **DOGFOOD — Autopilot Ladder Rung 2** (one day unattended, multi-task, chitra): zero governance leaks · honest receipts · fidelity verdicts correct on founder spot-check. Guards ON. First move under the machinery-freeze rule |
-| S100 | Upcoming | **NO-CODE Ground Truth** — lead lens: is the autopilot ladder being climbed, or did machinery resume? |
+| S99 | Complete | **CODE** — Coder reachable unattended (pick A): init kickoff carries markers (one canonical template) · `Outcome::Legacy` (convention-absent ≠ work-absent) · commit pre-auth surfaced on `vajra next` + boot packet (mirrors the guard, advisory). Two-pass REJECT→ACCEPT, attested; 293 tests, verify 32/32; PR #103 |
+| **S100** | **Next** | **NO-CODE Ground Truth** — lead lens: is the autopilot ladder being climbed, or did machinery resume? (machinery-freeze rule is now itself an audit subject; S99 was a sanctioned fix-what-broke) |
+| S101 | Upcoming | Founder picks from `session-99-summary.md`: **A** Autopilot Ladder Rung 2 (one-day unattended dogfood, chitra — needs chitra `--advance`d first) · **B** chitra scaffold upgrade · **C** release-backstop slice |
 
 ---
 

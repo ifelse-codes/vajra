@@ -3,25 +3,28 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S98 complete, S99 not yet started).
-S98 = **CODE (docs): AUTOPILOT-TRUST REPOSITION** — the lead becomes the *outcome* ("leave your agent
-working for days, come back, trust the result"); the 8-station pipeline is reframed as the **engine**,
-not the pitch (`DECISION-005`). Shipped: `docs/decisions/DECISION-005-autopilot-trust.md` (new) +
-`VISION.md` autopilot lead + `.ai/ROADMAP.md` 6-Month Autopilot Plan (falsifiable Autopilot Ladder,
-2026-09-15 release backstop, content machine, scoreboard, two kill signals, machinery-freeze rule,
-frozen backlog). Docs only — **no `src/`**. Independent cold review **ACCEPT 6/6 SHIPPED**, attested
-(`Review-Inputs-SHA: bc06d4d6…`), ledger extended. No honesty row softened. ~$0.
+None — between sessions (S99 complete, S100 not yet started).
+S99 = **CODE: CODER REACHABLE UNATTENDED** (founder pick A) — removed the two S97 Rung-1 blockers so
+an unattended run can reach the Coder station and record a commit. Shipped: (1) `vajra init` kickoff
+rendered from the ONE canonical `analyst::PROMPT_TEMPLATE` (fresh repo station-measurable from S01);
+(2) `Outcome::Legacy` — a pre-marker-convention prompt reports `[LEGACY]` (cause+remedy), never the
+`[ABSENT]` that means work-not-done, never counts toward K/8; (3) commit **pre-authorization** surfaced
+on `vajra next` + the SessionStart boot packet, classified exactly as `hook-commit-guard.sh`. Files:
+`src/cli/init.rs`, `src/stations/mod.rs`, `src/cli/next.rs`, `scripts/hook-session-start.sh` +
+verify/demo. Two-pass cold review **REJECT → ACCEPT** (four real pass-1 defects fixed in-session),
+attested (`Review-Inputs-SHA: 6dbcf20a…`), ledger extended. `cargo test --lib` 293; verify 32/32. ~$0.
 
 ## Active PRs
-- None open — between sessions.
+- **S99 open:** [#103](https://github.com/ifelse-codes/vajra/pull/103) — Coder reachable unattended
+  (markers ride every scaffold · LEGACY outcome · commit pre-auth surfaced). Merge after the pre-merge
+  full `verify-closeout.sh` passes (S83 rule).
 - Merged (S98 + its two closeout-hardening follow-ups): docs
   [#99](https://github.com/ifelse-codes/vajra/pull/99) ·
-  [#100](https://github.com/ifelse-codes/vajra/pull/100) (per-session verify/demo scripts — S98's own,
-  added post-hoc) · [#101](https://github.com/ifelse-codes/vajra/pull/101) (`verify-closeout.sh` blocks
-  a scriptless CODE session).
+  [#100](https://github.com/ifelse-codes/vajra/pull/100) (per-session verify/demo scripts) ·
+  [#101](https://github.com/ifelse-codes/vajra/pull/101) (`verify-closeout.sh` blocks a scriptless
+  CODE session).
 - Earlier: S97 [#98](https://github.com/ifelse-codes/vajra/pull/98) ·
-  S96 [#97](https://github.com/ifelse-codes/vajra/pull/97) ·
-  S95 [#95](https://github.com/ifelse-codes/vajra/pull/95)/[#96](https://github.com/ifelse-codes/vajra/pull/96).
+  S96 [#97](https://github.com/ifelse-codes/vajra/pull/97).
 
 ## Direction (governance is the product — now sold as the autopilot trust layer)
 - **The product = provable agent governance**, shaped as a **governed multi-agent SDLC pipeline**
@@ -37,11 +40,10 @@ frozen backlog). Docs only — **no `src/`**. Independent cold review **ACCEPT 6
   merge-without-line-by-line-review). **Guards ON every run.** **Release backstop:** v0.1 ships when
   Rung 3 passes once OR **2026-09-15**, whichever first. **Machinery-freeze rule:** a session runs the
   ladder or fixes what a run broke — nothing else.
-- **S97 finding carried into Rung 2's design (live-evidenced):** Coder doubly-blocked — chitra's older
-  scaffold has no `## Execution`/`## Delta` marker slots AND a headless `-p` run can't utter a
-  commit-approval token → zero commits → zero shas. Agent refused self-commit even under
-  `--dangerously-skip-permissions` vs a teeth-less gate (3rd voluntary-obedience reconfirm). Fix (S99
-  option A): *agents write markers, Vajra verifies* + env-marker commit path + scaffold slots.
+- **S97 Coder-dark blocks — FIXED at the source (S99):** (a) `vajra init` now scaffolds the modern
+  marker slots (kickoff from the canonical template); (b) the commit-approval token has a surfaced
+  headless path (`VAJRA_ALLOW_COMMIT=NN` shown on `vajra next` + boot packet). NOT retro-fitted onto
+  chitra's on-disk prompts — `--advance` chitra before Rung 2 (S101 risk/job).
 - **House patterns (carried):** un-forgeable-env markers — `VAJRA_CLOSEOUT_WAIVER` (S56),
   `VAJRA_ALLOW_PUBLISH` (S37), `VAJRA_ALLOW_COMMIT` (S93); repo-identity resolution — a guard derives
   git facts only from the project's OWN git top-level, cannot-evaluate ⇒ fail-CLOSED (S94). Fakest-green
@@ -63,25 +65,31 @@ frozen backlog). Docs only — **no `src/`**. Independent cold review **ACCEPT 6
   session that closes without them (`check_verify_demo_scripts` / `--scripts-only`; NO-CODE GT `N%5==0`
   and `VAJRA_CLOSEOUT_WAIVER` exempt). Closes the hole that let S98 itself ship scriptless at a false
   11/11 green.
+- **Coder reachable unattended (S99):** `vajra init`'s kickoff carries the station markers (one
+  canonical template); `--stations` reports a distinct `[LEGACY]` for pre-marker-convention prompts
+  (convention-absent ≠ work-absent); commit pre-authorization (`VAJRA_ALLOW_COMMIT=NN`) is surfaced on
+  `vajra next` AND the boot packet, classified exactly as the L3 guard — advisory + agent-forgeable, the
+  guard keeps the teeth (verify proves the surfaces agree with each other and with the guard's real
+  allow/block).
 - **CI is green on `main`** (S96): `cargo fmt --check` + `clippy -D warnings` + `cargo test --lib` on
   ubuntu + macos; rustfmt pinned 1.9.0-stable.
 - **Commit gate ENFORCED (S93):** L2 `.githooks/pre-commit` + L3 un-forgeable `hook-commit-guard.sh`
   (`VAJRA_ALLOW_COMMIT==NN`). Scaffolded ON; `commit_guard: off` in this repo.
 - **Guards repo-identity-aware (S94):** git facts pinned to the project's own git top-level;
   fail-CLOSED when a project has no git of its own.
-- **`cargo test --lib` 286** (unchanged — S98 was docs-only, no `src/`).
+- **`cargo test --lib` 293** (S99 added 7).
 - **`vajra claude · next · check · init · estimate · meter · hook`** — 7 commands, no 8th.
 
 ## What Is Broken / Weak
 - **🟡 Machinery-freeze rule is convention-enforced only (S98, new)** — a written rule in ROADMAP +
   DECISION-005, no code gate. Its teeth depend on S100's GT actually asking "did machinery resume?".
   Disclosed as the session's fakest green.
-- **🟡 Coder station doubly-blocked for headless/older-scaffold repos (S97)** — no `## Execution` marker
-  slots in chitra's older scaffold + headless `-p` can't approve a commit. Blocks a clean Rung 2
-  closeout until fixed (S99 option A: agents-write-markers + env-marker commit path + scaffold slots).
-- **🟡 Station counter mis-measures older-scaffold repos (S97)** — `--stations` reads modern marker
-  sections a repo scaffolded by an older `vajra init` doesn't contain → `[ABSENT]` conflates
-  convention-absent with work-absent. Fix rides the scaffold-marker upgrade.
+- **🟡 S99 fix does NOT retro-fit prompts already on disk** — `vajra init` now emits modern markers,
+  but chitra's existing `prompts/00–03` are still legacy. Before Rung 2, `--advance` chitra onto modern
+  prompts (or re-init). Until then `--stations` reports them `[LEGACY]` (correctly — not `[ABSENT]`).
+- **🟡 Commit-auth classification lives twice (Rust `commit_authorization` + bash `hook-session-start`)**
+  — verify-session-99.sh asserts they agree and both match the guard, but no structural guard against
+  drift on a future edit. The price of surfacing it on the boot packet a headless run always reads.
 - **🟡 README carries stale claims (CTO audit, 2026-07-22)** — the ~8× receipt claim + unverifiable
   install paths. Truth-pass scheduled INSIDE the release-backstop task (NOT S98 — scope).
 - **🟡 Autopilot trust is claimed as the lead but proven once (S97, Rung 1, partial)** — the Ladder is
@@ -97,11 +105,12 @@ frozen backlog). Docs only — **no `src/`**. Independent cold review **ACCEPT 6
 - **🟡 Legacy opus ids (4.0/4.1/4.5) have no confirmed current-rate source** — held at $15/$75 (S79).
 
 ## What Is In Progress
-- **S98 DONE (CODE / docs — autopilot-trust reposition) + 2 closeout-hardening follow-ups merged**
-  (#100 per-session scripts · #101 the scriptless-CODE-session block). Next = **S99** (founder picks from 3 ranked
-  candidates in `sessions/session-98-summary.md`: **A** Coder-marker fix [recommended] · **B** Rung 2
-  ladder dogfood · **C** release-backstop slice). **New chat.** Then **S100 = NO-CODE GT** (lead lens:
-  is the ladder being climbed, or did machinery resume?).
+- **S99 DONE (CODE — Coder reachable unattended, founder pick A)**, PR #103 open, awaiting pre-merge
+  full `verify-closeout.sh` + merge. Next = **S100 = FIXED mandatory NO-CODE GT** (lead lens: is the
+  ladder being climbed, or did machinery resume? — the machinery-freeze rule is now itself an audit
+  subject; S99 was a sanctioned fix-what-broke). Then **S101** (founder picks from
+  `sessions/session-99-summary.md`: **A** Rung 2 dogfood [rec] · **B** chitra scaffold upgrade ·
+  **C** release-backstop slice). **New chat** for S100.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
@@ -109,5 +118,6 @@ frozen backlog). Docs only — **no `src/`**. Independent cold review **ACCEPT 6
 - Session 53–75: ~$0 each. **S76: real but UNKNOWN** (fable-5 unpriced; opus-estimate ≤ ~$26.6).
 - **S77–91: ~$0 each** (S78 ~$0.055). **S92: $0.2713 authoritative** (sonnet-4-6, dogfood).
 - **S93/S94/S95/S96: ~$0** · **S97: $1.2758 authoritative** (fable-5 e2e dogfood; + ~$0.26 nested-launch
-  smoke ≈ $1.54 session total). **S98: ~$0** (docs-only, no paid run).
+  smoke ≈ $1.54 session total). **S98: ~$0** (docs-only). **S99: ~$0** (machinery to enable the paid
+  Rung 2 run; no `vajra claude` this session).
 - Cumulative: **~$77.5 + S76 (unknown, ≤ ~$26.6 opus-estimate).**
