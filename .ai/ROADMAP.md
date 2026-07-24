@@ -24,10 +24,10 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-07-23 |
-| Current phase | **Repositioned to the AUTOPILOT TRUST LAYER (S98, `DECISION-005`)** — pipeline = engine, not pitch. The 8-station governed pipeline is complete and dogfood-proven e2e once (S97, Rung 1, disclosed partial). The next six months = **climb the Autopilot Ladder** (Rung 2 one-day unattended → Rung 3 two–three days, ≥2 repos, merge-without-review), under a **machinery-freeze rule** + a **2026-09-15 release backstop**. Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer. Receipt authoritative (S92 $0.2713 · S97 $1.2758). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). |
-| Last closed session | Session 97 — DOGFOOD (paid, Ladder Rung 1): chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions |
-| Active session | Session 98 — CODE (docs): autopilot-trust reposition (DECISION-005 + VISION lead + this ROADMAP) |
+| Today | 2026-07-24 |
+| Current phase | **Repositioned to the AUTOPILOT TRUST LAYER (S98, `DECISION-005`)** — pipeline = engine, not pitch. The 8-station governed pipeline is complete and dogfood-proven e2e once (S97, Rung 1, disclosed partial); **S99 removed the two Rung-1 Coder-dark blockers** so an unattended run can reach the Coder station. The next six months = **climb the Autopilot Ladder** (Rung 2 one-day unattended → Rung 3 two–three days, ≥2 repos, merge-without-review), under a **machinery-freeze rule** + a **2026-09-15 release backstop**. Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer. Receipt authoritative (S92 $0.2713 · S97 $1.2758). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). |
+| Last closed session | Session 99 — CODE: Coder reachable unattended (init markers · `Outcome::Legacy` · commit pre-auth surfaced); two-pass REJECT→ACCEPT, attested; 293 tests, verify 32/32; PR #103 |
+| Active session | Session 100 — NO-CODE Ground Truth (lead lens: is the ladder being climbed, or did machinery resume?) |
 | Crate | package `vajractl` · binary `vajra` (rename in scope of the v0.1 release task — current name taken) |
 
 ---
