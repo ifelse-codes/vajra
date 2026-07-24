@@ -578,7 +578,9 @@ fn files(
         // scripts/verify-closeout.sh (include_str!, one source). Carries the fidelity gate, so a
         // scaffolded project's closeout also structurally requires an independent ACCEPT review.
         fx("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT),
-        f("prompts/01-task-kickoff.md", TPL_PROMPT),
+        // S99: the kickoff carries the station markers, rendered from the one canonical
+        // template — a fresh repo is measurable by `vajra next --stations` from session 01.
+        f("prompts/01-task-kickoff.md", &kickoff_prompt(goal, slug)),
     ];
     if brownfield {
         entries.push(f(
@@ -1056,19 +1058,37 @@ else echo "RED ($PASS pass, $FAIL fail)"; exit 1; fi
 // the S70 GT finding); now the file IS the source and this embed cannot drift from it.
 const TPL_DEMO_TEMPLATE: &str = include_str!("../../scripts/demo-session-template.sh");
 
-const TPL_PROMPT: &str = r#"# Session 01 — {GOAL}
-
-## Goal
-{GOAL}
-
-## Deliverables
-- (define before starting)
-
-## Exit Criteria
-- `scripts/verify-session-01.sh` exits 0
-- `scripts/demo-session-01.sh` shows what was built
-- Session summary with 3 next options
-"#;
+/// The session-01 kickoff prompt, rendered from the ONE canonical station-marker template
+/// (`analyst::PROMPT_TEMPLATE`) rather than a second inline copy (S99).
+///
+/// Until S99 this was a hand-written stub carrying Goal/Deliverables/Exit-Criteria and **none**
+/// of the station markers (`## Acceptance`/`## Design`/`## Plan`/`## Execution`/`## Delta`). A
+/// repo scaffolded that way was structurally unmeasurable by `vajra next --stations`: four of the
+/// eight stations read for sections the prompt could never contain (the S97 Ladder-Rung-1 finding,
+/// live-evidenced on chitra). Sourcing the kickoff from `render_scaffold` means the scaffold and
+/// the gates can no longer drift apart — there is exactly one template.
+///
+/// The founder's goal (asked at `vajra init` time) replaces the template's title + goal
+/// placeholders; every other placeholder stays, because the human is meant to fill them in
+/// before flipping `Status: DRAFT` to APPROVED.
+fn kickoff_prompt(goal: &str, slug: &str) -> String {
+    let rendered = crate::analyst::render_scaffold(1, slug).replace("<one-line goal>", goal);
+    // Replace the `## Goal` placeholder paragraph by its stable prefix, so a reworded template
+    // still substitutes. If it ever stops matching, the placeholder simply survives (harmless)
+    // and `kickoff_prompt_carries_goal_and_markers` fails loudly rather than shipping drift.
+    rendered
+        .lines()
+        .map(|l| {
+            if l.starts_with("<One paragraph") {
+                goal
+            } else {
+                l
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n"
+}
 
 // Session-0 brief for brownfield repos (S34): the codebase existed before Vajra, so the
 // first session studies it and seeds the .ai/ files with reality — no feature work.
@@ -1689,6 +1709,93 @@ mod tests {
         assert!(task.contains("Session 00 — Brownfield onboarding"));
         assert!(task.contains("prompts/00-task-brownfield-onboarding.md"));
         assert!(dir.path().join("prompts/01-task-kickoff.md").exists());
+    }
+
+    /// S99 (AC1): the kickoff is the ONE canonical station-marker template — nothing hand-copied.
+    ///
+    /// The ratchet must catch a REGRESSION where someone re-forks the kickoff into an inline stub
+    /// (the pre-S99 `TPL_PROMPT` shape). It does NOT compare the output to itself: it ties the
+    /// kickoff to strings authored in a DIFFERENT module (`analyst::PROMPT_TEMPLATE`) and to this
+    /// file's own source text.
+    ///   1. Every `## ` heading line the canonical template authors — parentheticals and all —
+    ///      must appear VERBATIM in the kickoff. A hand-written stub (`## Goal`/`## Deliverables`/
+    ///      `## Exit Criteria`) cannot reproduce `## Execution (the Coder gate — record each plan
+    ///      step's landing commit as work lands)`, so it trips here.
+    ///   2. This file must carry no second prompt-template constant. A re-added `const TPL_PROMPT:`
+    ///      (the exact byte pattern S99 deleted) fails the source check below.
+    #[test]
+    fn kickoff_is_the_one_canonical_template_no_second_copy() {
+        let goal = "ship the first slice";
+        let out = kickoff_prompt(goal, "kickoff");
+
+        // (1) Heading lines are authored once, in analyst::PROMPT_TEMPLATE. Pull them live (not a
+        // hardcoded list) and require each verbatim in the kickoff — the cross-module tie.
+        let canonical = crate::analyst::render_scaffold(1, "kickoff");
+        let headings: Vec<&str> = canonical.lines().filter(|l| l.starts_with("## ")).collect();
+        assert!(
+            headings.len() >= 6,
+            "canonical template is not the expected multi-section shape ({} headings)",
+            headings.len()
+        );
+        for line in &headings {
+            // Skip the `## Goal` heading's body-substituted case is irrelevant — the heading LINE
+            // itself is unchanged by substitution, so it must survive verbatim.
+            assert!(
+                out.contains(line),
+                "kickoff diverged from the canonical template — missing verbatim {line:?}. A \
+                 hand-written second copy is the likely cause."
+            );
+        }
+
+        // (2) Source ratchet: this file must not re-introduce the inline template constant S99
+        // removed. `include_str!` reads THIS file's bytes at compile time. Anchor on a line whose
+        // trimmed start is the DEFINITION `const TPL_PROMPT:` — the onboarding template
+        // (`const TPL_PROMPT_ONBOARD:`) does not match, and this test's own string-literal mention
+        // (indented, preceded by `(`) does not start a line with `const`, so it does not match.
+        const SELF_SRC: &str = include_str!("init.rs");
+        assert!(
+            !SELF_SRC
+                .lines()
+                .any(|l| l.trim_start().starts_with("const TPL_PROMPT:")),
+            "a second inline prompt template (const TPL_PROMPT) was reintroduced — the kickoff \
+             must derive from analyst::PROMPT_TEMPLATE, not a local copy"
+        );
+
+        // Substitution + identity sanity — the founder's goal lands, session is 01, no raw tokens.
+        assert!(
+            !out.contains("<one-line goal>"),
+            "title goal not substituted"
+        );
+        assert!(
+            !out.contains("<One paragraph"),
+            "`## Goal` placeholder not substituted"
+        );
+        assert_eq!(out.matches(goal).count(), 2, "goal not placed twice");
+        assert!(out.contains("# Session 01 —"), "kickoff is not session 01");
+        assert!(!out.contains("{{NN}}"), "unsubstituted template token");
+    }
+
+    /// S99 (AC1): the scaffolded file on disk — not just the renderer — carries the markers.
+    #[test]
+    fn scaffolded_kickoff_file_is_station_measurable() {
+        let dir = scaffold_tmp();
+        let p = fs::read_to_string(dir.path().join("prompts/01-task-kickoff.md")).unwrap();
+        for heading in [
+            "## Acceptance",
+            "## Design",
+            "## Plan",
+            "## Execution",
+            "## Delta",
+        ] {
+            assert!(
+                p.contains(heading),
+                "scaffolded kickoff missing {heading:?}"
+            );
+        }
+        assert!(
+            p.contains("Status:** DRAFT"),
+            "kickoff must ship DRAFT — the human approves before the session starts"
+        );
     }
 
     #[test]

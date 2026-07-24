@@ -169,6 +169,30 @@ Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
   session (auth/env inherit); ~$0.26 floor per launch from boot-context processing. Evidence:
   `sessions/session-97-artifacts/` + `sessions/session-97-summary.md`.
 
+- **S99 (CODE) — the S97 Coder-dark blocks fixed AT THE SOURCE (permanent).** (1) `vajra init`'s
+  session-01 kickoff is now rendered from the ONE canonical `analyst::PROMPT_TEMPLATE`
+  (`kickoff_prompt` in `src/cli/init.rs` → `analyst::render_scaffold`; the old inline `TPL_PROMPT`
+  stub is deleted) — a freshly scaffolded repo carries the `## Acceptance/Design/Plan/Execution/Delta`
+  markers and is station-measurable from S01. (2) `Outcome::Legacy` in `src/stations/mod.rs`
+  (`is_legacy_prompt` = a prompt that exists but has ZERO marker headings): the four prompt-driven
+  stations report `[LEGACY]` with cause + remedy, never the `[ABSENT]` that means work-not-done, and
+  it never counts toward K/8 — the counter now distinguishes convention-absent from work-absent. The
+  discriminator is generous (ONE marker heading ⇒ modern), so a half-filled prompt stays `[ABSENT]`.
+  (3) Commit **pre-authorization** is surfaced on BOTH agent-facing surfaces — `vajra next`
+  (`commit_authorization`/`render_commit_auth`) and the SessionStart boot packet
+  (`hook-session-start.sh`) — classified EXACTLY as `hook-commit-guard.sh` (session digits from a
+  `session-NN-*` branch; off such a branch any non-empty marker is accepted), so a headless run learns
+  `VAJRA_ALLOW_COMMIT=NN` IS the founder's approval token. **These surfaces are ADVISORY +
+  agent-forgeable** (they read their own process env); the un-forgeable teeth stay in the L3 guard,
+  which reads its OWN launch env before the command runs. `verify-session-99.sh` (32/32) drives the
+  real guard under all three envs and asserts its allow(0)/block(2) matches the packet word — real
+  parity, not asserted. **Two-pass cold review (REJECT→ACCEPT) mattered:** pass 1 caught a
+  tautological anti-drift test, a no-op cross-surface check, asserted-not-verified guard parity, and a
+  doc-only disclosure — all fixed in-session. **NOT retro-fitted onto older repos' on-disk prompts**
+  (chitra needs `vajra next --advance` before Rung 2). **Classification now lives twice (Rust + bash)
+  — verify asserts they agree, but no structural guard against drift.** Evidence:
+  `sessions/session-99-summary.md` + `sessions/session-99-review.md`, PR #103.
+
 ## 7. Engine + Adapter Type Shapes (S03 — permanent)
 
 ```rust
