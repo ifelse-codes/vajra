@@ -528,6 +528,71 @@ fn run_validate(nn: Option<&String>) -> Result<()> {
     Ok(())
 }
 
+/// Whether the founder pre-authorized commits for THIS session at launch (S99).
+///
+/// The S97 Ladder-Rung-1 blocker (b): `commit.autonomous: false` + `require_user_approval: true`
+/// are satisfiable only by a conversational approval token, and a headless `-p` run has no channel
+/// to receive one — so an unattended session can never commit, and the Coder station can never
+/// record a sha. The token has an out-of-band form already (`VAJRA_ALLOW_COMMIT=NN`, the S93
+/// un-forgeable env marker the L3 guard enforces); what was missing is that nothing TELLS the
+/// agent it exists. This classification mirrors `scripts/hook-commit-guard.sh` exactly so the
+/// packet can never say "pre-granted" where the guard would block.
+///
+/// **Honest bound (disclosed):** this reads `vajra next`'s own process environment, which the
+/// agent controls — so the line is ADVISORY, never a permission. The un-forgeable teeth stay with
+/// the L3 guard, which reads its OWN launch env before the command runs; an agent that inlines
+/// the marker gets an explicit BLOCK there regardless of what this line said.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum CommitAuth {
+    /// Marker present and valid for this session — the guard would ALLOW.
+    PreGranted(String),
+    /// Marker present but scoped to a different session — the guard would BLOCK.
+    Mismatch { marker: String, session: String },
+    /// No marker — a human approval token in chat is the only route.
+    TokenRequired,
+}
+
+/// Classify the launch environment against the branch-derived session, exactly as the L3 guard
+/// does: session digits come from a `session-NN-*` branch; off such a branch the guard accepts any
+/// non-empty marker, so the packet reports the same.
+fn commit_authorization(branch: &str, marker: Option<&str>) -> CommitAuth {
+    let session = branch
+        .strip_prefix("session-")
+        .and_then(|rest| rest.split_once('-'))
+        .map(|(digits, _)| digits)
+        .filter(|d| !d.is_empty() && d.chars().all(|c| c.is_ascii_digit()));
+    match (marker.filter(|m| !m.is_empty()), session) {
+        (None, _) => CommitAuth::TokenRequired,
+        (Some(m), None) => CommitAuth::PreGranted(m.to_string()),
+        (Some(m), Some(s)) if m == s => CommitAuth::PreGranted(m.to_string()),
+        (Some(m), Some(s)) => CommitAuth::Mismatch {
+            marker: m.to_string(),
+            session: s.to_string(),
+        },
+    }
+}
+
+fn render_commit_auth(auth: CommitAuth) -> String {
+    match auth {
+        CommitAuth::PreGranted(m) => format!(
+            "commit approval: PRE-GRANTED — VAJRA_ALLOW_COMMIT={m} is set in this launch \
+             environment.\n  That marker IS the founder's approval token for this session \
+             (S93); commits may proceed\n  without a chat token. Advisory line — the L3 \
+             guard remains the enforcing check."
+        ),
+        CommitAuth::Mismatch { marker, session } => format!(
+            "commit approval: NOT VALID HERE — VAJRA_ALLOW_COMMIT={marker} is scoped to session \
+             {marker},\n  but this branch is session {session}. The guard will BLOCK. Relaunch \
+             with VAJRA_ALLOW_COMMIT={session}."
+        ),
+        CommitAuth::TokenRequired => String::from(
+            "commit approval: REQUIRED — no VAJRA_ALLOW_COMMIT in this launch environment.\n  \
+             A human must give an approval token in chat before any commit. For an UNATTENDED \
+             run,\n  the founder pre-authorizes at launch: `VAJRA_ALLOW_COMMIT=NN vajra claude`.",
+        ),
+    }
+}
+
 fn run_dump() -> Result<()> {
     let cwd = env::current_dir().context("failed to read current directory")?;
     let root =
@@ -548,6 +613,15 @@ fn run_dump() -> Result<()> {
     println!(
         "prompt: {}",
         prompt.as_deref().unwrap_or("(no prompt pointer found)")
+    );
+    // S99: an unattended run has no chat channel to utter an approval token, so the packet must
+    // say whether the founder pre-authorized commits at launch (the S97 Rung-1 blocker (b)).
+    println!(
+        "{}",
+        render_commit_auth(commit_authorization(
+            &current_branch(&root),
+            env::var("VAJRA_ALLOW_COMMIT").ok().as_deref(),
+        ))
     );
     println!();
 
@@ -1043,6 +1117,74 @@ fn extract_backticked_prompt(line: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// S99 (AC3): the packet's commit-approval line mirrors `hook-commit-guard.sh` exactly — it
+    /// must never say "pre-granted" where the guard would block.
+    #[test]
+    fn commit_authorization_mirrors_the_guard() {
+        // Marker matches the branch-derived session -> the guard ALLOWs.
+        assert_eq!(
+            commit_authorization("session-99-coder-reachable", Some("99")),
+            CommitAuth::PreGranted("99".into())
+        );
+        // Marker scoped to another session -> the guard BLOCKs; never report pre-granted.
+        assert_eq!(
+            commit_authorization("session-99-coder-reachable", Some("98")),
+            CommitAuth::Mismatch {
+                marker: "98".into(),
+                session: "99".into()
+            }
+        );
+        // No marker (or an empty one) -> a chat token is the only route.
+        assert_eq!(
+            commit_authorization("session-99-x", None),
+            CommitAuth::TokenRequired
+        );
+        assert_eq!(
+            commit_authorization("session-99-x", Some("")),
+            CommitAuth::TokenRequired
+        );
+        // Off a session branch the guard accepts any non-empty marker — mirror it, don't invent.
+        assert_eq!(
+            commit_authorization("main", Some("99")),
+            CommitAuth::PreGranted("99".into())
+        );
+        assert_eq!(
+            commit_authorization("main", None),
+            CommitAuth::TokenRequired
+        );
+        // A malformed branch is not a session branch.
+        assert_eq!(
+            commit_authorization("session-abc-x", Some("7")),
+            CommitAuth::PreGranted("7".into())
+        );
+    }
+
+    /// The rendered lines must name the un-forgeable route for an UNATTENDED run, and must
+    /// disclose that this surface is advisory rather than a permission.
+    #[test]
+    fn commit_auth_lines_state_route_and_bound() {
+        let granted = render_commit_auth(CommitAuth::PreGranted("99".into()));
+        assert!(granted.contains("PRE-GRANTED"));
+        assert!(granted.contains("approval token"));
+        assert!(
+            granted.contains("Advisory"),
+            "pre-granted line hides that it is not the enforcing check"
+        );
+
+        let required = render_commit_auth(CommitAuth::TokenRequired);
+        assert!(required.contains("REQUIRED"));
+        assert!(
+            required.contains("VAJRA_ALLOW_COMMIT=NN vajra claude"),
+            "packet does not tell an unattended run how to be pre-authorized"
+        );
+
+        let bad = render_commit_auth(CommitAuth::Mismatch {
+            marker: "98".into(),
+            session: "99".into(),
+        });
+        assert!(bad.contains("NOT VALID HERE") && bad.contains("BLOCK"));
+    }
 
     #[test]
     fn extract_prompt_path_reads_task_pointer() {
