@@ -43,6 +43,13 @@ pub const STATION_COUNT: usize = 8;
 pub enum Outcome {
     Passed,
     Absent,
+    /// The prompt EXISTS but predates the station-marker convention entirely — it carries none of
+    /// the marker sections the gates read (S99, the S97 Rung-1 finding). Reported apart from
+    /// `Absent` because the two mean opposite things about the session: `Absent` says *the work
+    /// was not done*, `Legacy` says *the repo cannot record that it was*. Conflating them made
+    /// `--stations` read an older-scaffolded repo as an idle one. Never counts toward `K of 8` —
+    /// an unmeasurable station is not a passed station.
+    Legacy,
 }
 
 /// One station's line in the report: its name, pipeline lane, outcome, and a short derived note.
@@ -73,6 +80,17 @@ impl StationStatus {
             note: note.into(),
         }
     }
+    /// The prompt predates the marker convention — cause + remedy in one note (S99).
+    fn legacy(name: &'static str, lane: &'static str) -> Self {
+        StationStatus {
+            name,
+            lane,
+            outcome: Outcome::Legacy,
+            note: "prompt predates the station-marker convention — re-scaffold with \
+                   `vajra next --advance` (not measurable, not idle)"
+                .into(),
+        }
+    }
 }
 
 /// The per-session station report — the eight statuses plus a derived `K of 8`.
@@ -88,6 +106,16 @@ impl StationReport {
         self.stations
             .iter()
             .filter(|s| s.outcome == Outcome::Passed)
+            .count()
+    }
+
+    /// How many stations are UNMEASURABLE because the prompt predates the marker convention
+    /// (S99). Reported alongside `K of 8` so a low count in an older-scaffolded repo is never
+    /// read as "the pipeline stalled".
+    pub fn legacy(&self) -> usize {
+        self.stations
+            .iter()
+            .filter(|s| s.outcome == Outcome::Legacy)
             .count()
     }
 }
@@ -115,6 +143,9 @@ pub fn station_report(root: &Path, session: u32) -> StationReport {
 fn analyst_status(root: &Path, session: u32) -> StationStatus {
     const N: &str = "Analyst";
     const L: &str = "WHAT";
+    if is_legacy_prompt(root, session) {
+        return StationStatus::legacy(N, L);
+    }
     match read_prompt(root, session) {
         None => StationStatus::absent(N, L, "no prompt"),
         Some(content) => match analyst::validate_prompt(&content).delta {
@@ -131,6 +162,9 @@ fn analyst_status(root: &Path, session: u32) -> StationStatus {
 fn architect_status(root: &Path, session: u32) -> StationStatus {
     const N: &str = "Architect";
     const L: &str = "DESIGN";
+    if is_legacy_prompt(root, session) {
+        return StationStatus::legacy(N, L);
+    }
     match architect::design_gate(root, session)
         .report
         .map(|r| r.state)
@@ -151,6 +185,9 @@ fn architect_status(root: &Path, session: u32) -> StationStatus {
 fn planner_status(root: &Path, session: u32) -> StationStatus {
     const N: &str = "Planner";
     const L: &str = "HOW";
+    if is_legacy_prompt(root, session) {
+        return StationStatus::legacy(N, L);
+    }
     match planner::plan_gate(root, session).plan {
         Some(PlanState::Covered) => StationStatus::passed(N, L, "plan covers all criteria"),
         Some(PlanState::Placeholder) => StationStatus::absent(N, L, "placeholder `## Plan`"),
@@ -169,6 +206,9 @@ fn planner_status(root: &Path, session: u32) -> StationStatus {
 fn coder_status(root: &Path, session: u32) -> StationStatus {
     const N: &str = "Coder";
     const L: &str = "DID";
+    if is_legacy_prompt(root, session) {
+        return StationStatus::legacy(N, L);
+    }
     match coder::exec_gate(root, session).report.map(|r| r.state) {
         Some(ExecState::Recorded) => {
             StationStatus::passed(N, L, "all plan steps record an existing commit")
@@ -312,6 +352,7 @@ pub fn format_station_report(r: &StationReport) -> String {
         let mark = match s.outcome {
             Outcome::Passed => "PASSED",
             Outcome::Absent => "ABSENT",
+            Outcome::Legacy => "LEGACY",
         };
         out.push_str(&format!(
             "  [{mark}] {name:<9} {lane:<6} — {note}\n",
@@ -325,6 +366,15 @@ pub fn format_station_report(r: &StationReport) -> String {
         r.passed(),
         STATION_COUNT,
     ));
+    // S99: never let a legacy-convention repo read as an idle one — say so on the same surface.
+    if r.legacy() > 0 {
+        out.push_str(&format!(
+            "  note: {} station(s) UNMEASURABLE — this prompt predates the station-marker\n  \
+             convention, so absence of markers is not absence of work. `vajra next --advance`\n  \
+             scaffolds a modern prompt; `vajra init` (skip-if-present) restores missing guards.\n",
+            r.legacy(),
+        ));
+    }
     out
 }
 
@@ -333,6 +383,32 @@ pub fn format_station_report(r: &StationReport) -> String {
 fn read_prompt(root: &Path, session: u32) -> Option<String> {
     let rel = analyst::find_prompt_for(root, session)?;
     fs::read_to_string(root.join(&rel)).ok()
+}
+
+/// The five section headings the four prompt-driven stations read. A prompt carrying at least one
+/// of them speaks the modern convention; a prompt carrying none of them predates it.
+const MARKER_HEADINGS: [&str; 5] = ["acceptance", "design", "plan", "execution", "delta"];
+
+/// Does session `session`'s prompt exist but speak NONE of the station-marker convention (S99)?
+///
+/// The discriminator is deliberately generous: ONE marker heading is enough to count as modern, so
+/// a half-filled prompt keeps reporting per-station ABSENT (the convention is there; the work is
+/// not). Only a prompt with zero markers — the shape `vajra init` emitted before S99, and the shape
+/// chitra's `prompts/00–03` still carry — is classified legacy. A missing prompt is NOT legacy:
+/// "no prompt" is already an unambiguous note.
+fn is_legacy_prompt(root: &Path, session: u32) -> bool {
+    let Some(content) = read_prompt(root, session) else {
+        return false;
+    };
+    !content.lines().any(|line| {
+        let t = line.trim_start();
+        if !t.starts_with('#') {
+            return false;
+        }
+        let lowered = t.trim_start_matches('#').trim().to_ascii_lowercase();
+        let first = lowered.split_whitespace().next().unwrap_or_default();
+        MARKER_HEADINGS.contains(&first)
+    })
 }
 
 /// Read a session's prompt file bytes **as they existed in one specific commit's tree**
@@ -1199,6 +1275,81 @@ release:
     fn report_has_exactly_eight_stations() {
         let tmp = repo();
         assert_eq!(station_report(tmp.path(), 1).stations.len(), STATION_COUNT);
+    }
+
+    /// S99 (AC2), reproducing the S97 chitra reading: a prompt in the pre-marker convention
+    /// (Goal/Context/Deliverables/Exit-Criteria/Guardrails) made all four prompt-driven stations
+    /// report plain `[ABSENT]` — indistinguishable from a session that simply did no work. They
+    /// must now report `LEGACY` with the cause and the remedy.
+    #[test]
+    fn legacy_convention_prompt_is_unmeasurable_not_absent() {
+        let tmp = repo();
+        let root = tmp.path();
+        write_prompt(
+            root,
+            8,
+            "# Session 08 — release workflow\n\n## Goal\nShip the release workflow.\n\n\
+             ## Context\nchitra was scaffolded by an older vajra.\n\n\
+             ## Deliverables\n- a workflow file\n\n## Exit Criteria\n- CI green\n\n\
+             ## Guardrails\n- one story\n",
+        );
+
+        for station in ["Analyst", "Architect", "Planner", "Coder"] {
+            assert_eq!(
+                outcome(root, 8, station),
+                Outcome::Legacy,
+                "{station} must report LEGACY for a pre-marker-convention prompt"
+            );
+        }
+        let r = station_report(root, 8);
+        assert_eq!(r.legacy(), 4);
+        assert_eq!(r.passed(), 0, "LEGACY must never earn a passed station");
+
+        let text = format_station_report(&r);
+        assert!(
+            text.contains("[LEGACY]"),
+            "surface hides the legacy outcome"
+        );
+        assert!(
+            text.contains("UNMEASURABLE"),
+            "surface hides the disclosure"
+        );
+        assert!(
+            text.contains("vajra next --advance"),
+            "surface states no remedy"
+        );
+    }
+
+    /// The discriminator must not over-fire: a modern prompt that is merely EMPTY of work keeps
+    /// reporting `ABSENT` — the convention is present, the work is not. One marker heading is
+    /// enough to count as modern.
+    #[test]
+    fn half_filled_modern_prompt_stays_absent_not_legacy() {
+        let tmp = repo();
+        let root = tmp.path();
+        write_prompt(
+            root,
+            9,
+            "# Session 09 — fixture\n\n> **Status:** APPROVED\n\n## Goal\nDo a thing.\n\n\
+             ## Delta\n- `+` <what this session ADDS that did not exist>\n",
+        );
+        for station in ["Analyst", "Architect", "Planner", "Coder"] {
+            assert_eq!(
+                outcome(root, 9, station),
+                Outcome::Absent,
+                "{station} mis-read a modern (if unfilled) prompt as legacy"
+            );
+        }
+        assert_eq!(station_report(root, 9).legacy(), 0);
+    }
+
+    /// A missing prompt is NOT legacy — "no prompt" is already unambiguous, and calling it legacy
+    /// would suggest a re-scaffold fixes a session that was never briefed.
+    #[test]
+    fn missing_prompt_is_absent_not_legacy() {
+        let tmp = repo();
+        assert!(!is_legacy_prompt(tmp.path(), 42));
+        assert_eq!(outcome(tmp.path(), 42, "Coder"), Outcome::Absent);
     }
 
     /// Reproduces the S89 live incident: `--inputs-sha` was computed at an intermediate commit
