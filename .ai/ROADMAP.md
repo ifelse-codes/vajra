@@ -221,7 +221,7 @@ GT-verified S75/S80/S85).
 | Releaser durability | ✅ Reads ledger when branch is pruned (S82) |
 | Fidelity gate | ✅ `verify-closeout.sh` blocks without independent ACCEPT review |
 | Closeout script-presence gate | ✅ `verify-closeout.sh` blocks a CODE session missing its `verify/demo-session-NN.sh` (S98 follow-up #101; `--scripts-only`; GT + `VAJRA_CLOSEOUT_WAIVER` exempt) |
-| `cargo test --lib` | ✅ 286 tests |
+| `cargo test --lib` | ✅ 293 tests (S99; corrected S100) |
 | CI on `main` (both OS) | ✅ Green (S96) — `fmt --check` + `clippy -D warnings` + `test --lib`; rustfmt pinned 1.9.0-stable |
 | `vajra next --dogfood-age` | ✅ Git-derived staleness; never reads STATE.md |
 
@@ -229,10 +229,10 @@ GT-verified S75/S80/S85).
 
 | Item | Severity | Notes |
 |---|---|---|
-| **Dogfood (launcher)** | 🟢 | Fresh — S92 = 2026-07-21, $0.2713 authoritative (`--dogfood-age` shows S92) |
-| **Dogfood (pipeline end-to-end)** | 🟡 | NEVER — S92 was 2/8 (launcher loop only); the stations (Coder/QA/Demo-er/Releaser on a real task) are unmeasured live (S95). S96 targets this |
-| **Coder/EXECUTE station dark** | 🟡 | S95: Coder ABSENT 4-for-4 (S91–S94, incl. 2 code-shipping sessions) via `vajra next --stations NN`; `## Execution` shas not populated even by code sessions |
-| **Machinery-vs-payload gradient** | 🟡 | 4th consecutive GT (S80/S85/S90/S95); enforcement arc complete, pipeline unchanged since S72; next session must be a pattern-breaker |
+| **Dogfood (launcher)** | 🟢 | Fresh — **S97 = 2026-07-23, $1.2758 authoritative** (`vajra next --dogfood-age`; corrected S100 — this row had drifted to S92) |
+| **Dogfood (pipeline end-to-end)** | 🟡 | RAN ONCE — S97 e2e on chitra reached **2/8** and hit the Coder-dark wall (fixed S99). Rung 2 must re-test it; the stations are still unmeasured on a *completing* unattended run |
+| ~~**Coder/EXECUTE station dark**~~ | ✅ | CLOSED S100: Coder **PASSED** in S96, S98, S99 (`vajra next --stations NN`). The S95 "ABSENT 4-for-4" finding no longer holds in this repo |
+| **Ladder runs are invisible to both GT instruments** | 🔴 | **S100 meta-check.** `--stations` reads DOGFOOD/GT sessions at 1–3 of 8 by construction (no plan/execution/script/review markers), and the fidelity gate is **waived** on them (S97 shipped with no `session-97-review.md`). The freeze rule makes those sessions the norm → the counter will report a stall while the product advances. Fix = an evidence contract for ladder runs (S101 candidate B), not more machinery |
 | **KNOWLEDGE §6 bloat** | 🟡 | 416 lines / 69 entries / ~85K tokens; header "Reloaded every session" false; flagged since S60, unremediated |
 | **Commit gate in THIS repo** | 🟡 | Un-forgeable only at L3, which is `commit_guard: off` here (build-agent exemption); L2 belt is inline-forgeable + `--no-verify` bypasses both. Teeth proven by test + ON in scaffolds (S93 fakest green) |
 | ~~Nested-repo guard blindspot~~ | ✅ | CLOSED S94: git facts pinned to own git top-level; fail-closed when no own repo; governed project surfaced. Residual (🟡): own-git **non-session-branch** marker fallthrough left intact (zero-regression); worktree/submodule/symlink shapes fail-closed but untested |

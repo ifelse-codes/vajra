@@ -1,7 +1,9 @@
 # Vajra — Crystal Clear
 
-> Status: target product vision. The current repo implements the enforcement floor today;
-> the full pipeline + buyer-facing ledger are not built yet (stated plainly below — no overclaim).
+> Status: target product vision. **Corrected 2026-07-24 (S100 ground truth):** the enforcement floor,
+> the full 8-station pipeline, and the attested verdict ledger are all **built** (S54–S72, S55–S59);
+> what is unproven is the *trust* they are supposed to earn (Autopilot Ladder at Rung 1 of 3), and
+> what is unbuilt is **cross-agent** (0 code). Stated plainly below — no overclaim in either direction.
 > **Reframed 2026-07-09 (S53):** the product is **provable agent governance**, and its shape is a
 > **governed multi-agent SDLC pipeline.** See `docs/decisions/DECISION-001-governance-as-product.md`
 > (governance-as-product + the pipeline refinement) for why this supersedes the S46 "better work" lock.
@@ -45,7 +47,7 @@ The thing that worked, live, every session across two months of dogfooding is **
 | **Provable rule-following** (enforced, not advised) | ✅ real today — live-verified S46; fired live S51/S52 |
 | **Drift-prevention** (agent stays on the goal + the process) | ✅ real today — governed GT caught real drift (S52) |
 | **"Does better work"** | ⚠ **hypothesis, not the pitch** — n=2 null; kept, not led |
-| **Cross-agent tamper-evident audit ledger** (the moat) | 🔴 **aspirational — 0 cross-agent code today** |
+| **Cross-agent tamper-evident audit ledger** (the moat) | 🟡 the **ledger is real but single-agent** (S59; 36 attested records, chain-verified INTACT). **Cross-agent = still 0 code** — the moat is one axis short |
 
 ## The sharper truth (S54) — discipline is not fidelity
 
@@ -65,7 +67,7 @@ mean *provably delivered what you asked*, not just *provably followed the rules.
 | | Status |
 |---|---|
 | **Discipline** — rules followed, provably (branch, caps, gates, session state) | ✅ real today |
-| **Fidelity** — delivery == what was asked, judged independently + adversarially | 🔴 the missing heart — in build (S55 prove the brain → S56 the gate) |
+| **Fidelity** — delivery == what was asked, judged independently + adversarially | ✅ **shipped** (S55 brain → S56 gate → S58 attested → S59 chained; 36 ledger records). 🟡 **caveat (S100):** waivable in one env var, and ladder runs use it |
 
 ## The engine — a governed multi-agent SDLC pipeline
 
@@ -89,7 +91,7 @@ mean *provably delivered what you asked*, not just *provably followed the rules.
 
 **Own the spine, borrow the polish.** Vajra's `.ai/` already *is* spec-driven development *with teeth* — so **Spec Kit / OpenSpec / BMAD are reference designs, not runtime dependencies** (borrow their artifact ideas: structured spec + acceptance criteria, Kiro EARS, OpenSpec delta markers — you have the pattern, not the polish). **Serena** *is* a real dependency (code-index / LSP — a capability Vajra lacks). The **Borrow Engine**: each stage we build starts by studying how the incumbents do that stage's artifact, and adopting the best.
 
-**Build path:** **S54 = the Analyst stage — DONE** (intent → the next governed **prompt** — Vajra's own spec, not a new `spec.md` — + first delta + an advance gate). **Next is depth, not breadth: the fidelity / acceptance auditor (the QA/Reviewer stage) is the priority** — S55 proves its brain, S56 builds its gate — because S54 showed a pipeline without it just multiplies places to ship an illusion. The cross-stage delta ledger then records the auditor's verdicts + deltas (durability = evidence). Planner/Architect breadth comes after the fidelity gate exists.
+**Build path — status as of S99 (corrected S100; the head was repositioned at S98 and this body was not):** the spine is **BUILT**. Eight governed stations shipped S54–S72 (Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer), the independent fidelity auditor shipped S55–S56, its verdicts are **attested** (S58/S86/S88 — `sha256(prompt‖diff)`, recompute-and-compare) and **chained tamper-evident** (S59 — 36 records, `--ledger-verify` INTACT), and a derived payload counter reads K-of-8 per session (S74, `vajra next --stations NN`). **What is left is not more stations — it is proving the whole loop holds unattended:** the falsifiable Autopilot Ladder in `.ai/ROADMAP.md` (Rung 1 done S97, paid). Cross-agent breadth remains **0 code**, sequenced behind a neutral evidence format, not claimed.
 
 ## What it does
 
@@ -97,7 +99,7 @@ mean *provably delivered what you asked*, not just *provably followed the rules.
 |---|---|---|---|
 | 1 | **Enforces discipline at action-time** | Blocks the forbidden action (push to main, `gh pr create`, session drift) *before* it runs — exit 2 | ✅ |
 | 2 | **Keeps memory + feeds context** | The agent never forgets the vision, roadmap, rules between chats; the co-pilot surfaces the right rule at the right corner | ✅ |
-| 3 | **Delta-tracks each stage** | Every handoff records +added/~changed/−removed → a provable trail across the pipeline | 🔴 not shipped (the pipeline build, S54+) |
+| 3 | **Delta-tracks each stage** | Every handoff records +added/~changed/−removed → a provable trail across the pipeline | 🟡 **partly real (S100 correction)** — the 8 stations record and gate their own evidence, and the attested verdict ledger chains it (36 records); the full +/~/− delta triple exists only at the Analyst stage |
 | 4 | **Works across agents** | One governance layer over Claude, Cursor, Codex, others | 🔴 Claude-only today |
 | 5 | **Saves a few tokens** *(bonus)* | Trims long successful output; failures pass through | 🔴 **measured $0 / 0 folds on a real run (S63)** — make it real (compression and/or Varta token-efficiency) before ever claiming it; never in README/marketing until measured (S70 founder decision) |
 
@@ -113,7 +115,7 @@ mean *provably delivered what you asked*, not just *provably followed the rules.
 
 **Also real, and git-hooks don't have it:** a **session/process state machine**, a **context co-pilot** (`⚡on` surfaces the right file at the right action), and a **fail-closed** posture (*a check that cannot evaluate FAILS* — jq-missing blocks, S42; linters/hooks usually fail open).
 
-**Honest verdict (the gate):** the reframe **PASSES on enforcement-depth** — Vajra assembles a governance layer that `CLAUDE.md` + git hooks + a linter cannot. It does **NOT** yet win on the *headline* moat (the cross-agent, tamper-evident **ledger**), because that is unbuilt. So today Vajra is a *better-enforced governance layer*; the thing a buyer would **pay to keep** — the provable, delta-tracked pipeline record — is the pipeline build (S54 = the Analyst stage). We record that tension rather than paper over it.
+**Honest verdict (the gate; corrected S100):** the reframe **PASSES on enforcement-depth** — Vajra assembles a governance layer that `CLAUDE.md` + git hooks + a linter cannot. The provable pipeline record a buyer would **pay to keep** now **exists** (8 stations + attested, chained verdict ledger — S54–S72, S55–S59). What it is **not** yet is **cross-agent** — 0 code, Claude-only — so the headline moat is still one axis short, and the trust it earns is proven only at **Ladder Rung 1** (S97, one paid run, partial). We record that tension rather than paper over it.
 
 ## Who pays, and for what pain (ICP)
 
@@ -147,13 +149,13 @@ Not disproven — **under-tested.** Two single-shot bounded tasks (README, dist-
 
 - Vajra **guides + governs**, the agent **does the work** — Vajra never touches code itself
 - It is **not done until it runs** on your machine — never trust code that only *looks* done
-- The **pipeline** — starting with the **Analyst stage** (S54), one governed stage per session — is the next build; everything else is decoration
+- The **pipeline is built** (8 stations, S54–S72). The next work is **climbing the Autopilot Ladder** — proving the loop holds unattended for days. Under the **machinery-freeze rule** (S98) a session either runs the ladder or fixes what a run broke; everything else is frozen
 
 ## Honest truth
 
 - The enforcement floor is real and live-verified; the moat (cross-agent tamper-evident ledger) is not built
 - Competitors exist (AxonFlow ships ~80% of the vision; Cursor's `agent-trace` spec occupies cross-agent attribution) — the edge is local-first + git-native + fail-closed + the open format
-- This is a strong, honest project with a clear next build: make governance *true* — the independent fidelity auditor (delivery == what was asked) — before making it *visible* (the ledger). Green gates today prove discipline, not fidelity (S54)
+- The independent fidelity auditor **shipped** (S55–S56), is **attested** (S58/S86/S88) and **chained** (S59) — green gates now prove discipline *and* an independently-judged delivery. **The honest gap S100 found:** that gate can be waived wholesale by one founder env var, and DOGFOOD/ladder sessions close under it — so the runs that are meant to be the *proof* are the ones currently self-certified (`sessions/session-100-ground-truth.md` §6)
 
 ## In one breath
 
