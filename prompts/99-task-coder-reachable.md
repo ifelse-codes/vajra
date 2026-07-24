@@ -75,9 +75,9 @@ enabler for Rung 2.
    `scripts/demo-session-99.sh` covering steps 1–3. covers: 3, 4, 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
+- step 1 — done: ad240c8
+- step 2 — done: c7dcf63
+- step 3 — done: 666ff5a (surfaces) + 7d1bb0e (verify + demo scripts)
 
 ## Guardrails
 - ONE story: *make the Coder reachable unattended*. No station redesign, no README, no new command.
