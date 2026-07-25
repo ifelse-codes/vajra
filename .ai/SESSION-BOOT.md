@@ -35,12 +35,14 @@
 - Remote: `origin` → `https://github.com/ifelse-codes/vajra`. S99 = PR #103 (merged).
 
 ## Next Session
-- **Number:** 101 — **founder picks** from `sessions/session-100-ground-truth.md`:
-  **A** Autopilot Ladder **Rung 2** (one-day unattended, paid, on chitra) — *recommended, with the
-  S100 mitigation: write the run's evidence contract into `prompts/101-*.md` (costs no code)* ·
-  **B** ladder-run **evidence contract** (close the 🔴 before spending) ·
-  **C** release-backstop slice (README + `VISION.md` truth-pass, crate-rename scoping).
-- **Founder sign-off on this GT is required before code resumes** (`AGENTS.md` — Ground Truth Session).
+- **Number:** 101 — **founder picked C** (release-backstop slice): **README truth-pass +
+  crate-rename scoping.** Brief: `prompts/101-task-readme-truth-and-crate-scope.md`. CODE (docs), no
+  `src/`. Corrects 3 broken README install methods (crates.io / brew tap / prebuilt binary all 404
+  today), retires the stale ~8× receipt claim + `opus-4-6` example, updates the 45-session-stale
+  Direction paragraph, and records the v0.1 crate name in `DECISION-006`. Publishes/tags/renames
+  **nothing** — that is a later release action.
+- **C bends the machinery-freeze rule** — a knowing founder override (the S100 report named it as C's
+  key risk; founder chose it). Recorded so the S105 GT sees the exemption was explicit.
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S101.

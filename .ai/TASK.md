@@ -18,10 +18,10 @@
 - Report: `sessions/session-100-ground-truth.md` · prompt: `prompts/100-task-ground-truth.md`.
   Branch: `session-100-closeout`. Cost ~$0. `VAJRA_CLOSEOUT_WAIVER=100` (GT session).
 
-Between sessions. **Next = S101 — founder picks A / B / C** from the ground-truth report:
-**A** Ladder Rung 2 (recommended — write the evidence contract into the prompt) · **B** ladder-run
-evidence contract · **C** release-backstop slice. **Founder sign-off on the GT is required before
-code resumes.** **New chat** for S101.
+Between sessions. **Next = S101 — founder picked C** (release-backstop slice): README truth-pass +
+crate-rename scoping. Brief: `prompts/101-task-readme-truth-and-crate-scope.md`. C bends the
+machinery-freeze rule — a knowing founder override (recorded in the prompt's Status block).
+**New chat** for S101.
 
 ## Always-True Reminders
 
