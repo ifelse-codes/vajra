@@ -89,9 +89,9 @@ Only `cargo install --path .` from source (line 12) currently works — keep it.
    listed) and `scripts/demo-session-101.sh` (before/after of a corrected claim). covers: 1, 2, 3, 5
 
 ## Execution (the Coder gate — fill each step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
+- step 1 — done: 4e4e92f679ecde2f5c4f855c943f7fba6f076518
+- step 2 — done: aa7778271acf715eadf76f80ae87cb30554fd871
+- step 3 — done: 93a805229eb952f4057449d9232afb1c0862a701
 
 ## Guardrails
 - ONE story: *make the README true + settle the crate name on paper*. No `src/`, no `Cargo.toml`, no
