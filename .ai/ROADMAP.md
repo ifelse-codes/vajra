@@ -1,12 +1,15 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-24 · **Session 100 — NO-CODE GROUND TRUTH (S96–S99) — DONE.** Lens A
-("is the ladder being climbed, or did machinery resume?") = **PARTIAL PASS**: the ladder *is* being
-climbed (Rung 1 paid at S97; S99 a genuine fix-what-broke) and the freeze rule held — **n=1**.
-Score 4 🟢 · 5 🟡 · 1 🔴. **Meta-check finding:** `--stations` and the fidelity ledger are both blind
-to DOGFOOD/GT sessions, which the freeze rule now makes the norm — the metric will report a stall
-while the product advances. Report: `sessions/session-100-ground-truth.md`.
-*Prior: Session 98 — CODE (docs): AUTOPILOT-TRUST REPOSITION — DONE.*
+**Updated:** 2026-07-25 · **Session 101 — CODE (docs): release-backstop slice — DONE.** README
+truth-pass + crate-name decision (founder picked C, a knowing machinery-freeze override). Fixed 3
+broken install methods (now marked NOT YET PUBLISHED), retired the stale ~8× receipt claim +
+`$33.4976`/`opus-4-6` example (→ real S97 `$1.2758` capture), corrected the 45-session-stale Direction
+paragraph + Status table (8 stations, auditor shipped/attested/chained, `vajra check` 11, 7 commands),
+and recorded the v0.1 crate name in `DECISION-006` (crate `vajractl` available · `vajra` taken; binary
+stays `vajra`). Published/renamed nothing. verify 24/24; cold review ACCEPT, attested `a96455ff…`.
+*Prior: Session 100 — NO-CODE GT (S96–S99): lens A PARTIAL PASS (freeze rule n=1); 🔴 ladder runs
+invisible to both GT instruments; VISION body + 4 ROADMAP rows corrected. Report:
+`sessions/session-100-ground-truth.md`.*
 The **lead** is now the *outcome*: **the autopilot trust layer — leave your agent working for days,
 come back, and trust the result.** The 8-station pipeline stops being the pitch and becomes the
 **engine** that earns the trust (`DECISION-005`). Feelings-based release bar → the **falsifiable
@@ -30,11 +33,11 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-07-24 |
-| Current phase | **Climbing the AUTOPILOT LADDER** (S98 reposition, `DECISION-005`) — pipeline = engine, not pitch. The 8-station spine is complete and e2e-dogfooded once (S97, Rung 1, paid, partial 2/8); S99 removed the two Rung-1 Coder-dark blockers; **S100 GT confirmed the direction and found that ladder runs are not yet measurable by our own instruments.** Next six months = Rung 2 (one day unattended) → Rung 3 (2–3 days, ≥2 repos, merge-without-review), under the **machinery-freeze rule** + the **2026-09-15 release backstop**. Receipt authoritative (S92 $0.2713 · S97 $1.2758). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
-| Last closed session | Session 100 — NO-CODE Ground Truth (S96–S99): lens A **PARTIAL PASS**; 4 🟢 · 5 🟡 · 1 🔴; ladder-runs-are-unmeasurable meta-finding; VISION.md body + 4 ROADMAP rows corrected |
-| Active session | Session 101 — **CODE (docs): release-backstop slice** (founder picked C) — README truth-pass (3 broken install methods + stale ~8× receipt claim) + crate-name decision (`DECISION-006`); publishes/renames nothing |
-| Crate | package `vajractl` · binary `vajra` (rename in scope of the v0.1 release task — current name taken) |
+| Today | 2026-07-25 |
+| Current phase | **Climbing the AUTOPILOT LADDER** (S98 reposition, `DECISION-005`) — pipeline = engine, not pitch. The 8-station spine is complete and e2e-dogfooded once (S97, Rung 1, paid, partial 2/8); S99 removed the two Rung-1 Coder-dark blockers; S100 GT confirmed the direction + found ladder runs not yet measurable by our own instruments; **S101 truth-passed the README + settled the crate name (`DECISION-006`), the first release-backstop slice.** Next = **S102 Rung 2** (one day unattended, guards ON, + an auditable evidence contract — closes the S100 🔴) → Rung 3, under the **machinery-freeze rule** + the **2026-09-15 release backstop**. Receipt authoritative (S92 $0.2713 · S97 $1.2758). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
+| Last closed session | Session 101 — CODE (docs): README truth-pass + `DECISION-006` crate-name decision; verify 24/24; cold review ACCEPT; published/renamed nothing |
+| Active session | Session 102 — **DOGFOOD (paid): Autopilot Ladder Rung 2** (founder picked A +B) — ~1 day unattended on chitra, guards ON; + `sessions/session-102-review.md` judged on run evidence (the S100 🔴 fix) |
+| Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` (crates.io 404 = available) · binary `vajra` (short name is a taken crate). On paper only — no `cargo publish`/tag/rename yet |
 
 ---
 
@@ -199,6 +202,7 @@ GT-verified S75/S80/S85).
 | S98 | CODE (docs) | **Autopilot-trust reposition** (`DECISION-005` + VISION lead + this ROADMAP): pipeline = engine, not pitch; falsifiable Autopilot Ladder replaces the feelings bar; 2026-09-15 release backstop; machinery-freeze rule; scoreboard + 2 kill signals. Docs only, no `src/`; honesty rows preserved. **+2 closeout-hardening follow-ups:** #100 added S98's own verify/demo scripts (step-5 miss); #101 made `verify-closeout.sh` BLOCK a scriptless CODE session (`check_verify_demo_scripts`) |
 | S99 | CODE | **Coder reachable unattended** (pick A; the S97 Rung-1 fix-what-broke): (1) `vajra init` kickoff from the ONE canonical `analyst::PROMPT_TEMPLATE` — fresh repo station-measurable from S01; (2) `Outcome::Legacy` — convention-absent ≠ work-absent, never counts toward K/8; (3) commit pre-authorization surfaced on `vajra next` + boot packet, mirroring `hook-commit-guard.sh` (advisory + agent-forgeable; guard keeps the teeth). Two-pass cold review REJECT→ACCEPT (4 real pass-1 defects fixed), attested `6dbcf20a…`; 293 tests, verify 32/32; PR #103. **Does NOT retro-fit chitra's on-disk prompts** |
 | S100 | GT (NO-CODE) | Audited S96–S99: **4 🟢 · 5 🟡 · 1 🔴**. Lens A = **PARTIAL PASS** — ladder climbing (Rung 1 paid S97; S99 a real fix-what-broke), freeze rule held on **n=1**. **🔴 meta-check: ladder runs are invisible to both GT instruments** (`--stations` 1–3/8 by construction on DOGFOOD/GT; fidelity gate waived — S97 has no review file) → the counter will read a stall while the product advances. state_drift 🔴: `VISION.md` body 45 sessions stale, `vajra.varta` frozen at S79 (`vajra check` red 20 sessions, no gate reads it), 4 stale ROADMAP rows — all corrected. Also: `must_write_next_prompt_before_close` violated at S99 close (no gate for it); S98 = 4 PRs under one session; Coder-dark finding CLOSED (S96/S98/S99 PASSED) |
+| S101 | CODE (docs) | **Release-backstop slice** (founder pick C, a knowing freeze-rule override): README truth-pass — 3 broken install methods (crates.io/brew/binary) marked NOT YET PUBLISHED not faked; retired the ~8× receipt claim + `$33.4976`/`opus-4-6` example → real S97 `$1.2758` fable-5 capture; Direction paragraph + Status table → shipped reality (8 stations, auditor shipped/attested/chained, `vajra check` 11, all 7 commands). **`DECISION-006`** settles the v0.1 crate name against a live crates.io check (`vajractl` 404=available · `vajra` 200=taken → crate `vajractl`, binary `vajra`); `Cargo.toml` untouched, nothing published/tagged/renamed. verify 24/24; independent cold review ACCEPT, attested `a96455ff…` |
 
 ---
 
@@ -217,7 +221,8 @@ GT-verified S75/S80/S85).
 | S98 | Complete | **CODE (docs)** — autopilot-trust reposition (DECISION-005 + VISION lead + ROADMAP 6-month ladder); +2 closeout-hardening follow-ups (#100 scripts · #101 scriptless-CODE-session block) |
 | S99 | Complete | **CODE** — Coder reachable unattended (pick A): init kickoff carries markers (one canonical template) · `Outcome::Legacy` (convention-absent ≠ work-absent) · commit pre-auth surfaced on `vajra next` + boot packet (mirrors the guard, advisory). Two-pass REJECT→ACCEPT, attested; 293 tests, verify 32/32; PR #103 |
 | S100 | Complete | **GT (NO-CODE)** — audited S96–S99; lens A PARTIAL PASS (freeze rule n=1); 🔴 ladder runs invisible to both GT instruments; VISION.md body + 4 ROADMAP rows + `vajra.varta` corrected; `must_write_next_prompt_before_close` violation found |
-| **S101** | **Next** | **CODE (docs): release-backstop slice** (founder picked **C**, a knowing freeze-rule override) — README truth-pass: fix 3 broken install methods (crates.io/brew/binary all 404), retire the stale ~8× receipt claim + `opus-4-6` example, correct the 45-session-stale Direction paragraph; record the v0.1 crate name in `DECISION-006`. **A** (Rung 2) and **B** (ladder-run evidence contract) remain the ranked alternatives in `sessions/session-100-ground-truth.md` |
+| S101 | Complete | **CODE (docs): release-backstop slice** (founder pick C) — README truth-pass (3 broken install methods marked NOT YET PUBLISHED; ~8× claim + stale receipt example retired) + `DECISION-006` crate name (`vajractl`/`vajra`); published/renamed nothing; verify 24/24; cold review ACCEPT |
+| **S102** | **Next** | **DOGFOOD (paid): Autopilot Ladder Rung 2** (founder picked **A**, **B** folded in) — ~1 day unattended, multi-task `vajra claude` on chitra, **guards ON**; pass = zero governance leaks + honest receipts + fidelity verdicts correct on founder spot-check. **+ evidence contract:** `sessions/session-102-review.md` judged on run evidence (receipt + blocked-action log + chitra diff + fidelity verdict) — closes the S100 🔴. Prereq: advance chitra onto modern prompts. Brief: `prompts/102-task-ladder-rung2.md` |
 
 ---
 
