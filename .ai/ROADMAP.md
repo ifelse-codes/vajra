@@ -1,6 +1,12 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-23 · **Session 98 — CODE (docs): AUTOPILOT-TRUST REPOSITION — DONE.**
+**Updated:** 2026-07-24 · **Session 100 — NO-CODE GROUND TRUTH (S96–S99) — DONE.** Lens A
+("is the ladder being climbed, or did machinery resume?") = **PARTIAL PASS**: the ladder *is* being
+climbed (Rung 1 paid at S97; S99 a genuine fix-what-broke) and the freeze rule held — **n=1**.
+Score 4 🟢 · 5 🟡 · 1 🔴. **Meta-check finding:** `--stations` and the fidelity ledger are both blind
+to DOGFOOD/GT sessions, which the freeze rule now makes the norm — the metric will report a stall
+while the product advances. Report: `sessions/session-100-ground-truth.md`.
+*Prior: Session 98 — CODE (docs): AUTOPILOT-TRUST REPOSITION — DONE.*
 The **lead** is now the *outcome*: **the autopilot trust layer — leave your agent working for days,
 come back, and trust the result.** The 8-station pipeline stops being the pitch and becomes the
 **engine** that earns the trust (`DECISION-005`). Feelings-based release bar → the **falsifiable
@@ -25,9 +31,9 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 | Field | Value |
 |---|---|
 | Today | 2026-07-24 |
-| Current phase | **Repositioned to the AUTOPILOT TRUST LAYER (S98, `DECISION-005`)** — pipeline = engine, not pitch. The 8-station governed pipeline is complete and dogfood-proven e2e once (S97, Rung 1, disclosed partial); **S99 removed the two Rung-1 Coder-dark blockers** so an unattended run can reach the Coder station. The next six months = **climb the Autopilot Ladder** (Rung 2 one-day unattended → Rung 3 two–three days, ≥2 repos, merge-without-review), under a **machinery-freeze rule** + a **2026-09-15 release backstop**. Full spine: Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer. Receipt authoritative (S92 $0.2713 · S97 $1.2758). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94). |
-| Last closed session | Session 99 — CODE: Coder reachable unattended (init markers · `Outcome::Legacy` · commit pre-auth surfaced); two-pass REJECT→ACCEPT, attested; 293 tests, verify 32/32; PR #103 |
-| Active session | Session 100 — NO-CODE Ground Truth (lead lens: is the ladder being climbed, or did machinery resume?) |
+| Current phase | **Climbing the AUTOPILOT LADDER** (S98 reposition, `DECISION-005`) — pipeline = engine, not pitch. The 8-station spine is complete and e2e-dogfooded once (S97, Rung 1, paid, partial 2/8); S99 removed the two Rung-1 Coder-dark blockers; **S100 GT confirmed the direction and found that ladder runs are not yet measurable by our own instruments.** Next six months = Rung 2 (one day unattended) → Rung 3 (2–3 days, ≥2 repos, merge-without-review), under the **machinery-freeze rule** + the **2026-09-15 release backstop**. Receipt authoritative (S92 $0.2713 · S97 $1.2758). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
+| Last closed session | Session 100 — NO-CODE Ground Truth (S96–S99): lens A **PARTIAL PASS**; 4 🟢 · 5 🟡 · 1 🔴; ladder-runs-are-unmeasurable meta-finding; VISION.md body + 4 ROADMAP rows corrected |
+| Active session | Session 101 — **CODE (docs): release-backstop slice** (founder picked C) — README truth-pass (3 broken install methods + stale ~8× receipt claim) + crate-name decision (`DECISION-006`); publishes/renames nothing |
 | Crate | package `vajractl` · binary `vajra` (rename in scope of the v0.1 release task — current name taken) |
 
 ---
@@ -89,7 +95,11 @@ code today** — sequenced, not claimed.
   → **pivot the fidelity auditor into a standalone agent-PR acceptance checker** (the one component
   with demand outside the full-pipeline bet).
 
-**S100 (next NO-CODE GT) lead lens:** *is the ladder being climbed, or did machinery resume?*
+**S100 (done) lead lens:** *is the ladder being climbed, or did machinery resume?* → **PARTIAL PASS**,
+freeze rule n=1, plus the 🔴 that ladder runs are invisible to both GT instruments.
+**S105 (next NO-CODE GT) lead lens:** *did Rung 2/3 produce evidence a stranger could check — or a
+story?* (Read `--stations` for S101–S104 knowing DOGFOOD sessions score low by construction; judge the
+run's evidence contract, not its K-of-8.)
 
 ---
 
@@ -188,6 +198,7 @@ GT-verified S75/S80/S85).
 | S97 | DOGFOOD | Paid e2e `vajra claude -p` on chitra S08: $1.2758 authoritative (fable-5, exit 0); `--stations 08`=2/8; **Coder doubly-blocked** — chitra's older scaffold has no `## Execution` slots AND headless can't supply a commit-approval token; agent refused self-commit under `--dangerously-skip-permissions` vs a teeth-less gate (3rd voluntary-obedience reconfirm); no green forced; recs → prompt 98 |
 | S98 | CODE (docs) | **Autopilot-trust reposition** (`DECISION-005` + VISION lead + this ROADMAP): pipeline = engine, not pitch; falsifiable Autopilot Ladder replaces the feelings bar; 2026-09-15 release backstop; machinery-freeze rule; scoreboard + 2 kill signals. Docs only, no `src/`; honesty rows preserved. **+2 closeout-hardening follow-ups:** #100 added S98's own verify/demo scripts (step-5 miss); #101 made `verify-closeout.sh` BLOCK a scriptless CODE session (`check_verify_demo_scripts`) |
 | S99 | CODE | **Coder reachable unattended** (pick A; the S97 Rung-1 fix-what-broke): (1) `vajra init` kickoff from the ONE canonical `analyst::PROMPT_TEMPLATE` — fresh repo station-measurable from S01; (2) `Outcome::Legacy` — convention-absent ≠ work-absent, never counts toward K/8; (3) commit pre-authorization surfaced on `vajra next` + boot packet, mirroring `hook-commit-guard.sh` (advisory + agent-forgeable; guard keeps the teeth). Two-pass cold review REJECT→ACCEPT (4 real pass-1 defects fixed), attested `6dbcf20a…`; 293 tests, verify 32/32; PR #103. **Does NOT retro-fit chitra's on-disk prompts** |
+| S100 | GT (NO-CODE) | Audited S96–S99: **4 🟢 · 5 🟡 · 1 🔴**. Lens A = **PARTIAL PASS** — ladder climbing (Rung 1 paid S97; S99 a real fix-what-broke), freeze rule held on **n=1**. **🔴 meta-check: ladder runs are invisible to both GT instruments** (`--stations` 1–3/8 by construction on DOGFOOD/GT; fidelity gate waived — S97 has no review file) → the counter will read a stall while the product advances. state_drift 🔴: `VISION.md` body 45 sessions stale, `vajra.varta` frozen at S79 (`vajra check` red 20 sessions, no gate reads it), 4 stale ROADMAP rows — all corrected. Also: `must_write_next_prompt_before_close` violated at S99 close (no gate for it); S98 = 4 PRs under one session; Coder-dark finding CLOSED (S96/S98/S99 PASSED) |
 
 ---
 
@@ -205,8 +216,8 @@ GT-verified S75/S80/S85).
 | S97 | Complete | **DOGFOOD (paid)** — chitra S08 e2e; $1.2758; 2/8, Coder doubly-blocked; voluntary obedience reconfirmed under skip-permissions; recs → prompt 98 |
 | S98 | Complete | **CODE (docs)** — autopilot-trust reposition (DECISION-005 + VISION lead + ROADMAP 6-month ladder); +2 closeout-hardening follow-ups (#100 scripts · #101 scriptless-CODE-session block) |
 | S99 | Complete | **CODE** — Coder reachable unattended (pick A): init kickoff carries markers (one canonical template) · `Outcome::Legacy` (convention-absent ≠ work-absent) · commit pre-auth surfaced on `vajra next` + boot packet (mirrors the guard, advisory). Two-pass REJECT→ACCEPT, attested; 293 tests, verify 32/32; PR #103 |
-| **S100** | **Next** | **NO-CODE Ground Truth** — lead lens: is the autopilot ladder being climbed, or did machinery resume? (machinery-freeze rule is now itself an audit subject; S99 was a sanctioned fix-what-broke) |
-| S101 | Upcoming | Founder picks from `session-99-summary.md`: **A** Autopilot Ladder Rung 2 (one-day unattended dogfood, chitra — needs chitra `--advance`d first) · **B** chitra scaffold upgrade · **C** release-backstop slice |
+| S100 | Complete | **GT (NO-CODE)** — audited S96–S99; lens A PARTIAL PASS (freeze rule n=1); 🔴 ladder runs invisible to both GT instruments; VISION.md body + 4 ROADMAP rows + `vajra.varta` corrected; `must_write_next_prompt_before_close` violation found |
+| **S101** | **Next** | **CODE (docs): release-backstop slice** (founder picked **C**, a knowing freeze-rule override) — README truth-pass: fix 3 broken install methods (crates.io/brew/binary all 404), retire the stale ~8× receipt claim + `opus-4-6` example, correct the 45-session-stale Direction paragraph; record the v0.1 crate name in `DECISION-006`. **A** (Rung 2) and **B** (ladder-run evidence contract) remain the ranked alternatives in `sessions/session-100-ground-truth.md` |
 
 ---
 
@@ -221,7 +232,7 @@ GT-verified S75/S80/S85).
 | Releaser durability | ✅ Reads ledger when branch is pruned (S82) |
 | Fidelity gate | ✅ `verify-closeout.sh` blocks without independent ACCEPT review |
 | Closeout script-presence gate | ✅ `verify-closeout.sh` blocks a CODE session missing its `verify/demo-session-NN.sh` (S98 follow-up #101; `--scripts-only`; GT + `VAJRA_CLOSEOUT_WAIVER` exempt) |
-| `cargo test --lib` | ✅ 286 tests |
+| `cargo test --lib` | ✅ 293 tests (S99; corrected S100) |
 | CI on `main` (both OS) | ✅ Green (S96) — `fmt --check` + `clippy -D warnings` + `test --lib`; rustfmt pinned 1.9.0-stable |
 | `vajra next --dogfood-age` | ✅ Git-derived staleness; never reads STATE.md |
 
@@ -229,10 +240,10 @@ GT-verified S75/S80/S85).
 
 | Item | Severity | Notes |
 |---|---|---|
-| **Dogfood (launcher)** | 🟢 | Fresh — S92 = 2026-07-21, $0.2713 authoritative (`--dogfood-age` shows S92) |
-| **Dogfood (pipeline end-to-end)** | 🟡 | NEVER — S92 was 2/8 (launcher loop only); the stations (Coder/QA/Demo-er/Releaser on a real task) are unmeasured live (S95). S96 targets this |
-| **Coder/EXECUTE station dark** | 🟡 | S95: Coder ABSENT 4-for-4 (S91–S94, incl. 2 code-shipping sessions) via `vajra next --stations NN`; `## Execution` shas not populated even by code sessions |
-| **Machinery-vs-payload gradient** | 🟡 | 4th consecutive GT (S80/S85/S90/S95); enforcement arc complete, pipeline unchanged since S72; next session must be a pattern-breaker |
+| **Dogfood (launcher)** | 🟢 | Fresh — **S97 = 2026-07-23, $1.2758 authoritative** (`vajra next --dogfood-age`; corrected S100 — this row had drifted to S92) |
+| **Dogfood (pipeline end-to-end)** | 🟡 | RAN ONCE — S97 e2e on chitra reached **2/8** and hit the Coder-dark wall (fixed S99). Rung 2 must re-test it; the stations are still unmeasured on a *completing* unattended run |
+| ~~**Coder/EXECUTE station dark**~~ | ✅ | CLOSED S100: Coder **PASSED** in S96, S98, S99 (`vajra next --stations NN`). The S95 "ABSENT 4-for-4" finding no longer holds in this repo |
+| **Ladder runs are invisible to both GT instruments** | 🔴 | **S100 meta-check.** `--stations` reads DOGFOOD/GT sessions at 1–3 of 8 by construction (no plan/execution/script/review markers), and the fidelity gate is **waived** on them (S97 shipped with no `session-97-review.md`). The freeze rule makes those sessions the norm → the counter will report a stall while the product advances. Fix = an evidence contract for ladder runs (S101 candidate B), not more machinery |
 | **KNOWLEDGE §6 bloat** | 🟡 | 416 lines / 69 entries / ~85K tokens; header "Reloaded every session" false; flagged since S60, unremediated |
 | **Commit gate in THIS repo** | 🟡 | Un-forgeable only at L3, which is `commit_guard: off` here (build-agent exemption); L2 belt is inline-forgeable + `--no-verify` bypasses both. Teeth proven by test + ON in scaffolds (S93 fakest green) |
 | ~~Nested-repo guard blindspot~~ | ✅ | CLOSED S94: git facts pinned to own git top-level; fail-closed when no own repo; governed project surfaced. Residual (🟡): own-git **non-session-branch** marker fallthrough left intact (zero-regression); worktree/submodule/symlink shapes fail-closed but untested |
@@ -265,7 +276,15 @@ something a ladder run broke — **nothing below gets built on its own merit.** 
 - **KNOWLEDGE §6 prune** (chronic since S60) — 416 lines / 69 entries / ~85K tokens; cut to permanent lessons, move per-session narrative to `sessions/`, fix the false "Reloaded every session" header
 - **Compression `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it
 - **Guard identity: exotic git shapes** (S94 residual) — worktree / submodule / symlinked-root untested (fail-closed today); own-git non-session-branch marker fallthrough
-- **GT tripwire: chronically-absent station** (S95 meta-check) — "any station ABSENT for N consecutive sessions" as an explicit GT flag
+- **Ladder-run evidence contract** (S100 🔴 — likeliest pull alongside Rung 2): define what a
+  DOGFOOD/ladder session must produce (a real `session-NN-review.md` judged on **run evidence** —
+  receipt, blocked-action log, subject-repo diff — and a station reading that is meaningful for a run,
+  e.g. the S99 `Outcome::Legacy` pattern applied to session *type*). Until then, ladder runs close
+  self-certified at ~1/8 and the freeze rule hides it. **A prompt-level version of this costs no code
+  and should ride S101-A.**
+- ~~**GT tripwire: chronically-absent station**~~ (S95 meta-check) — **do NOT build as written**
+  (S100): it would fire on every DOGFOOD/GT session and be wrong for the same reason the counter is.
+  Re-scope it to "absent *in a session type where the station applies*" if it is ever pulled
 - **Hardening bin:** `full_historical_scan` → strict zero-regression bar (S88) · `--ledger-verify` into mandatory closeout · budget cap per-session/kill-mode (S36) · silent-parse-failure signal (S36) · `canonical_inputs_sha` single-candidate limit
 
 **🔒 Owner-gated (unfrozen only by an explicit founder call):**
@@ -315,7 +334,7 @@ something a ladder run broke — **nothing below gets built on its own merit.** 
 ## Rules For This Document
 
 1. Update at every closeout — the "Where We Are" table and session log row are mandatory.
-2. `NN % 5 == 0` → mandatory NO-CODE GT. Next = **S100** (lead lens: is the ladder being climbed, or did machinery resume?).
+2. `NN % 5 == 0` → mandatory NO-CODE GT. Last = **S100** (done). Next = **S105** (lead lens: did the ladder runs produce checkable evidence, or a story?).
 3. Mark items done only when they work in a real session, not just tests.
 4. Never exceed 7 top-level commands without explicit user approval.
 5. Per-session detail goes in `sessions/session-NN-summary.md`, not here.

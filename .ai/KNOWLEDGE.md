@@ -255,6 +255,16 @@ pub struct CompressionRequest {
   fix is *felt*. Only a live multi-turn `vajra claude` session against real work answers the
   founder-satisfaction gate — test-green and daily-use-verified are separate claims, don't
   conflate them in closeout language.
+- **S100 (permanent): an instrument built for one session TYPE goes blind when the process changes
+  which type is normal.** `--stations` (S74) and the attested fidelity ledger (S55–S59) both read
+  CODE-session artifacts — plan steps, execution shas, verify/demo scripts, a review file. DOGFOOD
+  and GT sessions have none of those by construction, so they score 1–3 of 8 and close under waiver
+  (S90 1/8 · S92 2/8 · S95 3/8 · S97 1/8, no `session-97-review.md`). The S98 machinery-freeze rule
+  then made those the *only* sanctioned session types — so the metric and the product now move in
+  opposite directions. **Rule: when a process change re-weights session types, re-point the
+  instruments before the next GT reads them, or the GT will be right on its evidence and wrong on
+  the facts.** Corollary: *a ladder run's deliverable is a claim, not a diff* — review it on its
+  evidence (receipt, blocked-action log, subject-repo diff), never waive it for "no `src/` change."
 
 - 2026-07-04 Session 43 (git-level belt scaffolded into `vajra init` — ROADMAP #17b, S40 finding #2,
   founder pick C carry / Gap 2): **the tracked git belt the vajra repo runs is now scaffolded into
