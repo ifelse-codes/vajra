@@ -4,17 +4,22 @@
 
 ## Install
 
+**Works today — build from source:**
+
 ```bash
-# From crates.io
+git clone https://github.com/ifelse-codes/vajra && cd vajra && cargo install --path .
+```
+
+The three methods below are **planned for the v0.1 release** and are **NOT YET PUBLISHED** — each will 404 until the release ships. The crate name is settled in [`DECISION-006`](docs/decisions/DECISION-006-crate-name.md); no crate, tap, or binary is published yet.
+
+```bash
+# crates.io — planned for v0.1, NOT YET PUBLISHED
 cargo install vajractl
 
-# From source
-git clone https://github.com/ifelse-codes/vajra && cd vajra && cargo install --path .
-
-# macOS (Homebrew)
+# macOS Homebrew — planned for v0.1, NOT YET PUBLISHED
 brew install suman/tap/vajra
 
-# Prebuilt binary (macOS arm64 example)
+# Prebuilt binary (macOS arm64) — planned for v0.1, NOT YET PUBLISHED
 curl -fsSL https://github.com/ifelse-codes/vajra/releases/latest/download/vajra-aarch64-apple-darwin.tar.gz | tar xz
 sudo mv vajra /usr/local/bin/
 ```
@@ -27,21 +32,24 @@ You run `vajra init` to set up the workflow. You run `vajra <agent>` to start a 
 
 **Vendor-neutral is the whole point.** GSD and SuperClaude are prompt libraries — they suggest rules, but agents can ignore them. Vajra is a Rust binary that actually enforces rules via hooks, fails closed on violations, and meters cost honestly. Ship narrow, ship enforced, show receipts.
 
-**Direction (2026-07):** the product is **provable agent governance**, shaped as a **governed multi-agent SDLC pipeline** — a specialised agent per stage with enforced, delta-tracked handoffs. The first stage (the **Analyst** — intent → the next governed prompt) ships today. The next build is the **fidelity / acceptance auditor** (does the delivery match what was asked, judged independently) — *in build, not shipped.* See [`VISION.md`](VISION.md) and `docs/decisions/`.
+**Direction (2026-07):** the product is **provable agent governance**, shaped as a **governed multi-agent SDLC pipeline** — a specialised agent per stage with enforced, delta-tracked handoffs — **sold as the autopilot trust layer**: leave your agent working, come back, and trust the result. All **8 stations ship today** (Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer); `vajra next --stations NN` reads how many a session passed (K-of-8). The independent **fidelity / acceptance auditor** is **shipped** — every verdict is attested (`sha256(prompt‖diff)`) and chained tamper-evident in an append-only ledger. The pipeline is the engine; the trust is the pitch. See [`VISION.md`](VISION.md), [`DECISION-005`](docs/decisions/DECISION-005-autopilot-trust.md), and `docs/decisions/`.
 
 ## Current Status
 
+Seven top-level commands (`vajra --help`):
+
 | Command | Status |
 |---|---|
-| `vajra init` | **Works** — scaffolds `.ai/` workflow + hooks + cross-agent pointers (21 files, interactive, idempotent) |
-| `vajra next` | **Works** — prints `.ai/` handoff packet; `--advance` bumps session (now gated: won't advance into a session whose prompt is missing/malformed/unapproved) |
-| `vajra next --scaffold NN <slug>` / `--validate NN` | **Works** — the **Analyst stage**: generate the next governed prompt from a template, and report whether it is well-formed + approved |
-| `vajra check` | **Works** — drift detection + readiness scoring (10 checks, pass/fail + score) |
-| `vajra claude` | **Works** — launches Claude Code with compression hook and prints a receipt |
-| `vajra meter` | **Works** — prints cost receipt for any past session |
-| `vajra <agent>` | **Not built yet** — only Claude Code is wired; Codex and Cursor planned |
+| `vajra init` | **Works** — scaffolds `.ai/` workflow + hooks + cross-agent pointers (interactive, idempotent) |
+| `vajra claude` | **Works** — launches Claude Code with the compression hook and prints an honest receipt |
+| `vajra next` | **Works** — prints the `.ai/` handoff packet; `--advance` bumps the session (gated on an approved prompt); `--stations NN` reads the pipeline K-of-8; `--scaffold`/`--validate` drive the Analyst stage |
+| `vajra check` | **Works** — drift detection + readiness scoring (**11 checks**, pass/fail + score; `--render` regenerates `vajra.varta`) |
+| `vajra estimate` | **Works** — predicts token spend and cost before a session |
+| `vajra meter` | **Works** — prints the cost receipt for any past session (`vajra meter <session.jsonl>`) |
+| `vajra hook` | **Works** — the Claude Code PostToolUse hook entrypoint (invoked by `vajra claude`; not run directly) |
+| `vajra <agent>` | **Not built yet** — only Claude Code is wired; Codex and Cursor are planned |
 
-> **Honest note on the receipt:** the cost figure Vajra prints currently overstates real spend by ~8× (a cache-pricing bug); use Claude's `total_cost_usd` until it's fixed. Fidelity of what we *claim* is the whole point — so we flag it.
+> **Honest note on the receipt:** the headline figure is the tool's own authoritative `total_cost_usd` when the run provides it (fixed in S66/S78), and Vajra says so plainly when it does not (S77) rather than guessing. A secondary token-based figure is printed only as a labeled `[estimate]`, never as the headline. The old cache-pricing overstatement is retired. Fidelity of what we *claim* is the whole point — so the receipt shows the real number either way.
 
 ## The Workflow (the product)
 
@@ -88,16 +96,17 @@ This is different from prompting the agent to "ignore verbose output" — that s
 
 ## The Receipt
 
-After every session:
+After every session — a real captured receipt from the S97 paid run on chitra (2026-07-23):
 
 ```
-─── vajra · f69a7a7 ───────────────────────────────────────────
- $33.4976  total  (opus-4-6 90 lines)
-         input $0.0019 · output $5.7320 · cache-r $12.1255 · cache-w $15.6383
-         262 lines folded across 12 tool calls
-         ~$0.0491 saved (est. ~3144 input tokens not billed)
+─── vajra · 24ca508 ───────────────────────────────────────────
+ $1.2758  total  (fable-5 28 lines)
+         $4.8765  token estimate  [estimate]
+         input $0.4172 · output $0.9323 · cache-r $0.6743 · cache-w $2.8527
 ─────────────────────────────────────────────────────────
 ```
+
+The headline `$1.2758 total` is the run's authoritative `total_cost_usd`. The `$4.8765 token estimate` is a secondary token-price recompute, printed **only** with the `[estimate]` label so it is never mistaken for the real cost. When a run provides no `total_cost_usd`, the headline says so honestly instead of guessing.
 
 Run `vajra meter <path-to-session.jsonl>` to meter any past session.
 
