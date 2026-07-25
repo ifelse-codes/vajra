@@ -2,26 +2,24 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 100 — NO-CODE GROUND TRUTH (S96–S99) — COMPLETE
+## Session 101 — CODE (docs): README truth-pass + crate-name decision — COMPLETE
 
-- **Goal:** run the mandatory 10-audit ground truth for S96–S99 (`100 % 5 == 0`). Lead lens: *is the
-  autopilot ladder being climbed, or did machinery resume?*
-- **Verdict:** **PARTIAL PASS** — the ladder IS being climbed (Rung 1 paid at S97; S99 a genuine
-  fix-what-broke) and the machinery-freeze rule held, on a **sample size of 1**.
-  Score **4 🟢 · 5 🟡 · 1 🔴**.
-- **The 🔴 (meta-check):** `vajra next --stations` and the attested fidelity ledger are **blind to
-  DOGFOOD/GT sessions** (1–3 of 8 by construction; fidelity gate waived — S97 has no review file),
-  and the freeze rule makes those sessions the norm. A perfect Rung 2 will read ~1/8, unreviewed.
-- **Corrected:** `VISION.md` body (45 sessions stale), `vajra.varta` (frozen at S79 — `vajra check`
-  red for 20 sessions), 4 stale `ROADMAP.md` rows. **Found, not fixed (needs code, frozen):** the
-  unbounded fidelity waiver; no gate for `must_write_next_prompt_before_close` (violated at S99 close).
-- Report: `sessions/session-100-ground-truth.md` · prompt: `prompts/100-task-ground-truth.md`.
-  Branch: `session-100-closeout`. Cost ~$0. `VAJRA_CLOSEOUT_WAIVER=100` (GT session).
+- **Goal:** make the README tell the truth and settle the v0.1 crate name on paper (release-backstop
+  slice; founder picked C — a knowing machinery-freeze override).
+- **Verdict:** **DONE.** README truth-passed (3 broken install methods marked NOT YET PUBLISHED; ~8×
+  receipt claim + `$33.4976`/`opus-4-6` example retired for the real S97 `$1.2758` capture; Direction
+  paragraph + Status table → shipped reality: 8 stations, auditor shipped/attested/chained, `vajra
+  check` 11, all 7 commands). `DECISION-006` records the crate name against a live crates.io check
+  (`vajractl` 404=available · `vajra` 200=taken → crate `vajractl`, binary `vajra`).
+- **Published/tagged/renamed nothing; `Cargo.toml` untouched.** verify 24/24; independent cold review
+  **ACCEPT**, attested `a96455ff…`. Cost ~$0.
+- Summary: `sessions/session-101-summary.md` · review: `sessions/session-101-review.md` · prompt:
+  `prompts/101-task-readme-truth-and-crate-scope.md`. Branch: `session-101-readme-truth-crate-scope`.
 
-Between sessions. **Next = S101 — founder picked C** (release-backstop slice): README truth-pass +
-crate-rename scoping. Brief: `prompts/101-task-readme-truth-and-crate-scope.md`. C bends the
-machinery-freeze rule — a knowing founder override (recorded in the prompt's Status block).
-**New chat** for S101.
+Between sessions. **Next = S102 — founder picked A (+B folded in): Autopilot Ladder Rung 2** — ~1 day
+unattended, multi-task `vajra claude` on chitra, guards ON; produce `sessions/session-102-review.md`
+judged on run evidence (the S100 🔴 fix). Prereq: `vajra next --advance` chitra onto modern prompts.
+Brief: `prompts/102-task-ladder-rung2.md`. **New chat** for S102.
 
 ## Always-True Reminders
 
@@ -32,7 +30,7 @@ machinery-freeze rule — a knowing founder override (recorded in the prompt's S
   `VAJRA_ALLOW_COMMIT=NN git commit …`.
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`) — S99 skipped this and no
   gate caught it (S100 finding).
-- **New session = new chat** — open a fresh chat for S101; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S102; do NOT start it here.
 - **Machinery-freeze rule (S98, `DECISION-005`):** a session runs the Autopilot Ladder or fixes what a
   run broke — nothing else. Backlog frozen. Guards ON for every ladder run.
 - **A ladder run's deliverable is a claim, not a diff (S100)** — review it on its evidence; never
