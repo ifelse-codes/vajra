@@ -17,8 +17,10 @@ the founder runs the long unattended test himself, then release. Plus an **open 
 review): keep one-governed-agent-+-gates vs grow a **fleet of real named agents** with gates as the hidden
 trust-engine.
 
-Between sessions. **Next = S104 — awaiting founder pick** (options presented). Write `prompts/104-task-*.md`
-on the pick. **New chat** for S104.
+Between sessions. **Next = S104 — CODE (Option C): make the pipeline speak like a team** (roles, not
+"station K-of-8") — the founder's cheap-bridge pick. **Order set by founder: C now → B (make it
+installable / release) → A (real agent fleet), A after the MVP ships.** Brief:
+`prompts/104-task-team-voice.md`. **New chat** for S104.
 
 ## Always-True Reminders
 
