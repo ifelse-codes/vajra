@@ -1,49 +1,51 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 101 — COMPLETE
-- **Type:** **CODE (docs)** — release-backstop slice (founder picked **C**, a knowing machinery-freeze
-  override, recorded in the prompt Status block).
-- **Goal:** make the README tell the truth + settle the v0.1 crate name on paper.
-- **Verdict:** **DONE.** A stranger reading the README now hits exactly one working install method;
-  the three unpublished ones are labelled, not faked; the receipt note + example match the fixed
-  authoritative-cost behaviour; the Direction paragraph + command table match shipped reality; and
-  `DECISION-006` records the crate name against a live, re-runnable crates.io check.
-- **Evidence:** verify 24/24 (exit 0) · demo emits all 4 markers · live check: `vajractl` 404
-  (available) / `vajra` 200 (taken) · `vajra check` 11/11 · independent cold review **ACCEPT**,
-  attested `a96455ff…3f9193d`.
-- **Published/tagged/renamed nothing; `Cargo.toml` untouched** — those are later release *actions*.
-- **Report:** `sessions/session-101-summary.md` · review: `sessions/session-101-review.md` · prompt:
-  `prompts/101-task-readme-truth-and-crate-scope.md`.
-- **Cost:** ~$0 (no `vajra claude` run). **Date last updated:** 2026-07-25.
+- **Number:** 102 — COMPLETE
+- **Type:** **DOGFOOD (paid): Autopilot Ladder Rung 2** (founder picked A, B folded in) — a ladder
+  run, the machinery-freeze active queue (`DECISION-005`). No `src/` change.
+- **Goal:** 1-day-unattended, multi-task `vajra claude` on chitra, guards ON → prove zero governance
+  leaks + honest receipts + correct fidelity verdicts; + the evidence contract (the S100 🔴 fix).
+- **Verdict:** **Rung 2 = PARTIAL.** The 3 *quality* sub-conditions PASSED on a bounded 3-task burst;
+  the "1 day unattended" *endurance* criterion was NOT met (~2.3 min in-chat, disclosed per
+  Acceptance #1). Session **fidelity = ACCEPT** (every prompt deliverable shipped incl. the disclosed
+  partial), attested `f6350676…`.
+- **Evidence:** chitra re-init'd first (old scaffold had NO guards); probes block unauthorized commits
+  (exit 1); Task B authorized commit `9ba1ba9` PERMITTED through the gate (local only); Task A agent
+  VOLUNTARILY declined to commit (S97 pattern); no push/PR; chitra `main` untouched; every run captured
+  authoritative `total_cost_usd`. **Spend $0.4644** (sonnet-4-6; fable-5 credits exhausted).
+- **Report:** `sessions/session-102-summary.md` · review (evidence contract):
+  `sessions/session-102-review.md` · raw: `sessions/session-102-artifacts/` · prompt:
+  `prompts/102-task-ladder-rung2.md`. **Date last updated:** 2026-07-25.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 101. Ledger head `521e66c1…` (unchanged; no new attested record needed pre-merge).
-- `--stations`: docs session, N/A by construction (no plan/execution/script markers scored on a
-  docs-only branch) — the value is the ACCEPT review + 24/24 verify, not a K-of-8.
-- `vajra check` = **11/11**. `cargo test --lib` = **293** (docs-only; no code change).
-- Remote: `origin` → `https://github.com/ifelse-codes/vajra`. S100 = PR #104 (merged).
+- `.ai/SESSION` = 102. Vajra `src/` untouched (dogfood run) → `cargo test --lib` = **293** unchanged.
+- `--stations`: DOGFOOD session, low by construction (no plan/execution/script markers on a run
+  branch) — the value is the evidence contract (ACCEPT review, attested `f6350676…`), not a K-of-8.
+- Remote: `origin` → `https://github.com/ifelse-codes/vajra`. S101 = PR #105 (merged).
+- chitra (subject) end-state: commit `9ba1ba9` (CHANGELOG, local only) + untracked `sparkline.ts`;
+  guards installed (teeth); S97-era S08 leftovers preserved in `git stash@{0}` then restored.
 
 ## Next Session
-- **Number:** 102 — **founder picked A (+B folded in): Autopilot Ladder Rung 2.** ~1 day unattended,
-  multi-task `vajra claude` on chitra, **guards ON**; pass = zero governance leaks + honest receipts +
-  fidelity verdicts correct on founder spot-check. **B folded in:** produce
-  `sessions/session-102-review.md` judged on **run evidence** (receipt + blocked-action log + chitra
-  diff + fidelity verdict) — the S100 🔴 fix (ladder runs currently invisible to both GT instruments).
-- **This IS the machinery-freeze active queue** (`DECISION-005`) — a ladder run, no override needed.
-- Brief: `prompts/102-task-ladder-rung2.md`.
+- **Number:** 103 — **founder picked A: Autopilot Ladder Rung 2 (endurance + adversarial).** A
+  detached, budget-capped, unattended multi-task run for hours + an adversarial agent the teeth must
+  **FORCE-block** — closing the two S102 gaps: *endurance* (not a day) and *voluntary-vs-enforced*
+  (teeth proven by operator probes, not by defeating a hostile agent).
+- **This IS the machinery-freeze active queue** (`DECISION-005`) — a ladder run + the harness it needs.
+- Brief: `prompts/103-task-endurance-adversarial-harness.md`.
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S102.
-- **Prereq for S102:** `vajra next --advance` chitra onto modern prompts (or re-init) — S99 did NOT
-  retro-fit on-disk prompts, so it will otherwise re-hit the marker wall as `[LEGACY]`.
-- **Guards ON for the Rung-2 run** — arm `VAJRA_ENFORCE_PUBLISH=1` + `VAJRA_ENFORCE_COMMIT=1`; the
-  unattended run needs `VAJRA_ALLOW_COMMIT=NN vajra claude` to reach a full closeout headless (S97 block).
-- **A ladder run's deliverable is a claim, not a diff (S100)** — review it on its evidence; never
-  waive the fidelity gate just because Vajra's `src/` is untouched.
-- **Do NOT build the S95 "chronically-absent station" tripwire as written** — it would fire on every
-  DOGFOOD/GT session (S100).
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S103.
+- **Pick the model deliberately (S102):** fable-5 monthly credits are exhausted; sonnet-4-6 kept S102
+  at $0.46. Set a **hard budget kill-switch** before any unattended run.
+- **Re-init the subject repo FIRST (S102):** an old scaffold ships WITHOUT commit/publish guards, so
+  "guards ON" is meaningless until re-init; verify teeth with the empty-commit probe (P1/P2) before spending.
+- **Guards ON** (`VAJRA_ENFORCE_PUBLISH=1` + `VAJRA_ENFORCE_COMMIT=1`) for every ladder run.
+- **A ladder run's deliverable is a claim, not a diff (S100)** — review on evidence; do NOT waive the
+  fidelity gate. S102 shipped a real ACCEPT + attestation (not a waiver) — keep that bar.
+- **Voluntary-vs-enforced (S102/S97):** an unattended well-behaved agent may never trip the teeth;
+  S103 must run an *adversarial* agent to prove a FORCED block.
+- **Do NOT build the S95 "chronically-absent station" tripwire as written** — fires on every DOGFOOD/GT.
 - **Untracked stragglers** (founder's call): `sessions/session-92-artifacts/*`,
-  `sessions/session-97-artifacts/{run,jsonl-before}.jsonl`, and `vajra-cto-audit-2026-07-22.html` in
-  the repo root (founder's own file — confirm before ever committing).
+  `sessions/session-97-artifacts/{run,jsonl-before}.jsonl`, and `vajra-cto-audit-2026-07-22.html`.
 - **Next NO-CODE GT = S105** (lens: *did the ladder runs produce checkable evidence, or a story?*).
