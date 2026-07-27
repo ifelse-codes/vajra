@@ -2,24 +2,25 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 101 — CODE (docs): README truth-pass + crate-name decision — COMPLETE
+## Session 102 — DOGFOOD (paid): Autopilot Ladder Rung 2 — COMPLETE
 
-- **Goal:** make the README tell the truth and settle the v0.1 crate name on paper (release-backstop
-  slice; founder picked C — a knowing machinery-freeze override).
-- **Verdict:** **DONE.** README truth-passed (3 broken install methods marked NOT YET PUBLISHED; ~8×
-  receipt claim + `$33.4976`/`opus-4-6` example retired for the real S97 `$1.2758` capture; Direction
-  paragraph + Status table → shipped reality: 8 stations, auditor shipped/attested/chained, `vajra
-  check` 11, all 7 commands). `DECISION-006` records the crate name against a live crates.io check
-  (`vajractl` 404=available · `vajra` 200=taken → crate `vajractl`, binary `vajra`).
-- **Published/tagged/renamed nothing; `Cargo.toml` untouched.** verify 24/24; independent cold review
-  **ACCEPT**, attested `a96455ff…`. Cost ~$0.
-- Summary: `sessions/session-101-summary.md` · review: `sessions/session-101-review.md` · prompt:
-  `prompts/101-task-readme-truth-and-crate-scope.md`. Branch: `session-101-readme-truth-crate-scope`.
+- **Goal:** 1-day-unattended, multi-task `vajra claude` on chitra, guards ON → prove zero governance
+  leaks + honest receipts + correct fidelity verdicts; + the evidence contract (B, the S100 🔴 fix).
+- **Verdict:** **Rung 2 = PARTIAL** — the 3 *quality* sub-conditions PASSED on a bounded 3-task burst;
+  the "1 day unattended" *endurance* criterion was NOT met (~2.3 min, in-chat; disclosed per
+  Acceptance #1). Session **fidelity = ACCEPT** (every prompt deliverable shipped incl. the disclosed
+  partial), attested `f6350676…`. **Spend $0.4644 authoritative** (sonnet-4-6; fable-5 credits
+  exhausted). chitra was **re-init'd first** — its >3-week-old scaffold shipped WITHOUT guards.
+- **Evidence:** probes block unauthorized commits (exit 1) · Task B authorized commit `9ba1ba9`
+  permitted through the gate · no push/PR · chitra main untouched · Task A agent *voluntarily* declined
+  (S97 pattern recurs). Review: `sessions/session-102-review.md` · summary:
+  `sessions/session-102-summary.md` · artifacts: `sessions/session-102-artifacts/` · prompt:
+  `prompts/102-task-ladder-rung2.md`. Branch: `session-102-ladder-rung2`.
 
-Between sessions. **Next = S102 — founder picked A (+B folded in): Autopilot Ladder Rung 2** — ~1 day
-unattended, multi-task `vajra claude` on chitra, guards ON; produce `sessions/session-102-review.md`
-judged on run evidence (the S100 🔴 fix). Prereq: `vajra next --advance` chitra onto modern prompts.
-Brief: `prompts/102-task-ladder-rung2.md`. **New chat** for S102.
+Between sessions. **Next = S103 — founder picked A: Autopilot Ladder Rung 2 (endurance + adversarial)**
+— a detached, budget-capped, unattended multi-task run for hours + an adversarial agent the teeth must
+FORCE-block (the two S102 gaps: endurance + voluntary-vs-enforced). Brief:
+`prompts/103-task-endurance-adversarial-harness.md`. **New chat** for S103.
 
 ## Always-True Reminders
 
@@ -30,7 +31,7 @@ Brief: `prompts/102-task-ladder-rung2.md`. **New chat** for S102.
   `VAJRA_ALLOW_COMMIT=NN git commit …`.
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`) — S99 skipped this and no
   gate caught it (S100 finding).
-- **New session = new chat** — open a fresh chat for S102; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S103; do NOT start it here.
 - **Machinery-freeze rule (S98, `DECISION-005`):** a session runs the Autopilot Ladder or fixes what a
   run broke — nothing else. Backlog frozen. Guards ON for every ladder run.
 - **A ladder run's deliverable is a claim, not a diff (S100)** — review it on its evidence; never
