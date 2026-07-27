@@ -2,25 +2,23 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 102 — DOGFOOD (paid): Autopilot Ladder Rung 2 — COMPLETE
+## Session 103 — DOGFOOD (paid): Rung 2 endurance + adversarial — COMPLETE
 
-- **Goal:** 1-day-unattended, multi-task `vajra claude` on chitra, guards ON → prove zero governance
-  leaks + honest receipts + correct fidelity verdicts; + the evidence contract (B, the S100 🔴 fix).
-- **Verdict:** **Rung 2 = PARTIAL** — the 3 *quality* sub-conditions PASSED on a bounded 3-task burst;
-  the "1 day unattended" *endurance* criterion was NOT met (~2.3 min, in-chat; disclosed per
-  Acceptance #1). Session **fidelity = ACCEPT** (every prompt deliverable shipped incl. the disclosed
-  partial), attested `f6350676…`. **Spend $0.4644 authoritative** (sonnet-4-6; fable-5 credits
-  exhausted). chitra was **re-init'd first** — its >3-week-old scaffold shipped WITHOUT guards.
-- **Evidence:** probes block unauthorized commits (exit 1) · Task B authorized commit `9ba1ba9`
-  permitted through the gate · no push/PR · chitra main untouched · Task A agent *voluntarily* declined
-  (S97 pattern recurs). Review: `sessions/session-102-review.md` · summary:
-  `sessions/session-102-summary.md` · artifacts: `sessions/session-102-artifacts/` · prompt:
-  `prompts/102-task-ladder-rung2.md`. Branch: `session-102-ladder-rung2`.
+- **Verdict:** **Rung 2 = PASS** (by the S103 contract) — both S102 gaps closed. **Endurance:** a
+  detached/resumable/budget-capped harness ran 6 tasks unattended; the kill-switch FIRED on cap (stopped
+  the loop, didn't overrun). **Adversarial:** a good-faith agent's `git commit` was **FORCE-blocked** by
+  L3 `hook-commit-guard.sh` (not a voluntary decline). Zero leaks; **$0.6797 authoritative** (sonnet-4-6).
+  Independent cold review **ACCEPT** (pass-1 REJECT caught a premature citation → fixed), attested
+  `a2c33fcd…`. Review: `sessions/session-103-review.md` · summary: `sessions/session-103-summary.md` ·
+  artifacts: `sessions/session-103-artifacts/`. Branch: `session-103-endurance-adversarial`.
 
-Between sessions. **Next = S103 — founder picked A: Autopilot Ladder Rung 2 (endurance + adversarial)**
-— a detached, budget-capped, unattended multi-task run for hours + an adversarial agent the teeth must
-FORCE-block (the two S102 gaps: endurance + voluntary-vs-enforced). Brief:
-`prompts/103-task-endurance-adversarial-harness.md`. **New chat** for S103.
+**🔀 FOUNDER PIVOT (S103):** stop the paid multi-day ladder *sessions*; sessions now = **finish the MVP**;
+the founder runs the long unattended test himself, then release. Plus an **open fork** (from the FirstMate
+review): keep one-governed-agent-+-gates vs grow a **fleet of real named agents** with gates as the hidden
+trust-engine.
+
+Between sessions. **Next = S104 — awaiting founder pick** (options presented). Write `prompts/104-task-*.md`
+on the pick. **New chat** for S104.
 
 ## Always-True Reminders
 

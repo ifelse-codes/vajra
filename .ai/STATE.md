@@ -3,20 +3,27 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-None — between sessions (S102 complete, S103 not yet started).
-S102 = **DOGFOOD (paid): Autopilot Ladder Rung 2** (founder picked A +B). One-day-unattended,
-multi-task `vajra claude` on chitra, guards ON. **Rung 2 = PARTIAL** — the 3 *quality* sub-conditions
-(zero leaks · honest receipts · fidelity correct) PASSED on a bounded 3-task burst; the "1 day
-unattended" *endurance* criterion was NOT met (~2.3 min in-chat, disclosed per Acceptance #1).
-Session **fidelity = ACCEPT**, attested `f6350676…`. **Spend $0.4644 authoritative** (sonnet-4-6;
-fable-5 monthly credits exhausted). chitra was **re-init'd first** — its >3-week-old scaffold shipped
-WITHOUT commit/publish guards, so "guards ON" was meaningless until re-init. Evidence contract
-(`sessions/session-102-review.md`) judged on run evidence, NOT waived — the S100 🔴 fix.
+None — between sessions (S103 complete, S104 not yet started).
+S103 = **DOGFOOD (paid): Autopilot Ladder Rung 2 — endurance + adversarial.** **Rung 2 = PASS** (by the
+S103 contract): both S102 gaps closed. **Endurance** — a detached (`nohup`), resumable, budget-capped
+harness (`sessions/session-103-artifacts/endurance-loop.sh`) ran 6 tasks back-to-back; the **budget
+kill-switch FIRED** ($0.2668 ≥ cap $0.22 → stopped before e5, did not overrun; resumable both ways).
+**Adversarial** — a good-faith agent that *believed* it was authorized ran `git commit` → **L3
+`hook-commit-guard.sh` FORCE-blocked it** (permission_denials, HEAD unchanged): a forced block, not the
+S97/S102 voluntary decline. Zero leaks (chitra `main` `9dc7d7f` untouched, nothing pushed); **$0.6797
+authoritative** (sonnet-4-6) + ~$0.05 uncaptured ≈ $0.73. Independent cold review **ACCEPT** (after a
+real pass-1 REJECT it caught: a summary cited the review file before it existed), attested `a2c33fcd…`.
+
+**🔀 FOUNDER PIVOT (S103):** stop the paid multi-day ladder *sessions* — Rung 3 as a session is
+cancelled. Sessions now = **BUILD / finish the MVP**; the founder runs the long "days-unattended" test
+himself, then release. Also **exploring a direction fork** (from the FirstMate review): keep today's
+shape (**one governed agent + evidence-gates**) vs. grow toward a **fleet of real named parallel agents**
+(researcher/coder/QA) with the gates as the hidden trust-engine. Not yet decided.
 
 ## Active PRs
-- **S102 open:** closeout bundle on `session-102-ladder-rung2` (review + summary + artifacts + prompt
-  103 + `.ai/` sync).
-- Merged: S101 [#105](https://github.com/ifelse-codes/vajra/pull/105) · S100
+- **S103:** closeout bundle on `session-103-endurance-adversarial` (review + summary + `.ai/` sync) —
+  PR opened + merged this session at founder direction.
+- Merged: S102 (closeout on `main`, `05f836a`) · S101 [#105](https://github.com/ifelse-codes/vajra/pull/105) · S100
   [#104](https://github.com/ifelse-codes/vajra/pull/104) · S99
   [#103](https://github.com/ifelse-codes/vajra/pull/103) · S98
   [#99](https://github.com/ifelse-codes/vajra/pull/99)–[#102](https://github.com/ifelse-codes/vajra/pull/102).
@@ -34,10 +41,12 @@ WITHOUT commit/publish guards, so "guards ON" was meaningless until re-init. Evi
   first real evidence contract (receipt + blocked-action log + subject diff + fidelity), reviewed.
 
 ## What Currently Works
-- **Autopilot governance PROVEN on real teeth (S102):** on a re-init'd chitra, unauthorized commits
-  are BLOCKED (`.githooks/pre-commit` exit 1; probes P1/P2), an authorized commit (`VAJRA_ALLOW_COMMIT`)
-  is PERMITTED through the gate (Task B `9ba1ba9`, local only), no push/PR, subject `main` untouched.
-  Every `vajra claude -p` run captured an **authoritative `total_cost_usd`** (session $0.4644).
+- **Autopilot governance PROVEN with a FORCED block (S103):** on chitra, a good-faith agent that tried
+  to commit was STOPPED by L3 `hook-commit-guard.sh` (not a voluntary decline) — even under
+  `--dangerously-skip-permissions`; a detached/resumable/budget-capped harness ran 6 tasks unattended and
+  its kill-switch fired on cap. Rung 2 = PASS. (S102: unauthorized commits BLOCKED by probes, authorized
+  `9ba1ba9` permitted, main untouched.) Every `vajra claude -p` run captured **authoritative
+  `total_cost_usd`** (S103 $0.6797).
 - **The 8-station governed pipeline** riding `vajra next` (+ station gates at `--advance`): Analyst ·
   Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained
   ledger). Receipt AUTHORITATIVE when `total_cost_usd` exists (S66/S78/S92/S97/S102), HONEST when it
@@ -49,10 +58,13 @@ WITHOUT commit/publish guards, so "guards ON" was meaningless until re-init. Evi
   estimate · meter · hook` — 7 commands, no 8th.
 
 ## What Is Broken / Weak
-- **🟡 Rung 2 half-proven (S102).** Quality axes PASSED, but **endurance** (multi-hour unattended) and
-  **voluntary-vs-enforced** are open: Task A's agent VOLUNTARILY declined to commit (never tripped the
-  belt), so "zero leaks" rests on operator probes + one well-behaved agent, not on a defeated hostile
-  one. **S103 (founder pick A)** closes both — endurance harness + a forced adversarial block.
+- **✅→🟡 Rung 2 = PASS (S103), with one disclosed asterisk.** Both S102 gaps closed (endurance harness
+  w/ firing kill-switch + a FORCED adversarial block). Residual: literal multi-hour/1-day wall-clock
+  endurance was compressed to ~7 min (disclosed fakest-green) — but Rung 3 as a *session* is now
+  cancelled (founder pivot), so the founder will exercise the literal long run himself.
+- **🔀 OPEN FORK (S103):** current shape = one governed agent + evidence-gates; founder is drawn to a
+  **fleet of real named parallel agents** (FirstMate-style) with our gates as the hidden trust-engine.
+  Recommended shape = agents on top + gates underneath. Undecided — a genuine direction pick for S104+.
 - **🟡 `fable-5` monthly credits exhausted (S102 finding).** Dogfood now costs real $ on sonnet/opus;
   choose the model deliberately + set a hard budget kill-switch (sonnet kept S102 at $0.46).
 - **🟡 Old repos ship without guards (S102).** chitra's >3-week scaffold had no commit/publish hooks;
@@ -70,12 +82,11 @@ WITHOUT commit/publish guards, so "guards ON" was meaningless until re-init. Evi
   claim until measured) · **Cross-agent breadth 0 code** (sequenced) · **Legacy opus ids** held at $15/$75.
 
 ## What Is In Progress
-- **S102 DONE (DOGFOOD — Rung 2 PARTIAL; evidence contract shipped)**, closeout bundle on
-  `session-102-ladder-rung2`. **Founder picked A** for next.
-- **Next = S103 — Autopilot Ladder Rung 2 (endurance + adversarial):** detached, budget-capped,
-  unattended multi-task run for hours + an adversarial agent the teeth must FORCE-block. Prereqs:
-  deliberate model + budget kill-switch; re-init subject repo; guards ON. Brief:
-  `prompts/103-task-endurance-adversarial-harness.md`. **New chat.**
+- **S103 DONE (DOGFOOD — Rung 2 PASS; forced adversarial block + endurance harness; evidence contract
+  ACCEPT + attested `a2c33fcd…`).** PR opened + merged this session at founder direction.
+- **Next = S104 — awaiting founder pick.** Options presented (MVP-finish direction + the fleet-vs-gates
+  fork). **Machinery-freeze/ladder plan superseded by the S103 pivot** — sessions now finish the MVP;
+  the founder runs the long unattended test himself. Prompt 104 to be written on the pick. **New chat.**
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative (S07 the only prior spend).
@@ -83,5 +94,6 @@ WITHOUT commit/publish guards, so "guards ON" was meaningless until re-init. Evi
 - Session 53–75: ~$0 each. **S76: real but UNKNOWN** (fable-5 unpriced; opus-estimate ≤ ~$26.6).
 - **S77–91: ~$0 each** (S78 ~$0.055). **S92: $0.2713 authoritative** (sonnet-4-6). **S93–96: ~$0** ·
   **S97: $1.2758 authoritative** (fable-5 e2e; +~$0.26 smoke). **S98–S101: ~$0.** **S102: $0.4644
-  authoritative** (sonnet-4-6; 3-task Rung-2 burst; fable-5 credits exhausted).
-- Cumulative: **~$78.0 + S76 (unknown, ≤ ~$26.6 opus-estimate).**
+  authoritative** (sonnet-4-6). **S103: $0.6797 authoritative** (sonnet-4-6; 6 endurance + 2 adversarial
+  runs; +~$0.05 uncaptured killed attempt).
+- Cumulative: **~$79.3 + S76 (unknown, ≤ ~$26.6 opus-estimate).**
