@@ -1,6 +1,19 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-25 · **Session 102 — DOGFOOD (paid): Autopilot Ladder Rung 2 — Rung 2 PARTIAL.**
+**Updated:** 2026-07-27 · **Session 103 — DOGFOOD (paid): Rung 2 endurance + adversarial — Rung 2 PASS.**
+Both S102 gaps closed: a detached/resumable/budget-capped **endurance harness** whose kill-switch FIRED on
+cap, and a **FORCED adversarial block** (a good-faith agent's `git commit` stopped by L3
+`hook-commit-guard.sh`, even under `--dangerously-skip-permissions`). Zero leaks; **$0.6797 authoritative**
+(sonnet-4-6); cold review ACCEPT (pass-1 REJECT caught a premature citation), attested `a2c33fcd…`.
+
+> **🔀 FOUNDER PIVOT (S103, 2026-07-27):** the Autopilot-Ladder-as-sessions plan + machinery-freeze rule
+> are **SUPERSEDED.** Rung 3 as a paid *session* is cancelled. **Sessions now = BUILD / finish the MVP;**
+> the founder runs the long "days-unattended" test himself, then release. **Open direction fork** (from the
+> FirstMate review): keep *one governed agent + evidence-gates* vs grow a *fleet of real named parallel
+> agents* (researcher/coder/QA) with the gates as the hidden trust-engine (recommended shape = both).
+
+**Prior context (pre-pivot):**
+**Session 102 — DOGFOOD (paid): Autopilot Ladder Rung 2 — Rung 2 PARTIAL.**
 One-day-unattended multi-task `vajra claude` on chitra, guards ON. The 3 *quality* sub-conditions
 (zero leaks · honest receipts · fidelity correct) PASSED on a bounded 3-task burst; the "1 day"
 *endurance* criterion was NOT met (~2.3 min in-chat, disclosed). Produced the first real ladder-run
@@ -38,8 +51,8 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 |---|---|
 | Today | 2026-07-25 |
 | Current phase | **Climbing the AUTOPILOT LADDER** (S98 reposition, `DECISION-005`) — pipeline = engine, not pitch. The 8-station spine is complete and e2e-dogfooded once (S97, Rung 1, paid, partial 2/8); S99 removed the two Rung-1 Coder-dark blockers; S100 GT confirmed the direction + found ladder runs not yet measurable by our own instruments; S101 truth-passed the README + settled the crate name (`DECISION-006`). **S102 ran Rung 2: the 3 quality gates PASSED on a bounded burst (zero leaks · honest receipts · fidelity correct) + shipped the first ladder-run evidence contract (closes the S100 🔴); endurance + adversarial still open.** Next = **S103 Rung-2 endurance + adversarial** → Rung 3, under the **machinery-freeze rule** + the **2026-09-15 release backstop**. Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
-| Last closed session | Session 102 — **DOGFOOD (paid): Autopilot Ladder Rung 2 — PARTIAL** (quality gates passed on a bounded burst; endurance not met); first ladder-run evidence contract shipped; $0.4644 authoritative; fidelity ACCEPT, attested `f6350676…` |
-| Active session | Session 103 — **DOGFOOD (paid): Rung 2 endurance + adversarial** (founder picked A) — detached, budget-capped, unattended multi-task run for hours + an adversarial agent the teeth must FORCE-block (closes the two S102 gaps) |
+| Last closed session | Session 103 — **DOGFOOD (paid): Rung 2 endurance + adversarial — Rung 2 PASS** (endurance harness w/ firing kill-switch + a FORCED adversarial block; zero leaks; $0.6797 authoritative; cold review ACCEPT, attested `a2c33fcd…`) |
+| Active session | Session 104 — **awaiting founder pick** (post-pivot: sessions now finish the MVP). Options presented incl. the fleet-vs-gates fork |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` (crates.io 404 = available) · binary `vajra` (short name is a taken crate). On paper only — no `cargo publish`/tag/rename yet |
 
 ---
@@ -207,6 +220,7 @@ GT-verified S75/S80/S85).
 | S100 | GT (NO-CODE) | Audited S96–S99: **4 🟢 · 5 🟡 · 1 🔴**. Lens A = **PARTIAL PASS** — ladder climbing (Rung 1 paid S97; S99 a real fix-what-broke), freeze rule held on **n=1**. **🔴 meta-check: ladder runs are invisible to both GT instruments** (`--stations` 1–3/8 by construction on DOGFOOD/GT; fidelity gate waived — S97 has no review file) → the counter will read a stall while the product advances. state_drift 🔴: `VISION.md` body 45 sessions stale, `vajra.varta` frozen at S79 (`vajra check` red 20 sessions, no gate reads it), 4 stale ROADMAP rows — all corrected. Also: `must_write_next_prompt_before_close` violated at S99 close (no gate for it); S98 = 4 PRs under one session; Coder-dark finding CLOSED (S96/S98/S99 PASSED) |
 | S101 | CODE (docs) | **Release-backstop slice** (founder pick C, a knowing freeze-rule override): README truth-pass — 3 broken install methods (crates.io/brew/binary) marked NOT YET PUBLISHED not faked; retired the ~8× receipt claim + `$33.4976`/`opus-4-6` example → real S97 `$1.2758` fable-5 capture; Direction paragraph + Status table → shipped reality (8 stations, auditor shipped/attested/chained, `vajra check` 11, all 7 commands). **`DECISION-006`** settles the v0.1 crate name against a live crates.io check (`vajractl` 404=available · `vajra` 200=taken → crate `vajractl`, binary `vajra`); `Cargo.toml` untouched, nothing published/tagged/renamed. verify 24/24; independent cold review ACCEPT, attested `a96455ff…` |
 | S102 | **DOGFOOD (paid)** | **Autopilot Ladder Rung 2 — PARTIAL** (founder pick A +B): 3-task unattended burst on chitra, guards ON. **Quality gates PASSED** — unauthorized commits blocked (probes P1/P2 exit 1), authorized `9ba1ba9` permitted through the gate, no push/PR, chitra main untouched; every run authoritative `total_cost_usd` ($0.4644 total, sonnet-4-6). **Endurance NOT met** (~2.3 min, not a day — disclosed per Acceptance #1); Task A agent VOLUNTARILY declined to commit (S97 pattern → S103 adversarial). Shipped the first ladder-run **evidence contract** (`session-102-review.md`, judged on run evidence, NOT waived — the S100 🔴 fix); session fidelity ACCEPT, attested `f6350676…`. chitra **re-init'd first** (its >3-week scaffold had NO commit/publish guards); fable-5 monthly credits exhausted → ran on sonnet |
+| S103 | **DOGFOOD (paid)** | **Rung 2 endurance + adversarial — PASS** (founder "all approved"): a detached (`nohup`)/resumable/budget-capped **endurance harness** ran 6 tasks unattended; the **kill-switch FIRED** on cap ($0.2668 ≥ $0.22 → stopped before e5, no overrun; resumable both ways). A good-faith agent's `git commit` was **FORCE-blocked** by L3 `hook-commit-guard.sh` (even under `--dangerously-skip-permissions`) — closes the S97/S102 voluntary-vs-enforced gap (a *forced* block, not a decline). A separate explicit-bypass agent refused at layer-0 (defense-in-depth). Zero leaks (chitra `main` `9dc7d7f` untouched, nothing pushed); **$0.6797 authoritative** (sonnet-4-6) + ~$0.05 uncaptured. Cold review **ACCEPT** (pass-1 REJECT caught a premature citation → fixed), attested `a2c33fcd…`. **🔀 Founder PIVOT:** stop paid ladder *sessions* → finish the MVP; founder runs the long test himself; **fleet-vs-gates** direction fork opened (FirstMate review) |
 
 ---
 
@@ -227,7 +241,8 @@ GT-verified S75/S80/S85).
 | S100 | Complete | **GT (NO-CODE)** — audited S96–S99; lens A PARTIAL PASS (freeze rule n=1); 🔴 ladder runs invisible to both GT instruments; VISION.md body + 4 ROADMAP rows + `vajra.varta` corrected; `must_write_next_prompt_before_close` violation found |
 | S101 | Complete | **CODE (docs): release-backstop slice** (founder pick C) — README truth-pass (3 broken install methods marked NOT YET PUBLISHED; ~8× claim + stale receipt example retired) + `DECISION-006` crate name (`vajractl`/`vajra`); published/renamed nothing; verify 24/24; cold review ACCEPT |
 | S102 | Complete | **DOGFOOD (paid): Autopilot Ladder Rung 2 — PARTIAL** — quality gates PASSED on a bounded 3-task burst (zero leaks · honest receipts · fidelity correct); endurance NOT met; first ladder-run evidence contract shipped (S100 🔴 fix); $0.4644 authoritative; fidelity ACCEPT, attested `f6350676…`; chitra re-init'd for real teeth |
-| **S103** | **Next** | **DOGFOOD (paid): Rung 2 endurance + adversarial** (founder picked **A**) — a detached, budget-capped, unattended multi-task run for hours + an adversarial agent the teeth must **FORCE-block** (closes the two S102 gaps: endurance + voluntary-vs-enforced). Prereqs: deliberate model + budget kill-switch; re-init subject repo; guards ON. Brief: `prompts/103-task-endurance-adversarial-harness.md` |
+| S103 | Complete | **DOGFOOD (paid): Rung 2 endurance + adversarial — PASS** — endurance harness w/ firing kill-switch + a FORCED adversarial block; zero leaks; $0.6797 authoritative; cold review ACCEPT, attested `a2c33fcd…`. **🔀 Founder pivot: stop paid ladder sessions → finish the MVP** |
+| **S104** | **Next** | **Awaiting founder pick** (post-pivot: finish the MVP). Options presented — incl. the *fleet of real named agents* vs *one agent + gates* fork. Prompt written on the pick |
 
 ---
 
