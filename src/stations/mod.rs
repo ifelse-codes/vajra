@@ -1445,9 +1445,10 @@ release:
         );
     }
 
-    /// AC3 — the reface changes only the SHOW, never the count: the roster headline and the
-    /// `K of 8` subtitle report the SAME number `passed()` computes, on both a 0/8 and an 8/8
-    /// fixture. (The gate-logic tests above independently pin what that number IS.)
+    /// AC3 — the reface changes only the SHOW, never the count: on a fresh 0/8 scaffold the roster
+    /// headline and the `K of 8` subtitle report the SAME number `passed()` computes, and the
+    /// auditable detail table survives beneath it. (The 0/8 and 8/8 values themselves stay pinned
+    /// by the unchanged `placeholder_laden_prompt_counts_low` / `fully_filled_session_counts_high`.)
     #[test]
     fn reface_preserves_k_and_shows_it() {
         let tmp = repo();

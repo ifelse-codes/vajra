@@ -31,7 +31,9 @@ label "BEFORE — the payload counter spoke like plumbing (bare K-of-8, technica
 printf "${DIM}%s${RESET}\n" "  4 of 8 stations passed (derived from each gate's evidence ...)"
 printf "${DIM}%s${RESET}\n" "  [PASSED] Analyst   WHAT   — substantive \`## Delta\`"
 label "AFTER — the same evidence, now a human team roster (live output):"
-$BIN next --stations 103 | sed -n '/the pipeline team/,/^$/p'
+# Print the roster body: from the team headline up to (not incl.) the auditable-detail header.
+# (An earlier `sed '/team/,/^$/p'` stopped at the blank line right after the headline — hollow.)
+$BIN next --stations 103 | awk '/the pipeline team/{f=1} /pipeline advance/{f=0} f'
 
 # --- demo:cases ---
 header "Cases  [demo:cases]"
