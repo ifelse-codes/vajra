@@ -1,6 +1,14 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-27 · **Session 103 — DOGFOOD (paid): Rung 2 endurance + adversarial — Rung 2 PASS.**
+**Updated:** 2026-07-28 · **Session 104 — CODE: make the pipeline speak like a TEAM — SHIPPED.**
+`vajra next --stations` + the `vajra next` packet now lead with a human **team roster** (each of the 8
+stations = a named role + plain-English status, e.g. `✓ Analyst framed what to build · — Coder no code
+committed yet`); `K of 8` kept as a subtitle; the auditable `[PASSED]/[ABSENT]` table retained beneath
+(disclosed: demoted, not deleted). One source (`ROLES` + `format_team_roster`), reused by both surfaces
+(S19 no-drift); mechanism unchanged (K identical, `cargo test --lib` = **296**). Cold review **ACCEPT**
+(pass-1 caught a hollow demo AFTER-block → fixed), attested `226a344b…`. Founder pick **C**, order **C→B→A**.
+
+*Prior: Session 103 — DOGFOOD (paid): Rung 2 endurance + adversarial — Rung 2 PASS.*
 Both S102 gaps closed: a detached/resumable/budget-capped **endurance harness** whose kill-switch FIRED on
 cap, and a **FORCED adversarial block** (a good-faith agent's `git commit` stopped by L3
 `hook-commit-guard.sh`, even under `--dangerously-skip-permissions`). Zero leaks; **$0.6797 authoritative**
@@ -51,8 +59,8 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 |---|---|
 | Today | 2026-07-25 |
 | Current phase | **Climbing the AUTOPILOT LADDER** (S98 reposition, `DECISION-005`) — pipeline = engine, not pitch. The 8-station spine is complete and e2e-dogfooded once (S97, Rung 1, paid, partial 2/8); S99 removed the two Rung-1 Coder-dark blockers; S100 GT confirmed the direction + found ladder runs not yet measurable by our own instruments; S101 truth-passed the README + settled the crate name (`DECISION-006`). **S102 ran Rung 2: the 3 quality gates PASSED on a bounded burst (zero leaks · honest receipts · fidelity correct) + shipped the first ladder-run evidence contract (closes the S100 🔴); endurance + adversarial still open.** Next = **S103 Rung-2 endurance + adversarial** → Rung 3, under the **machinery-freeze rule** + the **2026-09-15 release backstop**. Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
-| Last closed session | Session 103 — **DOGFOOD (paid): Rung 2 endurance + adversarial — Rung 2 PASS** (endurance harness w/ firing kill-switch + a FORCED adversarial block; zero leaks; $0.6797 authoritative; cold review ACCEPT, attested `a2c33fcd…`) |
-| Active session | Session 104 — **awaiting founder pick** (post-pivot: sessions now finish the MVP). Options presented incl. the fleet-vs-gates fork |
+| Last closed session | Session 104 — **CODE: team voice over the 8 stations** (named roles + plain status, one source reused by `--stations` + the packet; K unchanged; 296 lib tests; cold review ACCEPT, attested `226a344b…`). Founder pick C, order C→B→A |
+| Active session | Session 105 — **NO-CODE GROUND TRUTH** (mandatory, `105 % 5 == 0`): audits S101–S104 through the **MVP-shippability** lens; tees up **make it installable (B)** as the next build |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` (crates.io 404 = available) · binary `vajra` (short name is a taken crate). On paper only — no `cargo publish`/tag/rename yet |
 
 ---
