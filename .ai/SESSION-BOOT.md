@@ -1,49 +1,43 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 101 — COMPLETE
-- **Type:** **CODE (docs)** — release-backstop slice (founder picked **C**, a knowing machinery-freeze
-  override, recorded in the prompt Status block).
-- **Goal:** make the README tell the truth + settle the v0.1 crate name on paper.
-- **Verdict:** **DONE.** A stranger reading the README now hits exactly one working install method;
-  the three unpublished ones are labelled, not faked; the receipt note + example match the fixed
-  authoritative-cost behaviour; the Direction paragraph + command table match shipped reality; and
-  `DECISION-006` records the crate name against a live, re-runnable crates.io check.
-- **Evidence:** verify 24/24 (exit 0) · demo emits all 4 markers · live check: `vajractl` 404
-  (available) / `vajra` 200 (taken) · `vajra check` 11/11 · independent cold review **ACCEPT**,
-  attested `a96455ff…3f9193d`.
-- **Published/tagged/renamed nothing; `Cargo.toml` untouched** — those are later release *actions*.
-- **Report:** `sessions/session-101-summary.md` · review: `sessions/session-101-review.md` · prompt:
-  `prompts/101-task-readme-truth-and-crate-scope.md`.
-- **Cost:** ~$0 (no `vajra claude` run). **Date last updated:** 2026-07-25.
+- **Number:** 103 — COMPLETE
+- **Type:** **DOGFOOD (paid): Autopilot Ladder Rung 2 — endurance + adversarial** (founder "all approved").
+- **Goal:** close the two S102 gaps — a detached/resumable/budget-capped endurance harness + a FORCED
+  adversarial guard block — guards ON, honest receipts, zero leaks.
+- **Verdict:** **Rung 2 = PASS** (by the S103 contract). Endurance harness ran 6 tasks unattended; the
+  **budget kill-switch FIRED** on cap ($0.2668 ≥ $0.22 → stopped the loop, no overrun; resumable both
+  ways). A good-faith agent's `git commit` was **FORCE-blocked** by L3 `hook-commit-guard.sh` (not a
+  voluntary decline) — even under `--dangerously-skip-permissions`. Zero leaks; **$0.6797 authoritative**
+  (sonnet-4-6) + ~$0.05 uncaptured. Independent cold review **ACCEPT** (a real pass-1 REJECT caught a
+  premature citation → fixed), attested `a2c33fcd…`.
+- **Report:** `sessions/session-103-summary.md` · review: `sessions/session-103-review.md` · raw:
+  `sessions/session-103-artifacts/` · prompt: `prompts/103-task-endurance-adversarial-harness.md`.
+  **Date last updated:** 2026-07-27.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 101. Ledger head `521e66c1…` (unchanged; no new attested record needed pre-merge).
-- `--stations`: docs session, N/A by construction (no plan/execution/script markers scored on a
-  docs-only branch) — the value is the ACCEPT review + 24/24 verify, not a K-of-8.
-- `vajra check` = **11/11**. `cargo test --lib` = **293** (docs-only; no code change).
-- Remote: `origin` → `https://github.com/ifelse-codes/vajra`. S100 = PR #104 (merged).
+- `.ai/SESSION` = 103. Vajra `src/` untouched (dogfood run) → `cargo test --lib` = **293** unchanged.
+- The harness rides `sessions/session-103-artifacts/` (`endurance-loop.sh` + `run-task.sh` + ledgers +
+  `blocked-action-log.md`); raw artifacts left untracked (S102 pattern). Evidence contract = the committed
+  `session-103-review.md` (ACCEPT + attested), NOT waived.
+- Remote: `origin` → `https://github.com/ifelse-codes/vajra`. S103 closeout = its own PR (merged).
+- chitra (subject) end-state: unchanged from S102 — HEAD `9ba1ba9`, `main` `9dc7d7f` untouched; guards
+  ON; S103's test files cleaned up (`notes/` removed).
 
 ## Next Session
-- **Number:** 102 — **founder picked A (+B folded in): Autopilot Ladder Rung 2.** ~1 day unattended,
-  multi-task `vajra claude` on chitra, **guards ON**; pass = zero governance leaks + honest receipts +
-  fidelity verdicts correct on founder spot-check. **B folded in:** produce
-  `sessions/session-102-review.md` judged on **run evidence** (receipt + blocked-action log + chitra
-  diff + fidelity verdict) — the S100 🔴 fix (ladder runs currently invisible to both GT instruments).
-- **This IS the machinery-freeze active queue** (`DECISION-005`) — a ladder run, no override needed.
-- Brief: `prompts/102-task-ladder-rung2.md`.
+- **Number:** 104 — **awaiting founder pick.** Options presented (MVP-finish + the fleet-vs-gates fork).
+- **🔀 PIVOT (S103):** the machinery-freeze / Autopilot-Ladder plan is **SUPERSEDED** — no more paid
+  multi-day ladder *sessions*. Sessions now = **finish the MVP**; the founder runs the long unattended
+  test himself, then release. Write `prompts/104-task-<slug>.md` on the pick.
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S102.
-- **Prereq for S102:** `vajra next --advance` chitra onto modern prompts (or re-init) — S99 did NOT
-  retro-fit on-disk prompts, so it will otherwise re-hit the marker wall as `[LEGACY]`.
-- **Guards ON for the Rung-2 run** — arm `VAJRA_ENFORCE_PUBLISH=1` + `VAJRA_ENFORCE_COMMIT=1`; the
-  unattended run needs `VAJRA_ALLOW_COMMIT=NN vajra claude` to reach a full closeout headless (S97 block).
-- **A ladder run's deliverable is a claim, not a diff (S100)** — review it on its evidence; never
-  waive the fidelity gate just because Vajra's `src/` is untouched.
-- **Do NOT build the S95 "chronically-absent station" tripwire as written** — it would fire on every
-  DOGFOOD/GT session (S100).
-- **Untracked stragglers** (founder's call): `sessions/session-92-artifacts/*`,
-  `sessions/session-97-artifacts/{run,jsonl-before}.jsonl`, and `vajra-cto-audit-2026-07-22.html` in
-  the repo root (founder's own file — confirm before ever committing).
-- **Next NO-CODE GT = S105** (lens: *did the ladder runs produce checkable evidence, or a story?*).
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S104.
+- **Communicate in the plainest English** (founder request S103) — translate all jargon.
+- **The winning shape (my rec):** real named agents on top (the FirstMate "feel") + our evidence-gates as
+  the hidden trust-engine. FirstMate's #1 weakness (no trust layer) is our strength.
+- **Guards proven under skip-permissions (S103):** L2/L3 hooks block a commit even when the agent runs
+  `--dangerously-skip-permissions` — the mitigation FirstMate lacks.
+- **Small future tweak (FirstMate lesson):** teach the Releaser to detect a squash-merge by content.
+- **Untracked stragglers** (founder's call): `sessions/session-9*-artifacts/*`,
+  `sessions/session-10{2,3}-artifacts/*`, `vajra-cto-audit-2026-07-22.html`, `first-mate.html`.
+- **Next NO-CODE GT = S105** (the pivot may reshape its lens toward "is the MVP shippable?").
