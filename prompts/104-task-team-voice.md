@@ -62,11 +62,11 @@ not run."* Same for the boot packet's station line. **The K-of-8 may remain as a
 5. verify + demo scripts (before→after); summary + cold review. covers: 4
 
 ## Execution (the Coder gate — fill each step's landing commit sha as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
+- step 1 — done: 2399cdf
+- step 2 — done: 2399cdf
+- step 3 — done: 2399cdf
+- step 4 — done: 2399cdf
+- step 5 — done: 23a0e6b
 
 ## Guardrails
 - ONE story: *reface the stations as a team voice.* Do NOT change any gate's pass/fail logic, do NOT add
