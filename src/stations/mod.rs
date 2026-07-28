@@ -338,12 +338,126 @@ fn reviewer_status(root: &Path, session: u32) -> StationStatus {
     }
 }
 
+// ---- Team voice (S104) -----------------------------------------------------------------------
+//
+// The founder's S103 critique: "station K-of-8" reads like plumbing, not a product. This layer
+// gives each of the eight stations a human ROLE and a plain-English status line, so the pipeline
+// reads like a team ("Analyst ✓ framed the goal · Coder — no code yet") rather than a bare
+// number. It is PRESENTATION ONLY — it reads the SAME `Outcome` the gates compute and changes no
+// pass/fail logic. Defined ONCE here (the S19 no-drift rule) and reused by BOTH
+// `vajra next --stations` and the `vajra next` handoff packet — never a second copy.
+
+/// One governed station's human face: the plain phrase for each outcome. The `station` field is
+/// the join key to `StationStatus.name`, so a station and its narration can never disagree.
+struct Role {
+    /// Matches `StationStatus.name` exactly — how an outcome finds its narration.
+    station: &'static str,
+    /// What this role DID, in plain words, when its station PASSED.
+    done: &'static str,
+    /// What this role has NOT done yet when its station is ABSENT.
+    pending: &'static str,
+}
+
+/// Shared phrase for a station whose prompt predates the marker convention (S99): the work may be
+/// done, but this older brief cannot record it — the same meaning `Outcome::Legacy` carries.
+const LEGACY_PHRASE: &str = "can't tell yet — this brief predates the team";
+
+/// The eight roles in pipeline order — the ONE place role phrasing lives (S19 no-drift). Every
+/// `station` here must match a `StationStatus.name`; `roles_cover_every_station` pins that.
+const ROLES: [Role; STATION_COUNT] = [
+    Role {
+        station: "Analyst",
+        done: "framed what to build",
+        pending: "hasn't framed the goal yet",
+    },
+    Role {
+        station: "Architect",
+        done: "recorded the design",
+        pending: "no design recorded yet",
+    },
+    Role {
+        station: "Planner",
+        done: "mapped a plan to the goal",
+        pending: "no plan covering the goal yet",
+    },
+    Role {
+        station: "Coder",
+        done: "landed the code",
+        pending: "no code committed yet",
+    },
+    Role {
+        station: "QA",
+        done: "the checks pass",
+        pending: "checks not run yet",
+    },
+    Role {
+        station: "Demo-er",
+        done: "has a demo to show",
+        pending: "no demo yet",
+    },
+    Role {
+        station: "Releaser",
+        done: "shipped it",
+        pending: "not shipped yet",
+    },
+    Role {
+        station: "Reviewer",
+        done: "signed off",
+        pending: "no sign-off yet",
+    },
+];
+
+fn role_of(name: &str) -> Option<&'static Role> {
+    ROLES.iter().find(|r| r.station == name)
+}
+
+/// One roster line for a station's outcome — `<mark> <Role> <plain phrase>`. The mark and phrase
+/// are chosen purely from the `Outcome` the gate already computed; this authors no new verdict.
+fn role_line(s: &StationStatus) -> String {
+    let (mark, phrase) = match s.outcome {
+        Outcome::Passed => (
+            "✓",
+            role_of(s.name).map(|r| r.done).unwrap_or(s.note.as_str()),
+        ),
+        Outcome::Absent => (
+            "—",
+            role_of(s.name)
+                .map(|r| r.pending)
+                .unwrap_or(s.note.as_str()),
+        ),
+        Outcome::Legacy => ("?", LEGACY_PHRASE),
+    };
+    format!("{mark} {name:<9} {phrase}", name = s.name)
+}
+
+/// The human-facing team roster — each station as a named role with a plain status line. The ONE
+/// renderer reused by `vajra next --stations` (as its headline) and the `vajra next` packet.
+pub fn format_team_roster(r: &StationReport) -> String {
+    let mut out = String::new();
+    for s in &r.stations {
+        out.push_str("  ");
+        out.push_str(&role_line(s));
+        out.push('\n');
+    }
+    out
+}
+
 // ---- Surface ---------------------------------------------------------------------------------
 
-/// Render the station report for `vajra next --stations NN` — a per-station table + the derived
-/// `K of 8`. Read-only; the count is computed here from classifiers, never read from a store.
+/// Render the station report for `vajra next --stations NN`. Headline = the human TEAM roster
+/// (S104); below it, the derived `K of 8` subtitle plus the machine-readable per-station detail
+/// (unchanged — auditable). Read-only; the count is computed from classifiers, never a store.
 pub fn format_station_report(r: &StationReport) -> String {
     let mut out = String::new();
+    // S104 team voice: the roster leads — plain English, one line per role.
+    out.push_str(&format!(
+        "=== session {:02} — the pipeline team ===\n\n",
+        r.session
+    ));
+    out.push_str(&format_team_roster(r));
+    out.push('\n');
+    // The original per-station table + `K of 8` subtitle + legacy disclosure — UNCHANGED, kept as
+    // the auditable detail beneath the team headline.
     out.push_str(&format!(
         "=== stations: pipeline advance for session {:02} ===\n",
         r.session
@@ -1275,6 +1389,95 @@ release:
     fn report_has_exactly_eight_stations() {
         let tmp = repo();
         assert_eq!(station_report(tmp.path(), 1).stations.len(), STATION_COUNT);
+    }
+
+    // ---- S104 team voice ---------------------------------------------------------------------
+
+    /// Single-source guarantee (AC2): every station the report emits has a `Role` narration, and
+    /// every `Role` names a real station — so the roster can never fall back to a technical note.
+    #[test]
+    fn roles_cover_every_station() {
+        let tmp = repo();
+        let names: Vec<&str> = station_report(tmp.path(), 1)
+            .stations
+            .iter()
+            .map(|s| s.name)
+            .collect();
+        for name in &names {
+            assert!(
+                role_of(name).is_some(),
+                "station {name} has no Role narration"
+            );
+        }
+        for r in ROLES.iter() {
+            assert!(
+                names.contains(&r.station),
+                "Role {} names no real station",
+                r.station
+            );
+        }
+        assert_eq!(ROLES.len(), STATION_COUNT);
+    }
+
+    /// The roster reads like a team (AC1): a passed station shows its `done` phrase with a ✓, an
+    /// absent one shows its `pending` phrase — plain English, never a bare `K-of-8`.
+    #[test]
+    fn roster_narrates_done_vs_pending_per_role() {
+        let tmp = repo();
+        let root = tmp.path();
+        write_prompt(root, 10, &full_prompt(10, "deadbeef"));
+        let r = station_report(root, 10);
+        let roster = format_team_roster(&r);
+
+        // Analyst passed on a substantive Delta → its plain `done` phrase, with the ✓ mark.
+        assert_eq!(outcome(root, 10, "Analyst"), Outcome::Passed);
+        assert!(roster.contains("✓ Analyst"), "roster: {roster}");
+        assert!(roster.contains("framed what to build"), "roster: {roster}");
+
+        // Coder has no execution trace against a real commit → its plain `pending` phrase.
+        assert_eq!(outcome(root, 10, "Coder"), Outcome::Absent);
+        assert!(roster.contains("no code committed yet"), "roster: {roster}");
+
+        // Not a bare number: no `of 8` inside the roster body itself (that is the subtitle's job).
+        assert!(
+            !roster.contains("of 8"),
+            "roster leaked the K-of-8 plumbing"
+        );
+    }
+
+    /// AC3 — the reface changes only the SHOW, never the count: the roster headline and the
+    /// `K of 8` subtitle report the SAME number `passed()` computes, on both a 0/8 and an 8/8
+    /// fixture. (The gate-logic tests above independently pin what that number IS.)
+    #[test]
+    fn reface_preserves_k_and_shows_it() {
+        let tmp = repo();
+        let root = tmp.path();
+
+        // A fresh scaffold: passed() == 0, and the subtitle says "0 of 8".
+        let scaffold = "\
+# S70\n\ndesign-significant: yes\n\n## Acceptance\n1. do x\n\n## Design\n<why>\n\
+\n## Plan\n1. <step>\n\n## Execution\n- step 1 — done: <sha>\n\n## Delta\n- `+` <adds>\n";
+        write_prompt(root, 70, scaffold);
+        let r = station_report(root, 70);
+        assert_eq!(r.passed(), 0);
+        let text = format_station_report(&r);
+        assert!(
+            text.contains("the pipeline team"),
+            "no team headline: {text}"
+        );
+        assert!(
+            text.contains(&format!(
+                "{} of {} stations passed",
+                r.passed(),
+                STATION_COUNT
+            )),
+            "K subtitle drifted from passed(): {text}"
+        );
+        // The auditable detail table is still present beneath the roster (progressive disclosure).
+        assert!(
+            text.contains("[ABSENT]"),
+            "auditable detail dropped: {text}"
+        );
     }
 
     /// S99 (AC2), reproducing the S97 chitra reading: a prompt in the pre-marker convention
