@@ -1,13 +1,17 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-28 · **Session 104 — CODE: make the pipeline speak like a TEAM — SHIPPED.**
-`vajra next --stations` + the `vajra next` packet now lead with a human **team roster** (each of the 8
-stations = a named role + plain-English status, e.g. `✓ Analyst framed what to build · — Coder no code
-committed yet`); `K of 8` kept as a subtitle; the auditable `[PASSED]/[ABSENT]` table retained beneath
-(disclosed: demoted, not deleted). One source (`ROLES` + `format_team_roster`), reused by both surfaces
-(S19 no-drift); mechanism unchanged (K identical, `cargo test --lib` = **296**). Cold review **ACCEPT**
-(pass-1 caught a hollow demo AFTER-block → fixed), attested `226a344b…`. Founder pick **C**, order **C→B→A**.
+**Updated:** 2026-07-29 · **Session 105 — NO-CODE GROUND TRUTH (S101–S104) — PARTIAL (lead lens).**
+Audited through the **MVP-shippability** lens the S103 pivot set. **3 🟢 · 7 🟡 · 0 🔴.** The
+governance **engine** is done and proven (S103 forced block, attested/chained ledger, authoritative
+receipts); the shippable **package** is ~0% — nothing published, README marks 3 install paths "NOT YET
+PUBLISHED", crate name paper-only. Costs reconcile to the penny (S102 $0.4644 · S103 $0.6797). Two
+blind spots: no instrument measures **installability** (`--stations`=7/8 on S101 while every install
+path was broken); `--dogfood-age` is **blind to untracked receipts** (reports last=S97, true last=S103).
+**Machinery-freeze rule (`DECISION-005`) RETIRED** — dead letter post-pivot. Next = **make it
+installable (S106)**. Report: `sessions/session-105-ground-truth.md`.
 
+*Prior: Session 104 — CODE: team voice over the 8 stations — SHIPPED (roster + plain status; K
+identical; 296 lib tests; cold review ACCEPT, attested `226a344b…`). Founder pick C, order C→B→A.*
 *Prior: Session 103 — DOGFOOD (paid): Rung 2 endurance + adversarial — Rung 2 PASS.*
 Both S102 gaps closed: a detached/resumable/budget-capped **endurance harness** whose kill-switch FIRED on
 cap, and a **FORCED adversarial block** (a good-faith agent's `git commit` stopped by L3
@@ -57,10 +61,10 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-07-25 |
-| Current phase | **Climbing the AUTOPILOT LADDER** (S98 reposition, `DECISION-005`) — pipeline = engine, not pitch. The 8-station spine is complete and e2e-dogfooded once (S97, Rung 1, paid, partial 2/8); S99 removed the two Rung-1 Coder-dark blockers; S100 GT confirmed the direction + found ladder runs not yet measurable by our own instruments; S101 truth-passed the README + settled the crate name (`DECISION-006`). **S102 ran Rung 2: the 3 quality gates PASSED on a bounded burst (zero leaks · honest receipts · fidelity correct) + shipped the first ladder-run evidence contract (closes the S100 🔴); endurance + adversarial still open.** Next = **S103 Rung-2 endurance + adversarial** → Rung 3, under the **machinery-freeze rule** + the **2026-09-15 release backstop**. Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
-| Last closed session | Session 104 — **CODE: team voice over the 8 stations** (named roles + plain status, one source reused by `--stations` + the packet; K unchanged; 296 lib tests; cold review ACCEPT, attested `226a344b…`). Founder pick C, order C→B→A |
-| Active session | Session 105 — **NO-CODE GROUND TRUTH** (mandatory, `105 % 5 == 0`): audits S101–S104 through the **MVP-shippability** lens; tees up **make it installable (B)** as the next build |
+| Today | 2026-07-29 |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot — supersedes the Autopilot-Ladder-as-sessions plan + machinery-freeze rule). The governance engine is complete and PROVEN (8-station spine S72; forced commit block S103; attested/chained ledger; authoritative receipts). What is missing is the **shippable package** — S105 GT: nothing published, README marks 3 install paths "NOT YET PUBLISHED", crate name paper-only. Sessions now finish MVP slices; the founder runs the long unattended real-world test himself, then release. Order **C→B→A**: C team-voice (S104 ✓) → **B make it installable (S106, next)** → A fleet. Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
+| Last closed session | Session 105 — **NO-CODE GROUND TRUTH (S101–S104)** — PARTIAL (lead lens); 3 🟢 · 7 🟡 · 0 🔴; engine done + proven, package ~0%; freeze rule retired; two GT-instrument blind spots found (installability unmeasured · `--dogfood-age` blind to untracked receipts) |
+| Active session | Session 106 — **CODE: make it installable (v0.1)** (founder pick ①): one working install path from a clean checkout + an installability smoke test (the missing instrument) + a README quickstart truth-pass |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` (crates.io 404 = available) · binary `vajra` (short name is a taken crate). On paper only — no `cargo publish`/tag/rename yet |
 
 ---
@@ -229,6 +233,8 @@ GT-verified S75/S80/S85).
 | S101 | CODE (docs) | **Release-backstop slice** (founder pick C, a knowing freeze-rule override): README truth-pass — 3 broken install methods (crates.io/brew/binary) marked NOT YET PUBLISHED not faked; retired the ~8× receipt claim + `$33.4976`/`opus-4-6` example → real S97 `$1.2758` fable-5 capture; Direction paragraph + Status table → shipped reality (8 stations, auditor shipped/attested/chained, `vajra check` 11, all 7 commands). **`DECISION-006`** settles the v0.1 crate name against a live crates.io check (`vajractl` 404=available · `vajra` 200=taken → crate `vajractl`, binary `vajra`); `Cargo.toml` untouched, nothing published/tagged/renamed. verify 24/24; independent cold review ACCEPT, attested `a96455ff…` |
 | S102 | **DOGFOOD (paid)** | **Autopilot Ladder Rung 2 — PARTIAL** (founder pick A +B): 3-task unattended burst on chitra, guards ON. **Quality gates PASSED** — unauthorized commits blocked (probes P1/P2 exit 1), authorized `9ba1ba9` permitted through the gate, no push/PR, chitra main untouched; every run authoritative `total_cost_usd` ($0.4644 total, sonnet-4-6). **Endurance NOT met** (~2.3 min, not a day — disclosed per Acceptance #1); Task A agent VOLUNTARILY declined to commit (S97 pattern → S103 adversarial). Shipped the first ladder-run **evidence contract** (`session-102-review.md`, judged on run evidence, NOT waived — the S100 🔴 fix); session fidelity ACCEPT, attested `f6350676…`. chitra **re-init'd first** (its >3-week scaffold had NO commit/publish guards); fable-5 monthly credits exhausted → ran on sonnet |
 | S103 | **DOGFOOD (paid)** | **Rung 2 endurance + adversarial — PASS** (founder "all approved"): a detached (`nohup`)/resumable/budget-capped **endurance harness** ran 6 tasks unattended; the **kill-switch FIRED** on cap ($0.2668 ≥ $0.22 → stopped before e5, no overrun; resumable both ways). A good-faith agent's `git commit` was **FORCE-blocked** by L3 `hook-commit-guard.sh` (even under `--dangerously-skip-permissions`) — closes the S97/S102 voluntary-vs-enforced gap (a *forced* block, not a decline). A separate explicit-bypass agent refused at layer-0 (defense-in-depth). Zero leaks (chitra `main` `9dc7d7f` untouched, nothing pushed); **$0.6797 authoritative** (sonnet-4-6) + ~$0.05 uncaptured. Cold review **ACCEPT** (pass-1 REJECT caught a premature citation → fixed), attested `a2c33fcd…`. **🔀 Founder PIVOT:** stop paid ladder *sessions* → finish the MVP; founder runs the long test himself; **fleet-vs-gates** direction fork opened (FirstMate review) |
+| S104 | CODE | **Team voice over the 8 stations** (founder pick C): `--stations` + the `vajra next` packet now lead with a named-role **team roster** + plain status from one source (`ROLES` + `format_team_roster`), reused by both surfaces (S19 no-drift); `K of 8` a subtitle, the `[PASSED]/[ABSENT]` table demoted-not-deleted (disclosed). Mechanism unchanged (K identical); `cargo test --lib` = 296; verify 8/8; cold review **ACCEPT** (pass-1 caught a hollow demo AFTER-block → fixed), attested `226a344b…`; merged #108 |
+| S105 | GT (NO-CODE) | Audited S101–S104 through the **MVP-shippability** lens: **3 🟢 · 7 🟡 · 0 🔴**, lead lens = **PARTIAL** (engine done + proven, package ~0% — nothing installable yet). Costs reconcile to the penny (S102 $0.4644 · S103 $0.6797). **Machinery-freeze rule (`DECISION-005`) RETIRED** — dead letter post-pivot; DECISION-005 Status → SUPERSEDED. **Two GT-instrument blind spots:** (1) no instrument measures installability (`--stations`=7/8 on S101 while every install path was broken); (2) `--dogfood-age` blind to untracked receipts (reports S97, true last S103). state_drift corrected: S104-merged-shown-open, `vajra.varta` stale (recurring since S100), KNOWLEDGE 416→475, ladder-phase text retired. Founder pick ① → S106 make it installable |
 
 ---
 
@@ -250,7 +256,9 @@ GT-verified S75/S80/S85).
 | S101 | Complete | **CODE (docs): release-backstop slice** (founder pick C) — README truth-pass (3 broken install methods marked NOT YET PUBLISHED; ~8× claim + stale receipt example retired) + `DECISION-006` crate name (`vajractl`/`vajra`); published/renamed nothing; verify 24/24; cold review ACCEPT |
 | S102 | Complete | **DOGFOOD (paid): Autopilot Ladder Rung 2 — PARTIAL** — quality gates PASSED on a bounded 3-task burst (zero leaks · honest receipts · fidelity correct); endurance NOT met; first ladder-run evidence contract shipped (S100 🔴 fix); $0.4644 authoritative; fidelity ACCEPT, attested `f6350676…`; chitra re-init'd for real teeth |
 | S103 | Complete | **DOGFOOD (paid): Rung 2 endurance + adversarial — PASS** — endurance harness w/ firing kill-switch + a FORCED adversarial block; zero leaks; $0.6797 authoritative; cold review ACCEPT, attested `a2c33fcd…`. **🔀 Founder pivot: stop paid ladder sessions → finish the MVP** |
-| **S104** | **Next** | **Awaiting founder pick** (post-pivot: finish the MVP). Options presented — incl. the *fleet of real named agents* vs *one agent + gates* fork. Prompt written on the pick |
+| S104 | Complete | **CODE: team voice over the 8 stations** (founder pick C) — named-role roster + plain status from one source, reused by `--stations` + the packet; K unchanged; 296 tests; cold review ACCEPT, attested `226a344b…`; merged #108 |
+| S105 | Complete | **GT (NO-CODE): S101–S104 through the MVP-shippability lens** — 3 🟢 · 7 🟡 · 0 🔴; PARTIAL (engine done, package ~0%); freeze rule RETIRED; two GT-instrument blind spots (installability unmeasured · `--dogfood-age` blind to untracked receipts); costs reconcile to the penny; drift corrected |
+| **S106** | **Next** | **CODE: make it installable (v0.1)** (founder pick ①, the C→B→A order's B) — one working install path from a clean checkout + an installability smoke test (the missing instrument) + a README quickstart truth-pass. crates.io publish founder-gated (irreversible). Prompt: `prompts/106-task-installable-v01.md` |
 
 ---
 
@@ -273,11 +281,13 @@ GT-verified S75/S80/S85).
 
 | Item | Severity | Notes |
 |---|---|---|
-| **Dogfood (launcher)** | 🟢 | Fresh — **S102 = 2026-07-25, $0.4644 authoritative** (sonnet-4-6, 3-task Rung-2 burst; fable-5 credits exhausted) |
+| **Dogfood (launcher)** | 🟢 | Fresh — true last = **S103 = 2026-07-27, $0.6797 authoritative** (sonnet-4-6, 6-task endurance harness + forced block; S102 = $0.4644). ⚠ `--dogfood-age` reports S97 because S102/S103 receipts are untracked — see the blind-spot row below |
+| **`--dogfood-age` blind to untracked receipts** | 🟡 | S105 meta-check: the git-derived query only sees committed receipts; S102/S103 artifacts are `??`, so it reports last=S97 when the true last is S103. Fix = commit the receipts (founder call) or a code fix to scan on-disk artifacts |
+| **Installability unmeasured** | 🟡 | S105 meta-check: no instrument answers "can a stranger ship this?"; `--stations`=7/8 on S101 while every install path was broken. S106 ships the missing smoke test |
 | **Dogfood (pipeline end-to-end)** | 🟡 | RE-TESTED S102 — quality gates PASSED on a bounded 3-task burst (guards ON, real teeth). Still untested: a *completing, multi-hour, unattended* run + a *forced adversarial* block — both = S103 |
 | ~~**Coder/EXECUTE station dark**~~ | ✅ | CLOSED S100: Coder **PASSED** in S96, S98, S99 (`vajra next --stations NN`). The S95 "ABSENT 4-for-4" finding no longer holds in this repo |
 | **Ladder runs invisible to GT instruments** | 🟡 | **S100 🔴 → mitigated S102.** The fix shipped: S102 produced the first real ladder-run **evidence contract** (`session-102-review.md`, judged on receipt + blocked-action log + subject diff + fidelity; ACCEPT + attested, NOT waived). `--stations` still reads DOGFOOD low by construction — read the contract, not the K-of-8. Residual: the pattern is proven once, not yet templated/enforced (a run must not silently waive it) |
-| **KNOWLEDGE §6 bloat** | 🟡 | 416 lines / 69 entries / ~85K tokens; header "Reloaded every session" false; flagged since S60, unremediated |
+| **KNOWLEDGE §6 bloat** | 🟡 | **475 lines / ~91K tokens (GROWING** — was 416/85K at S100); header "Reloaded every session" false; flagged since S60, unremediated; prune queued as an S106-alt option |
 | **Commit gate in THIS repo** | 🟡 | Un-forgeable only at L3, which is `commit_guard: off` here (build-agent exemption); L2 belt is inline-forgeable + `--no-verify` bypasses both. Teeth proven by test + ON in scaffolds (S93 fakest green) |
 | ~~Nested-repo guard blindspot~~ | ✅ | CLOSED S94: git facts pinned to own git top-level; fail-closed when no own repo; governed project surfaced. Residual (🟡): own-git **non-session-branch** marker fallthrough left intact (zero-regression); worktree/submodule/symlink shapes fail-closed but untested |
 | ~~Repo-wide rustfmt 1.9.0 drift~~ | ✅ | CLOSED S96: `cargo fmt` reformatted the 3 files; `cargo fmt --check` clean crate-wide; CI green both OS. Keep local rustfmt = 1.9.0-stable (CI's `@stable`) to avoid recurrence |
@@ -294,19 +304,19 @@ GT-verified S75/S80/S85).
 
 ---
 
-## Backlog (governed by the machinery-freeze rule — S98)
+## Backlog
 
-**The active queue is the 6-Month Autopilot Plan above** (Rung 2 → Rung 3 → release backstop). Per
-the **machinery-freeze rule** (`DECISION-005`): a session either runs the Autopilot Ladder or fixes
-something a ladder run broke — **nothing below gets built on its own merit.** Every item is now
-"**only if a ladder run breaks it**", ordered by how likely a run is to force it.
+**The active queue is FINISHING THE MVP** (C→B→A: team-voice ✓ → installable v0.1 = S106 → fleet).
+The machinery-freeze rule is **RETIRED** (S103 pivot). Items below get pulled when they serve the MVP
+or when a founder-run real-world test breaks them; the installability instrument (S106) is now the
+guard against easy-green (machinery advancing while the product can't ship).
 
 **🧊 Frozen machinery — pull ONLY when a ladder run breaks it:**
 - **Coder-marker fix** (S97 — likeliest first pull; Rung 2 will demand it): *agents write the
   `## Execution`/`## Delta` markers, Vajra verifies*; add an **env-marker commit path**
   (`VAJRA_ALLOW_COMMIT` shape) so an unattended `-p` run can reach a full closeout; marker slots
   ride the `vajra init` scaffold (chitra's older scaffold lacks them).
-- **KNOWLEDGE §6 prune** (chronic since S60) — 416 lines / 69 entries / ~85K tokens; cut to permanent lessons, move per-session narrative to `sessions/`, fix the false "Reloaded every session" header
+- **KNOWLEDGE §6 prune** (chronic since S60) — **475 lines / ~91K tokens (growing)**; cut to permanent lessons, move per-session narrative to `sessions/`, fix the false "Reloaded every session" header
 - **Compression `cargo`/`npm`/`pytest` exit-code fold gap** (S33/S41) — `exit_code == Some(0)` path; real CC never sends it
 - **Guard identity: exotic git shapes** (S94 residual) — worktree / submodule / symlinked-root untested (fail-closed today); own-git non-session-branch marker fallthrough
 - **Ladder-run evidence contract** (S100 🔴 — likeliest pull alongside Rung 2): define what a
@@ -367,8 +377,8 @@ something a ladder run broke — **nothing below gets built on its own merit.** 
 ## Rules For This Document
 
 1. Update at every closeout — the "Where We Are" table and session log row are mandatory.
-2. `NN % 5 == 0` → mandatory NO-CODE GT. Last = **S100** (done). Next = **S105** (lead lens: did the ladder runs produce checkable evidence, or a story?).
+2. `NN % 5 == 0` → mandatory NO-CODE GT. Last = **S105** (done). Next = **S110** (lead lens: is v0.1 shippable to a stranger — and does an instrument prove it, not a feeling?).
 3. Mark items done only when they work in a real session, not just tests.
 4. Never exceed 7 top-level commands without explicit user approval.
 5. Per-session detail goes in `sessions/session-NN-summary.md`, not here.
-6. **Machinery-freeze rule (S98, `DECISION-005`):** a session either **runs the Autopilot Ladder** (the active queue) **or fixes something a ladder run broke.** Nothing else gets built. The Backlog is frozen — every item is "only if a ladder run breaks it." This is the by-construction fix for the 4-GT easy-green gradient (S80/S85/S90/S95).
+6. **Machinery-freeze rule (S98, `DECISION-005`) — RETIRED (S103 pivot, confirmed S105 GT).** It said "a session runs the Autopilot Ladder or fixes what a run broke." The pivot cancelled ladder *sessions*; S104 was neither and shipped. **New law:** a session **finishes a shippable-MVP slice** (C→B→A order) until v0.1 is stranger-shippable; the founder owns the long unattended real-world test. The easy-green guard the freeze rule provided is now carried by the GT's own lead lens + the installability instrument (S106).
