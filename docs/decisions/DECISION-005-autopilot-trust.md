@@ -1,7 +1,13 @@
 # DECISION-005 — Reposition to the AUTOPILOT TRUST LAYER (the pipeline is the engine, not the pitch)
 
 - **Date:** 2026-07-23 (Session 98)
-- **Status:** ACCEPTED
+- **Status:** **SUPERSEDED (2026-07-27, S103 founder pivot; confirmed S105 constitution_review).** The
+  *reposition* (governance = the product, pipeline = the engine that earns trust, fidelity = the heart)
+  **still stands** and is the live direction. What is **retired** is this decision's **machinery-freeze
+  rule** and its **Autopilot-Ladder-as-paid-sessions** plan: the S103 pivot cancelled ladder *sessions*
+  — sessions now finish a shippable MVP and the founder runs the long unattended test himself. S105
+  confirmed the freeze rule was already dead letter (S104 was neither a ladder run nor a fix-what-broke,
+  and it shipped). See `.ai/ROADMAP.md` (pivot banner) and `sessions/session-105-ground-truth.md`.
 - **Type:** direction / positioning decision (not an architecture ADR) — same class as DECISION-001
 - **Relates to:** DECISION-001 (governance as the product) and DECISION-002 (fidelity over
   discipline). This **refines the LEAD**, it does not reverse either: governance is still the

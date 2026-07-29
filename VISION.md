@@ -15,6 +15,11 @@
 > (below) stops being the pitch and becomes the **engine** that earns the trust. This changes the lead,
 > not the disclosures — every honesty row below survives. See
 > `docs/decisions/DECISION-005-autopilot-trust.md`.
+> **Pivoted 2026-07-27 (S103):** sessions now **finish a shippable MVP** — the paid multi-day
+> Autopilot-Ladder *sessions* and the machinery-freeze rule are retired (DECISION-005 SUPERSEDED); the
+> founder owns the long unattended real-world test, then release. The product direction is unchanged —
+> only how sessions are spent. S105 GT: engine done + proven, package ~0% (nothing installable yet);
+> next build = **make it installable (v0.1)**.
 
 ## One sentence
 

@@ -2,34 +2,37 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 104 — CODE: make the pipeline speak like a team — COMPLETE
+## Session 105 — NO-CODE GROUND TRUTH (S101–S104) — COMPLETE
 
-- **Verdict:** **SHIPPED.** `vajra next --stations NN` + the `vajra next` packet now lead with a
-  human **team roster** (each of the 8 stations = a named role + plain-English status); `K of 8`
-  kept as a subtitle; the auditable `[PASSED]/[ABSENT]` table retained beneath (disclosed: demoted,
-  not deleted). One source (`ROLES` + `format_team_roster`), reused by both surfaces (S19 no-drift).
-  Mechanism unchanged: no gate/classifier edited, K identical, `cargo test --lib` = **296**. verify
-  **8/8**; demo 4 elements. Independent cold review **ACCEPT** (pass-1 caught a hollow demo
-  AFTER-block → fixed), attested `226a344b…`. Summary: `sessions/session-104-summary.md` · review:
-  `sessions/session-104-review.md`. Branch: `session-104-team-voice`.
+- **Verdict:** **PARTIAL (lead lens: is v0.1 shippable to a stranger?).** The governance **engine** is
+  done and proven; the shippable **package** is ~0% — nothing published, README marks 3 install paths
+  "NOT YET PUBLISHED", crate name settled on paper only (`DECISION-006`). **3 🟢 · 7 🟡 · 0 🔴.**
+  Costs reconcile to the penny (S102 $0.4644 · S103 $0.6797). Two blind spots found: (1) **no
+  instrument measures installability** — `vajra next --stations` read 7/8 on S101 while every install
+  path was broken; (2) **`--dogfood-age` is blind to untracked receipts** — reports last=S97, true
+  last=S103. Machinery-freeze rule (`DECISION-005`) declared **dead letter** post-pivot →
+  superseded (Status corrected). All drift corrected in `.ai/` + docs at closeout. Report:
+  `sessions/session-105-ground-truth.md`. Branch: `session-105-closeout` (exempt).
 
 **🔀 FOUNDER PIVOT (S103, in force):** sessions now = **finish a shippable MVP**; founder runs the
-long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B make it installable**
-(next build) → A real agent fleet (after the MVP ships).
+long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B make it installable
+(S106, next build)** → A real agent fleet (after the MVP ships).
 
-Between sessions. **Next = S105 — NO-CODE GROUND TRUTH** (mandatory, `105 % 5 == 0`; audits S101–S104
-through the MVP-shippability lens). Brief: `prompts/105-task-ground-truth.md`. **New chat** for S105.
+Between sessions. **Next = S106 — CODE: make it installable (v0.1)** (founder pick ①): one working
+install path from a clean checkout + an installability smoke test (the missing instrument) + a README
+quickstart truth-pass. Brief: `prompts/106-task-installable-v01.md`. **New chat** for S106.
 
 ## Always-True Reminders
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
-- Branch: `session-NN-<slug>`. **S105 = NO-CODE ground truth** (exempt `-closeout` branch;
-  `VAJRA_CLOSEOUT_WAIVER=105`).
+- Branch: `session-NN-<slug>`. **S106 = CODE** (verify + demo scripts required; no waiver).
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
 - **Commits are ENFORCED (S93):** on a session branch, supply the un-forgeable marker —
   `VAJRA_ALLOW_COMMIT=NN git commit …`.
+- **crates.io publish is IRREVERSIBLE** — never publish (even an empty reserve) without an explicit
+  founder "yes publish" in chat; the name burns on first publish.
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`) — no gate catches a miss.
-- **New session = new chat** — open a fresh chat for S105; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S106; do NOT start it here.
 - **Direction:** product = **provable agent governance** (`DECISION-001`), sold as the autopilot
-  trust layer (`DECISION-005`); fidelity load-bearing (`DECISION-002`), verdicts attested
-  (`DECISION-003`), chained tamper-evident (`DECISION-004`). Sessions now finish a shippable MVP.
+  trust layer; fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
+  tamper-evident (`DECISION-004`). Sessions now finish a shippable MVP (S103 pivot).
