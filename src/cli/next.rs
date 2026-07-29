@@ -625,6 +625,21 @@ fn run_dump() -> Result<()> {
     );
     println!();
 
+    // S104 team voice: the pipeline team's progress on THIS session, in plain English — the SAME
+    // role narration `vajra next --stations` uses (one source in `stations`, no second copy). A
+    // non-numeric `.ai/SESSION` just skips the roster rather than breaking the packet.
+    if let Ok(n) = session.trim().parse::<u32>() {
+        let report = stations::station_report(&root, n);
+        println!("----- pipeline team (session {n:02}) -----");
+        print!("{}", stations::format_team_roster(&report));
+        println!(
+            "  {} of {} roles have finished their part",
+            report.passed(),
+            stations::STATION_COUNT
+        );
+        println!();
+    }
+
     for relative in PACKET_FILES {
         print_file(&root, relative)?;
     }
