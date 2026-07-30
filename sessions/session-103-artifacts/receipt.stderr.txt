@@ -1,0 +1,14 @@
+─── vajra · session 103 dogfood — AGGREGATE INDEX ────────────────
+ $0.6797  total  (sonnet-4-6 · 9 runs · authoritative)
+
+ Rung-2 endurance + adversarial dogfood on chitra (2026-07-27).
+ This is a top-level INDEX so `vajra next --dogfood-age` can see S103
+ (its scan reads receipt.stderr.txt at the artifacts-dir top level, not
+ in per-run subdirs). The $ figure is the authoritative sum of each run's
+ -p result-stream total_cost_usd (S78 path) — verified in the S105 GT
+ (matches STATE.md to the penny).
+
+ Per-run receipts : sessions/session-103-artifacts/<run>/receipt.stderr.txt
+                    (adversarial, adversarial-b, e1..e6, smoke)
+ Full write-up    : sessions/session-103-summary.md
+──────────────────────────────────────────────────────────────────
