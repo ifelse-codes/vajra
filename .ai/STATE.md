@@ -58,9 +58,14 @@ release. Founder order **C → B → A**: C (team voice) = S104 DONE → **B (ma
 - **🟡 Installability is UNMEASURED (S105 meta-check).** No instrument answers "can a stranger ship
   with this?" — `vajra next --stations` read 7/8 on S101 while every install path was broken. S106
   ships the missing smoke test.
-- **🟡 `--dogfood-age` blind to untracked receipts (S105 meta-check).** It reports last dogfood=S97;
-  true last=**S103** — the S102/S103 run artifacts are untracked (`??`), so the git-derived query can't
-  see them. Founder call: commit the receipts to un-blind it, or accept a documented known-blindspot.
+- **🟢 `--dogfood-age` un-blinded for S102/S103 (S105 follow-up).** It now reports last dogfood=**S103,
+  $0.6797**. **Corrected root cause:** the S105 GT said "blind to untracked receipts" — the real cause is
+  that `dogfood_age()` scans **on-disk** (not git) and only checks for `receipt.stderr.txt` at the
+  **top level** of each `session-NN-artifacts/` dir (`src/dogfood/mod.rs:63-66`); S102/S103 kept their
+  receipts in per-run **subdirs** (`e1/`, `smoke/`…), so the scan skipped them. Fixed by committing a
+  top-level **aggregate** `receipt.stderr.txt` + `run-result.json` (session total) in each dir. **🟡
+  Durable code fix still open:** make the scan recurse into subdirs, so future dogfoods needn't add an
+  aggregate by hand (queued for a CODE session).
 - **🟡 KNOWLEDGE §6 bloat GROWING** (chronic since S60): **475 lines / ~91K tokens** (was 416/85K at
   S100); header "Reloaded every session" still false. Prune queued as an S106-alt option, not done.
 - **🟡 `vajra.varta` re-render drifts every session** — `vajra check` FAILs "varta stale" again (was

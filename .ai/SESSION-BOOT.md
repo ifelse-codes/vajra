@@ -33,9 +33,10 @@
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S106.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **`--dogfood-age` blind spot (S105):** the git-derived query misses untracked dogfood receipts
-  (`sessions/session-10{2,3}-artifacts/*` are `??`). Founder call: commit the receipts to un-blind the
-  instrument, or accept a documented known-blindspot. Deferred to founder.
+- **`--dogfood-age` un-blinded (S105 follow-up, founder said "commit the receipts"):** now reports
+  last=S103, $0.6797. Corrected root cause = the scan only checks the **top-level** of each artifacts
+  dir; S102/S103 receipts were in per-run subdirs. Fixed with a top-level aggregate receipt +
+  `run-result.json` per dir. **Residual (🟡):** durable code fix = recurse into subdirs (CODE session).
 - **Installability is unmeasured** until S106 ships its smoke test — treat "shippable" as unproven
   until then.
 - **Untracked stragglers** (standing founder call): `sessions/session-9*-artifacts/*`,
