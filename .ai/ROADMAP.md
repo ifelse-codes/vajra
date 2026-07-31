@@ -281,8 +281,8 @@ GT-verified S75/S80/S85).
 
 | Item | Severity | Notes |
 |---|---|---|
-| **Dogfood (launcher)** | 🟢 | Fresh — true last = **S103 = 2026-07-27, $0.6797 authoritative** (sonnet-4-6, 6-task endurance harness + forced block; S102 = $0.4644). ⚠ `--dogfood-age` reports S97 because S102/S103 receipts are untracked — see the blind-spot row below |
-| **`--dogfood-age` blind to untracked receipts** | 🟡 | S105 meta-check: the git-derived query only sees committed receipts; S102/S103 artifacts are `??`, so it reports last=S97 when the true last is S103. Fix = commit the receipts (founder call) or a code fix to scan on-disk artifacts |
+| **Dogfood (launcher)** | 🟢 | Fresh — last = **S103 = 2026-07-27, $0.6797 authoritative** (sonnet-4-6, 6-task endurance harness + forced block; S102 = $0.4644). `--dogfood-age` now correctly reports S103 (top-level aggregate receipts added S105-follow-up) |
+| ~~**`--dogfood-age` blind to untracked receipts**~~ | 🟢→🟡 | **RESOLVED for S102/S103** (S105 follow-up). Corrected root cause: the scan reads `receipt.stderr.txt` at the **top level** of each artifacts dir (on-disk, not git; `src/dogfood/mod.rs:63-66`) — S102/S103 receipts sat in per-run subdirs, so it skipped them. Fixed with a top-level aggregate receipt + `run-result.json` per dir. **🟡 residual:** durable code fix = recurse into subdirs (queued for a CODE session) |
 | **Installability unmeasured** | 🟡 | S105 meta-check: no instrument answers "can a stranger ship this?"; `--stations`=7/8 on S101 while every install path was broken. S106 ships the missing smoke test |
 | **Dogfood (pipeline end-to-end)** | 🟡 | RE-TESTED S102 — quality gates PASSED on a bounded 3-task burst (guards ON, real teeth). Still untested: a *completing, multi-hour, unattended* run + a *forced adversarial* block — both = S103 |
 | ~~**Coder/EXECUTE station dark**~~ | ✅ | CLOSED S100: Coder **PASSED** in S96, S98, S99 (`vajra next --stations NN`). The S95 "ABSENT 4-for-4" finding no longer holds in this repo |

@@ -60,10 +60,17 @@ product is still uninstallable. **No instrument answers "can a stranger ship wit
 the single most important thing to close alongside B.
 
 **Named blind spot #2 (found this GT):** `--dogfood-age` — the instrument added S91 to be the
-ground-truth for dogfood freshness — is **blind to uncommitted receipts.** It reported last dogfood =
-S97 because S102/S103 run artifacts are untracked (`git status` = `??`). The true last paid dogfood is
-S103, 2 days ago. A future GT trusting the instrument would read "6 days stale" when it is "2 days
-fresh." Fix is cheap: commit the S102/S103 receipts so the git-derived query can see them.
+ground-truth for dogfood freshness — reported last dogfood = S97 when the true last paid dogfood is
+S103 (2 days ago). A future GT trusting it would read "6 days stale" when it is "2 days fresh."
+
+> **CORRECTION (post-GT, S105 `dogfood-fix` follow-up):** the root cause stated above ("blind to
+> *uncommitted* receipts") was **wrong.** `dogfood_age()` scans **on-disk** (`fs::read_dir`, not git)
+> and only checks for `receipt.stderr.txt` at the **top level** of each `session-NN-artifacts/` dir
+> (`src/dogfood/mod.rs:63-66`). S102/S103 kept their receipts in per-run **subdirs**, so the scan
+> skipped them regardless of tracking. **Fix applied:** a top-level aggregate `receipt.stderr.txt` +
+> `run-result.json` (session total) committed per dir → the instrument now reports **S103, $0.6797**.
+> Durable code fix (recurse into subdirs) queued for a CODE session. Lesson: read an instrument's
+> discovery code before naming its root cause.
 
 ---
 

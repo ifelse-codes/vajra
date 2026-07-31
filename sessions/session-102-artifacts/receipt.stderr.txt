@@ -1,0 +1,14 @@
+─── vajra · session 102 dogfood — AGGREGATE INDEX ────────────────
+ $0.4644  total  (sonnet-4-6 · 4 runs · authoritative)
+
+ Rung-2 3-task burst on chitra (2026-07-25). One run recorded $0.0000
+ (fable-5 monthly credits exhausted → billed $0 on that run).
+ Top-level INDEX so `vajra next --dogfood-age` can see S102 (its scan
+ reads receipt.stderr.txt at the artifacts-dir top level, not in per-run
+ subdirs). The $ figure is the authoritative sum of each run's -p
+ result-stream total_cost_usd (S78 path) — verified in the S105 GT.
+
+ Per-run receipts : sessions/session-102-artifacts/<run>/receipt.stderr.txt
+                    (smoke, smoke-sonnet, taskA, taskB)
+ Full write-up    : sessions/session-102-summary.md
+──────────────────────────────────────────────────────────────────
