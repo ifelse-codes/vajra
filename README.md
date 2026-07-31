@@ -4,11 +4,19 @@
 
 ## Install
 
-**Works today — build from source:**
+**Works today** — install straight from source with [Rust](https://rustup.rs) 1.70+. No clone needed:
+
+```bash
+cargo install --git https://github.com/ifelse-codes/vajra
+```
+
+Or clone first, then install from the checkout:
 
 ```bash
 git clone https://github.com/ifelse-codes/vajra && cd vajra && cargo install --path .
 ```
+
+Both build the `vajractl` crate and drop a `vajra` binary on your PATH. This path is checked end-to-end by [`scripts/install-smoke.sh`](scripts/install-smoke.sh): a fresh-directory install → `vajra init` → `vajra next`, asserting each step succeeds inside a time budget and **exiting non-zero if anything is broken**. Run it yourself — every "it installs" claim here is re-derivable, not a feeling.
 
 The three methods below are **planned for the v0.1 release** and are **NOT YET PUBLISHED** — each will 404 until the release ships. The crate name is settled in [`DECISION-006`](docs/decisions/DECISION-006-crate-name.md); no crate, tap, or binary is published yet.
 
