@@ -18,19 +18,31 @@
 # runs the same stranger flow — NOT a claim, the exact download command the README prints, re-derived
 # live. A missing asset, a sha mismatch, or a non-zero `vajra` step is a FAIL, never a skipped green.
 #
+# The published-channel proofs (S108): two more of the exact commands the README prints —
+#   `crates`: a stranger with Rust runs `cargo install vajractl` from crates.io (needs the crate live).
+#   `brew`:   a stranger runs `brew install <tap>/vajra`; here the LOCAL formula, which points at the
+#             SAME v0.1.0 release tarball — brew re-downloads it and verifies its sha256 or FAILS.
+# Same discipline: a missing crate, a missing/bad formula, a sha mismatch, or a non-zero `vajra` step
+# exits non-zero. Override the target with VAJRA_SMOKE_CRATE / VAJRA_SMOKE_FORMULA (used to prove these
+# fail closed against a bogus target).
+#
 # Usage:
 #   scripts/install-smoke.sh                              # install from this checkout (default)
 #   VAJRA_SMOKE_SOURCE=git scripts/install-smoke.sh       # install from the public git remote
 #   VAJRA_SMOKE_SOURCE=release scripts/install-smoke.sh   # download+run the published prebuilt binary
 #   VAJRA_SMOKE_RELEASE_TAG=v0.1.0 VAJRA_SMOKE_SOURCE=release scripts/install-smoke.sh  # pin a tag
+#   VAJRA_SMOKE_SOURCE=crates scripts/install-smoke.sh    # cargo install vajractl from crates.io
+#   VAJRA_SMOKE_SOURCE=brew scripts/install-smoke.sh      # brew install the local Formula/vajra.rb
 #   VAJRA_SMOKE_BUDGET_SECS=300 scripts/install-smoke.sh
 set -euo pipefail
 
 REPO_ROOT="${VAJRA_SMOKE_PATH:-${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}}"
-SOURCE="${VAJRA_SMOKE_SOURCE:-path}"                        # path | git | release
+SOURCE="${VAJRA_SMOKE_SOURCE:-path}"                        # path | git | release | crates | brew
 GIT_URL="${VAJRA_SMOKE_GIT_URL:-https://github.com/ifelse-codes/vajra}"
 WEB_URL="${VAJRA_SMOKE_WEB_URL:-https://github.com/ifelse-codes/vajra}"
 RELEASE_TAG="${VAJRA_SMOKE_RELEASE_TAG:-latest}"           # latest | v0.1.0 | ... (release mode)
+CRATE="${VAJRA_SMOKE_CRATE:-vajractl}"                     # crate to `cargo install` (crates mode)
+FORMULA="${VAJRA_SMOKE_FORMULA:-$REPO_ROOT/Formula/vajra.rb}"  # formula to `brew install` (brew mode)
 BUDGET="${VAJRA_SMOKE_BUDGET_SECS:-420}"                    # bounds hangs, not slow truth (cf. gate 600s)
 START=$SECONDS
 
@@ -38,7 +50,14 @@ INSTALL_ROOT="$(mktemp -d)"
 PROJECT_DIR="$(mktemp -d)"
 DL_DIR="$(mktemp -d)"
 STEP_LOG="$(mktemp)"
-cleanup() { rm -rf "$INSTALL_ROOT" "$PROJECT_DIR" "$DL_DIR" "$STEP_LOG"; }
+cleanup() {
+  rm -rf "$INSTALL_ROOT" "$PROJECT_DIR" "$DL_DIR" "$STEP_LOG"
+  # brew mode installs into the real prefix + a local tap — leave the host as we found it.
+  if [ "$SOURCE" = "brew" ]; then
+    brew uninstall --force vajra >/dev/null 2>&1 || true
+    brew untap "${VAJRA_SMOKE_TAP:-ifelse-codes/tap}" >/dev/null 2>&1 || true
+  fi
+}
 trap cleanup EXIT
 
 # host_target — the release target triple for THIS host, ONLY if release.yml builds it; else non-zero.
@@ -105,12 +124,33 @@ if [ "$SOURCE" = "release" ]; then
   step "verify-sha256"      sha_verify "$DL_DIR" "$ASSET"
   mkdir -p "$INSTALL_ROOT/bin"
   step "extract-binary"     tar xzf "$DL_DIR/$ASSET" -C "$INSTALL_ROOT/bin"
+elif [ "$SOURCE" = "crates" ]; then
+  # The published-crate path: `cargo install <crate>` from crates.io (fails if the crate is not live).
+  echo "  crate:        $CRATE"; echo ""
+  step "install-from-crates" cargo install "$CRATE" --root "$INSTALL_ROOT" --force --quiet
+elif [ "$SOURCE" = "brew" ]; then
+  # The Homebrew path. Modern brew refuses a bare .rb path (must live in a tap), so stand up a
+  # throwaway LOCAL tap, drop the formula in, and `brew install <tap>/vajra` — the exact command
+  # a stranger runs. brew re-downloads the release tarball and verifies its sha256 or FAILS.
+  export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1
+  TAP="${VAJRA_SMOKE_TAP:-ifelse-codes/tap}"
+  echo "  formula:      $FORMULA"
+  echo "  local tap:    $TAP"; echo ""
+  step "brew-available"   command -v brew
+  step "stage-formula"    test -f "$FORMULA"
+  brew untap "$TAP" >/dev/null 2>&1 || true          # clean any leftover from a prior run
+  step "brew-tap-new"     brew tap-new "$TAP" --no-git
+  TAP_DIR="$(brew --repository "$TAP" 2>/dev/null)"
+  mkdir -p "$TAP_DIR/Formula"
+  step "install-formula"  cp "$FORMULA" "$TAP_DIR/Formula/vajra.rb"
+  step "brew-install-tap" brew install "${TAP}/vajra"
 elif [ "$SOURCE" = "git" ]; then
   step "install-from-git"  cargo install --git "$GIT_URL" --root "$INSTALL_ROOT" --force --quiet
 else
   step "install-from-path" cargo install --path "$REPO_ROOT" --root "$INSTALL_ROOT" --force --quiet
 fi
-VJ="$INSTALL_ROOT/bin/vajra"
+# brew installs into its own prefix; every other source lands in our throwaway root.
+if [ "$SOURCE" = "brew" ]; then VJ="$(brew --prefix 2>/dev/null)/bin/vajra"; else VJ="$INSTALL_ROOT/bin/vajra"; fi
 
 # 2) The install produced a runnable binary named `vajra`.
 step "binary-installed" test -x "$VJ"
@@ -131,6 +171,8 @@ echo ""
 echo "  elapsed: ${ELAPSED}s / ${BUDGET}s"
 case "$SOURCE" in
   release) WHENCE="a downloaded prebuilt binary (no Rust toolchain)" ;;
+  crates)  WHENCE="'cargo install $CRATE' from crates.io" ;;
+  brew)    WHENCE="'brew install' from the Homebrew formula" ;;
   git)     WHENCE="'cargo install --git' from the public remote" ;;
   *)       WHENCE="'cargo install' from a clean checkout" ;;
 esac
