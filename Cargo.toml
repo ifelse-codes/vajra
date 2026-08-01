@@ -35,6 +35,8 @@ exclude = [
   "VAJRA-MASTER.md",
   "VISION.md",
   "DESIGN-BRIEF.html",
+  "first-mate.html",
+  "vajra-cto-audit-2026-07-22.html",
   "next prompt .md",
 ]
 
