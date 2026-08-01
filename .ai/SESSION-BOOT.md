@@ -1,43 +1,42 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 105 — COMPLETE
-- **Type:** **NO-CODE GROUND TRUTH** (mandatory, `105 % 5 == 0`; last GT = S100). Audited **S101–S104**
-  through the **MVP-shippability** lens the S103 pivot set.
-- **Goal:** run all 10 mandatory audits; judge whether v0.1 is shippable to a stranger and whether the
-  roadmap is the shortest path there; apply every drift correction to `.ai/` + docs at closeout.
-- **Verdict:** **PARTIAL (lead lens).** The governance **engine** is done and proven (S103 forced
-  block, attested ledger, authoritative receipts); the shippable **package** is ~0% (nothing published,
-  README marks 3 install paths "NOT YET", crate name paper-only). **3 🟢 · 7 🟡 · 0 🔴.** Costs
-  reconcile to the penny (S102 $0.4644 · S103 $0.6797). Two blind spots found: (1) no instrument
-  measures installability (`--stations` read 7/8 on S101 while every install path was broken); (2)
-  `--dogfood-age` is blind to untracked receipts — it reports last=S97, true last=S103. Machinery-freeze
-  rule (`DECISION-005`) declared **dead letter** post-pivot → superseded.
-- **Report:** `sessions/session-105-ground-truth.md` · prompt: `prompts/106-task-installable-v01.md`.
-  **Date last updated:** 2026-07-29.
+- **Number:** 106 — COMPLETE
+- **Type:** **CODE** — make it installable (v0.1); the C→B→A order's **B** (founder pick ①).
+- **Goal:** one install path that works from a clean checkout + the missing **installability
+  instrument** + a README truth-pass — proven, not felt.
+- **Verdict:** **DELIVERED (goal achieved).** `cargo install --git|--path` → `vajractl` crate, `vajra`
+  binary (Cargo.toml was already release-correct — the S105 "paper-only" note was stale). Shipped
+  `scripts/install-smoke.sh` (fresh install → `vajra init` → `vajra next`, asserts each, **exits
+  non-zero on any fail**; proven both ways — 7/7 PASS on the real tree, FAIL→exit 1 on a broken
+  source). README truth-pass: working one-liner proven; crates.io / brew / prebuilt rows stay NOT YET
+  PUBLISHED. **No `src/` changes; no crates.io publish; no tag.** verify 5/5; demo exit 0 (4 markers).
+  Independent cold review **ACCEPT**, attested `07b962af…`.
+- **Report:** `sessions/session-106-summary.md` · review: `sessions/session-106-review.md` · next
+  prompt: `prompts/107-task-tagged-binary-release-v010.md`. **Date last updated:** 2026-07-31.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 105. NO-CODE: corrections to `.ai/` + `docs/decisions/DECISION-005` + `VISION.md` +
-  `vajra.varta` only; no `src/`, no verify/demo scripts, `VAJRA_CLOSEOUT_WAIVER=105`.
-- Commits on `session-105-closeout` (exempt): the GT report + prompt 106, then the `.ai/` snapshots and
-  drift corrections. Each commit carries `VAJRA_ALLOW_COMMIT=105`.
-- Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
+- `.ai/SESSION` = 106. CODE: `README.md` + 3 new scripts (`install-smoke.sh`, `verify-session-106.sh`,
+  `demo-session-106.sh`); **zero `src/`**. Commits carry `VAJRA_ALLOW_COMMIT=106`.
+- **PR #111** (`session-106-installable-v01`) → main. S105 follow-up **#110** merged (un-blind
+  `--dogfood-age`). Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 106 — **CODE: make it installable (v0.1)** (founder pick ①, the C→B→A order's **B**).
-  One install path that actually works from a clean checkout + an **installability smoke test** (the
-  missing instrument) + a README quickstart truth-pass. Prompt: `prompts/106-task-installable-v01.md`.
-- **Guardrail:** crates.io publish is **irreversible** — needs an explicit founder "yes publish"; do
-  not burn the name to reserve it.
+- **Number:** 107 — **CODE: tagged binary release v0.1.0** (founder pick A, the C→B→A order's **B**
+  completion). Push a `v0.1.0` tag → `release.yml` builds 3-target prebuilt binaries + a GH release →
+  a **download-and-run smoke** proves the no-Rust install path → un-mark that README row. Prompt:
+  `prompts/107-task-tagged-binary-release-v010.md`.
+- **Guardrail:** the `git push origin v0.1.0` publishes a **public GH release** — get an explicit
+  founder "yes push the tag" in chat first. **crates.io stays prohibited** absent a separate "yes publish".
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S106.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S107.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **`--dogfood-age` un-blinded (S105 follow-up, founder said "commit the receipts"):** now reports
-  last=S103, $0.6797. Corrected root cause = the scan only checks the **top-level** of each artifacts
-  dir; S102/S103 receipts were in per-run subdirs. Fixed with a top-level aggregate receipt +
-  `run-result.json` per dir. **Residual (🟡):** durable code fix = recurse into subdirs (CODE session).
-- **Installability is unmeasured** until S106 ships its smoke test — treat "shippable" as unproven
-  until then.
+- **Installability is now MEASURED** (S106 instrument). Residual 🟡: the smoke default proves `--path`;
+  the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally
+  identical, disclosed) · `within-budget` is post-hoc, not a hard timeout.
+- **`--dogfood-age` durable fix still open (🟡):** make `dogfood_age()` recurse into per-run subdirs
+  (`src/dogfood/mod.rs:63-66`) so future dogfoods needn't hand-add an aggregate receipt. (S107-alt C.)
+- **`vajra --version` gap (🟡):** a stranger gets usage, not a version string. (S107-alt B.)
 - **Untracked stragglers** (standing founder call): `sessions/session-9*-artifacts/*`,
   `sessions/session-10{2,3}-artifacts/*`, `vajra-cto-audit-2026-07-22.html`, `first-mate.html`.
