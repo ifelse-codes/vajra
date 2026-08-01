@@ -1,15 +1,16 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-01 · **Session 107 — CODE: tagged binary release v0.1.0 — DELIVERED.**
-The C→B→A order's **B**. One install path works from a clean checkout (`cargo install --git|--path` →
-`vajractl` crate, `vajra` binary; `Cargo.toml` was already release-correct — the S105 "paper-only" note
-was **stale**), plus the **missing installability instrument** `scripts/install-smoke.sh` (fresh install
-→ `vajra init` → `vajra next`, asserts each, **exits non-zero on any fail**; proven both ways — 7/7 PASS
-on the real tree, FAIL→exit 1 on a broken source), plus a README truth-pass (working one-liner proven;
-crates.io / brew / prebuilt rows stay NOT YET PUBLISHED). **No `src/`; no crates.io publish; no tag.**
-verify 5/5; demo exit 0; independent cold review **ACCEPT**, attested `07b962af…`. **PR #111.** Next =
-**tagged binary release v0.1.0 (S107)** — the no-Rust prebuilt-binary path. Summary:
-`sessions/session-106-summary.md`.
+**Updated:** 2026-08-01 · **Session 108 — CODE: publish to crates.io + Homebrew tap — DELIVERED.**
+The C→B→A order's **B**, now **COMPLETE** — every install channel is real. `vajractl 0.1.0` published to
+crates.io (fresh-dir `cargo install vajractl` → `init`→`next`, **7/7 SMOKE PASS**) + a public Homebrew
+tap `ifelse-codes/homebrew-tap` (`Formula/vajra.rb` with real `v0.1.0` sha256 for arm64/x86_64 macOS +
+x86_64 Linux; `brew install ifelse-codes/tap/vajra`, **11/11 SMOKE PASS**, sha256-verified).
+`install-smoke.sh` gained `crates` + `brew` modes (both fail-closed); README un-marks both rows (nothing
+left NOT YET PUBLISHED); `Cargo.toml` excludes 2 stray root HTML files. **No `src/`; no station logic
+changed.** Irreversible `cargo publish` ran only after founder "yes publish" (founder did `cargo login`
+themselves — token never handled); tap created only after "yes tap". verify 10/10; demo exit 0;
+independent cold review **ACCEPT**, attested `f5a97e8b…`. **PR #113.** Next = **fleet slice 1 (S109)** —
+the order's **A**, first real named agent. Summary: `sessions/session-108-summary.md`.
 
 *Prior: Session 105 — NO-CODE GROUND TRUTH (S101–S104) — PARTIAL (lead lens); 3 🟢 · 7 🟡 · 0 🔴;
 engine done + proven, package ~0%; freeze rule RETIRED; two GT-instrument blind spots (installability
@@ -68,10 +69,10 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 | Field | Value |
 |---|---|
 | Today | 2026-08-01 |
-| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot — supersedes the Autopilot-Ladder-as-sessions plan + machinery-freeze rule). The governance engine is complete and PROVEN (8-station spine S72; forced commit block S103; attested/chained ledger; authoritative receipts). The **shippable package**: **B (installable) is now COMPLETE** — S106 the Rust path (`cargo install`) + the installability instrument; **S107 the no-Rust path** (`v0.1.0` release live, 3 prebuilt tarballs + `.sha256`, download-and-run proven 11/11; `release.yml` Intel-runner stall fixed via cross-compile). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (S106+S107 ✓)** → **A fleet, next major**. Interim S108 = publish crates.io + brew (finish every install channel). Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
-| Last closed session | Session 107 — **CODE: tagged binary release v0.1.0** — DELIVERED; `v0.1.0` GH release live (3 tarballs + `.sha256`); `install-smoke.sh` `release` mode downloads+verifies+runs (11/11 live, fail-closed); README un-marks the prebuilt row; `release.yml` fix (x86_64-apple-darwin cross-compiles on `macos-latest`); no `src/`; no crates.io publish; cold review ACCEPT, attested `836cdfec…`; PR #112 |
-| Active session | None — between sessions (S107 complete, S108 not yet started) |
-| Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **`v0.1.0` is tagged + released** (GH release, prebuilt binaries). Still **no `cargo publish`** — crates.io stays founder-gated (irreversible; the name burns). **S108 publishes crates.io + a Homebrew tap** (both founder-gated). |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot — supersedes the Autopilot-Ladder-as-sessions plan + machinery-freeze rule). The governance engine is complete and PROVEN (8-station spine S72; forced commit block S103; attested/chained ledger; authoritative receipts). **B (installable) is now COMPLETE** — S106 the Rust path + the installability instrument; S107 the no-Rust prebuilt path; **S108 published crates.io (`vajractl 0.1.0`, 7/7 smoke) + a public Homebrew tap (`ifelse-codes/homebrew-tap`, 11/11 smoke)**. v0.1 now installs FOUR ways, all proven. Order **C→B→A**: C team-voice (S104 ✓) → **B installable (S106+S107+S108 ✓ COMPLETE)** → **A fleet — S109 = first slice.** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
+| Last closed session | Session 108 — **CODE: publish to crates.io + Homebrew tap** — DELIVERED; `vajractl 0.1.0` live on crates.io (7/7 smoke); public tap `ifelse-codes/homebrew-tap` (11/11 smoke, sha256-verified); `install-smoke.sh` +`crates`/`brew` modes (fail-closed); README un-marks both rows; no `src/`; cold review ACCEPT, attested `f5a97e8b…`; PR #113 |
+| Active session | None — between sessions (S108 complete, S109 not yet started) |
+| Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **PUBLISHED (S108): `vajractl 0.1.0` is live on crates.io — the name is now BURNED.** `v0.1.0` also tagged + released (GH release, prebuilt binaries) + on a public Homebrew tap. All four install channels real; any future crates.io action stays founder-gated. |
 
 ---
 
@@ -242,6 +243,8 @@ GT-verified S75/S80/S85).
 | S104 | CODE | **Team voice over the 8 stations** (founder pick C): `--stations` + the `vajra next` packet now lead with a named-role **team roster** + plain status from one source (`ROLES` + `format_team_roster`), reused by both surfaces (S19 no-drift); `K of 8` a subtitle, the `[PASSED]/[ABSENT]` table demoted-not-deleted (disclosed). Mechanism unchanged (K identical); `cargo test --lib` = 296; verify 8/8; cold review **ACCEPT** (pass-1 caught a hollow demo AFTER-block → fixed), attested `226a344b…`; merged #108 |
 | S105 | GT (NO-CODE) | Audited S101–S104 through the **MVP-shippability** lens: **3 🟢 · 7 🟡 · 0 🔴**, lead lens = **PARTIAL** (engine done + proven, package ~0% — nothing installable yet). Costs reconcile to the penny (S102 $0.4644 · S103 $0.6797). **Machinery-freeze rule (`DECISION-005`) RETIRED** — dead letter post-pivot; DECISION-005 Status → SUPERSEDED. **Two GT-instrument blind spots:** (1) no instrument measures installability (`--stations`=7/8 on S101 while every install path was broken); (2) `--dogfood-age` blind to untracked receipts (reports S97, true last S103). state_drift corrected: S104-merged-shown-open, `vajra.varta` stale (recurring since S100), KNOWLEDGE 416→475, ladder-phase text retired. Founder pick ① → S106 make it installable. **Follow-up #110:** un-blinded `--dogfood-age` for S102/S103 (top-level aggregate receipts + root-cause corrections) |
 | S106 | CODE | **Make it installable (v0.1)** (founder pick ①, order's **B**): one install path that works from a clean checkout — `cargo install --git` (no clone) or clone + `cargo install --path .` → `vajractl` crate, `vajra` binary (**`Cargo.toml` was already release-correct — the S105 "paper-only" note was stale**; the gap was proof, not metadata). Shipped **`scripts/install-smoke.sh`** — the installability instrument the S105 meta-check found missing: fresh temp install → `vajra init` → `vajra next`, asserts each inside a time budget, **exits non-zero on any fail**; proven both ways live (7/7 PASS on the real tree, 12s; FAIL→exit 1 on a broken source). README truth-pass: working one-liner proven + points at the instrument; crates.io / brew / prebuilt rows stay NOT YET PUBLISHED. **No `src/` changes; no crates.io publish; no tag.** verify 5/5 GREEN; demo exit 0 (4 markers). Independent cold review **ACCEPT**, attested `07b962af…`; PR #111. Fakest green (disclosed): the smoke **default** proves `--path`; the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally identical) |
+| S107 | CODE | **Tagged binary release v0.1.0** (no-Rust path; order's B) — `v0.1.0` GH release live (3 tarballs + `.sha256`); `install-smoke.sh` `release` mode downloads+verifies+runs (11/11 live, fail-closed); README un-marks the prebuilt row; `release.yml` fix (x86_64-apple-darwin cross-compiles on `macos-latest`); no `src/`; cold review ACCEPT, attested `836cdfec…`; PR #112 |
+| S108 | CODE | **Publish crates.io + Homebrew tap** (founder pick B; order's **B COMPLETE**) — `vajractl 0.1.0` published to crates.io (fresh-dir `cargo install vajractl` → 7/7 smoke; API `max_version 0.1.0`) + public tap `ifelse-codes/homebrew-tap` (real `v0.1.0` sha256 arm64/x86_64 macOS + x86_64 Linux; `brew install ifelse-codes/tap/vajra` → 11/11 smoke, sha256-verified). `install-smoke.sh` +`crates`/`brew` modes (both fail-closed); README un-marks both rows; `Cargo.toml` excludes 2 stray root HTML files. No `src/`. Irreversible `cargo publish` after founder "yes publish" (founder did `cargo login`; token never handled); tap after "yes tap". verify 10/10; demo exit 0; cold review ACCEPT, attested `f5a97e8b…`; PR #113. Fakest green: brew smoke tests a LOCAL copy of the formula, not the published tap |
 
 ---
 
@@ -266,7 +269,9 @@ GT-verified S75/S80/S85).
 | S104 | Complete | **CODE: team voice over the 8 stations** (founder pick C) — named-role roster + plain status from one source, reused by `--stations` + the packet; K unchanged; 296 tests; cold review ACCEPT, attested `226a344b…`; merged #108 |
 | S105 | Complete | **GT (NO-CODE): S101–S104 through the MVP-shippability lens** — 3 🟢 · 7 🟡 · 0 🔴; PARTIAL (engine done, package ~0%); freeze rule RETIRED; two GT-instrument blind spots (installability unmeasured · `--dogfood-age` blind to untracked receipts); costs reconcile to the penny; drift corrected. Follow-up #110 un-blinded `--dogfood-age` |
 | S106 | Complete | **CODE: make it installable (v0.1)** (founder pick ①, order's B) — `cargo install --git\|--path` works from a clean checkout + `scripts/install-smoke.sh` (the installability instrument; falsifiable, exits non-zero on fail) + README truth-pass; `Cargo.toml` already release-correct; no `src/`, no publish/tag; verify 5/5, demo 4 markers; cold review ACCEPT, attested `07b962af…`; PR #111 |
-| **S107** | **Next** | **CODE: tagged binary release v0.1.0** (founder pick A, order's B completion) — push a `v0.1.0` tag → `release.yml` builds 3-target prebuilt binaries + GH release → a download-and-run smoke proves the **no-Rust** install path → un-mark that README row. **Tag push founder-gated (public release)**; crates.io stays prohibited. Prompt: `prompts/107-task-tagged-binary-release-v010.md` |
+| S107 | Complete | **CODE: tagged binary release v0.1.0** (order's B) — `v0.1.0` GH release live (3 tarballs + `.sha256`); no-Rust download-and-run smoke (11/11, fail-closed); README un-marks the prebuilt row; `release.yml` Intel-runner stall fixed via cross-compile; cold review ACCEPT, attested `836cdfec…`; PR #112 |
+| S108 | Complete | **CODE: publish crates.io + Homebrew tap** (founder pick B; order's **B COMPLETE**) — `vajractl 0.1.0` on crates.io (7/7 smoke) + public tap `ifelse-codes/homebrew-tap` (11/11 smoke, sha256-verified); `install-smoke.sh` +`crates`/`brew` fail-closed modes; README un-marks both rows; irreversible publish + tap both founder-gated in chat; cold review ACCEPT, attested `f5a97e8b…`; PR #113 |
+| **S109** | **Next** | **CODE: fleet slice 1 — one real named agent (Researcher) as a governed step** (founder pick A, "start the fleet"; order's **A**, first slice) — dispatch one named role with a role-scoped prompt + delta-tracked handoff, proven with a **stub agent** (no paid call); design-significant → author `DECISION-007`; **ride an existing command (no 8th)**. Prompt: `prompts/109-task-fleet-slice-1-researcher.md` |
 
 ---
 
@@ -284,8 +289,8 @@ GT-verified S75/S80/S85).
 | `cargo test --lib` | ✅ 293 tests (S99; corrected S100) |
 | CI on `main` (both OS) | ✅ Green (S96) — `fmt --check` + `clippy -D warnings` + `test --lib`; rustfmt pinned 1.9.0-stable |
 | `vajra next --dogfood-age` | ✅ Git-derived staleness; never reads STATE.md |
-| Install path (v0.1) | ✅ `cargo install --git` (no clone) or clone + `--path .` → `vajra` on PATH (needs Rust); `Cargo.toml` release-correct (S106) |
-| `scripts/install-smoke.sh` | ✅ Installability instrument (S106): fresh install → `init` → `next`, asserts each, exits non-zero on fail; falsifiable (proven both ways) |
+| Install path (v0.1) | ✅ **FOUR channels, all proven:** `cargo install --git\|--path` (S106) · prebuilt `v0.1.0` release binary, no Rust (S107) · **`cargo install vajractl` from crates.io** (S108) · **`brew install ifelse-codes/tap/vajra`** (S108, public tap) |
+| `scripts/install-smoke.sh` | ✅ Installability instrument (S106+S108): 5 modes (`path`/`git`/`release`/`crates`/`brew`), fresh install → `init` → `next`, asserts each, exits non-zero on fail; falsifiable, all fail-closed |
 
 ## What Is Weak / Broken
 
@@ -294,8 +299,9 @@ GT-verified S75/S80/S85).
 | **Dogfood (launcher)** | 🟢 | Fresh — last = **S103 = 2026-07-27, $0.6797 authoritative** (sonnet-4-6, 6-task endurance harness + forced block; S102 = $0.4644). `--dogfood-age` now correctly reports S103 (top-level aggregate receipts added S105-follow-up) |
 | ~~**`--dogfood-age` blind to untracked receipts**~~ | 🟢→🟡 | **RESOLVED for S102/S103** (S105 follow-up). Corrected root cause: the scan reads `receipt.stderr.txt` at the **top level** of each artifacts dir (on-disk, not git; `src/dogfood/mod.rs:63-66`) — S102/S103 receipts sat in per-run subdirs, so it skipped them. Fixed with a top-level aggregate receipt + `run-result.json` per dir. **🟡 residual:** durable code fix = recurse into subdirs (queued for a CODE session) |
 | ~~**Installability unmeasured**~~ | 🟢→🟡 | **CLOSED S106:** `scripts/install-smoke.sh` is the instrument the S105 meta-check found missing (fresh install → `init` → `next`, falsifiable). **🟡 residuals:** the smoke **default** proves `cargo install --path`; the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally identical, disclosed) · `within-budget` is a post-hoc check, not a hard per-step timeout |
-| **No no-Rust install path** | 🟡 | S106 shipped the `cargo install` path (needs a Rust toolchain); the prebuilt-binary `release.yml` (tag `v*`) has never fired for a real tag. **S107 target** (founder pick A) |
-| **`vajra --version` gap** | 🟡 | A stranger who types `vajra --version` gets usage, not a version string (exit 0, falls to help). Minor installability polish (S107-alt B) |
+| ~~**No no-Rust install path**~~ | ✅ | CLOSED S107 (prebuilt release binary) + S108 (crates.io + brew). v0.1 installs FOUR ways, all proven |
+| **brew smoke tests a LOCAL formula copy** | 🟡 | S108 fakest green: the `brew` smoke stands up a throwaway local tap from the in-repo `Formula/vajra.rb`, not the published `homebrew-tap`; would stay green if the public tap drifts. Proven byte-identical + public-tap path run live this session. Durable fix = point the brew smoke at the published tap |
+| **`vajra --version` gap** | 🟡 | A stranger who types `vajra --version` gets usage, not a version string (exit 0, falls to help). Minor installability polish (S109-alt B) |
 | **Dogfood (pipeline end-to-end)** | 🟡 | RE-TESTED S102 — quality gates PASSED on a bounded 3-task burst (guards ON, real teeth). Still untested: a *completing, multi-hour, unattended* run + a *forced adversarial* block — both = S103 |
 | ~~**Coder/EXECUTE station dark**~~ | ✅ | CLOSED S100: Coder **PASSED** in S96, S98, S99 (`vajra next --stations NN`). The S95 "ABSENT 4-for-4" finding no longer holds in this repo |
 | **Ladder runs invisible to GT instruments** | 🟡 | **S100 🔴 → mitigated S102.** The fix shipped: S102 produced the first real ladder-run **evidence contract** (`session-102-review.md`, judged on receipt + blocked-action log + subject diff + fidelity; ACCEPT + attested, NOT waived). `--stations` still reads DOGFOOD low by construction — read the contract, not the K-of-8. Residual: the pattern is proven once, not yet templated/enforced (a run must not silently waive it) |
