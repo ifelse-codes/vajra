@@ -28,14 +28,14 @@ sudo mv vajra /usr/local/bin/
 
 Each tarball ships a `.sha256` beside it, and this path is proven by the same instrument: `VAJRA_SMOKE_SOURCE=release scripts/install-smoke.sh` downloads the tarball for your host, verifies its sha256, then runs `vajra init` → `vajra next`, **exiting non-zero on any broken step**.
 
-The two methods below are **planned for a later release** and are **NOT YET PUBLISHED** — each will 404 until it ships. The crate name is settled in [`DECISION-006`](docs/decisions/DECISION-006-crate-name.md); no crate or tap is published yet.
+Two more channels — both **published and proven** by the same instrument ([`scripts/install-smoke.sh`](scripts/install-smoke.sh), modes `VAJRA_SMOKE_SOURCE=crates` and `=brew`): each installs from the real channel, then runs `vajra init` → `vajra next`, **exiting non-zero on any broken step**. The crate name is settled in [`DECISION-006`](docs/decisions/DECISION-006-crate-name.md); the Homebrew formula lives in the [`ifelse-codes/homebrew-tap`](https://github.com/ifelse-codes/homebrew-tap) repo and installs the sha256-verified `v0.1.0` release binary.
 
 ```bash
-# crates.io — NOT YET PUBLISHED
+# crates.io (needs Rust)
 cargo install vajractl
 
-# macOS Homebrew — NOT YET PUBLISHED
-brew install suman/tap/vajra
+# macOS / Linux Homebrew
+brew install ifelse-codes/tap/vajra
 ```
 
 ## What Vajra Is
