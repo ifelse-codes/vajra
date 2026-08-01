@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-31 · **Session 106 — CODE: make it installable (v0.1) — DELIVERED.**
+**Updated:** 2026-08-01 · **Session 107 — CODE: tagged binary release v0.1.0 — DELIVERED.**
 The C→B→A order's **B**. One install path works from a clean checkout (`cargo install --git|--path` →
 `vajractl` crate, `vajra` binary; `Cargo.toml` was already release-correct — the S105 "paper-only" note
 was **stale**), plus the **missing installability instrument** `scripts/install-smoke.sh` (fresh install
@@ -67,11 +67,11 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-07-31 |
-| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot — supersedes the Autopilot-Ladder-as-sessions plan + machinery-freeze rule). The governance engine is complete and PROVEN (8-station spine S72; forced commit block S103; attested/chained ledger; authoritative receipts). The **shippable package** is now underway — S106 shipped the first working install path (`cargo install`) **and the installability instrument** the S105 GT found missing. Remaining: a **no-Rust prebuilt-binary** path (S107). Order **C→B→A**: C team-voice (S104 ✓) → **B make it installable** (S106 ✓ Rust path + instrument → **S107 prebuilt binaries, next**) → A fleet. Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
-| Last closed session | Session 106 — **CODE: make it installable (v0.1)** — DELIVERED; `cargo install --git\|--path` works from a clean checkout + `scripts/install-smoke.sh` proves it (falsifiable) + README truth-pass; no `src/`; no publish/tag; cold review ACCEPT, attested `07b962af…`; PR #111 |
-| Active session | Session 107 — **CODE: tagged binary release v0.1.0** (founder pick A): push a `v0.1.0` tag → `release.yml` builds 3-target prebuilt binaries + GH release → a download-and-run smoke proves the no-Rust path → un-mark that README row. Tag push founder-gated (public release) |
-| Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. `Cargo.toml` **is** release-correct (name/bin/version 0.1.0) — the S105 "paper-only" note was stale. Still no `cargo publish`/tag yet (S107 pushes the first tag; crates.io stays founder-gated) |
+| Today | 2026-08-01 |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot — supersedes the Autopilot-Ladder-as-sessions plan + machinery-freeze rule). The governance engine is complete and PROVEN (8-station spine S72; forced commit block S103; attested/chained ledger; authoritative receipts). The **shippable package**: **B (installable) is now COMPLETE** — S106 the Rust path (`cargo install`) + the installability instrument; **S107 the no-Rust path** (`v0.1.0` release live, 3 prebuilt tarballs + `.sha256`, download-and-run proven 11/11; `release.yml` Intel-runner stall fixed via cross-compile). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (S106+S107 ✓)** → **A fleet, next major**. Interim S108 = publish crates.io + brew (finish every install channel). Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
+| Last closed session | Session 107 — **CODE: tagged binary release v0.1.0** — DELIVERED; `v0.1.0` GH release live (3 tarballs + `.sha256`); `install-smoke.sh` `release` mode downloads+verifies+runs (11/11 live, fail-closed); README un-marks the prebuilt row; `release.yml` fix (x86_64-apple-darwin cross-compiles on `macos-latest`); no `src/`; no crates.io publish; cold review ACCEPT, attested `836cdfec…`; PR #112 |
+| Active session | None — between sessions (S107 complete, S108 not yet started) |
+| Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **`v0.1.0` is tagged + released** (GH release, prebuilt binaries). Still **no `cargo publish`** — crates.io stays founder-gated (irreversible; the name burns). **S108 publishes crates.io + a Homebrew tap** (both founder-gated). |
 
 ---
 
