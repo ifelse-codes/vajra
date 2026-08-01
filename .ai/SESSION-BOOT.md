@@ -1,45 +1,50 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 107 — COMPLETE
-- **Type:** **CODE** — tagged binary release v0.1.0; the no-Rust install path; the C→B→A order's **B**
-  completion (founder pick A at S106 closeout).
-- **Goal:** ship the one install path S106 left open — a prebuilt binary a stranger downloads and runs
-  with **no Rust** — proven by a falsifiable instrument, not a claim.
-- **Verdict:** **DELIVERED (goal achieved).** The **`v0.1.0` GitHub release is live** — 3 prebuilt
-  tarballs + `.sha256` (`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-gnu`).
-  `install-smoke.sh` gained `VAJRA_SMOKE_SOURCE=release` (detect host → download → sha256 verify →
-  extract → `init`→`next`, **fail-closed**), proven live **11/11**. README un-marks the prebuilt row;
-  crates.io + brew stay NOT YET PUBLISHED. **In-scope `release.yml` fix:** the first tag run stalled on
-  the scarce `macos-13` Intel runner → `x86_64-apple-darwin` now cross-compiles on `macos-latest` (pure
-  Rust, safe; reviewer confirmed `file` → genuine x86_64). **No `src/`; no crates.io publish.** verify
-  7/7; demo exit 0 (4 markers). Independent cold review **ACCEPT**, attested `836cdfec…`.
-- **Report:** `sessions/session-107-summary.md` · review: `sessions/session-107-review.md` · next
-  prompt: `prompts/108-task-publish-crates-brew.md`. **Date last updated:** 2026-08-01.
+- **Number:** 108 — COMPLETE
+- **Type:** **CODE** — publish to crates.io + Homebrew tap; the C→B→A order's **B**, now COMPLETE
+  (founder pick B at S107 closeout).
+- **Goal:** un-mark the last two README install rows by making them real — publish `vajractl` to
+  crates.io and stand up a Homebrew tap for the `v0.1.0` release — each proven by a falsifiable install.
+- **Verdict:** **DELIVERED (goal achieved).** `vajractl 0.1.0` is **live on crates.io** (fresh-dir
+  `cargo install vajractl` → `init`→`next`, **7/7 SMOKE PASS**; API `max_version 0.1.0`). Public tap
+  **`ifelse-codes/homebrew-tap`** with `Formula/vajra.rb` (real `v0.1.0` sha256 for arm64/x86_64 macOS +
+  x86_64 Linux); proven `brew install ifelse-codes/tap/vajra` (**11/11 SMOKE PASS**, sha256-verified).
+  `install-smoke.sh` gained `crates` + `brew` modes, both **fail-closed**. README un-marks both rows
+  (nothing left NOT YET PUBLISHED). `Cargo.toml` excludes 2 stray root HTML files. **No `src/`; no
+  station logic changed.** verify **10/10**; demo exit 0 (4 markers). Independent cold review **ACCEPT**,
+  attested `f5a97e8b…`. Irreversible `cargo publish` ran only after founder "yes publish" (founder did
+  `cargo login` themselves; token never handled); tap created only after "yes tap".
+- **Report:** `sessions/session-108-summary.md` · review: `sessions/session-108-review.md` · next
+  prompt: `prompts/109-task-fleet-slice-1-researcher.md`. **Date last updated:** 2026-08-01.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 107. CODE: `.github/workflows/release.yml` + `README.md` + `scripts/install-smoke.sh`
-  (release mode) + 2 new scripts (`verify-session-107.sh`, `demo-session-107.sh`); **zero `src/`**.
-  Commits carry `VAJRA_ALLOW_COMMIT=107`.
-- **PR #112** (`session-107-tagged-binary-release`) → main. S106 **#111** merged. Remote: `origin` →
-  `https://github.com/ifelse-codes/vajra`. **`v0.1.0` tag** points at `718ec68` (must stay reachable —
-  merge #112 with a merge commit, not squash).
+- `.ai/SESSION` = 108. CODE: `Cargo.toml` + `Formula/vajra.rb` + `README.md` +
+  `scripts/install-smoke.sh` (crates+brew modes) + 2 new scripts (`verify-session-108.sh`,
+  `demo-session-108.sh`); **zero `src/`**. Commits carry `VAJRA_ALLOW_COMMIT=108`.
+- **PR #113** (`session-108-publish-crates-brew`) → main. S107 **#112** merged. Remote: `origin` →
+  `https://github.com/ifelse-codes/vajra`. New public repo: `ifelse-codes/homebrew-tap` (the tap).
 
 ## Next Session
-- **Number:** 108 — **CODE: publish to crates.io + Homebrew tap** (founder pick B). Publish `vajractl`
-  to crates.io + a tap formula installing the `v0.1.0` release binary → prove each with a falsifiable
-  smoke → un-mark the last two README rows. Prompt: `prompts/108-task-publish-crates-brew.md`.
-- **Guardrail:** `cargo publish` is **IRREVERSIBLE** (the name `vajractl` burns on first publish) — get an
-  explicit founder "yes publish" in chat first. `cargo publish --dry-run` is safe. The tap is a public repo.
+- **Number:** 109 — **CODE: fleet slice 1 — one real named agent (Researcher) as a governed step**
+  (founder pick A, "start the fleet"). Dispatch one named role with a role-scoped prompt +
+  delta-tracked handoff, proven with a **stub agent** (no paid call); **design-significant** → author
+  `DECISION-007`; **ride an existing command (no 8th)**. Prompt:
+  `prompts/109-task-fleet-slice-1-researcher.md`.
+- **Guardrail:** max 7 top-level commands — an 8th needs a separate explicit founder "yes". No paid run
+  required (prove plumbing with a stub); a real paid Researcher run is deferred + founder-gated.
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S108.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S109.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **v0.1 is installable 3 ways, all MEASURED:** `cargo install` (S106), prebuilt binary (S107). Residual
-  🟡: the x86_64 tarballs are proven by arch + checksum, never *executed* (the arm64 box can't run them);
-  the positive live download is proven by a captured artifact + the cold reviewer, not the offline gate.
+- **v0.1 is installable FOUR ways, all MEASURED:** `cargo install --git|--path` (S106), prebuilt binary
+  (S107), `cargo install vajractl` from crates.io (S108), `brew install ifelse-codes/tap/vajra` (S108).
+  Residual 🟡: the brew smoke tests a LOCAL copy of the formula, not the published tap (S108 fakest
+  green); x86_64 tarballs proven by arch+checksum, never executed; positive installs proven by artifact
+  + cold reviewer, not the offline gate.
 - **`--dogfood-age` durable fix still open (🟡):** make `dogfood_age()` recurse into per-run subdirs
-  (`src/dogfood/mod.rs:63-66`).
-- **`vajra --version` gap (🟡):** a stranger gets usage, not a version string.
+  (`src/dogfood/mod.rs:63-66`). **`vajra --version` gap (🟡):** a stranger gets usage, not a version.
+- **crates.io is PUBLISHED — `vajractl` name BURNED.** Any future crates.io action stays founder-gated.
 - **Untracked stragglers** (standing founder call): `sessions/session-9*-artifacts/*`,
-  `sessions/session-10{2,3,7}-artifacts/*`, `vajra-cto-audit-2026-07-22.html`, `first-mate.html`.
+  `sessions/session-10{2,3,7,8}-artifacts/*`. (`vajra-cto-audit-*.html` + `first-mate.html` now excluded
+  from the crate package; still untracked in the tree.)
