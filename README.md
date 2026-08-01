@@ -18,18 +18,24 @@ git clone https://github.com/ifelse-codes/vajra && cd vajra && cargo install --p
 
 Both build the `vajractl` crate and drop a `vajra` binary on your PATH. This path is checked end-to-end by [`scripts/install-smoke.sh`](scripts/install-smoke.sh): a fresh-directory install → `vajra init` → `vajra next`, asserting each step succeeds inside a time budget and **exiting non-zero if anything is broken**. Run it yourself — every "it installs" claim here is re-derivable, not a feeling.
 
-The three methods below are **planned for the v0.1 release** and are **NOT YET PUBLISHED** — each will 404 until the release ships. The crate name is settled in [`DECISION-006`](docs/decisions/DECISION-006-crate-name.md); no crate, tap, or binary is published yet.
+**No Rust? Download a prebuilt binary** — from the [`v0.1.0` release](https://github.com/ifelse-codes/vajra/releases/latest), which ships a self-contained `vajra` for macOS (Apple Silicon + Intel) and Linux (x86_64). Pick your platform's tarball:
 
 ```bash
-# crates.io — planned for v0.1, NOT YET PUBLISHED
-cargo install vajractl
-
-# macOS Homebrew — planned for v0.1, NOT YET PUBLISHED
-brew install suman/tap/vajra
-
-# Prebuilt binary (macOS arm64) — planned for v0.1, NOT YET PUBLISHED
+# macOS Apple Silicon — for Intel or Linux swap in x86_64-apple-darwin / x86_64-unknown-linux-gnu
 curl -fsSL https://github.com/ifelse-codes/vajra/releases/latest/download/vajra-aarch64-apple-darwin.tar.gz | tar xz
 sudo mv vajra /usr/local/bin/
+```
+
+Each tarball ships a `.sha256` beside it, and this path is proven by the same instrument: `VAJRA_SMOKE_SOURCE=release scripts/install-smoke.sh` downloads the tarball for your host, verifies its sha256, then runs `vajra init` → `vajra next`, **exiting non-zero on any broken step**.
+
+The two methods below are **planned for a later release** and are **NOT YET PUBLISHED** — each will 404 until it ships. The crate name is settled in [`DECISION-006`](docs/decisions/DECISION-006-crate-name.md); no crate or tap is published yet.
+
+```bash
+# crates.io — NOT YET PUBLISHED
+cargo install vajractl
+
+# macOS Homebrew — NOT YET PUBLISHED
+brew install suman/tap/vajra
 ```
 
 ## What Vajra Is
