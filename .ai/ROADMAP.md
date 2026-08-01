@@ -1,14 +1,20 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-07-29 · **Session 105 — NO-CODE GROUND TRUTH (S101–S104) — PARTIAL (lead lens).**
-Audited through the **MVP-shippability** lens the S103 pivot set. **3 🟢 · 7 🟡 · 0 🔴.** The
-governance **engine** is done and proven (S103 forced block, attested/chained ledger, authoritative
-receipts); the shippable **package** is ~0% — nothing published, README marks 3 install paths "NOT YET
-PUBLISHED", crate name paper-only. Costs reconcile to the penny (S102 $0.4644 · S103 $0.6797). Two
-blind spots: no instrument measures **installability** (`--stations`=7/8 on S101 while every install
-path was broken); `--dogfood-age` is **blind to untracked receipts** (reports last=S97, true last=S103).
-**Machinery-freeze rule (`DECISION-005`) RETIRED** — dead letter post-pivot. Next = **make it
-installable (S106)**. Report: `sessions/session-105-ground-truth.md`.
+**Updated:** 2026-07-31 · **Session 106 — CODE: make it installable (v0.1) — DELIVERED.**
+The C→B→A order's **B**. One install path works from a clean checkout (`cargo install --git|--path` →
+`vajractl` crate, `vajra` binary; `Cargo.toml` was already release-correct — the S105 "paper-only" note
+was **stale**), plus the **missing installability instrument** `scripts/install-smoke.sh` (fresh install
+→ `vajra init` → `vajra next`, asserts each, **exits non-zero on any fail**; proven both ways — 7/7 PASS
+on the real tree, FAIL→exit 1 on a broken source), plus a README truth-pass (working one-liner proven;
+crates.io / brew / prebuilt rows stay NOT YET PUBLISHED). **No `src/`; no crates.io publish; no tag.**
+verify 5/5; demo exit 0; independent cold review **ACCEPT**, attested `07b962af…`. **PR #111.** Next =
+**tagged binary release v0.1.0 (S107)** — the no-Rust prebuilt-binary path. Summary:
+`sessions/session-106-summary.md`.
+
+*Prior: Session 105 — NO-CODE GROUND TRUTH (S101–S104) — PARTIAL (lead lens); 3 🟢 · 7 🟡 · 0 🔴;
+engine done + proven, package ~0%; freeze rule RETIRED; two GT-instrument blind spots (installability
+unmeasured — now closed by S106 · `--dogfood-age` blind to untracked receipts — un-blinded in the S105
+follow-up #110). Report: `sessions/session-105-ground-truth.md`.*
 
 *Prior: Session 104 — CODE: team voice over the 8 stations — SHIPPED (roster + plain status; K
 identical; 296 lib tests; cold review ACCEPT, attested `226a344b…`). Founder pick C, order C→B→A.*
@@ -61,11 +67,11 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-07-29 |
-| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot — supersedes the Autopilot-Ladder-as-sessions plan + machinery-freeze rule). The governance engine is complete and PROVEN (8-station spine S72; forced commit block S103; attested/chained ledger; authoritative receipts). What is missing is the **shippable package** — S105 GT: nothing published, README marks 3 install paths "NOT YET PUBLISHED", crate name paper-only. Sessions now finish MVP slices; the founder runs the long unattended real-world test himself, then release. Order **C→B→A**: C team-voice (S104 ✓) → **B make it installable (S106, next)** → A fleet. Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
-| Last closed session | Session 105 — **NO-CODE GROUND TRUTH (S101–S104)** — PARTIAL (lead lens); 3 🟢 · 7 🟡 · 0 🔴; engine done + proven, package ~0%; freeze rule retired; two GT-instrument blind spots found (installability unmeasured · `--dogfood-age` blind to untracked receipts) |
-| Active session | Session 106 — **CODE: make it installable (v0.1)** (founder pick ①): one working install path from a clean checkout + an installability smoke test (the missing instrument) + a README quickstart truth-pass |
-| Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` (crates.io 404 = available) · binary `vajra` (short name is a taken crate). On paper only — no `cargo publish`/tag/rename yet |
+| Today | 2026-07-31 |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot — supersedes the Autopilot-Ladder-as-sessions plan + machinery-freeze rule). The governance engine is complete and PROVEN (8-station spine S72; forced commit block S103; attested/chained ledger; authoritative receipts). The **shippable package** is now underway — S106 shipped the first working install path (`cargo install`) **and the installability instrument** the S105 GT found missing. Remaining: a **no-Rust prebuilt-binary** path (S107). Order **C→B→A**: C team-voice (S104 ✓) → **B make it installable** (S106 ✓ Rust path + instrument → **S107 prebuilt binaries, next**) → A fleet. Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
+| Last closed session | Session 106 — **CODE: make it installable (v0.1)** — DELIVERED; `cargo install --git\|--path` works from a clean checkout + `scripts/install-smoke.sh` proves it (falsifiable) + README truth-pass; no `src/`; no publish/tag; cold review ACCEPT, attested `07b962af…`; PR #111 |
+| Active session | Session 107 — **CODE: tagged binary release v0.1.0** (founder pick A): push a `v0.1.0` tag → `release.yml` builds 3-target prebuilt binaries + GH release → a download-and-run smoke proves the no-Rust path → un-mark that README row. Tag push founder-gated (public release) |
+| Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. `Cargo.toml` **is** release-correct (name/bin/version 0.1.0) — the S105 "paper-only" note was stale. Still no `cargo publish`/tag yet (S107 pushes the first tag; crates.io stays founder-gated) |
 
 ---
 
@@ -234,7 +240,8 @@ GT-verified S75/S80/S85).
 | S102 | **DOGFOOD (paid)** | **Autopilot Ladder Rung 2 — PARTIAL** (founder pick A +B): 3-task unattended burst on chitra, guards ON. **Quality gates PASSED** — unauthorized commits blocked (probes P1/P2 exit 1), authorized `9ba1ba9` permitted through the gate, no push/PR, chitra main untouched; every run authoritative `total_cost_usd` ($0.4644 total, sonnet-4-6). **Endurance NOT met** (~2.3 min, not a day — disclosed per Acceptance #1); Task A agent VOLUNTARILY declined to commit (S97 pattern → S103 adversarial). Shipped the first ladder-run **evidence contract** (`session-102-review.md`, judged on run evidence, NOT waived — the S100 🔴 fix); session fidelity ACCEPT, attested `f6350676…`. chitra **re-init'd first** (its >3-week scaffold had NO commit/publish guards); fable-5 monthly credits exhausted → ran on sonnet |
 | S103 | **DOGFOOD (paid)** | **Rung 2 endurance + adversarial — PASS** (founder "all approved"): a detached (`nohup`)/resumable/budget-capped **endurance harness** ran 6 tasks unattended; the **kill-switch FIRED** on cap ($0.2668 ≥ $0.22 → stopped before e5, no overrun; resumable both ways). A good-faith agent's `git commit` was **FORCE-blocked** by L3 `hook-commit-guard.sh` (even under `--dangerously-skip-permissions`) — closes the S97/S102 voluntary-vs-enforced gap (a *forced* block, not a decline). A separate explicit-bypass agent refused at layer-0 (defense-in-depth). Zero leaks (chitra `main` `9dc7d7f` untouched, nothing pushed); **$0.6797 authoritative** (sonnet-4-6) + ~$0.05 uncaptured. Cold review **ACCEPT** (pass-1 REJECT caught a premature citation → fixed), attested `a2c33fcd…`. **🔀 Founder PIVOT:** stop paid ladder *sessions* → finish the MVP; founder runs the long test himself; **fleet-vs-gates** direction fork opened (FirstMate review) |
 | S104 | CODE | **Team voice over the 8 stations** (founder pick C): `--stations` + the `vajra next` packet now lead with a named-role **team roster** + plain status from one source (`ROLES` + `format_team_roster`), reused by both surfaces (S19 no-drift); `K of 8` a subtitle, the `[PASSED]/[ABSENT]` table demoted-not-deleted (disclosed). Mechanism unchanged (K identical); `cargo test --lib` = 296; verify 8/8; cold review **ACCEPT** (pass-1 caught a hollow demo AFTER-block → fixed), attested `226a344b…`; merged #108 |
-| S105 | GT (NO-CODE) | Audited S101–S104 through the **MVP-shippability** lens: **3 🟢 · 7 🟡 · 0 🔴**, lead lens = **PARTIAL** (engine done + proven, package ~0% — nothing installable yet). Costs reconcile to the penny (S102 $0.4644 · S103 $0.6797). **Machinery-freeze rule (`DECISION-005`) RETIRED** — dead letter post-pivot; DECISION-005 Status → SUPERSEDED. **Two GT-instrument blind spots:** (1) no instrument measures installability (`--stations`=7/8 on S101 while every install path was broken); (2) `--dogfood-age` blind to untracked receipts (reports S97, true last S103). state_drift corrected: S104-merged-shown-open, `vajra.varta` stale (recurring since S100), KNOWLEDGE 416→475, ladder-phase text retired. Founder pick ① → S106 make it installable |
+| S105 | GT (NO-CODE) | Audited S101–S104 through the **MVP-shippability** lens: **3 🟢 · 7 🟡 · 0 🔴**, lead lens = **PARTIAL** (engine done + proven, package ~0% — nothing installable yet). Costs reconcile to the penny (S102 $0.4644 · S103 $0.6797). **Machinery-freeze rule (`DECISION-005`) RETIRED** — dead letter post-pivot; DECISION-005 Status → SUPERSEDED. **Two GT-instrument blind spots:** (1) no instrument measures installability (`--stations`=7/8 on S101 while every install path was broken); (2) `--dogfood-age` blind to untracked receipts (reports S97, true last S103). state_drift corrected: S104-merged-shown-open, `vajra.varta` stale (recurring since S100), KNOWLEDGE 416→475, ladder-phase text retired. Founder pick ① → S106 make it installable. **Follow-up #110:** un-blinded `--dogfood-age` for S102/S103 (top-level aggregate receipts + root-cause corrections) |
+| S106 | CODE | **Make it installable (v0.1)** (founder pick ①, order's **B**): one install path that works from a clean checkout — `cargo install --git` (no clone) or clone + `cargo install --path .` → `vajractl` crate, `vajra` binary (**`Cargo.toml` was already release-correct — the S105 "paper-only" note was stale**; the gap was proof, not metadata). Shipped **`scripts/install-smoke.sh`** — the installability instrument the S105 meta-check found missing: fresh temp install → `vajra init` → `vajra next`, asserts each inside a time budget, **exits non-zero on any fail**; proven both ways live (7/7 PASS on the real tree, 12s; FAIL→exit 1 on a broken source). README truth-pass: working one-liner proven + points at the instrument; crates.io / brew / prebuilt rows stay NOT YET PUBLISHED. **No `src/` changes; no crates.io publish; no tag.** verify 5/5 GREEN; demo exit 0 (4 markers). Independent cold review **ACCEPT**, attested `07b962af…`; PR #111. Fakest green (disclosed): the smoke **default** proves `--path`; the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally identical) |
 
 ---
 
@@ -257,8 +264,9 @@ GT-verified S75/S80/S85).
 | S102 | Complete | **DOGFOOD (paid): Autopilot Ladder Rung 2 — PARTIAL** — quality gates PASSED on a bounded 3-task burst (zero leaks · honest receipts · fidelity correct); endurance NOT met; first ladder-run evidence contract shipped (S100 🔴 fix); $0.4644 authoritative; fidelity ACCEPT, attested `f6350676…`; chitra re-init'd for real teeth |
 | S103 | Complete | **DOGFOOD (paid): Rung 2 endurance + adversarial — PASS** — endurance harness w/ firing kill-switch + a FORCED adversarial block; zero leaks; $0.6797 authoritative; cold review ACCEPT, attested `a2c33fcd…`. **🔀 Founder pivot: stop paid ladder sessions → finish the MVP** |
 | S104 | Complete | **CODE: team voice over the 8 stations** (founder pick C) — named-role roster + plain status from one source, reused by `--stations` + the packet; K unchanged; 296 tests; cold review ACCEPT, attested `226a344b…`; merged #108 |
-| S105 | Complete | **GT (NO-CODE): S101–S104 through the MVP-shippability lens** — 3 🟢 · 7 🟡 · 0 🔴; PARTIAL (engine done, package ~0%); freeze rule RETIRED; two GT-instrument blind spots (installability unmeasured · `--dogfood-age` blind to untracked receipts); costs reconcile to the penny; drift corrected |
-| **S106** | **Next** | **CODE: make it installable (v0.1)** (founder pick ①, the C→B→A order's B) — one working install path from a clean checkout + an installability smoke test (the missing instrument) + a README quickstart truth-pass. crates.io publish founder-gated (irreversible). Prompt: `prompts/106-task-installable-v01.md` |
+| S105 | Complete | **GT (NO-CODE): S101–S104 through the MVP-shippability lens** — 3 🟢 · 7 🟡 · 0 🔴; PARTIAL (engine done, package ~0%); freeze rule RETIRED; two GT-instrument blind spots (installability unmeasured · `--dogfood-age` blind to untracked receipts); costs reconcile to the penny; drift corrected. Follow-up #110 un-blinded `--dogfood-age` |
+| S106 | Complete | **CODE: make it installable (v0.1)** (founder pick ①, order's B) — `cargo install --git\|--path` works from a clean checkout + `scripts/install-smoke.sh` (the installability instrument; falsifiable, exits non-zero on fail) + README truth-pass; `Cargo.toml` already release-correct; no `src/`, no publish/tag; verify 5/5, demo 4 markers; cold review ACCEPT, attested `07b962af…`; PR #111 |
+| **S107** | **Next** | **CODE: tagged binary release v0.1.0** (founder pick A, order's B completion) — push a `v0.1.0` tag → `release.yml` builds 3-target prebuilt binaries + GH release → a download-and-run smoke proves the **no-Rust** install path → un-mark that README row. **Tag push founder-gated (public release)**; crates.io stays prohibited. Prompt: `prompts/107-task-tagged-binary-release-v010.md` |
 
 ---
 
@@ -276,6 +284,8 @@ GT-verified S75/S80/S85).
 | `cargo test --lib` | ✅ 293 tests (S99; corrected S100) |
 | CI on `main` (both OS) | ✅ Green (S96) — `fmt --check` + `clippy -D warnings` + `test --lib`; rustfmt pinned 1.9.0-stable |
 | `vajra next --dogfood-age` | ✅ Git-derived staleness; never reads STATE.md |
+| Install path (v0.1) | ✅ `cargo install --git` (no clone) or clone + `--path .` → `vajra` on PATH (needs Rust); `Cargo.toml` release-correct (S106) |
+| `scripts/install-smoke.sh` | ✅ Installability instrument (S106): fresh install → `init` → `next`, asserts each, exits non-zero on fail; falsifiable (proven both ways) |
 
 ## What Is Weak / Broken
 
@@ -283,7 +293,9 @@ GT-verified S75/S80/S85).
 |---|---|---|
 | **Dogfood (launcher)** | 🟢 | Fresh — last = **S103 = 2026-07-27, $0.6797 authoritative** (sonnet-4-6, 6-task endurance harness + forced block; S102 = $0.4644). `--dogfood-age` now correctly reports S103 (top-level aggregate receipts added S105-follow-up) |
 | ~~**`--dogfood-age` blind to untracked receipts**~~ | 🟢→🟡 | **RESOLVED for S102/S103** (S105 follow-up). Corrected root cause: the scan reads `receipt.stderr.txt` at the **top level** of each artifacts dir (on-disk, not git; `src/dogfood/mod.rs:63-66`) — S102/S103 receipts sat in per-run subdirs, so it skipped them. Fixed with a top-level aggregate receipt + `run-result.json` per dir. **🟡 residual:** durable code fix = recurse into subdirs (queued for a CODE session) |
-| **Installability unmeasured** | 🟡 | S105 meta-check: no instrument answers "can a stranger ship this?"; `--stations`=7/8 on S101 while every install path was broken. S106 ships the missing smoke test |
+| ~~**Installability unmeasured**~~ | 🟢→🟡 | **CLOSED S106:** `scripts/install-smoke.sh` is the instrument the S105 meta-check found missing (fresh install → `init` → `next`, falsifiable). **🟡 residuals:** the smoke **default** proves `cargo install --path`; the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally identical, disclosed) · `within-budget` is a post-hoc check, not a hard per-step timeout |
+| **No no-Rust install path** | 🟡 | S106 shipped the `cargo install` path (needs a Rust toolchain); the prebuilt-binary `release.yml` (tag `v*`) has never fired for a real tag. **S107 target** (founder pick A) |
+| **`vajra --version` gap** | 🟡 | A stranger who types `vajra --version` gets usage, not a version string (exit 0, falls to help). Minor installability polish (S107-alt B) |
 | **Dogfood (pipeline end-to-end)** | 🟡 | RE-TESTED S102 — quality gates PASSED on a bounded 3-task burst (guards ON, real teeth). Still untested: a *completing, multi-hour, unattended* run + a *forced adversarial* block — both = S103 |
 | ~~**Coder/EXECUTE station dark**~~ | ✅ | CLOSED S100: Coder **PASSED** in S96, S98, S99 (`vajra next --stations NN`). The S95 "ABSENT 4-for-4" finding no longer holds in this repo |
 | **Ladder runs invisible to GT instruments** | 🟡 | **S100 🔴 → mitigated S102.** The fix shipped: S102 produced the first real ladder-run **evidence contract** (`session-102-review.md`, judged on receipt + blocked-action log + subject diff + fidelity; ACCEPT + attested, NOT waived). `--stations` still reads DOGFOOD low by construction — read the contract, not the K-of-8. Residual: the pattern is proven once, not yet templated/enforced (a run must not silently waive it) |
