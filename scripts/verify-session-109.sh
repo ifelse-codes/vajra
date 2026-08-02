@@ -29,7 +29,7 @@ run_check "cargo-test"    cargo test --lib
 run_check "cargo-fmt"     cargo fmt -- --check
 run_check "cargo-clippy"  cargo clippy --all-targets -- -D warnings
 
-# --- fleet dispatch: the falsifiable stub smoke (includes 5 fail-closed cases) -----------------------
+# --- fleet: the falsifiable smoke (scaffold + govern + 4 fail-closed cases; no paid call) -----------
 run_check "fleet-smoke"   bash scripts/fleet-smoke.sh
 
 # --- design gate: DECISION-007 exists and the Architect gate passes for this session -----------------
@@ -45,13 +45,13 @@ help_lists_seven() {
 run_check "no-eighth-command" help_lists_seven
 
 # --- fail-closed probe: fleet-smoke MUST go RED if a fail-closed case is defeated --------------------
-# Prove the smoke is not a rubber stamp: feed it a "stub" that returns 0 for EVERYTHING (so the
-# missing-agent / unknown-role assertions would be satisfied spuriously) — the smoke must still FAIL
-# because a real dispatch through it produces no parseable handoff. (Belt: the smoke's own 5 negative
-# cases already assert non-zero; this is the meta-check that the harness itself fails loudly.)
+# Prove the smoke is not a rubber stamp: feed it a "vajra" that returns 0 for EVERYTHING — the smoke
+# must still FAIL because a no-op binary never scaffolds the subagent def nor writes a valid handoff.
+# (Belt: the smoke's own 4 negative cases already assert non-zero; this is the meta-check that the
+# harness itself fails loudly.)
 probe_smoke_is_falsifiable() {
-  # A binary that always exits 0 and prints nothing can never produce a valid handoff, so a smoke
-  # run pointed at it as the vajra binary MUST fail (not silently pass).
+  # A binary that always exits 0 and prints nothing can never scaffold or govern, so a smoke run
+  # pointed at it as the vajra binary MUST fail (not silently pass).
   local fakebin; fakebin="$(mktemp)"; printf '#!/bin/sh\nexit 0\n' > "$fakebin"; chmod +x "$fakebin"
   if VAJRA_BIN="$fakebin" bash scripts/fleet-smoke.sh >/dev/null 2>&1; then
     rm -f "$fakebin"; return 1   # smoke passed with a no-op binary -> NOT falsifiable -> this check FAILS
