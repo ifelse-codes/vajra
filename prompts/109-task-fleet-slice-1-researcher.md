@@ -8,9 +8,16 @@
 
 Ship the **smallest real slice** of the named agent fleet: make `vajra` dispatch **one** named agent
 role (a **Researcher**) as a governed step that produces a **delta-tracked handoff artifact** the
-pipeline can carry forward — proven by a falsifiable instrument, **not** a claim. This turns the
-pipeline's named *stations* (labels/gates, S104) into the first real *agent* doing scoped work behind
-the existing trust gates. One agent, one handoff. Nothing else.
+pipeline can carry forward — proven by **one real, small, paid Researcher call** (a live `claude -p`-style
+sub-agent), **not** a claim or a fake. This turns the pipeline's named *stations* (labels/gates, S104)
+into the first real *agent* doing scoped work behind the existing trust gates. One agent, one handoff,
+one live call. Nothing else.
+
+> **Founder decision (S108 follow-up):** make this slice **real, not dry** — wire in an actual paid
+> Researcher sub-agent (one small, budget-capped call), don't just prove the plumbing with a stub. Keep
+> a **stub path** alongside it so CI and the fail-closed gate never depend on a paid call — but the
+> headline proof is a live sub-agent producing a real handoff. This is the first paid session since S103
+> (expected spend: small — a single scoped call, hard-capped).
 
 ## Why this session (evidence)
 
@@ -43,24 +50,32 @@ The fleet is a new architectural direction, so the Architect station applies:
    command** (max-7 rule; an 8th needs an explicit separate founder approval). The role prompt is built
    from one canonical source (no drift, cf. S104/S99); the handoff is a tracked artifact with a
    recorded delta to the prior stage.
-3. **A falsifiable smoke** (extend `scripts/install-smoke.sh` or a sibling) that proves the plumbing
+3. **The live proof — one real paid Researcher call.** Dispatch a genuine Researcher sub-agent (a
+   `claude -p`-style headless one-shot with a role-scoped prompt), capture its output as the governed
+   handoff, and meter its real cost (reuse the S78 result-stream tee). **Hard budget cap** it (a low
+   `VAJRA`-style cap / a few cents) and gate the paid call at run time — it does not fire in CI.
+4. **A falsifiable smoke** (extend `scripts/install-smoke.sh` or a sibling) that proves the plumbing
    with a **stub agent** (e.g. `VAJRA_AGENT_CMD`-style injection → a fake command, **no paid call**):
    dispatch → handoff artifact exists + well-formed → gate/delta applied; **fail closed** if the agent
-   is missing, the handoff is absent/malformed, or the role is unknown. A real paid `claude -p`
-   Researcher run is **optional/deferred** (note it; don't gate on spend).
+   is missing, the handoff is absent/malformed, or the role is unknown. The stub path is what CI + the
+   close-gate run (a gate must never depend on a paid call); the **live paid call (item 3) is the
+   headline proof**, captured as an artifact + re-checked by the cold reviewer.
 
 **Out (defer):** parallel agents · a second/third named role · full multi-stage orchestration ·
-cross-agent runtimes · any paid ladder run · an 8th top-level command.
+cross-agent runtimes · a full paid **ladder / long unattended** run (only ONE small scoped call is in) ·
+an 8th top-level command.
 
 ## Acceptance criteria
 
 1. `DECISION-007` exists under `docs/decisions/`, cited by a non-placeholder `## Design`, and passes
    the Architect gate (`vajra next --check-design 109` / `--advance`).
 2. `vajra` dispatches the **Researcher** role with a role-scoped prompt and writes a **governed handoff
-   artifact** — demonstrated live with a **stub agent** (no paid call), on an existing command surface
-   (no 8th top-level command; `vajra --help` still lists 7).
-3. The smoke **exits non-zero** on: unknown role · missing agent command · absent/malformed handoff.
-   A skipped-and-green is a REJECT.
+   artifact**, on an existing command surface (no 8th top-level command; `vajra --help` still lists 7).
+   Proven **two ways**: (a) a **real, small, paid Researcher call** (live `claude -p`-style) whose output
+   becomes the handoff and whose real cost is metered — captured as an artifact; (b) a **stub agent** for
+   CI + the fail-closed gate (no paid call).
+3. The smoke **exits non-zero** on: unknown role · missing agent command · absent/malformed handoff
+   (proven via the stub path). A skipped-and-green is a REJECT.
 4. `cargo test --lib` green; CI green both OS; the 8-station gate logic and receipts unchanged in
    behavior (new code is additive).
 5. `scripts/verify-session-109.sh` → all green (incl. a fail-closed probe); `scripts/demo-session-109.sh`
@@ -75,8 +90,10 @@ cross-agent runtimes · any paid ladder run · an 8th top-level command.
 - **Map to Vajra's own mechanism first** (`feedback-map-concepts-to-vajra`): the prompt IS the spec,
   `.ai/` IS the memory, stations already name roles — reuse them; don't invent a new store/artifact by
   reflex. If a new artifact is unavoidable, justify it in `DECISION-007`.
-- **No paid run required** — prove the plumbing with a stub agent; a real paid Researcher run is a
-  separate, deferred, founder-gated step (the S103 pivot: the founder runs long/paid tests himself).
+- **One small paid call IS the headline proof** (founder decision, S108 follow-up) — hard budget-cap it
+  (a few cents / a low `VAJRA` cap), gate the paid call at run time, and keep a stub path so CI + the
+  close-gate never depend on spend. This is the first paid session since S103; a *full* long/unattended
+  paid run stays the founder's own step (S103 pivot). Capture the real receipt (S78 tee) in the summary.
 - Keep it to **one agent, one handoff** — resist designing the whole fleet. Scope creep here is the
   named key risk.
 - S110 is the next mandatory NO-CODE ground truth — leave the tree green and the counter honest.
