@@ -1,4 +1,5 @@
 use crate::budget::{self, BudgetVerdict};
+use crate::fleet;
 use crate::launcher::{command_exists, merge_hook_settings, TempSettings};
 use crate::meter;
 use anyhow::{Context, Result};
@@ -8,6 +9,14 @@ use std::process::{ChildStdout, Command, Stdio};
 use std::time::SystemTime;
 
 pub fn run(args: &[String]) -> Result<()> {
+    // S109 fleet slice 1 (DECISION-007): `vajra claude --role <name>` dispatches a named agent as a
+    // GOVERNED STEP that writes a delta-tracked handoff — not the plain interactive/headless
+    // passthrough below. `--role` is consumed by vajra (stripped before the agent sees argv), so it
+    // rides `vajra claude` and adds no 8th top-level command.
+    if let Some((role, rest)) = extract_role(args) {
+        return dispatch_role(&role, &rest);
+    }
+
     if !command_exists("claude") {
         anyhow::bail!("claude not found in PATH; install Claude Code before using vajra claude")
     }
@@ -64,6 +73,231 @@ pub fn run(args: &[String]) -> Result<()> {
             wait_and_meter(command, None, session_start, &stats_path, headless)
         }
     }
+}
+
+// ─── fleet slice 1 — named-role dispatch (S109, DECISION-007) ──────────────────────────────────
+
+/// Pull `--role <name>` out of the args: `Some((name, remaining))` with the flag AND its value
+/// removed, else `None`. Exact-token match (same no-substring discipline as `is_headless`). A
+/// trailing `--role` with no value yields an empty name — dispatch then fails closed on the unknown
+/// empty role, never silently.
+fn extract_role(args: &[String]) -> Option<(String, Vec<String>)> {
+    let idx = args.iter().position(|a| a == "--role")?;
+    let name = args.get(idx + 1).cloned().unwrap_or_default();
+    let mut rest: Vec<String> = Vec::with_capacity(args.len().saturating_sub(2));
+    rest.extend_from_slice(&args[..idx]);
+    rest.extend_from_slice(&args[(idx + 2).min(args.len())..]);
+    Some((name, rest))
+}
+
+/// The task a role investigates — the `-p`/`--print` value. A role dispatch requires one (there is
+/// nothing to research otherwise). `None` when `-p` is absent or has no value (→ fail closed).
+fn extract_task(args: &[String]) -> Option<String> {
+    let idx = args.iter().position(|a| a == "-p" || a == "--print")?;
+    args.get(idx + 1).filter(|v| !v.starts_with('-')).cloned()
+}
+
+/// Is the agent command runnable? A path (`contains('/')`) must exist on disk; a bare name must be
+/// on `PATH`. Fail-closed input to dispatch (DECISION-007: a missing agent command blocks).
+fn agent_available(cmd: &str) -> bool {
+    if cmd.contains('/') {
+        Path::new(cmd).exists()
+    } else {
+        command_exists(cmd)
+    }
+}
+
+/// The `agent:` frontmatter value — the command's basename, marked when it is the injected stub so
+/// a handoff records honestly whether it came from a real paid agent or the paid-free stub path.
+fn agent_label(agent_cmd: &str, is_stub: bool) -> String {
+    let base = Path::new(agent_cmd)
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or(agent_cmd);
+    if is_stub {
+        format!("{base} (stub via VAJRA_AGENT_CMD)")
+    } else {
+        base.to_string()
+    }
+}
+
+/// The CURRENT session number for the handoff path. Prefer the active branch (`session-NN-...`):
+/// it names the session in flight even before closeout flips `.ai/SESSION` from the prior number
+/// to N. Fall back to `.ai/SESSION` (detached HEAD / non-session branch).
+fn read_session(root: &Path) -> Option<u32> {
+    if let Some(n) = current_branch_session(root) {
+        return Some(n);
+    }
+    std::fs::read_to_string(root.join(".ai/SESSION"))
+        .ok()?
+        .trim()
+        .parse()
+        .ok()
+}
+
+/// Parse `NN` out of the active `session-NN-<slug>` branch, or `None` off such a branch.
+fn current_branch_session(root: &Path) -> Option<u32> {
+    let out = Command::new("git")
+        .args(["rev-parse", "--abbrev-ref", "HEAD"])
+        .current_dir(root)
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let branch = String::from_utf8_lossy(&out.stdout);
+    let rest = branch.trim().strip_prefix("session-")?;
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    digits.parse().ok()
+}
+
+/// A UTC ISO-8601 timestamp for the handoff's `captured` field. Shells out to `date` (no chrono
+/// dep, matching this crate's zero-extra-dependency posture); falls back to `unix:<secs>`.
+fn utc_timestamp() -> String {
+    if let Ok(out) = Command::new("date")
+        .args(["-u", "+%Y-%m-%dT%H:%M:%SZ"])
+        .output()
+    {
+        if out.status.success() {
+            if let Ok(s) = String::from_utf8(out.stdout) {
+                let t = s.trim();
+                if !t.is_empty() {
+                    return t.to_string();
+                }
+            }
+        }
+    }
+    let secs = SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    format!("unix:{secs}")
+}
+
+/// Dispatch one named fleet role as a governed step (DECISION-007): resolve the role, run the agent
+/// (real `claude` or the injected stub) with the role-scoped system prompt, capture its result, and
+/// write a delta-tracked handoff to `.ai/handoffs/`. Fails closed on: unknown role · missing task ·
+/// missing agent command · unparseable/empty result · a handoff that would not validate.
+fn dispatch_role(role_name: &str, rest: &[String]) -> Result<()> {
+    // 1. Resolve the role — fail closed on unknown (vajra never scopes a role it doesn't know).
+    let role = fleet::resolve_role(role_name).ok_or_else(|| {
+        anyhow::anyhow!(
+            "unknown role `{role_name}` — known roles: {}. \
+             (fleet slice 1 ships only the Researcher; a new role is a separate decision, DECISION-007.)",
+            fleet::known_roles()
+        )
+    })?;
+
+    // 2. The task the role investigates comes from -p; a role dispatch needs one.
+    let task = extract_task(rest).ok_or_else(|| {
+        anyhow::anyhow!(
+            "role dispatch needs a task — pass it with -p: \
+             `vajra claude --role {role_name} -p \"<question>\"`"
+        )
+    })?;
+
+    // 3. Resolve the agent command. Default `claude`; VAJRA_AGENT_CMD overrides it — that is the
+    //    stub path CI + the fail-closed gate use (a gate must never depend on a paid call). Fail
+    //    closed if the resolved command is missing.
+    let env_cmd = std::env::var("VAJRA_AGENT_CMD")
+        .ok()
+        .filter(|c| !c.is_empty());
+    let is_stub = env_cmd.is_some();
+    let agent_cmd = env_cmd.unwrap_or_else(|| "claude".to_string());
+    if !agent_available(&agent_cmd) {
+        anyhow::bail!(
+            "agent command `{agent_cmd}` not found — install it, or set VAJRA_AGENT_CMD to a real command"
+        );
+    }
+    // Only the real `claude` agent gets the credentials pre-check; a stub carries its own behaviour.
+    if !is_stub {
+        preflight_auth_check()?;
+    }
+
+    // 4. Build the agent argv: the passthrough args (carry `-p <task>` + any --model etc.) plus the
+    //    role's system prompt and a json result stream so the S78 tee captures the real cost.
+    let mut agent_args: Vec<String> = rest.to_vec();
+    agent_args.push("--append-system-prompt".into());
+    agent_args.push(role.system_prompt.to_string());
+    if !rest.iter().any(|a| a == "--output-format") {
+        agent_args.push("--output-format".into());
+        agent_args.push("json".into());
+    }
+
+    // 5. Spawn, tee stdout (S78 — the user still sees the agent's own output), capture for parsing.
+    let mut command = Command::new(&agent_cmd);
+    command
+        .args(&agent_args)
+        .stdin(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .stdout(Stdio::piped());
+    let mut child = command
+        .spawn()
+        .with_context(|| format!("failed to spawn agent `{agent_cmd}`"))?;
+    let captured = child.stdout.take().map(tee_and_capture).unwrap_or_default();
+    let status = child.wait().context("failed to wait on agent")?;
+    if !status.success() {
+        anyhow::bail!("agent `{agent_cmd}` exited {}", status.code().unwrap_or(-1));
+    }
+
+    // 6. Parse the result — fail closed on an unparseable/empty result: a failed dispatch must never
+    //    write a silent empty handoff.
+    let result = fleet::parse_agent_result(&captured).ok_or_else(|| {
+        anyhow::anyhow!("agent produced no parseable result — handoff NOT written (fail closed)")
+    })?;
+
+    // 7. Write the governed, delta-tracked handoff into the `.ai/` spine.
+    let root = std::env::current_dir().context("no current dir")?;
+    let session = read_session(&root).ok_or_else(|| {
+        anyhow::anyhow!(
+            "cannot read .ai/SESSION — a role dispatch needs a session (run `vajra init`)"
+        )
+    })?;
+    let handoff_rel = role.handoff_rel(session);
+    let handoff_path = root.join(&handoff_rel);
+    if let Some(parent) = handoff_path.parent() {
+        std::fs::create_dir_all(parent).with_context(|| format!("mkdir {}", parent.display()))?;
+    }
+    let prior_body = std::fs::read_to_string(&handoff_path)
+        .ok()
+        .and_then(|p| fleet::handoff_body(&p));
+    let source_sha = fleet::sha256_hex(fleet::role_scoped_input(role, &task).as_bytes())
+        .unwrap_or_else(|| "unavailable".to_string());
+    let delta = fleet::compute_delta(prior_body.as_deref(), &result.body);
+    let handoff = fleet::format_handoff(
+        role,
+        session,
+        &agent_label(&agent_cmd, is_stub),
+        &source_sha,
+        &utc_timestamp(),
+        result.cost,
+        &result.body,
+        &delta,
+    );
+    // Belt-and-suspenders: never persist a handoff that would fail the fail-closed check.
+    fleet::validate_handoff(&handoff)
+        .map_err(|e| anyhow::anyhow!("refusing to write malformed handoff: {e}"))?;
+    std::fs::write(&handoff_path, &handoff)
+        .with_context(|| format!("write {}", handoff_path.display()))?;
+
+    // 8. Confirm + receipt.
+    eprintln!("\n[vajra] {} handoff → {handoff_rel}", role.name);
+    match result.cost {
+        Some(c) => eprintln!(
+            "[vajra] {} call cost: ${c:.6} (authoritative — S78)",
+            role.name
+        ),
+        None => eprintln!(
+            "[vajra] {} call cost: no authoritative figure (S77 honest null)",
+            role.name
+        ),
+    }
+    // Post-hoc budget cap: a one-shot's cost is known only after it runs, so the run-time control is
+    // that this fires ONLY on an explicit `--role` call (never CI — the stub path is paid-free).
+    if let Some(c) = result.cost {
+        check_budget_cap(c)?;
+    }
+    Ok(())
 }
 
 /// A headless `claude -p`/`--print` invocation runs non-interactively and (with
@@ -376,6 +610,81 @@ mod tests {
             "--model".into(),
             "opus".into()
         ]));
+    }
+
+    #[test]
+    fn extract_role_strips_flag_and_value() {
+        // Flag + value removed; the rest (incl. -p and its value) survives in order.
+        let (name, rest) = extract_role(&[
+            "--role".into(),
+            "researcher".into(),
+            "-p".into(),
+            "what is X".into(),
+        ])
+        .expect("role present");
+        assert_eq!(name, "researcher");
+        assert_eq!(rest, vec!["-p".to_string(), "what is X".to_string()]);
+
+        // --role in the middle: args on both sides survive.
+        let (name, rest) = extract_role(&[
+            "-p".into(),
+            "q".into(),
+            "--role".into(),
+            "researcher".into(),
+            "--model".into(),
+            "opus".into(),
+        ])
+        .unwrap();
+        assert_eq!(name, "researcher");
+        assert_eq!(rest, vec!["-p", "q", "--model", "opus"]);
+
+        // No --role → None (plain passthrough launch, unchanged).
+        assert!(extract_role(&["-p".into(), "hi".into()]).is_none());
+
+        // Trailing --role with no value → empty name (dispatch then fails closed on unknown role).
+        let (name, rest) = extract_role(&["-p".into(), "q".into(), "--role".into()]).unwrap();
+        assert_eq!(name, "");
+        assert_eq!(rest, vec!["-p", "q"]);
+    }
+
+    #[test]
+    fn extract_task_reads_p_value_or_fails_closed() {
+        assert_eq!(
+            extract_task(&["-p".into(), "the question".into()]).as_deref(),
+            Some("the question")
+        );
+        assert_eq!(
+            extract_task(&["--print".into(), "q2".into()]).as_deref(),
+            Some("q2")
+        );
+        // No -p → None (a role dispatch needs a task).
+        assert!(extract_task(&["--model".into(), "opus".into()]).is_none());
+        // -p with no value (next token is a flag) → None, not a swallowed flag.
+        assert!(extract_task(&["-p".into(), "--model".into()]).is_none());
+        // -p at end with nothing after → None.
+        assert!(extract_task(&["-p".into()]).is_none());
+    }
+
+    #[test]
+    fn agent_label_marks_stub_and_basenames_path() {
+        assert_eq!(agent_label("claude", false), "claude");
+        assert_eq!(
+            agent_label("/tmp/x/stub.sh", true),
+            "stub.sh (stub via VAJRA_AGENT_CMD)"
+        );
+        assert_eq!(
+            agent_label("myagent", true),
+            "myagent (stub via VAJRA_AGENT_CMD)"
+        );
+    }
+
+    #[test]
+    fn agent_available_checks_path_for_absolute_missing_paths() {
+        // A path that does not exist → not available (fail-closed input to dispatch).
+        assert!(!agent_available("/no/such/agent/binary/here"));
+        // A real absolute path (this repo's Cargo.toml stands in for any existing file) → available.
+        let manifest = env!("CARGO_MANIFEST_DIR");
+        assert!(agent_available(&format!("{manifest}/Cargo.toml")));
     }
 
     #[test]
