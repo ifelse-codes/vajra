@@ -1,16 +1,17 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-01 · **Session 108 — CODE: publish to crates.io + Homebrew tap — DELIVERED.**
-The C→B→A order's **B**, now **COMPLETE** — every install channel is real. `vajractl 0.1.0` published to
-crates.io (fresh-dir `cargo install vajractl` → `init`→`next`, **7/7 SMOKE PASS**) + a public Homebrew
-tap `ifelse-codes/homebrew-tap` (`Formula/vajra.rb` with real `v0.1.0` sha256 for arm64/x86_64 macOS +
-x86_64 Linux; `brew install ifelse-codes/tap/vajra`, **11/11 SMOKE PASS**, sha256-verified).
-`install-smoke.sh` gained `crates` + `brew` modes (both fail-closed); README un-marks both rows (nothing
-left NOT YET PUBLISHED); `Cargo.toml` excludes 2 stray root HTML files. **No `src/`; no station logic
-changed.** Irreversible `cargo publish` ran only after founder "yes publish" (founder did `cargo login`
-themselves — token never handled); tap created only after "yes tap". verify 10/10; demo exit 0;
-independent cold review **ACCEPT**, attested `f5a97e8b…`. **PR #113.** Next = **fleet slice 1 (S109)** —
-the order's **A**, first real named agent. Summary: `sessions/session-108-summary.md`.
+**Updated:** 2026-08-02 · **Session 109 — CODE: fleet slice 1 — Researcher as a governed Claude Code
+subagent — DELIVERED.** The C→B→A order's **A**, first slice. The fleet's first named agent ships as a
+**native Claude Code subagent** Vajra scaffolds + governs (`DECISION-007`): `vajra init` scaffolds
+`.claude/agents/researcher.md` from the ONE canonical source (`fleet::ROLES`, no drift); `vajra next
+--role researcher --from <findings>` governs a subagent brief into a **delta-tracked, validated** handoff
+at `.ai/handoffs/session-NN-researcher.md` — **fail-closed** on unknown role / missing `--from` / empty
+findings; rides `init` + `next` (**no 8th command**). **Live proof:** a real Researcher subagent (Task
+tool, sonnet, 58,669 tok) ran in-session (no auth wall) and its brief was governed into the S109 handoff.
+verify 9/9; demo exit 0; 304 lib tests; **CI green both OS**; cold review **ACCEPT**, attested
+`2a8d3399…`. **PR #115.** **🔀 Mid-session founder redirect:** the first build's paid `claude -p`
+subprocess hit a headless-auth wall → **reverted** to subagent-only (no separate paid call). Next =
+**S110 NO-CODE GT** (lead lens: is the fleet real + shippable?). Summary: `sessions/session-109-summary.md`.
 
 *Prior: Session 105 — NO-CODE GROUND TRUTH (S101–S104) — PARTIAL (lead lens); 3 🟢 · 7 🟡 · 0 🔴;
 engine done + proven, package ~0%; freeze rule RETIRED; two GT-instrument blind spots (installability
@@ -68,10 +69,10 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-08-01 |
-| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot — supersedes the Autopilot-Ladder-as-sessions plan + machinery-freeze rule). The governance engine is complete and PROVEN (8-station spine S72; forced commit block S103; attested/chained ledger; authoritative receipts). **B (installable) is now COMPLETE** — S106 the Rust path + the installability instrument; S107 the no-Rust prebuilt path; **S108 published crates.io (`vajractl 0.1.0`, 7/7 smoke) + a public Homebrew tap (`ifelse-codes/homebrew-tap`, 11/11 smoke)**. v0.1 now installs FOUR ways, all proven. Order **C→B→A**: C team-voice (S104 ✓) → **B installable (S106+S107+S108 ✓ COMPLETE)** → **A fleet — S109 = first slice.** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). Commit obedience ENFORCED (S93); nested-repo blindspot CLOSED (S94); Coder-dark CLOSED (S100). |
-| Last closed session | Session 108 — **CODE: publish to crates.io + Homebrew tap** — DELIVERED; `vajractl 0.1.0` live on crates.io (7/7 smoke); public tap `ifelse-codes/homebrew-tap` (11/11 smoke, sha256-verified); `install-smoke.sh` +`crates`/`brew` modes (fail-closed); README un-marks both rows; no `src/`; cold review ACCEPT, attested `f5a97e8b…`; PR #113 |
-| Active session | None — between sessions (S108 complete, S109 not yet started) |
+| Today | 2026-08-02 |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE** (S106+S107+S108 — v0.1 installs FOUR ways). **A (fleet) STARTED — S109 = first slice:** the Researcher as a governed native Claude Code subagent (`DECISION-007`; `vajra init` scaffolds `.claude/agents/`, `vajra next --role --from` governs a delta-tracked handoff; no 8th command). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 first slice ✓; more roles / handoff-consumption / unattended mode ahead).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
+| Last closed session | Session 109 — **CODE: fleet slice 1 — Researcher as a governed Claude Code subagent** — DELIVERED; `vajra init` scaffolds `.claude/agents/researcher.md` (one canonical source), `vajra next --role researcher --from` governs a delta-tracked validated handoff, fail-closed; real subagent live proof; no 8th command; verify 9/9, CI green both OS; cold review ACCEPT, attested `2a8d3399…`; PR #115. Mid-session founder redirect: paid `claude -p` path reverted → subagent-only |
+| Active session | None — between sessions (S109 complete, S110 not yet started) |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **PUBLISHED (S108): `vajractl 0.1.0` is live on crates.io — the name is now BURNED.** `v0.1.0` also tagged + released (GH release, prebuilt binaries) + on a public Homebrew tap. All four install channels real; any future crates.io action stays founder-gated. |
 
 ---
@@ -245,6 +246,7 @@ GT-verified S75/S80/S85).
 | S106 | CODE | **Make it installable (v0.1)** (founder pick ①, order's **B**): one install path that works from a clean checkout — `cargo install --git` (no clone) or clone + `cargo install --path .` → `vajractl` crate, `vajra` binary (**`Cargo.toml` was already release-correct — the S105 "paper-only" note was stale**; the gap was proof, not metadata). Shipped **`scripts/install-smoke.sh`** — the installability instrument the S105 meta-check found missing: fresh temp install → `vajra init` → `vajra next`, asserts each inside a time budget, **exits non-zero on any fail**; proven both ways live (7/7 PASS on the real tree, 12s; FAIL→exit 1 on a broken source). README truth-pass: working one-liner proven + points at the instrument; crates.io / brew / prebuilt rows stay NOT YET PUBLISHED. **No `src/` changes; no crates.io publish; no tag.** verify 5/5 GREEN; demo exit 0 (4 markers). Independent cold review **ACCEPT**, attested `07b962af…`; PR #111. Fakest green (disclosed): the smoke **default** proves `--path`; the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally identical) |
 | S107 | CODE | **Tagged binary release v0.1.0** (no-Rust path; order's B) — `v0.1.0` GH release live (3 tarballs + `.sha256`); `install-smoke.sh` `release` mode downloads+verifies+runs (11/11 live, fail-closed); README un-marks the prebuilt row; `release.yml` fix (x86_64-apple-darwin cross-compiles on `macos-latest`); no `src/`; cold review ACCEPT, attested `836cdfec…`; PR #112 |
 | S108 | CODE | **Publish crates.io + Homebrew tap** (founder pick B; order's **B COMPLETE**) — `vajractl 0.1.0` published to crates.io (fresh-dir `cargo install vajractl` → 7/7 smoke; API `max_version 0.1.0`) + public tap `ifelse-codes/homebrew-tap` (real `v0.1.0` sha256 arm64/x86_64 macOS + x86_64 Linux; `brew install ifelse-codes/tap/vajra` → 11/11 smoke, sha256-verified). `install-smoke.sh` +`crates`/`brew` modes (both fail-closed); README un-marks both rows; `Cargo.toml` excludes 2 stray root HTML files. No `src/`. Irreversible `cargo publish` after founder "yes publish" (founder did `cargo login`; token never handled); tap after "yes tap". verify 10/10; demo exit 0; cold review ACCEPT, attested `f5a97e8b…`; PR #113. Fakest green: brew smoke tests a LOCAL copy of the formula, not the published tap |
+| S109 | CODE | **Fleet slice 1 — Researcher as a governed Claude Code subagent** (founder pick A, order's **A**, first slice) — `DECISION-007` locks the fleet = native Claude Code subagents. `vajra init` scaffolds `.claude/agents/researcher.md` from the ONE canonical source (`fleet::ROLES`, no drift); `vajra next --role researcher --from <findings>` governs a subagent brief into a delta-tracked, validated handoff at `.ai/handoffs/session-NN-researcher.md`; **fail-closed** on unknown role / missing `--from` / empty findings; rides `init`+`next` (**no 8th command**). Live proof: a real Researcher subagent (Task tool, sonnet, 58,669 tok) ran in-session and its brief was governed into the handoff (validated, source-sha `ffa5b3fd…`). verify 9/9; demo exit 0; 304 lib tests; CI green both OS; cold review ACCEPT, attested `2a8d3399…`; PR #115. **🔀 Mid-session founder redirect:** the first build spawned a paid `claude -p` subprocess (`vajra claude --role`) that hit a headless "Not logged in" auth wall → **reverted** to subagent-only. Fakest green: def-vs-dispatch not wired end-to-end; `cost_usd: null` |
 
 ---
 
@@ -271,7 +273,8 @@ GT-verified S75/S80/S85).
 | S106 | Complete | **CODE: make it installable (v0.1)** (founder pick ①, order's B) — `cargo install --git\|--path` works from a clean checkout + `scripts/install-smoke.sh` (the installability instrument; falsifiable, exits non-zero on fail) + README truth-pass; `Cargo.toml` already release-correct; no `src/`, no publish/tag; verify 5/5, demo 4 markers; cold review ACCEPT, attested `07b962af…`; PR #111 |
 | S107 | Complete | **CODE: tagged binary release v0.1.0** (order's B) — `v0.1.0` GH release live (3 tarballs + `.sha256`); no-Rust download-and-run smoke (11/11, fail-closed); README un-marks the prebuilt row; `release.yml` Intel-runner stall fixed via cross-compile; cold review ACCEPT, attested `836cdfec…`; PR #112 |
 | S108 | Complete | **CODE: publish crates.io + Homebrew tap** (founder pick B; order's **B COMPLETE**) — `vajractl 0.1.0` on crates.io (7/7 smoke) + public tap `ifelse-codes/homebrew-tap` (11/11 smoke, sha256-verified); `install-smoke.sh` +`crates`/`brew` fail-closed modes; README un-marks both rows; irreversible publish + tap both founder-gated in chat; cold review ACCEPT, attested `f5a97e8b…`; PR #113 |
-| **S109** | **Next** | **CODE: fleet slice 1 — one real named agent (Researcher) as a governed step** (founder pick A, "start the fleet"; order's **A**, first slice) — dispatch one named role with a role-scoped prompt + delta-tracked handoff, proven with a **stub agent** (no paid call); design-significant → author `DECISION-007`; **ride an existing command (no 8th)**. Prompt: `prompts/109-task-fleet-slice-1-researcher.md` |
+| S109 | Complete | **CODE: fleet slice 1 — Researcher as a governed Claude Code subagent** (founder pick A, order's **A**, first slice) — `DECISION-007`; `vajra init` scaffolds `.claude/agents/researcher.md` from the canonical `fleet::ROLES`; `vajra next --role --from` governs a delta-tracked, validated handoff, fail-closed; no 8th command; real subagent live proof; verify 9/9, CI green both OS; cold review ACCEPT, attested `2a8d3399…`; PR #115. Mid-session founder redirect: paid `claude -p` reverted → subagent-only |
+| **S110** | **Next** | **NO-CODE GROUND TRUTH** (mandatory every 5th) — audits S106–S109. **Founder-picked lead lens:** *is the fleet REAL and advancing, or labelled machinery — and is v0.1 stranger-shippable?* Weigh the S109 subagent pivot (paid `claude -p` reverted; def-vs-dispatch not wired; `cost_usd: null`; handoff not yet consumed downstream). Record `--stations 106..109` + `--dogfood-age` live. Prompt: `prompts/110-task-ground-truth.md` |
 
 ---
 
@@ -395,7 +398,7 @@ guard against easy-green (machinery advancing while the product can't ship).
 ## Rules For This Document
 
 1. Update at every closeout — the "Where We Are" table and session log row are mandatory.
-2. `NN % 5 == 0` → mandatory NO-CODE GT. Last = **S105** (done). Next = **S110** (lead lens: is v0.1 shippable to a stranger — and does an instrument prove it, not a feeling?).
+2. `NN % 5 == 0` → mandatory NO-CODE GT. Last = **S105** (done). Next = **S110** (founder-picked lead lens: is the **fleet** REAL and advancing, or labelled machinery — and is v0.1 stranger-shippable? Weigh the S109 subagent pivot honestly). Prompt written: `prompts/110-task-ground-truth.md`.
 3. Mark items done only when they work in a real session, not just tests.
 4. Never exceed 7 top-level commands without explicit user approval.
 5. Per-session detail goes in `sessions/session-NN-summary.md`, not here.
