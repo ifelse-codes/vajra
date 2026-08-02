@@ -1,21 +1,33 @@
-//! S109 — fleet slice 1: dispatch ONE named agent role (the Researcher) as a governed step that
-//! produces a delta-tracked handoff artifact. Locked by `docs/decisions/DECISION-007-agent-fleet.md`.
+//! S109 — fleet slice 1: one named agent role (the Researcher) dispatched as a NATIVE Claude Code
+//! **subagent** and governed by Vajra. Locked by `docs/decisions/DECISION-007-agent-fleet.md`.
 //!
-//! This module is the PURE core — role resolution (ONE canonical source, no drift per S104/S99),
-//! the role-scoped prompt, parsing an agent's captured result, and formatting + validating the
-//! governed handoff. The process spawn (the impure part) and the stub-vs-live agent choice
-//! (`VAJRA_AGENT_CMD`) live in `cli::launch`. Everything here is unit-testable without spawning.
+//! Vajra is an external binary — it does not (cannot) *call* a Claude Code subagent; subagents only
+//! exist inside a running agent session. So Vajra's job for a named role is two things, both in this
+//! module's contract:
+//!   1. **Scaffold** the role as a native subagent definition (`.claude/agents/<name>.md`), rendered
+//!      from ONE canonical source (the S104/S99 no-drift rule) — the same way `vajra init` already
+//!      scaffolds `.claude/settings.json` + hooks (S44). The role prompt is vendor-neutral here;
+//!      only the *rendering* is Claude-specific.
+//!   2. **Govern the handoff.** The subagent returns a findings brief; Vajra wraps it into a
+//!      delta-tracked handoff in the `.ai/` spine (the memory — no new store) and FAIL-CLOSES on an
+//!      unknown role, missing/empty findings, or a handoff that would not validate.
+//!
+//! This module is the PURE core (role resolution, subagent rendering, handoff format + validate +
+//! delta, one hash). The impure edges (reading findings, writing files, git) live in `cli::next` /
+//! `cli::init`. Everything here is unit-testable without spawning anything.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-/// A named fleet role: its dispatch key, the system prompt that scopes an agent to this role, and
-/// (via `handoff_rel`) where its governed handoff lands. The ONE place role text lives — the S104
-/// team-voice / S99 kickoff no-drift rule applied to real agent invocations.
+/// A named fleet role: its key, a one-line description (for the subagent picker), the system prompt
+/// that scopes the agent, and — via `handoff_rel` — where its governed handoff lands. The ONE place
+/// role text lives; both the subagent definition and the handoff are rendered from it (no drift).
 pub struct Role {
-    /// The `--role <name>` key. Lower-case, stable — the join key everywhere.
+    /// The `--role <name>` key and the subagent `name:`. Lower-case, stable — the join key.
     pub name: &'static str,
-    /// Injected via Claude Code's `--append-system-prompt`: scopes the agent to this role.
+    /// One line describing WHEN to use this role — the subagent frontmatter `description:`.
+    pub description: &'static str,
+    /// The role-scoping system prompt — the subagent definition body.
     pub system_prompt: &'static str,
 }
 
@@ -24,6 +36,12 @@ impl Role {
     /// (DECISION-007 / `feedback-map-concepts-to-vajra`) — no new store, no 8th artifact type.
     pub fn handoff_rel(&self, session: u32) -> String {
         format!(".ai/handoffs/session-{session:02}-{}.md", self.name)
+    }
+
+    /// Where this role's native subagent definition is scaffolded, repo-relative — the standard
+    /// Claude Code `.claude/agents/<name>.md` location.
+    pub fn subagent_rel(&self) -> String {
+        format!(".claude/agents/{}.md", self.name)
     }
 }
 
@@ -41,11 +59,14 @@ Rules:\n\
 /// second role is a separate decision, not a reflex (the named key risk of S109 is scope creep).
 pub const ROLES: &[Role] = &[Role {
     name: "researcher",
+    description: "Investigate a question and return a concise, decision-ready findings brief. \
+                  Use before a design or build decision that needs facts, trade-offs, or prior art. \
+                  Read-only — never writes code.",
     system_prompt: RESEARCHER_SYSTEM_PROMPT,
 }];
 
-/// Resolve a role by its `--role` key. `None` (→ the caller fails closed) for an unknown role:
-/// vajra never dispatches a role it cannot scope.
+/// Resolve a role by its key. `None` (→ the caller fails closed) for an unknown role: vajra never
+/// governs a role it cannot scope.
 pub fn resolve_role(name: &str) -> Option<&'static Role> {
     ROLES.iter().find(|r| r.name == name)
 }
@@ -55,67 +76,30 @@ pub fn known_roles() -> String {
     ROLES.iter().map(|r| r.name).collect::<Vec<_>>().join(", ")
 }
 
-/// The exact role-scoped input a dispatch hands the agent: the role's system prompt joined to the
-/// task with a NUL separator. Its sha256 is the handoff's `source-sha`, so a handoff is traceable
-/// to precisely what was asked (role + question), not just the question.
-pub fn role_scoped_input(role: &Role, task: &str) -> String {
-    format!("{}\0{}", role.system_prompt, task)
-}
-
-/// What a dispatched agent returned, parsed from its captured stdout.
-#[derive(Debug, Clone, PartialEq)]
-pub struct AgentResult {
-    /// The findings body — the `result` text field of the terminal `type:"result"` object.
-    pub body: String,
-    /// The SDK-authoritative `total_cost_usd`, when the result carried one (S78 path).
-    pub cost: Option<f64>,
-}
-
-/// Parse a headless agent's captured stdout (`--output-format json` / stream-json). The body is the
-/// `result` text of the terminal `type:"result"` object; the cost is reused from
-/// `meter::extract_result_cost` (the S78 path — no drift on the cost figure). `None` when there is
-/// no well-formed result object OR the body is empty (→ the caller fails closed: an unparseable or
-/// empty dispatch is a FAILED step, never a silent empty handoff).
-pub fn parse_agent_result(stdout: &[u8]) -> Option<AgentResult> {
-    let body = extract_result_body(stdout)?;
-    if body.trim().is_empty() {
-        return None;
-    }
-    let cost = crate::meter::extract_result_cost(stdout);
-    Some(AgentResult {
-        body: body.trim().to_string(),
-        cost,
-    })
-}
-
-/// The `result` text of the LAST terminal `type:"result"` object (stream-json: last line wins;
-/// else the whole buffer as one JSON object). Mirrors `meter::extract_result_cost`'s scan so the
-/// body and the cost are read from the SAME object.
-fn extract_result_body(stdout: &[u8]) -> Option<String> {
-    let text = std::str::from_utf8(stdout).ok()?;
-    let mut found: Option<String> = None;
-    for line in text.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        if let Ok(v) = serde_json::from_str::<serde_json::Value>(line) {
-            if v["type"].as_str() == Some("result") {
-                if let Some(r) = v["result"].as_str() {
-                    found = Some(r.to_string());
-                }
-            }
-        }
-    }
-    if found.is_some() {
-        return found;
-    }
-    if let Ok(v) = serde_json::from_str::<serde_json::Value>(text.trim()) {
-        if v["type"].as_str() == Some("result") {
-            return v["result"].as_str().map(|s| s.to_string());
-        }
-    }
-    None
+/// Render a role as a native Claude Code subagent definition (`.claude/agents/<name>.md`): YAML
+/// frontmatter (`name`, `description`, read-only `tools`) + the system prompt + a short note that
+/// its findings become a Vajra-governed handoff (so the subagent returns a brief, and does NOT try
+/// to author the handoff frontmatter — Vajra owns that). Rendered from the SAME `Role` the handoff
+/// uses — one canonical source, no drift.
+pub fn render_subagent_definition(role: &Role) -> String {
+    format!(
+        "---\n\
+         name: {name}\n\
+         description: {desc}\n\
+         tools: Read, Grep, Glob, WebSearch, WebFetch\n\
+         ---\n\
+         \n\
+         {sys}\n\
+         \n\
+         ## Governed handoff (Vajra owns this)\n\
+         Return your findings brief as your final message. The orchestrator records it as a\n\
+         Vajra-governed, delta-tracked handoff at `.ai/handoffs/session-<NN>-{name}.md` via\n\
+         `vajra next --role {name} --from <file>`. Do NOT write the handoff frontmatter yourself —\n\
+         Vajra computes the source hash, the timestamp, and the delta against the prior stage.\n",
+        name = role.name,
+        desc = role.description,
+        sys = role.system_prompt,
+    )
 }
 
 /// The `## Handoff Delta` body: what this handoff adds relative to the PRIOR stage. Slice 1 has no
@@ -139,7 +123,9 @@ pub fn compute_delta(prior_body: Option<&str>, new_body: &str) -> String {
 }
 
 /// Format the governed handoff artifact (the DECISION-007 contract). Deterministic given its
-/// inputs — the timestamp and cost are passed in so this stays pure and testable.
+/// inputs — the timestamp is passed in so this stays pure and testable. `cost` is the subagent's
+/// metered dollars when known, else `None` (S77 honest null — a subagent's cost rolls into the
+/// parent session receipt, so slice 1 records `null` and discloses the session total in the summary).
 #[allow(clippy::too_many_arguments)]
 pub fn format_handoff(
     role: &Role,
@@ -199,7 +185,7 @@ const FRONTMATTER_KEYS: [&str; 6] = [
 ];
 
 /// A handoff is well-formed iff it carries every frontmatter contract key, a non-empty findings
-/// body, AND the `## Handoff Delta` section (DECISION-007). Used by the fail-closed smoke/gate: a
+/// body, AND the `## Handoff Delta` section (DECISION-007). Used by the fail-closed governance: a
 /// malformed or empty handoff must NEVER read as a successful step. `Err(reason)` names the first
 /// missing piece.
 pub fn validate_handoff(text: &str) -> Result<(), String> {
@@ -219,7 +205,7 @@ pub fn validate_handoff(text: &str) -> Result<(), String> {
 
 /// The findings body — the content between the closing frontmatter fence and the `## Handoff Delta`
 /// section, minus heading lines. `None` when the frontmatter fence or the delta section is absent.
-/// Public so the launcher can extract a PRIOR handoff's body to feed `compute_delta` on a re-run.
+/// Public so the ingest can extract a PRIOR handoff's body to feed `compute_delta` on a re-run.
 pub fn handoff_body(text: &str) -> Option<String> {
     let after_fm = text.strip_prefix("---\n")?;
     let close = after_fm.find("\n---\n")?;
@@ -233,9 +219,10 @@ pub fn handoff_body(text: &str) -> Option<String> {
     Some(body.join("\n"))
 }
 
-/// sha256 of a byte string — the handoff's `source-sha` preimage. Shells out (same tool-fallback
-/// order as `verify-closeout.sh#_sha256` / `stations::sha256_hex`) rather than add a crate for one
-/// hash; this codebase already shells to git/sha tools throughout.
+/// sha256 of a byte string — the handoff's `source-sha` preimage (the subagent's raw findings), so
+/// a governed handoff is verifiably derived from those exact findings. Shells out (same tool-fallback
+/// order as `verify-closeout.sh#_sha256`) rather than add a crate for one hash; this codebase already
+/// shells to git/sha tools throughout.
 pub fn sha256_hex(bytes: &[u8]) -> Option<String> {
     let variants: [(&str, &[&str]); 2] = [("sha256sum", &[]), ("shasum", &["-a", "256"])];
     for (cmd, args) in variants {
@@ -284,78 +271,28 @@ mod tests {
     }
 
     #[test]
-    fn handoff_rel_lands_in_ai_spine() {
+    fn handoff_and_subagent_paths_are_conventional() {
         let r = resolve_role("researcher").unwrap();
         assert_eq!(r.handoff_rel(109), ".ai/handoffs/session-109-researcher.md");
-        // Zero-padded to two digits (matches the sessions/ + prompts/ convention).
         assert_eq!(r.handoff_rel(9), ".ai/handoffs/session-09-researcher.md");
+        assert_eq!(r.subagent_rel(), ".claude/agents/researcher.md");
     }
 
     #[test]
-    fn role_scoped_input_binds_role_and_task() {
+    fn render_subagent_definition_is_valid_claude_agent_from_one_source() {
         let r = resolve_role("researcher").unwrap();
-        let a = role_scoped_input(r, "what is X");
-        let b = role_scoped_input(r, "what is Y");
-        assert_ne!(a, b, "different tasks → different scoped input");
-        assert!(a.contains("what is X"));
-        assert!(a.contains("Researcher"));
-        assert!(a.contains('\0'), "role and task are NUL-separated");
-    }
-
-    #[test]
-    fn parse_agent_result_reads_stream_json_result() {
-        let out = concat!(
-            r#"{"type":"system","subtype":"init"}"#,
-            "\n",
-            r#"{"type":"result","result":"The answer is 42.","total_cost_usd":0.0031}"#,
-            "\n"
-        );
-        let r = parse_agent_result(out.as_bytes()).expect("parses");
-        assert_eq!(r.body, "The answer is 42.");
-        assert_eq!(r.cost, Some(0.0031));
-    }
-
-    #[test]
-    fn parse_agent_result_reads_single_json_object() {
-        let out = r#"{"type":"result","result":"body here","total_cost_usd":0.5}"#;
-        let r = parse_agent_result(out.as_bytes()).expect("parses");
-        assert_eq!(r.body, "body here");
-        assert_eq!(r.cost, Some(0.5));
-    }
-
-    #[test]
-    fn parse_agent_result_last_result_wins() {
-        let out = concat!(
-            r#"{"type":"result","result":"stale","total_cost_usd":0.1}"#,
-            "\n",
-            r#"{"type":"result","result":"final","total_cost_usd":0.2}"#,
-            "\n"
-        );
-        let r = parse_agent_result(out.as_bytes()).unwrap();
-        assert_eq!(r.body, "final");
-        assert_eq!(r.cost, Some(0.2));
-    }
-
-    #[test]
-    fn parse_agent_result_fails_closed_on_no_result_or_empty_body() {
-        // No result object at all → None (fail closed).
-        assert!(parse_agent_result(b"just some text, not json").is_none());
-        assert!(parse_agent_result(br#"{"type":"system"}"#).is_none());
-        // A result object with an EMPTY body → None (never write an empty handoff).
-        let empty = r#"{"type":"result","result":"   ","total_cost_usd":0.1}"#;
-        assert!(parse_agent_result(empty.as_bytes()).is_none());
-        // A result object with no `result` field → None.
-        let nobody = r#"{"type":"result","total_cost_usd":0.1}"#;
-        assert!(parse_agent_result(nobody.as_bytes()).is_none());
-    }
-
-    #[test]
-    fn parse_agent_result_tolerates_missing_cost() {
-        // A well-formed body but no cost → Some with cost None (text-mode-ish; S77 honest null).
-        let out = r#"{"type":"result","result":"found it"}"#;
-        let r = parse_agent_result(out.as_bytes()).unwrap();
-        assert_eq!(r.body, "found it");
-        assert_eq!(r.cost, None);
+        let def = render_subagent_definition(r);
+        // Claude Code subagent frontmatter: name + description, opening `---` fence.
+        assert!(def.starts_with("---\n"));
+        assert!(def.contains("name: researcher"));
+        assert!(def.contains("description:"));
+        assert!(def.contains("tools:"));
+        // The body is the CANONICAL system prompt (no drift — same string the role carries).
+        assert!(def.contains("You are the Researcher"));
+        assert!(def.contains(r.system_prompt));
+        // It points at the governed handoff, and tells the subagent NOT to author frontmatter.
+        assert!(def.contains(".ai/handoffs/session-<NN>-researcher.md"));
+        assert!(def.contains("vajra next --role researcher --from"));
     }
 
     #[test]
@@ -375,41 +312,39 @@ mod tests {
         let h = format_handoff(
             r,
             109,
-            "stub",
+            "claude-code-subagent",
             "a".repeat(64).as_str(),
             "2026-08-02T00:00:00Z",
-            Some(0.0031),
+            None,
             "the findings",
             &delta,
         );
-        // Frontmatter contract keys all present.
         assert!(h.contains("role: researcher"));
         assert!(h.contains("session: 109"));
-        assert!(h.contains("agent: stub"));
+        assert!(h.contains("agent: claude-code-subagent"));
         assert!(h.contains("source-sha: aaaa"));
         assert!(h.contains("captured: 2026-08-02T00:00:00Z"));
-        assert!(h.contains("cost_usd: 0.003100"));
+        assert!(h.contains("cost_usd: null"));
         assert!(h.contains("# Researcher handoff — session 109"));
         assert!(h.contains("the findings"));
         assert!(h.contains("## Handoff Delta"));
-        // A well-formed handoff validates.
         assert!(validate_handoff(&h).is_ok());
     }
 
     #[test]
-    fn format_handoff_renders_null_cost_when_absent() {
+    fn format_handoff_renders_known_cost() {
         let r = resolve_role("researcher").unwrap();
         let h = format_handoff(
             r,
             5,
-            "claude",
+            "claude-code-subagent",
             "b".repeat(64).as_str(),
             "2026-08-02T00:00:00Z",
-            None,
+            Some(0.0031),
             "body",
             "- `+` new",
         );
-        assert!(h.contains("cost_usd: null"));
+        assert!(h.contains("cost_usd: 0.003100"));
         assert!(validate_handoff(&h).is_ok());
     }
 
@@ -419,7 +354,7 @@ mod tests {
         let good = format_handoff(
             r,
             109,
-            "stub",
+            "claude-code-subagent",
             "c".repeat(64).as_str(),
             "t",
             Some(0.1),
@@ -441,7 +376,7 @@ mod tests {
         assert!(validate_handoff(&no_delta).is_err());
 
         // Empty body (frontmatter + delta only, heading but no findings).
-        let empty_body = "---\nrole: researcher\nsession: 109\nagent: stub\n\
+        let empty_body = "---\nrole: researcher\nsession: 109\nagent: claude-code-subagent\n\
              source-sha: cccc\ncaptured: t\ncost_usd: 0.1\n---\n\n\
              # Researcher handoff — session 109\n\n## Handoff Delta\n- `+` new\n";
         assert!(validate_handoff(empty_body).is_err());
@@ -457,7 +392,6 @@ mod tests {
         assert_eq!(a, b);
         assert_eq!(a.len(), 64);
         assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
-        // Known vector for "hello".
         assert_eq!(
             a,
             "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"

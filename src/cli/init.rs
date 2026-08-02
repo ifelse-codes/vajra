@@ -588,6 +588,15 @@ fn files(
             TPL_PROMPT_ONBOARD,
         ));
     }
+    // S109 (DECISION-007): scaffold the fleet's named roles as native Claude Code subagents,
+    // rendered from the ONE canonical source (`fleet::ROLES`) — the same move as scaffolding
+    // `.claude/settings.json` + hooks (S44). Skip-if-present like every other scaffolded file.
+    for role in crate::fleet::ROLES {
+        entries.push(f(
+            &role.subagent_rel(),
+            &crate::fleet::render_subagent_definition(role),
+        ));
+    }
     entries
 }
 
