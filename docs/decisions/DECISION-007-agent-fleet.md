@@ -1,4 +1,4 @@
-# DECISION-007 — agent fleet, slice 1: a named role dispatched as a governed step
+# DECISION-007 — agent fleet, slice 1: a named role as a governed Claude Code subagent
 
 - **Date:** 2026-08-02 (Session 109)
 - **Status:** ACCEPTED
@@ -6,7 +6,7 @@
 - **Relates to:** DECISION-001 (governance is the product), DECISION-005 (autopilot trust — "leave a
   team of agents working, come back, trust the result"), and the S103 fleet-vs-gates fork (opened at
   the founder pivot; recommended shape = **both**). This decision resolves that fork for the FIRST
-  slice only and locks the dispatch + handoff mechanism it introduces.
+  slice only and locks the subagent dispatch + handoff mechanism it introduces.
 
 ---
 
@@ -22,75 +22,76 @@ fleet) is the right next leg — but a fleet is many sessions. This decision de-
 ## The fork, resolved (first slice only)
 
 **Both.** The fleet is **real named agents running behind the existing trust gates** — not a
-gate-only pipeline, and not a fleet that routes around governance. A named role is a genuine scoped
-agent invocation; the gates, receipts, and ledger already built stay the hidden trust engine. This
-decision commits only to slice 1 (**one** role, the Researcher); it does **not** design the whole
-fleet (parallelism, a second role, multi-stage orchestration are all explicitly deferred).
+gate-only pipeline, and not a fleet that routes around governance. This decision commits only to
+slice 1 (**one** role, the Researcher); it does **not** design the whole fleet (parallelism, a second
+role, multi-stage orchestration are all explicitly deferred).
 
-## Decision
+## Decision — the fleet is native Claude Code subagents, scaffolded + governed by Vajra
 
-### 1. Dispatch mechanism — ride `vajra claude`, no 8th command
+A named role is a **native Claude Code subagent** (a `.claude/agents/<name>.md` definition the
+running agent dispatches via its Task tool), NOT a fresh `claude -p` subprocess Vajra spawns.
 
-A named role is dispatched by an **existing** command surface:
+**Why the subagent model (chosen over a `claude -p` subprocess):** Vajra is an external binary — it
+cannot *call* a Claude Code subagent (those exist only inside a running agent session). So Vajra's
+role for a named agent is not "spawn the process" but **scaffold the role + govern its handoff** —
+which is exactly what Vajra already is (the coach, not the coder; DECISION-001) and exactly how it
+already scaffolds `.claude/settings.json` + hooks (S44). Concretely the subagent model:
 
-```
-vajra claude --role <name> -p "<the task for this role>"
-```
+- **inherits the live session's auth** — no separate headless login. (S109 proved the alternative's
+  cost: a `claude -p` subprocess hit a "Not logged in" headless-auth wall that only the human can
+  clear. The subagent path has no such wall.)
+- **is the native Claude Code idiom** — `.claude/agents/*.md` is the built-in "named role with a
+  scoped prompt" mechanism; it maps 1:1 to this decision.
+- **meters for free** — a subagent's cost rolls into the parent session's receipt (`meter`'s
+  `subagent_dir` already accounts for it).
 
-- `--role <name>` is **consumed by vajra** and stripped before the remaining args reach `claude`
-  (max-7-commands rule intact; `vajra --help` still lists 7). An unknown role **fails closed**
-  (exit non-zero) — vajra never dispatches a role it cannot scope.
-- The role's **system prompt** is built from **one canonical source** — `src/fleet/mod.rs`, a single
-  `Role { name, system_prompt, handoff_rel }` per role (the S104/S99 no-drift rule: role text lives
-  in exactly one place). It is injected via Claude Code's real `--append-system-prompt` flag, so the
-  role scopes the agent without vajra forking a prompt template.
-- The call runs headless (`-p` + `--output-format json`) so the S78 result-stream tee captures the
-  **real `total_cost_usd`** — a named role's cost is metered like any other run.
+Vajra's two jobs, both locked here:
 
-### 2. The agent command is injectable — the stub path (fail-closed, paid-free)
+### 1. Scaffold the role as a subagent — one canonical source, rides `vajra init`
 
-The dispatched command is `claude` by default, overridable by **`VAJRA_AGENT_CMD`**. A test/CI run
-sets it to a fake command that emits a canned `type:"result"` JSON line. This is what CI and the
-close-gate exercise — **a gate must never depend on a paid call**. If the agent command is missing
-from `PATH`, dispatch **fails closed**. The **live paid call is the headline proof** (item below),
-captured as an artifact and re-checked by the cold reviewer — never the gate's dependency.
+`vajra init` writes `.claude/agents/<name>.md` for every role in `fleet::ROLES`, rendered by
+`fleet::render_subagent_definition` (YAML frontmatter `name`/`description`/read-only `tools` + the
+role's system prompt + a pointer to the governed handoff). The role text lives in **exactly one
+place** (`fleet::ROLES` — the S104/S99 no-drift rule); the subagent file is a *rendering* of it, the
+same way `.claude/settings.json` is scaffolded. The role source is **vendor-neutral**; only the
+rendering is Claude-specific (v1 is Claude-first — ADR-0001 — so this matches the existing posture).
 
-### 3. The handoff contract — what a role writes, where, how it is consumed, how the delta is tracked
+### 2. Govern the handoff — rides `vajra next`, fail-closed
 
-A dispatched role produces exactly one **governed handoff artifact**:
+The subagent returns a findings brief. `vajra next --role <name> --from <findings>` (or `--from -`
+for stdin) wraps it into a **governed handoff**:
 
 - **Where:** `.ai/handoffs/session-{NN}-{role}.md` — the `.ai/` spine **is** the memory
-  (`feedback-map-concepts-to-vajra`); no new store, no database, no 8th artifact type invented.
-- **What:** YAML-style frontmatter (`role`, `session`, `agent`, `source-sha` = sha256 of the exact
-  role-scoped input, `captured` timestamp, `cost_usd` = metered or `null`) + the agent's captured
-  body + a **`## Handoff Delta`** section.
-- **How the next stage consumes it:** the frontmatter keys are the machine-readable contract; the
-  body is the human-readable finding. A malformed or empty handoff **fails closed** — an unusable
-  handoff must never read as a successful step.
-- **Delta tracking:** `## Handoff Delta` records what this handoff adds **relative to the prior
-  stage** (for slice 1, the prior stage is the session prompt / Analyst's WHAT — there is no prior
-  handoff, so the delta states "new: first researcher handoff for this session" plus the byte count).
-  This makes the handoff a *tracked* artifact with a recorded delta, not an opaque dump.
+  (`feedback-map-concepts-to-vajra`); no new store, no 8th artifact type, no 8th command.
+- **What:** frontmatter (`role`, `session`, `agent`, `source-sha` = sha256 of the exact findings,
+  `captured` timestamp, `cost_usd` = `null` for slice 1 — the subagent cost is in the session
+  receipt, disclosed in the summary) + the findings body + a **`## Handoff Delta`** section.
+- **Delta tracking:** `## Handoff Delta` records what this handoff adds vs the prior stage (slice 1
+  has no prior handoff — the prior stage is the session prompt / Analyst's WHAT — so it records
+  "new" + byte count; a re-run records the size change against the existing handoff).
+- **Fail-closed:** an unknown role, a missing/empty findings file, or a handoff that would not
+  validate all exit non-zero — an unusable handoff never reads as a successful step. The subagent is
+  told NOT to author the frontmatter; Vajra owns the hash, timestamp, and delta.
 
 ## Alternatives considered
 
-- **A new `vajra research` / `vajra agent` top-level command** — rejected: breaks the max-7 rule
-  (DECISION design-rule) for no capability a flag can't carry; an 8th command needs a separate
-  explicit founder approval.
-- **A new handoff store (DB / `.vajra/` dir / JSON index)** — rejected: `feedback-map-concepts-to-
-  vajra` says map to Vajra's own mechanism first. `.ai/` already IS the memory; a markdown artifact
-  under `.ai/handoffs/` reuses it.
-- **Designing the whole fleet now** (roles table, parallel dispatch, orchestration) — rejected as
-  scope creep; the named key risk of this session. One agent, one handoff, one live call.
+- **A `claude -p` subprocess Vajra spawns** (`vajra claude --role`, agent injectable via
+  `VAJRA_AGENT_CMD`) — built first this session, then **replaced** (founder call): it needs headless
+  credentials Vajra cannot supply (the S109 auth wall), and it makes Vajra a process-spawner rather
+  than a coach. It could return later as an *unattended, no-parent-session* mode, but it is **not
+  built** and is out of scope here.
+- **A new `vajra research` / `vajra agent` top-level command** — rejected: breaks the max-7 rule for
+  a capability existing commands already carry (`init` scaffolds, `next` governs).
+- **A new handoff store (DB / `.vajra/` dir / JSON index)** — rejected: `.ai/` already IS the memory.
+- **Designing the whole fleet now** — rejected as scope creep (the named key risk of S109).
 
 ## Consequences
 
-- **Locked:** fleet = real named agents behind the existing gates; dispatch via `vajra claude
-  --role`; handoff = `.ai/handoffs/session-{NN}-{role}.md` with the frontmatter + `## Handoff Delta`
-  contract; agent command injectable via `VAJRA_AGENT_CMD`; unknown role / missing cmd /
-  malformed handoff all fail closed.
-- **Deferred (out of scope, need their own decision):** a second/third role, parallel dispatch,
-  multi-stage orchestration (role N's handoff feeding role N+1's prompt automatically), cross-agent
-  runtimes, a full unattended paid ladder run.
-- **Reversible?** The dispatch flag and handoff format are additive; nothing existing changes
-  behavior. A later decision can extend the handoff contract without breaking slice-1 artifacts.
+- **Locked:** fleet = native Claude Code subagents behind the existing gates; `vajra init` scaffolds
+  `.claude/agents/<name>.md` from the canonical `fleet::ROLES`; `vajra next --role <name> --from`
+  governs the findings into `.ai/handoffs/session-{NN}-{role}.md` with the frontmatter + `## Handoff
+  Delta` contract; unknown role / missing-or-empty findings / malformed handoff all fail closed.
+- **Deferred (need their own decision):** a second/third role, parallel dispatch, multi-stage
+  orchestration, per-subagent cost in the handoff, an unattended `claude -p` dispatch mode.
+- **Reversible?** Additive — nothing existing changes behavior. A later decision can extend the
+  handoff contract or add the unattended dispatch mode without breaking slice-1 artifacts.

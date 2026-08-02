@@ -44,54 +44,62 @@ The fleet is a new architectural direction, so the Architect station applies:
 - design-significant: yes
 - **Rests on `docs/decisions/DECISION-007-agent-fleet.md`** (authored this session) and
   `docs/decisions/DECISION-001-governance-as-product.md` / `DECISION-005-autopilot-trust.md`. The
-  fleet is a new architectural direction (real named agents, a dispatch surface, a handoff
-  artifact), so the Architect station applies. **Shape and why, not the alternative:** dispatch
-  RIDES `vajra claude --role <name>` (vajra consumes `--role`, strips it before argv) rather than a
-  new top-level command — the max-7-commands design rule forbids an 8th for a capability a flag
-  carries. The agent command is injectable via `VAJRA_AGENT_CMD` so the fail-closed gate + CI run a
-  **stub** (a gate must never depend on a paid call), while the headline proof is one real paid
-  Researcher call. The handoff lands in `.ai/handoffs/session-NN-researcher.md` — the `.ai/` spine
-  IS the memory (`feedback-map-concepts-to-vajra`), so no new store is invented — carrying the
-  frontmatter contract + a `## Handoff Delta` recorded against the prior stage. DECISION-007 records
-  the full rationale and the deferred scope (one agent, one handoff — the whole fleet stays out).
+  fleet is a new architectural direction (real named agents behind the gates), so the Architect
+  station applies. **Shape and why, not the alternative:** the role is a **native Claude Code
+  subagent** — `vajra init` scaffolds `.claude/agents/researcher.md` from the ONE canonical source
+  (`fleet::ROLES`, no drift), the live session runs it via the Task tool, and `vajra next --role
+  researcher --from <findings>` governs its brief into a delta-tracked, validated handoff at
+  `.ai/handoffs/session-NN-researcher.md` (the `.ai/` spine IS the memory —
+  `feedback-map-concepts-to-vajra` — so no new store). This rides existing commands (init scaffolds,
+  next governs) — no 8th command. **Why subagent over a `claude -p` subprocess** (built first, then
+  replaced, founder call): Vajra is an external binary that cannot *call* a subagent, so its job is
+  to scaffold the role + govern the handoff — exactly the coach role it already plays (S44 scaffolds
+  `.claude/settings.json`); the subagent also inherits the session's auth (no headless login wall)
+  and meters for free. DECISION-007 records the full rationale + the deferred scope (one agent, one
+  handoff — the whole fleet stays out).
 
 ## Scope (max 1 story · ≤3 files per commit · ~2h cap)
+
+> **Mechanism redirect (founder call, mid-S109):** the first build spawned a `claude -p` subprocess
+> (`vajra claude --role`) — it hit a headless "Not logged in" auth wall only the human can clear.
+> Founder chose **subagent-only**: the role is a **native Claude Code subagent** Vajra scaffolds +
+> governs; there is **no separate paid `claude -p` call** (the subagent runs inside the live session,
+> inheriting its auth). Items below reflect the redirect; the original text is preserved in the S109
+> summary's fidelity map.
 
 **In:**
 1. **`DECISION-007` (the fleet slice-1 design)** — the decision record above. Existence-gated by the
    Architect gate (a made-up id blocks).
-2. **One named-agent dispatch surface** — `vajra` can run the Researcher role with a **role-scoped
-   prompt** and capture a **governed handoff artifact**. **Ride an existing command surface** (e.g.
-   `vajra claude --role researcher` or an extension of `vajra next`) — **do NOT add an 8th top-level
-   command** (max-7 rule; an 8th needs an explicit separate founder approval). The role prompt is built
-   from one canonical source (no drift, cf. S104/S99); the handoff is a tracked artifact with a
-   recorded delta to the prior stage.
-3. **The live proof — one real paid Researcher call.** Dispatch a genuine Researcher sub-agent (a
-   `claude -p`-style headless one-shot with a role-scoped prompt), capture its output as the governed
-   handoff, and meter its real cost (reuse the S78 result-stream tee). **Hard budget cap** it (a low
-   `VAJRA`-style cap / a few cents) and gate the paid call at run time — it does not fire in CI.
-4. **A falsifiable smoke** (extend `scripts/install-smoke.sh` or a sibling) that proves the plumbing
-   with a **stub agent** (e.g. `VAJRA_AGENT_CMD`-style injection → a fake command, **no paid call**):
-   dispatch → handoff artifact exists + well-formed → gate/delta applied; **fail closed** if the agent
-   is missing, the handoff is absent/malformed, or the role is unknown. The stub path is what CI + the
-   close-gate run (a gate must never depend on a paid call); the **live paid call (item 3) is the
-   headline proof**, captured as an artifact + re-checked by the cold reviewer.
+2. **Scaffold the role as a native subagent** — `vajra init` writes `.claude/agents/researcher.md`
+   from the ONE canonical source (`fleet::ROLES`, no drift, cf. S104/S99). **Rides `vajra init`** — no
+   8th top-level command.
+3. **Govern the handoff** — `vajra next --role researcher --from <findings>` wraps the subagent's
+   brief into a **delta-tracked, validated handoff** at `.ai/handoffs/session-NN-researcher.md`
+   (frontmatter + body + `## Handoff Delta`; `.ai/` IS the memory — no new store). **Rides `vajra
+   next`** — no 8th command.
+4. **The live proof — one real Researcher subagent run.** Dispatch a genuine Researcher subagent (the
+   Task tool, scoped by the scaffolded definition), then govern its brief into the handoff — captured
+   as a session artifact + re-checked by the cold reviewer. Its cost rolls into the session receipt.
+5. **A falsifiable smoke** (`scripts/fleet-smoke.sh`) proving scaffold + govern with plain files
+   (**no paid call, no live agent**): `vajra init` scaffolds the subagent def → govern findings →
+   handoff exists + well-formed + delta applied; **fail closed** on unknown role · missing `--from` ·
+   missing/empty findings. A skipped-and-green is a REJECT.
 
 **Out (defer):** parallel agents · a second/third named role · full multi-stage orchestration ·
-cross-agent runtimes · a full paid **ladder / long unattended** run (only ONE small scoped call is in) ·
-an 8th top-level command.
+cross-agent runtimes · an unattended `claude -p` dispatch mode · an 8th top-level command.
 
 ## Acceptance criteria
 
 1. `DECISION-007` exists under `docs/decisions/`, cited by a non-placeholder `## Design`, and passes
    the Architect gate (`vajra next --check-design 109` / `--advance`).
-2. `vajra` dispatches the **Researcher** role with a role-scoped prompt and writes a **governed handoff
-   artifact**, on an existing command surface (no 8th top-level command; `vajra --help` still lists 7).
-   Proven **two ways**: (a) a **real, small, paid Researcher call** (live `claude -p`-style) whose output
-   becomes the handoff and whose real cost is metered — captured as an artifact; (b) a **stub agent** for
-   CI + the fail-closed gate (no paid call).
-3. The smoke **exits non-zero** on: unknown role · missing agent command · absent/malformed handoff
-   (proven via the stub path). A skipped-and-green is a REJECT.
+2. Vajra scaffolds the **Researcher** as a native Claude Code subagent (`vajra init` →
+   `.claude/agents/researcher.md`, from the canonical source) AND governs a subagent brief into a
+   **delta-tracked, validated handoff** (`vajra next --role researcher --from`), on existing command
+   surfaces (no 8th top-level command; `vajra --help` still lists 7). Proven by (a) a **real
+   Researcher subagent run** whose brief becomes the handoff — captured as an artifact; (b) the
+   fail-closed smoke (no paid call, no live agent).
+3. The smoke **exits non-zero** on: unknown role · missing `--from` · missing/empty findings. A
+   skipped-and-green is a REJECT.
 4. `cargo test --lib` green; CI green both OS; the 8-station gate logic and receipts unchanged in
    behavior (new code is additive).
 5. `scripts/verify-session-109.sh` → all green (incl. a fail-closed probe); `scripts/demo-session-109.sh`
@@ -106,10 +114,11 @@ an 8th top-level command.
 - **Map to Vajra's own mechanism first** (`feedback-map-concepts-to-vajra`): the prompt IS the spec,
   `.ai/` IS the memory, stations already name roles — reuse them; don't invent a new store/artifact by
   reflex. If a new artifact is unavoidable, justify it in `DECISION-007`.
-- **One small paid call IS the headline proof** (founder decision, S108 follow-up) — hard budget-cap it
-  (a few cents / a low `VAJRA` cap), gate the paid call at run time, and keep a stub path so CI + the
-  close-gate never depend on spend. This is the first paid session since S103; a *full* long/unattended
-  paid run stays the founder's own step (S103 pivot). Capture the real receipt (S78 tee) in the summary.
+- **A real Researcher subagent run IS the headline proof** (founder redirect, mid-S109 — supersedes
+  the S108-follow-up "paid `claude -p` call"). The subagent runs inside the live session (no headless
+  auth wall, no separate paid call); its cost rolls into the session receipt (disclose the session
+  total in the summary). The fail-closed smoke stays paid-free so CI + the close-gate never depend on
+  a live agent.
 - Keep it to **one agent, one handoff** — resist designing the whole fleet. Scope creep here is the
   named key risk.
 - S110 is the next mandatory NO-CODE ground truth — leave the tree green and the counter honest.
