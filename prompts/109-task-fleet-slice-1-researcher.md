@@ -39,6 +39,22 @@ The fleet is a new architectural direction, so the Architect station applies:
   stage consumes it, how the delta is tracked). Keep it to the one first-slice decision — do NOT design
   the whole fleet.
 
+## Design (the Architect gate — recorded marker + spine-citing rationale)
+
+- design-significant: yes
+- **Rests on `docs/decisions/DECISION-007-agent-fleet.md`** (authored this session) and
+  `docs/decisions/DECISION-001-governance-as-product.md` / `DECISION-005-autopilot-trust.md`. The
+  fleet is a new architectural direction (real named agents, a dispatch surface, a handoff
+  artifact), so the Architect station applies. **Shape and why, not the alternative:** dispatch
+  RIDES `vajra claude --role <name>` (vajra consumes `--role`, strips it before argv) rather than a
+  new top-level command — the max-7-commands design rule forbids an 8th for a capability a flag
+  carries. The agent command is injectable via `VAJRA_AGENT_CMD` so the fail-closed gate + CI run a
+  **stub** (a gate must never depend on a paid call), while the headline proof is one real paid
+  Researcher call. The handoff lands in `.ai/handoffs/session-NN-researcher.md` — the `.ai/` spine
+  IS the memory (`feedback-map-concepts-to-vajra`), so no new store is invented — carrying the
+  frontmatter contract + a `## Handoff Delta` recorded against the prior stage. DECISION-007 records
+  the full rationale and the deferred scope (one agent, one handoff — the whole fleet stays out).
+
 ## Scope (max 1 story · ≤3 files per commit · ~2h cap)
 
 **In:**
