@@ -89,8 +89,10 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
   (installable) is COMPLETE.**
 - **Next = S109 — CODE: fleet slice 1 — one real named agent (Researcher) as a governed step** (founder
   pick A, "start the fleet"): dispatch one named role with a role-scoped prompt + delta-tracked handoff,
-  proven with a stub agent (no paid call); design-significant → author `DECISION-007`; ride an existing
-  command (no 8th). Prompt: `prompts/109-task-fleet-slice-1-researcher.md`. **New chat.**
+  proven by **one real, small, paid Researcher call** (founder S108 follow-up: real, not dry — stub path
+  kept for CI + the fail-closed gate); design-significant → author `DECISION-007`; ride an existing
+  command (no 8th). **First paid session since S103** (small, hard-capped). Prompt:
+  `prompts/109-task-fleet-slice-1-researcher.md`. **New chat.**
 - **S110 = next mandatory NO-CODE ground truth** (lead lens: is v0.1 shippable to a stranger — proven by
   an instrument, not a feeling — and is the fleet advancing or just labelled?).
 
