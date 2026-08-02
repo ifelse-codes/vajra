@@ -22,8 +22,9 @@ long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) �
 
 Between sessions. **Next = S109 — CODE: fleet slice 1 — one real named agent (Researcher) as a governed
 step** (founder pick A, "start the fleet"): dispatch one named role with a role-scoped prompt +
-delta-tracked handoff, proven with a stub agent (no paid call); design-significant → author
-`DECISION-007`; ride an existing command (no 8th). Brief: `prompts/109-task-fleet-slice-1-researcher.md`.
+delta-tracked handoff, proven by **one real, small, paid Researcher call** (founder S108 follow-up: real,
+not dry — stub path kept for CI); design-significant → author `DECISION-007`; ride an existing command
+(no 8th). Brief: `prompts/109-task-fleet-slice-1-researcher.md`.
 **New chat** for S109.
 
 ## Always-True Reminders

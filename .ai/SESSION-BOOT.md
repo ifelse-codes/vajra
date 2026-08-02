@@ -28,11 +28,12 @@
 ## Next Session
 - **Number:** 109 — **CODE: fleet slice 1 — one real named agent (Researcher) as a governed step**
   (founder pick A, "start the fleet"). Dispatch one named role with a role-scoped prompt +
-  delta-tracked handoff, proven with a **stub agent** (no paid call); **design-significant** → author
-  `DECISION-007`; **ride an existing command (no 8th)**. Prompt:
-  `prompts/109-task-fleet-slice-1-researcher.md`.
-- **Guardrail:** max 7 top-level commands — an 8th needs a separate explicit founder "yes". No paid run
-  required (prove plumbing with a stub); a real paid Researcher run is deferred + founder-gated.
+  delta-tracked handoff, proven by **one real, small, paid Researcher call** (founder S108 follow-up:
+  real, not dry — stub path kept for CI); **design-significant** → author `DECISION-007`; **ride an
+  existing command (no 8th)**. Prompt: `prompts/109-task-fleet-slice-1-researcher.md`.
+- **Guardrail:** max 7 top-level commands — an 8th needs a separate explicit founder "yes". **One small
+  paid Researcher call IS the headline proof** (hard-capped, gated at run; stub path keeps CI paid-free)
+  — the first paid session since S103; a *full* long/unattended paid run stays the founder's own step.
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S109.
