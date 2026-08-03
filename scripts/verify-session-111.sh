@@ -34,29 +34,66 @@ run_check "cargo-clippy"  cargo clippy --all-targets -- -D warnings
 # --- the fail-closed smoke from S109 must still hold (this session touches no dispatch code) --------
 run_check "fleet-smoke"   bash scripts/fleet-smoke.sh
 
-# --- the dispatch-wire evidence trail exists and says what it claims --------------------------------
+# --- the dispatch-wire evidence trail exists AND cross-references, not a self-referential grep -------
+# A single copied .meta.json is trivially hand-typed. The real check: the parent session's own
+# tool-call record and the subagent's own meta.json are TWO SEPARATE Claude-Code-written files that
+# must agree on the same random tool-call ID — that's much harder to fake than one JSON blob.
 check_dispatch_evidence() {
   local RUN_NOTE="sessions/session-111-artifacts/researcher-run-note.md"
   local META="sessions/session-111-artifacts/researcher-subagent-meta.json"
+  local PARENT="sessions/session-111-artifacts/researcher-parent-tooluse.json"
+  local TRANSCRIPT="sessions/session-111-artifacts/researcher-subagent-transcript.jsonl"
   local BRIEF="sessions/session-111-artifacts/researcher-subagent-brief.md"
   local HANDOFF=".ai/handoffs/session-111-researcher.md"
 
-  [ -f "$RUN_NOTE" ] || { echo "missing $RUN_NOTE"; return 1; }
-  [ -f "$META" ]     || { echo "missing $META"; return 1; }
-  [ -f "$BRIEF" ]    || { echo "missing $BRIEF"; return 1; }
-  [ -f "$HANDOFF" ]  || { echo "missing $HANDOFF"; return 1; }
+  for f in "$RUN_NOTE" "$META" "$PARENT" "$TRANSCRIPT" "$BRIEF" "$HANDOFF"; do
+    [ -f "$f" ] || { echo "missing $f"; return 1; }
+  done
 
-  # The on-disk proof: Claude Code's OWN meta.json for the fresh-session run must record
-  # agentType "researcher" — the exact `name:` key from the scaffolded subagent definition.
-  grep -q '"agentType"[[:space:]]*:[[:space:]]*"researcher"' "$META" \
-    || { echo "meta.json does not record agentType=researcher"; return 1; }
+  command -v python3 >/dev/null 2>&1 || { echo "python3 required for cross-reference check"; return 1; }
+
+  python3 - "$META" "$PARENT" "$TRANSCRIPT" <<'PYEOF' || return 1
+import json, sys
+meta_path, parent_path, transcript_path = sys.argv[1], sys.argv[2], sys.argv[3]
+
+meta = json.load(open(meta_path))
+if meta.get("agentType") != "researcher":
+    print(f"meta.json agentType is {meta.get('agentType')!r}, not 'researcher'"); sys.exit(1)
+tool_use_id = meta.get("toolUseId")
+if not tool_use_id:
+    print("meta.json has no toolUseId to cross-reference"); sys.exit(1)
+
+parent = json.load(open(parent_path))
+if not isinstance(parent, list) or not parent:
+    print("parent tool-use record is empty or malformed"); sys.exit(1)
+entry = parent[0]
+tool_use = entry.get("tool_use", {})
+if tool_use.get("id") != tool_use_id:
+    print(f"parent tool_use id {tool_use.get('id')!r} != subagent meta toolUseId {tool_use_id!r}"); sys.exit(1)
+if tool_use.get("input", {}).get("subagent_type") != "researcher":
+    print("parent tool_use input.subagent_type is not 'researcher'"); sys.exit(1)
+
+# The raw transcript must be real Claude Code JSONL (an assistant line with a model + usage), not a stub.
+found_usage = False
+for line in open(transcript_path):
+    line = line.strip()
+    if not line:
+        continue
+    v = json.loads(line)
+    if v.get("type") == "assistant" and v.get("message", {}).get("usage"):
+        found_usage = True
+if not found_usage:
+    print("subagent transcript has no assistant line with real usage data"); sys.exit(1)
+
+print("cross-reference OK: parent tool_use.id == subagent meta.toolUseId == " + tool_use_id)
+PYEOF
 
   # The run note must disclose BOTH halves honestly: the same-session negative result AND the
   # fresh-session positive result — a one-sided write-up would be the new fakest-green.
   grep -q "Agent type 'researcher' not found" "$RUN_NOTE" \
     || { echo "run note omits the same-session negative result"; return 1; }
-  grep -qi "agentType.*researcher" "$RUN_NOTE" \
-    || { echo "run note omits the fresh-session on-disk proof"; return 1; }
+  grep -qi "toolUseId" "$RUN_NOTE" \
+    || { echo "run note omits the cross-reference proof"; return 1; }
 
   # The handoff is a real, validated fleet handoff (same contract as S109), governed from the
   # ACTUAL captured brief — not a stub.
@@ -64,14 +101,12 @@ check_dispatch_evidence() {
   grep -q "^session: 111" "$HANDOFF" || { echo "handoff missing session"; return 1; }
   grep -Eq "^source-sha: [0-9a-f]{64}$" "$HANDOFF" || { echo "handoff source-sha not 64-hex"; return 1; }
 
-  # Cost: the checked reason must be documented in code, not just prose — the fleet module's own
-  # doc-comment must cite the sample size that grounds the "null" decision.
-  grep -q "49 real subagent" src/fleet/mod.rs \
-    || { echo "fleet::mod.rs cost doc-comment does not cite the checked sample"; return 1; }
-
   return 0
 }
 run_check "dispatch-wire-evidence" check_dispatch_evidence
+
+# --- cost: a REAL, re-runnable scan (not a doc-comment string match) — asserts null stays honest ------
+run_check "subagent-cost-check" bash scripts/check-subagent-cost-fields.sh --assert-null
 
 # --- DECISION-007 carries the S111 addendum (design record, not just session prose) ------------------
 run_check "decision-007-addendum" grep -q "S111 addendum" docs/decisions/DECISION-007-agent-fleet.md

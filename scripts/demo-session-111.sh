@@ -68,12 +68,11 @@ if [ -f "$HANDOFF" ]; then
   sed -n '1,7p' "$HANDOFF" | sed 's/^/  /'
 else no "no handoff at $HANDOFF"; exit 1; fi
 
-header "4 · Cost — checked, not guessed: 49 real subagent transcripts, zero carry a dollar figure"
-label "Live: grep across every local subagent JSONL for total_cost_usd / cost_usd"
-if grep -q "49 real subagent" src/fleet/mod.rs; then
-  ok "the checked sample size is cited in the code's own doc-comment (not just session prose)"
-  grep -A2 "S111 checked this" src/fleet/mod.rs | sed 's/^/  /'
-else no "cost doc-comment missing the checked citation"; exit 1; fi
+header "4 · Cost — checked with a re-runnable script, not a doc-comment claim"
+label "Live: scripts/check-subagent-cost-fields.sh --assert-null (scans every local subagent JSONL)"
+if bash scripts/check-subagent-cost-fields.sh --assert-null | sed 's/^/  /'; then
+  ok "zero subagent transcripts carry total_cost_usd/cost_usd — null stays honest, and re-checkable"
+else no "a subagent transcript now carries a cost key — the null claim is stale, re-open the finding"; exit 1; fi
 
 header "5 · FAIL-CLOSED governance from S109 is untouched — still holds"
 label "Live: scripts/fleet-smoke.sh"
@@ -93,7 +92,7 @@ printf "  %-52s %s\n" "scaffold .claude/agents/researcher.md (unchanged)"      "
 printf "  %-52s %s\n" "same-session hot-reload of new .claude/agents files"    "CONFIRMED absent (real finding)"
 printf "  %-52s %s\n" "fresh-session dispatch resolves by name (on-disk proof)" "SHIPPED (S111)"
 printf "  %-52s %s\n" "governed handoff from the real captured brief"          "SHIPPED"
-printf "  %-52s %s\n" "cost_usd: null"                                        "CHECKED reason (49/49 files)"
+printf "  %-52s %s\n" "cost_usd: null"                                        "CHECKED, re-runnable (0 files w/ cost)"
 printf "  %-52s %s\n" "fail-closed smoke (unknown role/--from/empty findings)" "STILL HOLDS"
 printf "  %-52s %s\n" "no 8th top-level command"                              "TRUE (help = 7)"
 printf "\n"
