@@ -37,17 +37,41 @@ Live transcript (verbatim):
 Done (0 tool uses · 6.7k tokens · 30s)
 ```
 
-**The on-disk proof (not a screenshot, the actual JSONL record Claude Code itself wrote):**
-`~/.claude/projects/<scratch-repo-slug>/<session-uuid>/subagents/agent-a65d477773e0d2269.meta.json`:
-```json
-{"agentType":"researcher","description":"Research Rust anyhow crate","toolUseId":"toolu_01BUEtCmRmk3psxJ349LMY9H"}
-```
-`agentType: "researcher"` is Claude Code's own record of which subagent definition it resolved and
-ran — the exact `name:` key from the scaffolded `.claude/agents/researcher.md` frontmatter. This is
-the mechanism: Claude Code's Task tool auto-discovers project-level `.claude/agents/<name>.md` files
-at session start and offers/dispatches them by their `name:` field — not a Vajra-side string match,
-not a duplicated prompt. Copies of the meta.json and the full findings brief are in this directory
-(`researcher-subagent-meta.json`, `researcher-subagent-brief.md`).
+**The on-disk proof — and why it isn't just a hand-typed JSON blob.** A single copied `.meta.json`
+would be trivial to fake by typing the same string. So the proof here is a **cross-reference between
+two independently-written files that Claude Code itself produced, in two different directories, that
+must agree on a random-looking ID neither Vajra nor this write-up chose**:
+
+1. **The parent session's own transcript** (`sessions/session-111-artifacts/researcher-parent-tooluse.json`,
+   extracted verbatim from `~/.claude/projects/<scratch-repo-slug>/7b14e2d2-…jsonl`) records the actual
+   tool call Claude Code made:
+   ```json
+   {"type": "tool_use", "id": "toolu_01BUEtCmRmk3psxJ349LMY9H", "name": "Agent",
+    "input": {"description": "Research Rust anyhow crate", "subagent_type": "researcher", ...}}
+   ```
+   — `subagent_type: "researcher"` is the literal parameter Claude Code's own dispatcher resolved,
+   at `timestamp: "2026-08-03T11:57:10.576Z"`, `sessionId: "7b14e2d2-…"`.
+2. **The subagent's own metadata file**, written by Claude Code into a *separate* `subagents/`
+   subdirectory (`sessions/session-111-artifacts/researcher-subagent-meta.json`):
+   ```json
+   {"agentType":"researcher","description":"Research Rust anyhow crate","toolUseId":"toolu_01BUEtCmRmk3psxJ349LMY9H"}
+   ```
+   — `toolUseId` here is the **exact same ID** as the parent's tool-call `id` above. Two files, written
+   by two different parts of Claude Code's own runtime, independently agree that tool call
+   `toolu_01BUEtCmRmk3psxJ349LMY9H` both **requested** `subagent_type: "researcher"` and **resolved to**
+   `agentType: "researcher"`. Forging this would mean fabricating two matching random IDs across two
+   files in Claude Code's exact internal JSONL schema — not typing one JSON line.
+3. **The full raw subagent transcript** (`sessions/session-111-artifacts/researcher-subagent-transcript.jsonl`,
+   copied byte-for-byte, sha256 `76116db0d4cc8bbe4e84423bcb160e8f1268e916b0239831f0adabb539aabf80`) —
+   the real 2-line JSONL Claude Code wrote for the subagent's own turn (model `claude-opus-4-8`, real
+   `usage` token counts, its own `uuid`/`sessionId`/`timestamp` fields) — reproducible evidence, not a
+   summary of it.
+
+`agentType: "researcher"` and `subagent_type: "researcher"` are the exact `name:` key from the
+scaffolded `.claude/agents/researcher.md` frontmatter. This is the mechanism, confirmed by two
+cross-referencing files, not asserted in prose: Claude Code's Task tool auto-discovers project-level
+`.claude/agents/<name>.md` files at session start and dispatches them by that `name:` field — not a
+Vajra-side string match, not a duplicated prompt.
 
 ## Step 3 — governed handoff, from the real brief
 The real brief text above was fed to the existing S109 governance path, unchanged:
@@ -56,16 +80,21 @@ vajra next --role researcher --from sessions/session-111-artifacts/researcher-su
 ```
 → `.ai/handoffs/session-111-researcher.md`, `source-sha 756bdbc6…`, `fleet::validate_handoff` OK.
 
-## Cost — the null is now a CHECKED reason, not a guess
+## Cost — the null is now a CHECKED, RE-RUNNABLE reason, not a guess
 S109 recorded `cost_usd: null` and reasoned "a subagent's cost rolls into the parent session
-receipt." S111 checked this directly: every subagent JSONL on this machine — **49 files across all
-projects, including this session's own `agent-a65d477773e0d2269.jsonl`** — was grepped for
-`total_cost_usd` / `cost_usd`. **Zero of 49 contain either key.** A subagent transcript carries full
-token usage (`usage.input_tokens`, `output_tokens`, `cache_*` — confirmed present) but never a dollar
-figure. Root cause, same as S77/S78: `total_cost_usd` is only ever emitted on the terminal
-`type:"result"` line of a headless `-p` run's own stdout stream. A Task-tool subagent is not a
-separate `-p` invocation — it never produces that stream, on this session or any other sampled here.
-So `cost_usd: null` stays, but for a checked, specific, falsifiable reason: **the field structurally
-does not exist anywhere Vajra could read it**, not "unclear" and not "rolls into the receipt"
-(the token totals do roll in via `meter`'s existing `subagent_dir` folding — the dollar figure does
-not, because it never exists standalone).
+receipt." S111 checked this directly with a real, reusable script —
+`scripts/check-subagent-cost-fields.sh` — that scans every `~/.claude/projects/*/*/subagents/*.jsonl`
+on this machine (the same files `vajra meter`'s `subagent_dir` folding already reads) for
+`total_cost_usd` / `cost_usd`. This is not a claim baked into a doc-comment: it is a script anyone —
+the founder, a future session, a reviewer — can run themselves and get the same falsifiable answer.
+At the time of this session's final run it found **zero of the scanned transcripts** carry either
+key (see the script's own output in `verify-session-111.sh`'s `subagent-cost-check` step log). A
+subagent transcript carries full token usage (`usage.input_tokens`, `output_tokens`, `cache_*` —
+confirmed present in `researcher-subagent-transcript.jsonl`) but never a dollar figure. Root cause,
+same as S77/S78: `total_cost_usd` is only ever emitted on the terminal `type:"result"` line of a
+headless `-p` run's own stdout stream. A Task-tool subagent is not a separate `-p` invocation — it
+never produces that stream. So `cost_usd: null` stays, but for a checked, specific, falsifiable,
+**re-runnable** reason: the field structurally does not exist anywhere Vajra could read it, not
+"unclear" (the token totals do roll in via `meter`'s existing `subagent_dir` folding — the dollar
+figure does not, because it never exists standalone). `--assert-null` on the script turns this into a
+regression check: it will start failing the day Claude Code ever does emit a per-subagent cost.
