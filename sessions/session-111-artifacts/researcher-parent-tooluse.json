@@ -1,0 +1,21 @@
+[
+  {
+    "tool_use": {
+      "type": "tool_use",
+      "id": "toolu_01BUEtCmRmk3psxJ349LMY9H",
+      "name": "Agent",
+      "input": {
+        "description": "Research Rust anyhow crate",
+        "prompt": "Investigate what Rust's `anyhow` crate is used for. Return a concise, decision-ready findings brief covering:\n\n1. What problem it solves (the core purpose)\n2. Key features (e.g., the `anyhow::Error` type, `Result<T>` alias, `Context` trait, `bail!`/`ensure!` macros, backtraces)\n3. When to use it vs. alternatives (specifically `thiserror`, and the std library approach) \u2014 the standard \"library vs application\" guidance\n4. A minimal idiomatic code example\n5. Any notable trade-offs or caveats\n\nKeep it factual and cite the crate docs / docs.rs where relevant.",
+        "subagent_type": "researcher"
+      },
+      "caller": {
+        "type": "direct"
+      }
+    },
+    "parent_message_uuid": "9ee27920-9932-49a5-8487-4fc5ff280c28",
+    "parent_session_id": "7b14e2d2-78dd-4180-b77c-ba228470dd1b",
+    "parent_timestamp": "2026-08-03T11:57:10.576Z",
+    "parent_cwd": "/private/tmp/claude-501/-Users-suman-playground-vajra/1b2d23ec-56f5-49a0-b104-b66439d53085/scratchpad/s111-dispatch-wire-test"
+  }
+]

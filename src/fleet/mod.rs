@@ -124,8 +124,12 @@ pub fn compute_delta(prior_body: Option<&str>, new_body: &str) -> String {
 
 /// Format the governed handoff artifact (the DECISION-007 contract). Deterministic given its
 /// inputs — the timestamp is passed in so this stays pure and testable. `cost` is the subagent's
-/// metered dollars when known, else `None` (S77 honest null — a subagent's cost rolls into the
-/// parent session receipt, so slice 1 records `null` and discloses the session total in the summary).
+/// metered dollars when known, else `None`. **S111 checked this, not guessed it, with a re-runnable
+/// script** (`scripts/check-subagent-cost-fields.sh`, not a one-off count baked in here): every real
+/// subagent JSONL transcript on the checking machine was scanned — zero carry a `total_cost_usd` /
+/// `cost_usd` key. A Task-tool subagent never produces the `-p` headless result stream that field is
+/// emitted on (same root cause as S77/S78), so the figure structurally does not exist for Vajra to
+/// read — `null` is the honest, checked answer, not a gap to close.
 #[allow(clippy::too_many_arguments)]
 pub fn format_handoff(
     role: &Role,
