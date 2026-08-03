@@ -2,26 +2,31 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 110 — NO-CODE GROUND TRUTH (audits S106–S109) — COMPLETE
+## Session 111 — CODE: close the fleet's def-vs-dispatch wire — COMPLETE
 
-- **Verdict: PARTIAL.** v0.1 install confirmed **real and stranger-shippable** (4 channels live,
-  README clean — the clean win). The fleet (S109) is **real but thin**: one honest, fail-closed
-  subagent proof — not yet wired into the pipeline the instruments can see (def-vs-dispatch still two
-  facts, not one; `cost_usd: null`). Launcher dogfood 🔴 — zero `vajra claude` runs since S103 (4
-  calendar days / 6 sessions, confirmed by live `--dogfood-age`, agrees with STATE this time). 5🟢·4🟡·1🔴.
-- **No state drift found or corrected** — STATE/TASK/BOOT/ROADMAP all agreed with live git/gh reality.
-- **Meta-check:** the K-of-8 pipeline-advance counter has no unit for fleet work — flagged, not fixed
-  (NO-CODE). Report: `sessions/session-110-ground-truth.md`.
-- **Founder pick for S111: A — close the def-vs-dispatch wire** (make the live dispatch read
-  `.claude/agents/researcher.md` by name; itemize or honestly re-justify `cost_usd: null`).
+- **Verdict: SHIPPED.** Proved, on disk, that a fresh `vajra claude` session dispatches the scaffolded
+  `.claude/agents/researcher.md` subagent BY NAME — cross-referenced via matching tool-call IDs across
+  two independently-written Claude Code files (a hand-copied single JSON blob was correctly flagged as
+  too weak by a cold-review round and replaced). A real, disclosed negative result along the way: the
+  SAME live session cannot hot-reload a newly-scaffolded `.claude/agents/*.md` file — Claude Code
+  snapshots the available subagent list once, at session boot.
+- **Cost:** `cost_usd: null` kept, now for a checked, re-runnable reason —
+  `scripts/check-subagent-cost-fields.sh` scans every local subagent JSONL and finds zero carrying a
+  cost key (same root cause as S77/S78).
+- **No dispatch-path code changed** — S109 had already built it correctly; S111 supplied the missing
+  proof. verify 9/9; demo exit 0; 304 lib tests; cold review **ACCEPT** (13/14 SHIPPED, 1 PARTIAL —
+  CI-both-OS unevidenced pre-merge), attested `f98808bc…`. Report: `sessions/session-111-summary.md` +
+  `sessions/session-111-review.md`.
 
 **🔀 FOUNDER PIVOT (S103, in force):** sessions now = **finish a shippable MVP**; founder runs the
 long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B installable
-(S106+S107+S108) ✓ COMPLETE** → **A real agent fleet — S109 first slice ✓ (real but thin, per S110
-GT) → S111 closes the dispatch wire.**
+(S106+S107+S108) ✓ COMPLETE** → **A real agent fleet — S109 first slice ✓, S111 dispatch wire ✓
+CLOSED. Next: downstream handoff-consumption (S112, proposed) or a second role.**
 
-Between sessions. **Next = S111 — CODE: close the fleet's def-vs-dispatch wire** (founder pick A).
-Brief: `prompts/111-task-fleet-dispatch-wire.md`. **New chat** for S111.
+Between sessions. **Next = S112 — CODE (proposed): downstream handoff-consumption** — nothing today
+reads `.ai/handoffs/session-NN-researcher.md` automatically. Brief:
+`prompts/112-task-handoff-consumption.md` (drafted, pending founder confirmation at kickoff).
+**New chat** for S112.
 
 ## Always-True Reminders
 
@@ -33,13 +38,14 @@ Brief: `prompts/111-task-fleet-dispatch-wire.md`. **New chat** for S111.
 - **crates.io is PUBLISHED (S108): `vajractl 0.1.0` is live — the name is now BURNED (irreversible).**
   Any future crates.io action (a `0.1.1`, a yank) is still founder-gated; never `cargo publish` without
   an explicit in-chat "yes publish". `cargo login` is the founder's own step (a token — never handled by the agent).
-- **Fleet dispatch = native Claude Code subagents (DECISION-007):** Vajra scaffolds the role +
-  governs the handoff; it does NOT spawn `claude -p` (that path was tried + reverted — headless-auth
-  wall). An unattended `claude -p` mode is deferred (`ANTHROPIC_API_KEY` is the way — per the S109 handoff).
-- **S110 GT open finding, S111 must close:** def-vs-dispatch wire not proven end-to-end — the
-  reviewer's + GT's shared headline finding. S111 is scoped exactly to this.
+- **Fleet dispatch = native Claude Code subagents (DECISION-007), proven end-to-end (S111):** Vajra
+  scaffolds the role + governs the handoff; a fresh session's Task tool resolves `subagent_type`
+  against the scaffolded file by name (confirmed on disk, not asserted). It does NOT spawn `claude -p`.
+  An unattended `claude -p` mode is deferred (`ANTHROPIC_API_KEY` is the way — per the S109 handoff).
+- **Cost-null checks ride `scripts/check-subagent-cost-fields.sh`** — re-runnable, local-machine-only
+  (same limitation class as `--dogfood-age`); reuse it, don't re-derive the grep by hand.
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`) — no gate catches a miss.
-- **New session = new chat** — open a fresh chat for S111; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S112; do NOT start it here.
 - **Max 7 top-level commands** — any fleet growth rides an existing command; an 8th needs a separate founder "yes".
 - **Direction:** product = **provable agent governance** (`DECISION-001`), sold as the autopilot
   trust layer; fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
