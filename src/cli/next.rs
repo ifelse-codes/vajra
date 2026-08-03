@@ -1,7 +1,7 @@
 use anyhow::{bail, Context, Result};
 use std::env;
 use std::fs;
-use std::io::{self, BufRead, Write as _};
+use std::io::{self, BufRead, Read as _, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -10,6 +10,7 @@ use crate::architect;
 use crate::coder;
 use crate::demoer;
 use crate::dogfood;
+use crate::fleet;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
 use crate::qa;
@@ -91,6 +92,10 @@ pub fn run(args: &[String]) -> Result<()> {
     if args.iter().any(|a| a == "--dogfood-age") {
         return run_dogfood_age();
     }
+    // The fleet's handoff governance (S109, DECISION-007) rides `vajra next` — no 8th command.
+    if let Some(i) = args.iter().position(|a| a == "--role") {
+        return run_role_handoff(args.get(i + 1), args);
+    }
 
     if args.iter().any(|a| a == "--advance") {
         run_advance()
@@ -139,6 +144,123 @@ fn run_dogfood_age() -> Result<()> {
     let report = dogfood::dogfood_age(&root, current);
     print!("{}", dogfood::format_dogfood_age(current, report.as_ref()));
     Ok(())
+}
+
+/// `vajra next --role <name> --from <findings-file>` — the fleet's handoff governance (S109,
+/// DECISION-007). A native Claude Code subagent (scaffolded by `vajra init` from the canonical
+/// `fleet::ROLES`) returns a findings brief; Vajra wraps it into a delta-tracked, validated handoff
+/// in the `.ai/` spine. Fails closed on: unknown role · missing `--from` · missing/empty findings ·
+/// a handoff that would not validate. `--from -` reads findings from stdin.
+fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
+    let name = name.context("usage: vajra next --role <name> --from <findings-file>")?;
+    let role = fleet::resolve_role(name).ok_or_else(|| {
+        anyhow::anyhow!(
+            "unknown role {name:?} — known roles: {}. (fleet slice 1 ships only the Researcher; \
+             a new role is a separate decision, DECISION-007.)",
+            fleet::known_roles()
+        )
+    })?;
+    let from = flag_value(args, "--from")
+        .context("--role needs --from <findings-file> (or `--from -`)")?;
+    let findings = read_findings(&from)?;
+    if findings.trim().is_empty() {
+        bail!("findings are empty — nothing to record (fail closed)");
+    }
+    let root = repo_root()?;
+    let session = current_session(&root)
+        .context("could not determine the session (no session-NN branch and no .ai/SESSION)")?;
+
+    let handoff_rel = role.handoff_rel(session);
+    let handoff_path = root.join(&handoff_rel);
+    if let Some(parent) = handoff_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("mkdir {}", parent.display()))?;
+    }
+    let prior_body = fs::read_to_string(&handoff_path)
+        .ok()
+        .and_then(|p| fleet::handoff_body(&p));
+    let body = findings.trim();
+    let source_sha =
+        fleet::sha256_hex(body.as_bytes()).unwrap_or_else(|| "unavailable".to_string());
+    let delta = fleet::compute_delta(prior_body.as_deref(), body);
+    let handoff = fleet::format_handoff(
+        role,
+        session,
+        // A subagent's cost rolls into the parent session receipt — recorded as `null` here (S77
+        // honest null), with the session total disclosed in the summary.
+        "claude-code-subagent",
+        &source_sha,
+        &utc_now(),
+        None,
+        body,
+        &delta,
+    );
+    fleet::validate_handoff(&handoff)
+        .map_err(|e| anyhow::anyhow!("refusing to write malformed handoff: {e}"))?;
+    fs::write(&handoff_path, &handoff)
+        .with_context(|| format!("write {}", handoff_path.display()))?;
+
+    println!(
+        "=== fleet: {} handoff governed (session {session:02}) ===",
+        role.name
+    );
+    println!("  handoff:    {handoff_rel}");
+    println!("  source-sha: {source_sha}");
+    println!(
+        "  delta:      {}",
+        delta.lines().next().unwrap_or("").trim_start_matches("- ")
+    );
+    println!("  validated:  OK (frontmatter + non-empty body + ## Handoff Delta)");
+    Ok(())
+}
+
+/// The value following `flag` in `args`, if present.
+fn flag_value(args: &[String], flag: &str) -> Option<String> {
+    let i = args.iter().position(|a| a == flag)?;
+    args.get(i + 1).cloned()
+}
+
+/// Read a role's findings from a file, or from stdin when the path is `-`.
+fn read_findings(from: &str) -> Result<String> {
+    if from == "-" {
+        let mut buf = String::new();
+        io::stdin()
+            .lock()
+            .read_to_string(&mut buf)
+            .context("failed to read findings from stdin")?;
+        Ok(buf)
+    } else {
+        fs::read_to_string(from).with_context(|| format!("failed to read findings file {from:?}"))
+    }
+}
+
+/// The CURRENT session number for the handoff path: the active `session-NN-<slug>` branch (names the
+/// session in flight even before closeout flips `.ai/SESSION`), else `.ai/SESSION`.
+fn current_session(root: &Path) -> Option<u32> {
+    let branch = current_branch(root);
+    if let Some(rest) = branch.strip_prefix("session-") {
+        let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+        if let Ok(n) = digits.parse::<u32>() {
+            return Some(n);
+        }
+    }
+    fs::read_to_string(root.join(".ai/SESSION"))
+        .ok()?
+        .trim()
+        .parse()
+        .ok()
+}
+
+/// A UTC ISO-8601 timestamp for the handoff's `captured` field. Shells out to `date` (no chrono dep).
+fn utc_now() -> String {
+    Command::new("date")
+        .args(["-u", "+%Y-%m-%dT%H:%M:%SZ"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "unknown".to_string())
 }
 
 /// `vajra next --check-options NN` — the Analyst's OPTIONS gate (S62 / J2): does

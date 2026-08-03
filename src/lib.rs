@@ -7,6 +7,7 @@ pub mod coder;
 pub mod demoer;
 pub mod dogfood;
 pub mod engine;
+pub mod fleet;
 pub mod gate_run;
 pub mod launcher;
 pub mod maturity;

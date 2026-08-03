@@ -1,51 +1,51 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 108 — COMPLETE
-- **Type:** **CODE** — publish to crates.io + Homebrew tap; the C→B→A order's **B**, now COMPLETE
-  (founder pick B at S107 closeout).
-- **Goal:** un-mark the last two README install rows by making them real — publish `vajractl` to
-  crates.io and stand up a Homebrew tap for the `v0.1.0` release — each proven by a falsifiable install.
-- **Verdict:** **DELIVERED (goal achieved).** `vajractl 0.1.0` is **live on crates.io** (fresh-dir
-  `cargo install vajractl` → `init`→`next`, **7/7 SMOKE PASS**; API `max_version 0.1.0`). Public tap
-  **`ifelse-codes/homebrew-tap`** with `Formula/vajra.rb` (real `v0.1.0` sha256 for arm64/x86_64 macOS +
-  x86_64 Linux); proven `brew install ifelse-codes/tap/vajra` (**11/11 SMOKE PASS**, sha256-verified).
-  `install-smoke.sh` gained `crates` + `brew` modes, both **fail-closed**. README un-marks both rows
-  (nothing left NOT YET PUBLISHED). `Cargo.toml` excludes 2 stray root HTML files. **No `src/`; no
-  station logic changed.** verify **10/10**; demo exit 0 (4 markers). Independent cold review **ACCEPT**,
-  attested `f5a97e8b…`. Irreversible `cargo publish` ran only after founder "yes publish" (founder did
-  `cargo login` themselves; token never handled); tap created only after "yes tap".
-- **Report:** `sessions/session-108-summary.md` · review: `sessions/session-108-review.md` · next
-  prompt: `prompts/109-task-fleet-slice-1-researcher.md`. **Date last updated:** 2026-08-01.
+- **Number:** 109 — COMPLETE
+- **Type:** **CODE** — fleet slice 1: the Researcher as a governed Claude Code **subagent**; the
+  C→B→A order's **A**, first slice (founder pick A at S108 closeout, "start the fleet").
+- **Goal:** ship the smallest real slice of the named-agent fleet — one named role (Researcher)
+  dispatched as a governed step producing a delta-tracked handoff.
+- **Verdict:** **DELIVERED (goal achieved).** The fleet's first agent ships as a **native Claude Code
+  subagent** Vajra scaffolds + governs. `DECISION-007` locks it. `vajra init` scaffolds
+  `.claude/agents/researcher.md` from the ONE canonical source (`fleet::ROLES`, no drift); `vajra next
+  --role researcher --from <findings>` governs a subagent brief into a **delta-tracked, validated**
+  handoff at `.ai/handoffs/session-NN-researcher.md` — **fail-closed** on unknown role / missing
+  `--from` / empty findings. Rides `init` + `next` (**no 8th command**; `--help` still 7). **Live
+  proof:** a real Researcher subagent (Task tool, sonnet, 58,669 tok) ran in-session and its brief was
+  governed into the S109 handoff (validated, source-sha `ffa5b3fd…`). verify **9/9**; demo exit 0;
+  304 lib tests; **CI green both OS**; cold review **ACCEPT**, attested `2a8d3399…`.
+- **🔀 Mid-session redirect (founder):** the first build spawned a paid `claude -p` subprocess — it
+  hit a headless "Not logged in" auth wall. Founder chose **subagent-only**; the `claude -p` path was
+  **reverted**. No separate paid call (the subagent inherits session auth).
+- **Report:** `sessions/session-109-summary.md` · review: `sessions/session-109-review.md` · next
+  prompt: `prompts/110-task-ground-truth.md`. **Date last updated:** 2026-08-02.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 108. CODE: `Cargo.toml` + `Formula/vajra.rb` + `README.md` +
-  `scripts/install-smoke.sh` (crates+brew modes) + 2 new scripts (`verify-session-108.sh`,
-  `demo-session-108.sh`); **zero `src/`**. Commits carry `VAJRA_ALLOW_COMMIT=108`.
-- **PR #113** (`session-108-publish-crates-brew`) → main. S107 **#112** merged. Remote: `origin` →
-  `https://github.com/ifelse-codes/vajra`. New public repo: `ifelse-codes/homebrew-tap` (the tap).
+- `.ai/SESSION` = 109. CODE: `src/fleet/mod.rs` (new) + `src/cli/next.rs` (`--role --from` govern) +
+  `src/cli/init.rs` (scaffold `.claude/agents/`) + `src/lib.rs`; `src/cli/launch.rs` reverted to
+  pristine. Scripts: `fleet-smoke.sh` + `verify-session-109.sh` + `demo-session-109.sh`. Design:
+  `docs/decisions/DECISION-007-agent-fleet.md`. Live proof: `.ai/handoffs/session-109-researcher.md` +
+  `sessions/session-109-artifacts/`. Commits carry `VAJRA_ALLOW_COMMIT=109`.
+- **PR #115** (`session-109-fleet-researcher`) → main; CI green both OS. S108 **#113** + follow-up
+  **#114** merged. Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 109 — **CODE: fleet slice 1 — one real named agent (Researcher) as a governed step**
-  (founder pick A, "start the fleet"). Dispatch one named role with a role-scoped prompt +
-  delta-tracked handoff, proven by **one real, small, paid Researcher call** (founder S108 follow-up:
-  real, not dry — stub path kept for CI); **design-significant** → author `DECISION-007`; **ride an
-  existing command (no 8th)**. Prompt: `prompts/109-task-fleet-slice-1-researcher.md`.
-- **Guardrail:** max 7 top-level commands — an 8th needs a separate explicit founder "yes". **One small
-  paid Researcher call IS the headline proof** (hard-capped, gated at run; stub path keeps CI paid-free)
-  — the first paid session since S103; a *full* long/unattended paid run stays the founder's own step.
+- **Number:** 110 — **NO-CODE GROUND TRUTH** (mandatory every 5th; `110 % 5 == 0`). Audits S106–S109.
+  **Founder-picked lead lens:** *is the fleet REAL and advancing, or labelled machinery — and is v0.1
+  stranger-shippable?* Weigh the S109 subagent pivot honestly (paid `claude -p` reverted; def-vs-
+  dispatch not wired; `cost_usd: null`). Prompt: `prompts/110-task-ground-truth.md`.
+- **Guardrail:** NO code, no commits/PRs — drift-corrections only, on a `session-110-closeout` branch
+  (exempt by suffix). Record every instrument read (`--stations 106..109`, `--dogfood-age`) live.
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S109.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S110.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **v0.1 is installable FOUR ways, all MEASURED:** `cargo install --git|--path` (S106), prebuilt binary
-  (S107), `cargo install vajractl` from crates.io (S108), `brew install ifelse-codes/tap/vajra` (S108).
-  Residual 🟡: the brew smoke tests a LOCAL copy of the formula, not the published tap (S108 fakest
-  green); x86_64 tarballs proven by arch+checksum, never executed; positive installs proven by artifact
-  + cold reviewer, not the offline gate.
-- **`--dogfood-age` durable fix still open (🟡):** make `dogfood_age()` recurse into per-run subdirs
-  (`src/dogfood/mod.rs:63-66`). **`vajra --version` gap (🟡):** a stranger gets usage, not a version.
+- **Fleet dispatch = native Claude Code subagents (DECISION-007):** Vajra scaffolds the role + governs
+  the handoff; it does NOT spawn `claude -p`. The headless-auth wall is real; an unattended `claude -p`
+  mode is deferred (`ANTHROPIC_API_KEY` is the only auth that survives a fresh no-TTY/no-keychain shell
+  — per the S109 handoff's own research).
+- **v0.1 installs FOUR ways, all measured** (S106–S108). Residual 🟡s carried in STATE.md.
 - **crates.io is PUBLISHED — `vajractl` name BURNED.** Any future crates.io action stays founder-gated.
 - **Untracked stragglers** (standing founder call): `sessions/session-9*-artifacts/*`,
-  `sessions/session-10{2,3,7,8}-artifacts/*`. (`vajra-cto-audit-*.html` + `first-mate.html` now excluded
-  from the crate package; still untracked in the tree.)
+  `sessions/session-10{2,3,7,8}-artifacts/*`; `vajra-cto-audit-*.html` + `first-mate.html`.
