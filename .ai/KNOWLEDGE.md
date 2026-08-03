@@ -245,6 +245,15 @@ pub struct CompressionRequest {
 
 ## 10. Ground-Truth Track Record
 
+- **S110 (permanent): the K-of-8 pipeline-advance counter has no unit for fleet work.** S109's realest
+  deliverable — a governed, fail-closed, validated subagent handoff — earned exactly one unrelated
+  station credit (Architect, for a `## Design` record) and was otherwise invisible to `--stations`. The
+  S100 blind spot ("an instrument built for one session TYPE goes blind when the process changes which
+  type is normal") now recurs for a third axis: CODE-vs-DOGFOOD/GT (S100), briefs predating the marker
+  template (S105), and now **fleet work with no station of its own** (S110). Rule: before the counter
+  is trusted as "the proof, not test counts" for a fleet-heavy session, decide whether fleet handoffs
+  earn K/8 credit under an existing station or stay permanently blind to it — don't let the metric and
+  the product drift apart a third time.
 - `dogfood_check` (added S30) has now caught the same class of finding **three times** — S30, S35,
   and S40 all flagged "$0 `vajra claude` spend, gate unmeasured" while the other required audits
   stayed green (S40 sharpened it: three shipped-and-scaffolded guards, all test-green, none
