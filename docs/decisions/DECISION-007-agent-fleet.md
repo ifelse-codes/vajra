@@ -107,14 +107,21 @@ against the scaffolded file. S111 closed this:
   written mid-conversation is invisible to that same conversation (verified as a real negative
   result — see `sessions/session-111-artifacts/researcher-run-note.md`). A **fresh** session
   (`vajra claude` in a freshly-`vajra init`'d repo) that is asked to "use the researcher subagent"
-  dispatches it **by that name** — confirmed on disk, not by transcript-reading: Claude Code's own
-  `agent-<id>.meta.json` for that run records `"agentType":"researcher"`, the exact `name:` key from
-  the scaffolded file's frontmatter. Full evidence: `sessions/session-111-artifacts/`.
-- **Cost, checked not guessed:** 49 real subagent JSONL transcripts sampled across every local
-  project (S111's own dispatch included) — zero carry `total_cost_usd` or `cost_usd`. A subagent
-  never produces the headless `-p` result stream that field lives on (S77/S78 root cause), so the
-  figure structurally does not exist for Vajra to read. `cost_usd: null` stays, now for a specific,
-  falsifiable, checked reason.
+  dispatches it **by that name** — confirmed by TWO independently-written Claude Code files agreeing
+  on a random tool-call ID they didn't choose, not by a single copy-pasted JSON blob: the parent
+  session's transcript records `subagent_type: "researcher"` on tool call `toolu_01BUEt…`
+  (`researcher-parent-tooluse.json`), and the subagent's own `agent-<id>.meta.json` independently
+  records `toolUseId: toolu_01BUEt…` resolved to `agentType: "researcher"` — same ID, two files,
+  two different Claude Code runtime paths. The raw subagent transcript is captured byte-for-byte too
+  (`researcher-subagent-transcript.jsonl`, sha256 cited in the run note). Full evidence:
+  `sessions/session-111-artifacts/`.
+- **Cost, checked not guessed, and re-runnable:** `scripts/check-subagent-cost-fields.sh` scans
+  every real subagent JSONL transcript on the checking machine (not a one-off count baked into a
+  doc-comment) for `total_cost_usd` / `cost_usd`. Zero found, at every run so far including S111's
+  own dispatch. A subagent never produces the headless `-p` result stream that field lives on
+  (S77/S78 root cause), so the figure structurally does not exist for Vajra to read. `cost_usd: null`
+  stays, now for a specific, falsifiable, checked, **re-runnable** reason — anyone can re-run the
+  script and get the same answer, and `--assert-null` turns it into a regression check.
 - **Consequence:** the fleet's first slice is fully wired end-to-end — scaffold (`vajra init`) →
   live dispatch-by-name (Claude Code's own mechanism, a fresh session) → governed handoff
   (`vajra next --role --from`). No code change was needed to the dispatch path itself; S109 had
