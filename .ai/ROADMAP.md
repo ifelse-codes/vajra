@@ -1,17 +1,35 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-02 · **Session 109 — CODE: fleet slice 1 — Researcher as a governed Claude Code
-subagent — DELIVERED.** The C→B→A order's **A**, first slice. The fleet's first named agent ships as a
-**native Claude Code subagent** Vajra scaffolds + governs (`DECISION-007`): `vajra init` scaffolds
-`.claude/agents/researcher.md` from the ONE canonical source (`fleet::ROLES`, no drift); `vajra next
---role researcher --from <findings>` governs a subagent brief into a **delta-tracked, validated** handoff
-at `.ai/handoffs/session-NN-researcher.md` — **fail-closed** on unknown role / missing `--from` / empty
-findings; rides `init` + `next` (**no 8th command**). **Live proof:** a real Researcher subagent (Task
-tool, sonnet, 58,669 tok) ran in-session (no auth wall) and its brief was governed into the S109 handoff.
-verify 9/9; demo exit 0; 304 lib tests; **CI green both OS**; cold review **ACCEPT**, attested
-`2a8d3399…`. **PR #115.** **🔀 Mid-session founder redirect:** the first build's paid `claude -p`
-subprocess hit a headless-auth wall → **reverted** to subagent-only (no separate paid call). Next =
-**S110 NO-CODE GT** (lead lens: is the fleet real + shippable?). Summary: `sessions/session-109-summary.md`.
+**Updated:** 2026-08-03 · **Session 111 — CODE: closed the fleet's def-vs-dispatch wire — DELIVERED.**
+Founder pick A at the S110 GT closeout. S109 had proven the scaffold (`vajra init` writes
+`.claude/agents/researcher.md`) and a real subagent run **separately** — the live run was dispatched by
+hand-typing a copy of the canonical prompt, not by resolving `subagent_type` against the scaffolded file.
+S111 closed that gap with a two-step proof: (1) inside the live build session, dispatching by name
+**failed** — Claude Code snapshots `.claude/agents/*.md` into available subagent types once, at session
+boot, so a file written mid-conversation is invisible to that conversation (a real, disclosed finding);
+(2) a **fresh** `vajra claude` session in a freshly-`vajra init`'d repo, asked to "use the researcher
+subagent," dispatched it **by that name** — proven not by a single copyable JSON blob but by two
+independently-written Claude Code files (the parent session's tool-call record and the subagent's own
+`meta.json`) agreeing on the same random tool-call ID. **Cost:** `cost_usd: null` kept, now for a
+checked, re-runnable reason — `scripts/check-subagent-cost-fields.sh` scans every local subagent JSONL
+and finds zero carrying `total_cost_usd`/`cost_usd` (same root cause as S77/S78: a subagent never
+produces the headless `-p` result stream that field lives on). **No dispatch-path code changed** — S109
+had already built it correctly; S111 supplied the missing proof. verify 9/9; demo exit 0; 304 lib tests;
+cold review **ACCEPT** (13/14 SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge; one disclosed
+residual fakest-green: the cross-file check is still internal to this commit's own artifact set, no
+external ground-truth reach-out), attested `f98808bc…`. Next candidate: downstream handoff-consumption
+(nothing reads `.ai/handoffs/session-NN-researcher.md` yet) or a second fleet role. Summary:
+`sessions/session-111-summary.md`.
+
+*Prior: Session 109 — CODE: fleet slice 1 — Researcher as a governed Claude Code subagent —
+DELIVERED.* The C→B→A order's **A**, first slice. `vajra init` scaffolds `.claude/agents/researcher.md`
+from the ONE canonical source (`fleet::ROLES`, no drift); `vajra next --role researcher --from
+<findings>` governs a subagent brief into a delta-tracked, validated handoff — fail-closed on unknown
+role / missing `--from` / empty findings; rides `init` + `next` (no 8th command). A real Researcher
+subagent (Task tool, sonnet, 58,669 tok) ran in-session and its brief was governed into the S109
+handoff. verify 9/9; demo exit 0; 304 lib tests; CI green both OS; cold review ACCEPT, attested
+`2a8d3399…`. PR #115. Mid-session founder redirect: the first build's paid `claude -p` subprocess hit a
+headless-auth wall → reverted to subagent-only.
 
 *Prior: Session 105 — NO-CODE GROUND TRUTH (S101–S104) — PARTIAL (lead lens); 3 🟢 · 7 🟡 · 0 🔴;
 engine done + proven, package ~0%; freeze rule RETIRED; two GT-instrument blind spots (installability
@@ -70,9 +88,9 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 | Field | Value |
 |---|---|
 | Today | 2026-08-03 |
-| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) STARTED — S109 first slice confirmed real-but-thin at S110 GT:** the Researcher as a governed native Claude Code subagent (`DECISION-007`); def-vs-dispatch not yet wired end-to-end — **S111 closes that wire**. Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 first slice ✓ real-but-thin → S111 closes the dispatch wire).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
-| Last closed session | Session 110 — **NO-CODE GROUND TRUTH** (audits S106–S109) — **PARTIAL** (5🟢/4🟡/1🔴). v0.1 install confirmed real + shippable; fleet confirmed real but thin (def-vs-dispatch two facts not one wire, `cost_usd: null`); launcher dogfood 🔴 (0 runs since S103, live-confirmed); no `.ai/` state drift found. Meta-check: K-of-8 counter has no unit for fleet work. Report: `sessions/session-110-ground-truth.md`. Founder pick for S111: close the dispatch wire |
-| Active session | None — between sessions (S110 complete, S111 not yet started) |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) — S109 first slice + S111 closed the dispatch wire:** the Researcher as a governed native Claude Code subagent (`DECISION-007`), now proven end-to-end (scaffold → fresh-session dispatch-by-name, on-disk cross-referenced proof → governed handoff); `cost_usd: null` kept for a checked, re-runnable reason (`scripts/check-subagent-cost-fields.sh`). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 first slice ✓ + S111 wire closed ✓ — next: downstream handoff-consumption or a second role).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
+| Last closed session | Session 111 — **CODE: closed the fleet's def-vs-dispatch wire** (founder pick A at S110 GT). Proved, on disk, that a fresh `vajra claude` session dispatches the scaffolded `.claude/agents/researcher.md` subagent BY NAME — cross-referenced via matching tool-call IDs across two independently-written Claude Code files, not a single copyable JSON blob (a cold-review round caught and closed exactly that weakness). `cost_usd: null` kept for a checked, re-runnable reason (`scripts/check-subagent-cost-fields.sh`, zero of every local subagent transcript carries a cost key). No dispatch-path code changed — S109 had already built it correctly; S111 supplied the missing proof. verify 9/9; demo exit 0; 304 lib tests; cold review **ACCEPT** (13/14 SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge), attested `f98808bc…`. Summary: `sessions/session-111-summary.md`. |
+| Active session | None — between sessions (S111 complete, S112 not yet started) |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **PUBLISHED (S108): `vajractl 0.1.0` is live on crates.io — the name is now BURNED.** `v0.1.0` also tagged + released (GH release, prebuilt binaries) + on a public Homebrew tap. All four install channels real; any future crates.io action stays founder-gated. |
 
 ---
