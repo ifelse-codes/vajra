@@ -23,6 +23,27 @@ cost (check the transcript/JSONL the same way `vajra meter` already parses the p
 it into the handoff. If it genuinely does not expose one, **do not fake a number** — keep the honest
 null (S77 pattern) but document precisely why, so this isn't re-flagged as unexplored next time.
 
+## Design
+design-significant: no — no new interface, no new module, no ADR deviation. This session proves an
+existing mechanism end-to-end and documents a checked finding; it extends `DECISION-007-agent-fleet.md`
+with an addendum recording the proof, rather than superseding or deviating from it.
+
+## Plan
+1. Scaffold `.claude/agents/researcher.md` with the compiled binary's own `fleet::render_subagent_definition`
+   (not hand-typed), first inside the live build session (to test hot-reload), then in a pristine
+   scratch repo via `vajra init` (to test a fresh session). — covers: 1
+2. Attempt dispatch by `subagent_type: "researcher"` inside the live build session; record the result
+   (pass or fail) as real evidence either way. — covers: 1
+3. Have a fresh `vajra claude` session (new terminal, scratch repo) dispatch the researcher subagent by
+   name; capture the on-disk `agent-*.meta.json` Claude Code itself writes as proof of the resolved
+   `agentType`. — covers: 1, 2
+4. Govern the real subagent brief into `.ai/handoffs/session-111-researcher.md` via the existing
+   `vajra next --role researcher --from` path (unchanged). — covers: 2
+5. Grep every local subagent JSONL transcript for `total_cost_usd`/`cost_usd`; itemize the cost into
+   the handoff if found, else document the specific checked reason for keeping `null`. — covers: 3
+6. Write `scripts/verify-session-111.sh` + `scripts/demo-session-111.sh`; confirm `cargo test --lib`,
+   fmt, clippy, and `fleet-smoke.sh` all still green; get an independent cold review. — covers: 4, 5
+
 ## Non-goals (do not build this session)
 - A second fleet role (S110 candidate C) — stays deferred until this wire is proven.
 - Downstream handoff-consumption (S110 candidate B) — stays deferred; don't blur the two.
