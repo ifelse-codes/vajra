@@ -95,3 +95,27 @@ for stdin) wraps it into a **governed handoff**:
   orchestration, per-subagent cost in the handoff, an unattended `claude -p` dispatch mode.
 - **Reversible?** Additive — nothing existing changes behavior. A later decision can extend the
   handoff contract or add the unattended dispatch mode without breaking slice-1 artifacts.
+
+## S111 addendum — the def-vs-dispatch wire, closed with on-disk proof
+
+S109 proved the scaffold and a real subagent run **separately**: the live run was dispatched by
+handing the Task tool a hand-typed copy of the canonical prompt, not by resolving `subagent_type`
+against the scaffolded file. S111 closed this:
+
+- **The mechanism (confirmed, not assumed):** Claude Code auto-discovers project-level
+  `.claude/agents/<name>.md` files into available subagent types **once, at session start**. A file
+  written mid-conversation is invisible to that same conversation (verified as a real negative
+  result — see `sessions/session-111-artifacts/researcher-run-note.md`). A **fresh** session
+  (`vajra claude` in a freshly-`vajra init`'d repo) that is asked to "use the researcher subagent"
+  dispatches it **by that name** — confirmed on disk, not by transcript-reading: Claude Code's own
+  `agent-<id>.meta.json` for that run records `"agentType":"researcher"`, the exact `name:` key from
+  the scaffolded file's frontmatter. Full evidence: `sessions/session-111-artifacts/`.
+- **Cost, checked not guessed:** 49 real subagent JSONL transcripts sampled across every local
+  project (S111's own dispatch included) — zero carry `total_cost_usd` or `cost_usd`. A subagent
+  never produces the headless `-p` result stream that field lives on (S77/S78 root cause), so the
+  figure structurally does not exist for Vajra to read. `cost_usd: null` stays, now for a specific,
+  falsifiable, checked reason.
+- **Consequence:** the fleet's first slice is fully wired end-to-end — scaffold (`vajra init`) →
+  live dispatch-by-name (Claude Code's own mechanism, a fresh session) → governed handoff
+  (`vajra next --role --from`). No code change was needed to the dispatch path itself; S109 had
+  already built it correctly. What was missing was the proof, which S111 supplies.
