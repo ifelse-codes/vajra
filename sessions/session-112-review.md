@@ -102,7 +102,7 @@ rejected handoff also prints. Fixed in `eaff77d`.
    `Malformed`. Safe, but a Windows/`autocrlf` checkout would flip `real-handoff-surfaced` to FAIL.
 5. **`--scaffold` has no coverage of its own.**
 
-**Review-Inputs-SHA:** PENDING
+**Review-Inputs-SHA:** 4d7b2b4313b7ee7573690188aafa02d57b2ac9529056356d032004c777951b2d
 
 **Verdict:** ACCEPT
 
