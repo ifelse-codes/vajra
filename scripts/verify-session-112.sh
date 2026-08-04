@@ -49,6 +49,11 @@ run_check "test-intake-consumes" \
   cargo test --lib analyst::tests::intake_consumes_a_governed_researcher_handoff
 run_check "test-intake-names-broken" \
   cargo test --lib analyst::tests::intake_surfaces_a_malformed_handoff_instead_of_swallowing_it
+# Both added after the cold review found them missing (S112, pass 1):
+run_check "test-truncation-disclosed" \
+  cargo test --lib fleet::tests::head_lines_truncation_is_disclosed_not_silent
+run_check "test-blank-fields-impossible" \
+  cargo test --lib fleet::tests::parse_handoff_fails_closed_when_a_key_is_not_in_the_frontmatter_block
 
 # --- END-TO-END, in a throwaway repo: govern a handoff, watch the output CHANGE -----------------
 # The honest shape of the proof: capture the consuming station's output BEFORE any handoff exists,
@@ -65,7 +70,7 @@ _e2e_consumption() {
   echo "--- BEFORE ---"; echo "$BEFORE"
 
   # A silent, harmless absence: not one word about handoffs when there are none.
-  if echo "$BEFORE" | grep -qi "handoff"; then
+  if grep -qi "handoff" <<<"$BEFORE"; then
     echo "FAIL: intake mentions handoffs when none exist (absence must be silent)"; return 1
   fi
 
@@ -77,24 +82,28 @@ _e2e_consumption() {
   echo "--- AFTER ---"; echo "$AFTER"
 
   [ "$BEFORE" != "$AFTER" ] || { echo "FAIL: intake output did not change"; return 1; }
-  echo "$AFTER" | grep -q "fleet handoffs" \
+  grep -q "fleet handoffs" <<<"$AFTER" \
     || { echo "FAIL: no fleet handoffs block"; return 1; }
-  echo "$AFTER" | grep -q ".ai/handoffs/session-112-researcher.md" \
+  grep -q ".ai/handoffs/session-112-researcher.md" <<<"$AFTER" \
     || { echo "FAIL: handoff path not surfaced"; return 1; }
   # INLINE findings, not merely a pointer — the whole point of consumption.
-  echo "$AFTER" | grep -q "ANTHROPIC_API_KEY is the only auth" \
+  grep -q "ANTHROPIC_API_KEY is the only auth" <<<"$AFTER" \
     || { echo "FAIL: findings not inlined"; return 1; }
 
   # The packet an agent boots on carries it too. (Captured to a variable, never piped straight
   # into `grep -q`: under `pipefail` an early-closing reader would fail the pipeline on SIGPIPE.)
   local PACKET; PACKET="$(cd "$TMP" && "$VAJRA" next 2>&1)"
-  echo "$PACKET" | grep -q "fleet handoffs (session 112)" \
-    || { echo "FAIL: packet does not carry the handoff"; return 1; }
+  grep -q "fleet handoffs (session 112)" <<<"$PACKET" \
+    || { echo "FAIL: packet has no fleet handoffs section"; return 1; }
+  # The header alone would ALSO print for a rejected handoff — assert the FINDINGS themselves, or
+  # this check cannot tell consumption from refusal-to-consume (cold-review finding, S112).
+  grep -q "ANTHROPIC_API_KEY is the only auth" <<<"$PACKET" \
+    || { echo "FAIL: packet shows the section but not the findings"; return 1; }
 
   # A DIFFERENT session is untouched by session 112's handoff.
   echo "113" > "$TMP/.ai/SESSION"
   local OTHER; OTHER="$(cd "$TMP" && "$VAJRA" next --intake 2>&1)"
-  if echo "$OTHER" | grep -qi "fleet handoffs"; then
+  if grep -qi "fleet handoffs" <<<"$OTHER"; then
     echo "FAIL: session 113 shows session 112's handoff"; return 1
   fi
 
@@ -102,7 +111,7 @@ _e2e_consumption() {
   echo "112" > "$TMP/.ai/SESSION"
   echo "just some notes, no frontmatter" > "$TMP/.ai/handoffs/session-112-researcher.md"
   local BROKEN; BROKEN="$(cd "$TMP" && "$VAJRA" next --intake 2>&1)"
-  echo "$BROKEN" | grep -q "not used" \
+  grep -q "not used" <<<"$BROKEN" \
     || { echo "FAIL: malformed handoff swallowed"; return 1; }
 
   echo "E2E OK: absent silent · governed handoff consumed inline · other sessions unaffected · malformed named"
@@ -119,12 +128,16 @@ real_handoff_surfaced() {
   OUT_110="$("$VAJRA" next --validate 110 2>&1)"
   echo "--- validate 111 ---"; echo "$OUT_111"
   echo "--- validate 110 ---"; echo "$OUT_110"
-  echo "$OUT_111" | grep -q ".ai/handoffs/session-111-researcher.md" \
+  grep -q ".ai/handoffs/session-111-researcher.md" <<<"$OUT_111" \
     || { echo "FAIL: real S111 handoff not surfaced at the Analyst gate"; return 1; }
-  echo "$OUT_111" | grep -q "researcher (agent:" \
+  grep -q "researcher (agent:" <<<"$OUT_111" \
     || { echo "FAIL: provenance line missing"; return 1; }
+  # Content, not just the provenance line: a real sentence out of that handoff's own findings must
+  # appear, or this check would pass on an empty/rejected brief (cold-review finding, S112).
+  grep -q "de-facto standard crate" <<<"$OUT_111" \
+    || { echo "FAIL: the gate shows the handoff's header but not its findings"; return 1; }
   # S110 has no handoff — its gate output must not mention one.
-  if echo "$OUT_110" | grep -qi "handoffs/session-110"; then
+  if grep -qi "handoffs/session-110" <<<"$OUT_110"; then
     echo "FAIL: session 110 output mentions a handoff it does not have"; return 1
   fi
   return 0
@@ -135,7 +148,7 @@ run_check "real-handoff-surfaced" real_handoff_surfaced
 help_lists_seven() {
   local help; help="$("$VAJRA" --help 2>&1)"
   echo "$help"
-  echo "$help" | grep -q "vajra <init|claude|check|next|estimate|hook|meter>"
+  grep -q "vajra <init|claude|check|next|estimate|hook|meter>" <<<"$help"
 }
 run_check "no-eighth-command" help_lists_seven
 

@@ -292,15 +292,27 @@ pub struct Handoff {
 }
 
 impl Handoff {
-    /// The first `n` body lines — what a consuming station inlines so the findings are actually in
-    /// front of the reader, not merely referenced by path.
-    pub fn head_lines(&self, n: usize) -> Vec<String> {
+    /// Every non-empty body line, trimmed — the basis for both the inline head and the honest
+    /// "there is more" count.
+    fn body_lines(&self) -> Vec<String> {
         self.body
             .lines()
             .map(|l| l.trim().to_string())
             .filter(|l| !l.is_empty())
-            .take(n)
             .collect()
+    }
+
+    /// The first `n` body lines — what a consuming station inlines so the findings are actually in
+    /// front of the reader, not merely referenced by path.
+    pub fn head_lines(&self, n: usize) -> Vec<String> {
+        self.body_lines().into_iter().take(n).collect()
+    }
+
+    /// How many body lines the inline head LEAVES OUT at `n`. A reader who is shown 6 of 40 lines
+    /// must be told so — a truncation that looks like the whole thing is exactly the false green
+    /// this project exists to kill.
+    pub fn omitted_lines(&self, n: usize) -> usize {
+        self.body_lines().len().saturating_sub(n)
     }
 }
 
@@ -324,13 +336,21 @@ pub enum HandoffRead {
 pub fn parse_handoff(text: &str, session: u32, path: &str) -> Result<Handoff, String> {
     validate_handoff(text)?;
     let body = handoff_body(text).ok_or_else(|| "handoff has no findings body".to_string())?;
+    // Every displayed field must come from the FRONTMATTER BLOCK, not merely from somewhere in the
+    // file. `validate_handoff` accepts a `role:` line anywhere (it scans all lines), so without this
+    // a file whose keys sit in the body would parse into a `Handoff` with blank fields and render as
+    // "  (agent: , captured: )" — a broken artifact reading as a good one. Fail closed instead.
+    let field = |key: &str| {
+        frontmatter_value(text, key)
+            .ok_or_else(|| format!("handoff frontmatter block has no `{key}` value"))
+    };
     Ok(Handoff {
-        role: frontmatter_value(text, "role:").unwrap_or_default(),
+        role: field("role:")?,
         session,
         path: path.to_string(),
-        agent: frontmatter_value(text, "agent:").unwrap_or_default(),
-        captured: frontmatter_value(text, "captured:").unwrap_or_default(),
-        source_sha: frontmatter_value(text, "source-sha:").unwrap_or_default(),
+        agent: field("agent:")?,
+        captured: field("captured:")?,
+        source_sha: field("source-sha:")?,
         body,
     })
 }
@@ -406,6 +426,15 @@ pub fn format_handoff_brief(reads: &[HandoffRead], head: usize) -> String {
                         ""
                     };
                     s.push_str(&format!("    · {clipped}{ell}\n"));
+                }
+                // Never let a truncated head read as the whole brief — say how much was left out
+                // and where the rest is. A partial view that looks complete is a false green.
+                let omitted = h.omitted_lines(head);
+                if omitted > 0 {
+                    s.push_str(&format!(
+                        "    · … {omitted} more line(s) — full findings at {}\n",
+                        h.path
+                    ));
                 }
             }
         }
@@ -618,6 +647,38 @@ mod tests {
         );
         let h = parse_handoff(&text, 112, ".ai/handoffs/session-112-researcher.md").unwrap();
         assert_eq!(h.session, 112);
+    }
+
+    /// A file whose contract keys live in the BODY rather than the frontmatter block passes
+    /// `validate_handoff` (it scans every line) but must NOT parse into a `Handoff` with blank
+    /// fields — that would render as "(agent: , captured: )" and read as a good artifact.
+    #[test]
+    fn parse_handoff_fails_closed_when_a_key_is_not_in_the_frontmatter_block() {
+        let text = "---\nrole: researcher\nsession: 1\nsource-sha: x\ncaptured: t\n\
+             cost_usd: null\n---\n\n# H\n\nagent: down-here-not-in-frontmatter\n\n\
+             ## Handoff Delta\n- d\n";
+        // The legacy contract check passes — every key appears SOMEWHERE.
+        assert!(validate_handoff(text).is_ok());
+        // The reader does not: `agent:` is not in the frontmatter block.
+        let err = parse_handoff(text, 1, "p").unwrap_err();
+        assert!(err.contains("agent:"), "got: {err}");
+    }
+
+    #[test]
+    fn head_lines_truncation_is_disclosed_not_silent() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_handoff(tmp.path(), 112, "l1\nl2\nl3\nl4\nl5");
+        let out = format_handoff_brief(&read_handoffs(tmp.path(), 112), 2);
+        assert!(out.contains("l1"));
+        assert!(out.contains("l2"));
+        assert!(!out.contains("l5"));
+        // The reader is TOLD what was left out, and where the rest lives.
+        assert!(out.contains("3 more line(s)"), "got: {out}");
+        assert!(out.contains(".ai/handoffs/session-112-researcher.md"));
+
+        // Nothing omitted -> no "more lines" noise.
+        let full = format_handoff_brief(&read_handoffs(tmp.path(), 112), 99);
+        assert!(!full.contains("more line(s)"));
     }
 
     #[test]

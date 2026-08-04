@@ -64,14 +64,14 @@ label "1. The packet an agent boots on carries it (this is the one that matters 
 sees the research without being told to look)"
 PACKET="$(cd "$TMP" && "$VAJRA" next 2>&1)"
 echo "$PACKET" | grep -A 4 "fleet handoffs (session 112)" | sed 's/^/    /'
-echo "$PACKET" | grep -q "fleet handoffs (session 112)"
-score $? "vajra next — packet carries the handoff"
+grep -q "fleet handoffs (session 112)" <<<"$PACKET" && grep -q "ANTHROPIC_API_KEY is the only auth" <<<"$PACKET"
+score $? "vajra next — packet carries the handoff AND its findings"
 
 label "2. Absence is silent and harmless — a session with no fleet work reads exactly as before"
 echo "113" > "$TMP/.ai/SESSION"
 OTHER="$(cd "$TMP" && "$VAJRA" next --intake 2>&1)"
 dim "$(echo "$OTHER" | sed 's/^/    /')"
-! echo "$OTHER" | grep -qi "handoff"
+! grep -qi "handoff" <<<"$OTHER"
 score $? "no handoff -> not one word about handoffs"
 
 label "3. A broken handoff is NAMED, never swallowed as 'nothing here' (no false green)"
@@ -79,18 +79,18 @@ echo "112" > "$TMP/.ai/SESSION"
 echo "just some notes, no frontmatter" > "$TMP/.ai/handoffs/session-112-researcher.md"
 BROKEN="$(cd "$TMP" && "$VAJRA" next --intake 2>&1)"
 echo "$BROKEN" | grep "not used" | sed 's/^/    /'
-echo "$BROKEN" | grep -q "not used"
+grep -q "not used" <<<"$BROKEN"
 score $? "off-contract handoff surfaced with its reason"
 
 label "4. REAL data — session 111's handoff came from an actual by-name subagent dispatch (S111's \
 evidence trail). The Analyst gate in THIS repo now surfaces it:"
 REAL="$("$VAJRA" next --validate 111 2>&1)"
 echo "$REAL" | grep -A 3 "researcher (agent:" | sed 's/^/    /'
-echo "$REAL" | grep -q ".ai/handoffs/session-111-researcher.md"
-score $? "vajra next --validate 111 — real handoff surfaced at the WHAT gate"
+grep -q ".ai/handoffs/session-111-researcher.md" <<<"$REAL" && grep -q "de-facto standard crate" <<<"$REAL"
+score $? "vajra next --validate 111 — real handoff AND its findings surfaced at the WHAT gate"
 
 label "5. Still 7 top-level commands — consumption rides \`next\`, like the writer did"
-"$VAJRA" --help 2>&1 | grep -q "vajra <init|claude|check|next|estimate|hook|meter>"
+HELP="$("$VAJRA" --help 2>&1)"; grep -q "vajra <init|claude|check|next|estimate|hook|meter>" <<<"$HELP"
 score $? "no 8th command"
 
 # --- demo:summary_table ---
