@@ -72,7 +72,7 @@ actually feeds the pipeline it claims to be part of, not just a filed-away artif
 - step 2 — done: 29639f6b573e03fc2ef7fa69eee5a75c72377b22
 - step 3 — done: 8c0867c51e58437b449a3f4b7d500fa3c8ea3875
 - step 4 — done: 68b8766baa6f14fc2a5286783b81331d7e924f78
-- step 5 — done: <sha — recorded at closeout>
+- step 5 — done: 82ed95ac663639865fd4880596b9d84563a9e48a
 
 ## Acceptance criteria
 
