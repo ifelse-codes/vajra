@@ -23,6 +23,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::fleet;
+
 /// The canonical prompt shape the Analyst generates. The Borrow Engine folds three reference
 /// designs INTO Vajra's own prompt format (no foreign artifact):
 ///   - Spec Kit  → an explicit, sectioned structure (Goal / Deliverables).
@@ -89,11 +91,19 @@ pub struct Intake {
     pub prior_session: Option<u32>,
     /// The ranked items under the ROADMAP "Next builds" heading (raw item text, order preserved).
     pub roadmap_next_builds: Vec<String>,
+    /// S112 — the third real input: governed fleet handoffs for the session being worked in. A
+    /// researcher's findings ARE intake for the WHAT; before this they were written, validated,
+    /// and then read by nobody. Empty for a session with no fleet work (the silent, normal case).
+    pub fleet_handoffs: Vec<fleet::HandoffRead>,
 }
 
 /// Read the intake inputs from the live `.ai/` spine (S62 / J1). Missing/garbled files degrade to
 /// empty fields rather than erroring — surfacing partial context still beats a bare slug.
-pub fn gather_intake(root: &Path) -> Intake {
+///
+/// `session` (S112) is the session whose fleet handoffs to fold in — the CURRENT session, which the
+/// caller derives (branch first, `.ai/SESSION` second); `None` skips the fleet lookup entirely. It
+/// is passed in rather than read here so this stays fs-only, with no git dependency.
+pub fn gather_intake(root: &Path, session: Option<u32>) -> Intake {
     let prior_session = fs::read_to_string(root.join(".ai/SESSION"))
         .ok()
         .and_then(|s| s.trim().parse().ok());
@@ -101,6 +111,9 @@ pub fn gather_intake(root: &Path) -> Intake {
     Intake {
         prior_session,
         roadmap_next_builds: extract_next_builds(&roadmap),
+        fleet_handoffs: session
+            .map(|n| fleet::read_handoffs(root, n))
+            .unwrap_or_default(),
     }
 }
 
@@ -161,9 +174,21 @@ pub fn format_intake(intake: &Intake) -> String {
             s.push_str(&format!("  {}. {clipped}{ell}\n", i + 1));
         }
     }
+    // S112 — the fleet's own output, folded in as a first-class intake input. Absent handoffs
+    // print NOTHING (a session with no fleet work reads exactly as it did before S112); a
+    // malformed one is named, never swallowed.
+    let brief = fleet::format_handoff_brief(&intake.fleet_handoffs, FLEET_HEAD_LINES);
+    if !brief.is_empty() {
+        s.push_str("fleet handoffs (governed findings from this session's named agents):\n");
+        s.push_str(&brief);
+    }
     s.push_str("fold these into the Goal — the job comes from context, not the slug.\n");
     s
 }
+
+/// How many findings lines a consuming station inlines. Enough to carry the answer (the Researcher
+/// is instructed to lead with it), short enough that the intake block stays glanceable.
+pub const FLEET_HEAD_LINES: usize = 6;
 
 /// The required top-level sections of a well-formed prompt (the substantive gate). All four
 /// appear in every real Vajra prompt, so the gate is backward-compatible with legacy prompts.
@@ -887,7 +912,7 @@ Some intro prose that is not a list item.
         fs::write(ai.join("SESSION"), "61\n").unwrap();
         fs::write(ai.join("ROADMAP.md"), ROADMAP).unwrap();
 
-        let intake = gather_intake(tmp.path());
+        let intake = gather_intake(tmp.path(), None);
         assert_eq!(intake.prior_session, Some(61));
         assert_eq!(intake.roadmap_next_builds.len(), 3);
 
@@ -897,12 +922,72 @@ Some intro prose that is not a list item.
         assert!(rendered.contains("from context, not the slug"));
     }
 
+    /// S112 — the consumption proof, at the unit level: the SAME repo, the SAME command, and the
+    /// intake output DIFFERS solely because a governed handoff exists. Absence changes nothing.
+    #[test]
+    fn intake_consumes_a_governed_researcher_handoff() {
+        let tmp = tempfile::tempdir().unwrap();
+        let ai = tmp.path().join(".ai");
+        fs::create_dir_all(&ai).unwrap();
+        fs::write(ai.join("SESSION"), "111\n").unwrap();
+        fs::write(ai.join("ROADMAP.md"), ROADMAP).unwrap();
+
+        // BEFORE: no handoff for session 112 → the block is entirely absent (silent + harmless).
+        let before = format_intake(&gather_intake(tmp.path(), Some(112)));
+        assert!(!before.contains("fleet handoffs"));
+
+        // Govern one, exactly as `vajra next --role researcher --from` writes it.
+        let role = fleet::resolve_role("researcher").unwrap();
+        let body = "ANSWER: use the api key.\nit is the only auth that survives a fresh shell.";
+        let handoff = fleet::format_handoff(
+            role,
+            112,
+            "claude-code-subagent",
+            &"a".repeat(64),
+            "2026-08-04T00:00:00Z",
+            None,
+            body,
+            &fleet::compute_delta(None, body),
+        );
+        let path = tmp.path().join(role.handoff_rel(112));
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, handoff).unwrap();
+
+        // AFTER: the findings are IN the intake — inlined, not merely pointed at.
+        let after = format_intake(&gather_intake(tmp.path(), Some(112)));
+        assert!(after.contains("fleet handoffs"));
+        assert!(after.contains(".ai/handoffs/session-112-researcher.md"));
+        assert!(after.contains("ANSWER: use the api key."));
+        assert!(after.contains("survives a fresh shell"));
+        assert_ne!(before, after);
+
+        // A DIFFERENT session's intake is untouched by session 112's handoff.
+        let other = format_intake(&gather_intake(tmp.path(), Some(113)));
+        assert!(!other.contains("fleet handoffs"));
+    }
+
+    /// A handoff that exists but is off-contract must be named, never silently treated as absent
+    /// (a broken artifact reading as "nothing here" is exactly the false green Vajra exists to kill).
+    #[test]
+    fn intake_surfaces_a_malformed_handoff_instead_of_swallowing_it() {
+        let tmp = tempfile::tempdir().unwrap();
+        let role = fleet::resolve_role("researcher").unwrap();
+        let path = tmp.path().join(role.handoff_rel(112));
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, "just some notes, no frontmatter\n").unwrap();
+
+        let out = format_intake(&gather_intake(tmp.path(), Some(112)));
+        assert!(out.contains("session-112-researcher.md"));
+        assert!(out.contains("not used"));
+    }
+
     #[test]
     fn gather_intake_degrades_when_files_missing() {
         let tmp = tempfile::tempdir().unwrap();
-        let intake = gather_intake(tmp.path());
+        let intake = gather_intake(tmp.path(), Some(112));
         assert_eq!(intake.prior_session, None);
         assert!(intake.roadmap_next_builds.is_empty());
+        assert!(intake.fleet_handoffs.is_empty());
         // Still renders a usable block, not a panic.
         assert!(format_intake(&intake).contains("(unreadable)"));
     }
