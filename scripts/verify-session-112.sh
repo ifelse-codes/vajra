@@ -39,21 +39,40 @@ VAJRA="$ROOT/target/debug/vajra"
 
 # --- the reader's own unit contract (path-is-SoT, malformed != absent, inline findings) ---------
 # (`cargo test` takes ONE filter, so one check per contract — each names what it locks down.)
+#
+# `cargo test --lib <filter>` EXITS 0 WHEN THE FILTER MATCHES NOTHING ("running 0 tests … ok"), so a
+# bare `run_check … cargo test --lib <name>` is green after that test is renamed or deleted — the
+# check names a lock it does not hold (cold-review finding, S112 pass 2). Require that a test
+# actually RAN and passed.
+named_test_passed() {
+  local out; out="$(cargo test --lib "$1" 2>&1)"
+  echo "$out"
+  grep -qE 'test result: ok\. [1-9][0-9]* passed' <<<"$out" \
+    || { echo "FAIL: filter '$1' matched no test that ran and passed"; return 1; }
+}
 run_check "test-read-absent-vs-malformed" \
-  cargo test --lib fleet::tests::read_handoff_absent_found_and_malformed
+  named_test_passed fleet::tests::read_handoff_absent_found_and_malformed
 run_check "test-path-is-session-sot" \
-  cargo test --lib fleet::tests::parse_handoff_trusts_the_path_not_a_self_declared_session
+  named_test_passed fleet::tests::parse_handoff_trusts_the_path_not_a_self_declared_session
 run_check "test-findings-inlined" \
-  cargo test --lib fleet::tests::format_handoff_brief_inlines_findings_and_is_empty_when_absent
+  named_test_passed fleet::tests::format_handoff_brief_inlines_findings_and_is_empty_when_absent
 run_check "test-intake-consumes" \
-  cargo test --lib analyst::tests::intake_consumes_a_governed_researcher_handoff
+  named_test_passed analyst::tests::intake_consumes_a_governed_researcher_handoff
 run_check "test-intake-names-broken" \
-  cargo test --lib analyst::tests::intake_surfaces_a_malformed_handoff_instead_of_swallowing_it
-# Both added after the cold review found them missing (S112, pass 1):
+  named_test_passed analyst::tests::intake_surfaces_a_malformed_handoff_instead_of_swallowing_it
+# Both added after the cold review found them missing (S112 pass 1):
 run_check "test-truncation-disclosed" \
-  cargo test --lib fleet::tests::head_lines_truncation_is_disclosed_not_silent
+  named_test_passed fleet::tests::head_lines_truncation_is_disclosed_not_silent
 run_check "test-blank-fields-impossible" \
-  cargo test --lib fleet::tests::parse_handoff_fails_closed_when_a_key_is_not_in_the_frontmatter_block
+  named_test_passed fleet::tests::parse_handoff_fails_closed_when_a_key_is_not_in_the_frontmatter_block
+# The guard on the guard: a filter matching nothing must FAIL, or every check above is theatre.
+filter_guard_has_teeth() {
+  if named_test_passed fleet::tests::this_test_does_not_exist_on_purpose >/dev/null 2>&1; then
+    echo "FAIL: named_test_passed is green on a filter that matches no test"; return 1
+  fi
+  echo "OK: a filter matching zero tests fails, as it must"
+}
+run_check "test-filter-guard-has-teeth" filter_guard_has_teeth
 
 # --- END-TO-END, in a throwaway repo: govern a handoff, watch the output CHANGE -----------------
 # The honest shape of the proof: capture the consuming station's output BEFORE any handoff exists,
