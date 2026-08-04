@@ -24,10 +24,11 @@ long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) �
 (S106+S107+S108) ✓ COMPLETE** → **A real agent fleet — S109 first slice ✓, S111 dispatch wire ✓,
 S112 consumption loop ✓ CLOSED.**
 
-Between sessions. **Next = S113 — founder picks** from the three ranked candidates in
-`sessions/session-112-summary.md`: (A) fleet credit in the K-of-8 counter + the second role ·
-(B) the overdue paid `vajra claude` dogfood run (🔴 since S103) · (C) an opt-in blocking consumption
-gate. The prompt is written after the pick. **New chat** for S113.
+Between sessions. **Next = S113 — CODE: make fleet work visible to the counter, then choose the
+second role** (founder pick **A** at the S112 closeout). The K-of-8 counter cannot see fleet work at
+all — flagged at S110 GT, carried at S111 and S112. Brief:
+`prompts/113-task-fleet-counter-and-second-role.md`. Deferred: the paid dogfood run (B) and an
+opt-in blocking consumption gate (C). **New chat** for S113.
 
 ## Always-True Reminders
 

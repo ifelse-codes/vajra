@@ -108,9 +108,9 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
 - **S112 DONE (CODE; SHIPPED; verify 16/16; demo exit 0; two cold passes, both ACCEPT, attested
   `4d7b2b43…`).** Report: `sessions/session-112-summary.md` + `sessions/session-112-review.md`.
   Branch `session-112-handoff-consumption` not yet merged.
-- **Next = S113 — founder picks from the three ranked candidates in the S112 summary:** (A) make the
-  fleet earn K-of-8 credit + pick the second role · (B) the overdue paid dogfood run · (C) an opt-in
-  blocking consumption gate. Prompt written after the pick. **New chat.**
+- **Next = S113 — CODE: make fleet work visible to the counter, then choose the second role**
+  (founder pick **A**). Prompt: `prompts/113-task-fleet-counter-and-second-role.md`. Deferred: the
+  paid dogfood run (B) and an opt-in blocking consumption gate (C). **New chat.**
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.

@@ -17,7 +17,7 @@
   role, no 8th command. 315 lib tests; verify **16/16**; demo exit 0; **two independent cold passes,
   both ACCEPT** (9/10 SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge), attested `4d7b2b43…`.
 - **Report:** `sessions/session-112-summary.md` + `sessions/session-112-review.md` · next prompt:
-  written after the founder picks A/B/C. **Date last updated:** 2026-08-04.
+  `prompts/113-task-fleet-counter-and-second-role.md` (founder pick A). **Date last updated:** 2026-08-04.
 
 ## Repo State Snapshot
 - `.ai/SESSION` = 112. CODE session, 9 atomic commits on `session-112-handoff-consumption`:
@@ -29,12 +29,14 @@
   Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 113 — **founder picks from the three ranked candidates** in
-  `sessions/session-112-summary.md`:
-  **A** make the fleet earn K-of-8 credit + pick the second role ·
-  **B** the overdue paid `vajra claude` dogfood run (🔴 since S103) ·
-  **C** an opt-in blocking consumption gate.
-  The prompt is written after the pick.
+- **Number:** 113 — **CODE: make fleet work visible to the counter, then choose the second role**
+  (founder pick **A**). `vajra next --stations NN` cannot see fleet work at all: a session that
+  dispatched a named agent, governed its findings and consumed them scores the same as one that did
+  none of it. Flagged at S110 GT, carried unfixed through S111 and S112. The recommended shape keeps
+  K-of-8 comparable by reporting fleet evidence BESIDE it, not inside it. The second role is CHOSEN
+  and recorded, not built. Prompt: `prompts/113-task-fleet-counter-and-second-role.md`.
+- **Deferred (S112 candidates B and C):** the overdue paid `vajra claude` dogfood run (🔴 since S103)
+  and an opt-in blocking consumption gate.
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S113.
