@@ -1,6 +1,20 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-03 · **Session 111 — CODE: closed the fleet's def-vs-dispatch wire — DELIVERED.**
+**Updated:** 2026-08-04 · **Session 112 — CODE: downstream handoff-consumption — DELIVERED.** The
+fleet's output stopped being an orphan. S109 could WRITE a governed researcher handoff and S111
+PROVED it came from a real by-name subagent dispatch — but nothing ever read one back; a human had to
+know to open `.ai/handoffs/` by hand. S112 added the READ side (`fleet::parse_handoff` /
+`read_handoff(s)` / `format_handoff_brief`) and wired it into four surfaces: the boot packet
+(`vajra next`), the Analyst's intake (`--intake` / `--scaffold`), and the Analyst's gate
+(`--validate NN`) — findings **inlined**, not merely pointed at. Absence prints nothing at all; an
+off-contract handoff is NAMED (`— not used`), never swallowed; truncation is disclosed (`… N more
+line(s)`). Advisory by design — nothing blocks. No format change, no second role, no 8th command.
+315 lib tests; verify **16/16**; demo exit 0; **two** independent cold passes, both **ACCEPT**
+(pass 1 caught header-greps that a REJECTED handoff would satisfy; pass 2 caught that
+`cargo test --lib <filter>` exits 0 on a filter matching zero tests — both fixed in-session),
+attested `4d7b2b43…`. Summary: `sessions/session-112-summary.md`.
+
+*Prior: **Session 111 — CODE: closed the fleet's def-vs-dispatch wire — DELIVERED.***
 Founder pick A at the S110 GT closeout. S109 had proven the scaffold (`vajra init` writes
 `.claude/agents/researcher.md`) and a real subagent run **separately** — the live run was dispatched by
 hand-typing a copy of the canonical prompt, not by resolving `subagent_type` against the scaffolded file.
@@ -87,10 +101,10 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-08-03 |
-| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) — S109 first slice + S111 closed the dispatch wire:** the Researcher as a governed native Claude Code subagent (`DECISION-007`), now proven end-to-end (scaffold → fresh-session dispatch-by-name, on-disk cross-referenced proof → governed handoff); `cost_usd: null` kept for a checked, re-runnable reason (`scripts/check-subagent-cost-fields.sh`). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 first slice ✓ + S111 wire closed ✓ — next: downstream handoff-consumption or a second role).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
-| Last closed session | Session 111 — **CODE: closed the fleet's def-vs-dispatch wire** (founder pick A at S110 GT). Proved, on disk, that a fresh `vajra claude` session dispatches the scaffolded `.claude/agents/researcher.md` subagent BY NAME — cross-referenced via matching tool-call IDs across two independently-written Claude Code files, not a single copyable JSON blob (a cold-review round caught and closed exactly that weakness). `cost_usd: null` kept for a checked, re-runnable reason (`scripts/check-subagent-cost-fields.sh`, zero of every local subagent transcript carries a cost key). No dispatch-path code changed — S109 had already built it correctly; S111 supplied the missing proof. verify 9/9; demo exit 0; 304 lib tests; cold review **ACCEPT** (13/14 SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge), attested `f98808bc…`. Summary: `sessions/session-111-summary.md`. |
-| Active session | None — between sessions (S111 complete, S112 not yet started) |
+| Today | 2026-08-04 |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) — S109 first slice + S111 closed the dispatch wire + S112 closed the consumption loop:** the Researcher as a governed native Claude Code subagent (`DECISION-007`), now proven end-to-end (scaffold → fresh-session dispatch-by-name, on-disk cross-referenced proof → governed handoff); `cost_usd: null` kept for a checked, re-runnable reason (`scripts/check-subagent-cost-fields.sh`). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 first slice ✓ + S111 wire closed ✓ + S112 handoff-consumption ✓ — next: fleet credit in the K-of-8 counter, a second role, or an opt-in blocking gate).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
+| Last closed session | Session 112 — **CODE: downstream handoff-consumption** (founder pick at S112 kickoff). Added the READ side for governed fleet handoffs and wired it into four surfaces — the boot packet, the Analyst intake (`--intake`/`--scaffold`), and the Analyst gate (`--validate NN`) — with the findings INLINED, absence silent, an off-contract handoff NAMED (`— not used`), and truncation disclosed. Advisory, never blocking. No handoff-format change, no second role, no 8th command. 315 lib tests; verify 16/16; demo exit 0; **two** cold passes, both **ACCEPT** (9/10 SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge), attested `4d7b2b43…`. Summary: `sessions/session-112-summary.md`. |
+| Active session | None — between sessions (S112 complete, S113 not yet started) |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **PUBLISHED (S108): `vajractl 0.1.0` is live on crates.io — the name is now BURNED.** `v0.1.0` also tagged + released (GH release, prebuilt binaries) + on a public Homebrew tap. All four install channels real; any future crates.io action stays founder-gated. |
 
 ---
@@ -294,8 +308,8 @@ GT-verified S75/S80/S85).
 | S108 | Complete | **CODE: publish crates.io + Homebrew tap** (founder pick B; order's **B COMPLETE**) — `vajractl 0.1.0` on crates.io (7/7 smoke) + public tap `ifelse-codes/homebrew-tap` (11/11 smoke, sha256-verified); `install-smoke.sh` +`crates`/`brew` fail-closed modes; README un-marks both rows; irreversible publish + tap both founder-gated in chat; cold review ACCEPT, attested `f5a97e8b…`; PR #113 |
 | S109 | Complete | **CODE: fleet slice 1 — Researcher as a governed Claude Code subagent** (founder pick A, order's **A**, first slice) — `DECISION-007`; `vajra init` scaffolds `.claude/agents/researcher.md` from the canonical `fleet::ROLES`; `vajra next --role --from` governs a delta-tracked, validated handoff, fail-closed; no 8th command; real subagent live proof; verify 9/9, CI green both OS; cold review ACCEPT, attested `2a8d3399…`; PR #115. Mid-session founder redirect: paid `claude -p` reverted → subagent-only |
 | S110 | Complete | **NO-CODE GT: audits S106–S109** — PARTIAL (5🟢/4🟡/1🔴); v0.1 install confirmed real + stranger-shippable; fleet confirmed real but thin (dispatch wire open, `cost_usd: null`); launcher dogfood 🔴 (0 runs since S103); no state drift found; K-of-8 meta-check gap named. Founder pick A → S111 closes the dispatch wire |
-| S111 | Next | **CODE: close the fleet's def-vs-dispatch wire** (founder pick A at S110 closeout) — make live dispatch read `.claude/agents/researcher.md` by name; itemize subagent cost or document why not |
-| **S110** | **Next** | **NO-CODE GROUND TRUTH** (mandatory every 5th) — audits S106–S109. **Founder-picked lead lens:** *is the fleet REAL and advancing, or labelled machinery — and is v0.1 stranger-shippable?* Weigh the S109 subagent pivot (paid `claude -p` reverted; def-vs-dispatch not wired; `cost_usd: null`; handoff not yet consumed downstream). Record `--stations 106..109` + `--dogfood-age` live. Prompt: `prompts/110-task-ground-truth.md` |
+| S111 | Complete | **CODE: closed the fleet's def-vs-dispatch wire** (founder pick A at S110) — a FRESH session dispatches the scaffolded `.claude/agents/researcher.md` BY NAME, proven by matching tool-call IDs across two independently-written Claude Code files; `cost_usd: null` kept for a checked, re-runnable reason. Cold review ACCEPT, attested `f98808bc…`; PR #117 |
+| S112 | Complete | **CODE: downstream handoff-consumption** — the READ side (`fleet::read_handoffs` + `format_handoff_brief`) consumed by the boot packet, the Analyst intake and the Analyst gate; findings inlined; absence silent; off-contract NAMED; truncation disclosed; advisory, never blocking. 315 tests; verify 16/16; **two** cold passes both ACCEPT, attested `4d7b2b43…` |
 
 ---
 
@@ -305,6 +319,7 @@ GT-verified S75/S80/S85).
 |---|---|
 | `vajra claude · next · check · init · estimate · meter · hook` | ✅ 7 commands |
 | 8-station governed pipeline | ✅ All stations live; `vajra next --stations NN` → K-of-8 |
+| Fleet handoffs, end to end | ✅ WRITE (S109) → by-name dispatch PROVEN (S111) → **READ/consumed (S112)**: the boot packet, the Analyst intake and the Analyst gate surface a session's governed findings **inlined**; absence silent, off-contract NAMED, truncation disclosed. Advisory — nothing blocks |
 | Receipt | ✅ Authoritative (`total_cost_usd`); honest null when unavailable; fable-5 + opus-4-8 priced |
 | Attestation | ✅ Recompute-and-compare (S86); review-time snapshot (S88); 22/26 historical verified |
 | Releaser durability | ✅ Reads ledger when branch is pruned (S82) |

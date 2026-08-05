@@ -109,7 +109,13 @@ pub fn run(args: &[String]) -> Result<()> {
 /// not a bare slug. Read-only; the binary surfaces, it does not author.
 fn run_intake() -> Result<()> {
     let root = repo_root()?;
-    print!("{}", analyst::format_intake(&analyst::gather_intake(&root)));
+    // S112: the CURRENT session's governed fleet handoffs are intake too — the branch names the
+    // session, `.ai/SESSION` is the fallback (`current_session`). Absent handoffs print nothing.
+    let session = current_session(&root);
+    print!(
+        "{}",
+        analyst::format_intake(&analyst::gather_intake(&root, session))
+    );
     Ok(())
 }
 
@@ -583,8 +589,13 @@ fn run_scaffold(nn: Option<&String>, slug: Option<&String>) -> Result<()> {
     let root = repo_root()?;
 
     // S62 / J1: surface the real intake inputs FIRST — the prior session + ROADMAP next-builds the
-    // author must fold into the Goal, so the job comes from context, not the bare slug.
-    print!("{}", analyst::format_intake(&analyst::gather_intake(&root)));
+    // author must fold into the Goal, so the job comes from context, not the bare slug. S112 adds
+    // the third input: this session's governed fleet handoffs (findings the next job should fold in).
+    let current = current_session(&root);
+    print!(
+        "{}",
+        analyst::format_intake(&analyst::gather_intake(&root, current))
+    );
     println!();
 
     // S61 / J3: GENERATE writes the prompt AND updates the `.ai/TASK.md` pointer (the spine).
@@ -644,6 +655,16 @@ fn run_validate(nn: Option<&String>) -> Result<()> {
     for w in &verdict.warnings {
         println!("  ⚠ {w}");
     }
+    // S112: if the fleet produced governed findings for THIS session, the Analyst shows them at its
+    // own gate — the WHAT is read next to the research that informs it, not in a separate file
+    // nobody opens. Advisory only: it never blocks, and prints nothing when there is no handoff.
+    print!(
+        "{}",
+        fleet::format_handoff_brief(
+            &fleet::read_handoffs(&root, session),
+            analyst::FLEET_HEAD_LINES
+        )
+    );
     if verdict.blocked() {
         std::process::exit(1);
     }
@@ -760,6 +781,20 @@ fn run_dump() -> Result<()> {
             stations::STATION_COUNT
         );
         println!();
+    }
+
+    // S112 — the fleet's findings reach the agent that needs them. Before this, a governed handoff
+    // was written into `.ai/handoffs/` and read by nobody: the packet (the context an agent boots
+    // on) never mentioned it. Now the CURRENT session's handoffs ride the packet, findings inline.
+    // Silent when there are none — a session with no fleet work sees the packet it always saw.
+    if let Some(n) = current_session(&root) {
+        let brief =
+            fleet::format_handoff_brief(&fleet::read_handoffs(&root, n), analyst::FLEET_HEAD_LINES);
+        if !brief.is_empty() {
+            println!("----- fleet handoffs (session {n:02}) -----");
+            print!("{brief}");
+            println!();
+        }
     }
 
     for relative in PACKET_FILES {

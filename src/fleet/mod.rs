@@ -15,6 +15,10 @@
 //! This module is the PURE core (role resolution, subagent rendering, handoff format + validate +
 //! delta, one hash). The impure edges (reading findings, writing files, git) live in `cli::next` /
 //! `cli::init`. Everything here is unit-testable without spawning anything.
+//!
+//! S112 adds the READ side — `read_handoff`/`read_handoffs` — so a station can consume what the
+//! fleet produced. That is one narrow, fs-READ-only edge (no writes, no processes, tempdir-testable);
+//! its parsing core, `parse_handoff`, stays pure like everything else here.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -259,6 +263,185 @@ pub fn sha256_hex(bytes: &[u8]) -> Option<String> {
     None
 }
 
+// ---------------------------------------------------------------------------
+// S112 — the READ side. S109 wrote governed handoffs; S111 proved they come from a real by-name
+// dispatch; nothing read them back, so the fleet's output sat orphaned next to the pipeline it
+// belongs to. Everything below turns a written handoff into something a station can consume.
+// ---------------------------------------------------------------------------
+
+/// What a governed handoff says about itself, read back off disk. Built ONLY from a handoff that
+/// passed `validate_handoff` — a malformed one becomes `HandoffRead::Malformed`, never a `Handoff`
+/// with blank fields, so a broken artifact can never read as a good one (the fail-closed rule,
+/// applied to the reader).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Handoff {
+    /// The role that produced it (`role:` frontmatter) — e.g. `researcher`.
+    pub role: String,
+    /// The session it belongs to, from the path it was found at (the SoT for placement).
+    pub session: u32,
+    /// Repo-relative path, so a caller can point a human at the file.
+    pub path: String,
+    /// The `agent:` frontmatter — which agent produced the findings.
+    pub agent: String,
+    /// The `captured:` frontmatter — when.
+    pub captured: String,
+    /// The `source-sha:` frontmatter — the hash of the raw findings it was derived from.
+    pub source_sha: String,
+    /// The findings body, already stripped of headings/blank lines by `handoff_body`.
+    pub body: String,
+}
+
+impl Handoff {
+    /// Every non-empty body line, trimmed — the basis for both the inline head and the honest
+    /// "there is more" count.
+    fn body_lines(&self) -> Vec<String> {
+        self.body
+            .lines()
+            .map(|l| l.trim().to_string())
+            .filter(|l| !l.is_empty())
+            .collect()
+    }
+
+    /// The first `n` body lines — what a consuming station inlines so the findings are actually in
+    /// front of the reader, not merely referenced by path.
+    pub fn head_lines(&self, n: usize) -> Vec<String> {
+        self.body_lines().into_iter().take(n).collect()
+    }
+
+    /// How many body lines the inline head LEAVES OUT at `n`. A reader who is shown 6 of 40 lines
+    /// must be told so — a truncation that looks like the whole thing is exactly the false green
+    /// this project exists to kill.
+    pub fn omitted_lines(&self, n: usize) -> usize {
+        self.body_lines().len().saturating_sub(n)
+    }
+}
+
+/// The three honest outcomes of looking for a role's handoff. `Absent` is the silent, harmless
+/// case (most sessions have no researcher handoff and must behave exactly as before). `Malformed`
+/// is deliberately NOT silent: a file that exists but fails the contract is a problem to surface,
+/// not to swallow.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HandoffRead {
+    /// No handoff file for this role/session.
+    Absent,
+    /// A file exists but does not satisfy the DECISION-007 contract. Carries (path, reason).
+    Malformed(String, String),
+    /// A contract-valid handoff.
+    Found(Handoff),
+}
+
+/// Parse handoff TEXT into a `Handoff` (pure — the testable core). `session`/`path` come from where
+/// it was found rather than from the frontmatter: the path is the placement SoT, and trusting a
+/// self-declared `session:` would let a misfiled handoff claim any session it liked.
+pub fn parse_handoff(text: &str, session: u32, path: &str) -> Result<Handoff, String> {
+    validate_handoff(text)?;
+    let body = handoff_body(text).ok_or_else(|| "handoff has no findings body".to_string())?;
+    // Every displayed field must come from the FRONTMATTER BLOCK, not merely from somewhere in the
+    // file. `validate_handoff` accepts a `role:` line anywhere (it scans all lines), so without this
+    // a file whose keys sit in the body would parse into a `Handoff` with blank fields and render as
+    // "  (agent: , captured: )" — a broken artifact reading as a good one. Fail closed instead.
+    let field = |key: &str| {
+        frontmatter_value(text, key)
+            .ok_or_else(|| format!("handoff frontmatter block has no `{key}` value"))
+    };
+    Ok(Handoff {
+        role: field("role:")?,
+        session,
+        path: path.to_string(),
+        agent: field("agent:")?,
+        captured: field("captured:")?,
+        source_sha: field("source-sha:")?,
+        body,
+    })
+}
+
+/// The value of a frontmatter `key:` line, trimmed. Only the frontmatter block is searched (the
+/// text before the closing `---` fence), so a body line that merely starts with `agent:` cannot
+/// impersonate a frontmatter field.
+fn frontmatter_value(text: &str, key: &str) -> Option<String> {
+    let after_fm = text.strip_prefix("---\n")?;
+    let close = after_fm.find("\n---\n")?;
+    after_fm[..close]
+        .lines()
+        .find_map(|l| l.trim_start().strip_prefix(key))
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
+}
+
+/// Read one role's governed handoff for `session` back off disk (the module's one narrow read
+/// edge — fs-read-only, no writes, no processes; testable against a tempdir). An unreadable file
+/// is reported as `Malformed`, never silently `Absent`.
+pub fn read_handoff(root: &std::path::Path, role: &Role, session: u32) -> HandoffRead {
+    let rel = role.handoff_rel(session);
+    let path = root.join(&rel);
+    if !path.exists() {
+        return HandoffRead::Absent;
+    }
+    match std::fs::read_to_string(&path) {
+        Err(e) => HandoffRead::Malformed(rel, format!("unreadable: {e}")),
+        Ok(text) => match parse_handoff(&text, session, &rel) {
+            Ok(h) => HandoffRead::Found(h),
+            Err(reason) => HandoffRead::Malformed(rel, reason),
+        },
+    }
+}
+
+/// Every registered role's handoff for `session`, dropping the `Absent` ones. Empty vec = this
+/// session simply had no fleet work, which every caller must treat as normal and silent.
+pub fn read_handoffs(root: &std::path::Path, session: u32) -> Vec<HandoffRead> {
+    ROLES
+        .iter()
+        .map(|r| read_handoff(root, r, session))
+        .filter(|h| !matches!(h, HandoffRead::Absent))
+        .collect()
+}
+
+/// Render read handoffs as the block a consuming station prints: who produced it, when, where it
+/// lives, and the first `head` findings lines INLINE (a path alone is not consumption). Empty
+/// input renders the empty string — absence prints nothing at all.
+pub fn format_handoff_brief(reads: &[HandoffRead], head: usize) -> String {
+    let mut s = String::new();
+    for r in reads {
+        match r {
+            HandoffRead::Absent => {}
+            HandoffRead::Malformed(path, reason) => {
+                s.push_str(&format!(
+                    "  ⚠ {path} exists but does not satisfy the handoff contract ({reason}) \
+                     — not used\n"
+                ));
+            }
+            HandoffRead::Found(h) => {
+                s.push_str(&format!(
+                    "  {role} (agent: {agent}, captured: {captured})\n    {path}\n",
+                    role = h.role,
+                    agent = h.agent,
+                    captured = h.captured,
+                    path = h.path,
+                ));
+                for line in h.head_lines(head) {
+                    let clipped: String = line.chars().take(110).collect();
+                    let ell = if line.chars().count() > 110 {
+                        "…"
+                    } else {
+                        ""
+                    };
+                    s.push_str(&format!("    · {clipped}{ell}\n"));
+                }
+                // Never let a truncated head read as the whole brief — say how much was left out
+                // and where the rest is. A partial view that looks complete is a false green.
+                let omitted = h.omitted_lines(head);
+                if omitted > 0 {
+                    s.push_str(&format!(
+                        "    · … {omitted} more line(s) — full findings at {}\n",
+                        h.path
+                    ));
+                }
+            }
+        }
+    }
+    s
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -400,5 +583,174 @@ mod tests {
             a,
             "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
         );
+    }
+
+    // ---- S112: the read side ------------------------------------------------------------
+
+    /// A contract-valid handoff, written where `read_handoff` will look for it.
+    fn write_handoff(root: &std::path::Path, session: u32, body: &str) -> String {
+        let r = resolve_role("researcher").unwrap();
+        let text = format_handoff(
+            r,
+            session,
+            "claude-code-subagent",
+            &"d".repeat(64),
+            "2026-08-04T00:00:00Z",
+            None,
+            body,
+            &compute_delta(None, body),
+        );
+        let rel = r.handoff_rel(session);
+        let path = root.join(&rel);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, &text).unwrap();
+        text
+    }
+
+    #[test]
+    fn parse_handoff_round_trips_what_format_handoff_wrote() {
+        let r = resolve_role("researcher").unwrap();
+        let text = format_handoff(
+            r,
+            112,
+            "claude-code-subagent",
+            &"e".repeat(64),
+            "2026-08-04T00:00:00Z",
+            Some(0.25),
+            "line one\nline two",
+            "- `+` new",
+        );
+        let h = parse_handoff(&text, 112, ".ai/handoffs/session-112-researcher.md").unwrap();
+        assert_eq!(h.role, "researcher");
+        assert_eq!(h.session, 112);
+        assert_eq!(h.agent, "claude-code-subagent");
+        assert_eq!(h.captured, "2026-08-04T00:00:00Z");
+        assert_eq!(h.source_sha, "e".repeat(64));
+        assert_eq!(h.head_lines(1), vec!["line one".to_string()]);
+        assert_eq!(h.head_lines(9), vec!["line one", "line two"]);
+    }
+
+    #[test]
+    fn parse_handoff_trusts_the_path_not_a_self_declared_session() {
+        // Frontmatter claims session 999; it was found at session 112's path. The path wins —
+        // a misfiled handoff must not be able to claim a session it is not in.
+        let r = resolve_role("researcher").unwrap();
+        let text = format_handoff(
+            r,
+            999,
+            "a",
+            &"f".repeat(64),
+            "t",
+            None,
+            "findings",
+            "- `+` new",
+        );
+        let h = parse_handoff(&text, 112, ".ai/handoffs/session-112-researcher.md").unwrap();
+        assert_eq!(h.session, 112);
+    }
+
+    /// A file whose contract keys live in the BODY rather than the frontmatter block passes
+    /// `validate_handoff` (it scans every line) but must NOT parse into a `Handoff` with blank
+    /// fields — that would render as "(agent: , captured: )" and read as a good artifact.
+    #[test]
+    fn parse_handoff_fails_closed_when_a_key_is_not_in_the_frontmatter_block() {
+        let text = "---\nrole: researcher\nsession: 1\nsource-sha: x\ncaptured: t\n\
+             cost_usd: null\n---\n\n# H\n\nagent: down-here-not-in-frontmatter\n\n\
+             ## Handoff Delta\n- d\n";
+        // The legacy contract check passes — every key appears SOMEWHERE.
+        assert!(validate_handoff(text).is_ok());
+        // The reader does not: `agent:` is not in the frontmatter block.
+        let err = parse_handoff(text, 1, "p").unwrap_err();
+        assert!(err.contains("agent:"), "got: {err}");
+    }
+
+    #[test]
+    fn head_lines_truncation_is_disclosed_not_silent() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_handoff(tmp.path(), 112, "l1\nl2\nl3\nl4\nl5");
+        let out = format_handoff_brief(&read_handoffs(tmp.path(), 112), 2);
+        assert!(out.contains("l1"));
+        assert!(out.contains("l2"));
+        assert!(!out.contains("l5"));
+        // The reader is TOLD what was left out, and where the rest lives.
+        assert!(out.contains("3 more line(s)"), "got: {out}");
+        assert!(out.contains(".ai/handoffs/session-112-researcher.md"));
+
+        // Nothing omitted -> no "more lines" noise.
+        let full = format_handoff_brief(&read_handoffs(tmp.path(), 112), 99);
+        assert!(!full.contains("more line(s)"));
+    }
+
+    #[test]
+    fn frontmatter_value_ignores_a_body_line_that_looks_like_a_key() {
+        let text = "---\nrole: researcher\nsession: 1\nagent: real-agent\nsource-sha: x\n\
+             captured: t\ncost_usd: null\n---\n\n# H\n\nagent: impostor\n\n## Handoff Delta\n- d\n";
+        let h = parse_handoff(text, 1, "p").unwrap();
+        assert_eq!(h.agent, "real-agent");
+    }
+
+    #[test]
+    fn read_handoff_absent_found_and_malformed() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let r = resolve_role("researcher").unwrap();
+
+        // Absent — the silent, harmless case every no-fleet session must hit.
+        assert_eq!(read_handoff(root, r, 112), HandoffRead::Absent);
+        assert!(read_handoffs(root, 112).is_empty());
+
+        // Found.
+        write_handoff(root, 112, "the finding that matters");
+        match read_handoff(root, r, 112) {
+            HandoffRead::Found(h) => {
+                assert_eq!(h.role, "researcher");
+                assert_eq!(h.path, ".ai/handoffs/session-112-researcher.md");
+                assert!(h.body.contains("the finding that matters"));
+            }
+            other => panic!("expected Found, got {other:?}"),
+        }
+        assert_eq!(read_handoffs(root, 112).len(), 1);
+
+        // Malformed — present but off-contract. NOT silent: it must name why.
+        std::fs::write(
+            root.join(r.handoff_rel(112)),
+            "not a handoff at all, just notes\n",
+        )
+        .unwrap();
+        match read_handoff(root, r, 112) {
+            HandoffRead::Malformed(path, reason) => {
+                assert!(path.ends_with("session-112-researcher.md"));
+                assert!(!reason.is_empty());
+            }
+            other => panic!("expected Malformed, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn format_handoff_brief_inlines_findings_and_is_empty_when_absent() {
+        // Absence renders NOTHING — a session with no fleet work looks exactly as it did before.
+        assert_eq!(format_handoff_brief(&[], 3), "");
+        assert_eq!(format_handoff_brief(&[HandoffRead::Absent], 3), "");
+
+        let tmp = tempfile::tempdir().unwrap();
+        write_handoff(
+            tmp.path(),
+            112,
+            "first finding\nsecond finding\nthird finding",
+        );
+        let out = format_handoff_brief(&read_handoffs(tmp.path(), 112), 2);
+        assert!(out.contains("researcher"));
+        assert!(out.contains("claude-code-subagent"));
+        assert!(out.contains(".ai/handoffs/session-112-researcher.md"));
+        // The findings are INLINE, not just pointed at — and clipped to `head`.
+        assert!(out.contains("first finding"));
+        assert!(out.contains("second finding"));
+        assert!(!out.contains("third finding"));
+
+        // A malformed handoff is surfaced, never swallowed.
+        let bad = HandoffRead::Malformed("p.md".into(), "missing frontmatter key `role:`".into());
+        let out = format_handoff_brief(&[bad], 2);
+        assert!(out.contains("p.md"));
+        assert!(out.contains("not used"));
     }
 }
