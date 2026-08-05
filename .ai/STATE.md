@@ -3,7 +3,10 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-`session-112-handoff-consumption` — S112 complete, not yet merged (9 atomic commits).
+**None — between sessions (S112 complete, S113 not yet started).** S112 shipped on
+`session-112-handoff-consumption` (14 atomic commits), **merged via
+[#118](https://github.com/ifelse-codes/vajra/pull/118)** with **CI green on both OS** (macOS + Ubuntu),
+branch deleted, local `main` synced and pruned. `vajra next --stations 112` = **8 of 8**.
 S112 = **CODE: downstream handoff-consumption** (proposed at S111 closeout, founder-approved at S112
 kickoff). **Verdict: SHIPPED.** S109 could WRITE a governed researcher handoff and S111 PROVED it came
 from a real by-name subagent dispatch — but nothing ever read one back. The handoff was written,
@@ -35,7 +38,7 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
 ✓, S111 dispatch wire ✓, S112 consumption loop ✓ CLOSED.**
 
 ## Active PRs
-- None open yet for S112 (branch not pushed at write time). **S111 [#117](https://github.com/ifelse-codes/vajra/pull/117) MERGED** 2026-08-03; local `main` synced with `origin/main` (`825ca98`) at branch-cut, merged session locals pruned.
+- None open. **S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) MERGED** 2026-08-04 (CI green both OS); **S111 [#117](https://github.com/ifelse-codes/vajra/pull/117) MERGED** 2026-08-03. Local `main` synced with `origin/main`, merged session locals pruned.
 - Prior merges: S109 #115 · S110 closeout #116 · **S108 #113** + S108-follow-up #114 · S107 #112 ·
   S106 #111 · S105-follow-up #110 · S105 #109 · S104 #108.
 
@@ -101,13 +104,15 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
 - **🟡 `fable-5` monthly credits exhausted (S102).** Paid launcher dogfood costs real $ on sonnet/opus.
 - **🟡 In THIS repo the commit gate is auditable-not-un-forgeable** (L3 `commit_guard: off`; L2 belt
   active) · **Compression no-op on real CC** (never claim until measured) · **Cross-agent breadth 0 code**.
-- **🟡 CI-both-OS not yet evidenced for S112** — CI runs on the PR, so pre-merge delivery cannot show
-  it (the same PARTIAL S109 and S111 carried).
+- ~~🟡 CI-both-OS not evidenced for S112~~ — **RESOLVED post-merge:** #118 ran green on macOS and
+  Ubuntu before merging, retiring the delivery's one PARTIAL. The structural point stands for every
+  future session: CI runs on the PR, so a pre-merge delivery can never evidence it.
 
 ## What Is In Progress
-- **S112 DONE (CODE; SHIPPED; verify 16/16; demo exit 0; two cold passes, both ACCEPT, attested
-  `4d7b2b43…`).** Report: `sessions/session-112-summary.md` + `sessions/session-112-review.md`.
-  Branch `session-112-handoff-consumption` not yet merged.
+- **S112 DONE + MERGED (CODE; SHIPPED; verify 16/16; demo exit 0; two cold passes, both ACCEPT,
+  attested `4d7b2b43…`; CI green both OS; PR #118).** `vajra next --stations 112` = **8 of 8** — the
+  Releaser turned green on merge. Report: `sessions/session-112-summary.md` +
+  `sessions/session-112-review.md`.
 - **Next = S113 — CODE: make fleet work visible to the counter, then choose the second role**
   (founder pick **A**). Prompt: `prompts/113-task-fleet-counter-and-second-role.md`. Deferred: the
   paid dogfood run (B) and an opt-in blocking consumption gate (C). **New chat.**
