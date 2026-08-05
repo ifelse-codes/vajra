@@ -15,7 +15,8 @@
   swallowed; **truncation is disclosed**. The **path is the session source of truth**, never the
   self-declared frontmatter. Advisory by design — nothing blocks. No handoff-format change, no second
   role, no 8th command. 315 lib tests; verify **16/16**; demo exit 0; **two independent cold passes,
-  both ACCEPT** (9/10 SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge), attested `4d7b2b43…`.
+  both ACCEPT** (9/10 SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge, **since resolved: #118
+  ran green on both OS**), attested `4d7b2b43…`.
 - **Report:** `sessions/session-112-summary.md` + `sessions/session-112-review.md` · next prompt:
   `prompts/113-task-fleet-counter-and-second-role.md` (founder pick A). **Date last updated:** 2026-08-04.
 
@@ -24,9 +25,10 @@
   `src/fleet/mod.rs` (the reader), `src/analyst/mod.rs` (intake consumes it), `src/cli/next.rs`
   (packet + gate), `scripts/verify-session-112.sh` + `scripts/demo-session-112.sh`, the prompt
   promoted to the full governed shape, and two review-driven hardening commits.
-- **No PR opened yet this session** — commits are on the local branch only at write time. S111
-  **#117** merged 2026-08-03; main synced at branch-cut (`825ca98`), merged session locals pruned.
-  Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
+- **MERGED: [#118](https://github.com/ifelse-codes/vajra/pull/118)**, 2026-08-04, **CI green on both
+  OS** (macOS + Ubuntu) — which retired the delivery's one PARTIAL. Remote branch deleted, local
+  `main` synced and pruned (the S37 return-to-main step). `vajra next --stations 112` = **8 of 8**.
+  Prior: S111 **#117** merged 2026-08-03. Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
 - **Number:** 113 — **CODE: make fleet work visible to the counter, then choose the second role**
