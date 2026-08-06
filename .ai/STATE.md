@@ -3,42 +3,55 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S112 complete, S113 not yet started).** S112 shipped on
-`session-112-handoff-consumption` (14 atomic commits), **merged via
-[#118](https://github.com/ifelse-codes/vajra/pull/118)** with **CI green on both OS** (macOS + Ubuntu),
-branch deleted, local `main` synced and pruned. `vajra next --stations 112` = **8 of 8**.
-S112 = **CODE: downstream handoff-consumption** (proposed at S111 closeout, founder-approved at S112
-kickoff). **Verdict: SHIPPED.** S109 could WRITE a governed researcher handoff and S111 PROVED it came
-from a real by-name subagent dispatch — but nothing ever read one back. The handoff was written,
-validated, tamper-checked, and then orphaned: a human had to know to open `.ai/handoffs/` by hand.
-S112 added the READ side — `fleet::parse_handoff` (pure) / `read_handoff` / `read_handoffs` (one
-narrow fs-read-only edge) / `format_handoff_brief` — and wired it into **four surfaces**: the boot
-packet (`vajra next`), the Analyst's intake (`--intake` and `--scaffold`), and the Analyst's gate
-(`--validate NN`). Findings are **inlined**, not merely pointed at. **Absence prints nothing at all**
-(a session with no fleet work reads byte-for-byte as before); an **off-contract handoff is NAMED**
-(`⚠ … — not used`), never swallowed as absent; **truncation is disclosed** (`… N more line(s) — full
-findings at <path>`). The **path, not the frontmatter, is the session source of truth** — a handoff
-claiming `session: 999` at session 112's path is session 112's. Advisory by design: nothing blocks
-(a gate firing on an artifact a session legitimately does not need would be false teeth). No
-handoff-format change, no second role, no 8th command.
-315 lib tests; verify **16/16**; demo exit 0; **two independent cold passes, both ACCEPT** (9/10
-SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge), attested `4d7b2b43…`. Report:
-`sessions/session-112-summary.md` + `sessions/session-112-review.md`.
+**None — between sessions (S113 complete, S114 not yet started).** S113 shipped on
+`session-113-fleet-counter-visibility` (9 atomic commits) — PR open/merged status recorded under
+Active PRs. S113 = **CODE: make fleet work visible to the counter, then choose the second role**
+(founder pick **A** at the S112 closeout; "all approved" at kickoff). **Verdict: SHIPPED.**
 
-**Two-pass cold review earned its keep again.** Pass 1 (ACCEPT) found the packet and gate checks
-asserted a section *header* that a REJECTED handoff prints too — they could not tell consumption from
-refusal-to-consume; also found undisclosed truncation and a `Handoff` that could parse with blank
-fields. Fixed (`eaff77d`). A **fresh** reviewer then graded the updated diff and found its own,
-sharper hole: **`cargo test --lib <filter>` exits 0 when the filter matches ZERO tests**, so seven
-named-test checks were green after a rename or deletion. Fixed (`26e5544`) with a guard-on-the-guard.
+The counter could not see the fleet at all: a session that dispatched a named agent, governed its
+findings and consumed them downstream scored exactly the same `K of 8` as one that did none of it
+(flagged at S110 GT, carried unfixed through S111 and S112 — three sessions of "flagged, not fixed").
+S113 reports fleet evidence **BESIDE** K — design shape **(c)**, picked at kickoff and recorded in
+the prompt's `## Design`:
+
+- `stations::FleetEvidence` + `fleet_evidence()` + `format_fleet_line()`, built from
+  `fleet::read_handoffs` — the handoff is **parsed and validated off disk**, never a typed marker.
+- **A malformed handoff is NAMED and counts as nothing** (`⚠ fleet: … — not counted`); **absence
+  prints nothing at all**, so a session with no fleet work is byte-identical to pre-S113 output.
+- **K-of-8 is UNCHANGED in meaning, and that is CHECKED, not claimed:** verify strips the fleet line
+  and requires byte-equality with the pre-handoff report, and a test asserts K is invariant under
+  *any* fleet evidence (the `>= 2` hole a cold reviewer named — two handoffs is the normal state once
+  the chosen second role exists). Rejected: a 9th station (breaks the spine every past K rests on)
+  and folding it into a station's verdict (old and new K would look identical while measuring
+  different things).
+- **The second fleet role is CHOSEN, not built: the Reviewer** (`DECISION-007` S113 addendum) — 46
+  `sessions/*-review.md` on disk, mandated by DECISION-002's no-self-certification rule, prompt
+  hand-typed every session today, output already gated + attested + ledgered, read-only tools only.
+  Four alternatives rejected with reasons; a name collision with the Reviewer STATION recorded for
+  the build session to resolve explicitly.
+
+**317 lib tests; verify 14/14; demo 7/7 exit 0; two independent cold passes, both ACCEPT, attested
+`d478a022…`.** Reports: `sessions/session-113-summary.md` + `sessions/session-113-review.md`.
+
+**Two-pass cold review earned its keep for the third session running.** Pass 1 found the "role not
+built" guard used `grep -E '\s'` — BSD/macOS grep reads that as a literal `s`, so an indented
+reviewer role would NOT have matched and the guard would have said "not built" while one existed;
+also that the byte-identity check ran in a repo where every station sat at its floor (a vacuous
+comparison), a bare `grep -v fleet:` substring filter, a tautological assert, and a demo label
+claiming the counter proved a by-name dispatch. A **fresh** pass 2 then found its own sharper hole:
+every check wrote at most ONE handoff, so a station that began passing on `governed.len() >= 2` would
+have kept the whole suite green. All fixed in-session.
 
 **🔀 FOUNDER PIVOT (S103, still in force):** sessions now = **finish a shippable MVP**; the founder runs
 the long unattended test himself, then release. Order **C → B → A**: C (team voice) = S104 ✓ →
 **B (installable) = S106 + S107 + S108 ✓ COMPLETE** → **A (real named agent fleet) — S109 first slice
-✓, S111 dispatch wire ✓, S112 consumption loop ✓ CLOSED.**
+✓, S111 dispatch wire ✓, S112 consumption loop ✓, S113 counter-visibility + second role chosen ✓.**
 
 ## Active PRs
-- None open. **S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) MERGED** 2026-08-04 (CI green both OS); **S111 [#117](https://github.com/ifelse-codes/vajra/pull/117) MERGED** 2026-08-03. Local `main` synced with `origin/main`, merged session locals pruned.
+- **S113 PR — opened at closeout** (`session-113-fleet-counter-visibility` → `main`); CI on both OS
+  runs on the PR, so it is structurally unevidenced pre-merge (the standing PARTIAL since S109).
+- **S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) MERGED** 2026-08-04 (CI green both OS)
+  + closeout [#119](https://github.com/ifelse-codes/vajra/pull/119); **S111 [#117](https://github.com/ifelse-codes/vajra/pull/117) MERGED** 2026-08-03.
 - Prior merges: S109 #115 · S110 closeout #116 · **S108 #113** + S108-follow-up #114 · S107 #112 ·
   S106 #111 · S105-follow-up #110 · S105 #109 · S104 #108.
 
@@ -69,6 +82,11 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
   it. Real standing finding: a file scaffolded mid-session is invisible to that SAME session's Task
   tool (Claude Code snapshots `.claude/agents/*.md` at boot only) — the wire needs a fresh session,
   which is also exactly how a real Vajra user experiences it.
+- **The counter can finally SEE the fleet (S113):** `vajra next --stations NN` prints
+  `fleet: N governed handoff(s) — <roles>` **beside** `K of 8`, derived from the validated handoff
+  on disk; malformed is named and never counted; absence is silent. **K's definition is untouched**,
+  so every past K reading stays comparable. Read the claim narrowly: it certifies *a contract-valid
+  handoff exists*, NOT *an agent was dispatched* — anyone can hand-type findings and run the writer.
 - **The 8-station governed pipeline speaks like a team** (S104): `vajra next --stations` + the packet
   render named roles + plain status from one source; gates/K unchanged.
 - **The 8 stations** riding `vajra next` (+ gates at `--advance`): Analyst · Architect · Planner · Coder ·
@@ -80,15 +98,16 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
   **7 commands, no 8th** (the fleet rides `init` + `next`).
 
 ## What Is Broken / Weak
-- **🔴 The launcher (`vajra claude`) has NOT run as a real governed session since S103** — now 9
-  sessions / ~8 calendar days. S111's scratch-repo dispatch and S112's tempdir e2e are mechanism
-  TESTS, not governed dogfood runs — neither resets this. Overdue; a candidate for S113.
-- **🟡 Fleet consumption is ADVISORY, never blocking.** Nothing fails when a session ignores (or never
+- **🔴 The launcher (`vajra claude`) has NOT run as a real governed session since S103** — now 10
+  sessions / ~10 calendar days. S111's scratch-repo dispatch and S112's tempdir e2e are mechanism
+  TESTS, not governed dogfood runs — neither resets this. Overdue; a candidate for S114 (option B).
+- **🟡 Fleet consumption + fleet evidence are ADVISORY, never blocking.** Nothing fails when a session ignores (or never
   reads) a governed handoff. Deliberate this session; an opt-in "this session requires a handoff"
   gate is the obvious next step, and equally the obvious way to build false teeth.
-- **🟡 The K-of-8 pipeline-advance counter still has no unit for fleet work** (S110 GT meta-check).
-  A governed subagent handoff — written OR consumed — earns no station credit of its own. Flagged
-  three sessions running, not fixed.
+- ~~🟡 The K-of-8 counter has no unit for fleet work~~ — **RETIRED S113.** Fleet work is now
+  reported beside K (not inside it), derived from the validated handoff. **Residual 🟡: the line
+  counts ARTIFACTS, not agents** — a contract-valid handoff proves a file, never a dispatch; and it
+  does not prove any station *read* it ("governed" ≠ "used").
 - **🟡 An unattended `claude -p` dispatch mode is unbuilt** (deferred, DECISION-007). The S109 handoff
   itself researched how: **`ANTHROPIC_API_KEY`** is the only auth that survives a fresh, no-TTY,
   no-keychain shell; `claude setup-token` is the subscription alternative; interactive OAuth won't do.
@@ -109,13 +128,13 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
   future session: CI runs on the PR, so a pre-merge delivery can never evidence it.
 
 ## What Is In Progress
-- **S112 DONE + MERGED (CODE; SHIPPED; verify 16/16; demo exit 0; two cold passes, both ACCEPT,
-  attested `4d7b2b43…`; CI green both OS; PR #118).** `vajra next --stations 112` = **8 of 8** — the
-  Releaser turned green on merge. Report: `sessions/session-112-summary.md` +
-  `sessions/session-112-review.md`.
-- **Next = S113 — CODE: make fleet work visible to the counter, then choose the second role**
-  (founder pick **A**). Prompt: `prompts/113-task-fleet-counter-and-second-role.md`. Deferred: the
-  paid dogfood run (B) and an opt-in blocking consumption gate (C). **New chat.**
+- **S113 DONE (CODE; SHIPPED; 317 lib tests; verify 14/14; demo 7/7 exit 0; two cold passes, both
+  ACCEPT, attested `d478a022…`).** `vajra next --stations 113` = **6 of 8** pre-merge (Releaser needs
+  the merge; Reviewer turns green once the attested verdict settles into a reconstructable diff).
+  Reports: `sessions/session-113-summary.md` + `sessions/session-113-review.md`.
+- **Next = S114 — founder pick pending** from: **A** build the chosen second role (the Reviewer) ·
+  **B** the overdue paid `vajra claude` dogfood (🔴 since S103) · **C** the opt-in blocking
+  consumption gate. Prompt written at closeout. **New chat.** (S115 = the next NO-CODE GT.)
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
@@ -129,4 +148,6 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
 - **S112: $0 metered for the build; two cold-review subagent passes (~161k subagent tokens) roll into
   this interactive session's receipt, unitemized** — same structural reason as S109/S111
   (`scripts/check-subagent-cost-fields.sh`: no local subagent transcript carries a cost field).
-- Cumulative: **~$79.3 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111/S112 (unknown, small).**
+- **S113: $0 metered for the build; two cold-review subagent passes (~151k subagent tokens) roll into
+  this interactive session's receipt, unitemized** — same structural reason as S109/S111/S112.
+- Cumulative: **~$79.3 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111/S112/S113 (unknown, small).**

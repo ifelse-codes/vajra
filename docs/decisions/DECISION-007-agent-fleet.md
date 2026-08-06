@@ -126,3 +126,63 @@ against the scaffolded file. S111 closed this:
   live dispatch-by-name (Claude Code's own mechanism, a fresh session) → governed handoff
   (`vajra next --role --from`). No code change was needed to the dispatch path itself; S109 had
   already built it correctly. What was missing was the proof, which S111 supplies.
+
+## S113 addendum — the SECOND role is the **Reviewer** (chosen, not built)
+
+**Status: CHOSEN.** S113's deliverable was to pick the second role from evidence and record why;
+building it is its own session (the S109 anti-scope-creep rule still applies). No `fleet::ROLES`
+entry, no `.claude/agents/reviewer.md`, no code ships with this addendum.
+
+### The evidence that drove it (all from this repo, countable)
+
+1. **It is the one dispatch this repo already performs every single session — 46 times.**
+   `ls sessions/*-review.md` = **46** independent cold reviews, S55 through S112, plus S67/S112/S113
+   running it TWICE. It is not a hypothetical role; it is the fleet's busiest real job, running
+   today with no scaffold at all.
+2. **The constitution mandates it and forbids the alternative.** DECISION-002 + the "No
+   self-certification" hard rule: fidelity must be judged by an independent pass fed only the prompt
+   and the diff. Every session is contractually obliged to dispatch this agent.
+3. **Today its prompt is HAND-TYPED each session — the exact drift the `fleet::ROLES` single source
+   exists to kill.** The Researcher's instructions live in one canonical place and render into the
+   subagent file; the Reviewer's do not live anywhere. Review quality therefore varies with how
+   carefully the builder re-wrote the brief that day. Two sessions running (S112, S113) the
+   carry-forward notes say "reuse the two-pass pattern" — a convention kept in prose, not in code.
+4. **Its output already has a governed home and teeth.** `sessions/session-NN-review.md` is read by
+   `verify-closeout.sh` (missing/hollow/REJECT all FAIL), attested by `Review-Inputs-SHA`
+   (DECISION-003), chained in the ledger (DECISION-004), and counted by the Reviewer station. A
+   Reviewer role is the shortest distance from "role scaffolded" to "role's output already gated" —
+   every other candidate would need new machinery first.
+5. **It needs read-only tools only** — the same posture as the Researcher (`Read, Grep, Glob`,
+   plus git reads for the diff). No new trust surface: a fleet role that could WRITE would be a
+   materially bigger decision, and this one avoids it.
+
+### Alternatives considered, and why each loses
+
+- **A Planner / Architect role (an agent that authors the `## Plan` or `## Design`).** Rejected:
+  those stations "surface and enforce, never author" (S64, S67) — the human/parent agent owns the
+  content and the gate checks it. A role that authors what a gate then grades is self-certification
+  wearing a second hat.
+- **A Coder role.** Rejected for now: it needs write tools, which is a genuinely larger governance
+  decision (what may it edit, under whose approval token, against which commit gate), and the main
+  agent already does this work under the existing gates.
+- **A QA / verifier role.** Rejected: the QA station re-runs `verify-session-NN.sh` **live** (S69).
+  A live green script is stronger evidence than an agent's opinion about the script — adding an
+  agent here would swap teeth for prose.
+- **A Demo-er / Releaser role.** Rejected: both are mechanical and derived from git and script
+  output; there is no judgment for an agent to add.
+
+### Known limits of this choice (disclosed now, so the build session cannot claim more)
+
+- Scaffolding the Reviewer makes its brief **canonical and re-runnable**; it does **not** by itself
+  make the review more independent than today's ad-hoc dispatch. Independence comes from the
+  context boundary (a subagent gets a fresh context window, fed only the prompt + the diff), which
+  already holds today.
+- A scaffolded role is only as good as its dispatch: like the Researcher, a `.claude/agents/*.md`
+  written mid-session is invisible to that same session (S111). The Reviewer role will land in one
+  session and first be dispatchable by name in the next.
+- **Name collision to resolve at build time (cold-review finding, S113):** the pipeline already has
+  a **Reviewer station** (the eighth station in `K of 8`, `stations::reviewer_status`). A fleet role
+  keyed `reviewer` would read ambiguously against it — "Reviewer PASSED" would mean the station,
+  while "fleet: 1 governed handoff — reviewer" would mean the agent. The build session must either
+  pick a distinct role key (e.g. `fidelity-reviewer`) or state explicitly that the role IS the
+  station's agent. Do not leave it implicit.

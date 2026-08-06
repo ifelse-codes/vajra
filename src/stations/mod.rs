@@ -28,6 +28,7 @@ use crate::analyst::{self, DeltaState};
 use crate::architect::{self, DesignState};
 use crate::coder::{self, ExecState};
 use crate::demoer;
+use crate::fleet;
 use crate::planner::{self, PlanState};
 use crate::qa;
 use crate::releaser::{self, BranchShip, MainSync};
@@ -93,11 +94,63 @@ impl StationStatus {
     }
 }
 
-/// The per-session station report — the eight statuses plus a derived `K of 8`.
+/// What governed fleet ARTIFACTS exist for a session — reported **beside** `K of 8`, never inside
+/// it (S113, design shape (c)).
+///
+/// Read the claim narrowly: this says *a contract-valid handoff is on disk*, NOT *a named agent was
+/// dispatched*. Anyone can write findings by hand and run `vajra next --role … --from`; the proof of
+/// a real by-name subagent dispatch lives in S111's evidence trail and this counter cannot
+/// re-derive it. Never pitch the line as "an agent ran".
+///
+/// The counter's eight stations, their classifiers, and the number they produce are untouched by
+/// this type, so S74's `K` and S113's `K` mean exactly the same thing. A 9th station would have
+/// broken that comparability; folding fleet work into an existing station's verdict would have been
+/// worse — old and new `K` would look identical while measuring different things.
+///
+/// Derived, never asserted (the same rule the stations follow): every entry comes from
+/// `fleet::read_handoffs`, i.e. a handoff **parsed and validated off disk**. A file that exists but
+/// fails the DECISION-007 contract is named as malformed, never counted as fleet work done.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct FleetEvidence {
+    /// The role name of each contract-valid governed handoff found for this session.
+    pub governed: Vec<String>,
+    /// `(repo-relative path, reason)` for each file at a role's handoff path that fails the
+    /// contract. Surfaced, never swallowed — an unusable artifact is a problem to show.
+    pub malformed: Vec<(String, String)>,
+}
+
+impl FleetEvidence {
+    /// No fleet artifact of any kind for this session — the silent case. Most sessions are this,
+    /// and they must render byte-for-byte as they did before S113.
+    pub fn is_empty(&self) -> bool {
+        self.governed.is_empty() && self.malformed.is_empty()
+    }
+}
+
+/// Derive session `session`'s fleet evidence — read-only (one fs read per registered role, via
+/// `fleet::read_handoffs`), nothing executes.
+pub fn fleet_evidence(root: &Path, session: u32) -> FleetEvidence {
+    let mut ev = FleetEvidence::default();
+    for read in fleet::read_handoffs(root, session) {
+        match read {
+            fleet::HandoffRead::Found(h) => ev.governed.push(h.role),
+            fleet::HandoffRead::Malformed(path, reason) => ev.malformed.push((path, reason)),
+            // `read_handoffs` already drops these; matched explicitly so a future variant is a
+            // compile error rather than a silent omission.
+            fleet::HandoffRead::Absent => {}
+        }
+    }
+    ev
+}
+
+/// The per-session station report — the eight statuses plus a derived `K of 8`, and (S113) the
+/// session's fleet evidence carried alongside it.
 #[derive(Debug, Clone)]
 pub struct StationReport {
     pub session: u32,
     pub stations: Vec<StationStatus>,
+    /// Fleet work for this session. Reported next to `K of 8`; contributes **nothing** to it.
+    pub fleet: FleetEvidence,
 }
 
 impl StationReport {
@@ -134,6 +187,7 @@ pub fn station_report(root: &Path, session: u32) -> StationReport {
             releaser_status(root, session),
             reviewer_status(root, session),
         ],
+        fleet: fleet_evidence(root, session),
     }
 }
 
@@ -480,6 +534,9 @@ pub fn format_station_report(r: &StationReport) -> String {
         r.passed(),
         STATION_COUNT,
     ));
+    // S113: fleet work, BESIDE `K of 8` — the line above is untouched, so K stays comparable
+    // across every session that ever printed it. Silent when there is no fleet artifact at all.
+    out.push_str(&format_fleet_line(&r.fleet));
     // S99: never let a legacy-convention repo read as an idle one — say so on the same surface.
     if r.legacy() > 0 {
         out.push_str(&format!(
@@ -487,6 +544,33 @@ pub fn format_station_report(r: &StationReport) -> String {
              convention, so absence of markers is not absence of work. `vajra next --advance`\n  \
              scaffolds a modern prompt; `vajra init` (skip-if-present) restores missing guards.\n",
             r.legacy(),
+        ));
+    }
+    out
+}
+
+/// Render fleet evidence as the line(s) that sit BESIDE `K of 8` (S113). Empty evidence renders the
+/// empty string — a session with no fleet work reads exactly as it did before this existed.
+///
+/// The wording is deliberate: every line says the evidence is **not counted in K**, so no reader can
+/// mistake a fleet handoff for a station pass, and `K` never silently changes meaning.
+pub fn format_fleet_line(ev: &FleetEvidence) -> String {
+    let mut out = String::new();
+    if ev.is_empty() {
+        return out;
+    }
+    if !ev.governed.is_empty() {
+        out.push_str(&format!(
+            "  fleet: {n} governed handoff(s) — {roles} (derived from the validated handoff on \
+             disk; reported beside K, NOT counted in it)\n",
+            n = ev.governed.len(),
+            roles = ev.governed.join(", "),
+        ));
+    }
+    for (path, reason) in &ev.malformed {
+        out.push_str(&format!(
+            "  ⚠ fleet: {path} exists but does not satisfy the handoff contract ({reason}) \
+             — not counted\n"
         ));
     }
     out
@@ -1617,6 +1701,163 @@ release:
             outcome(root, 95, "Reviewer"),
             Outcome::Passed,
             "Reviewer must PASS when hash was computed at an intermediate branch commit"
+        );
+    }
+
+    // ---- S113: fleet evidence beside K ---------------------------------------------------
+
+    /// Write a role's handoff for `nn` at the canonical path, with the given file text.
+    fn write_handoff(root: &Path, role: &str, nn: u32, text: &str) {
+        let r = fleet::resolve_role(role).expect("known role");
+        let rel = r.handoff_rel(nn);
+        let path = root.join(&rel);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, text).unwrap();
+    }
+
+    /// A contract-valid governed handoff, built by the SAME renderer the write path uses — so this
+    /// fixture cannot drift away from the real artifact shape.
+    fn valid_handoff(nn: u32) -> String {
+        fleet::format_handoff(
+            fleet::resolve_role("researcher").unwrap(),
+            nn,
+            "claude-opus-5",
+            "a".repeat(64).as_str(),
+            "2026-08-06T00:00:00Z",
+            None,
+            "- headless auth needs ANTHROPIC_API_KEY\n- interactive OAuth will not survive",
+            "- `+` new handoff (first for this session)",
+        )
+    }
+
+    #[test]
+    fn fleet_evidence_absent_renders_nothing_and_leaves_k_untouched() {
+        let tmp = repo();
+        let root = tmp.path();
+        write_prompt(root, 30, &full_prompt(30, "deadbeef"));
+
+        let report = station_report(root, 30);
+        assert!(report.fleet.is_empty(), "no handoff on disk → no evidence");
+        assert_eq!(format_fleet_line(&report.fleet), "");
+        let rendered = format_station_report(&report);
+        assert!(
+            !rendered.contains("fleet:"),
+            "a session with no fleet work must render exactly as before S113:\n{rendered}"
+        );
+        // A LIVE counter, not a floor: this fixture passes real stations, so the sibling tests'
+        // "K did not move" assertions compare against something that could have moved.
+        // (Comparing the report to a second call on unchanged disk would be a tautology.)
+        assert_eq!(
+            report.passed(),
+            3,
+            "fixture must pass Analyst + Architect + Planner"
+        );
+    }
+
+    #[test]
+    fn fleet_evidence_reports_a_governed_handoff_beside_k_without_changing_k() {
+        let tmp = repo();
+        let root = tmp.path();
+        write_prompt(root, 31, &full_prompt(31, "deadbeef"));
+        let k_before = station_report(root, 31).passed();
+
+        write_handoff(root, "researcher", 31, &valid_handoff(31));
+        let report = station_report(root, 31);
+
+        assert_eq!(report.fleet.governed, vec!["researcher".to_string()]);
+        assert!(report.fleet.malformed.is_empty());
+        // The load-bearing guarantee of design shape (c): K is IDENTICAL with and without fleet
+        // work, so S74's K and S113's K mean the same thing.
+        assert_eq!(
+            report.passed(),
+            k_before,
+            "fleet evidence must not change K of 8"
+        );
+
+        let rendered = format_station_report(&report);
+        assert!(rendered.contains("fleet: 1 governed handoff(s) — researcher"));
+        assert!(
+            rendered.contains("NOT counted in it"),
+            "the line must say plainly that it is not part of K:\n{rendered}"
+        );
+        assert!(
+            rendered.contains(&format!(
+                "{} of {} stations passed",
+                k_before, STATION_COUNT
+            )),
+            "the K line itself is untouched:\n{rendered}"
+        );
+    }
+
+    /// The `>= 2` hole a cold reviewer named (S113 pass 2): every other test writes at most ONE
+    /// handoff, so a station that started PASSing on `governed.len() >= 2` would keep the whole
+    /// suite green — and two handoffs is exactly the normal state once the chosen second role
+    /// exists. `read_handoffs` cannot produce two today (one registered role), so this asserts the
+    /// invariant where it actually lives: `K` is a pure function of the eight statuses, and stays
+    /// put no matter what fleet evidence is attached.
+    #[test]
+    fn k_is_invariant_under_any_amount_of_fleet_evidence() {
+        let tmp = repo();
+        let root = tmp.path();
+        write_prompt(root, 33, &full_prompt(33, "deadbeef"));
+
+        let mut report = station_report(root, 33);
+        let k = report.passed();
+        assert!(
+            k > 0,
+            "fixture must have live stations for this to mean anything"
+        );
+
+        report.fleet = FleetEvidence {
+            governed: vec!["researcher".into(), "reviewer".into(), "planner".into()],
+            malformed: vec![(".ai/handoffs/session-33-x.md".into(), "broken".into())],
+        };
+        assert_eq!(
+            report.passed(),
+            k,
+            "K must not move with ANY fleet evidence"
+        );
+        assert_eq!(report.legacy(), station_report(root, 33).legacy());
+
+        // The plural rendering path — never exercised elsewhere — must name every role and still
+        // disclaim membership in K, with the malformed one reported alongside, not instead.
+        let line = format_fleet_line(&report.fleet);
+        assert!(line.contains("fleet: 3 governed handoff(s) — researcher, reviewer, planner"));
+        assert!(line.contains("NOT counted in it"));
+        assert!(line.contains("session-33-x.md") && line.contains("not counted"));
+
+        // And the full report still carries the untouched K line.
+        let rendered = format_station_report(&report);
+        assert!(rendered.contains(&format!("{k} of {STATION_COUNT} stations passed")));
+    }
+
+    #[test]
+    fn fleet_evidence_names_a_malformed_handoff_and_never_counts_it() {
+        let tmp = repo();
+        let root = tmp.path();
+        write_prompt(root, 32, &full_prompt(32, "deadbeef"));
+        let k_before = station_report(root, 32).passed();
+
+        // Everything the eye expects — frontmatter keys, a body — but no `## Handoff Delta`, so it
+        // fails the DECISION-007 contract. A file that merely EXISTS is not fleet work done.
+        let broken = "---\nrole: researcher\nsession: 32\nagent: x\nsource-sha: abc\n\
+                      captured: 2026-08-06T00:00:00Z\ncost_usd: null\n---\n\nsome findings\n";
+        write_handoff(root, "researcher", 32, broken);
+        let report = station_report(root, 32);
+
+        assert!(
+            report.fleet.governed.is_empty(),
+            "a malformed handoff must never count as governed fleet work"
+        );
+        assert_eq!(report.fleet.malformed.len(), 1);
+        assert_eq!(report.passed(), k_before, "K of 8 is untouched either way");
+
+        let rendered = format_station_report(&report);
+        assert!(rendered.contains("does not satisfy the handoff contract"));
+        assert!(rendered.contains("— not counted"));
+        assert!(
+            !rendered.contains("governed handoff(s)"),
+            "a broken artifact must not render as a good one:\n{rendered}"
         );
     }
 }
