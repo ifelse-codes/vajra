@@ -24,16 +24,27 @@
 CI on both OS is unevidenced pre-merge — structurally impossible before the PR runs (the standing
 PARTIAL carried since S109).
 
-## Pass 1 — ACCEPT, with four real holes
+## Per-requirement verdicts (both passes agreeing; pass 2 is the final grade)
 
-| Requirement | Pass 1 verdict |
-|---|---|
-| Deliverables 1, 2, 3 | SHIPPED |
-| Deliverable 4 (scripts) | built; greenness unverifiable from a diff |
-| Deliverable 5 (summary + review) | outside the diff window |
-| Criteria 1, 2, 3, 4 | SHIPPED |
-| Criteria 5, 6 | unverifiable / this document |
-| Non-goals | all honored |
+| # | Requirement (from the contract) | Verdict | Reviewer's evidence |
+|---|---|---|---|
+| D1 | Fleet work visible in `--stations NN`, derived, never a marker | SHIPPED | `fleet_evidence()` maps `read_handoffs`' `Found`/`Malformed`; rendered right after the K line; no marker read anywhere |
+| D2 | K-of-8 stays comparable across sessions | SHIPPED | `passed()` and all eight `*_status()` untouched; `fleet` is an additive sibling field contributing nothing to the count |
+| D3 | Second role recorded as a DECISION-007 addendum | SHIPPED | names the Reviewer, 5 numbered evidence items, 4 rejected alternatives, a limits section |
+| D4 | `verify-session-113.sh` + `demo-session-113.sh`, green, behavioural | PARTIAL | both behavioural (throwaway repo, real writer, before/after byte-identity); "exit 0" is a claim no diff can settle |
+| D5 | Summary + independent cold review | SHIPPED | outside the diff window by construction; both files exist (this is the second) |
+| C1 | Evidence when a handoff exists, nothing new when it does not | SHIPPED | `_e2e_counter` before/after in one repo; real S111 vs S110 |
+| C2 | Derived + validated; malformed ≠ fleet work | SHIPPED | two independent malformed fixtures (missing `## Handoff Delta`; no frontmatter), both assert `governed` empty |
+| C3 | K unchanged in meaning, or the change recorded | SHIPPED | preserved by construction, asserted byte-for-byte, and now invariant-tested under any fleet evidence |
+| C4 | Second role chosen, reasoning recorded, no role built | SHIPPED | addendum + a self-validating "not built" guard across `src/` |
+| C5 | `cargo test --lib` green; both scripts exit 0 | PARTIAL | wired correctly; greenness unobservable from a diff (builder's live runs recorded above) |
+| C6 | Independent cold review, per-requirement, fakest green | SHIPPED | this document |
+| NG1 | Do not BUILD the second role | SHIPPED (honored) | no `fleet::ROLES` change, no `.claude/agents/reviewer.md` |
+| NG2 | No 8th command | SHIPPED (honored) | no dispatch change; usage-string check is an exact-set assertion |
+| NG3 | No blocking gate | SHIPPED (honored) | `fleet` feeds no return value, no exit code, no `passed()` |
+| NG4 | No handoff-format / dispatch change | SHIPPED (honored) | `stations` only calls into `fleet`; that module is untouched |
+
+## Pass 1 — ACCEPT, with four real holes
 
 Findings fixed in-session (`94f369a`):
 
@@ -105,7 +116,9 @@ dispatched". Disclosed in the summary, in the demo's own case 4, and now in the 
 
 ## Verdict
 
-**ACCEPT** — all five deliverables built with two-sided, behaviour-proving checks; every non-goal
+**Verdict:** ACCEPT
+
+All five deliverables built with two-sided, behaviour-proving checks; every non-goal
 honored (the second role is chosen and a guard fails if it appears in code); K's preservation is
 settled by the diff's structure, not merely by a script; and both passes' real findings were closed
 in-session rather than argued away.
