@@ -54,6 +54,11 @@ run_check "test-governed-beside-k" \
   named_test_passed stations::tests::fleet_evidence_reports_a_governed_handoff_beside_k_without_changing_k
 run_check "test-malformed-not-counted" \
   named_test_passed stations::tests::fleet_evidence_names_a_malformed_handoff_and_never_counts_it
+# Added after cold-review pass 2: every OTHER check writes at most one handoff, so a station that
+# started passing on `governed.len() >= 2` would keep the whole suite green — and two handoffs is
+# the normal state the moment the chosen second role is built.
+run_check "test-k-invariant-any-fleet" \
+  named_test_passed stations::tests::k_is_invariant_under_any_amount_of_fleet_evidence
 # The guard on the guard: a filter matching nothing must FAIL, or every check above is theatre.
 filter_guard_has_teeth() {
   if named_test_passed stations::tests::this_test_does_not_exist_on_purpose >/dev/null 2>&1; then

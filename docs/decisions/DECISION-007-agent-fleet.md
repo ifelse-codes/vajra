@@ -180,3 +180,9 @@ entry, no `.claude/agents/reviewer.md`, no code ships with this addendum.
 - A scaffolded role is only as good as its dispatch: like the Researcher, a `.claude/agents/*.md`
   written mid-session is invisible to that same session (S111). The Reviewer role will land in one
   session and first be dispatchable by name in the next.
+- **Name collision to resolve at build time (cold-review finding, S113):** the pipeline already has
+  a **Reviewer station** (the eighth station in `K of 8`, `stations::reviewer_status`). A fleet role
+  keyed `reviewer` would read ambiguously against it — "Reviewer PASSED" would mean the station,
+  while "fleet: 1 governed handoff — reviewer" would mean the agent. The build session must either
+  pick a distinct role key (e.g. `fidelity-reviewer`) or state explicitly that the role IS the
+  station's agent. Do not leave it implicit.

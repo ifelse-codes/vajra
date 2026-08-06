@@ -94,8 +94,13 @@ impl StationStatus {
     }
 }
 
-/// What the fleet (DECISION-007) demonstrably did for a session — reported **beside** `K of 8`,
-/// never inside it (S113, design shape (c)).
+/// What governed fleet ARTIFACTS exist for a session — reported **beside** `K of 8`, never inside
+/// it (S113, design shape (c)).
+///
+/// Read the claim narrowly: this says *a contract-valid handoff is on disk*, NOT *a named agent was
+/// dispatched*. Anyone can write findings by hand and run `vajra next --role … --from`; the proof of
+/// a real by-name subagent dispatch lives in S111's evidence trail and this counter cannot
+/// re-derive it. Never pitch the line as "an agent ran".
 ///
 /// The counter's eight stations, their classifiers, and the number they produce are untouched by
 /// this type, so S74's `K` and S113's `K` mean exactly the same thing. A 9th station would have
@@ -1782,6 +1787,48 @@ release:
             )),
             "the K line itself is untouched:\n{rendered}"
         );
+    }
+
+    /// The `>= 2` hole a cold reviewer named (S113 pass 2): every other test writes at most ONE
+    /// handoff, so a station that started PASSing on `governed.len() >= 2` would keep the whole
+    /// suite green — and two handoffs is exactly the normal state once the chosen second role
+    /// exists. `read_handoffs` cannot produce two today (one registered role), so this asserts the
+    /// invariant where it actually lives: `K` is a pure function of the eight statuses, and stays
+    /// put no matter what fleet evidence is attached.
+    #[test]
+    fn k_is_invariant_under_any_amount_of_fleet_evidence() {
+        let tmp = repo();
+        let root = tmp.path();
+        write_prompt(root, 33, &full_prompt(33, "deadbeef"));
+
+        let mut report = station_report(root, 33);
+        let k = report.passed();
+        assert!(
+            k > 0,
+            "fixture must have live stations for this to mean anything"
+        );
+
+        report.fleet = FleetEvidence {
+            governed: vec!["researcher".into(), "reviewer".into(), "planner".into()],
+            malformed: vec![(".ai/handoffs/session-33-x.md".into(), "broken".into())],
+        };
+        assert_eq!(
+            report.passed(),
+            k,
+            "K must not move with ANY fleet evidence"
+        );
+        assert_eq!(report.legacy(), station_report(root, 33).legacy());
+
+        // The plural rendering path — never exercised elsewhere — must name every role and still
+        // disclaim membership in K, with the malformed one reported alongside, not instead.
+        let line = format_fleet_line(&report.fleet);
+        assert!(line.contains("fleet: 3 governed handoff(s) — researcher, reviewer, planner"));
+        assert!(line.contains("NOT counted in it"));
+        assert!(line.contains("session-33-x.md") && line.contains("not counted"));
+
+        // And the full report still carries the untouched K line.
+        let rendered = format_station_report(&report);
+        assert!(rendered.contains(&format!("{k} of {STATION_COUNT} stations passed")));
     }
 
     #[test]
