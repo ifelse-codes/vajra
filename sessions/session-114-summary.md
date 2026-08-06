@@ -3,7 +3,7 @@
 **Verdict: SHIPPED.** Type: CODE. Founder pick **A** at the S113 closeout; "all approved" at kickoff.
 Branch: `session-114-fleet-role-reviewer`. 7 atomic commits. 322 lib tests · verify **17/17** ·
 demo **10/10** exit 0 · **two independent cold passes** (pass 1 REJECT → fixed → fresh pass 2
-ACCEPT), attested `adae11e1…`.
+ACCEPT), attested `cbd22d3a…`.
 
 ## Goal achieved?
 
