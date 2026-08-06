@@ -7,7 +7,7 @@ and the scripts, and each explicitly told to attack the checks by mutation. Pass
 hole was closed in-session; a **fresh** pass 2 (no memory of pass 1) ACCEPTED and found two further
 holes, both also closed in-session.
 
-**Review-Inputs-SHA:** b1636387e712967cf183fd8b86bf8b4e32786da79e63ac4b2ae28c209d4a9b1a
+**Review-Inputs-SHA:** adae11e1fe86941f7e254719cd3e8b39db2d4f0849a8ab3bbf56bf1c50cc6c4b
 
 ## Per-requirement verdicts
 

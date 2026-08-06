@@ -97,7 +97,7 @@ handoff format, the dispatch mechanism, or the command set changes.
 - step 4 — done: 05f0d13 (`scripts/verify-session-114.sh` — 16 checks, ALL GREEN)
 - step 5 — done: 05f0d13 (`scripts/demo-session-114.sh` — 10 cases, ALL GREEN, exit 0)
 - step 6 — done: 8499718 (`sessions/session-114-summary.md` + the attested
-  `sessions/session-114-review.md`; two cold passes, 13 of 13 SHIPPED, attested `b1636387…`).
+  `sessions/session-114-review.md`; two cold passes, 13 of 13 SHIPPED, attested `adae11e1…`).
   Review-driven hardening landed before it: d46c1bc + fa80f5b (pass 1) and 2499d1b (pass 2).
 
 ## Acceptance criteria
