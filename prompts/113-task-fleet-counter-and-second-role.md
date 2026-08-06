@@ -61,16 +61,47 @@ second fleet role, from evidence about what the pipeline actually lacks.
     being invisible; nothing about an existing verdict changes.
 - Whichever is chosen, the evidence must be DERIVED (read the handoff off disk and validate it, as
   `fleet::read_handoffs` already does), never a marker an author types.
+- **PICKED AT KICKOFF (S113, founder "all approved"): shape (c) — a separate line BESIDE K.**
+  **K-of-8's meaning is UNCHANGED**: the eight stations, their classifiers, and the count they
+  produce are untouched, so S74's K and S113's K mean exactly the same thing (criterion 3 is
+  satisfied by preservation, not by recording a break). Fleet evidence is an ADDITIONAL derived
+  line — never a 9th station (a), never folded into an existing station's verdict (b). Rejected
+  (a) because it breaks the 8-station spine every past K reading rests on; rejected (b) because
+  old and new K would look identical while measuring different things — the exact false green this
+  project exists to kill.
+- Evidence source: `fleet::read_handoffs(root, session)` — a contract-valid handoff on disk counts;
+  a malformed one is NAMED and does not count; no fleet work prints nothing at all.
 
 ## Plan (ordered steps — cite the acceptance criteria each step covers, e.g. `covers: 1, 3`)
 
-1. <first ordered step — replace me; annotate which acceptance criteria it satisfies>
-2. <next step — the Planner gate BLOCKS until every acceptance criterion above is covered>
+1. Derive fleet evidence in `src/stations/mod.rs` — a `FleetEvidence` value on `StationReport`,
+   built by calling `fleet::read_handoffs(root, session)` (validated on disk, never a typed marker),
+   holding the roles whose handoff is contract-valid and the paths+reasons of any malformed one.
+   It contributes **nothing** to `passed()`/`K of 8`. `covers: 1, 2, 3`
+2. Render it as a separate line beside K in `stations::format_station_report` — silent when the
+   session has no fleet artifact at all (output byte-identical to today), a `fleet:` line when a
+   governed handoff exists, and a `⚠ … — not counted` line naming a malformed one. `covers: 1, 2, 3`
+3. Unit tests in `src/stations/mod.rs` against a tempdir: valid handoff → fleet line present and K
+   unchanged · malformed handoff → named, not counted, K unchanged · absent → output identical to
+   the pre-change render. `covers: 1, 2, 5`
+4. Record the **DECISION-007 addendum**: which role is second, and the evidence from this repo that
+   drove the choice. Decision only — no role code, no `fleet::ROLES` entry. `covers: 4`
+5. `scripts/verify-session-113.sh` + `scripts/demo-session-113.sh`, both exit 0, both proving the
+   BEHAVIOUR (same repo, same command, output differs only because fleet evidence exists); every
+   single-test check goes through `named_test_passed()` from `scripts/verify-session-112.sh`.
+   `covers: 1, 2, 5`
+6. `sessions/session-113-summary.md` with the per-requirement fidelity map, then an independent
+   cold review into `sessions/session-113-review.md` (second pass if pass 1 finds a real hole).
+   `covers: 6`
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha — the real commit that landed this step; the Coder gate BLOCKS closing the
-  session until every numbered plan step records a commit that EXISTS>
+- step 1 — done: <sha>
+- step 2 — done: <sha>
+- step 3 — done: <sha>
+- step 4 — done: <sha>
+- step 5 — done: <sha>
+- step 6 — done: <sha>
 
 ## Acceptance criteria
 
