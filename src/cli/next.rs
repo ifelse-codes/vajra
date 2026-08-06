@@ -161,8 +161,8 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
     let name = name.context("usage: vajra next --role <name> --from <findings-file>")?;
     let role = fleet::resolve_role(name).ok_or_else(|| {
         anyhow::anyhow!(
-            "unknown role {name:?} — known roles: {}. (fleet slice 1 ships only the Researcher; \
-             a new role is a separate decision, DECISION-007.)",
+            "unknown role {name:?} — known roles: {}. (a new role is a separate decision, \
+             DECISION-007 — the fleet does not grow by typo.)",
             fleet::known_roles()
         )
     })?;
@@ -187,7 +187,7 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
     let body = findings.trim();
     let source_sha =
         fleet::sha256_hex(body.as_bytes()).unwrap_or_else(|| "unavailable".to_string());
-    let delta = fleet::compute_delta(prior_body.as_deref(), body);
+    let delta = fleet::compute_delta(role, prior_body.as_deref(), body);
     let handoff = fleet::format_handoff(
         role,
         session,
