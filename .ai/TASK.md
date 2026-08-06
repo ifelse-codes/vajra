@@ -2,37 +2,35 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 113 — CODE: fleet work visible to the counter + the second role chosen — COMPLETE
+## Session 114 — CODE: the fleet's second role, the Fidelity Reviewer — COMPLETE
 
-- **Verdict: SHIPPED.** The pipeline's own progress metric could not see the fleet at all: a session
-  that dispatched a named agent, governed its findings and consumed them scored the same `K of 8` as
-  one that did none of it (flagged at S110 GT, carried at S111 and S112). `vajra next --stations NN`
-  now reports fleet evidence **BESIDE** K — `stations::FleetEvidence` + `format_fleet_line`, derived
-  from `fleet::read_handoffs` (the handoff is parsed and VALIDATED off disk, never a typed marker).
-- **K-of-8 is unchanged in meaning, and it is CHECKED:** the report minus the fleet line is
-  byte-identical to the pre-handoff report, and a test asserts K is invariant under *any* fleet
-  evidence. Design shape **(c)** — rejected a 9th station and rejected folding it into a station's
-  verdict (old and new K would look identical while measuring different things).
-- **Second role CHOSEN, not built: the Reviewer** (`DECISION-007` S113 addendum) — 46 cold reviews on
-  disk, mandated by DECISION-002, hand-typed every session today, output already gated + attested +
-  ledgered, read-only tools. Four alternatives rejected; the `reviewer` role vs Reviewer *station*
-  name collision recorded for the build session to resolve.
-- **The honest limit, stated everywhere:** the line certifies *a contract-valid handoff exists*, not
-  *an agent was dispatched*. 317 lib tests; verify **14/14**; demo **7/7** exit 0; **two** independent
-  cold passes, both ACCEPT, attested `d478a022…`. Reports: `sessions/session-113-summary.md` +
-  `sessions/session-113-review.md`.
+- **Verdict: SHIPPED.** The cold fidelity review this repo has run **47 times by hand** is now a
+  canonical, scaffolded, governed role. The headline is what did NOT happen: **`src/cli/init.rs` is
+  untouched in the whole diff** — it already iterated `fleet::ROLES`, so one entry bought the
+  scaffold, the governed handoff, the read-back and the counter. No new machinery, no 8th command.
+- **Both open items closed in writing** (`DECISION-007` S114 addendum, each with rejected
+  alternatives): the key is **`fidelity-reviewer`** (never `reviewer` — `K of 8` counts a Reviewer
+  STATION), and the handoff is a **PRE-STAGE INPUT** while `sessions/session-NN-review.md` stays the
+  **single record of record** (no gate reads a handoff; the role has no write tool).
+- **A third open item was found by the review itself:** `reviewer/SKILL.md` already stated this
+  contract — 127 hand-maintained lines scaffolded by the same `vajra init` — which this session's own
+  approved prompt asserted did not exist. The two are now **BOUND** by a check that reads both files
+  and requires every closeout-gate token in each. **A premise in an approved prompt is not evidence.**
+- **322 lib tests; verify 17/17; demo 10/10 exit 0; two cold passes — pass 1 REJECT → fixed → a
+  FRESH pass 2 ACCEPT (13 of 13 SHIPPED)** — attested `cbd22d3a…`. Fakest green, disclosed: the
+  role's TEXT is guarded by presence-greps only; pass 2 swapped it for rubber-stamp token soup and
+  the whole suite stayed green. Reports: `sessions/session-114-summary.md` + `-review.md`.
 
 **🔀 FOUNDER PIVOT (S103, in force):** sessions now = **finish a shippable MVP**; founder runs the
-long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B installable
-(S106+S107+S108) ✓ COMPLETE** → **A real agent fleet — S109 first slice ✓, S111 dispatch wire ✓,
-S112 consumption loop ✓, S113 counter-visibility + second role chosen ✓.**
+long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B installable ✓
+COMPLETE** → **A real agent fleet — S109 ✓, S111 ✓, S112 ✓, S113 ✓, S114 second role BUILT ✓.**
 
-Between sessions. **Next = S114 — CODE: build the second fleet role, the Reviewer** (founder pick
-**A** at the S113 closeout). The cold fidelity review this repo runs every session by hand becomes a
-canonical, scaffolded, governed role — reusing the Researcher's machinery, resolving the
-role-vs-station name collision, and deciding in writing how the handoff relates to
-`sessions/session-NN-review.md`. Brief: `prompts/114-task-fleet-role-reviewer.md`. Deferred: the paid
-dogfood (B) and an opt-in blocking gate (C). **New chat** for S114. (S115 = the next NO-CODE GT.)
+Between sessions. **Next = S115 — MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`): no source
+edits, no code commits, no PRs beyond the GT artifact. Its one live opportunity: S115 is the **first
+session that can dispatch `subagent_type: "fidelity-reviewer"` by name** (S111's boot-snapshot
+limit), and doing so is evidence-gathering, not code. Brief: `prompts/115-task-ground-truth.md`.
+Deferred for the founder's pick at the S115 closeout: the overdue paid dogfood (🔴 11 sessions) and
+an opt-in blocking consumption gate. **New chat** for S115.
 
 ## Always-True Reminders
 
@@ -41,6 +39,12 @@ dogfood (B) and an opt-in blocking gate (C). **New chat** for S114. (S115 = the 
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
 - **Commits are ENFORCED (S93):** on a session branch, supply the un-forgeable marker —
   `VAJRA_ALLOW_COMMIT=NN git commit …`.
+- **Attest LAST (S69, hit twice at S114):** `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff) and the
+  PROMPT IS AN INPUT — recompute after the prompt's Execution shas are committed, and confirm two
+  consecutive `verify-closeout.sh --inputs-sha NN` runs agree before embedding.
+- **The closeout gate counts verdict words ONLY on `|` table rows (≥3)** — a bullet list is BLOCKED.
+- **The fleet has TWO roles; `reviewer/SKILL.md` is CANONICAL and the role brief is its summary** —
+  they are bound by a check reading both files. Never edit one alone.
 - **crates.io is PUBLISHED (S108): `vajractl 0.1.0` is live — the name is now BURNED (irreversible).**
   Any future crates.io action (a `0.1.1`, a yank) is still founder-gated; never `cargo publish` without
   an explicit in-chat "yes publish". `cargo login` is the founder's own step (a token — never handled by the agent).
@@ -51,7 +55,7 @@ dogfood (B) and an opt-in blocking gate (C). **New chat** for S114. (S115 = the 
 - **Cost-null checks ride `scripts/check-subagent-cost-fields.sh`** — re-runnable, local-machine-only
   (same limitation class as `--dogfood-age`); reuse it, don't re-derive the grep by hand.
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`) — no gate catches a miss.
-- **New session = new chat** — open a fresh chat for S114; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S115; do NOT start it here.
 - **Max 7 top-level commands** — any fleet growth rides an existing command; an 8th needs a separate founder "yes".
 - **Direction:** product = **provable agent governance** (`DECISION-001`), sold as the autopilot
   trust layer; fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
