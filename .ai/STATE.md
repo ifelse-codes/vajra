@@ -4,8 +4,9 @@
 
 ## Active Branch
 **None — between sessions (S113 complete, S114 not yet started).** S113 shipped on
-`session-113-fleet-counter-visibility` (9 atomic commits) — PR open/merged status recorded under
-Active PRs. S113 = **CODE: make fleet work visible to the counter, then choose the second role**
+`session-113-fleet-counter-visibility` (13 atomic commits), **merged via
+[#120](https://github.com/ifelse-codes/vajra/pull/120)** with CI green on both OS, branch deleted,
+local `main` synced and pruned. S113 = **CODE: make fleet work visible to the counter, then choose the second role**
 (founder pick **A** at the S112 closeout; "all approved" at kickoff). **Verdict: SHIPPED.**
 
 The counter could not see the fleet at all: a session that dispatched a named agent, governed its
@@ -48,8 +49,10 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
 ✓, S111 dispatch wire ✓, S112 consumption loop ✓, S113 counter-visibility + second role chosen ✓.**
 
 ## Active PRs
-- **S113 PR — opened at closeout** (`session-113-fleet-counter-visibility` → `main`); CI on both OS
-  runs on the PR, so it is structurally unevidenced pre-merge (the standing PARTIAL since S109).
+- None open. **S113 [#120](https://github.com/ifelse-codes/vajra/pull/120) MERGED** 2026-08-06,
+  **CI green on both OS** (macOS + Ubuntu) — which retires the delivery's one PARTIAL. Remote branch
+  deleted, local `main` synced and pruned (the S37 return-to-main step). `vajra next --stations 113`
+  = **8 of 8** (the Releaser and Reviewer turned green on merge).
 - **S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) MERGED** 2026-08-04 (CI green both OS)
   + closeout [#119](https://github.com/ifelse-codes/vajra/pull/119); **S111 [#117](https://github.com/ifelse-codes/vajra/pull/117) MERGED** 2026-08-03.
 - Prior merges: S109 #115 · S110 closeout #116 · **S108 #113** + S108-follow-up #114 · S107 #112 ·
@@ -128,13 +131,13 @@ the long unattended test himself, then release. Order **C → B → A**: C (team
   future session: CI runs on the PR, so a pre-merge delivery can never evidence it.
 
 ## What Is In Progress
-- **S113 DONE (CODE; SHIPPED; 317 lib tests; verify 14/14; demo 7/7 exit 0; two cold passes, both
-  ACCEPT, attested `d478a022…`).** `vajra next --stations 113` = **6 of 8** pre-merge (Releaser needs
-  the merge; Reviewer turns green once the attested verdict settles into a reconstructable diff).
+- **S113 DONE + MERGED (CODE; SHIPPED; 317 lib tests; verify 14/14; demo 7/7 exit 0; two cold passes,
+  both ACCEPT, attested `c2cac3e0…`; CI green both OS; PR #120).** `vajra next --stations 113` =
+  **8 of 8**.
   Reports: `sessions/session-113-summary.md` + `sessions/session-113-review.md`.
-- **Next = S114 — founder pick pending** from: **A** build the chosen second role (the Reviewer) ·
-  **B** the overdue paid `vajra claude` dogfood (🔴 since S103) · **C** the opt-in blocking
-  consumption gate. Prompt written at closeout. **New chat.** (S115 = the next NO-CODE GT.)
+- **Next = S114 — CODE: build the second fleet role, the Reviewer** (founder pick **A**). Prompt:
+  `prompts/114-task-fleet-role-reviewer.md`. Deferred: the paid dogfood (B) and an opt-in blocking
+  consumption gate (C). **New chat.** (S115 = the next NO-CODE GT.)
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.

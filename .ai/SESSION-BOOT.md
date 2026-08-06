@@ -24,7 +24,9 @@
   `src/stations/mod.rs` (the derivation + the line + 4 tests), `docs/decisions/DECISION-007-agent-fleet.md`
   (the S113 addendum), `scripts/verify-session-113.sh` + `scripts/demo-session-113.sh`, the prompt's
   Design/Plan/Execution, and two review-driven hardening commits (one per cold pass).
-- **PR opened at closeout** (`session-113-fleet-counter-visibility` → `main`). Prior: S112
+- **MERGED: [#120](https://github.com/ifelse-codes/vajra/pull/120)**, 2026-08-06, **CI green on both
+  OS** (macOS + Ubuntu). Remote branch deleted, local `main` synced and pruned (the S37
+  return-to-main step). `vajra next --stations 113` = **8 of 8**. Prior: S112
   **[#118](https://github.com/ifelse-codes/vajra/pull/118)** merged 2026-08-04 (CI green both OS) +
   closeout #119; S111 #117 merged 2026-08-03. Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
