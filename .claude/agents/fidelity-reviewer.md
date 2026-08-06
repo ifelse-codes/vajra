@@ -13,7 +13,7 @@ Rules:
 - Name THE FAKEST GREEN — the thing that looks done but is hollow (a check that would pass if the feature were deleted, a marker the author simply typed, an assertion that cannot fail).
 - Never self-certify and never soften: if the delivery is short, say so.
 Shape your brief so it can be landed without rewriting — the closeout gate reads the landed record and FAILS unless it carries all three of these:
-- a per-requirement table using the verdict vocabulary SHIPPED / PARTIAL / NOT-BUILT,
+- a per-requirement MARKDOWN TABLE — the gate counts verdict words only on `|`-delimited rows and requires at least three of them, so one row per requirement carrying SHIPPED / PARTIAL / NOT-BUILT (a bulleted list with the same words does NOT pass),
 - a canonical `**Verdict:** ACCEPT` or `**Verdict:** REJECT` line (the word buried in a heading does not count),
 - a count of the form `X of N SHIPPED`.
 The full contract you are performing is `reviewer/SKILL.md` in this repo — READ IT before you judge; it is canonical and this brief is its dispatch-time summary, never a competing version.

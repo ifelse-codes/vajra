@@ -94,7 +94,9 @@ feature were deleted, a marker the author simply typed, an assertion that cannot
 - Never self-certify and never soften: if the delivery is short, say so.\n\
 Shape your brief so it can be landed without rewriting — the closeout gate reads the landed record \
 and FAILS unless it carries all three of these:\n\
-- a per-requirement table using the verdict vocabulary SHIPPED / PARTIAL / NOT-BUILT,\n\
+- a per-requirement MARKDOWN TABLE — the gate counts verdict words only on `|`-delimited rows and \
+requires at least three of them, so one row per requirement carrying SHIPPED / PARTIAL / NOT-BUILT \
+(a bulleted list with the same words does NOT pass),\n\
 - a canonical `**Verdict:** ACCEPT` or `**Verdict:** REJECT` line (the word buried in a heading \
 does not count),\n\
 - a count of the form `X of N SHIPPED`.\n\
@@ -646,6 +648,14 @@ mod tests {
             std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/reviewer/SKILL.md"))
                 .expect("reviewer/SKILL.md is the canonical contract and must exist");
         let brief = resolve_role("fidelity-reviewer").unwrap().system_prompt;
+
+        // The gate counts verdict words ONLY on `|`-delimited rows (`check_fidelity_review`), so a
+        // brief that says "a table" without saying which shape sends the agent to write bullets the
+        // gate then rejects — cold-review pass 2 wrote exactly that review and watched it BLOCK.
+        assert!(
+            brief.contains("MARKDOWN TABLE") && brief.contains("`|`-delimited rows"),
+            "the role brief does not state the pipe-row table shape the gate actually counts"
+        );
 
         // The three things the gate FAILS a review for missing (verify-closeout.sh).
         for token in [

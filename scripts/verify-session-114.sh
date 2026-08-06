@@ -110,7 +110,21 @@ _scaffolds_two_roles() {
     || { echo "FAIL: the repo's researcher.md has drifted from the render"; return 1; }
   diff -u "$TMP/.claude/agents/fidelity-reviewer.md" "$ROOT/.claude/agents/fidelity-reviewer.md" \
     || { echo "FAIL: the repo's fidelity-reviewer.md has drifted from the render"; return 1; }
-  echo "OK: two roles scaffolded, both byte-identical to this repo's committed copies"
+
+  # EXACTLY the rendered set — not merely "the rendered ones are present". `one-source-of-role-text`
+  # excludes this whole directory as "a rendering", so without this a hand-written
+  # `.claude/agents/reviewer-legacy.md` would be a real, boot-loadable, hand-maintained SECOND source
+  # of the role text sitting in the one place nothing looks (cold-review pass 2, reproduced: the
+  # full suite stayed 17/17 green with such a file planted).
+  local REPO_AGENTS RENDERED
+  REPO_AGENTS="$(cd "$ROOT/.claude/agents" && ls -1 | sort)"
+  RENDERED="$(cd "$TMP/.claude/agents" && ls -1 | sort)"
+  echo "--- repo .claude/agents/ ---"; echo "$REPO_AGENTS"
+  if [ "$REPO_AGENTS" != "$RENDERED" ]; then
+    echo "FAIL: .claude/agents/ holds files vajra init does not render — a hand-maintained agent definition is a second source"
+    diff <(echo "$RENDERED") <(echo "$REPO_AGENTS"); return 1
+  fi
+  echo "OK: two roles scaffolded, byte-identical to this repo's copies, and the repo's agent directory is EXACTLY the rendered set"
   return 0
 }
 run_check "init-scaffolds-two-roles" scaffolds_two_roles
@@ -166,6 +180,12 @@ role_brief_bound_to_canonical_skill() {
   done
   grep -q "reviewer/SKILL.md" "$AGENT" \
     || { echo "FAIL: the role brief does not name the canonical contract, so it reads as a rival second source"; return 1; }
+  # The gate counts verdict words only on `|` rows; a brief that says "a table" without saying WHICH
+  # shape sends the agent to write bullets the gate then rejects (cold-review pass 2 demonstrated it).
+  grep -q 'MARKDOWN TABLE' "$AGENT" \
+    || { echo "FAIL: the role brief does not state the pipe-row table shape the closeout gate counts"; return 1; }
+  grep -qE "grep -E '..\|.' \"\\\$F\"|grep -E '\\\\|'" scripts/verify-closeout.sh \
+    || { echo "FAIL: positive control — the closeout gate no longer counts verdicts on table rows; re-derive this check"; return 1; }
   # And the gate that enforces those tokens must still be the one reading the review artifact.
   grep -q "Verdict" scripts/verify-closeout.sh \
     || { echo "FAIL: positive control — the closeout gate no longer checks the verdict line"; return 1; }
