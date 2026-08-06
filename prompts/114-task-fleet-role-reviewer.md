@@ -66,13 +66,39 @@ handoff format, the dispatch mechanism, or the command set changes.
 
 ## Plan (ordered steps — cite the acceptance criteria each step covers, e.g. `covers: 1, 3`)
 
-1. <first ordered step — replace me; annotate which acceptance criteria it satisfies>
-2. <next step — the Planner gate BLOCKS until every acceptance criterion above is covered>
+1. Make `fleet::Role` carry its OWN read-only tool list and make `compute_delta` role-aware (both
+   are hardcoded to the Researcher today — the exact single-source drift a second role exposes),
+   then add the `fidelity-reviewer` entry to `fleet::ROLES` with the adversarial cold-review
+   contract as its system prompt. One source, no second scaffolding or handoff path. `covers: 1, 2`
+2. Record the `DECISION-007` S114 addendum: the role key is `fidelity-reviewer` (the station
+   collision resolved by a DISTINCT key, stated in code + record), and the governed handoff is a
+   **pre-stage input** to `sessions/session-NN-review.md`, never a second verdict of record — with
+   the code (system prompt + rendered subagent definition) saying so. `covers: 4`
+3. Scaffold this repo's own `.claude/agents/fidelity-reviewer.md` from that one source, byte-identical
+   to `render_subagent_definition` output — so the repo dogfoods the role it ships. `covers: 1`
+4. Write `scripts/verify-session-114.sh`: a fresh `vajra init` scaffolds TWO agent files both
+   byte-equal to the render; the new role's fail-closed set (unknown role · missing `--from` · empty
+   findings); TWO handoffs in one session → `fleet: 2 governed handoff(s)` naming both roles while
+   `K of 8` stays byte-identical to the no-fleet report; plus a no-second-source guard.
+   `covers: 1, 2, 3, 5`
+5. Write `scripts/demo-session-114.sh` (cumulative) showing the two roles, the governed handoff, and
+   the two-handoff fleet line, with the required demo markers. `covers: 5`
+6. Run `cargo test --lib` + both scripts green, then the independent cold review (prompt + diff only)
+   and the session summary with the per-requirement fidelity map. `covers: 5, 6`
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha — the real commit that landed this step; the Coder gate BLOCKS closing the
-  session until every numbered plan step records a commit that EXISTS>
+- step 1 — done: a995b51 (fleet::ROLES gains the Fidelity Reviewer; per-role `tools`; role-aware
+  `compute_delta`; 4 new tests — 321 lib tests green)
+- step 2 — done: 129be85 (DECISION-007 S114 addendum — the key decision + the pre-stage-input
+  decision, each with its rejected alternatives)
+- step 3 — done: d60a777 (`.claude/agents/fidelity-reviewer.md`, copied byte-for-byte out of a fresh
+  `vajra init` in a scratch repo — a rendering, never hand-written)
+- step 4 — done: 05f0d13 (`scripts/verify-session-114.sh` — 16 checks, ALL GREEN)
+- step 5 — done: 05f0d13 (`scripts/demo-session-114.sh` — 10 cases, ALL GREEN, exit 0)
+- step 6 — done: 8499718 (`sessions/session-114-summary.md` + the attested
+  `sessions/session-114-review.md`; two cold passes, 13 of 13 SHIPPED, attested `b1636387…`).
+  Review-driven hardening landed before it: d46c1bc + fa80f5b (pass 1) and 2499d1b (pass 2).
 
 ## Acceptance criteria
 
