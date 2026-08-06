@@ -1771,7 +1771,10 @@ release:
             "the line must say plainly that it is not part of K:\n{rendered}"
         );
         assert!(
-            rendered.contains(&format!("{} of {} stations passed", k_before, STATION_COUNT)),
+            rendered.contains(&format!(
+                "{} of {} stations passed",
+                k_before, STATION_COUNT
+            )),
             "the K line itself is untouched:\n{rendered}"
         );
     }
