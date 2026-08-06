@@ -96,12 +96,12 @@ second fleet role, from evidence about what the pipeline actually lacks.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
+- step 1 — done: aec216e
+- step 2 — done: aec216e
+- step 3 — done: aec216e (hardened by 94f369a + 993cd71 after cold-review passes 1 and 2)
+- step 4 — done: 394444d
+- step 5 — done: d0ade90
+- step 6 — done: d041d04
 
 ## Acceptance criteria
 
