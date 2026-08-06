@@ -1739,9 +1739,14 @@ release:
             !rendered.contains("fleet:"),
             "a session with no fleet work must render exactly as before S113:\n{rendered}"
         );
-        // K is whatever the eight classifiers say — recorded here so the two cases below can prove
-        // fleet evidence does not move it.
-        assert_eq!(report.passed(), station_report(root, 30).passed());
+        // A LIVE counter, not a floor: this fixture passes real stations, so the sibling tests'
+        // "K did not move" assertions compare against something that could have moved.
+        // (Comparing the report to a second call on unchanged disk would be a tautology.)
+        assert_eq!(
+            report.passed(),
+            3,
+            "fixture must pass Analyst + Architect + Planner"
+        );
     }
 
     #[test]

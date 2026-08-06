@@ -63,6 +63,12 @@ filter_guard_has_teeth() {
 }
 run_check "test-filter-guard-has-teeth" filter_guard_has_teeth
 
+# Strip exactly the S113 fleet line(s) — anchored, not a bare `grep -v fleet:` substring filter,
+# which would silently swallow any future station line that happens to contain the word (cold-review
+# finding F8: the strongest check in this suite must not be able to hide the difference it exists to
+# catch).
+strip_fleet() { grep -vE '^[[:space:]]*(⚠ )?fleet:'; }
+
 # --- END-TO-END, in a throwaway repo: the counter's output changes ONLY by the fleet line --------
 # No fixture is hand-placed on disk: the handoff is written by the real `vajra next --role` writer.
 e2e_counter() { local TMP; TMP="$(mktemp -d)"; _e2e_counter "$TMP"; local rc=$?; rm -rf "$TMP"; return $rc; }
@@ -70,6 +76,28 @@ _e2e_counter() {
   local TMP="$1"
   ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null ) || { echo "vajra init failed"; return 1; }
   echo "113" > "$TMP/.ai/SESSION"
+
+  # A NON-DEGENERATE repo: a real prompt so some stations actually PASS (K=2 here). In an empty
+  # repo every classifier sits at its floor, so "the report is unchanged" would compare two
+  # saturated outputs and could not notice fleet evidence flipping a station (cold-review F2).
+  mkdir -p "$TMP/prompts"
+  cat > "$TMP/prompts/113-task-fixture.md" <<'FIXTURE'
+# Session 113 — fixture
+
+## Acceptance
+1. **WHEN** a governed handoff exists **THEN** the counter names it
+2. **WHEN** none exists **THEN** the counter says nothing
+
+## Design
+- design-significant: no
+
+## Plan
+1. derive the evidence. covers: 1
+2. render it beside K. covers: 2
+
+## Delta
+- `+` fleet evidence beside the K-of-8 counter
+FIXTURE
 
   local BEFORE AFTER
   BEFORE="$(cd "$TMP" && "$VAJRA" next --stations 113 2>&1)" || { echo "--stations failed (before)"; return 1; }
@@ -79,6 +107,10 @@ _e2e_counter() {
   if grep -qi "fleet" <<<"$BEFORE"; then
     echo "FAIL: --stations mentions the fleet when there is no handoff"; return 1
   fi
+  # The comparison below is only meaningful if the counter is LIVE here — at least one station
+  # must be passing, or "unchanged" is trivially true (cold-review F2).
+  grep -qE "^  [1-9] of 8 stations passed" <<<"$BEFORE" \
+    || { echo "FAIL: fixture repo has 0 passing stations — the byte-identity check would be vacuous"; return 1; }
 
   printf 'ANSWER: ANTHROPIC_API_KEY is the only auth that survives a fresh no-TTY shell.\nclaude setup-token is the subscription alternative.\n' > "$TMP/findings.md"
   ( cd "$TMP" && "$VAJRA" next --role researcher --from findings.md ) >/dev/null \
@@ -96,7 +128,7 @@ _e2e_counter() {
   # (b) K is untouched — and not just the number: EVERY other byte of the report is identical.
   # Strip the added fleet line(s) from AFTER and require byte-equality with BEFORE. This is what
   # makes "K stays comparable" a check rather than a claim.
-  local STRIPPED; STRIPPED="$(grep -v "fleet:" <<<"$AFTER")"
+  local STRIPPED; STRIPPED="$(strip_fleet <<<"$AFTER")"
   if [ "$STRIPPED" != "$BEFORE" ]; then
     echo "FAIL: the report changed by more than the fleet line"; diff <(echo "$BEFORE") <(echo "$STRIPPED"); return 1
   fi
@@ -118,7 +150,7 @@ _e2e_counter() {
   if grep -q "governed handoff(s)" <<<"$BROKEN"; then
     echo "FAIL: a malformed handoff read as governed fleet work"; return 1
   fi
-  local BROKEN_STRIPPED; BROKEN_STRIPPED="$(grep -v "fleet:" <<<"$BROKEN")"
+  local BROKEN_STRIPPED; BROKEN_STRIPPED="$(strip_fleet <<<"$BROKEN")"
   [ "$BROKEN_STRIPPED" = "$BEFORE" ] \
     || { echo "FAIL: a malformed handoff moved something other than the fleet line"; return 1; }
 
@@ -154,8 +186,16 @@ second_role_recorded_not_built() {
     || { echo "FAIL: the addendum does not name the chosen role"; return 1; }
   grep -qi "Alternatives considered, and why each loses" "$D" \
     || { echo "FAIL: the addendum records no rejected alternatives (a pick without reasoning)"; return 1; }
-  # NOT built: no reviewer role in the canonical source, no scaffolded reviewer subagent file.
-  if grep -qE '^\s*name: "reviewer"' src/fleet/mod.rs; then
+  # NOT built: no reviewer role anywhere in the source, no scaffolded reviewer subagent file.
+  # `[[:space:]]`, never `\s`: BSD/macOS `grep -E` treats `\s` as a literal `s`, so the pattern
+  # would silently fail to match indented Rust and the guard would report "not built" while a role
+  # existed (cold-review F3). Searched across all of `src/`, not one file, so moving the role
+  # definition cannot dodge it.
+  # Guard on the guard: the SAME pattern must match the role that DOES exist, or it proves nothing
+  # about the role that must not.
+  grep -rqE '^[[:space:]]*name: "resea' src/ \
+    || { echo "FAIL: the not-built pattern does not even match the existing researcher role"; return 1; }
+  if grep -rqE '^[[:space:]]*name: "review' src/; then
     echo "FAIL: a reviewer role was BUILT — this session only chooses it"; return 1
   fi
   if [ -f ".claude/agents/reviewer.md" ]; then

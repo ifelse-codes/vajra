@@ -39,6 +39,29 @@ cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
 ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null 2>&1 ) || { no "vajra init failed"; exit 1; }
 echo "113" > "$TMP/.ai/SESSION"
+# A real prompt, so the counter is LIVE (stations actually pass) — comparing two all-floor reports
+# would make "nothing else moved" trivially true.
+mkdir -p "$TMP/prompts"
+cat > "$TMP/prompts/113-task-fixture.md" <<'FIXTURE'
+# Session 113 — fixture
+
+## Acceptance
+1. **WHEN** a governed handoff exists **THEN** the counter names it
+2. **WHEN** none exists **THEN** the counter says nothing
+
+## Design
+- design-significant: no
+
+## Plan
+1. derive the evidence. covers: 1
+2. render it beside K. covers: 2
+
+## Delta
+- `+` fleet evidence beside the K-of-8 counter
+FIXTURE
+
+# Anchored — a bare `grep -v fleet:` would also swallow any other line containing the word.
+strip_fleet() { grep -vE '^[[:space:]]*(⚠ )?fleet:'; }
 
 BEFORE="$(cd "$TMP" && "$VAJRA" next --stations 113 2>&1)"
 printf "\n  ${BOLD}$ vajra next --stations 113${RESET}  ${DIM}(no fleet work)${RESET}\n"
@@ -61,8 +84,8 @@ header "Cases  [demo:cases]"
 
 label "1. K of 8 did NOT move — and neither did any other byte. AFTER minus the fleet line is \
 byte-identical to BEFORE, so S74's K and S113's K mean the same thing."
-diff <(echo "$BEFORE") <(grep -v "fleet:" <<<"$AFTER") | sed 's/^/    /'
-[ "$(grep -v "fleet:" <<<"$AFTER")" = "$BEFORE" ]
+diff <(echo "$BEFORE") <(strip_fleet <<<"$AFTER") | sed 's/^/    /'
+[ "$(strip_fleet <<<"$AFTER")" = "$BEFORE" ] && grep -qE "^  [1-9] of 8 stations passed" <<<"$BEFORE"
 score $? "K stays comparable BY CONSTRUCTION (no 9th station, no folded verdict)"
 
 label "2. Absence is silent — a session with no fleet work reads exactly as it did before S113"
@@ -78,8 +101,10 @@ echo "$BROKEN" | grep "not counted" | sed 's/^/    /'
 grep -q "not counted" <<<"$BROKEN" && ! grep -q "governed handoff(s)" <<<"$BROKEN"
 score $? "malformed handoff surfaced with its reason, counted as nothing"
 
-label "4. REAL data — session 111's handoff came from an actual by-name subagent dispatch. THIS \
-repo's counter shows it beside K; session 110, which had no fleet work, says nothing:"
+label "4. REAL data, and an HONEST limit: THIS repo's counter shows session 111's handoff beside K, \
+while session 110 (no fleet work) says nothing. What the line certifies is that a CONTRACT-VALID \
+handoff exists — not that an agent was dispatched. S111's by-name dispatch proof lives in that \
+session's evidence trail; this counter cannot re-derive it and never claims to:"
 REAL_111="$("$VAJRA" next --stations 111 2>&1)"; REAL_110="$("$VAJRA" next --stations 110 2>&1)"
 echo "$REAL_111" | grep -E "of 8 stations passed|fleet:" | sed 's/^/    111> /'
 echo "$REAL_110" | grep -E "of 8 stations passed" | sed 's/^/    110> /'
