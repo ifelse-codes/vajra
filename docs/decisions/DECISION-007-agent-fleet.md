@@ -242,3 +242,31 @@ How the code matches, not just the prose:
 - `fleet: 2 governed handoff(s)` certifies **two contract-valid files exist**, never that two agents
   ran (the standing S113 reading rule).
 - A third role remains a separate decision. Two roles is not a fleet; it is two roles.
+
+### Open item 3 — found by THIS session's cold review: `reviewer/SKILL.md` was already a second source
+
+The S113 addendum listed two open items. The S114 cold pass found a third that nobody had named:
+**the repo already contained a statement of the reviewer's contract** — `reviewer/SKILL.md`, 127
+lines, hand-maintained, and scaffolded into every fresh repo by the *same* `vajra init` (via
+`include_str!`, `src/cli/init.rs`). So this session's goal statement ("its brief is re-typed from
+memory each time") was **partly false**, and shipping the role brief unexamined would have created
+exactly the drift this decision forbids: two hand-maintained versions of one job.
+
+The dangerous half is not duplication, it is the **output shape**. `verify-closeout.sh` FAILS a
+landed review that lacks a per-requirement `SHIPPED`/`PARTIAL`/`NOT-BUILT` table, a canonical
+`**Verdict:** ACCEPT|REJECT` line, or an `X of N SHIPPED` count. The first draft of the role brief
+mentioned none of the three — an agent dispatched by name, obeying only that brief, would have
+returned a verdict the gate then rejected.
+
+**Decision: `reviewer/SKILL.md` stays CANONICAL; the role's system prompt is its dispatch-time
+summary, and the two are BOUND by a check that reads both files.** The brief names the skill and
+tells the agent to read it. Rejected "delete the skill and render it from `fleet::ROLES`" (the skill
+is boot-loaded by every agent, including ones that never dispatch a subagent, and it documents the
+gate's own expectations — it is not role text) and rejected "leave them independent" (that is the
+defect, stated in this session's own prompt).
+
+The binding is enforced twice, both with positive controls: the unit test
+`the_role_brief_carries_the_output_shape_the_closeout_gate_requires` reads `reviewer/SKILL.md` off
+disk and requires every gate token to appear in BOTH, and `verify-session-114.sh#role-brief-bound-to-skill`
+re-checks it against the *scaffolded* file. A change to the canonical contract that the brief does
+not follow turns both red.

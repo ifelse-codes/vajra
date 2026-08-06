@@ -91,11 +91,19 @@ concrete evidence in the diff that earns the grade. A requirement with no eviden
 never fidelity. Never grade from test counts alone.\n\
 - Name THE FAKEST GREEN — the thing that looks done but is hollow (a check that would pass if the \
 feature were deleted, a marker the author simply typed, an assertion that cannot fail).\n\
-- End with one verdict: ACCEPT or REJECT, and say plainly what was NOT built.\n\
 - Never self-certify and never soften: if the delivery is short, say so.\n\
+Shape your brief so it can be landed without rewriting — the closeout gate reads the landed record \
+and FAILS unless it carries all three of these:\n\
+- a per-requirement table using the verdict vocabulary SHIPPED / PARTIAL / NOT-BUILT,\n\
+- a canonical `**Verdict:** ACCEPT` or `**Verdict:** REJECT` line (the word buried in a heading \
+does not count),\n\
+- a count of the form `X of N SHIPPED`.\n\
+The full contract you are performing is `reviewer/SKILL.md` in this repo — READ IT before you \
+judge; it is canonical and this brief is its dispatch-time summary, never a competing version.\n\
 Your verdict is a PRE-STAGE INPUT. The canonical, gated record of the fidelity verdict is \
-`sessions/session-NN-review.md` (read by `verify-closeout.sh`, attested, ledgered) — you do not \
-write it, and you are not its replacement.";
+`sessions/session-NN-review.md` (read by `verify-closeout.sh`, attested by a `**Review-Inputs-SHA:**` \
+the orchestrator computes, chained in the ledger) — you do not write it, and you are not its \
+replacement.";
 
 /// The registered roles. Slice 1 (DECISION-007) shipped exactly ONE — the Researcher. S114 adds the
 /// SECOND, chosen from evidence at S113 and built here: the Fidelity Reviewer. A third role is
@@ -621,6 +629,51 @@ mod tests {
                 "reviewer prompt is missing {must:?}"
             );
         }
+    }
+
+    /// S114, cold-review finding — the role brief is NOT the only statement of this contract:
+    /// `reviewer/SKILL.md` is the canonical 100+ line version, scaffolded into every repo by the
+    /// same `vajra init`. Two hand-maintained statements of one job is exactly the drift this
+    /// module exists to prevent, and the dangerous half is the OUTPUT SHAPE: a dispatched agent
+    /// obeying only the role brief could return a verdict the closeout gate then REJECTS.
+    ///
+    /// So this test binds them: every token `verify-closeout.sh` requires of a landed review must
+    /// appear in BOTH files. It reads the skill off disk on purpose — a change to the canonical
+    /// contract that the role brief does not follow turns this red.
+    #[test]
+    fn the_role_brief_carries_the_output_shape_the_closeout_gate_requires() {
+        let skill =
+            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/reviewer/SKILL.md"))
+                .expect("reviewer/SKILL.md is the canonical contract and must exist");
+        let brief = resolve_role("fidelity-reviewer").unwrap().system_prompt;
+
+        // The three things the gate FAILS a review for missing (verify-closeout.sh).
+        for token in [
+            "SHIPPED",
+            "PARTIAL",
+            "NOT-BUILT",
+            "**Verdict:**",
+            "of N SHIPPED",
+        ] {
+            // Positive control: the canonical contract really does require it. Without this, a
+            // typo'd token would make the assertion below vacuously about nothing.
+            assert!(
+                skill.contains(token) || skill.contains(&token.replace("of N ", "X of N ")),
+                "positive control failed: reviewer/SKILL.md does not mention {token:?} — \
+                 fix this test's tokens, do not weaken it"
+            );
+            assert!(
+                brief.contains(token),
+                "the role brief omits {token:?}, which the closeout gate requires of the landed \
+                 review — a dispatched agent obeying only this brief would produce a REJECTED file"
+            );
+        }
+        // And the brief must point at the canonical contract by name, so it reads as a summary of
+        // one source rather than a rival second source.
+        assert!(
+            brief.contains("reviewer/SKILL.md"),
+            "the role brief does not name reviewer/SKILL.md as canonical"
+        );
     }
 
     /// S114 — every role is read-only, and the tool grant is the ROLE's, not a hardcoded list.

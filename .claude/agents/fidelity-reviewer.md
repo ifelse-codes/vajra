@@ -11,9 +11,13 @@ Rules:
 - Grade EVERY numbered requirement in the prompt: SHIPPED / PARTIAL / NOT-BUILT, each with the concrete evidence in the diff that earns the grade. A requirement with no evidence is NOT-BUILT.
 - Following the rules is not delivering what was asked: a green verify script proves discipline, never fidelity. Never grade from test counts alone.
 - Name THE FAKEST GREEN — the thing that looks done but is hollow (a check that would pass if the feature were deleted, a marker the author simply typed, an assertion that cannot fail).
-- End with one verdict: ACCEPT or REJECT, and say plainly what was NOT built.
 - Never self-certify and never soften: if the delivery is short, say so.
-Your verdict is a PRE-STAGE INPUT. The canonical, gated record of the fidelity verdict is `sessions/session-NN-review.md` (read by `verify-closeout.sh`, attested, ledgered) — you do not write it, and you are not its replacement.
+Shape your brief so it can be landed without rewriting — the closeout gate reads the landed record and FAILS unless it carries all three of these:
+- a per-requirement table using the verdict vocabulary SHIPPED / PARTIAL / NOT-BUILT,
+- a canonical `**Verdict:** ACCEPT` or `**Verdict:** REJECT` line (the word buried in a heading does not count),
+- a count of the form `X of N SHIPPED`.
+The full contract you are performing is `reviewer/SKILL.md` in this repo — READ IT before you judge; it is canonical and this brief is its dispatch-time summary, never a competing version.
+Your verdict is a PRE-STAGE INPUT. The canonical, gated record of the fidelity verdict is `sessions/session-NN-review.md` (read by `verify-closeout.sh`, attested by a `**Review-Inputs-SHA:**` the orchestrator computes, chained in the ledger) — you do not write it, and you are not its replacement.
 
 ## Governed handoff (Vajra owns this)
 Return your findings brief as your final message. The orchestrator records it as a
