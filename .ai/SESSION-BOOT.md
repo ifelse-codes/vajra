@@ -17,7 +17,7 @@
   as an explicit decision for the build session). 317 lib tests; verify **14/14**; demo **7/7** exit 0;
   **two independent cold passes, both ACCEPT**, attested `d478a022…`.
 - **Report:** `sessions/session-113-summary.md` + `sessions/session-113-review.md` · next prompt:
-  written at closeout after the founder's A/B/C pick. **Date last updated:** 2026-08-06.
+  `prompts/114-task-fleet-role-reviewer.md` (founder pick A). **Date last updated:** 2026-08-06.
 
 ## Repo State Snapshot
 - `.ai/SESSION` = 113. CODE session, 9 atomic commits on `session-113-fleet-counter-visibility`:
@@ -29,9 +29,13 @@
   closeout #119; S111 #117 merged 2026-08-03. Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 114 — **founder pick pending.** **A** build the chosen second role (the Reviewer) ·
-  **B** the overdue paid `vajra claude` dogfood (🔴 since S103 — now 10 sessions / ~10 days) ·
-  **C** an opt-in blocking consumption gate. The prompt is written at closeout, after the pick.
+- **Number:** 114 — **CODE: build the second fleet role, the Reviewer** (founder pick **A**).
+  S113 chose it from evidence; S114 builds it on the Researcher's existing machinery. Two decisions
+  must be made IN WRITING: the role key (it collides with the Reviewer STATION counted in K) and how
+  the handoff relates to `sessions/session-NN-review.md` (two competing records of the same verdict
+  is the failure mode). Prompt: `prompts/114-task-fleet-role-reviewer.md`.
+- **Deferred (S113 candidates B and C):** the overdue paid `vajra claude` dogfood (🔴 since S103) and
+  an opt-in blocking consumption gate.
 - **S115 = the next mandatory NO-CODE ground truth.**
 
 ## Carry-Forwards

@@ -27,9 +27,12 @@ long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) �
 (S106+S107+S108) ✓ COMPLETE** → **A real agent fleet — S109 first slice ✓, S111 dispatch wire ✓,
 S112 consumption loop ✓, S113 counter-visibility + second role chosen ✓.**
 
-Between sessions. **Next = S114 — founder pick pending:** A build the Reviewer role · B the overdue
-paid `vajra claude` dogfood (🔴 since S103) · C an opt-in blocking consumption gate. Prompt written at
-closeout. **New chat** for S114. (S115 = the next NO-CODE ground truth.)
+Between sessions. **Next = S114 — CODE: build the second fleet role, the Reviewer** (founder pick
+**A** at the S113 closeout). The cold fidelity review this repo runs every session by hand becomes a
+canonical, scaffolded, governed role — reusing the Researcher's machinery, resolving the
+role-vs-station name collision, and deciding in writing how the handoff relates to
+`sessions/session-NN-review.md`. Brief: `prompts/114-task-fleet-role-reviewer.md`. Deferred: the paid
+dogfood (B) and an opt-in blocking gate (C). **New chat** for S114. (S115 = the next NO-CODE GT.)
 
 ## Always-True Reminders
 
