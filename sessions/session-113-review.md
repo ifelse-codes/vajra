@@ -123,4 +123,9 @@ honored (the second role is chosen and a guard fails if it appears in code); K's
 settled by the diff's structure, not merely by a script; and both passes' real findings were closed
 in-session rather than argued away.
 
-**Review-Inputs-SHA:** d478a0225ba3ebf9ca6f884796d5c60789f920283ede9ee24d2cf47215faa187
+**Attestation note (the S69 gotcha):** the hash below is the canonical cold-input hash recomputed
+AFTER the prompt received its `## Execution` step shas at closeout — bookkeeping lines the cold
+passes never saw and that change no requirement. The earlier value (`d478a022…`, emitted at review
+time) is superseded; the graded contract text and the graded diff are unchanged.
+
+**Review-Inputs-SHA:** c2cac3e045a68a1b4f74258cedd0bfd16380352eb62a2b5ce7e1adb4a5b85a2a
