@@ -123,13 +123,17 @@ run_check "init-scaffolds-two-roles" scaffolds_two_roles
 one_source_of_role_text() {
   local HITS
   # THIS script is excluded, and only this one: any literal probe sentence necessarily appears in
-  # the file that greps for it, so a checker matching itself is noise, not a finding. Everything
-  # else in the repo is in scope. `.claude/agents/` is excluded because it is a rendering, already
-  # proven byte-identical to `vajra init` output above; `docs/decisions/` quotes the decision, which
-  # is a record, not a source the binary reads.
-  HITS="$(grep -rl "you are not its replacement" --include='*.rs' --include='*.md' --include='*.sh' \
-            . 2>/dev/null | grep -v '^\./target/' | grep -v '^\./\.claude/agents/' \
-            | grep -v '^\./docs/decisions/' | grep -v '^\./scripts/verify-session-114\.sh$' | sort)"
+  # the file that greps for it, so a checker matching itself is noise, not a finding. The probe is
+  # also chosen to sit on ONE source line — a phrase split across a Rust line-continuation is
+  # invisible to grep, which the positive control caught. Everything else in the repo is in scope.
+  # `.claude/agents/` is excluded because it is a rendering, already proven byte-identical to
+  # `vajra init` output above; `docs/decisions/` and `sessions/` quote the text into a RECORD of what
+  # was decided, which is not a source the binary reads.
+  # No `--include` filter: a copy hides just as well in a .txt or a .json (cold-review finding).
+  HITS="$(grep -rl "Never self-certify and never soften" . 2>/dev/null \
+            | grep -v '^\./target/' | grep -v '^\./\.git/' | grep -v '^\./\.ai/verify/' \
+            | grep -v '^\./\.claude/agents/' | grep -v '^\./docs/decisions/' \
+            | grep -v '^\./sessions/' | grep -v '^\./scripts/verify-session-114\.sh$' | sort)"
   echo "carriers of the reviewer prompt text:"; echo "$HITS"
   # Positive control: the pattern DOES find the one legitimate source. Without this, a typo in the
   # pattern would make "no second copy" trivially true.
@@ -141,6 +145,34 @@ one_source_of_role_text() {
   return 0
 }
 run_check "one-source-of-role-text" one_source_of_role_text
+
+# --- the OTHER statement of this contract, bound instead of ignored (cold-review finding) --------
+# `one-source-of-role-text` above only proves nobody copied the new prompt. It cannot see that the
+# repo ALREADY carried a statement of the reviewer's job — `reviewer/SKILL.md`, scaffolded by the
+# same `vajra init`. Two hand-maintained versions of one contract is the drift this session is
+# supposed to be killing, and the dangerous half is the OUTPUT SHAPE: an agent obeying only the
+# short role brief could return a verdict the closeout gate then REJECTS. So the two are bound:
+# every token the gate requires must appear in BOTH files, checked here and in a unit test.
+role_brief_bound_to_canonical_skill() {
+  local SKILL="reviewer/SKILL.md" AGENT=".claude/agents/fidelity-reviewer.md"
+  [ -f "$SKILL" ] || { echo "FAIL: the canonical contract $SKILL is missing"; return 1; }
+  local T
+  for T in 'SHIPPED' 'PARTIAL' 'NOT-BUILT' '\*\*Verdict:\*\*' 'of N SHIPPED'; do
+    # Positive control: the gate's own requirement really is stated in the canonical contract.
+    grep -qE "$T" "$SKILL" \
+      || { echo "FAIL: positive control — $SKILL does not require $T; fix the token, not the check"; return 1; }
+    grep -qE "$T" "$AGENT" \
+      || { echo "FAIL: the scaffolded role brief omits $T — a dispatched agent obeying only it would produce a review the closeout gate REJECTS"; return 1; }
+  done
+  grep -q "reviewer/SKILL.md" "$AGENT" \
+    || { echo "FAIL: the role brief does not name the canonical contract, so it reads as a rival second source"; return 1; }
+  # And the gate that enforces those tokens must still be the one reading the review artifact.
+  grep -q "Verdict" scripts/verify-closeout.sh \
+    || { echo "FAIL: positive control — the closeout gate no longer checks the verdict line"; return 1; }
+  echo "OK: the role brief is bound to reviewer/SKILL.md on every token the closeout gate requires"
+  return 0
+}
+run_check "role-brief-bound-to-skill" role_brief_bound_to_canonical_skill
 
 # --- criterion 2 + 3, END-TO-END in a throwaway repo --------------------------------------------
 # Fail-closed for the new role, then TWO governed handoffs in one session — the count that did not
@@ -250,7 +282,15 @@ decisions_recorded_and_honoured() {
     || { echo "FAIL: the key decision is not recorded"; return 1; }
   grep -q "pre-stage input, one record of record" "$D" \
     || { echo "FAIL: the double-record decision is not recorded"; return 1; }
-  grep -qi "Rejected" "$D" || { echo "FAIL: decisions recorded with no rejected alternative"; return 1; }
+  # Scoped to the S114 addendum ONLY. A whole-file `grep -i rejected` was theatre (cold-review
+  # finding): DECISION-007 already carries ten "Rejected" lines from S113, so gutting every rejected
+  # alternative out of THIS addendum would have left the check green.
+  local ADDENDUM; ADDENDUM="$(sed -n '/^## S114 addendum/,$p' "$D")"
+  [ -n "$ADDENDUM" ] || { echo "FAIL: the S114 addendum section is empty"; return 1; }
+  local NREJ; NREJ="$(grep -ci "rejected" <<<"$ADDENDUM")"
+  echo "rejected-alternative lines inside the S114 addendum: $NREJ"
+  [ "$NREJ" -ge 2 ] \
+    || { echo "FAIL: the S114 addendum records $NREJ rejected alternatives; both decisions need one"; return 1; }
 
   # The code matches decision 1: the key is distinct AND the bare station word resolves to nothing.
   grep -qE '^[[:space:]]*name: "fidelity-reviewer"' src/fleet/mod.rs \
