@@ -2,33 +2,34 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 112 — CODE: downstream handoff-consumption — COMPLETE
+## Session 113 — CODE: fleet work visible to the counter + the second role chosen — COMPLETE
 
-- **Verdict: SHIPPED.** The fleet's output stopped being an orphan. S109 could WRITE a governed
-  researcher handoff and S111 PROVED it came from a real by-name subagent dispatch — but nothing ever
-  read one back. S112 added the READ side (`fleet::parse_handoff` / `read_handoff(s)` /
-  `format_handoff_brief`) and wired it into **four** surfaces: the boot packet (`vajra next`), the
-  Analyst intake (`--intake`, `--scaffold`) and the Analyst gate (`--validate NN`) — findings
-  **inlined**, not merely pointed at.
-- **The honesty rules it ships with:** absence prints nothing at all · an off-contract handoff is
-  NAMED (`— not used`), never swallowed as absent · truncation is disclosed (`… N more line(s)`) ·
-  the PATH is the session source of truth, never the self-declared frontmatter.
-- **Advisory by design — nothing blocks.** A gate firing on an artifact a session legitimately does
-  not need would be false teeth. No handoff-format change, no second role, no 8th command.
-- 315 lib tests; verify **16/16**; demo exit 0; **two independent cold passes, both ACCEPT** (9/10
-  SHIPPED, 1 PARTIAL — CI-both-OS unevidenced pre-merge), attested `4d7b2b43…`. Report:
-  `sessions/session-112-summary.md` + `sessions/session-112-review.md`.
+- **Verdict: SHIPPED.** The pipeline's own progress metric could not see the fleet at all: a session
+  that dispatched a named agent, governed its findings and consumed them scored the same `K of 8` as
+  one that did none of it (flagged at S110 GT, carried at S111 and S112). `vajra next --stations NN`
+  now reports fleet evidence **BESIDE** K — `stations::FleetEvidence` + `format_fleet_line`, derived
+  from `fleet::read_handoffs` (the handoff is parsed and VALIDATED off disk, never a typed marker).
+- **K-of-8 is unchanged in meaning, and it is CHECKED:** the report minus the fleet line is
+  byte-identical to the pre-handoff report, and a test asserts K is invariant under *any* fleet
+  evidence. Design shape **(c)** — rejected a 9th station and rejected folding it into a station's
+  verdict (old and new K would look identical while measuring different things).
+- **Second role CHOSEN, not built: the Reviewer** (`DECISION-007` S113 addendum) — 46 cold reviews on
+  disk, mandated by DECISION-002, hand-typed every session today, output already gated + attested +
+  ledgered, read-only tools. Four alternatives rejected; the `reviewer` role vs Reviewer *station*
+  name collision recorded for the build session to resolve.
+- **The honest limit, stated everywhere:** the line certifies *a contract-valid handoff exists*, not
+  *an agent was dispatched*. 317 lib tests; verify **14/14**; demo **7/7** exit 0; **two** independent
+  cold passes, both ACCEPT, attested `d478a022…`. Reports: `sessions/session-113-summary.md` +
+  `sessions/session-113-review.md`.
 
 **🔀 FOUNDER PIVOT (S103, in force):** sessions now = **finish a shippable MVP**; founder runs the
 long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B installable
 (S106+S107+S108) ✓ COMPLETE** → **A real agent fleet — S109 first slice ✓, S111 dispatch wire ✓,
-S112 consumption loop ✓ CLOSED.**
+S112 consumption loop ✓, S113 counter-visibility + second role chosen ✓.**
 
-Between sessions. **Next = S113 — CODE: make fleet work visible to the counter, then choose the
-second role** (founder pick **A** at the S112 closeout). The K-of-8 counter cannot see fleet work at
-all — flagged at S110 GT, carried at S111 and S112. Brief:
-`prompts/113-task-fleet-counter-and-second-role.md`. Deferred: the paid dogfood run (B) and an
-opt-in blocking consumption gate (C). **New chat** for S113.
+Between sessions. **Next = S114 — founder pick pending:** A build the Reviewer role · B the overdue
+paid `vajra claude` dogfood (🔴 since S103) · C an opt-in blocking consumption gate. Prompt written at
+closeout. **New chat** for S114. (S115 = the next NO-CODE ground truth.)
 
 ## Always-True Reminders
 
@@ -47,7 +48,7 @@ opt-in blocking consumption gate (C). **New chat** for S113.
 - **Cost-null checks ride `scripts/check-subagent-cost-fields.sh`** — re-runnable, local-machine-only
   (same limitation class as `--dogfood-age`); reuse it, don't re-derive the grep by hand.
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`) — no gate catches a miss.
-- **New session = new chat** — open a fresh chat for S113; do NOT start it here.
+- **New session = new chat** — open a fresh chat for S114; do NOT start it here.
 - **Max 7 top-level commands** — any fleet growth rides an existing command; an 8th needs a separate founder "yes".
 - **Direction:** product = **provable agent governance** (`DECISION-001`), sold as the autopilot
   trust layer; fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
