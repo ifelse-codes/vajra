@@ -37,11 +37,14 @@
 ## Next Session
 - **Number:** 115 — **MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`). No source edits, no
   commits to code, no PRs beyond the GT artifact. Prompt: `prompts/115-task-ground-truth.md`.
-- **The GT's one live opportunity:** S115 is the FIRST session in which
-  `subagent_type: "fidelity-reviewer"` is dispatchable by name (S111's mechanism limit — an agent
-  file written mid-session is invisible to that session). Dispatching it for the GT's own
-  independent pass is **evidence-gathering, not code**, so it fits a NO-CODE session — and it is the
-  only way to find out whether the brief actually works on a real agent.
+- **The GT's one live opportunity:** dispatch the GT's own independent pass with
+  `subagent_type: "fidelity-reviewer"` — **by name**, never as an ad-hoc `general-purpose` subagent.
+  Dispatching an agent and reading its findings is **evidence-gathering, not code**, so it fits a
+  NO-CODE session, and it is the only way to learn whether S114's brief works on a real agent rather
+  than on a grep. Report specifically whether the returned verdict would pass `verify-closeout.sh`
+  **unedited** (a `|`-row table, a canonical `**Verdict:**` line, an `X of N SHIPPED` count).
+  On whether S115 is the FIRST session that can do this — see the ⚠ carry-forward below; it is an
+  assumption to check, not a fact.
 - **Deferred, for the founder to pick at the S115 closeout:** the overdue paid `vajra claude`
   dogfood (🔴 since S103 — 11 sessions) and an opt-in blocking consumption gate.
 
