@@ -947,7 +947,7 @@ Some intro prose that is not a list item.
             "2026-08-04T00:00:00Z",
             None,
             body,
-            &fleet::compute_delta(None, body),
+            &fleet::compute_delta(role, None, body),
         );
         let path = tmp.path().join(role.handoff_rel(112));
         fs::create_dir_all(path.parent().unwrap()).unwrap();

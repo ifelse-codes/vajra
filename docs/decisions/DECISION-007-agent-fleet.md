@@ -186,3 +186,87 @@ entry, no `.claude/agents/reviewer.md`, no code ships with this addendum.
   while "fleet: 1 governed handoff — reviewer" would mean the agent. The build session must either
   pick a distinct role key (e.g. `fidelity-reviewer`) or state explicitly that the role IS the
   station's agent. Do not leave it implicit.
+
+## S114 addendum — the Reviewer BUILT, and the two open items closed
+
+**Status: BUILT.** S113 chose the role; S114 ships it as a second `fleet::ROLES` entry rendered by
+the same machinery (no second scaffolding path, no second handoff writer, no second role-text
+source). The S113 addendum left two questions open and forbade leaving them implicit. Both are
+decided here, and the code matches.
+
+### Open item 1 — the role key: **`fidelity-reviewer`** (a distinct key)
+
+The pipeline's eighth station is already called the **Reviewer** (`stations::reviewer_status`,
+counted in `K of 8`). A role keyed `reviewer` would put the same word on two different things in
+adjacent lines of the same report — `Reviewer PASSED` (the station) directly above `fleet: 1
+governed handoff — reviewer` (the agent).
+
+**Decision: the role key is `fidelity-reviewer`.** Rejected the alternative ("state that the role IS
+the station's agent") because it is not true: the station passes on an *attested review artifact
+existing and not saying REJECT*, which a human can satisfy with no agent at all. The station measures
+the artifact; the role produces one input to it. Two different things deserve two different names.
+
+Consequences, all mechanical: the subagent is `.claude/agents/fidelity-reviewer.md`, the handoff is
+`.ai/handoffs/session-NN-fidelity-reviewer.md`, the dispatch is `subagent_type:
+"fidelity-reviewer"`, and `vajra next --role reviewer` FAILS with the known-roles list (asserted by
+test — `resolve_role("reviewer").is_none()`).
+
+### Open item 2 — the handoff vs `sessions/session-NN-review.md`: **pre-stage input, one record of record**
+
+The fidelity verdict already has a governed home with teeth: `sessions/session-NN-review.md` is read
+by `verify-closeout.sh` (missing / hollow / REJECT all FAIL), attested by `Review-Inputs-SHA`
+(DECISION-003), and chained in the ledger (DECISION-004). The failure mode to avoid is two competing
+records of the same judgment.
+
+**Decision: the governed handoff is a PRE-STAGE INPUT — the captured raw verdict, hashed and
+timestamped at the moment the agent returned it. `sessions/session-NN-review.md` remains the single
+RECORD OF RECORD and the only thing any gate reads.** Rejected "pointer only" (a pointer throws away
+the `source-sha` — the whole reason a handoff is evidence rather than prose) and rejected "the
+handoff replaces the review artifact" (it would strip the attestation + ledger chain that make the
+verdict tamper-evident, trading teeth for a newer file).
+
+How the code matches, not just the prose:
+- The role's system prompt — the ONE canonical source, rendered verbatim into the subagent file —
+  ends by stating the verdict is a pre-stage input, that `sessions/session-NN-review.md` is the
+  canonical gated record, and that this agent does not write it.
+- The role has **no write tool** (`Read, Grep, Glob`), so it *cannot* author the record of record.
+- Nothing in `verify-closeout.sh` or the Reviewer station learns to read the handoff. The gate keeps
+  reading exactly one artifact. A session that never dispatches the role closes exactly as before.
+
+### What this addendum does NOT claim
+
+- Scaffolding the role does not make the review more independent than today's hand-typed dispatch —
+  independence comes from the fresh context window, which already held (S113 addendum, restated).
+- Like every role, a `.claude/agents/*.md` written mid-session is invisible to that same session's
+  Task tool (S111). The Reviewer role lands at S114 and is first dispatchable **by name** at S115.
+- `fleet: 2 governed handoff(s)` certifies **two contract-valid files exist**, never that two agents
+  ran (the standing S113 reading rule).
+- A third role remains a separate decision. Two roles is not a fleet; it is two roles.
+
+### Open item 3 — found by THIS session's cold review: `reviewer/SKILL.md` was already a second source
+
+The S113 addendum listed two open items. The S114 cold pass found a third that nobody had named:
+**the repo already contained a statement of the reviewer's contract** — `reviewer/SKILL.md`, 127
+lines, hand-maintained, and scaffolded into every fresh repo by the *same* `vajra init` (via
+`include_str!`, `src/cli/init.rs`). So this session's goal statement ("its brief is re-typed from
+memory each time") was **partly false**, and shipping the role brief unexamined would have created
+exactly the drift this decision forbids: two hand-maintained versions of one job.
+
+The dangerous half is not duplication, it is the **output shape**. `verify-closeout.sh` FAILS a
+landed review that lacks a per-requirement `SHIPPED`/`PARTIAL`/`NOT-BUILT` table, a canonical
+`**Verdict:** ACCEPT|REJECT` line, or an `X of N SHIPPED` count. The first draft of the role brief
+mentioned none of the three — an agent dispatched by name, obeying only that brief, would have
+returned a verdict the gate then rejected.
+
+**Decision: `reviewer/SKILL.md` stays CANONICAL; the role's system prompt is its dispatch-time
+summary, and the two are BOUND by a check that reads both files.** The brief names the skill and
+tells the agent to read it. Rejected "delete the skill and render it from `fleet::ROLES`" (the skill
+is boot-loaded by every agent, including ones that never dispatch a subagent, and it documents the
+gate's own expectations — it is not role text) and rejected "leave them independent" (that is the
+defect, stated in this session's own prompt).
+
+The binding is enforced twice, both with positive controls: the unit test
+`the_role_brief_carries_the_output_shape_the_closeout_gate_requires` reads `reviewer/SKILL.md` off
+disk and requires every gate token to appear in BOTH, and `verify-session-114.sh#role-brief-bound-to-skill`
+re-checks it against the *scaffolded* file. A change to the canonical contract that the brief does
+not follow turns both red.

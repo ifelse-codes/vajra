@@ -1,67 +1,79 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 113 — COMPLETE
-- **Type:** CODE — make fleet work visible to the counter, then choose the second role (founder pick
-  **A** at the S112 closeout; "all approved" at kickoff).
-- **Goal:** the pipeline's own progress metric could not see the fleet at all — a session that
-  dispatched a named agent, governed its findings and consumed them scored the same `K of 8` as one
-  that did none of it (flagged S110 GT, carried S111 + S112).
-- **Verdict:** **SHIPPED.** `vajra next --stations NN` now prints `fleet: N governed handoff(s) —
-  <roles>` **BESIDE** K (design shape **(c)**), derived from `fleet::read_handoffs` — the handoff is
-  parsed and **validated** off disk, never a typed marker. **Malformed is NAMED and counts as
-  nothing**; **absence prints nothing at all**. **K-of-8 is unchanged in meaning and it is CHECKED**:
-  the report minus the fleet line is byte-identical to the pre-handoff report, and a test asserts K is
-  invariant under *any* fleet evidence. Second role **CHOSEN, not built — the Reviewer**
-  (`DECISION-007` S113 addendum, with the `reviewer`-role-vs-Reviewer-*station* name collision left
-  as an explicit decision for the build session). 317 lib tests; verify **14/14**; demo **7/7** exit 0;
-  **two independent cold passes, both ACCEPT**, attested `d478a022…`.
-- **Report:** `sessions/session-113-summary.md` + `sessions/session-113-review.md` · next prompt:
-  `prompts/114-task-fleet-role-reviewer.md` (founder pick A). **Date last updated:** 2026-08-06.
+- **Number:** 114 — COMPLETE
+- **Type:** CODE — build the fleet's SECOND named role, the Fidelity Reviewer (founder pick **A**
+  at the S113 closeout; "all approved" at kickoff).
+- **Goal:** the independent cold fidelity review this repo has run **47 times by hand** — mandated by
+  DECISION-002, its brief re-typed each session — becomes a canonical, scaffolded, governed role.
+- **Verdict:** **SHIPPED.** The headline is what did NOT happen: **`src/cli/init.rs` is untouched in
+  the entire diff** — it already iterated `fleet::ROLES`, so one more entry gave the scaffold, the
+  governed handoff, the read-back and the counter for free. Key = **`fidelity-reviewer`**, never
+  `reviewer` (the Reviewer-STATION collision resolved by a distinct key; `resolve_role("reviewer")`
+  is `None` on purpose). The handoff is a **PRE-STAGE INPUT**; `sessions/session-NN-review.md` stays
+  the **single record of record** — no gate learned to read a handoff and the role has no write tool.
+  Two leaks hardcoded to role #1 were flushed out by role #2: the subagent tool grant and the handoff
+  delta's role name. 322 lib tests; verify **17/17**; demo **10/10** exit 0; **two independent cold
+  passes — pass 1 REJECT → fixed in-session → a FRESH pass 2 ACCEPT (13 of 13 SHIPPED)**, attested
+  `cbd22d3a…`.
+- **Report:** `sessions/session-114-summary.md` + `sessions/session-114-review.md` · next prompt:
+  `prompts/115-task-ground-truth.md` (S115 is the MANDATORY no-code GT). **Date last updated:** 2026-08-06.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 113. CODE session, 9 atomic commits on `session-113-fleet-counter-visibility`:
-  `src/stations/mod.rs` (the derivation + the line + 4 tests), `docs/decisions/DECISION-007-agent-fleet.md`
-  (the S113 addendum), `scripts/verify-session-113.sh` + `scripts/demo-session-113.sh`, the prompt's
-  Design/Plan/Execution, and two review-driven hardening commits (one per cold pass).
-- **MERGED: [#120](https://github.com/ifelse-codes/vajra/pull/120)**, 2026-08-06, **CI green on both
-  OS** (macOS + Ubuntu). Remote branch deleted, local `main` synced and pruned (the S37
-  return-to-main step). `vajra next --stations 113` = **8 of 8**. Prior: S112
-  **[#118](https://github.com/ifelse-codes/vajra/pull/118)** merged 2026-08-04 (CI green both OS) +
-  closeout #119; S111 #117 merged 2026-08-03. Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
+- `.ai/SESSION` = 114. CODE session, 11 atomic commits on `session-114-fleet-role-reviewer`:
+  `src/fleet/mod.rs` (the role + per-role tools + role-aware delta + 5 tests), the `DECISION-007`
+  S114 addendum (three open items closed), `.claude/agents/fidelity-reviewer.md` (rendered, never
+  hand-written), `scripts/verify-session-114.sh` + `scripts/demo-session-114.sh`, three
+  review-driven hardening commits (two cold passes), the summary + attested review, and the
+  closeout bundle.
+- **PR: not yet opened at closeout time** — `vajra next --stations 114` = **7 of 8** (only the
+  Releaser is ABSENT, and it turns green on merge, exactly as at S113). Prior: S113
+  **[#120](https://github.com/ifelse-codes/vajra/pull/120)** merged 2026-08-06 (CI green both OS);
+  S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119; S111 #117.
+  Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
 
 ## Next Session
-- **Number:** 114 — **CODE: build the second fleet role, the Reviewer** (founder pick **A**).
-  S113 chose it from evidence; S114 builds it on the Researcher's existing machinery. Two decisions
-  must be made IN WRITING: the role key (it collides with the Reviewer STATION counted in K) and how
-  the handoff relates to `sessions/session-NN-review.md` (two competing records of the same verdict
-  is the failure mode). Prompt: `prompts/114-task-fleet-role-reviewer.md`.
-- **Deferred (S113 candidates B and C):** the overdue paid `vajra claude` dogfood (🔴 since S103) and
-  an opt-in blocking consumption gate.
-- **S115 = the next mandatory NO-CODE ground truth.**
+- **Number:** 115 — **MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`). No source edits, no
+  commits to code, no PRs beyond the GT artifact. Prompt: `prompts/115-task-ground-truth.md`.
+- **The GT's one live opportunity:** S115 is the FIRST session in which
+  `subagent_type: "fidelity-reviewer"` is dispatchable by name (S111's mechanism limit — an agent
+  file written mid-session is invisible to that session). Dispatching it for the GT's own
+  independent pass is **evidence-gathering, not code**, so it fits a NO-CODE session — and it is the
+  only way to find out whether the brief actually works on a real agent.
+- **Deferred, for the founder to pick at the S115 closeout:** the overdue paid `vajra claude`
+  dogfood (🔴 since S103 — 11 sessions) and an opt-in blocking consumption gate.
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S114.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S115.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **The fleet loop is now closed end-to-end:** `vajra init` scaffolds the role → a **fresh** session's
-  Task tool dispatches it by name → `vajra next --role --from` governs the handoff → **the packet and
-  the Analyst read it back automatically**. All of it advisory; nothing blocks on fleet work.
-- **Two-pass cold review keeps paying — three sessions running.** S113 pass 1 caught a guard using
-  `grep -E '\s'` (BSD/macOS reads it as a literal `s`, so a "not built" guard reported clean while
-  the thing would exist — use `[[:space:]]`, and always pair a negative guard with a positive control)
-  and a before/after check running in a floor-state fixture (vacuous). A fresh pass 2 caught that every
-  check wrote at most ONE handoff, so a station passing on `>= 2` would keep the suite green.
-- **Still reuse `named_test_passed()`** (S112 pass 2): `cargo test --lib <filter>` exits 0 on a filter
-  matching zero tests, so a check naming a single test must assert `N passed` with N ≥ 1.
-- **Known weak check, house-wide:** `no-eighth-command` greps a hardcoded usage banner (S111 and S112
-  both). An 8th command whose author skipped the help text would pass. Fix repo-wide, not per session.
-- **Launcher dogfood is 🔴 STALE — 10 sessions / ~10 days since S103.** Mechanism tests (S111's
-  scratch-repo dispatch, S112's tempdir e2e, S113's fixture repos) do NOT reset it; only a real paid `vajra claude` run does.
-- **v0.1 installs FOUR ways, all measured, CONFIRMED stranger-shippable at S110 GT.** Residual 🟡s
-  carried in STATE.md (brew smoke tests a local formula copy · x86_64 prebuilt never executed, etc.).
-- **crates.io is PUBLISHED — `vajractl` name BURNED.** Any future crates.io action stays founder-gated.
-- **The fleet line counts ARTIFACTS, not agents.** `vajra next --role … --from <hand-typed file>`
-  produces the same `fleet: 1 governed handoff(s)` as a real subagent dispatch. Say "a contract-valid
-  handoff exists" — never "an agent was dispatched".
+- **THE FLEET'S SECOND ROLE IS FIRST DISPATCHABLE AT S115.** `.claude/agents/fidelity-reviewer.md`
+  exists on disk now; Claude Code snapshots agent files at boot, so only a FRESH session can call it
+  by name (S111, unchanged). S115 is that session.
+- **The reviewer contract has TWO files and they are BOUND, not duplicated:** `reviewer/SKILL.md` is
+  canonical (long form, scaffolded by `vajra init`); the role's system prompt is its dispatch-time
+  summary. A check reads BOTH and requires every closeout-gate token in each. Never edit one alone.
+- **The closeout gate counts verdict words ONLY on `|` table rows, and needs ≥3.** A per-requirement
+  bullet list — however correct — is BLOCKED. Any review artifact needs a real markdown table.
+- **Attest LAST: `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff), and the PROMPT IS AN INPUT.**
+  Recording the Execution shas moves the hash. This session hit it TWICE. Recompute after the prompt
+  is final and committed, then confirm two consecutive `--inputs-sha` runs agree before embedding.
+- **Two-pass cold review has now paid off FIVE sessions running** — and pass 1 REJECTED this time.
+  It found that the repo already contained a rival statement of the reviewer contract, which the
+  session's own approved prompt asserted did not exist. **A premise in an approved prompt is not
+  evidence.**
+- **A one-element registry hides per-element assumptions.** Both leaks S114 fixed (the subagent tool
+  grant, the delta's role name) were invisible while `fleet::ROLES` had one entry. Expect the same
+  when a THIRD role lands (`ROLES.len() == 2` is asserted on purpose, so a third role is a decision).
+- **Known weak check, house-wide:** `no-eighth-command` greps a hardcoded usage banner (S111, S112,
+  S113, S114). An 8th command whose author skipped the help text would pass. Fix repo-wide.
+- **Still reuse `named_test_passed()`** — `cargo test --lib <filter>` exits 0 on a filter matching
+  zero tests. And **`[[:space:]]`, never `\s`**, in any script check (BSD/macOS grep).
+- **Launcher dogfood is 🔴 STALE — 11 sessions / ~11 days since S103.** Mechanism tests do NOT reset
+  it; only a real paid `vajra claude` run does.
+- **The fleet line counts ARTIFACTS, not agents.** Say "a contract-valid handoff exists" — never
+  "an agent was dispatched".
+- **v0.1 installs FOUR ways, all measured, CONFIRMED stranger-shippable at S110 GT.** Residual 🟡s in
+  STATE.md. **crates.io is PUBLISHED — `vajractl` name BURNED**; any crates.io action stays
+  founder-gated.
 - **Untracked stragglers** (standing founder call): `sessions/session-9*-artifacts/*`,
   `sessions/session-10{2,3,7,8,9}-artifacts/*`; `vajra-cto-audit-*.html` + `first-mate.html`.

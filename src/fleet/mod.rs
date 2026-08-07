@@ -19,6 +19,12 @@
 //! S112 adds the READ side — `read_handoff`/`read_handoffs` — so a station can consume what the
 //! fleet produced. That is one narrow, fs-READ-only edge (no writes, no processes, tempdir-testable);
 //! its parsing core, `parse_handoff`, stays pure like everything else here.
+//!
+//! S114 adds the SECOND role — the **Fidelity Reviewer** (chosen from evidence at S113, built here;
+//! `DECISION-007` S114 addendum). No new machinery: it is one more `ROLES` entry, and every path
+//! above already iterates the roles. What it DID force is honesty about the single source — the tool
+//! grant and the delta text were both hardcoded to the Researcher while only one role existed, and
+//! are now per-role.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -33,6 +39,12 @@ pub struct Role {
     pub description: &'static str,
     /// The role-scoping system prompt — the subagent definition body.
     pub system_prompt: &'static str,
+    /// This role's tool grant, rendered verbatim into the subagent frontmatter `tools:`. Per-role
+    /// (S114) — it was hardcoded to the Researcher's list while only one role existed, which would
+    /// have silently handed every future role the Researcher's web access. **Every registered role
+    /// is read-only**; a role that could write is a materially bigger governance decision
+    /// (DECISION-007) and none is taken here.
+    pub tools: &'static str,
 }
 
 impl Role {
@@ -59,15 +71,72 @@ Rules:\n\
 - If the question is ambiguous or you are unsure, say so plainly — never invent facts or sources.\n\
 - Keep it short: a busy engineer should be able to act on it in under a minute.";
 
-/// The registered roles. Slice 1 (DECISION-007) ships exactly ONE — the Researcher. Adding a
-/// second role is a separate decision, not a reflex (the named key risk of S109 is scope creep).
-pub const ROLES: &[Role] = &[Role {
-    name: "researcher",
-    description: "Investigate a question and return a concise, decision-ready findings brief. \
-                  Use before a design or build decision that needs facts, trade-offs, or prior art. \
-                  Read-only — never writes code.",
-    system_prompt: RESEARCHER_SYSTEM_PROMPT,
-}];
+/// The Reviewer's contract (S114). This is the brief this repo has re-typed from memory every
+/// session for 47 cold reviews — made canonical here, which is the whole point of `ROLES`.
+///
+/// Two things it states that no other role does, both locked by the `DECISION-007` S114 addendum:
+/// the verdict it returns is a **pre-stage input**, and the canonical, gated record of the verdict
+/// stays `sessions/session-NN-review.md` — this agent never writes that file (it has no write tool
+/// and is told not to ask for one).
+const FIDELITY_REVIEWER_SYSTEM_PROMPT: &str =
+    "You are the Fidelity Reviewer on a governed software \
+team. Your ONE job is an INDEPENDENT, ADVERSARIAL cold review of a delivery you did not build.\n\
+You are fed only two things: the session prompt (what was asked) and the diff (what was done). \
+Judge from those. Do not accept the builder's own summary as evidence.\n\
+Rules:\n\
+- Do NOT write, edit, or run code. You read and judge only.\n\
+- Grade EVERY numbered requirement in the prompt: SHIPPED / PARTIAL / NOT-BUILT, each with the \
+concrete evidence in the diff that earns the grade. A requirement with no evidence is NOT-BUILT.\n\
+- Following the rules is not delivering what was asked: a green verify script proves discipline, \
+never fidelity. Never grade from test counts alone.\n\
+- Name THE FAKEST GREEN — the thing that looks done but is hollow (a check that would pass if the \
+feature were deleted, a marker the author simply typed, an assertion that cannot fail).\n\
+- Never self-certify and never soften: if the delivery is short, say so.\n\
+Shape your brief so it can be landed without rewriting — the closeout gate reads the landed record \
+and FAILS unless it carries all three of these:\n\
+- a per-requirement MARKDOWN TABLE — the gate counts verdict words only on `|`-delimited rows and \
+requires at least three of them, so one row per requirement carrying SHIPPED / PARTIAL / NOT-BUILT \
+(a bulleted list with the same words does NOT pass),\n\
+- a canonical `**Verdict:** ACCEPT` or `**Verdict:** REJECT` line (the word buried in a heading \
+does not count),\n\
+- a count of the form `X of N SHIPPED`.\n\
+The full contract you are performing is `reviewer/SKILL.md` in this repo — READ IT before you \
+judge; it is canonical and this brief is its dispatch-time summary, never a competing version.\n\
+Your verdict is a PRE-STAGE INPUT. The canonical, gated record of the fidelity verdict is \
+`sessions/session-NN-review.md` (read by `verify-closeout.sh`, attested by a `**Review-Inputs-SHA:**` \
+the orchestrator computes, chained in the ledger) — you do not write it, and you are not its \
+replacement.";
+
+/// The registered roles. Slice 1 (DECISION-007) shipped exactly ONE — the Researcher. S114 adds the
+/// SECOND, chosen from evidence at S113 and built here: the Fidelity Reviewer. A third role is
+/// again a separate decision, not a reflex (the named key risk of S109 is scope creep).
+///
+/// **The key is `fidelity-reviewer`, not `reviewer`** — the deliberate resolution of the collision
+/// the S113 cold review named (`DECISION-007` S114 addendum). `K of 8` already counts a **Reviewer
+/// station**; a role keyed `reviewer` would make "Reviewer" mean two different things in two lines
+/// of the same report. Distinct key, distinct word, no ambiguity.
+pub const ROLES: &[Role] = &[
+    Role {
+        name: "researcher",
+        description: "Investigate a question and return a concise, decision-ready findings brief. \
+                      Use before a design or build decision that needs facts, trade-offs, or prior \
+                      art. Read-only — never writes code.",
+        system_prompt: RESEARCHER_SYSTEM_PROMPT,
+        // Investigation needs the web; judging a diff does not.
+        tools: "Read, Grep, Glob, WebSearch, WebFetch",
+    },
+    Role {
+        name: "fidelity-reviewer",
+        description: "Independently cold-review a finished delivery against the session prompt: \
+                      grade every numbered requirement SHIPPED/PARTIAL/NOT-BUILT and name the \
+                      fakest green. Use at close, never on your own work. Read-only.",
+        system_prompt: FIDELITY_REVIEWER_SYSTEM_PROMPT,
+        // Strictly local reads. No web (a fidelity call is decided by the prompt and the diff in
+        // front of it, not by the internet) and no Bash (running things is the QA station's job,
+        // live — DECISION-007 rejected swapping those teeth for an agent's prose).
+        tools: "Read, Grep, Glob",
+    },
+];
 
 /// Resolve a role by its key. `None` (→ the caller fails closed) for an unknown role: vajra never
 /// governs a role it cannot scope.
@@ -90,7 +159,7 @@ pub fn render_subagent_definition(role: &Role) -> String {
         "---\n\
          name: {name}\n\
          description: {desc}\n\
-         tools: Read, Grep, Glob, WebSearch, WebFetch\n\
+         tools: {tools}\n\
          ---\n\
          \n\
          {sys}\n\
@@ -102,26 +171,33 @@ pub fn render_subagent_definition(role: &Role) -> String {
          Vajra computes the source hash, the timestamp, and the delta against the prior stage.\n",
         name = role.name,
         desc = role.description,
+        tools = role.tools,
         sys = role.system_prompt,
     )
 }
 
-/// The `## Handoff Delta` body: what this handoff adds relative to the PRIOR stage. Slice 1 has no
-/// prior handoff (the prior stage is the session prompt / Analyst's WHAT), so the delta records
+/// The `## Handoff Delta` body: what this handoff adds relative to the PRIOR stage. A first handoff
+/// has no prior (the prior stage is the session prompt / Analyst's WHAT), so the delta records
 /// "new"; a re-run against an existing handoff records the size change. This is what makes the
 /// handoff a *tracked* artifact with a recorded delta, not an opaque dump.
-pub fn compute_delta(prior_body: Option<&str>, new_body: &str) -> String {
+///
+/// S114: takes the `role` instead of writing the word "researcher" into every delta. With one role
+/// registered the hardcoding was invisible; with two it would have stamped a Reviewer handoff with
+/// the Researcher's name — the single-source drift this module exists to prevent.
+pub fn compute_delta(role: &Role, prior_body: Option<&str>, new_body: &str) -> String {
     match prior_body {
         None => format!(
-            "- `+` new: first researcher handoff for this session ({} bytes of findings)\n\
+            "- `+` new: first {role} handoff for this session ({} bytes of findings)\n\
              - prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against",
-            new_body.len()
+            new_body.len(),
+            role = role.name
         ),
         Some(p) => format!(
-            "- `~` re-run: researcher handoff replaced ({} bytes now vs {} bytes prior)\n\
-             - prior stage: this session's earlier researcher handoff",
+            "- `~` re-run: {role} handoff replaced ({} bytes now vs {} bytes prior)\n\
+             - prior stage: this session's earlier {role} handoff",
             new_body.len(),
-            p.len()
+            p.len(),
+            role = role.name
         ),
     }
 }
@@ -484,18 +560,176 @@ mod tests {
 
     #[test]
     fn compute_delta_new_vs_rerun() {
-        let d0 = compute_delta(None, "abcde");
+        let r = resolve_role("researcher").unwrap();
+        let d0 = compute_delta(r, None, "abcde");
         assert!(d0.contains("`+` new"));
         assert!(d0.contains("5 bytes"));
-        let d1 = compute_delta(Some("ab"), "abcde");
+        let d1 = compute_delta(r, Some("ab"), "abcde");
         assert!(d1.contains("`~` re-run"));
         assert!(d1.contains("5 bytes now vs 2 bytes"));
+    }
+
+    /// S114 — the delta names the role that produced it. Hardcoded to "researcher" before a second
+    /// role existed, so a Reviewer handoff would have carried the Researcher's name in its own
+    /// tracked delta. Asserted for EVERY registered role, so a third role cannot regress it.
+    #[test]
+    fn compute_delta_names_the_producing_role_not_a_hardcoded_one() {
+        for role in ROLES {
+            let new = compute_delta(role, None, "findings");
+            let rerun = compute_delta(role, Some("prior"), "findings");
+            assert!(
+                new.contains(&format!("first {} handoff", role.name)),
+                "new-delta does not name {}: {new}",
+                role.name
+            );
+            assert!(
+                rerun.contains(&format!("{} handoff replaced", role.name)),
+                "re-run delta does not name {}: {rerun}",
+                role.name
+            );
+            // A non-researcher role must not carry the Researcher's name anywhere in its delta.
+            if role.name != "researcher" {
+                assert!(
+                    !new.contains("researcher"),
+                    "{} leaked 'researcher'",
+                    role.name
+                );
+                assert!(
+                    !rerun.contains("researcher"),
+                    "{} leaked 'researcher'",
+                    role.name
+                );
+            }
+        }
+    }
+
+    /// S114 — the SECOND role exists, is keyed to avoid the Reviewer-STATION collision, and carries
+    /// the adversarial contract. This fails if the role is removed, renamed to `reviewer`, or
+    /// hollowed out to a stub prompt.
+    #[test]
+    fn fidelity_reviewer_is_registered_with_a_non_colliding_key() {
+        assert_eq!(ROLES.len(), 2, "the fleet ships exactly two roles at S114");
+        let r = resolve_role("fidelity-reviewer").expect("the second role is registered");
+        // The collision resolution, asserted: the key is NOT the bare station word.
+        assert!(resolve_role("reviewer").is_none());
+        assert!(known_roles().contains("fidelity-reviewer"));
+        assert_eq!(
+            r.handoff_rel(114),
+            ".ai/handoffs/session-114-fidelity-reviewer.md"
+        );
+        assert_eq!(r.subagent_rel(), ".claude/agents/fidelity-reviewer.md");
+        // The contract, not a stub: the three grades, the fakest green, and no self-certification.
+        for must in [
+            "SHIPPED / PARTIAL / NOT-BUILT",
+            "FAKEST GREEN",
+            "Never self-certify",
+            "PRE-STAGE INPUT",
+            "sessions/session-NN-review.md",
+        ] {
+            assert!(
+                r.system_prompt.contains(must),
+                "reviewer prompt is missing {must:?}"
+            );
+        }
+    }
+
+    /// S114, cold-review finding — the role brief is NOT the only statement of this contract:
+    /// `reviewer/SKILL.md` is the canonical 100+ line version, scaffolded into every repo by the
+    /// same `vajra init`. Two hand-maintained statements of one job is exactly the drift this
+    /// module exists to prevent, and the dangerous half is the OUTPUT SHAPE: a dispatched agent
+    /// obeying only the role brief could return a verdict the closeout gate then REJECTS.
+    ///
+    /// So this test binds them: every token `verify-closeout.sh` requires of a landed review must
+    /// appear in BOTH files. It reads the skill off disk on purpose — a change to the canonical
+    /// contract that the role brief does not follow turns this red.
+    #[test]
+    fn the_role_brief_carries_the_output_shape_the_closeout_gate_requires() {
+        let skill =
+            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/reviewer/SKILL.md"))
+                .expect("reviewer/SKILL.md is the canonical contract and must exist");
+        let brief = resolve_role("fidelity-reviewer").unwrap().system_prompt;
+
+        // The gate counts verdict words ONLY on `|`-delimited rows (`check_fidelity_review`), so a
+        // brief that says "a table" without saying which shape sends the agent to write bullets the
+        // gate then rejects — cold-review pass 2 wrote exactly that review and watched it BLOCK.
+        assert!(
+            brief.contains("MARKDOWN TABLE") && brief.contains("`|`-delimited rows"),
+            "the role brief does not state the pipe-row table shape the gate actually counts"
+        );
+
+        // The three things the gate FAILS a review for missing (verify-closeout.sh).
+        for token in [
+            "SHIPPED",
+            "PARTIAL",
+            "NOT-BUILT",
+            "**Verdict:**",
+            "of N SHIPPED",
+        ] {
+            // Positive control: the canonical contract really does require it. Without this, a
+            // typo'd token would make the assertion below vacuously about nothing.
+            assert!(
+                skill.contains(token) || skill.contains(&token.replace("of N ", "X of N ")),
+                "positive control failed: reviewer/SKILL.md does not mention {token:?} — \
+                 fix this test's tokens, do not weaken it"
+            );
+            assert!(
+                brief.contains(token),
+                "the role brief omits {token:?}, which the closeout gate requires of the landed \
+                 review — a dispatched agent obeying only this brief would produce a REJECTED file"
+            );
+        }
+        // And the brief must point at the canonical contract by name, so it reads as a summary of
+        // one source rather than a rival second source.
+        assert!(
+            brief.contains("reviewer/SKILL.md"),
+            "the role brief does not name reviewer/SKILL.md as canonical"
+        );
+    }
+
+    /// S114 — every role is read-only, and the tool grant is the ROLE's, not a hardcoded list.
+    /// The Reviewer gets strictly local reads: no web, no Bash.
+    #[test]
+    fn every_role_is_read_only_and_renders_its_own_tools() {
+        for role in ROLES {
+            let def = render_subagent_definition(role);
+            assert!(
+                def.contains(&format!("tools: {}", role.tools)),
+                "{} does not render its own tools",
+                role.name
+            );
+            for forbidden in ["Write", "Edit", "Bash", "NotebookEdit"] {
+                assert!(
+                    !role.tools.contains(forbidden),
+                    "{} grants the write/exec tool {forbidden}",
+                    role.name
+                );
+            }
+        }
+        let rev = resolve_role("fidelity-reviewer").unwrap();
+        assert_eq!(rev.tools, "Read, Grep, Glob");
+        let res = resolve_role("researcher").unwrap();
+        assert_ne!(res.tools, rev.tools, "the tool grant must be per-role");
+    }
+
+    /// S114 — the rendering is generic: every registered role produces a valid subagent definition
+    /// pointing at ITS OWN handoff path and ITS OWN `vajra next --role` command line.
+    #[test]
+    fn render_subagent_definition_is_correct_for_every_registered_role() {
+        for role in ROLES {
+            let def = render_subagent_definition(role);
+            assert!(def.starts_with("---\n"));
+            assert!(def.contains(&format!("name: {}", role.name)));
+            assert!(def.contains(role.description));
+            assert!(def.contains(role.system_prompt));
+            assert!(def.contains(&format!(".ai/handoffs/session-<NN>-{}.md", role.name)));
+            assert!(def.contains(&format!("vajra next --role {} --from", role.name)));
+        }
     }
 
     #[test]
     fn format_handoff_carries_the_full_contract_and_validates() {
         let r = resolve_role("researcher").unwrap();
-        let delta = compute_delta(None, "the findings");
+        let delta = compute_delta(r, None, "the findings");
         let h = format_handoff(
             r,
             109,
@@ -598,7 +832,7 @@ mod tests {
             "2026-08-04T00:00:00Z",
             None,
             body,
-            &compute_delta(None, body),
+            &compute_delta(r, None, body),
         );
         let rel = r.handoff_rel(session);
         let path = root.join(&rel);
