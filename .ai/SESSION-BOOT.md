@@ -26,8 +26,10 @@
   hand-written), `scripts/verify-session-114.sh` + `scripts/demo-session-114.sh`, three
   review-driven hardening commits (two cold passes), the summary + attested review, and the
   closeout bundle.
-- **PR: not yet opened at closeout time** — `vajra next --stations 114` = **7 of 8** (only the
-  Releaser is ABSENT, and it turns green on merge, exactly as at S113). Prior: S113
+- **MERGED: [#122](https://github.com/ifelse-codes/vajra/pull/122)**, 2026-08-07, **CI green on both
+  OS** (macOS 31s + Ubuntu 20s). Remote branch deleted, local `main` synced and pruned (the S37
+  return-to-main step). `vajra next --stations 114` = **8 of 8** — the Releaser and Reviewer turned
+  green on merge, exactly as at S113. Prior: S113
   **[#120](https://github.com/ifelse-codes/vajra/pull/120)** merged 2026-08-06 (CI green both OS);
   S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119; S111 #117.
   Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
@@ -46,9 +48,15 @@
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S115.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **THE FLEET'S SECOND ROLE IS FIRST DISPATCHABLE AT S115.** `.claude/agents/fidelity-reviewer.md`
-  exists on disk now; Claude Code snapshots agent files at boot, so only a FRESH session can call it
-  by name (S111, unchanged). S115 is that session.
+- **⚠ THE "FIRST DISPATCHABLE NEXT SESSION" CLAIM IS NOW AN ASSUMPTION TO CHECK, NOT A FACT.**
+  The S111 finding says Claude Code snapshots `.claude/agents/*.md` at boot, so a role written
+  mid-session is invisible to that session. **But at the S114 close the harness registered
+  `fidelity-reviewer` as an available agent type IN THE SESSION THAT CREATED IT.** That is an
+  observation about the agent LIST only — it was deliberately NOT tested, because proving a
+  dispatch-by-name resolves is S115's assigned job and running it here would consume the finding.
+  **S115 must verify, not assume.** If it dispatches immediately, a limitation carried since S111 is
+  retired — a finding in its own right. Distinguish the two claims carefully: "the name appears in
+  the list" is not "a dispatch by that name resolves to this role".
 - **The reviewer contract has TWO files and they are BOUND, not duplicated:** `reviewer/SKILL.md` is
   canonical (long form, scaffolded by `vajra init`); the role's system prompt is its dispatch-time
   summary. A check reads BOTH and requires every closeout-gate token in each. Never edit one alone.
