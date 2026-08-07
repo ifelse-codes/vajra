@@ -33,6 +33,12 @@
   **[#120](https://github.com/ifelse-codes/vajra/pull/120)** merged 2026-08-06 (CI green both OS);
   S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119; S111 #117.
   Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
+- **Closeout gate: 12/12 ALL GREEN, run PRE-MERGE on the session branch** (the S83 rule). Re-running
+  it AFTER the merge shows `review-inputs-attested FAIL` — that is the documented **merge-base
+  collapse**, not a regression: once `main` absorbs the branch, the delivery diff the hash is
+  computed over no longer exists. Re-derivable proof, not a memory of a green run — recomputing
+  `sha256(prompt ‖ diff)` against the pre-merge base `e0730a9`/branch head `d8b32e2` reproduces the
+  embedded `cbd22d3a…` exactly.
 
 ## Next Session
 - **Number:** 115 — **MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`). No source edits, no
