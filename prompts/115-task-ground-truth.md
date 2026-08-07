@@ -18,9 +18,17 @@ Run every audit in `CONSTRAINTS.yaml#ground_truth.required_audits`, answering it
 
 ## The one live opportunity — dispatch the new role BY NAME
 
-S114 built the fleet's second role, the **Fidelity Reviewer**, and could not dispatch it: Claude Code
-snapshots `.claude/agents/*.md` at boot, so a role written mid-session is invisible to that session
-(S111, unchanged and still true). **S115 is the first session that can call it by name.**
+S114 built the fleet's second role, the **Fidelity Reviewer**, and did not dispatch it. The carried
+S111 finding says Claude Code snapshots `.claude/agents/*.md` at boot, so a role written mid-session
+is invisible to that session — which would make S115 the first session that can call it by name.
+
+**⚠ Treat that as an assumption to CHECK, not a fact.** At the S114 close the harness registered
+`fidelity-reviewer` as an available agent type **in the session that created it**. That is an
+observation about the agent *list* only; it was deliberately left untested so this session could own
+the finding. Two different claims, and this project exists to not conflate them:
+*"the name appears in the list"* ≠ *"a dispatch by that name resolves to this role"*. If the role
+turns out to be dispatchable in its own creating session, a limitation carried since S111 is retired
+— report that as a finding, and correct `.ai/KNOWLEDGE.md` and STATE.md accordingly.
 
 Dispatching an agent and reading its findings is **evidence-gathering, not code** — it fits a NO-CODE
 session, and it is the only way to learn whether the brief actually works on a real agent rather than

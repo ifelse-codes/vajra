@@ -6,7 +6,8 @@
 **None — between sessions (S114 complete, S115 not yet started).** S114 shipped on
 `session-114-fleet-role-reviewer` (11 atomic commits). S114 = **CODE: build the fleet's SECOND named
 role, the Fidelity Reviewer** (founder pick **A** at the S113 closeout; "all approved" at kickoff).
-**Verdict: SHIPPED.**
+**Verdict: SHIPPED and MERGED** ([#122](https://github.com/ifelse-codes/vajra/pull/122), CI green
+both OS, `--stations 114` = **8 of 8**).
 
 The independent cold fidelity review this repo has run **47 times by hand** — mandated by
 DECISION-002, its brief re-typed each session — is now canonical, scaffolded and governed. The
@@ -50,8 +51,10 @@ runs the long unattended test himself, then release. Order **C → B → A**: C 
 second role BUILT ✓.**
 
 ## Active PRs
-- **None open. S114's PR is NOT YET OPENED** — `vajra next --stations 114` = **7 of 8**, the one
-  ABSENT station being the Releaser, which turns green on merge (identical to S113 pre-merge).
+- **None open. S114 [#122](https://github.com/ifelse-codes/vajra/pull/122) MERGED** 2026-08-07,
+  **CI green on both OS** (macOS 31s + Ubuntu 20s). Remote branch deleted, local `main` synced and
+  pruned (the S37 return-to-main step). **`vajra next --stations 114` = 8 of 8** — the Releaser and
+  Reviewer turned green on merge, exactly as at S113.
 - Prior: **S113 [#120](https://github.com/ifelse-codes/vajra/pull/120) MERGED** 2026-08-06, CI green
   both OS · S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119 · S111 #117 ·
   S109 #115 · S110 closeout #116 · S108 #113 + #114 · S107 #112 · S106 #111.
@@ -119,8 +122,9 @@ second role BUILT ✓.**
   active) · **Compression no-op on real CC** (never claim until measured) · **Cross-agent breadth 0 code**.
 
 ## What Is In Progress
-- **S114 DONE (CODE; SHIPPED; 322 lib tests; verify 17/17; demo 10/10; two cold passes — REJECT then
-  a fresh ACCEPT — attested `cbd22d3a…`).** PR not yet opened; `--stations 114` = **7 of 8**.
+- **S114 DONE + MERGED (CODE; SHIPPED; 322 lib tests; verify 17/17; demo 10/10; two cold passes —
+  REJECT then a fresh ACCEPT — attested `cbd22d3a…`; CI green both OS; PR #122).**
+  `vajra next --stations 114` = **8 of 8**.
   Reports: `sessions/session-114-summary.md` + `sessions/session-114-review.md`.
 - **Next = S115 — MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`). Its one live opportunity: S115
   is the first session that can dispatch `subagent_type: "fidelity-reviewer"` **by name**, which is

@@ -26,29 +26,46 @@
   hand-written), `scripts/verify-session-114.sh` + `scripts/demo-session-114.sh`, three
   review-driven hardening commits (two cold passes), the summary + attested review, and the
   closeout bundle.
-- **PR: not yet opened at closeout time** — `vajra next --stations 114` = **7 of 8** (only the
-  Releaser is ABSENT, and it turns green on merge, exactly as at S113). Prior: S113
+- **MERGED: [#122](https://github.com/ifelse-codes/vajra/pull/122)**, 2026-08-07, **CI green on both
+  OS** (macOS 31s + Ubuntu 20s). Remote branch deleted, local `main` synced and pruned (the S37
+  return-to-main step). `vajra next --stations 114` = **8 of 8** — the Releaser and Reviewer turned
+  green on merge, exactly as at S113. Prior: S113
   **[#120](https://github.com/ifelse-codes/vajra/pull/120)** merged 2026-08-06 (CI green both OS);
   S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119; S111 #117.
   Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
+- **Closeout gate: 12/12 ALL GREEN, run PRE-MERGE on the session branch** (the S83 rule). Re-running
+  it AFTER the merge shows `review-inputs-attested FAIL` — that is the documented **merge-base
+  collapse**, not a regression: once `main` absorbs the branch, the delivery diff the hash is
+  computed over no longer exists. Re-derivable proof, not a memory of a green run — recomputing
+  `sha256(prompt ‖ diff)` against the pre-merge base `e0730a9`/branch head `d8b32e2` reproduces the
+  embedded `cbd22d3a…` exactly.
 
 ## Next Session
 - **Number:** 115 — **MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`). No source edits, no
   commits to code, no PRs beyond the GT artifact. Prompt: `prompts/115-task-ground-truth.md`.
-- **The GT's one live opportunity:** S115 is the FIRST session in which
-  `subagent_type: "fidelity-reviewer"` is dispatchable by name (S111's mechanism limit — an agent
-  file written mid-session is invisible to that session). Dispatching it for the GT's own
-  independent pass is **evidence-gathering, not code**, so it fits a NO-CODE session — and it is the
-  only way to find out whether the brief actually works on a real agent.
+- **The GT's one live opportunity:** dispatch the GT's own independent pass with
+  `subagent_type: "fidelity-reviewer"` — **by name**, never as an ad-hoc `general-purpose` subagent.
+  Dispatching an agent and reading its findings is **evidence-gathering, not code**, so it fits a
+  NO-CODE session, and it is the only way to learn whether S114's brief works on a real agent rather
+  than on a grep. Report specifically whether the returned verdict would pass `verify-closeout.sh`
+  **unedited** (a `|`-row table, a canonical `**Verdict:**` line, an `X of N SHIPPED` count).
+  On whether S115 is the FIRST session that can do this — see the ⚠ carry-forward below; it is an
+  assumption to check, not a fact.
 - **Deferred, for the founder to pick at the S115 closeout:** the overdue paid `vajra claude`
   dogfood (🔴 since S103 — 11 sessions) and an opt-in blocking consumption gate.
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S115.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **THE FLEET'S SECOND ROLE IS FIRST DISPATCHABLE AT S115.** `.claude/agents/fidelity-reviewer.md`
-  exists on disk now; Claude Code snapshots agent files at boot, so only a FRESH session can call it
-  by name (S111, unchanged). S115 is that session.
+- **⚠ THE "FIRST DISPATCHABLE NEXT SESSION" CLAIM IS NOW AN ASSUMPTION TO CHECK, NOT A FACT.**
+  The S111 finding says Claude Code snapshots `.claude/agents/*.md` at boot, so a role written
+  mid-session is invisible to that session. **But at the S114 close the harness registered
+  `fidelity-reviewer` as an available agent type IN THE SESSION THAT CREATED IT.** That is an
+  observation about the agent LIST only — it was deliberately NOT tested, because proving a
+  dispatch-by-name resolves is S115's assigned job and running it here would consume the finding.
+  **S115 must verify, not assume.** If it dispatches immediately, a limitation carried since S111 is
+  retired — a finding in its own right. Distinguish the two claims carefully: "the name appears in
+  the list" is not "a dispatch by that name resolves to this role".
 - **The reviewer contract has TWO files and they are BOUND, not duplicated:** `reviewer/SKILL.md` is
   canonical (long form, scaffolded by `vajra init`); the role's system prompt is its dispatch-time
   summary. A check reads BOTH and requires every closeout-gate token in each. Never edit one alone.
