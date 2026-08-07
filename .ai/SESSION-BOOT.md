@@ -1,94 +1,94 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 114 — COMPLETE
-- **Type:** CODE — build the fleet's SECOND named role, the Fidelity Reviewer (founder pick **A**
-  at the S113 closeout; "all approved" at kickoff).
-- **Goal:** the independent cold fidelity review this repo has run **47 times by hand** — mandated by
-  DECISION-002, its brief re-typed each session — becomes a canonical, scaffolded, governed role.
-- **Verdict:** **SHIPPED.** The headline is what did NOT happen: **`src/cli/init.rs` is untouched in
-  the entire diff** — it already iterated `fleet::ROLES`, so one more entry gave the scaffold, the
-  governed handoff, the read-back and the counter for free. Key = **`fidelity-reviewer`**, never
-  `reviewer` (the Reviewer-STATION collision resolved by a distinct key; `resolve_role("reviewer")`
-  is `None` on purpose). The handoff is a **PRE-STAGE INPUT**; `sessions/session-NN-review.md` stays
-  the **single record of record** — no gate learned to read a handoff and the role has no write tool.
-  Two leaks hardcoded to role #1 were flushed out by role #2: the subagent tool grant and the handoff
-  delta's role name. 322 lib tests; verify **17/17**; demo **10/10** exit 0; **two independent cold
-  passes — pass 1 REJECT → fixed in-session → a FRESH pass 2 ACCEPT (13 of 13 SHIPPED)**, attested
-  `cbd22d3a…`.
-- **Report:** `sessions/session-114-summary.md` + `sessions/session-114-review.md` · next prompt:
-  `prompts/115-task-ground-truth.md` (S115 is the MANDATORY no-code GT). **Date last updated:** 2026-08-06.
+- **Number:** 115 — COMPLETE
+- **Type:** NO-CODE GROUND TRUTH (`115 % 5 == 0`). Audited S111–S114.
+- **Goal:** catch direction drift (vision/roadmap) + discipline drift (state/knowledge/constraints/
+  constitution/cost/dogfood), run the 10 required audits, and use the session's one live opportunity —
+  dispatch the new Fidelity Reviewer role by name for the first time ever.
+- **Verdict:** **PARTIAL PASS.** The dispatch-by-name test **worked** — `subagent_type:
+  "fidelity-reviewer"` resolved on the first try in this fresh session (retiring the S111
+  boot-snapshot limitation for the "next session" case), and its verdict content matched S114's own
+  two-pass finding almost exactly (13 of 13 SHIPPED, independently re-derived the same fakest green).
+  But it surfaced a REAL, previously-unknown gap: the agent formatted its canonical verdict as a
+  markdown table row (`| **Verdict:** | ACCEPT |`), which the closeout gate's line-anchored regex does
+  **not** match — confirmed by running the gate's actual regex against the raw output. A bare
+  `**Verdict:** ACCEPT` line passes; the table-wrapped form does not. Real gap, only findable on a live
+  agent, not a synthetic test. The PARTIAL (not PASS) is because the launcher dogfood is now **12
+  sessions / ~11 days** stale — the longest gap since the metric existed, named at every GT since S105,
+  and this session's top recommendation (a real paid dogfood run) was explicitly passed over by the
+  founder in favor of a third fleet role.
+- **Report:** `sessions/session-115-ground-truth.md` · next prompt:
+  `prompts/116-task-fleet-role-planner.md`. **Date last updated:** 2026-08-07.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 114. CODE session, 11 atomic commits on `session-114-fleet-role-reviewer`:
-  `src/fleet/mod.rs` (the role + per-role tools + role-aware delta + 5 tests), the `DECISION-007`
-  S114 addendum (three open items closed), `.claude/agents/fidelity-reviewer.md` (rendered, never
-  hand-written), `scripts/verify-session-114.sh` + `scripts/demo-session-114.sh`, three
-  review-driven hardening commits (two cold passes), the summary + attested review, and the
-  closeout bundle.
-- **MERGED: [#122](https://github.com/ifelse-codes/vajra/pull/122)**, 2026-08-07, **CI green on both
-  OS** (macOS 31s + Ubuntu 20s). Remote branch deleted, local `main` synced and pruned (the S37
-  return-to-main step). `vajra next --stations 114` = **8 of 8** — the Releaser and Reviewer turned
-  green on merge, exactly as at S113. Prior: S113
-  **[#120](https://github.com/ifelse-codes/vajra/pull/120)** merged 2026-08-06 (CI green both OS);
-  S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119; S111 #117.
-  Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
-- **Closeout gate: 12/12 ALL GREEN, run PRE-MERGE on the session branch** (the S83 rule). Re-running
-  it AFTER the merge shows `review-inputs-attested FAIL` — that is the documented **merge-base
-  collapse**, not a regression: once `main` absorbs the branch, the delivery diff the hash is
-  computed over no longer exists. Re-derivable proof, not a memory of a green run — recomputing
-  `sha256(prompt ‖ diff)` against the pre-merge base `e0730a9`/branch head `d8b32e2` reproduces the
-  embedded `cbd22d3a…` exactly.
+- `.ai/SESSION` = 115. NO-CODE GT on `session-115-ground-truth` (no commits — forbidden by
+  `CONSTRAINTS.yaml#ground_truth`); this closeout bundle (report + `.ai/` sync + next prompt) commits
+  on the exempt `session-115-closeout` branch, per the standing GT pattern (S100/S105/S110).
+- Ledger: `--ledger-verify` → **INTACT**. Closeout gate: 11/12 PASS pre-closeout-commit (the expected
+  `review-inputs-attested` shape for a session with no fidelity-review artifact — GT sessions don't
+  produce one; not a regression).
+- `vajra next --stations NN` re-run for S111–S114 (pasted, not summarized, in the GT report): S111 =
+  5/8 (a one-time template gap — that prompt predates the `## Delta`/`## Execution` marker convention;
+  self-healed from S112 onward, NOT chronic). S112/S113/S114 = 8/8 each. Pipeline confirmed advancing.
+- `vajra next --dogfood-age`: reports date 2026-07-30, but the true S103 run date is **2026-07-27**
+  (git-confirmed; STATE.md already had this right). The tool derives its date from the commit that
+  backfilled the receipt file (S105 follow-up), not the run itself — a residual precision bug, filed
+  not fixed (NO-CODE). True gap ≈ 11 calendar days, not the tool's reported 8.
 
 ## Next Session
-- **Number:** 115 — **MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`). No source edits, no
-  commits to code, no PRs beyond the GT artifact. Prompt: `prompts/115-task-ground-truth.md`.
-- **The GT's one live opportunity:** dispatch the GT's own independent pass with
-  `subagent_type: "fidelity-reviewer"` — **by name**, never as an ad-hoc `general-purpose` subagent.
-  Dispatching an agent and reading its findings is **evidence-gathering, not code**, so it fits a
-  NO-CODE session, and it is the only way to learn whether S114's brief works on a real agent rather
-  than on a grep. Report specifically whether the returned verdict would pass `verify-closeout.sh`
-  **unedited** (a `|`-row table, a canonical `**Verdict:**` line, an `X of N SHIPPED` count).
-  On whether S115 is the FIRST session that can do this — see the ⚠ carry-forward below; it is an
-  assumption to check, not a fact.
-- **Deferred, for the founder to pick at the S115 closeout:** the overdue paid `vajra claude`
-  dogfood (🔴 since S103 — 11 sessions) and an opt-in blocking consumption gate.
+- **Number:** 116 — **CODE: the fleet's THIRD named role, the Planner.** Founder pick B at the S115
+  closeout (over the report's recommended A: the paid dogfood), then asked which role, named
+  **Planner** specifically — read-only/advisory, same shape as roles 1–2, not the code-writing Coder
+  role (named as a bigger, separate step, not picked). Prompt: `prompts/116-task-fleet-role-planner.md`.
+- **Load-bearing open item S116 must resolve in writing:** the role key collides with the existing
+  **Planner station** (`src/planner/mod.rs`, S64) exactly the way `reviewer` collided with the Reviewer
+  station at S113/S114 — resolve with a distinct key (e.g. `plan-advisor`) or an explicit "IS the
+  station" statement, recorded in a `DECISION-007` S116 addendum. Silence is a FAIL (established rule).
+- **S116 CAN dispatch `fidelity-reviewer` by name for its own cold review** — now proven live (S115).
+  It canNOT dispatch its own new Planner-role subagent in the same session that creates it (S111 limit,
+  still true; only the fresh-session case was retested and confirmed at S115).
+- **Deferred, by explicit founder call, not neglect:** the paid `vajra claude` dogfood (🔴 since S103 —
+  now 12+ sessions). The S115 report recommends the next GT (S120) revisit this if S116–S119 don't
+  reach it either.
 
 ## Carry-Forwards
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S115.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S116.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **⚠ THE "FIRST DISPATCHABLE NEXT SESSION" CLAIM IS NOW AN ASSUMPTION TO CHECK, NOT A FACT.**
-  The S111 finding says Claude Code snapshots `.claude/agents/*.md` at boot, so a role written
-  mid-session is invisible to that session. **But at the S114 close the harness registered
-  `fidelity-reviewer` as an available agent type IN THE SESSION THAT CREATED IT.** That is an
-  observation about the agent LIST only — it was deliberately NOT tested, because proving a
-  dispatch-by-name resolves is S115's assigned job and running it here would consume the finding.
-  **S115 must verify, not assume.** If it dispatches immediately, a limitation carried since S111 is
-  retired — a finding in its own right. Distinguish the two claims carefully: "the name appears in
-  the list" is not "a dispatch by that name resolves to this role".
+- **RETIRED: the S111 "invisible mid-session" limitation, for the NEXT-session case.** S115 confirmed
+  by-name dispatch of a role created in a PRIOR session works cleanly. The mid-creating-session case
+  (a role dispatching itself in the same session that wrote its `.claude/agents/*.md`) remains untested
+  and is presumed still to fail per S111 — do not conflate the two.
+- **NEW, real gap: the closeout gate's canonical-verdict regex is brittle against a live agent's own
+  formatting choices.** A table-wrapped `| **Verdict:** | ACCEPT |` row does NOT match
+  `verify-closeout.sh`'s `^[*_[:space:]]*verdict...` line-anchored regex, even though it is not
+  "buried in a heading" (the failure mode the brief explicitly warns against) — it is simply
+  table-formatted. Confirmed by running the actual regex against the actual raw agent output, not a
+  paraphrase. Not fixed (NO-CODE); candidate for a future closeout-hardening slice — loosen the regex
+  to accept a `|`-delimited two-cell verdict row, rather than tightening the brief to forbid tables.
 - **The reviewer contract has TWO files and they are BOUND, not duplicated:** `reviewer/SKILL.md` is
-  canonical (long form, scaffolded by `vajra init`); the role's system prompt is its dispatch-time
-  summary. A check reads BOTH and requires every closeout-gate token in each. Never edit one alone.
+  canonical; the role's system prompt is its dispatch-time summary. A check reads BOTH. Never edit one
+  alone.
 - **The closeout gate counts verdict words ONLY on `|` table rows, and needs ≥3.** A per-requirement
-  bullet list — however correct — is BLOCKED. Any review artifact needs a real markdown table.
+  bullet list — however correct — is BLOCKED.
 - **Attest LAST: `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff), and the PROMPT IS AN INPUT.**
-  Recording the Execution shas moves the hash. This session hit it TWICE. Recompute after the prompt
-  is final and committed, then confirm two consecutive `--inputs-sha` runs agree before embedding.
-- **Two-pass cold review has now paid off FIVE sessions running** — and pass 1 REJECTED this time.
-  It found that the repo already contained a rival statement of the reviewer contract, which the
-  session's own approved prompt asserted did not exist. **A premise in an approved prompt is not
-  evidence.**
-- **A one-element registry hides per-element assumptions.** Both leaks S114 fixed (the subagent tool
-  grant, the delta's role name) were invisible while `fleet::ROLES` had one entry. Expect the same
-  when a THIRD role lands (`ROLES.len() == 2` is asserted on purpose, so a third role is a decision).
-- **Known weak check, house-wide:** `no-eighth-command` greps a hardcoded usage banner (S111, S112,
-  S113, S114). An 8th command whose author skipped the help text would pass. Fix repo-wide.
-- **Still reuse `named_test_passed()`** — `cargo test --lib <filter>` exits 0 on a filter matching
-  zero tests. And **`[[:space:]]`, never `\s`**, in any script check (BSD/macOS grep).
-- **Launcher dogfood is 🔴 STALE — 11 sessions / ~11 days since S103.** Mechanism tests do NOT reset
-  it; only a real paid `vajra claude` run does.
-- **The fleet line counts ARTIFACTS, not agents.** Say "a contract-valid handoff exists" — never
-  "an agent was dispatched".
+  Recompute after the prompt is final and committed; confirm two consecutive `--inputs-sha` runs agree.
+- **A one-element (now two-element) registry hides per-element assumptions** — S114 found two leaks
+  that only a second role exposed. A THIRD role is exactly the next test of this; watch for anything
+  still hardcoded to "the first two roles."
+- **Known weak check, house-wide, unfixed 4 sessions running (S111–S114):** `no-eighth-command` greps
+  a hardcoded usage banner. Not urgent; named again, not yet budgeted.
+- **NEW meta-check finding (S115):** no standing GT audit checks whether an approved PROMPT's own
+  factual premises are true (only S114's ad hoc two-pass review caught the false "brief lives nowhere"
+  premise). No standing fix; named as a real gap in the audit list itself.
+- **KNOWLEDGE §6 = 496 lines, growing** (was 475 at the S105 mention) — chronic since S60, still
+  unpruned. Its own staleness header is now itself stale (says "475 lines... as of S105").
+- **Still reuse `named_test_passed()`** — a bare `cargo test --lib <filter>` exits 0 on a filter
+  matching zero tests. And **`[[:space:]]`, never `\s`**, in any script check (BSD/macOS grep).
+- **Launcher dogfood is 🔴 STALE — 12 sessions / ~11 true calendar days since S103** (not the tool's
+  reported 8 — see the dogfood-age residual bug above). Mechanism tests do NOT reset it.
+- **The fleet line counts ARTIFACTS, not agents** — except where a real dispatch is independently
+  proven (as S115 did for `fidelity-reviewer`); say precisely what was proven, don't conflate the two.
 - **v0.1 installs FOUR ways, all measured, CONFIRMED stranger-shippable at S110 GT.** Residual 🟡s in
   STATE.md. **crates.io is PUBLISHED — `vajractl` name BURNED**; any crates.io action stays
   founder-gated.
