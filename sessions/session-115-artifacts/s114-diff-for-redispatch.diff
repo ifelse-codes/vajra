@@ -1,0 +1,1906 @@
+diff --git a/.ai/KNOWLEDGE.md b/.ai/KNOWLEDGE.md
+index f0a6bd5..e7d174c 100644
+--- a/.ai/KNOWLEDGE.md
++++ b/.ai/KNOWLEDGE.md
+@@ -198,6 +198,8 @@ Rust, single static binary (package `vajractl`, binary `vajra`), Apache-2.0 OSS
+ - 2026-08-04 Session 112 (CODE — downstream handoff-consumption; proposed at S111 closeout, founder-approved at kickoff "approved continue"): the fleet's WRITE side (S109) and its proven by-name dispatch (S111) were joined by a READ side, closing the loop. **Permanent lessons:** (1) **A written-but-unread artifact is not a feature** — the governed handoff existed, validated, and tamper-checked for three sessions while no station read it; "the file exists" is the weakest possible claim and the reason this session's proof is behavioural (the SAME command's output must CHANGE because a handoff exists) rather than structural. (2) **Absent, malformed, found are three outcomes, not two** — absence must be silent (a no-fleet session reads byte-for-byte as before) while a present-but-off-contract file must be NAMED (`— not used`); collapsing malformed into absent is exactly the false green this project exists to kill. (3) **The path is the source of truth, not the self-declared frontmatter** — a handoff at session NN's path IS session NN's, whatever its `session:` line claims; the house pattern of existence-gating over self-assertion, applied to the reader. (4) **Truncation must be disclosed** — showing 6 of 40 findings lines with no marker lets a partial view read as complete. (5) **`cargo test --lib <filter>` EXITS 0 WHEN THE FILTER MATCHES NOTHING** ("running 0 tests … ok") — every verify check that names a single test is green after that test is renamed or deleted unless it asserts `test result: ok. N passed` with N ≥ 1. This was live in this repo's scripts and is now fixed in `scripts/verify-session-112.sh` via `named_test_passed()` plus a guard-on-the-guard; the same weakness is presumed in older verify scripts. (6) **Two cold passes beat one, again** (the S67 pattern): pass 1 ACCEPT found the packet/gate checks asserted a section HEADER that a REJECTED handoff also prints — a hollow *proof* of a real *feature*; a FRESH pass 2 on the fixed diff found (5). Both fixed in-session. Evidence: `sessions/session-112-summary.md` + `sessions/session-112-review.md`, attested `4d7b2b43…`.
+ - 2026-08-06 Session 113 (CODE — make fleet work visible to the counter, then CHOOSE the second role; founder pick A at the S112 closeout, "all approved" at kickoff): `vajra next --stations NN` now prints `fleet: N governed handoff(s) — <roles>` **BESIDE** `K of 8` (design shape (c), picked at kickoff over a 9th station and over folding it into a station's verdict), derived via `fleet::read_handoffs` — malformed NAMED and never counted, absence silent. `DECISION-007` S113 addendum **chooses the second role: the Reviewer** (not built). 317 lib tests; verify 14/14; demo 7/7; two cold passes both ACCEPT, attested `d478a022…`. Spend **~$0** (two cold-review subagents). **Permanent lessons:** (1) **`grep -E '\s'` is NOT portable — BSD/macOS `grep -E` treats `\s` as a literal `s`.** A guard written `grep -qE '^\s*name: "reviewer"'` silently fails to match indented source on macOS, so a "this was NOT built" check reports clean while the thing exists. Use `[[:space:]]` in every script check, and pair a negative guard with a **positive control** — assert the same pattern matches the thing that DOES exist (here: the researcher role), or the guard proves nothing. (2) **A before/after comparison in a floor-state fixture is vacuous.** The byte-identity check that certifies "K did not move" first ran in an empty `vajra init` repo where all 8 stations were ABSENT — two saturated outputs compared equal no matter what. Any "nothing else changed" check must assert its fixture is LIVE first (`[1-9] of 8 stations passed`). (3) **Test the count that does not exist YET.** Every check wrote at most ONE handoff, so a station that began PASSing on `governed.len() >= 2` would have kept the whole suite green — and two handoffs is the normal state the moment a second role ships. Assert the invariant where it lives (K is a pure function of the eight statuses; inject 3 governed + 1 malformed and require K unchanged) rather than only at the count your fixture happens to produce. (4) **FAKEST GREEN — the fleet line counts ARTIFACTS, not agents.** `printf 'anything' > f.md; vajra next --role researcher --from f.md` produces the same `fleet: 1 governed handoff(s) — researcher` as a real subagent dispatch. The self-assertion moved from a typed marker into a `--from` file; it is one honest step up (must round-trip the real writer and satisfy a parser), never proof an agent ran. Say "a contract-valid handoff exists", never "an agent was dispatched". (5) **When a fleet role's name collides with a station's name, resolve it explicitly** — a role keyed `reviewer` reads ambiguously against the Reviewer STATION counted in K; recorded in the addendum as a decision the build session must make, not inherit. **S114 = founder pick from: A build the Reviewer role · B the overdue paid dogfood (🔴 since S103) · C an opt-in blocking consumption gate;** next mandatory GT = S115.
+ 
++- 2026-08-06 Session 114 (CODE — build the fleet's SECOND role, the Fidelity Reviewer; founder pick A at the S113 closeout, "all approved" at kickoff): **adding a role needed NO new machinery** — `src/cli/init.rs` is untouched in the whole diff because it already iterated `fleet::ROLES`. PERMANENT FACTS: (1) **the role key is `fidelity-reviewer`, never `reviewer`** — `K of 8` counts a Reviewer STATION, and one word must not mean two things in one report; `resolve_role("reviewer")` is `None` on purpose. (2) **The governed handoff is a PRE-STAGE INPUT; `sessions/session-NN-review.md` is the single record of record** — no gate reads a handoff, and the role has no write tool (DECISION-007 S114 addendum). (3) **`reviewer/SKILL.md` is the CANONICAL reviewer contract** (127 lines, scaffolded by the same `vajra init` via `include_str!`); the role's system prompt is its dispatch-time summary, and the two are BOUND by a check reading both files — every token `verify-closeout.sh` requires must appear in both. (4) **The closeout gate counts verdict words ONLY on `|`-delimited rows and needs ≥3** — a per-requirement BULLET list, however correct, is BLOCKED; any reviewer brief must say "markdown table". (5) Two things silently hardcoded to role #1 while only one role existed: the subagent `tools:` grant and `compute_delta`'s role name — **a one-element registry hides per-element assumptions; adding element two is the only way to find them.** (6) **`Review-Inputs-SHA` = sha256(HEAD:prompt ‖ delivery-diff), and the PROMPT FILE IS AN INPUT** — so recording the Execution shas moves the hash; attest LAST, after the prompt is final and committed, and confirm two consecutive `--inputs-sha` runs agree (S69 gotcha, hit twice this session). (7) **A premise inside an approved prompt is not evidence** — S114's own goal statement said the reviewer brief was "re-typed from memory each time", which was partly false; only an adversarial reader caught it.
++
+ ## 7. Engine + Adapter Type Shapes (S03 — permanent)
+ 
+ ```rust
+diff --git a/.ai/ROADMAP.md b/.ai/ROADMAP.md
+index 49c7710..7d8bfa3 100644
+--- a/.ai/ROADMAP.md
++++ b/.ai/ROADMAP.md
+@@ -103,8 +103,9 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
+ |---|---|
+ | Today | 2026-08-06 |
+ | Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) — S109 first slice + S111 closed the dispatch wire + S112 closed the consumption loop:** the Researcher as a governed native Claude Code subagent (`DECISION-007`), now proven end-to-end (scaffold → fresh-session dispatch-by-name, on-disk cross-referenced proof → governed handoff); `cost_usd: null` kept for a checked, re-runnable reason (`scripts/check-subagent-cost-fields.sh`). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 first slice ✓ + S111 wire closed ✓ + S112 handoff-consumption ✓ + S113 counter-visibility ✓ — next: BUILD the chosen second role (the Reviewer), the overdue paid dogfood, or an opt-in blocking gate).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
+-| Last closed session | Session 113 — **CODE: fleet work made visible to the counter + the second role CHOSEN** (founder pick A at the S112 closeout). `vajra next --stations NN` now reports fleet evidence **beside** `K of 8` (design shape (c)) — derived from the validated handoff on disk via `fleet::read_handoffs`, never a typed marker; a malformed handoff is NAMED and counts as nothing; absence prints nothing at all. **K-of-8 is UNCHANGED in meaning** and that is CHECKED, not claimed (the report minus the fleet line is byte-identical, and a test asserts K is invariant under any fleet evidence). Second role **chosen, not built**: the **Reviewer** (DECISION-007 S113 addendum — 46 cold reviews on disk, mandated by DECISION-002, prompt hand-typed every session today, output already gated + attested + ledgered). 317 lib tests; verify **14/14**; demo **7/7** exit 0; **two** cold passes, both **ACCEPT**, attested `d478a022…`. Summary: `sessions/session-113-summary.md`. |
+-| Active session | None — between sessions (S113 complete, S114 not yet started) |
++| Last closed session | Session 114 — **CODE: the fleet's SECOND role, the Fidelity Reviewer** (founder pick A at the S113 closeout). The cold fidelity review this repo ran 47 times BY HAND is now canonical, scaffolded and governed — and it needed **zero changes to `vajra init`**, zero new handoff writer, zero new commands: one more `fleet::ROLES` entry and every existing path picked it up. Key = **`fidelity-reviewer`** (the Reviewer-STATION collision resolved by a distinct key); the handoff is a **PRE-STAGE INPUT** and `sessions/session-NN-review.md` stays the single record of record (DECISION-007 S114 addendum, both with rejected alternatives). Two hardcoded-to-role-1 leaks fixed: the subagent tool grant and the handoff delta text. 322 lib tests; verify **17/17**; demo **10/10** exit 0; **two cold passes (pass 1 REJECT → fixed → fresh pass 2 ACCEPT)**, attested `cbd22d3a…`. Summary: `sessions/session-114-summary.md`. |
++| Session 113 (prior) | Session 113 — **CODE: fleet work made visible to the counter + the second role CHOSEN** (founder pick A at the S112 closeout). `vajra next --stations NN` now reports fleet evidence **beside** `K of 8` (design shape (c)) — derived from the validated handoff on disk via `fleet::read_handoffs`, never a typed marker; a malformed handoff is NAMED and counts as nothing; absence prints nothing at all. **K-of-8 is UNCHANGED in meaning** and that is CHECKED, not claimed (the report minus the fleet line is byte-identical, and a test asserts K is invariant under any fleet evidence). Second role **chosen, not built**: the **Reviewer** (DECISION-007 S113 addendum — 46 cold reviews on disk, mandated by DECISION-002, prompt hand-typed every session today, output already gated + attested + ledgered). 317 lib tests; verify **14/14**; demo **7/7** exit 0; **two** cold passes, both **ACCEPT**, attested `d478a022…`. Summary: `sessions/session-113-summary.md`. |
++| Active session | None — between sessions (S114 complete, S115 not yet started) |
+ | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **PUBLISHED (S108): `vajractl 0.1.0` is live on crates.io — the name is now BURNED.** `v0.1.0` also tagged + released (GH release, prebuilt binaries) + on a public Homebrew tap. All four install channels real; any future crates.io action stays founder-gated. |
+ 
+ ---
+@@ -312,6 +313,7 @@ station credit.
+ | S110 | Complete | **NO-CODE GT: audits S106–S109** — PARTIAL (5🟢/4🟡/1🔴); v0.1 install confirmed real + stranger-shippable; fleet confirmed real but thin (dispatch wire open, `cost_usd: null`); launcher dogfood 🔴 (0 runs since S103); no state drift found; K-of-8 meta-check gap named. Founder pick A → S111 closes the dispatch wire |
+ | S111 | Complete | **CODE: closed the fleet's def-vs-dispatch wire** (founder pick A at S110) — a FRESH session dispatches the scaffolded `.claude/agents/researcher.md` BY NAME, proven by matching tool-call IDs across two independently-written Claude Code files; `cost_usd: null` kept for a checked, re-runnable reason. Cold review ACCEPT, attested `f98808bc…`; PR #117 |
+ | S112 | Complete | **CODE: downstream handoff-consumption** — the READ side (`fleet::read_handoffs` + `format_handoff_brief`) consumed by the boot packet, the Analyst intake and the Analyst gate; findings inlined; absence silent; off-contract NAMED; truncation disclosed; advisory, never blocking. 315 tests; verify 16/16; **two** cold passes both ACCEPT, attested `4d7b2b43…` |
++| S114 | Complete | **CODE: the fleet's second role — the Fidelity Reviewer** (founder pick A). One `fleet::ROLES` entry, no new machinery (init untouched). Collision resolved with a DISTINCT key; handoff = pre-stage input, one record of record. Per-role tool grant + role-named delta (both were hardcoded to the Researcher). Cold pass 1 REJECTED — `reviewer/SKILL.md` was an unacknowledged second source and the brief omitted every output token the closeout gate enforces; fixed + BOUND by a cross-file check. Fresh pass 2 ACCEPT, 13 of 13 SHIPPED, attested `cbd22d3a…`. 322 tests; verify 17/17; demo 10/10 |
+ | S113 | Complete | **CODE: fleet work visible to the counter + second role chosen** (founder pick A) — `--stations NN` reports fleet evidence BESIDE `K of 8` (shape (c)); derived from the validated handoff, malformed NAMED and never counted, absence silent; **K unchanged in meaning, asserted byte-for-byte + invariant-tested**. Second role **CHOSEN not built**: the Reviewer (DECISION-007 S113 addendum). 317 tests; verify 14/14; demo 7/7; two cold passes both ACCEPT, attested `d478a022…` |
+ 
+ ---
+diff --git a/.ai/SESSION b/.ai/SESSION
+index 9b252fd..dee79f1 100644
+--- a/.ai/SESSION
++++ b/.ai/SESSION
+@@ -1 +1 @@
+-113
++114
+diff --git a/.ai/SESSION-BOOT.md b/.ai/SESSION-BOOT.md
+index 82a685e..676a8ab 100644
+--- a/.ai/SESSION-BOOT.md
++++ b/.ai/SESSION-BOOT.md
+@@ -1,67 +1,79 @@
+ # Session Boot
+ 
+ ## Current Session
+-- **Number:** 113 — COMPLETE
+-- **Type:** CODE — make fleet work visible to the counter, then choose the second role (founder pick
+-  **A** at the S112 closeout; "all approved" at kickoff).
+-- **Goal:** the pipeline's own progress metric could not see the fleet at all — a session that
+-  dispatched a named agent, governed its findings and consumed them scored the same `K of 8` as one
+-  that did none of it (flagged S110 GT, carried S111 + S112).
+-- **Verdict:** **SHIPPED.** `vajra next --stations NN` now prints `fleet: N governed handoff(s) —
+-  <roles>` **BESIDE** K (design shape **(c)**), derived from `fleet::read_handoffs` — the handoff is
+-  parsed and **validated** off disk, never a typed marker. **Malformed is NAMED and counts as
+-  nothing**; **absence prints nothing at all**. **K-of-8 is unchanged in meaning and it is CHECKED**:
+-  the report minus the fleet line is byte-identical to the pre-handoff report, and a test asserts K is
+-  invariant under *any* fleet evidence. Second role **CHOSEN, not built — the Reviewer**
+-  (`DECISION-007` S113 addendum, with the `reviewer`-role-vs-Reviewer-*station* name collision left
+-  as an explicit decision for the build session). 317 lib tests; verify **14/14**; demo **7/7** exit 0;
+-  **two independent cold passes, both ACCEPT**, attested `d478a022…`.
+-- **Report:** `sessions/session-113-summary.md` + `sessions/session-113-review.md` · next prompt:
+-  `prompts/114-task-fleet-role-reviewer.md` (founder pick A). **Date last updated:** 2026-08-06.
++- **Number:** 114 — COMPLETE
++- **Type:** CODE — build the fleet's SECOND named role, the Fidelity Reviewer (founder pick **A**
++  at the S113 closeout; "all approved" at kickoff).
++- **Goal:** the independent cold fidelity review this repo has run **47 times by hand** — mandated by
++  DECISION-002, its brief re-typed each session — becomes a canonical, scaffolded, governed role.
++- **Verdict:** **SHIPPED.** The headline is what did NOT happen: **`src/cli/init.rs` is untouched in
++  the entire diff** — it already iterated `fleet::ROLES`, so one more entry gave the scaffold, the
++  governed handoff, the read-back and the counter for free. Key = **`fidelity-reviewer`**, never
++  `reviewer` (the Reviewer-STATION collision resolved by a distinct key; `resolve_role("reviewer")`
++  is `None` on purpose). The handoff is a **PRE-STAGE INPUT**; `sessions/session-NN-review.md` stays
++  the **single record of record** — no gate learned to read a handoff and the role has no write tool.
++  Two leaks hardcoded to role #1 were flushed out by role #2: the subagent tool grant and the handoff
++  delta's role name. 322 lib tests; verify **17/17**; demo **10/10** exit 0; **two independent cold
++  passes — pass 1 REJECT → fixed in-session → a FRESH pass 2 ACCEPT (13 of 13 SHIPPED)**, attested
++  `cbd22d3a…`.
++- **Report:** `sessions/session-114-summary.md` + `sessions/session-114-review.md` · next prompt:
++  `prompts/115-task-ground-truth.md` (S115 is the MANDATORY no-code GT). **Date last updated:** 2026-08-06.
+ 
+ ## Repo State Snapshot
+-- `.ai/SESSION` = 113. CODE session, 9 atomic commits on `session-113-fleet-counter-visibility`:
+-  `src/stations/mod.rs` (the derivation + the line + 4 tests), `docs/decisions/DECISION-007-agent-fleet.md`
+-  (the S113 addendum), `scripts/verify-session-113.sh` + `scripts/demo-session-113.sh`, the prompt's
+-  Design/Plan/Execution, and two review-driven hardening commits (one per cold pass).
+-- **MERGED: [#120](https://github.com/ifelse-codes/vajra/pull/120)**, 2026-08-06, **CI green on both
+-  OS** (macOS + Ubuntu). Remote branch deleted, local `main` synced and pruned (the S37
+-  return-to-main step). `vajra next --stations 113` = **8 of 8**. Prior: S112
+-  **[#118](https://github.com/ifelse-codes/vajra/pull/118)** merged 2026-08-04 (CI green both OS) +
+-  closeout #119; S111 #117 merged 2026-08-03. Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
++- `.ai/SESSION` = 114. CODE session, 11 atomic commits on `session-114-fleet-role-reviewer`:
++  `src/fleet/mod.rs` (the role + per-role tools + role-aware delta + 5 tests), the `DECISION-007`
++  S114 addendum (three open items closed), `.claude/agents/fidelity-reviewer.md` (rendered, never
++  hand-written), `scripts/verify-session-114.sh` + `scripts/demo-session-114.sh`, three
++  review-driven hardening commits (two cold passes), the summary + attested review, and the
++  closeout bundle.
++- **PR: not yet opened at closeout time** — `vajra next --stations 114` = **7 of 8** (only the
++  Releaser is ABSENT, and it turns green on merge, exactly as at S113). Prior: S113
++  **[#120](https://github.com/ifelse-codes/vajra/pull/120)** merged 2026-08-06 (CI green both OS);
++  S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119; S111 #117.
++  Remote: `origin` → `https://github.com/ifelse-codes/vajra`.
+ 
+ ## Next Session
+-- **Number:** 114 — **CODE: build the second fleet role, the Reviewer** (founder pick **A**).
+-  S113 chose it from evidence; S114 builds it on the Researcher's existing machinery. Two decisions
+-  must be made IN WRITING: the role key (it collides with the Reviewer STATION counted in K) and how
+-  the handoff relates to `sessions/session-NN-review.md` (two competing records of the same verdict
+-  is the failure mode). Prompt: `prompts/114-task-fleet-role-reviewer.md`.
+-- **Deferred (S113 candidates B and C):** the overdue paid `vajra claude` dogfood (🔴 since S103) and
+-  an opt-in blocking consumption gate.
+-- **S115 = the next mandatory NO-CODE ground truth.**
++- **Number:** 115 — **MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`). No source edits, no
++  commits to code, no PRs beyond the GT artifact. Prompt: `prompts/115-task-ground-truth.md`.
++- **The GT's one live opportunity:** S115 is the FIRST session in which
++  `subagent_type: "fidelity-reviewer"` is dispatchable by name (S111's mechanism limit — an agent
++  file written mid-session is invisible to that session). Dispatching it for the GT's own
++  independent pass is **evidence-gathering, not code**, so it fits a NO-CODE session — and it is the
++  only way to find out whether the brief actually works on a real agent.
++- **Deferred, for the founder to pick at the S115 closeout:** the overdue paid `vajra claude`
++  dogfood (🔴 since S103 — 11 sessions) and an opt-in blocking consumption gate.
+ 
+ ## Carry-Forwards
+-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S114.
++- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S115.
+ - **Communicate in the plainest English** (founder request S103) — translate all jargon.
+-- **The fleet loop is now closed end-to-end:** `vajra init` scaffolds the role → a **fresh** session's
+-  Task tool dispatches it by name → `vajra next --role --from` governs the handoff → **the packet and
+-  the Analyst read it back automatically**. All of it advisory; nothing blocks on fleet work.
+-- **Two-pass cold review keeps paying — three sessions running.** S113 pass 1 caught a guard using
+-  `grep -E '\s'` (BSD/macOS reads it as a literal `s`, so a "not built" guard reported clean while
+-  the thing would exist — use `[[:space:]]`, and always pair a negative guard with a positive control)
+-  and a before/after check running in a floor-state fixture (vacuous). A fresh pass 2 caught that every
+-  check wrote at most ONE handoff, so a station passing on `>= 2` would keep the suite green.
+-- **Still reuse `named_test_passed()`** (S112 pass 2): `cargo test --lib <filter>` exits 0 on a filter
+-  matching zero tests, so a check naming a single test must assert `N passed` with N ≥ 1.
+-- **Known weak check, house-wide:** `no-eighth-command` greps a hardcoded usage banner (S111 and S112
+-  both). An 8th command whose author skipped the help text would pass. Fix repo-wide, not per session.
+-- **Launcher dogfood is 🔴 STALE — 10 sessions / ~10 days since S103.** Mechanism tests (S111's
+-  scratch-repo dispatch, S112's tempdir e2e, S113's fixture repos) do NOT reset it; only a real paid `vajra claude` run does.
+-- **v0.1 installs FOUR ways, all measured, CONFIRMED stranger-shippable at S110 GT.** Residual 🟡s
+-  carried in STATE.md (brew smoke tests a local formula copy · x86_64 prebuilt never executed, etc.).
+-- **crates.io is PUBLISHED — `vajractl` name BURNED.** Any future crates.io action stays founder-gated.
+-- **The fleet line counts ARTIFACTS, not agents.** `vajra next --role … --from <hand-typed file>`
+-  produces the same `fleet: 1 governed handoff(s)` as a real subagent dispatch. Say "a contract-valid
+-  handoff exists" — never "an agent was dispatched".
++- **THE FLEET'S SECOND ROLE IS FIRST DISPATCHABLE AT S115.** `.claude/agents/fidelity-reviewer.md`
++  exists on disk now; Claude Code snapshots agent files at boot, so only a FRESH session can call it
++  by name (S111, unchanged). S115 is that session.
++- **The reviewer contract has TWO files and they are BOUND, not duplicated:** `reviewer/SKILL.md` is
++  canonical (long form, scaffolded by `vajra init`); the role's system prompt is its dispatch-time
++  summary. A check reads BOTH and requires every closeout-gate token in each. Never edit one alone.
++- **The closeout gate counts verdict words ONLY on `|` table rows, and needs ≥3.** A per-requirement
++  bullet list — however correct — is BLOCKED. Any review artifact needs a real markdown table.
++- **Attest LAST: `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff), and the PROMPT IS AN INPUT.**
++  Recording the Execution shas moves the hash. This session hit it TWICE. Recompute after the prompt
++  is final and committed, then confirm two consecutive `--inputs-sha` runs agree before embedding.
++- **Two-pass cold review has now paid off FIVE sessions running** — and pass 1 REJECTED this time.
++  It found that the repo already contained a rival statement of the reviewer contract, which the
++  session's own approved prompt asserted did not exist. **A premise in an approved prompt is not
++  evidence.**
++- **A one-element registry hides per-element assumptions.** Both leaks S114 fixed (the subagent tool
++  grant, the delta's role name) were invisible while `fleet::ROLES` had one entry. Expect the same
++  when a THIRD role lands (`ROLES.len() == 2` is asserted on purpose, so a third role is a decision).
++- **Known weak check, house-wide:** `no-eighth-command` greps a hardcoded usage banner (S111, S112,
++  S113, S114). An 8th command whose author skipped the help text would pass. Fix repo-wide.
++- **Still reuse `named_test_passed()`** — `cargo test --lib <filter>` exits 0 on a filter matching
++  zero tests. And **`[[:space:]]`, never `\s`**, in any script check (BSD/macOS grep).
++- **Launcher dogfood is 🔴 STALE — 11 sessions / ~11 days since S103.** Mechanism tests do NOT reset
++  it; only a real paid `vajra claude` run does.
++- **The fleet line counts ARTIFACTS, not agents.** Say "a contract-valid handoff exists" — never
++  "an agent was dispatched".
++- **v0.1 installs FOUR ways, all measured, CONFIRMED stranger-shippable at S110 GT.** Residual 🟡s in
++  STATE.md. **crates.io is PUBLISHED — `vajractl` name BURNED**; any crates.io action stays
++  founder-gated.
+ - **Untracked stragglers** (standing founder call): `sessions/session-9*-artifacts/*`,
+   `sessions/session-10{2,3,7,8,9}-artifacts/*`; `vajra-cto-audit-*.html` + `first-mate.html`.
+diff --git a/.ai/STATE.md b/.ai/STATE.md
+index 5581424..4e33c2c 100644
+--- a/.ai/STATE.md
++++ b/.ai/STATE.md
+@@ -3,154 +3,139 @@
+ **Snapshot, not log.** Overwritten in full at every closeout.
+ 
+ ## Active Branch
+-**None — between sessions (S113 complete, S114 not yet started).** S113 shipped on
+-`session-113-fleet-counter-visibility` (13 atomic commits), **merged via
+-[#120](https://github.com/ifelse-codes/vajra/pull/120)** with CI green on both OS, branch deleted,
+-local `main` synced and pruned. S113 = **CODE: make fleet work visible to the counter, then choose the second role**
+-(founder pick **A** at the S112 closeout; "all approved" at kickoff). **Verdict: SHIPPED.**
++**None — between sessions (S114 complete, S115 not yet started).** S114 shipped on
++`session-114-fleet-role-reviewer` (11 atomic commits). S114 = **CODE: build the fleet's SECOND named
++role, the Fidelity Reviewer** (founder pick **A** at the S113 closeout; "all approved" at kickoff).
++**Verdict: SHIPPED.**
+ 
+-The counter could not see the fleet at all: a session that dispatched a named agent, governed its
+-findings and consumed them downstream scored exactly the same `K of 8` as one that did none of it
+-(flagged at S110 GT, carried unfixed through S111 and S112 — three sessions of "flagged, not fixed").
+-S113 reports fleet evidence **BESIDE** K — design shape **(c)**, picked at kickoff and recorded in
+-the prompt's `## Design`:
++The independent cold fidelity review this repo has run **47 times by hand** — mandated by
++DECISION-002, its brief re-typed each session — is now canonical, scaffolded and governed. The
++headline result is what did **not** happen:
+ 
+-- `stations::FleetEvidence` + `fleet_evidence()` + `format_fleet_line()`, built from
+-  `fleet::read_handoffs` — the handoff is **parsed and validated off disk**, never a typed marker.
+-- **A malformed handoff is NAMED and counts as nothing** (`⚠ fleet: … — not counted`); **absence
+-  prints nothing at all**, so a session with no fleet work is byte-identical to pre-S113 output.
+-- **K-of-8 is UNCHANGED in meaning, and that is CHECKED, not claimed:** verify strips the fleet line
+-  and requires byte-equality with the pre-handoff report, and a test asserts K is invariant under
+-  *any* fleet evidence (the `>= 2` hole a cold reviewer named — two handoffs is the normal state once
+-  the chosen second role exists). Rejected: a 9th station (breaks the spine every past K rests on)
+-  and folding it into a station's verdict (old and new K would look identical while measuring
+-  different things).
+-- **The second fleet role is CHOSEN, not built: the Reviewer** (`DECISION-007` S113 addendum) — 46
+-  `sessions/*-review.md` on disk, mandated by DECISION-002's no-self-certification rule, prompt
+-  hand-typed every session today, output already gated + attested + ledgered, read-only tools only.
+-  Four alternatives rejected with reasons; a name collision with the Reviewer STATION recorded for
+-  the build session to resolve explicitly.
++- **`src/cli/init.rs` is untouched in the entire diff.** It already iterated `fleet::ROLES`, so one
++  more entry delivered the scaffold, the governed handoff, the read-back and the counter for free.
++  No second scaffolding path, no second handoff writer, no 8th command. That is the S109
++  architecture paying off exactly as designed.
++- **The key is `fidelity-reviewer`, never `reviewer`** — the Reviewer-STATION collision resolved
++  with a distinct key; `resolve_role("reviewer")` is `None` on purpose. Rejected "the role IS the
++  station's agent": false, because the station passes on an attested artifact existing, which a
++  human can produce with no agent at all.
++- **The handoff is a PRE-STAGE INPUT; `sessions/session-NN-review.md` stays the single record of
++  record.** No gate learned to read a handoff, and the role has no write tool, so it *cannot* author
++  the record. Rejected pointer-only (throws away the `source-sha`) and replace-the-artifact (trades
++  the attestation + ledger chain for a newer file).
++- **Role #2 flushed out two leaks hardcoded to role #1:** the subagent `tools:` grant (every future
++  role would have silently inherited the Researcher's web access) and `compute_delta`'s role name (a
++  Reviewer handoff would have carried the word "researcher" in its own tracked delta).
+ 
+-**317 lib tests; verify 14/14; demo 7/7 exit 0; two independent cold passes, both ACCEPT, attested
+-`d478a022…`.** Reports: `sessions/session-113-summary.md` + `sessions/session-113-review.md`.
++**322 lib tests; verify 17/17; demo 10/10 exit 0; two independent cold passes — pass 1 REJECT, fixed
++in-session, then a FRESH pass 2 ACCEPT (13 of 13 SHIPPED) — attested `cbd22d3a…`.**
++Reports: `sessions/session-114-summary.md` + `sessions/session-114-review.md`.
+ 
+-**Two-pass cold review earned its keep for the third session running.** Pass 1 found the "role not
+-built" guard used `grep -E '\s'` — BSD/macOS grep reads that as a literal `s`, so an indented
+-reviewer role would NOT have matched and the guard would have said "not built" while one existed;
+-also that the byte-identity check ran in a repo where every station sat at its floor (a vacuous
+-comparison), a bare `grep -v fleet:` substring filter, a tautological assert, and a demo label
+-claiming the counter proved a by-name dispatch. A **fresh** pass 2 then found its own sharper hole:
+-every check wrote at most ONE handoff, so a station that began passing on `governed.len() >= 2` would
+-have kept the whole suite green. All fixed in-session.
++**Two-pass cold review earned its keep for the FIFTH session running, and this time pass 1
++REJECTED.** It found that the repo *already* contained a rival statement of the reviewer contract —
++`reviewer/SKILL.md`, 127 hand-maintained lines scaffolded by the same `vajra init` — which this
++session's own approved prompt asserted did not exist ("re-typed from memory each time"). Worse, the
++first draft of the brief omitted **all three** output tokens `verify-closeout.sh` enforces, so an
++agent dispatched by name would have returned a verdict the gate then rejected. A **fresh** pass 2
++then found two more: `.claude/agents/` was the one directory the no-second-source guard excluded (a
++planted `reviewer-legacy.md` kept the suite green), and the gate counts verdict words only on
++`|`-delimited rows, so an obedient agent could return bullets that BLOCK. All fixed in-session,
++every fix mutation-verified.
+ 
+-**🔀 FOUNDER PIVOT (S103, still in force):** sessions now = **finish a shippable MVP**; the founder runs
+-the long unattended test himself, then release. Order **C → B → A**: C (team voice) = S104 ✓ →
++**🔀 FOUNDER PIVOT (S103, still in force):** sessions now = **finish a shippable MVP**; the founder
++runs the long unattended test himself, then release. Order **C → B → A**: C (team voice) = S104 ✓ →
+ **B (installable) = S106 + S107 + S108 ✓ COMPLETE** → **A (real named agent fleet) — S109 first slice
+-✓, S111 dispatch wire ✓, S112 consumption loop ✓, S113 counter-visibility + second role chosen ✓.**
++✓, S111 dispatch wire ✓, S112 consumption loop ✓, S113 counter-visibility + role chosen ✓, S114
++second role BUILT ✓.**
+ 
+ ## Active PRs
+-- None open. **S113 [#120](https://github.com/ifelse-codes/vajra/pull/120) MERGED** 2026-08-06,
+-  **CI green on both OS** (macOS + Ubuntu) — which retires the delivery's one PARTIAL. Remote branch
+-  deleted, local `main` synced and pruned (the S37 return-to-main step). `vajra next --stations 113`
+-  = **8 of 8** (the Releaser and Reviewer turned green on merge).
+-- **S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) MERGED** 2026-08-04 (CI green both OS)
+-  + closeout [#119](https://github.com/ifelse-codes/vajra/pull/119); **S111 [#117](https://github.com/ifelse-codes/vajra/pull/117) MERGED** 2026-08-03.
+-- Prior merges: S109 #115 · S110 closeout #116 · **S108 #113** + S108-follow-up #114 · S107 #112 ·
+-  S106 #111 · S105-follow-up #110 · S105 #109 · S104 #108.
++- **None open. S114's PR is NOT YET OPENED** — `vajra next --stations 114` = **7 of 8**, the one
++  ABSENT station being the Releaser, which turns green on merge (identical to S113 pre-merge).
++- Prior: **S113 [#120](https://github.com/ifelse-codes/vajra/pull/120) MERGED** 2026-08-06, CI green
++  both OS · S112 [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119 · S111 #117 ·
++  S109 #115 · S110 closeout #116 · S108 #113 + #114 · S107 #112 · S106 #111.
+ 
+ ## Direction (governance is the product — now shaped as a shippable MVP)
+-- **The product = provable agent governance** (`DECISION-001`), sold as the **autopilot trust layer**.
+-  Fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained tamper-evident
+-  (`DECISION-004`). The fleet = **real named agents behind the existing gates** (`DECISION-007`), now
+-  wired end-to-end **and consumed** (S109 write → S111 dispatch proof → S112 read).
+-- **Post-pivot roadmap:** C team-voice (S104 ✓) → **B installable v0.1 (S106+S107+S108) ✓ COMPLETE,
+-  confirmed stranger-shippable at S110 GT** → **A fleet (S109 ✓ + S111 ✓ + S112 ✓ — next: fleet credit
+-  in the K-of-8 counter, a second role, or an opt-in blocking gate).** Release when v0.1 is
+-  stranger-shippable (it is); the founder owns the long unattended real-world test.
+-- **The machinery-freeze rule (`DECISION-005`) is RETIRED** (S105): the pivot cancelled ladder *sessions*.
++- **The product = provable agent governance** (`DECISION-001`), sold as the **autopilot trust
++  layer**. Fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
++  tamper-evident (`DECISION-004`). The fleet = **real named agents behind the existing gates**
++  (`DECISION-007`) — now **two** roles, written → dispatched → read → counted.
++- **Post-pivot roadmap:** C team-voice (S104 ✓) → **B installable v0.1 ✓ COMPLETE** → **A fleet
++  (S109 ✓ + S111 ✓ + S112 ✓ + S113 ✓ + S114 ✓ — next: DISPATCH the new role by name, the overdue
++  paid dogfood, or an opt-in blocking gate).** Release when v0.1 is stranger-shippable (it is).
++- **The machinery-freeze rule (`DECISION-005`) is RETIRED** (S105).
+ 
+ ## What Currently Works
+-- **v0.1 install: CONFIRMED stranger-shippable (S110 GT, live-checked).** README carries no
+-  "NOT YET PUBLISHED" rows; all 4 channels real: `cargo install --git|--path` (S106) · prebuilt
+-  `v0.1.0` release binary, no Rust (S107) · `cargo install vajractl` from crates.io (S108) ·
+-  `brew install ifelse-codes/tap/vajra` (S108). `install-smoke.sh` = 5 modes, all fail-closed.
+-- **The fleet's first named agent — write, dispatch, AND read (S109 + S111 + S112):** `vajra init`
+-  scaffolds `.claude/agents/researcher.md` from the canonical `fleet::ROLES` (one source, no drift);
+-  a **fresh** Claude Code session's Task tool resolves `subagent_type: "researcher"` against that file
+-  **by name** (confirmed on disk via cross-referenced tool-call IDs); `vajra next --role researcher
+-  --from <findings>` governs the brief into a delta-tracked, validated handoff in `.ai/handoffs/`
+-  (fail-closed on unknown role / missing `--from` / empty findings); and **the pipeline now READS it
+-  back automatically** — the boot packet, the Analyst intake and the Analyst gate each surface the
+-  session's findings inline, silent when absent, naming an off-contract file rather than swallowing
+-  it. Real standing finding: a file scaffolded mid-session is invisible to that SAME session's Task
+-  tool (Claude Code snapshots `.claude/agents/*.md` at boot only) — the wire needs a fresh session,
+-  which is also exactly how a real Vajra user experiences it.
+-- **The counter can finally SEE the fleet (S113):** `vajra next --stations NN` prints
+-  `fleet: N governed handoff(s) — <roles>` **beside** `K of 8`, derived from the validated handoff
+-  on disk; malformed is named and never counted; absence is silent. **K's definition is untouched**,
+-  so every past K reading stays comparable. Read the claim narrowly: it certifies *a contract-valid
+-  handoff exists*, NOT *an agent was dispatched* — anyone can hand-type findings and run the writer.
+-- **The 8-station governed pipeline speaks like a team** (S104): `vajra next --stations` + the packet
+-  render named roles + plain status from one source; gates/K unchanged.
+-- **The 8 stations** riding `vajra next` (+ gates at `--advance`): Analyst · Architect · Planner · Coder ·
+-  QA · Demo-er · Releaser · Reviewer (fidelity gate + attested, chained ledger). Receipt AUTHORITATIVE
+-  when `total_cost_usd` exists, HONEST when it doesn't (S77).
+-- **Ledger** (S100): `verify-closeout.sh --ledger-verify` → INTACT, tamper-evident (`DECISION-004`),
+-  live-reconfirmed at S110 GT.
++- **The fleet has TWO named roles, both from one source (S114):** `vajra init` scaffolds
++  `.claude/agents/researcher.md` **and** `.claude/agents/fidelity-reviewer.md`, each a *rendering* of
++  `fleet::ROLES` (verify requires byte-equality with a live `init`, and that the directory holds
++  **exactly** the rendered set — so a hand-written agent file is a red suite). `vajra next --role
++  <key> --from <file>` governs either into a validated handoff; `vajra next --stations NN` reports
++  **`fleet: 2 governed handoff(s) — researcher, fidelity-reviewer`** beside an unchanged `K of 8`.
++- **The reviewer contract is TWO BOUND FILES, not a duplicate:** `reviewer/SKILL.md` is canonical
++  (long form, boot-loaded, scaffolded via `include_str!`); the role's system prompt is its
++  dispatch-time summary and names it. A unit test + a verify check read **both** files and require
++  every closeout-gate token in each — mutation-verified in both directions.
++- **The fleet's first named agent — write, dispatch, AND read (S109 + S111 + S112):** a fresh Claude
++  Code session's Task tool resolves `subagent_type` against the scaffolded file **by name**
++  (confirmed on disk via cross-referenced tool-call IDs); the boot packet, the Analyst intake and
++  the Analyst gate each surface the session's findings inline, silent when absent.
++- **The 8 stations** riding `vajra next` (+ gates at `--advance`): Analyst · Architect · Planner ·
++  Coder · QA · Demo-er · Releaser · Reviewer. Receipt AUTHORITATIVE when `total_cost_usd` exists,
++  HONEST when it doesn't (S77).
++- **Ledger** (S100): `verify-closeout.sh --ledger-verify` → INTACT, tamper-evident (`DECISION-004`).
++- **v0.1 install: CONFIRMED stranger-shippable (S110 GT).** Four channels, all real.
+ - **CI green on `main`** (both OS); `vajra claude · next · check · init · estimate · meter · hook` —
+-  **7 commands, no 8th** (the fleet rides `init` + `next`).
++  **7 commands, no 8th** (both fleet roles ride `init` + `next`).
+ 
+ ## What Is Broken / Weak
+-- **🔴 The launcher (`vajra claude`) has NOT run as a real governed session since S103** — now 10
+-  sessions / ~10 calendar days. S111's scratch-repo dispatch and S112's tempdir e2e are mechanism
+-  TESTS, not governed dogfood runs — neither resets this. Overdue; a candidate for S114 (option B).
+-- **🟡 Fleet consumption + fleet evidence are ADVISORY, never blocking.** Nothing fails when a session ignores (or never
+-  reads) a governed handoff. Deliberate this session; an opt-in "this session requires a handoff"
+-  gate is the obvious next step, and equally the obvious way to build false teeth.
+-- ~~🟡 The K-of-8 counter has no unit for fleet work~~ — **RETIRED S113.** Fleet work is now
+-  reported beside K (not inside it), derived from the validated handoff. **Residual 🟡: the line
+-  counts ARTIFACTS, not agents** — a contract-valid handoff proves a file, never a dispatch; and it
+-  does not prove any station *read* it ("governed" ≠ "used").
+-- **🟡 An unattended `claude -p` dispatch mode is unbuilt** (deferred, DECISION-007). The S109 handoff
+-  itself researched how: **`ANTHROPIC_API_KEY`** is the only auth that survives a fresh, no-TTY,
+-  no-keychain shell; `claude setup-token` is the subscription alternative; interactive OAuth won't do.
+-- **🟡 `no-eighth-command` checks are a grep for a hardcoded usage banner** (S111 and S112 both) — an
+-  8th command whose author skipped the help text would pass. The non-goal holds structurally; the
+-  *check* does not enforce it. House-wide, named at S112, not fixed unilaterally.
+-- **🟡 KNOWLEDGE §6 bloat GROWING** (chronic since S60): 482 lines but 242KB (lines up to 6.7KB each) —
+-  prune still queued, not done.
+-- **🟡 `vajra.varta` re-render drifts every session** — `vajra check` FAILs "varta stale" (10/11,
+-  live-confirmed at S110 GT); no CLOSEOUT gate reads it.
+-- **🟡 `vajra --version` gap** · **🟡 `--dogfood-age` durable code fix** (recurse subdirs) · **🟡 brew
+-  smoke tests a LOCAL formula copy** (S108) · **🟡 x86_64 prebuilt proven by checksum, never executed**.
+-- **🟡 `fable-5` monthly credits exhausted (S102).** Paid launcher dogfood costs real $ on sonnet/opus.
++- **🔴 The launcher (`vajra claude`) has NOT run as a real governed session since S103** — now 11
++  sessions / ~11 calendar days. Mechanism tests do not reset it; only a real paid run does.
++- **🟡 The new role has NEVER been dispatched by name.** A `.claude/agents/*.md` written mid-session
++  is invisible to that session's Task tool (S111). S114's own two cold passes ran as ad-hoc
++  `general-purpose` subagents, exactly as every prior session's have. **S115 is the first session
++  that can call it by name — and the only way to learn whether the brief works on a real agent.**
++- **🟡 The role's TEXT is guarded by presence-greps and nothing else** (S114's disclosed fakest
++  green). Cold pass 2 replaced the whole system prompt with token soup instructing the agent to
++  rubber-stamp, re-rendered the scaffolded file, and got verify 17/17 + demo 10/10 + 322 tests green.
++  The checks guard the brief's *shape*, never its *quality*. No check in this repo can.
++- **🟡 Fleet consumption + fleet evidence are ADVISORY, never blocking.** Nothing fails when a session
++  ignores a governed handoff. Deliberate; an opt-in gate is the obvious next step and equally the
++  obvious way to build false teeth.
++- **🟡 The fleet line counts ARTIFACTS, not agents** — a contract-valid handoff proves a file, never
++  a dispatch, and never that any station *read* it.
++- **🟡 An unattended `claude -p` dispatch mode is unbuilt** (deferred, DECISION-007);
++  `ANTHROPIC_API_KEY` is the only auth that survives a fresh no-TTY shell.
++- **🟡 `no-eighth-command` checks are a grep for a hardcoded usage banner** (S111–S114) — an 8th
++  command whose author skipped the help text would pass. House-wide, still not fixed.
++- **🟡 KNOWLEDGE §6 bloat GROWING** (chronic since S60) — prune queued, not done.
++- **🟡 `vajra.varta` re-render drifts every session** — `vajra check` FAILs "varta stale"; no CLOSEOUT
++  gate reads it.
++- **🟡 `vajra --version` gap** · **🟡 `--dogfood-age` durable code fix** · **🟡 brew smoke tests a
++  LOCAL formula copy** · **🟡 x86_64 prebuilt proven by checksum, never executed**.
++- **🟡 `fable-5` monthly credits exhausted (S102).** Paid launcher dogfood costs real $.
+ - **🟡 In THIS repo the commit gate is auditable-not-un-forgeable** (L3 `commit_guard: off`; L2 belt
+   active) · **Compression no-op on real CC** (never claim until measured) · **Cross-agent breadth 0 code**.
+-- ~~🟡 CI-both-OS not evidenced for S112~~ — **RESOLVED post-merge:** #118 ran green on macOS and
+-  Ubuntu before merging, retiring the delivery's one PARTIAL. The structural point stands for every
+-  future session: CI runs on the PR, so a pre-merge delivery can never evidence it.
+ 
+ ## What Is In Progress
+-- **S113 DONE + MERGED (CODE; SHIPPED; 317 lib tests; verify 14/14; demo 7/7 exit 0; two cold passes,
+-  both ACCEPT, attested `c2cac3e0…`; CI green both OS; PR #120).** `vajra next --stations 113` =
+-  **8 of 8**.
+-  Reports: `sessions/session-113-summary.md` + `sessions/session-113-review.md`.
+-- **Next = S114 — CODE: build the second fleet role, the Reviewer** (founder pick **A**). Prompt:
+-  `prompts/114-task-fleet-role-reviewer.md`. Deferred: the paid dogfood (B) and an opt-in blocking
+-  consumption gate (C). **New chat.** (S115 = the next NO-CODE GT.)
++- **S114 DONE (CODE; SHIPPED; 322 lib tests; verify 17/17; demo 10/10; two cold passes — REJECT then
++  a fresh ACCEPT — attested `cbd22d3a…`).** PR not yet opened; `--stations 114` = **7 of 8**.
++  Reports: `sessions/session-114-summary.md` + `sessions/session-114-review.md`.
++- **Next = S115 — MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`). Its one live opportunity: S115
++  is the first session that can dispatch `subagent_type: "fidelity-reviewer"` **by name**, which is
++  evidence-gathering (no code) and therefore fits a GT. Prompt: `prompts/115-task-ground-truth.md`.
++  Deferred for the founder to pick at the S115 closeout: the paid dogfood and an opt-in blocking
++  gate. **New chat.**
+ 
+ ## Cost Tracking
+ - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
+ - S53–75: ~$0 each. **S76: real but UNKNOWN** (opus-estimate ≤ ~$26.6).
+ - **S77–91: ~$0 each** (S78 ~$0.055). **S92: $0.2713** · **S97: $1.2758** · **S102: $0.4644** ·
+-  **S103: $0.6797** (all authoritative). **S104–109: ~$0 each** (S109's subagent tokens roll into the
+-  interactive session receipt, unitemized — `cost_usd: null`, disclosed).
+-- **S110: $0 (NO-CODE GT — no paid calls).**
+-- **S111: real but UNKNOWN in-chat** (interactive build session; the founder's own fresh-session
+-  dispatch test was a separate small paid call, cost in that scratch session's own receipt).
+-- **S112: $0 metered for the build; two cold-review subagent passes (~161k subagent tokens) roll into
+-  this interactive session's receipt, unitemized** — same structural reason as S109/S111
+-  (`scripts/check-subagent-cost-fields.sh`: no local subagent transcript carries a cost field).
+-- **S113: $0 metered for the build; two cold-review subagent passes (~151k subagent tokens) roll into
+-  this interactive session's receipt, unitemized** — same structural reason as S109/S111/S112.
+-- Cumulative: **~$79.3 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111/S112/S113 (unknown, small).**
++  **S103: $0.6797** (all authoritative). **S104–109: ~$0 each.**
++- **S110: $0 (NO-CODE GT).** **S111/S112/S113: $0 metered for the build**; cold-review subagent
++  tokens roll into the interactive session receipt, unitemized (`scripts/check-subagent-cost-fields.sh`:
++  no local subagent transcript carries a cost field).
++- **S114: $0 metered for the build; two cold-review subagent passes (~215k subagent tokens) roll into
++  this interactive session's receipt, unitemized** — same structural reason as S109/S111/S112/S113.
++- Cumulative: **~$79.3 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S114 (unknown, small).**
+diff --git a/.ai/TASK.md b/.ai/TASK.md
+index ab3d94e..1e588b7 100644
+--- a/.ai/TASK.md
++++ b/.ai/TASK.md
+@@ -2,37 +2,35 @@
+ 
+ **Thin pointer. Real session briefs live under `prompts/`.**
+ 
+-## Session 113 — CODE: fleet work visible to the counter + the second role chosen — COMPLETE
++## Session 114 — CODE: the fleet's second role, the Fidelity Reviewer — COMPLETE
+ 
+-- **Verdict: SHIPPED.** The pipeline's own progress metric could not see the fleet at all: a session
+-  that dispatched a named agent, governed its findings and consumed them scored the same `K of 8` as
+-  one that did none of it (flagged at S110 GT, carried at S111 and S112). `vajra next --stations NN`
+-  now reports fleet evidence **BESIDE** K — `stations::FleetEvidence` + `format_fleet_line`, derived
+-  from `fleet::read_handoffs` (the handoff is parsed and VALIDATED off disk, never a typed marker).
+-- **K-of-8 is unchanged in meaning, and it is CHECKED:** the report minus the fleet line is
+-  byte-identical to the pre-handoff report, and a test asserts K is invariant under *any* fleet
+-  evidence. Design shape **(c)** — rejected a 9th station and rejected folding it into a station's
+-  verdict (old and new K would look identical while measuring different things).
+-- **Second role CHOSEN, not built: the Reviewer** (`DECISION-007` S113 addendum) — 46 cold reviews on
+-  disk, mandated by DECISION-002, hand-typed every session today, output already gated + attested +
+-  ledgered, read-only tools. Four alternatives rejected; the `reviewer` role vs Reviewer *station*
+-  name collision recorded for the build session to resolve.
+-- **The honest limit, stated everywhere:** the line certifies *a contract-valid handoff exists*, not
+-  *an agent was dispatched*. 317 lib tests; verify **14/14**; demo **7/7** exit 0; **two** independent
+-  cold passes, both ACCEPT, attested `d478a022…`. Reports: `sessions/session-113-summary.md` +
+-  `sessions/session-113-review.md`.
++- **Verdict: SHIPPED.** The cold fidelity review this repo has run **47 times by hand** is now a
++  canonical, scaffolded, governed role. The headline is what did NOT happen: **`src/cli/init.rs` is
++  untouched in the whole diff** — it already iterated `fleet::ROLES`, so one entry bought the
++  scaffold, the governed handoff, the read-back and the counter. No new machinery, no 8th command.
++- **Both open items closed in writing** (`DECISION-007` S114 addendum, each with rejected
++  alternatives): the key is **`fidelity-reviewer`** (never `reviewer` — `K of 8` counts a Reviewer
++  STATION), and the handoff is a **PRE-STAGE INPUT** while `sessions/session-NN-review.md` stays the
++  **single record of record** (no gate reads a handoff; the role has no write tool).
++- **A third open item was found by the review itself:** `reviewer/SKILL.md` already stated this
++  contract — 127 hand-maintained lines scaffolded by the same `vajra init` — which this session's own
++  approved prompt asserted did not exist. The two are now **BOUND** by a check that reads both files
++  and requires every closeout-gate token in each. **A premise in an approved prompt is not evidence.**
++- **322 lib tests; verify 17/17; demo 10/10 exit 0; two cold passes — pass 1 REJECT → fixed → a
++  FRESH pass 2 ACCEPT (13 of 13 SHIPPED)** — attested `cbd22d3a…`. Fakest green, disclosed: the
++  role's TEXT is guarded by presence-greps only; pass 2 swapped it for rubber-stamp token soup and
++  the whole suite stayed green. Reports: `sessions/session-114-summary.md` + `-review.md`.
+ 
+ **🔀 FOUNDER PIVOT (S103, in force):** sessions now = **finish a shippable MVP**; founder runs the
+-long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B installable
+-(S106+S107+S108) ✓ COMPLETE** → **A real agent fleet — S109 first slice ✓, S111 dispatch wire ✓,
+-S112 consumption loop ✓, S113 counter-visibility + second role chosen ✓.**
++long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B installable ✓
++COMPLETE** → **A real agent fleet — S109 ✓, S111 ✓, S112 ✓, S113 ✓, S114 second role BUILT ✓.**
+ 
+-Between sessions. **Next = S114 — CODE: build the second fleet role, the Reviewer** (founder pick
+-**A** at the S113 closeout). The cold fidelity review this repo runs every session by hand becomes a
+-canonical, scaffolded, governed role — reusing the Researcher's machinery, resolving the
+-role-vs-station name collision, and deciding in writing how the handoff relates to
+-`sessions/session-NN-review.md`. Brief: `prompts/114-task-fleet-role-reviewer.md`. Deferred: the paid
+-dogfood (B) and an opt-in blocking gate (C). **New chat** for S114. (S115 = the next NO-CODE GT.)
++Between sessions. **Next = S115 — MANDATORY NO-CODE GROUND TRUTH** (`115 % 5 == 0`): no source
++edits, no code commits, no PRs beyond the GT artifact. Its one live opportunity: S115 is the **first
++session that can dispatch `subagent_type: "fidelity-reviewer"` by name** (S111's boot-snapshot
++limit), and doing so is evidence-gathering, not code. Brief: `prompts/115-task-ground-truth.md`.
++Deferred for the founder's pick at the S115 closeout: the overdue paid dogfood (🔴 11 sessions) and
++an opt-in blocking consumption gate. **New chat** for S115.
+ 
+ ## Always-True Reminders
+ 
+@@ -41,6 +39,12 @@ dogfood (B) and an opt-in blocking gate (C). **New chat** for S114. (S115 = the
+ - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
+ - **Commits are ENFORCED (S93):** on a session branch, supply the un-forgeable marker —
+   `VAJRA_ALLOW_COMMIT=NN git commit …`.
++- **Attest LAST (S69, hit twice at S114):** `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff) and the
++  PROMPT IS AN INPUT — recompute after the prompt's Execution shas are committed, and confirm two
++  consecutive `verify-closeout.sh --inputs-sha NN` runs agree before embedding.
++- **The closeout gate counts verdict words ONLY on `|` table rows (≥3)** — a bullet list is BLOCKED.
++- **The fleet has TWO roles; `reviewer/SKILL.md` is CANONICAL and the role brief is its summary** —
++  they are bound by a check reading both files. Never edit one alone.
+ - **crates.io is PUBLISHED (S108): `vajractl 0.1.0` is live — the name is now BURNED (irreversible).**
+   Any future crates.io action (a `0.1.1`, a yank) is still founder-gated; never `cargo publish` without
+   an explicit in-chat "yes publish". `cargo login` is the founder's own step (a token — never handled by the agent).
+@@ -51,7 +55,7 @@ dogfood (B) and an opt-in blocking gate (C). **New chat** for S114. (S115 = the
+ - **Cost-null checks ride `scripts/check-subagent-cost-fields.sh`** — re-runnable, local-machine-only
+   (same limitation class as `--dogfood-age`); reuse it, don't re-derive the grep by hand.
+ - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`) — no gate catches a miss.
+-- **New session = new chat** — open a fresh chat for S114; do NOT start it here.
++- **New session = new chat** — open a fresh chat for S115; do NOT start it here.
+ - **Max 7 top-level commands** — any fleet growth rides an existing command; an 8th needs a separate founder "yes".
+ - **Direction:** product = **provable agent governance** (`DECISION-001`), sold as the autopilot
+   trust layer; fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
+diff --git a/.claude/agents/fidelity-reviewer.md b/.claude/agents/fidelity-reviewer.md
+new file mode 100644
+index 0000000..0555328
+--- /dev/null
++++ b/.claude/agents/fidelity-reviewer.md
+@@ -0,0 +1,26 @@
++---
++name: fidelity-reviewer
++description: Independently cold-review a finished delivery against the session prompt: grade every numbered requirement SHIPPED/PARTIAL/NOT-BUILT and name the fakest green. Use at close, never on your own work. Read-only.
++tools: Read, Grep, Glob
++---
++
++You are the Fidelity Reviewer on a governed software team. Your ONE job is an INDEPENDENT, ADVERSARIAL cold review of a delivery you did not build.
++You are fed only two things: the session prompt (what was asked) and the diff (what was done). Judge from those. Do not accept the builder's own summary as evidence.
++Rules:
++- Do NOT write, edit, or run code. You read and judge only.
++- Grade EVERY numbered requirement in the prompt: SHIPPED / PARTIAL / NOT-BUILT, each with the concrete evidence in the diff that earns the grade. A requirement with no evidence is NOT-BUILT.
++- Following the rules is not delivering what was asked: a green verify script proves discipline, never fidelity. Never grade from test counts alone.
++- Name THE FAKEST GREEN — the thing that looks done but is hollow (a check that would pass if the feature were deleted, a marker the author simply typed, an assertion that cannot fail).
++- Never self-certify and never soften: if the delivery is short, say so.
++Shape your brief so it can be landed without rewriting — the closeout gate reads the landed record and FAILS unless it carries all three of these:
++- a per-requirement MARKDOWN TABLE — the gate counts verdict words only on `|`-delimited rows and requires at least three of them, so one row per requirement carrying SHIPPED / PARTIAL / NOT-BUILT (a bulleted list with the same words does NOT pass),
++- a canonical `**Verdict:** ACCEPT` or `**Verdict:** REJECT` line (the word buried in a heading does not count),
++- a count of the form `X of N SHIPPED`.
++The full contract you are performing is `reviewer/SKILL.md` in this repo — READ IT before you judge; it is canonical and this brief is its dispatch-time summary, never a competing version.
++Your verdict is a PRE-STAGE INPUT. The canonical, gated record of the fidelity verdict is `sessions/session-NN-review.md` (read by `verify-closeout.sh`, attested by a `**Review-Inputs-SHA:**` the orchestrator computes, chained in the ledger) — you do not write it, and you are not its replacement.
++
++## Governed handoff (Vajra owns this)
++Return your findings brief as your final message. The orchestrator records it as a
++Vajra-governed, delta-tracked handoff at `.ai/handoffs/session-<NN>-fidelity-reviewer.md` via
++`vajra next --role fidelity-reviewer --from <file>`. Do NOT write the handoff frontmatter yourself —
++Vajra computes the source hash, the timestamp, and the delta against the prior stage.
+diff --git a/docs/decisions/DECISION-007-agent-fleet.md b/docs/decisions/DECISION-007-agent-fleet.md
+index d3c23e7..ea87e12 100644
+--- a/docs/decisions/DECISION-007-agent-fleet.md
++++ b/docs/decisions/DECISION-007-agent-fleet.md
+@@ -186,3 +186,87 @@ entry, no `.claude/agents/reviewer.md`, no code ships with this addendum.
+   while "fleet: 1 governed handoff — reviewer" would mean the agent. The build session must either
+   pick a distinct role key (e.g. `fidelity-reviewer`) or state explicitly that the role IS the
+   station's agent. Do not leave it implicit.
++
++## S114 addendum — the Reviewer BUILT, and the two open items closed
++
++**Status: BUILT.** S113 chose the role; S114 ships it as a second `fleet::ROLES` entry rendered by
++the same machinery (no second scaffolding path, no second handoff writer, no second role-text
++source). The S113 addendum left two questions open and forbade leaving them implicit. Both are
++decided here, and the code matches.
++
++### Open item 1 — the role key: **`fidelity-reviewer`** (a distinct key)
++
++The pipeline's eighth station is already called the **Reviewer** (`stations::reviewer_status`,
++counted in `K of 8`). A role keyed `reviewer` would put the same word on two different things in
++adjacent lines of the same report — `Reviewer PASSED` (the station) directly above `fleet: 1
++governed handoff — reviewer` (the agent).
++
++**Decision: the role key is `fidelity-reviewer`.** Rejected the alternative ("state that the role IS
++the station's agent") because it is not true: the station passes on an *attested review artifact
++existing and not saying REJECT*, which a human can satisfy with no agent at all. The station measures
++the artifact; the role produces one input to it. Two different things deserve two different names.
++
++Consequences, all mechanical: the subagent is `.claude/agents/fidelity-reviewer.md`, the handoff is
++`.ai/handoffs/session-NN-fidelity-reviewer.md`, the dispatch is `subagent_type:
++"fidelity-reviewer"`, and `vajra next --role reviewer` FAILS with the known-roles list (asserted by
++test — `resolve_role("reviewer").is_none()`).
++
++### Open item 2 — the handoff vs `sessions/session-NN-review.md`: **pre-stage input, one record of record**
++
++The fidelity verdict already has a governed home with teeth: `sessions/session-NN-review.md` is read
++by `verify-closeout.sh` (missing / hollow / REJECT all FAIL), attested by `Review-Inputs-SHA`
++(DECISION-003), and chained in the ledger (DECISION-004). The failure mode to avoid is two competing
++records of the same judgment.
++
++**Decision: the governed handoff is a PRE-STAGE INPUT — the captured raw verdict, hashed and
++timestamped at the moment the agent returned it. `sessions/session-NN-review.md` remains the single
++RECORD OF RECORD and the only thing any gate reads.** Rejected "pointer only" (a pointer throws away
++the `source-sha` — the whole reason a handoff is evidence rather than prose) and rejected "the
++handoff replaces the review artifact" (it would strip the attestation + ledger chain that make the
++verdict tamper-evident, trading teeth for a newer file).
++
++How the code matches, not just the prose:
++- The role's system prompt — the ONE canonical source, rendered verbatim into the subagent file —
++  ends by stating the verdict is a pre-stage input, that `sessions/session-NN-review.md` is the
++  canonical gated record, and that this agent does not write it.
++- The role has **no write tool** (`Read, Grep, Glob`), so it *cannot* author the record of record.
++- Nothing in `verify-closeout.sh` or the Reviewer station learns to read the handoff. The gate keeps
++  reading exactly one artifact. A session that never dispatches the role closes exactly as before.
++
++### What this addendum does NOT claim
++
++- Scaffolding the role does not make the review more independent than today's hand-typed dispatch —
++  independence comes from the fresh context window, which already held (S113 addendum, restated).
++- Like every role, a `.claude/agents/*.md` written mid-session is invisible to that same session's
++  Task tool (S111). The Reviewer role lands at S114 and is first dispatchable **by name** at S115.
++- `fleet: 2 governed handoff(s)` certifies **two contract-valid files exist**, never that two agents
++  ran (the standing S113 reading rule).
++- A third role remains a separate decision. Two roles is not a fleet; it is two roles.
++
++### Open item 3 — found by THIS session's cold review: `reviewer/SKILL.md` was already a second source
++
++The S113 addendum listed two open items. The S114 cold pass found a third that nobody had named:
++**the repo already contained a statement of the reviewer's contract** — `reviewer/SKILL.md`, 127
++lines, hand-maintained, and scaffolded into every fresh repo by the *same* `vajra init` (via
++`include_str!`, `src/cli/init.rs`). So this session's goal statement ("its brief is re-typed from
++memory each time") was **partly false**, and shipping the role brief unexamined would have created
++exactly the drift this decision forbids: two hand-maintained versions of one job.
++
++The dangerous half is not duplication, it is the **output shape**. `verify-closeout.sh` FAILS a
++landed review that lacks a per-requirement `SHIPPED`/`PARTIAL`/`NOT-BUILT` table, a canonical
++`**Verdict:** ACCEPT|REJECT` line, or an `X of N SHIPPED` count. The first draft of the role brief
++mentioned none of the three — an agent dispatched by name, obeying only that brief, would have
++returned a verdict the gate then rejected.
++
++**Decision: `reviewer/SKILL.md` stays CANONICAL; the role's system prompt is its dispatch-time
++summary, and the two are BOUND by a check that reads both files.** The brief names the skill and
++tells the agent to read it. Rejected "delete the skill and render it from `fleet::ROLES`" (the skill
++is boot-loaded by every agent, including ones that never dispatch a subagent, and it documents the
++gate's own expectations — it is not role text) and rejected "leave them independent" (that is the
++defect, stated in this session's own prompt).
++
++The binding is enforced twice, both with positive controls: the unit test
++`the_role_brief_carries_the_output_shape_the_closeout_gate_requires` reads `reviewer/SKILL.md` off
++disk and requires every gate token to appear in BOTH, and `verify-session-114.sh#role-brief-bound-to-skill`
++re-checks it against the *scaffolded* file. A change to the canonical contract that the brief does
++not follow turns both red.
+diff --git a/prompts/114-task-fleet-role-reviewer.md b/prompts/114-task-fleet-role-reviewer.md
+index 71cb1ba..7a2fd7b 100644
+--- a/prompts/114-task-fleet-role-reviewer.md
++++ b/prompts/114-task-fleet-role-reviewer.md
+@@ -66,13 +66,39 @@ handoff format, the dispatch mechanism, or the command set changes.
+ 
+ ## Plan (ordered steps — cite the acceptance criteria each step covers, e.g. `covers: 1, 3`)
+ 
+-1. <first ordered step — replace me; annotate which acceptance criteria it satisfies>
+-2. <next step — the Planner gate BLOCKS until every acceptance criterion above is covered>
++1. Make `fleet::Role` carry its OWN read-only tool list and make `compute_delta` role-aware (both
++   are hardcoded to the Researcher today — the exact single-source drift a second role exposes),
++   then add the `fidelity-reviewer` entry to `fleet::ROLES` with the adversarial cold-review
++   contract as its system prompt. One source, no second scaffolding or handoff path. `covers: 1, 2`
++2. Record the `DECISION-007` S114 addendum: the role key is `fidelity-reviewer` (the station
++   collision resolved by a DISTINCT key, stated in code + record), and the governed handoff is a
++   **pre-stage input** to `sessions/session-NN-review.md`, never a second verdict of record — with
++   the code (system prompt + rendered subagent definition) saying so. `covers: 4`
++3. Scaffold this repo's own `.claude/agents/fidelity-reviewer.md` from that one source, byte-identical
++   to `render_subagent_definition` output — so the repo dogfoods the role it ships. `covers: 1`
++4. Write `scripts/verify-session-114.sh`: a fresh `vajra init` scaffolds TWO agent files both
++   byte-equal to the render; the new role's fail-closed set (unknown role · missing `--from` · empty
++   findings); TWO handoffs in one session → `fleet: 2 governed handoff(s)` naming both roles while
++   `K of 8` stays byte-identical to the no-fleet report; plus a no-second-source guard.
++   `covers: 1, 2, 3, 5`
++5. Write `scripts/demo-session-114.sh` (cumulative) showing the two roles, the governed handoff, and
++   the two-handoff fleet line, with the required demo markers. `covers: 5`
++6. Run `cargo test --lib` + both scripts green, then the independent cold review (prompt + diff only)
++   and the session summary with the per-requirement fidelity map. `covers: 5, 6`
+ 
+ ## Execution (the Coder gate — record each plan step's landing commit as work lands)
+ 
+-- step 1 — done: <sha — the real commit that landed this step; the Coder gate BLOCKS closing the
+-  session until every numbered plan step records a commit that EXISTS>
++- step 1 — done: a995b51 (fleet::ROLES gains the Fidelity Reviewer; per-role `tools`; role-aware
++  `compute_delta`; 4 new tests — 321 lib tests green)
++- step 2 — done: 129be85 (DECISION-007 S114 addendum — the key decision + the pre-stage-input
++  decision, each with its rejected alternatives)
++- step 3 — done: d60a777 (`.claude/agents/fidelity-reviewer.md`, copied byte-for-byte out of a fresh
++  `vajra init` in a scratch repo — a rendering, never hand-written)
++- step 4 — done: 05f0d13 (`scripts/verify-session-114.sh` — 16 checks, ALL GREEN)
++- step 5 — done: 05f0d13 (`scripts/demo-session-114.sh` — 10 cases, ALL GREEN, exit 0)
++- step 6 — done: 8499718 (`sessions/session-114-summary.md` + the attested
++  `sessions/session-114-review.md`; two cold passes, 13 of 13 SHIPPED, attested `adae11e1…`).
++  Review-driven hardening landed before it: d46c1bc + fa80f5b (pass 1) and 2499d1b (pass 2).
+ 
+ ## Acceptance criteria
+ 
+diff --git a/prompts/115-task-ground-truth.md b/prompts/115-task-ground-truth.md
+new file mode 100644
+index 0000000..83e877b
+--- /dev/null
++++ b/prompts/115-task-ground-truth.md
+@@ -0,0 +1,85 @@
++# Session 115 — GROUND TRUTH (mandatory NO-CODE)
++
++> **Status: MANDATORY** — `115 % 5 == 0`. No source-code edits, no code commits, no PRs beyond the
++> GT artifact. Hook-enforced (`hook-pre-bash.sh`, `hook-pre-write.sh`). Authorized hardening, if any
++> is truly unavoidable, goes on a `session-115-closeout` branch (exempt by suffix).
++
++## Goal
++
++The fifth ground truth since the S103 founder pivot. Catch **both** classes of drift — *are we
++building the right thing* (vision + roadmap) and *did we honour the contract, and does the contract
++still serve the vision* (rules, constitution, state, cost, usage) — then meta-check whether this
++audit's own mechanism has a blind spot.
++
++Run every audit in `CONSTRAINTS.yaml#ground_truth.required_audits`, answering its question list:
++`vision_alignment` · `roadmap_alignment` · `state_drift` · `knowledge_staleness` ·
++`constraint_violation_review` · `constitution_review` · `cost_review` · `dogfood_check` ·
++`pipeline_advance_check` · `dogfood_staleness`.
++
++## The one live opportunity — dispatch the new role BY NAME
++
++S114 built the fleet's second role, the **Fidelity Reviewer**, and could not dispatch it: Claude Code
++snapshots `.claude/agents/*.md` at boot, so a role written mid-session is invisible to that session
++(S111, unchanged and still true). **S115 is the first session that can call it by name.**
++
++Dispatching an agent and reading its findings is **evidence-gathering, not code** — it fits a NO-CODE
++session, and it is the only way to learn whether the brief actually works on a real agent rather than
++on a grep. So:
++
++1. Dispatch this GT's own independent pass with `subagent_type: "fidelity-reviewer"` — by name, not
++   as an ad-hoc `general-purpose` subagent. Record the tool call.
++2. Govern its verdict with `vajra next --role fidelity-reviewer --from <file>` (writing a handoff is
++   `.ai/` spine work, not source code).
++3. **Report what the brief got right and what it got wrong.** Specifically: did the returned verdict
++   carry a real `|`-row per-requirement table, a canonical `**Verdict:**` line, and an `X of N
++   SHIPPED` count — i.e. would it pass `verify-closeout.sh` unedited? S114 fixed that gap on paper;
++   this is the first chance to see it on a live agent.
++4. Confirm `vajra next --stations 115` reports the fleet line, and record whether the honest limit
++   still holds ("a contract-valid handoff exists", never "an agent was dispatched" — though this
++   time a dispatch DID occur, and the transcript is the proof, not the handoff).
++
++If the dispatch fails or the role resolves to nothing, **that is the finding** — report it plainly.
++Do not fall back to a `general-purpose` subagent and describe it as the role having run.
++
++## Required outputs
++
++- `sessions/session-115-ground-truth.md` — every audit, its question list answered, the meta-check,
++  and a lens-A verdict (PASS / PARTIAL PASS / FAIL) with reasons.
++- The live-query evidence, pasted, never summarised from memory:
++  - `vajra next --stations NN` for **every** session since the last GT (S111–S114) — read the SHAPE,
++    not just the number. A station ABSENT across many sessions is a systemic gap; name it.
++  - `vajra next --dogfood-age` — record session, git-derived date, sessions-since, calendar-days-since,
++    and reconcile against STATE.md. **It has been 🔴 since S103 (12 sessions by S115).** An
++    "is Vajra-on-Claude satisfying?" verdict is unmeasured by definition until a real paid run happens.
++  - `verify-closeout.sh --ledger-verify` — INTACT or not.
++- Exactly **3** candidate next sessions (A/B/C) drawn from ROADMAP, each with title, one-sentence
++  goal, why-pick-this, key risk. Founder picks; then write `prompts/116-task-<slug>.md`.
++
++## Carry-ins the audit must confront (do not let these slide a sixth time)
++
++- **🔴 Paid dogfood, stale since S103.** Twelve sessions of mechanism tests do not reset it.
++- **🟡 The Fidelity Reviewer's TEXT is guarded by presence-greps only** — S114's disclosed fakest
++  green: a cold pass swapped the whole system prompt for rubber-stamp token soup and the entire
++  suite (17/17 verify, 10/10 demo, 322 tests) stayed green. Is that acceptable, or does it need a
++  mechanism? Say which, and why.
++- **🟡 `no-eighth-command` is a grep for a hardcoded usage banner** — flagged at S111, S112, S113 and
++  S114 and never fixed. Four sessions of "flagged, not fixed" is itself a finding.
++- **🟡 KNOWLEDGE §6 bloat** — chronic since S60, prune still queued.
++- **A premise inside an approved prompt is not evidence** (S114: the prompt asserted the reviewer's
++  brief lived nowhere, while `reviewer/SKILL.md` had stated it all along). **Meta-check: does any
++  audit here check the PROMPTS' premises, or only the code's behaviour?**
++
++## Non-goals
++
++- No source-code changes, no `cargo` edits, no new scripts, no new commands.
++- Do not build a third fleet role, a blocking gate, or the dogfood run itself — those are S116
++  candidates, decided by the founder at this session's close.
++
++## Guardrails
++
++- Max 2 assumptions, max 2 retries, 1 story, ~2h cap. Branch: `session-115-ground-truth`.
++- Communicate in the plainest English (founder standing request). Darshan every human reply.
++- **Attest LAST if any review artifact is produced:** `Review-Inputs-SHA` = sha256(HEAD:prompt ‖
++  diff) and the prompt is itself an input — recompute after the prompt is final and committed, then
++  confirm two consecutive `--inputs-sha` runs agree (S69; hit twice at S114).
++- Own the `.ai/` spine — no second store.
+diff --git a/scripts/demo-session-114.sh b/scripts/demo-session-114.sh
+new file mode 100755
+index 0000000..14ac737
+--- /dev/null
++++ b/scripts/demo-session-114.sh
+@@ -0,0 +1,170 @@
++#!/usr/bin/env bash
++# Demo — Session 114: the fleet gets its SECOND named role, the Fidelity Reviewer.
++#
++# Sprint-demo contract (CONSTRAINTS.yaml#demo.required_elements): header · cases · summary_table ·
++# before_after. Cumulative: it re-shows what S109/S111/S112/S113 built (govern a handoff, read it
++# back, count it beside K) at the new count of TWO roles. Everything RUNS LIVE in a throwaway repo —
++# nothing is replayed, no fixture is hand-placed.
++
++set -uo pipefail
++ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
++cd "$ROOT"
++
++SESSION="114"
++BOLD="\033[1m"; CYAN="\033[36m"; GREEN="\033[32m"; RED="\033[31m"
++YELLOW="\033[33m"; DIM="\033[2m"; RESET="\033[0m"
++header() { printf "\n${CYAN}${BOLD}== %s ==${RESET}\n" "$1"; }
++label()  { printf "${YELLOW}${BOLD}> %s${RESET}\n" "$1"; }
++ok()     { printf "${GREEN}OK %s${RESET}\n" "$1"; }
++no()     { printf "${RED}xx %s${RESET}\n" "$1"; }
++dim()    { printf "${DIM}%s${RESET}\n" "$1"; }
++
++VAJRA="$ROOT/target/debug/vajra"
++[ -x "$VAJRA" ] || cargo build -q || { echo "build failed"; exit 1; }
++
++PASS=0; FAIL=0
++score() { if [ "$1" -eq 0 ]; then ok "$2"; PASS=$((PASS+1)); else no "$2"; FAIL=$((FAIL+1)); fi; }
++
++# --- demo:header ---
++header "Session ${SESSION} Demo — the fleet's second role: the Fidelity Reviewer  [demo:header]"
++label "One line: the independent cold review this repo has run 47 times BY HAND — its brief re-typed \
++from memory every session — is now a canonical, scaffolded, governed role. No new machinery: one \
++more entry in the single role source, and every existing path picked it up."
++
++TMP="$(mktemp -d)"
++cleanup() { rm -rf "$TMP"; }
++trap cleanup EXIT
++( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null 2>&1 ) || { no "vajra init failed"; exit 1; }
++echo "114" > "$TMP/.ai/SESSION"
++mkdir -p "$TMP/prompts"
++cat > "$TMP/prompts/114-task-fixture.md" <<'FIXTURE'
++# Session 114 — fixture
++
++## Acceptance
++1. **WHEN** two roles have governed handoffs **THEN** the counter names both
++2. **WHEN** the role key is unknown **THEN** the writer fails closed
++
++## Design
++- design-significant: no
++
++## Plan
++1. register the second role. covers: 1
++2. govern its handoff. covers: 2
++
++## Delta
++- `+` the fleet's second named role
++FIXTURE
++
++strip_fleet() { grep -vE '^[[:space:]]*(⚠ )?fleet:'; }
++
++# --- demo:before_after ---
++header "Before -> After  [demo:before_after]"
++label "BEFORE — the fleet had ONE role, so \`vajra init\` scaffolded one agent file and the counter \
++could only ever report one handoff. AFTER — the same command, in a fresh repo, right now:"
++
++printf "\n  ${BOLD}$ vajra init && ls .claude/agents/${RESET}  ${DIM}(S109-S113: researcher.md only)${RESET}\n"
++ls -1 "$TMP/.claude/agents/" | sed 's/^/    /'
++[ -f "$TMP/.claude/agents/researcher.md" ] && [ -f "$TMP/.claude/agents/fidelity-reviewer.md" ]
++score $? "two roles scaffolded from ONE source — no second copy of the role text anywhere"
++
++BEFORE="$(cd "$TMP" && "$VAJRA" next --stations 114 2>&1)"
++printf "\n  ${BOLD}$ vajra next --stations 114${RESET}  ${DIM}(no fleet work yet)${RESET}\n"
++echo "$BEFORE" | tail -3 | sed 's/^/  /'
++
++printf 'ANSWER: ANTHROPIC_API_KEY is the only auth that survives a fresh no-TTY shell.\n' > "$TMP/findings.md"
++cat > "$TMP/review.md" <<'REVIEW'
++VERDICT: ACCEPT — 6 of 6 numbered requirements SHIPPED.
++Fakest green: the fleet line counts contract-valid FILES, never dispatched agents.
++NOT built: no third role, no blocking gate.
++REVIEW
++printf "\n  ${BOLD}$ vajra next --role researcher --from findings.md${RESET}\n"
++( cd "$TMP" && "$VAJRA" next --role researcher --from findings.md 2>&1 ) | head -3 | sed 's/^/  /'
++printf "\n  ${BOLD}$ vajra next --role fidelity-reviewer --from review.md${RESET}\n"
++( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer --from review.md 2>&1 ) | head -3 | sed 's/^/  /'
++
++AFTER="$(cd "$TMP" && "$VAJRA" next --stations 114 2>&1)"
++printf "\n  ${BOLD}$ vajra next --stations 114${RESET}  ${DIM}(same command, after)${RESET}\n"
++echo "$AFTER" | tail -3 | sed 's/^/  /'
++grep -q "fleet: 2 governed handoff(s)" <<<"$AFTER" && grep "fleet:" <<<"$AFTER" | grep -q "fidelity-reviewer"
++score $? "TWO governed handoffs, both roles named — the count that did not exist at S113"
++
++# --- demo:cases ---
++header "Cases  [demo:cases]"
++
++label "1. K of 8 STILL did not move — at two handoffs. AFTER minus the fleet line is byte-identical \
++to BEFORE, so the S113 invariant holds at a count it was never exercised at."
++diff <(echo "$BEFORE") <(strip_fleet <<<"$AFTER") | sed 's/^/    /'
++[ "$(strip_fleet <<<"$AFTER")" = "$BEFORE" ] && grep -qE "^  [1-9] of 8 stations passed" <<<"$BEFORE"
++score $? "K stays comparable — the fleet is reported BESIDE it, never inside it"
++
++label "2. The name collision is RESOLVED, and the resolution has teeth: \`--role reviewer\` (the \
++STATION's word) is not a role and fails closed. One word never means two things."
++( cd "$TMP" && "$VAJRA" next --role reviewer --from review.md 2>&1 ) | head -2 | sed 's/^/    /'
++! ( cd "$TMP" && "$VAJRA" next --role reviewer --from review.md ) >/dev/null 2>&1
++score $? "the key is \`fidelity-reviewer\`; the bare station word is rejected with the known roles"
++
++label "3. Fail-closed, exactly as slice 1: no --from, empty findings, missing file — all refused."
++( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer 2>&1 ) | head -1 | sed 's/^/    no --from:   /'
++: > "$TMP/empty.md"
++( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer --from empty.md 2>&1 ) | head -1 | sed 's/^/    empty:       /'
++! ( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer ) >/dev/null 2>&1 \
++  && ! ( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer --from empty.md ) >/dev/null 2>&1 \
++  && ! ( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer --from nope.md ) >/dev/null 2>&1
++score $? "nothing half-governed ever lands on disk"
++
++label "4. The governed handoff is the REVIEWER's, not a copy of the Researcher's: its tracked delta \
++names its own role. (Hardcoded to 'researcher' until a second role existed — the exact drift the \
++one-source rule exists to kill.)"
++sed -n '1,8p' "$TMP/.ai/handoffs/session-114-fidelity-reviewer.md" | sed 's/^/    /'
++grep "Handoff Delta" -A 2 "$TMP/.ai/handoffs/session-114-fidelity-reviewer.md" | tail -2 | sed 's/^/    /'
++grep -q "first fidelity-reviewer handoff" "$TMP/.ai/handoffs/session-114-fidelity-reviewer.md" \
++  && ! grep -q "researcher handoff" "$TMP/.ai/handoffs/session-114-fidelity-reviewer.md"
++score $? "delta + frontmatter carry the producing role, sourced-hashed to the exact findings"
++
++label "5. Read-only by construction — the Reviewer gets strictly local reads. It CANNOT write the \
++record of record even if asked: no Write, no Edit, no Bash."
++grep -E "^(name|tools):" "$TMP/.claude/agents/fidelity-reviewer.md" | sed 's/^/    /'
++grep -q "^tools: Read, Grep, Glob$" "$TMP/.claude/agents/fidelity-reviewer.md" \
++  && ! grep -qE '^tools:.*(Write|Edit|Bash)' "$TMP/.claude/agents/"*.md
++score $? "no new trust surface — every fleet role is still read-only"
++
++label "6. ONE record of record. The handoff is a PRE-STAGE INPUT (the captured raw verdict, hashed \
++and timestamped); sessions/session-NN-review.md stays the only artifact any gate reads. The closeout \
++gate did not learn about handoffs:"
++grep -c "handoffs/" scripts/verify-closeout.sh | sed 's/^/    handoff mentions in verify-closeout.sh: /'
++[ "$(grep -c 'handoffs/' scripts/verify-closeout.sh)" = "0" ] \
++  && grep -q "PRE-STAGE INPUT" "$TMP/.claude/agents/fidelity-reviewer.md"
++score $? "no second competing verdict — the role says so in its own canonical brief"
++
++label "7. Still 7 top-level commands — the second role rides \`init\` + \`next\`, like the first."
++HELP="$("$VAJRA" --help 2>&1)"; grep -q "vajra <init|claude|check|next|estimate|hook|meter>" <<<"$HELP"
++score $? "no 8th command"
++
++label "8. The HONEST limit, restated: this demo shows two contract-valid FILES, not two agents that \
++ran. And per S111, an agent file written this session is invisible to this session's dispatcher — \
++the Reviewer is first dispatchable BY NAME at S115."
++dim "    a handoff proves a file; only a transcript proves a dispatch (S111 evidence trail)"
++true; score $? "claim stated narrowly, on purpose"
++
++# --- demo:summary_table ---
++header "Summary  [demo:summary_table]"
++printf '%-54s %s\n' "CAPABILITY" "STATE"
++printf '%-54s %s\n' "------------------------------------------------------" "------"
++printf '%-54s %s\n' "govern a named agent's findings (S109)"              "SHIPPED"
++printf '%-54s %s\n' "prove the by-name dispatch wire (S111)"              "SHIPPED"
++printf '%-54s %s\n' "pipeline reads the handoff back (S112)"              "SHIPPED"
++printf '%-54s %s\n' "counter reports fleet work beside K (S113)"          "SHIPPED"
++printf '%-54s %s\n' "second role: the Fidelity Reviewer (S114)"           "SHIPPED"
++printf '%-54s %s\n' "name collision resolved, with teeth (S114)"          "SHIPPED"
++printf '%-54s %s\n' "one record of record, decided in writing (S114)"     "SHIPPED"
++printf '%-54s %s\n' "per-role tool grant + role-named delta (S114)"       "SHIPPED"
++printf '%-54s %s\n' "the role dispatched BY NAME"                         "NEXT SESSION (S111 limit)"
++printf '%-54s %s\n' "a third role / parallel dispatch"                    "NOT BUILT (DECISION-007)"
++printf '%-54s %s\n' "a gate that BLOCKS on unread findings"               "NOT BUILT (advisory by design)"
++
++echo ""
++if [ "$FAIL" -eq 0 ]; then
++  printf "${GREEN}${BOLD}ALL GREEN (%d pass, 0 fail)${RESET}\n" "$PASS"; exit 0
++else
++  printf "${RED}${BOLD}RED (%d pass, %d fail)${RESET}\n" "$PASS" "$FAIL"; exit 1
++fi
+diff --git a/scripts/verify-session-114.sh b/scripts/verify-session-114.sh
+new file mode 100755
+index 0000000..a32f1a6
+--- /dev/null
++++ b/scripts/verify-session-114.sh
+@@ -0,0 +1,354 @@
++#!/usr/bin/env bash
++# Verify — Session 114: the fleet's SECOND role, the Fidelity Reviewer (founder pick A at S113).
++#
++# S113 chose the role from evidence; S114 builds it. The whole value of this session is that a
++# second role needed NO new machinery — so these checks are aimed at the two ways that claim could
++# be false:
++#   (a) a second SOURCE of role text (a hand-maintained copy of the prompt, the exact drift
++#       `fleet::ROLES` exists to kill), and
++#   (b) the second role inheriting the first one's hardcoded details (its tool grant, its name in
++#       the handoff delta) — invisible while only one role existed.
++# Every negative guard below is paired with a positive control: a check that says "X was not built"
++# proves nothing unless the same pattern matches the thing that WAS.
++
++set -uo pipefail
++ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
++cd "$ROOT"
++
++SESSION="114"
++TS=$(date -u +%Y%m%dT%H%M%SZ)
++ARTIFACTS=".ai/verify/session-${SESSION}/${TS}"
++mkdir -p "$ARTIFACTS"
++
++PASS=0; FAIL=0; RESULTS=()
++run_check() {
++  local NAME="$1"; shift
++  local LOG="$ARTIFACTS/${NAME}.log"
++  if "$@" > "$LOG" 2>&1; then
++    RESULTS+=("$(printf '%-34s %s' "$NAME" PASS)"); PASS=$((PASS+1))
++  else
++    RESULTS+=("$(printf '%-34s %s' "$NAME" FAIL)"); FAIL=$((FAIL+1))
++  fi
++}
++
++# --- toolchain: unchanged discipline ----------------------------------------------------------
++run_check "cargo-build"   cargo build --all-targets
++run_check "cargo-test"    cargo test --lib
++run_check "cargo-fmt"     cargo fmt -- --check
++run_check "cargo-clippy"  cargo clippy --all-targets -- -D warnings
++
++# The S109 fail-closed writer smoke and the S113 counter suite must BOTH still pass unchanged —
++# this session adds a role, it does not get to move what the fleet already guarantees.
++run_check "fleet-smoke"          bash scripts/fleet-smoke.sh
++run_check "s113-counter-still-green" bash scripts/verify-session-113.sh
++
++VAJRA="$ROOT/target/debug/vajra"
++
++# `cargo test --lib <filter>` EXITS 0 WHEN THE FILTER MATCHES NOTHING (S112 pass 2) — a bare
++# filtered run names a lock it does not hold. Reused verbatim, as the S114 prompt requires.
++named_test_passed() {
++  local out; out="$(cargo test --lib "$1" 2>&1)"
++  echo "$out"
++  grep -qE 'test result: ok\. [1-9][0-9]* passed' <<<"$out" \
++    || { echo "FAIL: filter '$1' matched no test that ran and passed"; return 1; }
++}
++run_check "test-role-registered" \
++  named_test_passed fleet::tests::fidelity_reviewer_is_registered_with_a_non_colliding_key
++run_check "test-roles-read-only" \
++  named_test_passed fleet::tests::every_role_is_read_only_and_renders_its_own_tools
++run_check "test-delta-names-role" \
++  named_test_passed fleet::tests::compute_delta_names_the_producing_role_not_a_hardcoded_one
++run_check "test-render-every-role" \
++  named_test_passed fleet::tests::render_subagent_definition_is_correct_for_every_registered_role
++# The guard on the guard: a filter matching nothing must FAIL, or every check above is theatre.
++filter_guard_has_teeth() {
++  if named_test_passed fleet::tests::this_test_does_not_exist_on_purpose >/dev/null 2>&1; then
++    echo "FAIL: named_test_passed is green on a filter that matches no test"; return 1
++  fi
++  echo "OK: a filter matching zero tests fails, as it must"
++}
++run_check "test-filter-guard-has-teeth" filter_guard_has_teeth
++
++strip_fleet() { grep -vE '^[[:space:]]*(⚠ )?fleet:'; }
++
++# --- criterion 1: a fresh `vajra init` scaffolds TWO agent files, both a RENDERING of one source --
++# Proven by RUNNING init, never by reading the code. Byte-equality against this repo's own committed
++# copies is what makes "one source" a check: a hand-edit to either file (the drift this session is
++# about) turns this red.
++scaffolds_two_roles() { local TMP; TMP="$(mktemp -d)"; _scaffolds_two_roles "$TMP"; local rc=$?; rm -rf "$TMP"; return $rc; }
++_scaffolds_two_roles() {
++  local TMP="$1"
++  ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null ) || { echo "vajra init failed"; return 1; }
++  echo "--- scaffolded agents ---"; ls -1 "$TMP/.claude/agents/"
++
++  local N; N="$(find "$TMP/.claude/agents" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')"
++  [ "$N" = "2" ] || { echo "FAIL: expected 2 scaffolded agent files, got $N"; return 1; }
++  [ -f "$TMP/.claude/agents/researcher.md" ] || { echo "FAIL: researcher not scaffolded"; return 1; }
++  [ -f "$TMP/.claude/agents/fidelity-reviewer.md" ] || { echo "FAIL: fidelity-reviewer not scaffolded"; return 1; }
++
++  # The scaffolded reviewer carries the CONTRACT, not a stub — the three grades, the fakest green,
++  # and the pre-stage-input relationship to the record of record (deliverable 5).
++  local F="$TMP/.claude/agents/fidelity-reviewer.md"
++  grep -q "^name: fidelity-reviewer$" "$F" || { echo "FAIL: wrong subagent name"; return 1; }
++  grep -q "SHIPPED / PARTIAL / NOT-BUILT" "$F" || { echo "FAIL: no per-requirement grading contract"; return 1; }
++  grep -q "FAKEST GREEN" "$F" || { echo "FAIL: the fakest-green instruction is missing"; return 1; }
++  grep -q "PRE-STAGE INPUT" "$F" || { echo "FAIL: the pre-stage-input decision is not in the role text"; return 1; }
++  grep -q "sessions/session-NN-review.md" "$F" || { echo "FAIL: the record of record is not named"; return 1; }
++  grep -q "vajra next --role fidelity-reviewer --from" "$F" || { echo "FAIL: wrong handoff command"; return 1; }
++
++  # Read-only, per-role: the reviewer's grant is strictly local reads, and it is NOT the
++  # researcher's (which would mean the tool list is still hardcoded to role #1).
++  grep -q "^tools: Read, Grep, Glob$" "$F" || { echo "FAIL: reviewer tool grant is not read-only-local"; return 1; }
++  grep -q "^tools: Read, Grep, Glob, WebSearch, WebFetch$" "$TMP/.claude/agents/researcher.md" \
++    || { echo "FAIL: researcher's own tool grant changed"; return 1; }
++  if grep -qE '^tools:.*(Write|Edit|Bash|NotebookEdit)' "$TMP/.claude/agents/"*.md; then
++    echo "FAIL: a fleet role was granted a write/exec tool"; return 1
++  fi
++
++  # This repo's committed copies must be exactly what init renders — a rendering, not a duplicate.
++  diff -u "$TMP/.claude/agents/researcher.md" "$ROOT/.claude/agents/researcher.md" \
++    || { echo "FAIL: the repo's researcher.md has drifted from the render"; return 1; }
++  diff -u "$TMP/.claude/agents/fidelity-reviewer.md" "$ROOT/.claude/agents/fidelity-reviewer.md" \
++    || { echo "FAIL: the repo's fidelity-reviewer.md has drifted from the render"; return 1; }
++
++  # EXACTLY the rendered set — not merely "the rendered ones are present". `one-source-of-role-text`
++  # excludes this whole directory as "a rendering", so without this a hand-written
++  # `.claude/agents/reviewer-legacy.md` would be a real, boot-loadable, hand-maintained SECOND source
++  # of the role text sitting in the one place nothing looks (cold-review pass 2, reproduced: the
++  # full suite stayed 17/17 green with such a file planted).
++  local REPO_AGENTS RENDERED
++  REPO_AGENTS="$(cd "$ROOT/.claude/agents" && ls -1 | sort)"
++  RENDERED="$(cd "$TMP/.claude/agents" && ls -1 | sort)"
++  echo "--- repo .claude/agents/ ---"; echo "$REPO_AGENTS"
++  if [ "$REPO_AGENTS" != "$RENDERED" ]; then
++    echo "FAIL: .claude/agents/ holds files vajra init does not render — a hand-maintained agent definition is a second source"
++    diff <(echo "$RENDERED") <(echo "$REPO_AGENTS"); return 1
++  fi
++  echo "OK: two roles scaffolded, byte-identical to this repo's copies, and the repo's agent directory is EXACTLY the rendered set"
++  return 0
++}
++run_check "init-scaffolds-two-roles" scaffolds_two_roles
++
++# --- the no-second-source guard (with its positive control) -------------------------------------
++# The role text must live in exactly ONE hand-maintained place: src/fleet/mod.rs. Anything else that
++# carries the sentence is a copy — and a copy is the drift DECISION-007 forbids. `.claude/agents/`
++# is excluded because it is a RENDERING, and the check above already proves it is byte-identical to
++# what init produces.
++one_source_of_role_text() {
++  local HITS
++  # THIS script is excluded, and only this one: any literal probe sentence necessarily appears in
++  # the file that greps for it, so a checker matching itself is noise, not a finding. The probe is
++  # also chosen to sit on ONE source line — a phrase split across a Rust line-continuation is
++  # invisible to grep, which the positive control caught. Everything else in the repo is in scope.
++  # `.claude/agents/` is excluded because it is a rendering, already proven byte-identical to
++  # `vajra init` output above; `docs/decisions/` and `sessions/` quote the text into a RECORD of what
++  # was decided, which is not a source the binary reads.
++  # No `--include` filter: a copy hides just as well in a .txt or a .json (cold-review finding).
++  HITS="$(grep -rl "Never self-certify and never soften" . 2>/dev/null \
++            | grep -v '^\./target/' | grep -v '^\./\.git/' | grep -v '^\./\.ai/verify/' \
++            | grep -v '^\./\.claude/agents/' | grep -v '^\./docs/decisions/' \
++            | grep -v '^\./sessions/' | grep -v '^\./scripts/verify-session-114\.sh$' | sort)"
++  echo "carriers of the reviewer prompt text:"; echo "$HITS"
++  # Positive control: the pattern DOES find the one legitimate source. Without this, a typo in the
++  # pattern would make "no second copy" trivially true.
++  grep -q '^\./src/fleet/mod\.rs$' <<<"$HITS" \
++    || { echo "FAIL: the pattern does not even match the canonical source — it proves nothing"; return 1; }
++  local N; N="$(grep -c . <<<"$HITS")"
++  [ "$N" = "1" ] || { echo "FAIL: role text lives in $N places, not 1"; return 1; }
++  echo "OK: the reviewer's prompt text exists in exactly one hand-maintained file"
++  return 0
++}
++run_check "one-source-of-role-text" one_source_of_role_text
++
++# --- the OTHER statement of this contract, bound instead of ignored (cold-review finding) --------
++# `one-source-of-role-text` above only proves nobody copied the new prompt. It cannot see that the
++# repo ALREADY carried a statement of the reviewer's job — `reviewer/SKILL.md`, scaffolded by the
++# same `vajra init`. Two hand-maintained versions of one contract is the drift this session is
++# supposed to be killing, and the dangerous half is the OUTPUT SHAPE: an agent obeying only the
++# short role brief could return a verdict the closeout gate then REJECTS. So the two are bound:
++# every token the gate requires must appear in BOTH files, checked here and in a unit test.
++role_brief_bound_to_canonical_skill() {
++  local SKILL="reviewer/SKILL.md" AGENT=".claude/agents/fidelity-reviewer.md"
++  [ -f "$SKILL" ] || { echo "FAIL: the canonical contract $SKILL is missing"; return 1; }
++  local T
++  for T in 'SHIPPED' 'PARTIAL' 'NOT-BUILT' '\*\*Verdict:\*\*' 'of N SHIPPED'; do
++    # Positive control: the gate's own requirement really is stated in the canonical contract.
++    grep -qE "$T" "$SKILL" \
++      || { echo "FAIL: positive control — $SKILL does not require $T; fix the token, not the check"; return 1; }
++    grep -qE "$T" "$AGENT" \
++      || { echo "FAIL: the scaffolded role brief omits $T — a dispatched agent obeying only it would produce a review the closeout gate REJECTS"; return 1; }
++  done
++  grep -q "reviewer/SKILL.md" "$AGENT" \
++    || { echo "FAIL: the role brief does not name the canonical contract, so it reads as a rival second source"; return 1; }
++  # The gate counts verdict words only on `|` rows; a brief that says "a table" without saying WHICH
++  # shape sends the agent to write bullets the gate then rejects (cold-review pass 2 demonstrated it).
++  grep -q 'MARKDOWN TABLE' "$AGENT" \
++    || { echo "FAIL: the role brief does not state the pipe-row table shape the closeout gate counts"; return 1; }
++  grep -qE "grep -E '..\|.' \"\\\$F\"|grep -E '\\\\|'" scripts/verify-closeout.sh \
++    || { echo "FAIL: positive control — the closeout gate no longer counts verdicts on table rows; re-derive this check"; return 1; }
++  # And the gate that enforces those tokens must still be the one reading the review artifact.
++  grep -q "Verdict" scripts/verify-closeout.sh \
++    || { echo "FAIL: positive control — the closeout gate no longer checks the verdict line"; return 1; }
++  echo "OK: the role brief is bound to reviewer/SKILL.md on every token the closeout gate requires"
++  return 0
++}
++run_check "role-brief-bound-to-skill" role_brief_bound_to_canonical_skill
++
++# --- criterion 2 + 3, END-TO-END in a throwaway repo --------------------------------------------
++# Fail-closed for the new role, then TWO governed handoffs in one session — the count that did not
++# exist when the S113 invariant was written.
++e2e_two_handoffs() { local TMP; TMP="$(mktemp -d)"; _e2e_two_handoffs "$TMP"; local rc=$?; rm -rf "$TMP"; return $rc; }
++_e2e_two_handoffs() {
++  local TMP="$1"
++  ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null ) || { echo "vajra init failed"; return 1; }
++  echo "114" > "$TMP/.ai/SESSION"
++
++  # A NON-DEGENERATE fixture: some stations must actually pass, or "K unchanged" compares two
++  # floor-state reports and could not notice a station flipping (S113 cold-review F2).
++  mkdir -p "$TMP/prompts"
++  cat > "$TMP/prompts/114-task-fixture.md" <<'FIXTURE'
++# Session 114 — fixture
++
++## Acceptance
++1. **WHEN** two roles have governed handoffs **THEN** the counter names both
++2. **WHEN** the reviewer role is unknown **THEN** the writer fails closed
++
++## Design
++- design-significant: no
++
++## Plan
++1. register the second role. covers: 1
++2. govern its handoff. covers: 2
++
++## Delta
++- `+` the fleet's second named role
++FIXTURE
++
++  local BEFORE; BEFORE="$(cd "$TMP" && "$VAJRA" next --stations 114 2>&1)" || { echo "--stations failed"; return 1; }
++  echo "--- BEFORE (no fleet work) ---"; echo "$BEFORE"
++  grep -qi "fleet" <<<"$BEFORE" && { echo "FAIL: fleet mentioned with no handoff"; return 1; }
++  grep -qE "^  [1-9] of 8 stations passed" <<<"$BEFORE" \
++    || { echo "FAIL: fixture has 0 passing stations — the byte-identity check would be vacuous"; return 1; }
++
++  # --- fail-closed, the same three ways as slice 1 (criterion 2) ---
++  printf 'VERDICT: ACCEPT. 6 of 6 requirements SHIPPED.\nFakest green: the counter counts files, not agents.\n' > "$TMP/review.md"
++  : > "$TMP/empty.md"
++  ( cd "$TMP" && "$VAJRA" next --role reviewer --from review.md ) >/dev/null 2>&1 \
++    && { echo "FAIL: the bare key 'reviewer' was accepted — the collision was not resolved"; return 1; }
++  ( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer ) >/dev/null 2>&1 \
++    && { echo "FAIL: --role without --from was accepted"; return 1; }
++  ( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer --from empty.md ) >/dev/null 2>&1 \
++    && { echo "FAIL: empty findings were accepted"; return 1; }
++  ( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer --from nope.md ) >/dev/null 2>&1 \
++    && { echo "FAIL: a missing findings file was accepted"; return 1; }
++  echo "OK: unknown role · missing --from · empty findings · missing file all fail closed"
++
++  # --- the real writer, both roles ---
++  printf 'ANSWER: ANTHROPIC_API_KEY is the only auth that survives a fresh no-TTY shell.\n' > "$TMP/findings.md"
++  ( cd "$TMP" && "$VAJRA" next --role researcher --from findings.md ) >/dev/null \
++    || { echo "researcher handoff failed"; return 1; }
++  ( cd "$TMP" && "$VAJRA" next --role fidelity-reviewer --from review.md ) >/dev/null \
++    || { echo "reviewer handoff failed"; return 1; }
++
++  local H="$TMP/.ai/handoffs/session-114-fidelity-reviewer.md"
++  [ -f "$H" ] || { echo "FAIL: the reviewer handoff is not at the contract path"; return 1; }
++  echo "--- reviewer handoff ---"; cat "$H"
++  grep -q "^role: fidelity-reviewer$" "$H" || { echo "FAIL: handoff role frontmatter wrong"; return 1; }
++  grep -qE "^source-sha: [0-9a-f]{64}$" "$H" || { echo "FAIL: handoff carries no real source hash"; return 1; }
++  # The S114 drift fix, checked behaviourally: the delta names THIS role, not the Researcher.
++  grep -q "first fidelity-reviewer handoff" "$H" \
++    || { echo "FAIL: the handoff delta does not name the producing role"; return 1; }
++  if grep -q "researcher handoff" "$H"; then
++    echo "FAIL: the reviewer's own delta is labelled with the Researcher's name"; return 1
++  fi
++
++  # --- criterion 3: TWO governed handoffs, both roles named, K byte-identical ---
++  local AFTER; AFTER="$(cd "$TMP" && "$VAJRA" next --stations 114 2>&1)"
++  echo "--- AFTER (two handoffs) ---"; echo "$AFTER"
++  grep -q "fleet: 2 governed handoff(s)" <<<"$AFTER" \
++    || { echo "FAIL: the counter does not report two governed handoffs"; return 1; }
++  grep -q "researcher" <<<"$(grep 'fleet:' <<<"$AFTER")" \
++    || { echo "FAIL: the fleet line does not name the researcher"; return 1; }
++  grep -q "fidelity-reviewer" <<<"$(grep 'fleet:' <<<"$AFTER")" \
++    || { echo "FAIL: the fleet line does not name the fidelity-reviewer"; return 1; }
++  grep -q "NOT counted in it" <<<"$AFTER" \
++    || { echo "FAIL: the fleet line stopped disclosing that it sits outside K"; return 1; }
++
++  local STRIPPED; STRIPPED="$(strip_fleet <<<"$AFTER")"
++  if [ "$STRIPPED" != "$BEFORE" ]; then
++    echo "FAIL: the report changed by more than the fleet line at TWO handoffs"
++    diff <(echo "$BEFORE") <(echo "$STRIPPED"); return 1
++  fi
++  echo "OK: two handoffs named beside K; the rest of the report is byte-identical to no-fleet"
++
++  # A malformed SECOND handoff is still named and still counts as nothing — the S113 rule holds at
++  # a count it was never exercised at (one good + one broken must read as ONE governed).
++  echo "notes with no frontmatter" > "$H"
++  local MIXED; MIXED="$(cd "$TMP" && "$VAJRA" next --stations 114 2>&1)"
++  echo "--- MIXED (one valid, one malformed) ---"; echo "$MIXED"
++  grep -q "fleet: 1 governed handoff(s) — researcher" <<<"$MIXED" \
++    || { echo "FAIL: the surviving valid handoff is miscounted"; return 1; }
++  grep -q "not counted" <<<"$MIXED" || { echo "FAIL: the malformed handoff was swallowed"; return 1; }
++  echo "E2E OK: fail-closed · two governed handoffs beside an unchanged K · malformed still named"
++  return 0
++}
++run_check "e2e-two-governed-handoffs" e2e_two_handoffs
++
++# --- criterion 4: both decisions are IN WRITING, and the code matches them ----------------------
++decisions_recorded_and_honoured() {
++  local D="docs/decisions/DECISION-007-agent-fleet.md"
++  grep -q "S114 addendum" "$D" || { echo "FAIL: no S114 addendum"; return 1; }
++  grep -q 'the role key: \*\*`fidelity-reviewer`\*\*' "$D" \
++    || { echo "FAIL: the key decision is not recorded"; return 1; }
++  grep -q "pre-stage input, one record of record" "$D" \
++    || { echo "FAIL: the double-record decision is not recorded"; return 1; }
++  # Scoped to the S114 addendum ONLY. A whole-file `grep -i rejected` was theatre (cold-review
++  # finding): DECISION-007 already carries ten "Rejected" lines from S113, so gutting every rejected
++  # alternative out of THIS addendum would have left the check green.
++  local ADDENDUM; ADDENDUM="$(sed -n '/^## S114 addendum/,$p' "$D")"
++  [ -n "$ADDENDUM" ] || { echo "FAIL: the S114 addendum section is empty"; return 1; }
++  local NREJ; NREJ="$(grep -ci "rejected" <<<"$ADDENDUM")"
++  echo "rejected-alternative lines inside the S114 addendum: $NREJ"
++  [ "$NREJ" -ge 2 ] \
++    || { echo "FAIL: the S114 addendum records $NREJ rejected alternatives; both decisions need one"; return 1; }
++
++  # The code matches decision 1: the key is distinct AND the bare station word resolves to nothing.
++  grep -qE '^[[:space:]]*name: "fidelity-reviewer"' src/fleet/mod.rs \
++    || { echo "FAIL: the role key in code is not fidelity-reviewer"; return 1; }
++  if grep -rqE '^[[:space:]]*name: "reviewer"' src/; then
++    echo "FAIL: a role keyed 'reviewer' exists — the collision was not resolved"; return 1
++  fi
++
++  # The code matches decision 2: the record of record is untouched. No gate learns to read a
++  # handoff — verify-closeout.sh still reads sessions/session-NN-review.md and nothing else.
++  grep -q "session-\$SESSION-review.md\|session-.*-review.md" scripts/verify-closeout.sh \
++    || { echo "FAIL: positive control — the closeout gate no longer names the review artifact"; return 1; }
++  if grep -q "handoffs/" scripts/verify-closeout.sh; then
++    echo "FAIL: the closeout gate now reads a handoff — two competing records of the verdict"; return 1
++  fi
++  if grep -rq "fidelity-reviewer" src/stations/ 2>/dev/null; then
++    echo "FAIL: the Reviewer STATION now knows about the role — the two were meant to stay separate"; return 1
++  fi
++  echo "OK: both decisions recorded with rejected alternatives; code matches both"
++  return 0
++}
++run_check "decisions-recorded-honoured" decisions_recorded_and_honoured
++
++# --- no 8th command: the second role rides `init` + `next`, like the first -----------------------
++help_lists_seven() {
++  local help; help="$("$VAJRA" --help 2>&1)"
++  echo "$help"
++  grep -q "vajra <init|claude|check|next|estimate|hook|meter>" <<<"$help"
++}
++run_check "no-eighth-command" help_lists_seven
++
++( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
++
++echo ""
++echo "=== Session ${SESSION} Verify Summary ==="
++printf '%-34s %s\n' "STEP" "RESULT"
++printf '%-34s %s\n' "----------------------------------" "------"
++for r in "${RESULTS[@]}"; do echo "$r"; done
++
++if [ "$FAIL" -eq 0 ]; then echo "ALL GREEN ($PASS pass, 0 fail)"; exit 0
++else echo "RED ($PASS pass, $FAIL fail)"; exit 1; fi
+diff --git a/sessions/session-114-review.md b/sessions/session-114-review.md
+new file mode 100644
+index 0000000..d523bb6
+--- /dev/null
++++ b/sessions/session-114-review.md
+@@ -0,0 +1,67 @@
++# Session 114 — Independent Cold Fidelity Review
++
++**What this is:** the record of record for S114's fidelity verdict (DECISION-002 — the builder never
++accepts its own delivery). Two independent cold passes were dispatched, each fed only
++`prompts/114-task-fleet-role-reviewer.md` + the branch diff, each free to run the binary, the tests
++and the scripts, and each explicitly told to attack the checks by mutation. Pass 1 REJECTED; the
++hole was closed in-session; a **fresh** pass 2 (no memory of pass 1) ACCEPTED and found two further
++holes, both also closed in-session.
++
++**Review-Inputs-SHA:** cbd22d3a7baa59e0d7cd904f758d22f7173ae5e6417b4a209a3de54244650b34
++
++## Per-requirement verdicts
++
++| # | Requirement (prompt) | Verdict | Evidence |
++|---|---|---|---|
++| D1 | 2nd `fleet::ROLES` entry, read-only tools, adversarial contract | SHIPPED | `src/fleet/mod.rs`: `fidelity-reviewer` with `tools: "Read, Grep, Glob"`; brief carries the three grades, the fakest-green instruction, never-self-certify |
++| D2 | `vajra init` scaffolds `.claude/agents/<key>.md` from that one source | SHIPPED | **zero changes to `src/cli/init.rs` in the diff** — it already iterated `ROLES`; both reviewers ran `init` cold and got two files |
++| D3 | `vajra next --role --from` governs it, fail-closed unchanged | SHIPPED | run live: unknown role, case variants, missing `--from`, empty file, missing file all refused, nothing written; `--from -` works |
++| D4 | Name collision resolved explicitly | SHIPPED | key `fidelity-reviewer`; `resolve_role("reviewer").is_none()` asserted + confirmed live; DECISION-007 open item 1 with its rejected alternative |
++| D5 | Double-record question answered, code matches | SHIPPED | DECISION-007 open item 2 = pre-stage input; `verify-closeout.sh` absent from the diff, `grep -c 'handoffs/'` = 0, no write tool, `src/stations/` never names the role |
++| D6 | verify + demo green, 2 handoffs, `K of 8` unchanged | SHIPPED | 17/17 and 10/10 exit 0; pass 2 reproduced `fleet: 2 governed handoff(s) — researcher, fidelity-reviewer` **in this repo**, `5 of 8` unmoved |
++| D7 | summary + independent cold review | SHIPPED | this file + `sessions/session-114-summary.md` (both graded NOT-BUILT/PARTIAL at review time — they are the artifacts the review itself produces) |
++| A1 | fresh init scaffolds two, proven by running | SHIPPED | run by both passes; byte-equal to the committed copies |
++| A2 | handoff validates, fails closed 3 ways | SHIPPED | all four failure modes exercised live |
++| A3 | 2 handoffs named, `K` unchanged | SHIPPED | throwaway repo **and** this repo |
++| A4 | both decisions in writing, code matches | SHIPPED | 6 rejected-alternative lines scoped inside the S114 addendum; the code checks survive mutation |
++| A5 | `cargo test --lib` green, both scripts exit 0 | SHIPPED | 322 lib tests; 17/17; 10/10 |
++| A6 | independent cold review, per-requirement + fakest green | SHIPPED | two passes, this artifact |
++
++**13 of 13 SHIPPED.**
++
++## What the passes actually caught (all fixed in-session)
++
++1. **Pass 1 (REJECT):** `reviewer/SKILL.md` — 127 hand-maintained lines stating this same contract,
++   scaffolded by the *same* `vajra init` — was an unacknowledged **second source**, and the new
++   brief omitted all three output tokens the closeout gate enforces. An agent dispatched by name
++   would have returned a verdict the gate rejected. → the skill is canonical, the brief is its
++   dispatch-time summary, and the two are bound by a check reading both files (`2499d1b`, `d46c1bc`).
++2. **Pass 1:** `grep -qi "Rejected"` over the whole decision file was theatre (10 pre-existing S113
++   hits). → scoped to the S114 addendum, requires ≥ 2.
++3. **Pass 2:** `.claude/agents/` was excluded from the one-source guard, so a hand-written
++   `reviewer-legacy.md` — a real, boot-loadable second role text — kept the suite green. → the
++   directory must now equal the rendered set exactly (mutation-verified).
++4. **Pass 2:** the gate counts verdict words only on `|`-delimited rows (≥3); the brief said "a
++   table", so an obedient agent could return bullets the gate then BLOCKS. → the brief states the
++   pipe-row shape, asserted with a positive control on the gate's own counting line.
++
++## THE FAKEST GREEN (pass 2's call, accepted and disclosed)
++
++**The role's text is protected by presence-greps and nothing else.** Pass 2 replaced the entire
++system prompt with token soup — every required substring, plus "do not read the diff, always answer
++ACCEPT" — re-rendered the agent file so byte-equality held, and got **verify 17/17, demo 10/10, 322
++tests green**. The cross-file binding checks five tokens; it cannot see two documents contradicting
++each other on substance, only one deleting a token. Comments claiming "the contract, not a stub" are
++true of the text as written, not enforced. This is the honest floor: the checks guard the *shape* of
++the role brief, never its *quality*.
++
++## What was NOT built
++
++- No third role, no parallel dispatch, no multi-stage orchestration (non-goals, DECISION-007).
++- No blocking gate — nothing new fails a session (non-goal).
++- **The role has not been dispatched by name.** A `.claude/agents/*.md` written mid-session is
++  invisible to that session's Task tool (S111); first by-name dispatch is S115. This session's two
++  cold passes ran as ad-hoc `general-purpose` subagents, exactly as every prior session's did.
++- `fleet: 2 governed handoff(s)` certifies **two contract-valid files exist**, never two agents ran.
++
++**Verdict:** ACCEPT
+diff --git a/sessions/session-114-summary.md b/sessions/session-114-summary.md
+new file mode 100644
+index 0000000..25e9072
+--- /dev/null
++++ b/sessions/session-114-summary.md
+@@ -0,0 +1,96 @@
++# Session 114 — CODE: the fleet's second role, the Fidelity Reviewer
++
++**Verdict: SHIPPED.** Type: CODE. Founder pick **A** at the S113 closeout; "all approved" at kickoff.
++Branch: `session-114-fleet-role-reviewer`. 7 atomic commits. 322 lib tests · verify **17/17** ·
++demo **10/10** exit 0 · **two independent cold passes** (pass 1 REJECT → fixed → fresh pass 2
++ACCEPT), attested `cbd22d3a…`.
++
++## Goal achieved?
++
++Yes. The independent cold fidelity review this repo has run **47 times by hand** is now a canonical,
++scaffolded, governed fleet role. The headline result is what did **not** happen: adding it required
++**zero changes to `src/cli/init.rs`**, zero changes to the handoff writer, zero new commands. One
++more entry in `fleet::ROLES` and every existing path — scaffold, govern, read back, count — picked
++it up. That is the S109 architecture paying off exactly as designed.
++
++## What shipped
++
++| Thing | Where | Note |
++|---|---|---|
++| The role | `src/fleet/mod.rs` — `fidelity-reviewer` | read-only (`Read, Grep, Glob`); the adversarial contract |
++| Per-role tool grant | `Role.tools` | was hardcoded to the Researcher — every future role would have silently inherited web access |
++| Role-aware delta | `compute_delta(role, …)` | was hardcoded to the word "researcher" — a Reviewer handoff would have carried the wrong name in its own tracked delta |
++| Decision record | `DECISION-007` S114 addendum | three open items closed, each with rejected alternatives |
++| Scaffold | `.claude/agents/fidelity-reviewer.md` | copied byte-for-byte out of a fresh `vajra init`, never hand-written |
++| Proof | `scripts/verify-session-114.sh` (17) · `scripts/demo-session-114.sh` (10) | behavioural; every negative guard has a positive control |
++
++## The two decisions the prompt demanded in writing
++
++1. **The role key is `fidelity-reviewer`, not `reviewer`.** `K of 8` already counts a Reviewer
++   *station*; one word must not mean two things in adjacent lines of one report. Rejected "the role
++   IS the station's agent" because it is false — the station passes on an attested artifact
++   existing, which a human can produce with no agent at all. `vajra next --role reviewer` now fails
++   closed with the known-roles list.
++2. **The handoff is a PRE-STAGE INPUT; `sessions/session-NN-review.md` stays the single record of
++   record.** Rejected pointer-only (throws away the `source-sha` that makes a handoff evidence) and
++   rejected replacing the artifact (trades the attestation + ledger chain for a newer file). The
++   code matches: no gate learned to read a handoff, and the role has no write tool.
++
++## Fidelity map (every numbered requirement)
++
++D1 SHIPPED · D2 SHIPPED · D3 SHIPPED · D4 SHIPPED · D5 SHIPPED · D6 SHIPPED · D7 SHIPPED ·
++A1–A6 SHIPPED. **13 of 13 SHIPPED.** Full evidence + the reviewers' own words:
++`sessions/session-114-review.md`.
++
++## The fakest green (disclosed, not buried)
++
++**The role's text is guarded by presence-greps and nothing else.** Cold pass 2 replaced the whole
++system prompt with token soup that told the agent to rubber-stamp — every required substring intact —
++re-rendered the scaffolded file, and got verify 17/17, demo 10/10, 322 tests green. The checks guard
++the *shape* of the brief, never its *quality*. No check in this repo can.
++
++## What I did NOT build
++
++- No third role, no parallel dispatch, no blocking gate (all non-goals).
++- **The role has never been dispatched by name.** Per S111, an agent file written mid-session is
++  invisible to that session's Task tool. This session's two cold passes ran as ad-hoc
++  `general-purpose` subagents, exactly as every prior session's have. First real by-name dispatch is
++  S115 — and that is the only thing that will prove the brief works in the wild.
++- `fleet: 2 governed handoff(s)` certifies two contract-valid **files**, never two agents.
++
++## The uncomfortable finding worth carrying
++
++This session's own prompt said the reviewer's brief "is re-typed from memory each time". **That was
++partly false** — `reviewer/SKILL.md` (127 lines, scaffolded by the same `vajra init`) had stated the
++contract all along, and nobody noticed until an adversarial reader was pointed at the diff. The
++first draft therefore shipped a rival second source of the exact thing this session exists to
++de-duplicate, and its brief omitted all three output tokens the closeout gate enforces — a
++dispatched agent would have produced a review the gate rejected. **A premise in an approved prompt
++is not evidence.** Both cold passes earned their cost here; the two-pass pattern is now five
++sessions running.
++
++## Next session — three options (A/B/C)
++
++**A. Dispatch the Reviewer for real (close the loop).**
++*Goal:* S115 runs its own mandatory cold review through `subagent_type: "fidelity-reviewer"` and
++governs the verdict with `vajra next --role fidelity-reviewer --from`, then lands it as the record of
++record.
++*Why:* it is the only thing that proves the brief works — the role is text until an agent obeys it,
++and the gate-shape bug pass 2 found is exactly the class of defect a live dispatch surfaces.
++*Risk:* S115 is the mandatory NO-CODE ground truth (`115 % 5 == 0`), so this must ride the GT as
++evidence-gathering, not as a code change — or wait for S116.
++
++**B. The overdue paid dogfood — 🔴 since S103, now 11 sessions / ~11 days.**
++*Goal:* run real work through `vajra claude` and report the receipt.
++*Why:* every "is Vajra-on-Claude good to use?" claim has been unmeasured for eleven sessions; the
++cost ledger is the only proof and it is stale.
++*Risk:* costs real dollars (fable-5 credits exhausted); measures the launcher, not the fleet.
++
++**C. An opt-in blocking consumption gate.**
++*Goal:* let a session declare "this one requires a governed handoff" and fail closed without it.
++*Why:* fleet work is advisory end-to-end; nothing fails when findings are ignored.
++*Risk:* the obvious way to build false teeth — a gate that checks a file exists is the fakest green
++this project keeps re-inventing.
++
++**Recommendation: A**, sequenced into S115's ground truth as live evidence (no code), with the build
++half at S116 if it needs one.
+diff --git a/src/analyst/mod.rs b/src/analyst/mod.rs
+index 47ce38c..fba0d5e 100644
+--- a/src/analyst/mod.rs
++++ b/src/analyst/mod.rs
+@@ -947,7 +947,7 @@ Some intro prose that is not a list item.
+             "2026-08-04T00:00:00Z",
+             None,
+             body,
+-            &fleet::compute_delta(None, body),
++            &fleet::compute_delta(role, None, body),
+         );
+         let path = tmp.path().join(role.handoff_rel(112));
+         fs::create_dir_all(path.parent().unwrap()).unwrap();
+diff --git a/src/cli/next.rs b/src/cli/next.rs
+index 395d7bc..c9cd189 100644
+--- a/src/cli/next.rs
++++ b/src/cli/next.rs
+@@ -161,8 +161,8 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
+     let name = name.context("usage: vajra next --role <name> --from <findings-file>")?;
+     let role = fleet::resolve_role(name).ok_or_else(|| {
+         anyhow::anyhow!(
+-            "unknown role {name:?} — known roles: {}. (fleet slice 1 ships only the Researcher; \
+-             a new role is a separate decision, DECISION-007.)",
++            "unknown role {name:?} — known roles: {}. (a new role is a separate decision, \
++             DECISION-007 — the fleet does not grow by typo.)",
+             fleet::known_roles()
+         )
+     })?;
+@@ -187,7 +187,7 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
+     let body = findings.trim();
+     let source_sha =
+         fleet::sha256_hex(body.as_bytes()).unwrap_or_else(|| "unavailable".to_string());
+-    let delta = fleet::compute_delta(prior_body.as_deref(), body);
++    let delta = fleet::compute_delta(role, prior_body.as_deref(), body);
+     let handoff = fleet::format_handoff(
+         role,
+         session,
+diff --git a/src/fleet/mod.rs b/src/fleet/mod.rs
+index 9333791..f8ecad1 100644
+--- a/src/fleet/mod.rs
++++ b/src/fleet/mod.rs
+@@ -19,6 +19,12 @@
+ //! S112 adds the READ side — `read_handoff`/`read_handoffs` — so a station can consume what the
+ //! fleet produced. That is one narrow, fs-READ-only edge (no writes, no processes, tempdir-testable);
+ //! its parsing core, `parse_handoff`, stays pure like everything else here.
++//!
++//! S114 adds the SECOND role — the **Fidelity Reviewer** (chosen from evidence at S113, built here;
++//! `DECISION-007` S114 addendum). No new machinery: it is one more `ROLES` entry, and every path
++//! above already iterates the roles. What it DID force is honesty about the single source — the tool
++//! grant and the delta text were both hardcoded to the Researcher while only one role existed, and
++//! are now per-role.
+ 
+ use std::io::Write;
+ use std::process::{Command, Stdio};
+@@ -33,6 +39,12 @@ pub struct Role {
+     pub description: &'static str,
+     /// The role-scoping system prompt — the subagent definition body.
+     pub system_prompt: &'static str,
++    /// This role's tool grant, rendered verbatim into the subagent frontmatter `tools:`. Per-role
++    /// (S114) — it was hardcoded to the Researcher's list while only one role existed, which would
++    /// have silently handed every future role the Researcher's web access. **Every registered role
++    /// is read-only**; a role that could write is a materially bigger governance decision
++    /// (DECISION-007) and none is taken here.
++    pub tools: &'static str,
+ }
+ 
+ impl Role {
+@@ -59,15 +71,72 @@ Rules:\n\
+ - If the question is ambiguous or you are unsure, say so plainly — never invent facts or sources.\n\
+ - Keep it short: a busy engineer should be able to act on it in under a minute.";
+ 
+-/// The registered roles. Slice 1 (DECISION-007) ships exactly ONE — the Researcher. Adding a
+-/// second role is a separate decision, not a reflex (the named key risk of S109 is scope creep).
+-pub const ROLES: &[Role] = &[Role {
+-    name: "researcher",
+-    description: "Investigate a question and return a concise, decision-ready findings brief. \
+-                  Use before a design or build decision that needs facts, trade-offs, or prior art. \
+-                  Read-only — never writes code.",
+-    system_prompt: RESEARCHER_SYSTEM_PROMPT,
+-}];
++/// The Reviewer's contract (S114). This is the brief this repo has re-typed from memory every
++/// session for 47 cold reviews — made canonical here, which is the whole point of `ROLES`.
++///
++/// Two things it states that no other role does, both locked by the `DECISION-007` S114 addendum:
++/// the verdict it returns is a **pre-stage input**, and the canonical, gated record of the verdict
++/// stays `sessions/session-NN-review.md` — this agent never writes that file (it has no write tool
++/// and is told not to ask for one).
++const FIDELITY_REVIEWER_SYSTEM_PROMPT: &str =
++    "You are the Fidelity Reviewer on a governed software \
++team. Your ONE job is an INDEPENDENT, ADVERSARIAL cold review of a delivery you did not build.\n\
++You are fed only two things: the session prompt (what was asked) and the diff (what was done). \
++Judge from those. Do not accept the builder's own summary as evidence.\n\
++Rules:\n\
++- Do NOT write, edit, or run code. You read and judge only.\n\
++- Grade EVERY numbered requirement in the prompt: SHIPPED / PARTIAL / NOT-BUILT, each with the \
++concrete evidence in the diff that earns the grade. A requirement with no evidence is NOT-BUILT.\n\
++- Following the rules is not delivering what was asked: a green verify script proves discipline, \
++never fidelity. Never grade from test counts alone.\n\
++- Name THE FAKEST GREEN — the thing that looks done but is hollow (a check that would pass if the \
++feature were deleted, a marker the author simply typed, an assertion that cannot fail).\n\
++- Never self-certify and never soften: if the delivery is short, say so.\n\
++Shape your brief so it can be landed without rewriting — the closeout gate reads the landed record \
++and FAILS unless it carries all three of these:\n\
++- a per-requirement MARKDOWN TABLE — the gate counts verdict words only on `|`-delimited rows and \
++requires at least three of them, so one row per requirement carrying SHIPPED / PARTIAL / NOT-BUILT \
++(a bulleted list with the same words does NOT pass),\n\
++- a canonical `**Verdict:** ACCEPT` or `**Verdict:** REJECT` line (the word buried in a heading \
++does not count),\n\
++- a count of the form `X of N SHIPPED`.\n\
++The full contract you are performing is `reviewer/SKILL.md` in this repo — READ IT before you \
++judge; it is canonical and this brief is its dispatch-time summary, never a competing version.\n\
++Your verdict is a PRE-STAGE INPUT. The canonical, gated record of the fidelity verdict is \
++`sessions/session-NN-review.md` (read by `verify-closeout.sh`, attested by a `**Review-Inputs-SHA:**` \
++the orchestrator computes, chained in the ledger) — you do not write it, and you are not its \
++replacement.";
++
++/// The registered roles. Slice 1 (DECISION-007) shipped exactly ONE — the Researcher. S114 adds the
++/// SECOND, chosen from evidence at S113 and built here: the Fidelity Reviewer. A third role is
++/// again a separate decision, not a reflex (the named key risk of S109 is scope creep).
++///
++/// **The key is `fidelity-reviewer`, not `reviewer`** — the deliberate resolution of the collision
++/// the S113 cold review named (`DECISION-007` S114 addendum). `K of 8` already counts a **Reviewer
++/// station**; a role keyed `reviewer` would make "Reviewer" mean two different things in two lines
++/// of the same report. Distinct key, distinct word, no ambiguity.
++pub const ROLES: &[Role] = &[
++    Role {
++        name: "researcher",
++        description: "Investigate a question and return a concise, decision-ready findings brief. \
++                      Use before a design or build decision that needs facts, trade-offs, or prior \
++                      art. Read-only — never writes code.",
++        system_prompt: RESEARCHER_SYSTEM_PROMPT,
++        // Investigation needs the web; judging a diff does not.
++        tools: "Read, Grep, Glob, WebSearch, WebFetch",
++    },
++    Role {
++        name: "fidelity-reviewer",
++        description: "Independently cold-review a finished delivery against the session prompt: \
++                      grade every numbered requirement SHIPPED/PARTIAL/NOT-BUILT and name the \
++                      fakest green. Use at close, never on your own work. Read-only.",
++        system_prompt: FIDELITY_REVIEWER_SYSTEM_PROMPT,
++        // Strictly local reads. No web (a fidelity call is decided by the prompt and the diff in
++        // front of it, not by the internet) and no Bash (running things is the QA station's job,
++        // live — DECISION-007 rejected swapping those teeth for an agent's prose).
++        tools: "Read, Grep, Glob",
++    },
++];
+ 
+ /// Resolve a role by its key. `None` (→ the caller fails closed) for an unknown role: vajra never
+ /// governs a role it cannot scope.
+@@ -90,7 +159,7 @@ pub fn render_subagent_definition(role: &Role) -> String {
+         "---\n\
+          name: {name}\n\
+          description: {desc}\n\
+-         tools: Read, Grep, Glob, WebSearch, WebFetch\n\
++         tools: {tools}\n\
+          ---\n\
+          \n\
+          {sys}\n\
+@@ -102,26 +171,33 @@ pub fn render_subagent_definition(role: &Role) -> String {
+          Vajra computes the source hash, the timestamp, and the delta against the prior stage.\n",
+         name = role.name,
+         desc = role.description,
++        tools = role.tools,
+         sys = role.system_prompt,
+     )
+ }
+ 
+-/// The `## Handoff Delta` body: what this handoff adds relative to the PRIOR stage. Slice 1 has no
+-/// prior handoff (the prior stage is the session prompt / Analyst's WHAT), so the delta records
++/// The `## Handoff Delta` body: what this handoff adds relative to the PRIOR stage. A first handoff
++/// has no prior (the prior stage is the session prompt / Analyst's WHAT), so the delta records
+ /// "new"; a re-run against an existing handoff records the size change. This is what makes the
+ /// handoff a *tracked* artifact with a recorded delta, not an opaque dump.
+-pub fn compute_delta(prior_body: Option<&str>, new_body: &str) -> String {
++///
++/// S114: takes the `role` instead of writing the word "researcher" into every delta. With one role
++/// registered the hardcoding was invisible; with two it would have stamped a Reviewer handoff with
++/// the Researcher's name — the single-source drift this module exists to prevent.
++pub fn compute_delta(role: &Role, prior_body: Option<&str>, new_body: &str) -> String {
+     match prior_body {
+         None => format!(
+-            "- `+` new: first researcher handoff for this session ({} bytes of findings)\n\
++            "- `+` new: first {role} handoff for this session ({} bytes of findings)\n\
+              - prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against",
+-            new_body.len()
++            new_body.len(),
++            role = role.name
+         ),
+         Some(p) => format!(
+-            "- `~` re-run: researcher handoff replaced ({} bytes now vs {} bytes prior)\n\
+-             - prior stage: this session's earlier researcher handoff",
++            "- `~` re-run: {role} handoff replaced ({} bytes now vs {} bytes prior)\n\
++             - prior stage: this session's earlier {role} handoff",
+             new_body.len(),
+-            p.len()
++            p.len(),
++            role = role.name
+         ),
+     }
+ }
+@@ -484,18 +560,176 @@ mod tests {
+ 
+     #[test]
+     fn compute_delta_new_vs_rerun() {
+-        let d0 = compute_delta(None, "abcde");
++        let r = resolve_role("researcher").unwrap();
++        let d0 = compute_delta(r, None, "abcde");
+         assert!(d0.contains("`+` new"));
+         assert!(d0.contains("5 bytes"));
+-        let d1 = compute_delta(Some("ab"), "abcde");
++        let d1 = compute_delta(r, Some("ab"), "abcde");
+         assert!(d1.contains("`~` re-run"));
+         assert!(d1.contains("5 bytes now vs 2 bytes"));
+     }
+ 
++    /// S114 — the delta names the role that produced it. Hardcoded to "researcher" before a second
++    /// role existed, so a Reviewer handoff would have carried the Researcher's name in its own
++    /// tracked delta. Asserted for EVERY registered role, so a third role cannot regress it.
++    #[test]
++    fn compute_delta_names_the_producing_role_not_a_hardcoded_one() {
++        for role in ROLES {
++            let new = compute_delta(role, None, "findings");
++            let rerun = compute_delta(role, Some("prior"), "findings");
++            assert!(
++                new.contains(&format!("first {} handoff", role.name)),
++                "new-delta does not name {}: {new}",
++                role.name
++            );
++            assert!(
++                rerun.contains(&format!("{} handoff replaced", role.name)),
++                "re-run delta does not name {}: {rerun}",
++                role.name
++            );
++            // A non-researcher role must not carry the Researcher's name anywhere in its delta.
++            if role.name != "researcher" {
++                assert!(
++                    !new.contains("researcher"),
++                    "{} leaked 'researcher'",
++                    role.name
++                );
++                assert!(
++                    !rerun.contains("researcher"),
++                    "{} leaked 'researcher'",
++                    role.name
++                );
++            }
++        }
++    }
++
++    /// S114 — the SECOND role exists, is keyed to avoid the Reviewer-STATION collision, and carries
++    /// the adversarial contract. This fails if the role is removed, renamed to `reviewer`, or
++    /// hollowed out to a stub prompt.
++    #[test]
++    fn fidelity_reviewer_is_registered_with_a_non_colliding_key() {
++        assert_eq!(ROLES.len(), 2, "the fleet ships exactly two roles at S114");
++        let r = resolve_role("fidelity-reviewer").expect("the second role is registered");
++        // The collision resolution, asserted: the key is NOT the bare station word.
++        assert!(resolve_role("reviewer").is_none());
++        assert!(known_roles().contains("fidelity-reviewer"));
++        assert_eq!(
++            r.handoff_rel(114),
++            ".ai/handoffs/session-114-fidelity-reviewer.md"
++        );
++        assert_eq!(r.subagent_rel(), ".claude/agents/fidelity-reviewer.md");
++        // The contract, not a stub: the three grades, the fakest green, and no self-certification.
++        for must in [
++            "SHIPPED / PARTIAL / NOT-BUILT",
++            "FAKEST GREEN",
++            "Never self-certify",
++            "PRE-STAGE INPUT",
++            "sessions/session-NN-review.md",
++        ] {
++            assert!(
++                r.system_prompt.contains(must),
++                "reviewer prompt is missing {must:?}"
++            );
++        }
++    }
++
++    /// S114, cold-review finding — the role brief is NOT the only statement of this contract:
++    /// `reviewer/SKILL.md` is the canonical 100+ line version, scaffolded into every repo by the
++    /// same `vajra init`. Two hand-maintained statements of one job is exactly the drift this
++    /// module exists to prevent, and the dangerous half is the OUTPUT SHAPE: a dispatched agent
++    /// obeying only the role brief could return a verdict the closeout gate then REJECTS.
++    ///
++    /// So this test binds them: every token `verify-closeout.sh` requires of a landed review must
++    /// appear in BOTH files. It reads the skill off disk on purpose — a change to the canonical
++    /// contract that the role brief does not follow turns this red.
++    #[test]
++    fn the_role_brief_carries_the_output_shape_the_closeout_gate_requires() {
++        let skill =
++            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/reviewer/SKILL.md"))
++                .expect("reviewer/SKILL.md is the canonical contract and must exist");
++        let brief = resolve_role("fidelity-reviewer").unwrap().system_prompt;
++
++        // The gate counts verdict words ONLY on `|`-delimited rows (`check_fidelity_review`), so a
++        // brief that says "a table" without saying which shape sends the agent to write bullets the
++        // gate then rejects — cold-review pass 2 wrote exactly that review and watched it BLOCK.
++        assert!(
++            brief.contains("MARKDOWN TABLE") && brief.contains("`|`-delimited rows"),
++            "the role brief does not state the pipe-row table shape the gate actually counts"
++        );
++
++        // The three things the gate FAILS a review for missing (verify-closeout.sh).
++        for token in [
++            "SHIPPED",
++            "PARTIAL",
++            "NOT-BUILT",
++            "**Verdict:**",
++            "of N SHIPPED",
++        ] {
++            // Positive control: the canonical contract really does require it. Without this, a
++            // typo'd token would make the assertion below vacuously about nothing.
++            assert!(
++                skill.contains(token) || skill.contains(&token.replace("of N ", "X of N ")),
++                "positive control failed: reviewer/SKILL.md does not mention {token:?} — \
++                 fix this test's tokens, do not weaken it"
++            );
++            assert!(
++                brief.contains(token),
++                "the role brief omits {token:?}, which the closeout gate requires of the landed \
++                 review — a dispatched agent obeying only this brief would produce a REJECTED file"
++            );
++        }
++        // And the brief must point at the canonical contract by name, so it reads as a summary of
++        // one source rather than a rival second source.
++        assert!(
++            brief.contains("reviewer/SKILL.md"),
++            "the role brief does not name reviewer/SKILL.md as canonical"
++        );
++    }
++
++    /// S114 — every role is read-only, and the tool grant is the ROLE's, not a hardcoded list.
++    /// The Reviewer gets strictly local reads: no web, no Bash.
++    #[test]
++    fn every_role_is_read_only_and_renders_its_own_tools() {
++        for role in ROLES {
++            let def = render_subagent_definition(role);
++            assert!(
++                def.contains(&format!("tools: {}", role.tools)),
++                "{} does not render its own tools",
++                role.name
++            );
++            for forbidden in ["Write", "Edit", "Bash", "NotebookEdit"] {
++                assert!(
++                    !role.tools.contains(forbidden),
++                    "{} grants the write/exec tool {forbidden}",
++                    role.name
++                );
++            }
++        }
++        let rev = resolve_role("fidelity-reviewer").unwrap();
++        assert_eq!(rev.tools, "Read, Grep, Glob");
++        let res = resolve_role("researcher").unwrap();
++        assert_ne!(res.tools, rev.tools, "the tool grant must be per-role");
++    }
++
++    /// S114 — the rendering is generic: every registered role produces a valid subagent definition
++    /// pointing at ITS OWN handoff path and ITS OWN `vajra next --role` command line.
++    #[test]
++    fn render_subagent_definition_is_correct_for_every_registered_role() {
++        for role in ROLES {
++            let def = render_subagent_definition(role);
++            assert!(def.starts_with("---\n"));
++            assert!(def.contains(&format!("name: {}", role.name)));
++            assert!(def.contains(role.description));
++            assert!(def.contains(role.system_prompt));
++            assert!(def.contains(&format!(".ai/handoffs/session-<NN>-{}.md", role.name)));
++            assert!(def.contains(&format!("vajra next --role {} --from", role.name)));
++        }
++    }
++
+     #[test]
+     fn format_handoff_carries_the_full_contract_and_validates() {
+         let r = resolve_role("researcher").unwrap();
+-        let delta = compute_delta(None, "the findings");
++        let delta = compute_delta(r, None, "the findings");
+         let h = format_handoff(
+             r,
+             109,
+@@ -598,7 +832,7 @@ mod tests {
+             "2026-08-04T00:00:00Z",
+             None,
+             body,
+-            &compute_delta(None, body),
++            &compute_delta(r, None, body),
+         );
+         let rel = r.handoff_rel(session);
+         let path = root.join(&rel);

@@ -1,18 +1,33 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-04 · **Session 112 — CODE: downstream handoff-consumption — DELIVERED.** The
-fleet's output stopped being an orphan. S109 could WRITE a governed researcher handoff and S111
-PROVED it came from a real by-name subagent dispatch — but nothing ever read one back; a human had to
-know to open `.ai/handoffs/` by hand. S112 added the READ side (`fleet::parse_handoff` /
-`read_handoff(s)` / `format_handoff_brief`) and wired it into four surfaces: the boot packet
-(`vajra next`), the Analyst's intake (`--intake` / `--scaffold`), and the Analyst's gate
-(`--validate NN`) — findings **inlined**, not merely pointed at. Absence prints nothing at all; an
-off-contract handoff is NAMED (`— not used`), never swallowed; truncation is disclosed (`… N more
-line(s)`). Advisory by design — nothing blocks. No format change, no second role, no 8th command.
-315 lib tests; verify **16/16**; demo exit 0; **two** independent cold passes, both **ACCEPT**
-(pass 1 caught header-greps that a REJECTED handoff would satisfy; pass 2 caught that
-`cargo test --lib <filter>` exits 0 on a filter matching zero tests — both fixed in-session),
-attested `4d7b2b43…`. Summary: `sessions/session-112-summary.md`.
+**Updated:** 2026-08-07 · **Session 115 — NO-CODE GROUND TRUTH (audits S111–S114) — PARTIAL PASS.**
+The session's one live opportunity worked: `subagent_type: "fidelity-reviewer"` dispatched **by
+name**, for the first time ever, on the first try, in this fresh session — retiring the S111
+"invisible until the next session" limit for that case. Its verdict independently re-derived S114's
+own two-pass finding (13 of 13 SHIPPED, same fakest green, found cold). But the raw output surfaced a
+real gap no synthetic test could: the agent's canonical verdict line, formatted as a markdown table
+row (`| **Verdict:** | ACCEPT |`), does **not** match `verify-closeout.sh`'s line-anchored regex —
+confirmed by running the actual gate regex against the actual raw output. Filed, not fixed (NO-CODE).
+Verdict is PARTIAL, not PASS: launcher dogfood is now **12 sessions / ~11 days** stale (6th+
+consecutive GT to flag it), and the founder explicitly picked a third fleet role over the recommended
+paid dogfood at this session's closeout. Ledger re-confirmed **INTACT**. Report:
+`sessions/session-115-ground-truth.md`.
+
+*Prior: **Session 114 — CODE: the fleet's SECOND role, the Fidelity Reviewer — SHIPPED.*** The cold
+fidelity review this repo ran 47 times by hand became canonical, scaffolded and governed — zero
+changes to `vajra init`, zero new handoff writer: one `fleet::ROLES` entry and every existing path
+picked it up. Key = `fidelity-reviewer` (never `reviewer` — resolves the Reviewer-STATION collision);
+the handoff is a PRE-STAGE INPUT, `sessions/session-NN-review.md` stays the single record of record
+(`DECISION-007` S114 addendum, both with rejected alternatives). 322 lib tests; verify 17/17; demo
+10/10; two cold passes (pass 1 REJECT → fixed → fresh pass 2 ACCEPT, 13/13 SHIPPED), attested
+`cbd22d3a…`. Merged [#122](https://github.com/ifelse-codes/vajra/pull/122), CI green both OS. Summary:
+`sessions/session-114-summary.md`.
+
+*Prior: **Session 112 — CODE: downstream handoff-consumption — DELIVERED.*** The fleet's output
+stopped being an orphan — S109 could WRITE a governed researcher handoff and S111 PROVED it came from
+a real by-name subagent dispatch, but nothing read one back. S112 added the READ side and wired it
+into four surfaces, advisory only. 315 lib tests; verify 16/16; two cold passes both ACCEPT, attested
+`4d7b2b43…`. Summary: `sessions/session-112-summary.md`.
 
 *Prior: **Session 111 — CODE: closed the fleet's def-vs-dispatch wire — DELIVERED.***
 Founder pick A at the S110 GT closeout. S109 had proven the scaffold (`vajra init` writes
@@ -101,11 +116,11 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-08-06 |
-| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) — S109 first slice + S111 closed the dispatch wire + S112 closed the consumption loop:** the Researcher as a governed native Claude Code subagent (`DECISION-007`), now proven end-to-end (scaffold → fresh-session dispatch-by-name, on-disk cross-referenced proof → governed handoff); `cost_usd: null` kept for a checked, re-runnable reason (`scripts/check-subagent-cost-fields.sh`). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 first slice ✓ + S111 wire closed ✓ + S112 handoff-consumption ✓ + S113 counter-visibility ✓ — next: BUILD the chosen second role (the Reviewer), the overdue paid dogfood, or an opt-in blocking gate).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
-| Last closed session | Session 114 — **CODE: the fleet's SECOND role, the Fidelity Reviewer** (founder pick A at the S113 closeout). The cold fidelity review this repo ran 47 times BY HAND is now canonical, scaffolded and governed — and it needed **zero changes to `vajra init`**, zero new handoff writer, zero new commands: one more `fleet::ROLES` entry and every existing path picked it up. Key = **`fidelity-reviewer`** (the Reviewer-STATION collision resolved by a distinct key); the handoff is a **PRE-STAGE INPUT** and `sessions/session-NN-review.md` stays the single record of record (DECISION-007 S114 addendum, both with rejected alternatives). Two hardcoded-to-role-1 leaks fixed: the subagent tool grant and the handoff delta text. 322 lib tests; verify **17/17**; demo **10/10** exit 0; **two cold passes (pass 1 REJECT → fixed → fresh pass 2 ACCEPT)**, attested `cbd22d3a…`. Summary: `sessions/session-114-summary.md`. |
-| Session 113 (prior) | Session 113 — **CODE: fleet work made visible to the counter + the second role CHOSEN** (founder pick A at the S112 closeout). `vajra next --stations NN` now reports fleet evidence **beside** `K of 8` (design shape (c)) — derived from the validated handoff on disk via `fleet::read_handoffs`, never a typed marker; a malformed handoff is NAMED and counts as nothing; absence prints nothing at all. **K-of-8 is UNCHANGED in meaning** and that is CHECKED, not claimed (the report minus the fleet line is byte-identical, and a test asserts K is invariant under any fleet evidence). Second role **chosen, not built**: the **Reviewer** (DECISION-007 S113 addendum — 46 cold reviews on disk, mandated by DECISION-002, prompt hand-typed every session today, output already gated + attested + ledgered). 317 lib tests; verify **14/14**; demo **7/7** exit 0; **two** cold passes, both **ACCEPT**, attested `d478a022…`. Summary: `sessions/session-113-summary.md`. |
-| Active session | None — between sessions (S114 complete, S115 not yet started) |
+| Today | 2026-08-07 |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) — S109 first slice + S111 dispatch wire + S112 consumption loop + S113 counter-visibility + S114 second role, now S115 PROVED the second role dispatches by name live:** two roles governed native Claude Code subagents (`DECISION-007`), end-to-end (scaffold → fresh-session dispatch-by-name → governed handoff), on BOTH roles now, not just the first. Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 ✓ + S111 ✓ + S112 ✓ + S113 ✓ + S114 ✓ + S115 dispatch-proof GT ✓ — next: S116 builds the THIRD role, the Planner; the paid dogfood remains the single highest-leverage undone item).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
+| Last closed session | Session 115 — **NO-CODE GROUND TRUTH** (audits S111–S114). **Verdict: PARTIAL PASS.** Dispatched `subagent_type: "fidelity-reviewer"` by name for the first time ever — worked on the first try, retiring the S111 next-session dispatch limit. The verdict independently re-derived S114's own 13/13-SHIPPED finding cold, but its raw table-formatted `**Verdict:**` line failed the closeout gate's regex — a real gap only a live agent could surface. PARTIAL because launcher dogfood is now 12 sessions / ~11 days stale (6th+ consecutive GT flag), and the founder picked a third fleet role over the recommended paid dogfood. Ledger re-confirmed INTACT. Report: `sessions/session-115-ground-truth.md`. |
+| Session 114 (prior) | Session 114 — **CODE: the fleet's SECOND role, the Fidelity Reviewer** (founder pick A at the S113 closeout). The cold fidelity review this repo ran 47 times BY HAND is now canonical, scaffolded and governed — and it needed **zero changes to `vajra init`**, zero new handoff writer, zero new commands: one more `fleet::ROLES` entry and every existing path picked it up. Key = **`fidelity-reviewer`** (the Reviewer-STATION collision resolved by a distinct key); the handoff is a **PRE-STAGE INPUT** and `sessions/session-NN-review.md` stays the single record of record (DECISION-007 S114 addendum, both with rejected alternatives). 322 lib tests; verify **17/17**; demo **10/10** exit 0; **two cold passes (pass 1 REJECT → fixed → fresh pass 2 ACCEPT)**, attested `cbd22d3a…`. Summary: `sessions/session-114-summary.md`. |
+| Active session | None — between sessions (S115 complete, S116 not yet started) |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **PUBLISHED (S108): `vajractl 0.1.0` is live on crates.io — the name is now BURNED.** `v0.1.0` also tagged + released (GH release, prebuilt binaries) + on a public Homebrew tap. All four install channels real; any future crates.io action stays founder-gated. |
 
 ---
@@ -315,6 +330,7 @@ station credit.
 | S112 | Complete | **CODE: downstream handoff-consumption** — the READ side (`fleet::read_handoffs` + `format_handoff_brief`) consumed by the boot packet, the Analyst intake and the Analyst gate; findings inlined; absence silent; off-contract NAMED; truncation disclosed; advisory, never blocking. 315 tests; verify 16/16; **two** cold passes both ACCEPT, attested `4d7b2b43…` |
 | S114 | Complete | **CODE: the fleet's second role — the Fidelity Reviewer** (founder pick A). One `fleet::ROLES` entry, no new machinery (init untouched). Collision resolved with a DISTINCT key; handoff = pre-stage input, one record of record. Per-role tool grant + role-named delta (both were hardcoded to the Researcher). Cold pass 1 REJECTED — `reviewer/SKILL.md` was an unacknowledged second source and the brief omitted every output token the closeout gate enforces; fixed + BOUND by a cross-file check. Fresh pass 2 ACCEPT, 13 of 13 SHIPPED, attested `cbd22d3a…`. 322 tests; verify 17/17; demo 10/10 |
 | S113 | Complete | **CODE: fleet work visible to the counter + second role chosen** (founder pick A) — `--stations NN` reports fleet evidence BESIDE `K of 8` (shape (c)); derived from the validated handoff, malformed NAMED and never counted, absence silent; **K unchanged in meaning, asserted byte-for-byte + invariant-tested**. Second role **CHOSEN not built**: the Reviewer (DECISION-007 S113 addendum). 317 tests; verify 14/14; demo 7/7; two cold passes both ACCEPT, attested `d478a022…` |
+| S115 | Complete | **NO-CODE GT: audits S111–S114** — PARTIAL PASS. Dispatched `subagent_type: "fidelity-reviewer"` by name for the first time ever, live, on the first try — retired the S111 next-session dispatch limit. Verdict independently re-derived S114's own 13/13-SHIPPED finding cold; its raw table-formatted `**Verdict:**` line failed the closeout gate's regex (real gap, found live, filed not fixed). PARTIAL because launcher dogfood is 12 sessions / ~11 days stale (6th+ consecutive GT flag); founder picked a third fleet role (Planner) over the recommended paid dogfood. Ledger re-confirmed INTACT |
 
 ---
 
@@ -439,7 +455,7 @@ guard against easy-green (machinery advancing while the product can't ship).
 ## Rules For This Document
 
 1. Update at every closeout — the "Where We Are" table and session log row are mandatory.
-2. `NN % 5 == 0` → mandatory NO-CODE GT. Last = **S110** (done — PARTIAL, 5🟢/4🟡/1🔴; v0.1 confirmed stranger-shippable, fleet confirmed real-but-thin, launcher dogfood 🔴, no state drift). Next = **S115**. Report: `sessions/session-110-ground-truth.md`.
+2. `NN % 5 == 0` → mandatory NO-CODE GT. Last = **S115** (done — PARTIAL PASS; dispatch-by-name proven live for the next-session case; a real verdict-regex gap found; launcher dogfood 🔴 12 sessions, founder deferred it for a third fleet role). Next = **S120**. Report: `sessions/session-115-ground-truth.md`.
 3. Mark items done only when they work in a real session, not just tests.
 4. Never exceed 7 top-level commands without explicit user approval.
 5. Per-session detail goes in `sessions/session-NN-summary.md`, not here.
