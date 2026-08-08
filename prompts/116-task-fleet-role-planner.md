@@ -95,12 +95,12 @@ validated handoff. Nothing about the handoff format, dispatch mechanism, or comm
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — pending
-- step 2 — pending
-- step 3 — pending
-- step 4 — pending
-- step 5 — pending
-- step 6 — pending
+- step 1 — done: db61455
+- step 2 — done: db61455
+- step 3 — done: e9d1c3d
+- step 4 — done: e9d1c3d
+- step 5 — done: e9d1c3d
+- step 6 — done: 688a544
 
 ## Acceptance criteria
 

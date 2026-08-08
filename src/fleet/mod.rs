@@ -25,6 +25,14 @@
 //! above already iterates the roles. What it DID force is honesty about the single source — the tool
 //! grant and the delta text were both hardcoded to the Researcher while only one role existed, and
 //! are now per-role.
+//!
+//! S116 adds the THIRD role — the **Plan Advisor** (founder pick B at the S115 closeout, named
+//! Planner specifically; `DECISION-007` S116 addendum). Same zero-new-machinery shape as S114. Its
+//! key is `plan-advisor`, not `planner` — the exact collision the S114 addendum resolved for the
+//! Reviewer, now hit a second time against the Planner **station** (`src/planner/mod.rs`, S64),
+//! which already counts a "Planner" in `K of 8`. Its contract is the `covers: N` marker that
+//! station's gate already parses and grades (`cited_criteria` in `src/planner/mod.rs`) — the role
+//! proposes citations in that exact shape; it does not gain any new parsing or grading path.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -107,14 +115,47 @@ Your verdict is a PRE-STAGE INPUT. The canonical, gated record of the fidelity v
 the orchestrator computes, chained in the ledger) — you do not write it, and you are not its \
 replacement.";
 
-/// The registered roles. Slice 1 (DECISION-007) shipped exactly ONE — the Researcher. S114 adds the
-/// SECOND, chosen from evidence at S113 and built here: the Fidelity Reviewer. A third role is
-/// again a separate decision, not a reflex (the named key risk of S109 is scope creep).
+/// The Plan Advisor's contract (S116). Fed a session's goal + numbered acceptance criteria, it
+/// proposes ordered plan steps citing which criterion/criteria each covers, in the exact `covers: N`
+/// shape `src/planner/mod.rs::cited_criteria` already parses and `plan_coverage` already grades. It
+/// proposes; it never authors the recorded plan (no Write/Edit — the same fail-closed shape as the
+/// other two roles, stated explicitly here because "planning" reads closer to "editing the plan"
+/// than "researching" or "reviewing" did).
+const PLAN_ADVISOR_SYSTEM_PROMPT: &str = "You are the Plan Advisor on a governed software team. \
+Your ONE job is to propose an ordered, coverage-checked plan for a session BEFORE any code is \
+written.\n\
+You are fed two things: the session's goal and its numbered acceptance criteria. Propose ordered \
+plan steps that would satisfy them.\n\
+Rules:\n\
+- Do NOT write, edit, or run code, and do NOT write the plan into the prompt file yourself — you \
+propose, the author records. You have no Write or Edit tool, by design.\n\
+- Every step you propose must explicitly cite which acceptance-criterion number(s) it covers, in \
+the exact form `covers: N` or `covers: N, M` — a comma/whitespace-separated digit list straight \
+after the literal word `covers:`. This is the exact marker the Planner station's gate parses and \
+grades; a step without it counts as uncovered, not merely undocumented.\n\
+- Cover EVERY numbered criterion with at least one step. A criterion your plan does not cite is a \
+gap — say so plainly rather than silently leaving it out.\n\
+- Do not invent criteria you were not given, and do not renumber the ones you were given.\n\
+- Order steps so each is buildable given only the steps before it.\n\
+- If the goal or the criteria are ambiguous, say so plainly rather than guessing a plan around the \
+ambiguity.\n\
+Your output is a PROPOSAL, never the plan of record: the session's own `## Plan` section, inside \
+its own prompt file, is the only place a real plan lives — you do not create a second artifact, and \
+only the session's author decides what actually lands there.";
+
+/// The registered roles. Slice 1 (DECISION-007) shipped exactly ONE — the Researcher. S114 added the
+/// SECOND (the Fidelity Reviewer, chosen from evidence at S113). S116 adds the THIRD: the Plan
+/// Advisor (founder pick at the S115 closeout). A fourth role remains a separate decision, not a
+/// reflex (the named key risk of S109 is scope creep).
 ///
-/// **The key is `fidelity-reviewer`, not `reviewer`** — the deliberate resolution of the collision
-/// the S113 cold review named (`DECISION-007` S114 addendum). `K of 8` already counts a **Reviewer
-/// station**; a role keyed `reviewer` would make "Reviewer" mean two different things in two lines
-/// of the same report. Distinct key, distinct word, no ambiguity.
+/// **The Reviewer's key is `fidelity-reviewer`, not `reviewer`** — the deliberate resolution of the
+/// collision the S113 cold review named (`DECISION-007` S114 addendum). `K of 8` already counts a
+/// **Reviewer station**; a role keyed `reviewer` would make "Reviewer" mean two different things in
+/// two lines of the same report.
+///
+/// **The Planner's key is `plan-advisor`, not `planner`** — the exact same collision, hit a second
+/// time: `K of 8` already counts a **Planner station** (`src/planner/mod.rs`, S64). Distinct key,
+/// distinct word, no ambiguity (`DECISION-007` S116 addendum).
 pub const ROLES: &[Role] = &[
     Role {
         name: "researcher",
@@ -134,6 +175,16 @@ pub const ROLES: &[Role] = &[
         // Strictly local reads. No web (a fidelity call is decided by the prompt and the diff in
         // front of it, not by the internet) and no Bash (running things is the QA station's job,
         // live — DECISION-007 rejected swapping those teeth for an agent's prose).
+        tools: "Read, Grep, Glob",
+    },
+    Role {
+        name: "plan-advisor",
+        description: "Propose an ordered, coverage-checked plan mapping a session's acceptance \
+                      criteria to plan steps (`covers: N`), before code is written. Use during \
+                      planning, never to author the recorded `## Plan` itself. Read-only.",
+        system_prompt: PLAN_ADVISOR_SYSTEM_PROMPT,
+        // Strictly local reads, same shape as the Reviewer: planning a session is decided by that
+        // session's own prompt, not the internet, and it does not run anything.
         tools: "Read, Grep, Glob",
     },
 ];
@@ -608,7 +659,11 @@ mod tests {
     /// hollowed out to a stub prompt.
     #[test]
     fn fidelity_reviewer_is_registered_with_a_non_colliding_key() {
-        assert_eq!(ROLES.len(), 2, "the fleet ships exactly two roles at S114");
+        assert_eq!(
+            ROLES.len(),
+            3,
+            "the fleet ships exactly three roles at S116"
+        );
         let r = resolve_role("fidelity-reviewer").expect("the second role is registered");
         // The collision resolution, asserted: the key is NOT the bare station word.
         assert!(resolve_role("reviewer").is_none());
@@ -629,6 +684,36 @@ mod tests {
             assert!(
                 r.system_prompt.contains(must),
                 "reviewer prompt is missing {must:?}"
+            );
+        }
+    }
+
+    /// S116 — the THIRD role exists, is keyed to avoid the Planner-STATION collision (the same
+    /// collision the Reviewer hit at S114, now hit a second time), and carries the `covers: N`
+    /// contract the Planner station's own gate parses and grades. Fails if the role is removed,
+    /// renamed to `planner`, or hollowed out to a stub prompt.
+    #[test]
+    fn plan_advisor_is_registered_with_a_non_colliding_key() {
+        let r = resolve_role("plan-advisor").expect("the third role is registered");
+        // The collision resolution, asserted: the key is NOT the bare station word.
+        assert!(resolve_role("planner").is_none());
+        assert!(known_roles().contains("plan-advisor"));
+        assert_eq!(
+            r.handoff_rel(116),
+            ".ai/handoffs/session-116-plan-advisor.md"
+        );
+        assert_eq!(r.subagent_rel(), ".claude/agents/plan-advisor.md");
+        // The contract, not a stub: proposes, cites `covers: N`, never authors the plan of record.
+        for must in [
+            "covers: N",
+            "covers: N, M",
+            "propose, the author records",
+            "no Write or Edit tool",
+            "never the plan of record",
+        ] {
+            assert!(
+                r.system_prompt.contains(must),
+                "plan-advisor prompt is missing {must:?}"
             );
         }
     }
@@ -709,6 +794,9 @@ mod tests {
         assert_eq!(rev.tools, "Read, Grep, Glob");
         let res = resolve_role("researcher").unwrap();
         assert_ne!(res.tools, rev.tools, "the tool grant must be per-role");
+        let plan = resolve_role("plan-advisor").unwrap();
+        assert_eq!(plan.tools, "Read, Grep, Glob");
+        assert_ne!(res.tools, plan.tools, "the tool grant must be per-role");
     }
 
     /// S114 — the rendering is generic: every registered role produces a valid subagent definition

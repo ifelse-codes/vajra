@@ -270,3 +270,58 @@ The binding is enforced twice, both with positive controls: the unit test
 disk and requires every gate token to appear in BOTH, and `verify-session-114.sh#role-brief-bound-to-skill`
 re-checks it against the *scaffolded* file. A change to the canonical contract that the brief does
 not follow turns both red.
+
+## S116 addendum — the Planner BUILT, and the key collision closed
+
+**Status: BUILT.** Founder pick B at the S115 closeout (over the report's recommended A: the paid
+dogfood), then, asked to name the role, **Planner** specifically. S116 ships it as a THIRD
+`fleet::ROLES` entry, rendered by the same machinery as roles 1 and 2 (no second scaffolding path,
+no second handoff writer, no second role-text source). The one load-bearing open item the S116
+prompt required to be resolved in writing, not left implicit, is decided here.
+
+### The role key: **`plan-advisor`** (a distinct key)
+
+The pipeline already has a **Planner station** (`src/planner/mod.rs`, S64), counted in `K of 8`
+exactly the way the Reviewer station is. A role keyed `planner` would put the same word on two
+different things in adjacent lines of the same report — `Planner PASSED` (the station: the
+session's `## Plan` cites every acceptance criterion via `covers: N`) directly above `fleet: 1
+governed handoff — planner` (the agent: a subagent that *proposes* such a plan).
+
+**Decision: the role key is `plan-advisor`.** Considered and rejected two alternatives, mirroring
+the S114 addendum's shape exactly:
+- **Rejected — state that the role IS the station's agent.** Not true, for the same reason it was
+  not true of the Reviewer: the station passes on a *recorded coverage marker existing in the
+  prompt file*, which a human author can satisfy with no agent at all — `plan_coverage` in
+  `src/planner/mod.rs` reads the prompt's own `## Plan` section, never a fleet handoff. The station
+  measures the artifact; the role, when dispatched, is one way a human might arrive at good step
+  citations. Two different things, two different names.
+- **Rejected — key it `planner-advisor` or `planning-assistant`.** Both considered (named as
+  candidates in the S116 prompt); `plan-advisor` was picked as the shorter of the two non-colliding
+  options with no loss of clarity — the words "plan" and "advisor" together are not the station's
+  name, and neither `resolve_role("planner")` nor a human skimming `K of 8` beside a fleet line can
+  mistake one for the other.
+
+Consequences, all mechanical: the subagent is `.claude/agents/plan-advisor.md`, the handoff is
+`.ai/handoffs/session-NN-plan-advisor.md`, the dispatch is `subagent_type: "plan-advisor"`, and
+`vajra next --role planner` FAILS with the known-roles list (asserted by test —
+`resolve_role("planner").is_none()`), exactly as `--role reviewer` already fails.
+
+### The `covers: N` contract: reused, not re-derived
+
+The Planner station already owns the grading logic (`cited_criteria`, `plan_coverage` in
+`src/planner/mod.rs`) — a step is covered when it carries a `covers: N` marker in the exact shape
+that parser reads. The Plan Advisor role's system prompt states that shape verbatim and tells the
+agent to cite in it; **the role does not gain a new parser, and the station's gate is not touched.**
+This session does not wire the role's output into the station's grading — that is a separate,
+larger story (consuming a handoff into a station's own gate, mirroring the S112 Researcher-handoff
+consumption arc), explicitly deferred as a non-goal.
+
+### What this addendum does NOT claim
+
+- Same standing limits as the S113/S114 addenda: a `.claude/agents/*.md` written mid-session is
+  invisible to that same session's Task tool (S111) — the Plan Advisor role lands at S116 and is
+  first dispatchable **by name** at S117 or later.
+- `fleet: 3 governed handoff(s)` certifies **three contract-valid files exist**, never that three
+  agents ran (the standing S113 reading rule, now exercised at a third count).
+- The role proposes; it does not write the session's `## Plan` section, and has no tool that could.
+- A fourth role remains a separate decision.
