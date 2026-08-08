@@ -5,7 +5,7 @@ report's recommended A: the paid dogfood), then named the role **Planner** speci
 as the distinctly-keyed `plan-advisor`. "All approved" at kickoff. Branch:
 `session-116-fleet-role-planner`. 3 atomic commits. 323 lib tests · verify **16/16** · demo **10/10**
 exit 0 · one independent cold pass (ACCEPT on the first try), attested
-`ec0d74ad125d2e824c2bb7772383ec8e479236557b0160c4b9f57b90555f7d27…`.
+`1b6c0159ad26b268cebef5ac003f4206deb50121b4d9dc4a7937f35fe91e5079…`.
 
 ## Goal achieved?
 
