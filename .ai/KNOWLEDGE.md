@@ -548,3 +548,38 @@ pub struct CompressionRequest {
   receipt, unitemized, same structural reason as S109/S111–S115). **S117 = CODE: dispatch the Plan
   Advisor for real** (founder pick A at the S116 closeout — prove by-name dispatch on the third role,
   mirroring S115's proof for the Reviewer); next mandatory GT = S120.
+- 2026-08-11 Session 117 (CODE — prove the Plan Advisor dispatches by name; founder pick A at the S116
+  closeout, "all approved" at start): resolved by name on the FIRST TRY, no workaround — **all 3 fleet
+  roles are now proven dispatched by name** (Researcher S111, Fidelity Reviewer S115, Plan Advisor
+  S117). No `src/` changes (design-significant: no — this session supplied evidence for an existing
+  mechanism, not new code). **Permanent lessons:** (1) **The S109 two-file cross-check pattern
+  (parent `tool_use.id` == subagent `toolUseId`, independently written by two different parts of
+  Claude Code's runtime) generalizes cleanly to a third role** — no new mechanism needed, only new
+  evidence files. (2) **A "first try, no workaround" claim is hollow if checked only by grepping the
+  run note's own self-authored prose** — a cold review caught this; the durable fix is an independent
+  count of `subagent_type:"<role>"` occurrences in the REAL parent session transcript (exactly 1 =
+  no hidden retry), not a magic-phrase grep against a file the same session wrote. (3) **Three cold
+  passes is not gate-stacking when each finds something real** — pass 1 REJECTed a genuine
+  orchestrator error (diff written to `/tmp`, reviewer pointed at a repo path that didn't exist); pass
+  2 found a `true; score $?` no-op check and an unrun demo script; pass 3 found the first-try
+  hollow-green above. Each was fixed, not argued with. A fourth pass re-confirming only the LAST
+  small fix was explicitly skipped and disclosed as a judgment call, not silently omitted — matches
+  the S60 "diminishing returns" caution once findings stop being new. (4) **`vajra next --role X
+  --from file` hashes the TRIMMED body (`findings.trim()`), not raw file bytes** — a verify-script
+  check that shasums the raw `--from` file to compare against a handoff's `source-sha` will always
+  fail; strip the same way the binary does before comparing. (5) **FAKEST GREEN — none survived
+  unfixed in the final diff, but ALSO NAMED: `src/planner/mod.rs::is_acceptance_heading` matches ANY
+  heading whose text merely CONTAINS the word "acceptance" — since this repo's own `## Plan (...
+  cite the acceptance criteria ...)` heading text contains that word, the Plan section's own numbered
+  steps get double-counted as phantom extra acceptance criteria.** Live since ≥S112 (checked
+  prompts/112–116), previously masked because each session's step count happened to coincide with
+  or exceed its real criteria count. Does not block `verify-closeout.sh` or the commit hooks (neither
+  calls the Planner gate) — disclosed, not fixed (`design-significant: no`), flagged as background
+  task `task_2162b487` for a future session. 323 lib tests (unchanged); verify 12/12; demo 7/7; three
+  cold passes, final ACCEPT (7 of 12 SHIPPED, 4 PARTIAL), attested `a2410535…`. Spend: $0 metered (3
+  subagent dispatches — 1 plan-advisor + 3 fidelity-reviewer passes — roll into this session's own
+  receipt, unitemized, same structural reason as S109/S111–S116). **S118 = DOGFOOD (paid): the
+  overdue `vajra claude` run** (founder pick A at the S117 closeout, over B/C) — target chitra, WAITING
+  on the founder to clean its working tree first; do not start until told. **S119 = CODE (B+C
+  combined), planned to run after S118:** fix the Planner-gate bug above + wire fleet handoffs into
+  a blocking gate (candidate C from the S116 closeout, still unpicked). Next mandatory GT = S120.
