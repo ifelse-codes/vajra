@@ -70,6 +70,30 @@ dispatch_resolved_by_name() {
 }
 run_check "criterion1-dispatch-by-name" dispatch_resolved_by_name
 
+# "First try, no workaround" is a real, load-bearing claim — checking it by grepping the run note's
+# own prose for a magic phrase is hollow (the same author who wrote the claim wrote the check for
+# it, per the S117 cold review). Independent evidence: the LIVE parent session transcript itself,
+# outside anything this session hand-authored — count how many times subagent_type:"plan-advisor"
+# was actually requested. A retry-after-failure would show up as MORE than one, or as an earlier
+# attempt at a different (fallback) subagent_type for the same task. This is local-machine-only,
+# same limitation class as check-subagent-cost-fields.sh.
+first_try_independently_confirmed() {
+  local PARENT_SESSION_ID; PARENT_SESSION_ID="$(python3 -c "
+import json
+print(json.load(open('$ARTDIR/plan-advisor-parent-tooluse.json'))[0]['parent_session_id'])
+")"
+  local JSONL; JSONL="$(find "$HOME/.claude/projects" -maxdepth 2 -name "${PARENT_SESSION_ID}.jsonl" 2>/dev/null | head -1)"
+  if [ -z "$JSONL" ]; then
+    echo "SKIP: parent session transcript not found on this machine (local-only evidence, same class as --dogfood-age)"
+    return 0
+  fi
+  local N; N="$(grep -o '"subagent_type":[[:space:]]*"plan-advisor"' "$JSONL" | wc -l | tr -d ' ')"
+  echo "occurrences of subagent_type: plan-advisor in the real parent transcript: $N"
+  [ "$N" = "1" ] || { echo "FAIL: expected exactly 1 dispatch attempt, found $N — first-try claim not independently confirmed"; return 1; }
+  echo "OK: exactly one dispatch attempt in the real transcript — first-try, independently confirmed, not self-typed prose"
+}
+run_check "criterion1-first-try-independently-confirmed" first_try_independently_confirmed
+
 # --- criterion 2: independent, non-copyable, cross-referencing evidence ------------------------
 cross_referencing_evidence() {
   local PARENT_ID SUBAGENT_TOOLUSE_ID SUBAGENT_AGENT_TYPE
