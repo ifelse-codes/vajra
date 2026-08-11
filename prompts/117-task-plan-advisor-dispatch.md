@@ -42,7 +42,7 @@ way: not a copyable JSON blob, but independent evidence that the Task tool actua
 - step 3 — done: d09185a
 - step 4 — done: 6d51c46
 - step 5 — done: 6d51c46
-- step 6 — pending
+- step 6 — done: 476eec5
 
 ## Design
 - design-significant: no — no new interface, no new module. This session proves an existing
