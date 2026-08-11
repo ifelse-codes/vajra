@@ -115,7 +115,12 @@ constraint of the harness, not a gap in any one role."
 printf "    %-20s %s\n" "researcher"        "PROVEN — S111"
 printf "    %-20s %s\n" "fidelity-reviewer" "PROVEN — S115"
 printf "    %-20s %s\n" "plan-advisor"      "PROVEN — S117"
-true; score $? "three for three — the pattern is confirmed, not a one-off"
+# Not decorative: a real check that all three roles are still ONE source, right now, in this repo —
+# the claim "three for three" would be false if any scaffolded role file went missing or diverged.
+[ -f ".claude/agents/researcher.md" ] && [ -f ".claude/agents/fidelity-reviewer.md" ] \
+  && [ -f ".claude/agents/plan-advisor.md" ] \
+  && [ "$(find .claude/agents -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')" = "3" ]
+score $? "all three roles' agent files present, exactly three — no drift, no phantom fourth"
 
 # --- demo:summary_table ---
 header "Summary  [demo:summary_table]"

@@ -130,6 +130,9 @@ handoff_governed_and_counted() {
 }
 run_check "criterion3-handoff-governed-and-counted" handoff_governed_and_counted
 
+# --- criterion 4 (2nd half): demo-session-117.sh itself exits 0 -- run it, not just assert it -----
+run_check "demo-session-117-exits-zero" bash scripts/demo-session-117.sh
+
 ( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
 
 echo ""
