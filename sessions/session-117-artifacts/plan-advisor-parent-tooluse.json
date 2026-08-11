@@ -1,0 +1,23 @@
+[
+  {
+    "tool_use": {
+      "type": "tool_use",
+      "id": "toolu_017CTj78kC3TWjD8E4zKL8s9",
+      "name": "Agent",
+      "input": {
+        "description": "Propose plan for --list-roles flag",
+        "subagent_type": "plan-advisor",
+        "run_in_background": false,
+        "prompt": "Session goal: Add a new read-only flag `vajra next --list-roles` to the existing `next` subcommand (in `src/cli/next.rs`) that prints each registered fleet role's key and one-line description, sourced from `fleet::ROLES` (the same registry `vajra init` renders `.claude/agents/*.md` from and `vajra next --role <key> --from <file>` validates against). The flag takes no session number and performs no file I/O beyond stdout \u2014 it is purely a read-only introspection view of the compiled-in role registry.\n\nNumbered acceptance criteria:\n1. `vajra next --list-roles` prints one line per entry in `fleet::ROLES`, each showing the role's key and its one-line description, and the printed key set exactly matches (same count, same keys) what a fresh `vajra init` would scaffold as `.claude/agents/<key>.md` files \u2014 no drift between the two code paths.\n2. The flag is strictly read-only: running it must not create, write, or modify any file on disk (no `.ai/handoffs/*`, no `.claude/agents/*`, nothing) \u2014 verified by a test that snapshots the working tree before and after and asserts no diff.\n3. `cargo test --lib` and the repo's existing verify script stay green, and a new unit test asserts the printed role count equals `fleet::ROLES.len()` exactly, so the test starts failing (as a deliberate regression guard, not a bug) the day a fourth role is added and the flag isn't updated to cover it.\n\nPropose an ordered list of plan steps that would satisfy these criteria, each step explicitly citing which criterion number(s) it covers in the exact form `covers: N` or `covers: N, M`. Cover every criterion with at least one step. Do not invent criteria beyond what's given, and do not write any code or files yourself \u2014 only propose the plan."
+      },
+      "caller": {
+        "type": "direct"
+      }
+    },
+    "parent_message_uuid": "547d43d8-076f-4364-b402-0ad8e60ccae3",
+    "parent_session_id": "87bcd7e1-22ce-4cfb-b4a3-536c21c126e7",
+    "parent_timestamp": "2026-08-11T12:21:12.949Z",
+    "parent_cwd": "/Users/suman/playground/vajra",
+    "parent_git_branch": "session-117-plan-advisor-dispatch"
+  }
+]
