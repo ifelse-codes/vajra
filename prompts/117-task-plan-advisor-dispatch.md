@@ -37,11 +37,11 @@ way: not a copyable JSON blob, but independent evidence that the Task tool actua
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — pending
-- step 2 — pending
-- step 3 — pending
-- step 4 — pending
-- step 5 — pending
+- step 1 — done: b52483b
+- step 2 — done: b52483b
+- step 3 — done: d09185a
+- step 4 — done: 6d51c46
+- step 5 — done: 6d51c46
 - step 6 — pending
 
 ## Design
