@@ -114,6 +114,15 @@ It also caught something I had missed: the repair fixed **four** defects, not th
 narrative claims — the `Reset` fix is the fourth, and it has no evidence of any kind, not
 a test and not a screenshot. Recorded here rather than quietly dropped.
 
+## Closeout gate
+
+`verify-closeout.sh` — **ALL GREEN, 12 of 12.** The fidelity gate passed **on merit, not by
+waiver**: run without `VAJRA_CLOSEOUT_WAIVER` it scores 11 pass / 1 fail, and the single failure is
+`verify-demo-scripts-present` (a DOGFOOD session produces no `verify-session-118.sh` /
+`demo-session-118.sh`). That one check is what the waiver covers, and nothing else —
+`fidelity-review-accept` reports 10 in-table verdicts + `Verdict=ACCEPT`, and
+`review-inputs-attested` matches the canonical hash `c62d1138…`, computed twice before embedding.
+
 ## Next options (A/B/C)
 
 **A — Teach the QA station to smell a grep-only verify suite.**
