@@ -74,6 +74,8 @@ author. Corrected in `obedience-log.md` and in the ground truth.
 
 **Verdict:** ACCEPT
 
+**Review-Inputs-SHA:** c62d11384f7f41ddb18a38804784fa2f77836c490a065300f2921d0450d58d34
+
 Pass 1 REJECT → fixes with captured evidence → pass 2 ACCEPT. A third pass was not run:
 it would only re-verify a small set of corrections two independent passes have already
 covered, which is the diminishing-returns line drawn at S60 and reaffirmed at S117.
