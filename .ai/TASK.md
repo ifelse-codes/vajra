@@ -2,42 +2,30 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 117 — CODE: prove the Plan Advisor dispatches by name — COMPLETE
+## Session 118 — DOGFOOD (paid): the overdue `vajra claude` run on chitra — COMPLETE
 
-- **Verdict: ACCEPT** (three independent cold reviews, `subagent_type: "fidelity-reviewer"` dispatched
-  by name each time — final pass: 7 of 11 SHIPPED, 4 PARTIAL, 0 NOT-BUILT). Resolved by name on the
-  first try, no workaround. **All three fleet roles are now proven dispatched by name**: Researcher
-  (S111), Fidelity Reviewer (S115), Plan Advisor (S117) — each via the same two-file cross-check
-  (parent session tool-call ID matching the subagent's own independently-written meta file).
-- **Three cold-review passes, each finding something real:** pass 1 REJECTed a genuine orchestrator
-  error (the diff fed to the reviewer was written to `/tmp`, not the path it was told to read); pass 2
-  found a `true; score $?` no-op check and an unrun demo script (both fixed in-session); pass 3 found
-  the "first try, no workaround" claim was checked only by grepping self-authored prose — fixed with
-  an independent count of dispatch attempts in the real parent transcript. A fourth pass re-confirming
-  only that last mechanical fix was explicitly skipped and disclosed as a judgment call.
-- **A real, out-of-scope bug found live and disclosed, not fixed:** `src/planner/mod.rs::
-  is_acceptance_heading` double-counts the `## Plan` heading's own instructional text ("...cite the
-  acceptance criteria...") as phantom extra acceptance criteria — live since ≥S112, previously masked
-  by coincidence. Flagged as background task `task_2162b487`, slated for S119.
-- No `src/` changes this session (`design-significant: no`). Attested
-  `a2410535d371860b27761f90f4df713891745efce96a8abda30f27a1755672e7`. Summary:
-  `sessions/session-117-summary.md`. Review: `sessions/session-117-review.md`.
+- **Verdict: ACCEPT** — two cold `fidelity-reviewer` passes, **pass 1 REJECT → pass 2 ACCEPT**
+  (5 of 8 SHIPPED, 3 PARTIAL, 0 NOT-BUILT). **Spend $4.0911771 authoritative**, 1331s, under the
+  founder's $5 cap. No `src/` change (`design-significant: no`).
+- **THE FINDING:** the governed run delivered chitra S11, self-graded **8-of-8 SHIPPED** with
+  `verify-session-11.sh` at **14/14 ALL GREEN** — while **19 of 20 chart pages showed an error
+  instead of a chart.** All 11 catalog checks were greps for source strings. Six governance gates
+  behaved correctly; none asks whether the delivered thing works. **S54 reproduced on a paid run.**
+- **The operator repaired it** (4 defects: an option-injector brace closing the object early, a
+  `return ( … )` wrapper that could not hold multi-statement examples, a chained-regex highlighter
+  printing its own markup as text, and Reset leaving a stale preview) and closed the hollow check
+  with one that EXECUTES all 20 examples × 3 renderers — 81 checks, falsifiable at 5/81.
+- **Pass 1 REJECTed this session for the same sin one level up:** payload verification delivered as
+  prose with no screenshot. Fixed with 5 real headless-Chrome PNGs. Pass 2 then caught an inflated
+  "six gates fired" headline — one gate is file-backed against the agent; three fired against the
+  operator, uncaptured. Corrected.
+- **Dogfood staleness RETIRED:** `vajra next --dogfood-age` now reports S118 · 2026-08-15 · $4.0912.
+- **chitra is left on `session-11-catalog-two-panel`, LOCAL — not pushed, no PR.** chitra `main`
+  never moved. The founder reviews the page in a browser first.
 
-**🔀 FOUNDER PIVOT (S103, in force):** sessions now = **finish a shippable MVP**; founder runs the
-long unattended test himself. Order **C → B → A**: C team-voice (S104 ✓) → **B installable ✓
-COMPLETE** → **A real agent fleet — S109 ✓, S111 ✓, S112 ✓, S113 ✓, S114 ✓, S115 ✓, S116 ✓, S117 ✓
-(the fleet build arc is essentially done: all three roles built AND proven dispatched by name).**
-
-Between sessions. **Next = S118 — DOGFOOD (paid): the overdue `vajra claude` run** (founder pick A
-at the S117 closeout, over B/C — both now combined into S119, to run right after). Target: chitra.
-**WAITING ON THE FOUNDER** — chitra has uncommitted local changes as of this snapshot; the founder
-said they will clean it up and then say when to start. **Do not begin S118 until told explicitly.**
-Prompt not yet written (write it once given the go-ahead, per `end_of_session.must_write_next_prompt_
-before_close` — this is the one legitimate exception, since the target repo's readiness is the
-founder's own gate, not a fixed fact yet). **New chat** when it starts.
-
-**Then S119 — CODE (B+C combined):** fix the Planner-gate bug (`task_2162b487`) + wire fleet handoffs
-into an opt-in blocking gate (candidate C from the S116 closeout, still unpicked).
+**Next = S119 — CODE.** Founder picks from A/B/C in `sessions/session-118-summary.md`; A (teach the
+QA station to detect a grep-only verify suite) is my recommendation and the direct product of what
+this $4.09 bought. **New chat.**
 
 ## Always-True Reminders
 
