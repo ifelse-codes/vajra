@@ -1,0 +1,341 @@
+diff --git a/artifacts/chitra-docs/package.json b/artifacts/chitra-docs/package.json
+index 5cde76f..92640f3 100644
+--- a/artifacts/chitra-docs/package.json
++++ b/artifacts/chitra-docs/package.json
+@@ -9,7 +9,8 @@
+     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
+     "typecheck": "tsc -p tsconfig.json --noEmit",
+     "gen:charts": "tsx scripts/generate-charts.ts",
+-    "gen:charts:check": "tsx scripts/generate-charts.ts --check"
++    "gen:charts:check": "tsx scripts/generate-charts.ts --check",
++    "check:catalog": "tsx scripts/check-catalog-examples.ts"
+   },
+   "dependencies": {
+     "@chitra/core": "workspace:*"
+diff --git a/artifacts/chitra-docs/scripts/check-catalog-examples.ts b/artifacts/chitra-docs/scripts/check-catalog-examples.ts
+new file mode 100644
+index 0000000..510ecde
+--- /dev/null
++++ b/artifacts/chitra-docs/scripts/check-catalog-examples.ts
+@@ -0,0 +1,62 @@
++/**
++ * check-catalog-examples.ts — run EVERY catalog example through the real evaluator.
++ *
++ * Why this exists: S11's original verify script grepped the source for `new Function`,
++ * `evalCode` and `catalog-page` and reported 14/14 ALL GREEN while 19 of the 20 chart
++ * pages failed to render in a browser. A check that greps for the presence of code
++ * cannot see whether that code works. This one executes it.
++ *
++ * Exit 0 = every example evaluated to real output. Exit 1 = at least one failed.
++ */
++import { CHARTS } from "../src/data/charts";
++import { evalCode } from "../src/components/CatalogPage";
++
++const RENDERERS = ["braille", "blocks", "ascii"] as const;
++
++let failed = 0;
++let checked = 0;
++
++for (const chart of CHARTS) {
++  const res = evalCode(chart.code, "braille", "default");
++  checked++;
++  if (res.exitCode !== 0 || res.ansi.length === 0) {
++    failed++;
++    console.error(`FAIL  ${chart.id.padEnd(16)} ${res.error ?? "empty output"}`);
++  } else {
++    console.log(`ok    ${chart.id.padEnd(16)} ${res.ansi.length} chars`);
++  }
++}
++
++// The renderer/theme switch rewrites the source before evaluating. Exercise every
++// renderer against EVERY chart: testing one chart is not enough, because the chart
++// that survived the original defect (line) is exactly the one that already declared
++// a renderer key and so never took the injection path that was broken.
++for (const r of RENDERERS) {
++  const broken: string[] = [];
++  for (const chart of CHARTS) {
++    const res = evalCode(chart.code, r, "nord");
++    checked++;
++    if (res.exitCode !== 0 || res.ansi.length === 0) {
++      failed++;
++      broken.push(chart.id);
++    }
++  }
++  if (broken.length > 0) {
++    console.error(`FAIL  renderer=${r}: ${broken.length} charts — ${broken.join(", ")}`);
++  } else {
++    console.log(`ok    renderer=${r}  (all ${CHARTS.length} charts)`);
++  }
++}
++
++// A deliberately broken buffer must be CAUGHT (exit 1 + message), never thrown.
++const bad = evalCode("line({ data: [1,2,3] ).render();", "braille", "default");
++checked++;
++if (bad.exitCode === 0 || !bad.error) {
++  failed++;
++  console.error("FAIL  syntax error was not caught");
++} else {
++  console.log(`ok    syntax error caught: ${bad.error.slice(0, 40)}`);
++}
++
++console.log(`\n${checked - failed}/${checked} catalog example checks passed`);
++process.exit(failed === 0 ? 0 : 1);
+diff --git a/artifacts/chitra-docs/src/components/CatalogPage.tsx b/artifacts/chitra-docs/src/components/CatalogPage.tsx
+index 0fa22a7..b5b0efd 100644
+--- a/artifacts/chitra-docs/src/components/CatalogPage.tsx
++++ b/artifacts/chitra-docs/src/components/CatalogPage.tsx
+@@ -26,29 +26,43 @@ const LINE_H = 20; // px — must match CSS var(--vim-lh)
+ 
+ // ── Tokenizer ──────────────────────────────────────────────────────────────
+ 
++const KEYWORDS =
++  /^(?:import|from|export|const|let|var|function|return|if|else|for|of|in|async|await|true|false|null|undefined|type|interface|new|typeof)$/;
++
++function esc(s: string): string {
++  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
++}
++
++// Single pass: emitted markup is never re-scanned, so a class name like "tok-kw"
++// can no longer be picked up by a later string/keyword rule and rendered as text.
++const TOKEN_RE =
++  /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][A-Za-z0-9_$]*)/g;
++
+ function hlTs(code: string): string {
+-  return code
+-    .replace(/&/g, "&amp;")
+-    .replace(/</g, "&lt;")
+-    .replace(/>/g, "&gt;")
+-    .replace(/(\/\/[^\n]*)/g, '<span class="tok-comment">$1</span>')
+-    .replace(
+-      /\b(import|from|export|const|let|var|function|return|if|else|for|of|in|async|await|true|false|null|undefined|type|interface|new|typeof)\b/g,
+-      '<span class="tok-kw">$1</span>',
+-    )
+-    .replace(
+-      /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g,
+-      '<span class="tok-str">$1</span>',
+-    )
+-    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>')
+-    .replace(
+-      /\b([A-Z][A-Za-z0-9_]*)\b/g,
+-      '<span class="tok-type">$1</span>',
+-    )
+-    .replace(
+-      /\b([a-z_][A-Za-z0-9_]*)(?=\s*\()/g,
+-      '<span class="tok-fn">$1</span>',
+-    );
++  let out = "";
++  let last = 0;
++  let m: RegExpExecArray | null;
++  TOKEN_RE.lastIndex = 0;
++  while ((m = TOKEN_RE.exec(code)) !== null) {
++    out += esc(code.slice(last, m.index));
++    last = m.index + m[0].length;
++    const [raw, comment, str, num, word] = m;
++    if (comment) out += `<span class="tok-comment">${esc(comment)}</span>`;
++    else if (str) out += `<span class="tok-str">${esc(str)}</span>`;
++    else if (num) out += `<span class="tok-num">${num}</span>`;
++    else if (word) {
++      const isCall = /^\s*\(/.test(code.slice(last));
++      const cls = KEYWORDS.test(word)
++        ? "tok-kw"
++        : isCall
++          ? "tok-fn"
++          : /^[A-Z]/.test(word)
++            ? "tok-type"
++            : null;
++      out += cls ? `<span class="${cls}">${esc(word)}</span>` : esc(word);
++    } else out += esc(raw);
++  }
++  return out + esc(code.slice(last));
+ }
+ 
+ // ── Helpers ─────────────────────────────────────────────────────────────────
+@@ -71,33 +85,46 @@ function offsetToLineCol(text: string, offset: number): { line: number; col: num
+ 
+ // ── Code transformer ─────────────────────────────────────────────────────────
+ 
++// Options object of a chart call — the closing `}` is only accepted when it is
++// followed by `).render(` / `).toString(`, so nested object literals are skipped.
++const CALL_OPTS_RE = /\{([\s\S]*?)\}(\s*\)\s*\.(?:render|toString)\s*\()/g;
++
++// Set `key` on EVERY chart call in the source: replace it in calls that already
++// declare it, insert it INSIDE the braces for calls that do not. The previous
++// version re-emitted the captured `}` before the inserted key, which closed the
++// options object early and produced `fn({...}, key: "v"})` — a syntax error
++// ("missing ) after argument list") on every example lacking a renderer/theme key.
++function injectOpt(code: string, key: string, value: string): string {
++  const existing = new RegExp(`\\b${key}\\s*:\\s*["'][^"']*["']`);
++  return code.replace(CALL_OPTS_RE, (_m, body: string, tail: string) => {
++    const next = existing.test(body)
++      ? body.replace(existing, `${key}: "${value}"`)
++      : `${body.replace(/\s*,?\s*$/, "")},\n  ${key}: "${value}"\n`;
++    return `{${next}}${tail}`;
++  });
++}
++
+ function applyOverrides(code: string, renderer: RendererChoice, theme: ThemeChoice): string {
+-  let out = code;
+-  if (/\brenderer\s*:/.test(out)) {
+-    out = out.replace(/\brenderer\s*:\s*["'][^"']*["']/, `renderer: "${renderer}"`);
+-  } else {
+-    out = out.replace(
+-      /(\})\s*\)\s*\.render\s*\(\s*\)\s*;?$/,
+-      `$1,\n  renderer: "${renderer}"\n}).render();`,
+-    );
+-  }
+-  if (/\btheme\s*:/.test(out)) {
+-    out = out.replace(/\btheme\s*:\s*["'][^"']*["']/, `theme: "${theme}"`);
+-  } else {
+-    out = out.replace(
+-      /(\})\s*\)\s*\.render\s*\(\s*\)\s*;?$/,
+-      `$1,\n  theme: "${theme}"\n}).render();`,
+-    );
+-  }
+-  return out;
++  return injectOpt(injectOpt(code, "renderer", renderer), "theme", theme);
+ }
+ 
++function stripImports(code: string): string {
++  return code.replace(/^import\s+[^\n]*(\n|$)/gm, "");
++}
++
++// Run the example as STATEMENTS and capture what `.render()` writes to the mocked
++// process.stdout. The previous version wrapped the whole program in `return ( … )`,
++// which is only valid for a single expression — any multi-statement example (e.g.
++// sparkline's three calls) died with "Unexpected token ';'".
+ function buildFnBody(code: string, renderer: RendererChoice, theme: ThemeChoice): string {
+-  const withOv = applyOverrides(code, renderer, theme);
+-  const noImports = withOv.replace(/^import\s+[^\n]*(\n|$)/gm, "");
+-  // Replace the trailing .render() call with .toString() so we capture the string
+-  const withReturn = noImports.trimEnd().replace(/\.render\s*\(\s*\)\s*;?\s*$/, ".toString()");
+-  return `"use strict";\nreturn (\n${withReturn}\n);`;
++  return `"use strict";\n${stripImports(applyOverrides(code, renderer, theme))}`;
++}
++
++// Fallback for code that ends in an expression (e.g. `…toString()`) and therefore
++// writes nothing to stdout.
++function buildReturnBody(code: string, renderer: RendererChoice, theme: ThemeChoice): string {
++  const src = stripImports(applyOverrides(code, renderer, theme)).trimEnd().replace(/;$/, "");
++  return `"use strict";\nreturn (\n${src}\n);`;
+ }
+ 
+ // ── Evaluator ────────────────────────────────────────────────────────────────
+@@ -110,7 +137,9 @@ interface RunResult {
+   error: string | null;
+ }
+ 
+-function evalCode(
++// Exported so `scripts/check-catalog-examples.ts` can execute the REAL evaluator
++// against every catalog example — a grep for `new Function` proves nothing.
++export function evalCode(
+   code: string,
+   renderer: RendererChoice,
+   theme: ThemeChoice,
+@@ -129,21 +158,27 @@ function evalCode(
+   };
+ 
+   try {
+-    const fnBody = buildFnBody(code, renderer, theme);
+     const api = chitraCore as Record<string, unknown>;
+-    const fn = new Function(...Object.keys(api), fnBody);
+-    const result = fn(...Object.values(api));
++    const keys = Object.keys(api);
++    const vals = Object.values(api);
++    let result = new Function(...keys, buildFnBody(code, renderer, theme))(...vals);
++
++    // Code that ends in a bare expression writes nothing to stdout — re-run it
++    // in expression position and take its value.
++    if (captured.length === 0 && typeof result !== "string") {
++      result = new Function(...keys, buildReturnBody(code, renderer, theme))(...vals);
++    }
+     const ms = Math.round(performance.now() - t0);
+ 
+-    // Prefer explicit return value; fall back to captured stdout
++    // Prefer captured stdout (statement form); fall back to the returned value
+     let ansi: string;
+-    if (typeof result === "string" && result.length > 0) {
+-      ansi = result;
+-    } else if (captured.length > 0) {
++    if (captured.length > 0) {
+       ansi = captured.join("").replace(/\n$/, "");
++    } else if (typeof result === "string" && result.length > 0) {
++      ansi = result;
+     } else {
+       throw new Error(
+-        "Chart returned no output. Ensure code calls a chart function like line({...}).toString().",
++        "Chart returned no output. Ensure code calls a chart function like line({...}).render().",
+       );
+     }
+ 
+@@ -301,6 +336,10 @@ export function CatalogPage({ chart }: { chart: ChartDef }) {
+   const reset = () => {
+     setBuffer(pristine.current);
+     setActiveTab("example.ts");
++    setMode("NORMAL");
++    // Restore the preview too — resetting the buffer while leaving a stale (or
++    // errored) preview on screen misreports the state of the code being shown.
++    run(pristine.current);
+   };
+ 
+   // Computed layout values
+diff --git a/scripts/verify-session-11.sh b/scripts/verify-session-11.sh
+index 15e5d18..5cfb149 100755
+--- a/scripts/verify-session-11.sh
++++ b/scripts/verify-session-11.sh
+@@ -26,6 +26,13 @@ run_check() {
+ run_check "core-tests"          pnpm --filter @chitra/core run test
+ run_check "core-typecheck"      pnpm --filter @chitra/core run typecheck
+ 
++# ── The one check that is not a grep ──────────────────────────
++# Every other catalog check below greps the source for a string. That is how this
++# script reported 14/14 ALL GREEN while 19 of 20 chart pages failed to render in a
++# real browser. This one EXECUTES the shipped evaluator against all 20 examples,
++# every renderer, and a deliberately broken buffer.
++run_check "catalog-examples-execute" pnpm --filter @workspace/chitra-docs run check:catalog
++
+ # ── Docs: typecheck, chart drift gate ─────────────────────────
+ run_check "docs-typecheck"      pnpm --filter @workspace/chitra-docs run typecheck
+ run_check "docs-gen-charts-check" pnpm --filter @workspace/chitra-docs run gen:charts:check
+diff --git a/sessions/session-11-summary.md b/sessions/session-11-summary.md
+index d7c8f1e..a9ceb03 100644
+--- a/sessions/session-11-summary.md
++++ b/sessions/session-11-summary.md
+@@ -62,3 +62,38 @@ PORT=3000 BASE_PATH=/ pnpm --filter @workspace/chitra-docs run dev
+ 1. **Docs live demo** — Run the dev server, exercise the catalog page, fix any visual/UX issues found during browser review. Capture screenshots for the README.
+ 2. **Chart family S12** — Carry the S10 reference-locked line language into `bar`/`sparkline`/`histogram` (next in the backlog).
+ 3. **SVG renderer alignment** — Bring `lineModelToSvg` fully in line with the terminal: color-matched series, `+` x-tick marks, per-series stat boxes.
++
++---
++
++## Operator addendum — post-run browser verification (2026-08-15)
++
++Added by the Vajra S118 dogfood operator **after** this session's agent closed. The
++self-report above claimed **8 of 8 SHIPPED** and "Nothing from the acceptance criteria
++was omitted". Clicking all 20 chart pages in a real browser showed otherwise.
++
++| # | Agent's claim | Verified reality (before repair) |
++|---|---|---|
++| 1 | SHIPPED — all 20 charts | **PARTIAL** — the two-panel shell rendered for all 20, but **19 of 20 pages showed an error instead of a chart** |
++| 4 | SHIPPED — "evaluator code is correct and complete" | **PARTIAL** — evaluation was genuinely live, but the transform emitted invalid JS for 19 of 20 examples |
++| 7 | SHIPPED — verify 14/14 ALL GREEN | **hollow** — all 11 catalog checks were greps for source strings; the suite passed while the page was broken |
++
++**Root causes** (all in `CatalogPage.tsx`, fixed in `6fa1d67`):
++
++1. `applyOverrides` re-emitted the captured closing brace *before* the injected key,
++   producing `fn({…}, renderer: "x"})` → `missing ) after argument list` on every
++   example that did not already declare a `renderer`/`theme` key.
++2. `buildFnBody` wrapped the program in `return ( … )`, valid only for a single
++   expression → `Unexpected token ';'` on multi-statement examples (sparkline).
++3. `hlTs` chained its regexes, so the string rule re-scanned markup the keyword rule
++   had emitted and printed `tok-kw">` as literal buffer text.
++4. `Reset` restored the buffer but left a stale/errored preview on screen.
++
++**After repair:** 20 of 20 chart pages render (`exit 0`); editing the buffer and
++pressing Run or ⌘/Ctrl+Enter changes the output; a syntax error is caught and shown
++with `exit 1`. `check-catalog-examples.ts` (`fd8a5fd`) now executes all 20 examples,
++all 3 renderers, and a broken buffer — reintroducing defect 1 drops it from 24/24 to
++**5/24**, so the check is falsifiable. `verify-session-11.sh` is now **15/15**.
++
++**The lesson, plainly:** every gate in this session was green and every rule was
++followed while the delivered page did not work. Discipline was perfect; fidelity was
++not. A check that greps for the presence of code cannot see whether that code runs.
