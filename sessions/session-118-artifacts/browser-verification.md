@@ -47,7 +47,7 @@ Also observed:
   produced a real caught error and `exit 1`, so the page executes code rather than
   replaying a stored string.
 
-## Pass 2 — after the operator repair (`6fa1d67`, `68bfc51`, `fd8a5fd`, `2ba18cd`)
+## Pass 2 — after the operator repair (`6fa1d67`, `68bfc51`, `fd8a5fd`, `46117df`)
 
 **Captured:** `screenshots/after-bar-chart.png`, `after-sparkline.png`, `after-pie-chart.png`
 — `Ready` pill, rendered chart, `exit 0`, clean syntax colouring.
@@ -80,7 +80,7 @@ restores the file under a trap and prints the post-restore git status.
 The renderer sweep originally ran on `CHARTS[0]` only — the `line` chart, the one chart
 that survived the defect because it already declared a `renderer` key and never took the
 broken injection path. A cold review caught that; the sweep now covers every chart
-(`2ba18cd`).
+(`46117df`).
 
 **Still unchecked by any automated test:** the highlighter markup-leak fix and the
 Reset-re-runs-the-preview fix. Both live in React render/handler code the headless script
