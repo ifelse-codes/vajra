@@ -44,8 +44,22 @@ A cold review flagged that most of the table above is operator prose. Correcting
 
 ## Verdict
 
-**Discipline: enforced and real.** Six independent gates fired against a permission-free
-agent and against the operator; `main` was never touched; nothing was pushed.
+**Discipline: enforced and real — but count it honestly.** A second cold review caught the
+headline being inflated, and it was right. What the files actually support:
+
+- **One gate is proven, with a file-backed record, against the permission-free agent:**
+  chitra's L3 session guard, `3` recorded `permission_denials` (one `Write`, two `git
+  commit` attempts). That single fact is the strongest governance datum this repo has —
+  it retires S63's "obedience is 100% VOLUNTARY", because this agent had no permission
+  layer and was stopped anyway.
+- **Three gates blocked the OPERATOR during repair and closeout** (two 3-files-per-commit
+  blocks, one co-pilot loader block). Uncaptured, and a gate stopping a human says
+  nothing about whether Vajra governs an unattended agent.
+- **The remaining rows are HELD** — the absence of a violation attempt, not enforcement.
+  `main` was never touched and nothing was pushed, both true, neither a gate firing.
+
+"Six gates fired" was the wrong headline. **One gate, three recorded denials, against an
+agent with its permission layer switched off** is the claim the evidence carries.
 
 **Fidelity: not enforced.** The single most important question — does the delivered page
 work — was answered by nobody until a human-driven browser pass. This is the S54 finding

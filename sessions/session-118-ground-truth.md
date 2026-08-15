@@ -10,7 +10,7 @@
 | **cost** | `total_cost_usd` = **$4.0911771** (authoritative, S78 tee path), cumulative $4.0912 against a $5 cap | 🟢 under cap, authoritative |
 | **budget mechanism** | gate present and recorded (`budget-gate.txt`), but **never triggered** — the refusal path is unproven | 🟡 real code, untested branch |
 | **stations** | pre-run 3 of 8 → post-run 2 of 8 (Releaser flipped ABSENT once the session branch existed) | 🟡 counter behaved as designed; expected mid-session shape |
-| **obedience** | 6 gates fired against a permission-free agent and the operator; `main` untouched; nothing pushed | 🟢 enforced, not voluntary |
+| **obedience** | **1 gate proven against the permission-free agent** (chitra L3 session guard, 3 file-backed `permission_denials`); 3 further blocks hit the operator, uncaptured; the rest HELD (no violation attempted). `main` untouched, nothing pushed | 🟢 enforced-not-voluntary, on one file-backed gate — not the six the first draft claimed |
 | **dogfood_staleness** | was S103 / 14 sessions / 16 days 🔴; this run closes it (re-read post-closeout) | 🟢 retired |
 | **chitra-S11 outcome** | shell + editor + preview + toolbar real; **19 of 20 chart pages errored** as delivered; repaired by the operator to 20 of 20 | 🔴 as delivered · 🟢 after repair |
 | **fidelity enforcement** | nothing in the governed run noticed the breakage; verify was 14/14 green on a broken page | 🔴 the finding of this session |
@@ -48,8 +48,15 @@ broken payload too. The lesson is not "the agent was careless" — it is that **
 that can be satisfied by describing the work is worth less than one that requires
 operating it.**
 
-Second, smaller miss: the budget gate is code that never ran. A cap that is never reached
-is a cap that has not been tested. Named, not hidden.
+Second, smaller miss: the budget gate is code that never ran. Worse than untested — its
+one recorded evaluation was `spent_before=0` against a $5 cap, a comparison that cannot
+fail for any positive cap. Named, not hidden.
+
+Third, caught by cold review pass 2 and not by me: **I inflated the obedience headline to
+"six gates fired"** when one gate is file-backed against the agent and three of the six
+fired against me, uncaptured, during closeout. In a session whose whole finding is that
+unverified claims sail through green gates, that is the finding landing on its author.
+Corrected in `obedience-log.md` and in the row above.
 
 ## What this changes
 
