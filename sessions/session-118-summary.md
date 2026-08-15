@@ -18,11 +18,11 @@ repaired it and closed the hollow check that let it pass.
 | 1 | ≥1 real paid turn, non-zero authoritative `total_cost_usd` | **SHIPPED** | `p1/run-result.json` → `$4.0911771`; `p1/total_cost_usd.txt` |
 | 2 | artifacts committed (result, receipt, jsonl, cost, verdict, git state) | **SHIPPED** | `sessions/session-118-artifacts/p1/` — 16 files, six atomic commits |
 | 3 | `vajra next --stations 118` recorded pre- and post-run | **SHIPPED** | `pre-run-baseline.txt` (3 of 8) · `post-run-evidence.txt` (2 of 8) |
-| 4 | `vajra next --dogfood-age` post-run shows S118 | **PARTIAL** | recorded, but still reports S103 until `.ai/SESSION` is bumped at closeout; the post-closeout re-read is the real proof |
+| 4 | `vajra next --dogfood-age` post-run shows S118 | **SHIPPED** | `post-closeout-dogfood-age.txt` — `last dogfood session : 118 · 2026-08-15 · $4.0912 authoritative · 0 sessions since`. Needed two things the criterion did not anticipate: the `.ai/SESSION` bump, and surfacing the receipt at the artifacts ROOT because `--dogfood-age` does not recurse into `p1/` (the known S115 bug, worked around not fixed) |
 | 5 | obedience documented; zero unauthorized commits; nothing pushed | **SHIPPED** | `obedience-log.md`; chitra `main` = `e4ec619` before and after; branch unpushed |
 | 6 | budget cap real, threshold documented, actual spend recorded | **PARTIAL** | mechanism committed, threshold documented, spend recorded to the cent — but the one recorded evaluation (`spent_before=0`) **could not have failed for any positive cap**, and within a stage the only real ceiling is the 30-min wall clock. $4.09 under $5 was luck, not a mechanism |
 | 7 | payload outcome verified by my own eyes, not the agent's report | **SHIPPED** | real PNGs: `screenshots/before-{bar-chart,sparkline}.png` (Error, `exit 1`, markup leak) vs `after-{bar-chart,sparkline,pie-chart}.png` (Ready, `exit 0`); plus `mutation-proof.txt` (81/81). The full 20-page click-through count remains narration — disclosed in `browser-verification.md` |
-| 8 | ground-truth + summary + independent cold fidelity review | **SHIPPED** | `session-118-ground-truth.md`, this file, and `session-118-review.md` — **pass 1 REJECTED** this delivery; see below |
+| 8 | ground-truth + summary + independent cold fidelity review | **SHIPPED** | `session-118-ground-truth.md`, this file, `session-118-review.md` — **pass 1 REJECT → pass 2 ACCEPT** (5 of 8 SHIPPED); see below |
 
 ## What I did NOT build
 
@@ -100,6 +100,19 @@ highlighter that printed its own markup as buffer text. `fd8a5fd` added
 `check-catalog-examples.ts`, which **executes** all 20 examples, all 3 renderers, and a
 deliberately broken buffer — 81 checks. Reintroducing the brace defect drops it to **5/81**,
 so the check is falsifiable. chitra's verify is now 15/15 with one check that is not a grep.
+
+## Cold review pass 2 — ACCEPT, with four items I then landed
+
+Pass 2 read the PNGs, confirmed pass 1's charge was genuinely closed, and returned ACCEPT
+at 5 of 8 SHIPPED. Its four must-land items are all done: the post-bump `--dogfood-age`
+capture showing S118; the inflated "six gates fired" headline corrected to the one
+file-backed gate the evidence supports; chitra's 15/15 verify output captured to
+`chitra-verify-11-output.txt`; and the chitra addendum's stale `24/24 → 5/24` corrected to
+`81/81 → 5/81` in the governed repo's permanent record.
+
+It also caught something I had missed: the repair fixed **four** defects, not the three my
+narrative claims — the `Reset` fix is the fourth, and it has no evidence of any kind, not
+a test and not a screenshot. Recorded here rather than quietly dropped.
 
 ## Next options (A/B/C)
 
