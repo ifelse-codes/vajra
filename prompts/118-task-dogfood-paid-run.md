@@ -53,14 +53,14 @@ choice at S115, S116 and S117. This is the single highest-leverage undone item o
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done:
-- step 2 — done:
-- step 3 — done:
-- step 4 — done:
-- step 5 — done:
-- step 6 — done:
-- step 7 — done:
-- step 8 — done:
+- step 1 — done: 07877dd
+- step 2 — done: 41bdf97
+- step 3 — done: 36178c7
+- step 4 — done: cb6815d
+- step 5 — done: e45464a
+- step 6 — done: 183f62d
+- step 7 — done: e45464a
+- step 8 — done: 95b1916
 
 ## Design
 
