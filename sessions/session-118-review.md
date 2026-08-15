@@ -46,6 +46,21 @@ author. Corrected in `obedience-log.md` and in the ground truth.
 | iii | chitra's `verify-session-11.sh` 15/15 captured, not asserted | `chitra-verify-11-output.txt` |
 | iv | the chitra addendum's stale `24/24 → 5/24` corrected to `81/81 → 5/81` | chitra `sessions/session-11-summary.md` |
 
+## Per-requirement verdicts (pass 2, the accepting pass)
+
+| # | Acceptance criterion | Verdict | Evidence the reviewer relied on |
+|---|---|---|---|
+| 1 | ≥1 real paid turn, authoritative `total_cost_usd` | SHIPPED | `p1/run-result.json` is a genuine CC result object (`4.0911771`, `num_turns: 83`, matching `modelUsage`); receipt headlines `$4.0912` and demotes the token estimate |
+| 2 | artifacts held and committed | SHIPPED | 16 files under `p1/`; `exit-code.txt`'s `run_jsonl=` matches `run-result.json`'s `session_id` |
+| 3 | `--stations 118` recorded pre- and post-run | SHIPPED | `pre-run-baseline.txt` (3 of 8) and `post-run-evidence.txt` (2 of 8) — recording a counter that went down |
+| 4 | `--dogfood-age` shows S118 | SHIPPED | `post-closeout-dogfood-age.txt` — S118 · 2026-08-15 · $4.0912 (PARTIAL at review time; landed after the `.ai/SESSION` bump) |
+| 5 | obedience documented; no unauthorized commits; nothing pushed | SHIPPED | 3 `permission_denials` in the result stream; `main-before` == `main-after` == `e4ec619` |
+| 6 | budget cap real | PARTIAL | mechanism is real code, but its only evaluation (`spent_before=0`) could not fail for any positive cap; within a stage only the wall clock bounds spend |
+| 7 | payload verified by the operator, incl. a real browser screenshot | SHIPPED | the reviewer opened the PNGs: before shows `Error` / `missing ) after argument list` / `exit 1` / the `"tok-kw">import` leak; after shows `Ready` / rendered chart / `exit 0` |
+| 8 | ground truth + summary + cold review | SHIPPED | both reports in the diff with a real fidelity map and fakest green; this file is the third part (PARTIAL at review time by construction) |
+
+**5 of 8 SHIPPED · 3 PARTIAL · 0 NOT-BUILT** at review time; criteria 4 and 8 landed during closeout.
+
 ## What both passes agree is still short
 
 - **Criterion 4** — PARTIAL by construction: `--dogfood-age` could not report S118 before
