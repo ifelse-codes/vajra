@@ -1,0 +1,68 @@
+=== S118 mutation test · 2026-08-15T05:36:31Z ===
+file under test : /Users/suman/playground/chitra/artifacts/chitra-docs/src/components/CatalogPage.tsx
+sha256 (fixed)  : b0b91d37f29278cbbae88f65903584b7bb622fe5aafe7650a2fa7770a4b632c2
+
+--- RUN 1: the shipped fix (expect 24/24, exit 0) ---
+ok    line             6141 chars
+ok    bar              831 chars
+ok    area             5521 chars
+ok    sparkline        95 chars
+ok    histogram        1126 chars
+ok    scatter          1084 chars
+ok    pie              12701 chars
+ok    donut            11101 chars
+ok    heatmap          849 chars
+ok    progress         281 chars
+ok    gauge            161 chars
+ok    horizontalBar    394 chars
+ok    timeline         1883 chars
+ok    radar            2996 chars
+ok    boxplot          1200 chars
+ok    waterfall        1170 chars
+ok    funnel           559 chars
+ok    candlestick      2064 chars
+ok    treemap          4626 chars
+ok    sankey           522 chars
+ok    renderer=braille  (all 20 charts)
+ok    renderer=blocks  (all 20 charts)
+ok    renderer=ascii  (all 20 charts)
+ok    syntax error caught: Unexpected token ')'
+
+81/81 catalog example checks passed
+exit_code=0
+
+--- MUTATION APPLIED: applyOverrides closes the options object early ---
+sha256 (mutated): b2c9a809cb154ec8df4cfc26988d36b72431499b94d5a8956db0806e37207f5e
+
+--- RUN 2: with the original defect reintroduced (expect FAILures, exit 1) ---
+ok    line             6141 chars
+FAIL  bar              missing ) after argument list
+FAIL  area             missing ) after argument list
+FAIL  sparkline        missing ) after argument list
+FAIL  histogram        missing ) after argument list
+FAIL  scatter          missing ) after argument list
+FAIL  pie              missing ) after argument list
+FAIL  donut            missing ) after argument list
+FAIL  heatmap          missing ) after argument list
+FAIL  progress         missing ) after argument list
+FAIL  gauge            missing ) after argument list
+FAIL  horizontalBar    missing ) after argument list
+FAIL  timeline         missing ) after argument list
+FAIL  radar            missing ) after argument list
+FAIL  boxplot          missing ) after argument list
+FAIL  waterfall        missing ) after argument list
+FAIL  funnel           missing ) after argument list
+FAIL  candlestick      missing ) after argument list
+FAIL  treemap          missing ) after argument list
+FAIL  sankey           missing ) after argument list
+FAIL  renderer=braille: 19 charts — bar, area, sparkline, histogram, scatter, pie, donut, heatmap, progress, gauge, horizontalBar, timeline, radar, boxplot, waterfall, funnel, candlestick, treemap, sankey
+FAIL  renderer=blocks: 19 charts — bar, area, sparkline, histogram, scatter, pie, donut, heatmap, progress, gauge, horizontalBar, timeline, radar, boxplot, waterfall, funnel, candlestick, treemap, sankey
+FAIL  renderer=ascii: 19 charts — bar, area, sparkline, histogram, scatter, pie, donut, heatmap, progress, gauge, horizontalBar, timeline, radar, boxplot, waterfall, funnel, candlestick, treemap, sankey
+ok    syntax error caught: Unexpected token ')'
+
+5/81 catalog example checks passed
+exit_code=1
+
+--- RESTORED ---
+sha256 (restored): b0b91d37f29278cbbae88f65903584b7bb622fe5aafe7650a2fa7770a4b632c2
+git status       : 0 modified file(s) — 0 means the fix is intact
