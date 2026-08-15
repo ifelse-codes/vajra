@@ -1,0 +1,13 @@
+label       : p1
+model       : sonnet
+binary      : /Users/suman/.cargo/bin/vajra
+sha256      : 1c736a161a9f13b95e724cb5752e3e04e80a12a75593810021154662c434dc0c
+claude      : /opt/homebrew/bin/claude  2.1.183 (Claude Code)
+cwd         : /Users/suman/playground/chitra  (branch main)
+guards      : VAJRA_ENFORCE_PUBLISH=1 VAJRA_ENFORCE_COMMIT=1
+allow       : VAJRA_ALLOW_COMMIT=11
+flags       : --dangerously-skip-permissions
+budget_cap  : $5.00  (spent before this stage: $0)
+timeout_secs: 1800
+start_utc   : 2026-08-15T04:28:03Z
+end_utc     : 2026-08-15T04:50:14Z
