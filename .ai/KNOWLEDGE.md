@@ -583,3 +583,31 @@ pub struct CompressionRequest {
   on the founder to clean its working tree first; do not start until told. **S119 = CODE (B+C
   combined), planned to run after S118:** fix the Planner-gate bug above + wire fleet handoffs into
   a blocking gate (candidate C from the S116 closeout, still unpicked). Next mandatory GT = S120.
+
+### S118 — permanent facts from the first paid dogfood since S103
+
+- **A verify suite made entirely of greps returns ALL GREEN over a broken build.** chitra S11's
+  `verify-session-11.sh` reported **14/14** while 19 of 20 chart pages errored; all 11 catalog
+  checks grepped source strings (`new Function`, `catalog-page`). The fix pattern that closes this
+  class: **execute the thing, then prove the check FAILS when the defect is reintroduced.**
+  chitra's `check-catalog-examples.ts` runs 20 examples × 3 renderers + a broken buffer = 81 checks,
+  and drops to 5/81 under mutation (`sessions/session-118-artifacts/mutation-test.sh`).
+- **A fidelity review is only as good as its inputs.** For a UI deliverable, "prompt + diff" cannot
+  see a page that does not render. S118 pass 1 REJECTed the session for delivering its own payload
+  verification as prose; only real PNGs let pass 2 confirm anything.
+- **`vajra next --dogfood-age` does not recurse into artifact subdirectories** (named S115, still
+  unfixed). A receipt at `sessions/session-NN-artifacts/<sub>/receipt.stderr.txt` is INVISIBLE to the
+  query — copy `receipt.stderr.txt` AND `run-result.json` to the artifacts ROOT, or the dogfood
+  indicator silently keeps reporting the previous run. S76's `run1/`/`run2/` receipts are invisible
+  for exactly this reason. The query also only counts sessions ≤ `.ai/SESSION`, so it cannot report
+  session N until the closeout bump lands.
+- **This `claude` build has no `--max-turns`.** A `-p` stage runs to completion, so a between-stages
+  budget gate cannot bound spend *within* a stage — only a wall-clock watchdog can. State this
+  whenever a run claims a cost cap.
+- **A cap whose only evaluation is `spent_before=0` has not been tested.** The comparison cannot fail
+  for any positive cap; record that rather than claiming the cap worked.
+- **Vajra's 3-files-per-commit gate blocks artifact bundles.** A dogfood's ~16-file evidence bundle
+  must land as ≥6 atomic commits. Expected, not a bug — plan the commit sequence up front.
+- **`VAJRA_CLOSEOUT_WAIVER=NN` on a DOGFOOD session should cover exactly ONE check**
+  (`verify-demo-scripts-present`). If it is also covering `fidelity-review-accept` or
+  `review-inputs-attested`, the fidelity gate is being bypassed, not waived — attest properly instead.

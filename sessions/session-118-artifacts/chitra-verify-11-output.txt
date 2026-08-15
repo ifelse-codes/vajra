@@ -1,0 +1,21 @@
+
+=== Session 11 Verify Summary ===
+STEP                                   RESULT
+-------------------------------------- ------
+core-tests                             PASS
+core-typecheck                         PASS
+catalog-examples-execute               PASS
+docs-typecheck                         PASS
+docs-gen-charts-check                  PASS
+branch-is-s11                          PASS
+catalog-component-exists               PASS
+catalog-vim-features                   PASS
+catalog-terminal-features              PASS
+catalog-toolbar-features               PASS
+catalog-evaluator                      PASS
+core-dep-in-docs                       PASS
+app-uses-catalog-page                  PASS
+css-has-catalog-styles                 PASS
+core-output-locked                     PASS
+
+ALL GREEN (15 pass, 0 fail)

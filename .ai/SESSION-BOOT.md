@@ -1,61 +1,41 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 117 — COMPLETE
-- **Type:** CODE. Prove the fleet's THIRD named role, the Plan Advisor, dispatches by name.
-- **Goal:** dispatch `subagent_type: "plan-advisor"` inside a fresh session (the first one after the
-  S116 commit that scaffolded it landed on `main`), capture independent non-copyable cross-file
-  evidence of the real dispatch, govern the result into `.ai/handoffs/session-117-plan-advisor.md`,
-  and confirm `vajra next --stations 117` reports it beside `K of 8` with `K` unchanged.
-- **Verdict:** **ACCEPT** (three independent cold reviews, each `subagent_type: "fidelity-reviewer"`
-  dispatched by name — final pass: 7 of 11 SHIPPED, 4 PARTIAL, 0 NOT-BUILT). Resolved by name on the
-  first try, no workaround. All three fleet roles now proven dispatched by name in three separate
-  fresh sessions: Researcher (S111), Fidelity Reviewer (S115), Plan Advisor (S117). Pass 1 REJECTed
-  a real orchestrator error (diff written to `/tmp`, not the path the reviewer was told to read);
-  pass 2 found a `true; score $?` no-op check + an unrun demo script (both fixed); pass 3 found the
-  "first try" claim was checked only by grepping self-authored prose (fixed with an independent
-  transcript-count check) — a fourth pass re-confirming only that last small fix was explicitly
-  skipped and disclosed, not silently omitted. No `src/` changes (`design-significant: no`). 323 lib
-  tests (unchanged); verify **12/12**; demo **7/7**; attested
-  `a2410535d371860b27761f90f4df713891745efce96a8abda30f27a1755672e7`.
-- **Report:** `sessions/session-117-summary.md` · `sessions/session-117-review.md` · next prompt:
-  `prompts/118-task-dogfood-paid-run.md` (once written). **Date last updated:** 2026-08-11.
+- **Number:** 118 — COMPLETE
+- **Type:** DOGFOOD (paid). The overdue `vajra claude` run, target chitra S11.
+- **Goal:** run `vajra claude` headless on one real bounded task under a ~$5 cap, capture the
+  authoritative receipt + station/dogfood-age/obedience evidence, and report honestly.
+- **Verdict:** **ACCEPT** (two cold `fidelity-reviewer` passes — pass 1 REJECT, pass 2 ACCEPT at
+  5 of 8 SHIPPED, 3 PARTIAL, 0 NOT-BUILT). **Spend: $4.0911771 authoritative, 1331s, under the $5 cap.**
+  The run delivered chitra S11 and graded itself 8-of-8 SHIPPED with `verify-session-11.sh` at
+  **14/14 ALL GREEN** — while **19 of its 20 chart pages showed an error instead of a chart.** All 11
+  catalog checks in that suite were greps for source strings. Found by the operator clicking every
+  chart in a browser; repaired to 20/20 and closed with a check that EXECUTES all 20 examples across
+  3 renderers (81 checks, falsifiable: 5/81 with the defect reintroduced). Pass 1 REJECTed this
+  session for the same sin one level up — verification delivered as prose, no screenshot captured;
+  fixed with 5 real headless-Chrome PNGs. Pass 2 caught an inflated "six gates fired" headline
+  (one gate is file-backed against the agent) — corrected. No Vajra `src/` changes.
+- **Report:** `sessions/session-118-summary.md` · `sessions/session-118-ground-truth.md` ·
+  `sessions/session-118-review.md` · next prompt: `prompts/119-task-qa-grep-only-detector.md`.
+  **Date last updated:** 2026-08-15.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 117. 15 atomic commits on `session-117-plan-advisor-dispatch`. Closeout bundle (this
-  sync + summary/review) lands on the same session branch.
-- Ledger: not re-verified this session (no `--ledger-verify` run; nothing indicates drift).
-- Fleet still has THREE registered roles, unchanged — this session added evidence, not machinery.
-  **All three are now proven dispatched by name**, closing the last open "is it real?" question for
-  the fleet build arc.
-- A real, out-of-scope bug was found live and disclosed, not fixed: `src/planner/mod.rs::
-  is_acceptance_heading` matches any heading whose text merely contains the word "acceptance" — this
-  repo's own `## Plan (... cite the acceptance criteria ...)` heading text trips it, double-counting
-  the Plan section's own numbered steps as phantom extra criteria. Live since ≥S112. Flagged as
-  background task `task_2162b487`, slated for S119.
+- `.ai/SESSION` = 118. Work on `session-118-dogfood-chitra-catalog`. No `src/` change
+  (`design-significant: no`); `VAJRA_CLOSEOUT_WAIVER=dogfood-no-src-changes`.
+- **Dogfood staleness RETIRED:** the 🔴 that stood at 14 sessions / 16 days since S103 is closed.
+- **chitra is left on `session-11-catalog-two-panel`, LOCAL — not pushed, no PR**, by instruction.
+  11 commits: 6 from the governed run, 5 from the operator repair. chitra `main` never moved.
+- Stations for 118: Analyst ✅ Planner ✅ Coder ✅ — 3 of 8 (QA/Demo-er absent by design for a
+  dogfood; Releaser flips once the PR merges).
 
 ## Next Session
-- **Number:** 118 — **DOGFOOD (paid): the overdue `vajra claude` run.** Founder pick A at the S117
-  closeout (over B: fix the Planner-gate bug, and C: wire fleet handoffs into a blocking gate — both
-  now combined into S119, to run right after S118).
-- **WAITING ON THE FOUNDER — do not start until explicitly told.** Target repo: chitra. As of this
-  snapshot chitra has 7 uncommitted files on branch `session-10-line-locked`; the founder said they
-  will clean it up themselves and then say when to start S118. Do not touch chitra's working tree
-  before that go-ahead.
-- **The overdue metric:** `vajra claude` has not run a real governed session since S103 — now 14
-  sessions / ~14+ calendar days. This is the single highest-leverage undone item; it has been
-  deferred by explicit founder choice at S115, S116, AND S117 (each time in favor of fleet-role work)
-  — S118 finally closes it.
-- **Prompt not yet written** (`prompts/118-task-dogfood-paid-run.md`) — write it once the founder
-  confirms chitra is clean and gives the go-ahead, mirroring the S92 ride-along shape (one real
-  bounded task, authoritative receipt, `--stations`/`--dogfood-age` recorded, governance-obedience
-  documented) but reading chitra's OWN `.ai/TASK.md` at write-time for its actual next-session
-  candidate (as of this snapshot: continue the reference-locked line language into bar/sparkline/
-  histogram, bring `lineModelToSvg` in line with the terminal renderer, or a real v0.1.0 release —
-  chitra's own next-session note names all three, undecided).
-- **Then S119 — CODE (B+C combined):** fix the Planner-gate double-counting bug (`task_2162b487`,
-  small + contained, `src/planner/mod.rs` + a regression test) AND wire fleet handoffs into an opt-in
-  blocking gate (candidate C from the S116 closeout, still unpicked).
+- **Number:** 119 — **CODE: teach the QA station to smell a grep-only verify suite** (founder pick
+  pending; A from the S118 close). Goal: flag a verify script whose checks never execute the thing
+  they check, so a suite that cannot fail on a broken build is visible at close.
+- **Why:** this session paid $4.09 to discover that a 14/14 green verify suite proved nothing. It is
+  the finding, and it generalizes to every repo Vajra governs.
+- **Carried, not dropped:** the Planner-gate double-count bug (`task_2162b487`) and the opt-in
+  blocking fleet gate — both were S119's plan before this run produced a sharper candidate.
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S118 (when the founder says

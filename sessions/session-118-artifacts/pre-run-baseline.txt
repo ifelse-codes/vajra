@@ -1,0 +1,30 @@
+=== S118 pre-run baseline · 2026-08-15T04:26:04Z ===
+--- vajra ---
+/Users/suman/.cargo/bin/vajra
+1c736a161a9f13b95e724cb5752e3e04e80a12a75593810021154662c434dc0c
+--- claude ---
+2.1.183 (Claude Code)
+--- chitra ---
+main
+e4ec61962e619bf45853382aa4fdbe5725b57c40
+0
+--- dogfood-age (pre) ---
+=== dogfood age (derived from git — not from STATE.md) ===
+  last dogfood session : 103
+  date (git-derived)   : 2026-07-30
+  cost (authoritative) : $0.6797
+  receipt file         : receipt.stderr.txt
+  sessions since       : 14 (S103 → current S117)
+  calendar days since  : 16 day(s)
+--- stations 118 (pre) ---
+=== stations: pipeline advance for session 118 ===
+  [PASSED] Analyst   WHAT   — substantive `## Delta`
+  [ABSENT] Architect DESIGN — not design-significant
+  [PASSED] Planner   HOW    — plan covers all criteria
+  [ABSENT] Coder     DID    — steps 1, 2, 3, 4, 5, 6, 7, 8 not recorded
+  [ABSENT] QA        WORKS  — no verify script recorded
+  [ABSENT] Demo-er   SHOW   — no demo script recorded
+  [PASSED] Releaser  SHIP   — branch merged, main synced, locals pruned
+  [ABSENT] Reviewer  REVIEW — no review artifact
+
+  3 of 8 stations passed (derived from each gate's evidence — read-only, nothing executed)
