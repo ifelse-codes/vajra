@@ -3,28 +3,27 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S117 complete, S118 approved but WAITING on the founder).** S117 = **CODE:
-prove the fleet's third role, the Plan Advisor, dispatches by name** (founder pick A at the S116
-closeout). Work done on `session-117-plan-advisor-dispatch`, 15 atomic commits.
+**`session-118-dogfood-chitra-catalog`** — S118 = **DOGFOOD (paid): the overdue `vajra claude` run**
+(founder pick A at the S117 closeout, held until the founder confirmed chitra was clean; go-ahead
+given in chat 2026-08-15). Founder also chose the run mode (sonnet, headless `-p`, ~$5 cap) and the
+payload scope.
 
-**Verdict: ACCEPT** (three independent cold reviews, `subagent_type: "fidelity-reviewer"` dispatched
-by name each time — final pass: 7 of 11 SHIPPED, 4 PARTIAL, 0 NOT-BUILT). The headline result: all
-three fleet roles (Researcher S111, Fidelity Reviewer S115, Plan Advisor S117) are now proven
-dispatched by name in three separate fresh sessions — `subagent_type: "plan-advisor"` resolved on
-the first try, independently confirmed via a two-file cross-check (parent tool-call ID matches the
-subagent's own `toolUseId`) plus a transcript-count check ruling out a hidden retry. Pass 1 REJECTed
-a real orchestrator error (the diff fed to the reviewer was written to `/tmp`, not the path it was
-told to read); passes 2 and 3 each found one real hollow-green (a no-op check, and a first-try claim
-checked only by grepping self-authored prose) — both fixed in-session, disclosed rather than silently
-absorbed. No `src/` changes (`design-significant: no`).
+**Verdict: ACCEPT** — two cold `fidelity-reviewer` passes, **pass 1 REJECT → pass 2 ACCEPT**
+(5 of 8 SHIPPED, 3 PARTIAL, 0 NOT-BUILT). **Spend $4.0911771 authoritative** (S78 tee path), 1331s,
+under the $5 cap. No `src/` change.
+
+**The finding:** the governed run delivered chitra S11, graded itself **8-of-8 SHIPPED** with
+`verify-session-11.sh` at **14/14 ALL GREEN** — and **19 of the 20 chart pages showed an error
+instead of a chart.** All 11 catalog checks in that suite were greps for source strings. Six
+governance gates behaved correctly throughout; none of them asks whether the delivered thing works.
+**This is the S54 fidelity-over-discipline finding reproduced on a paid run, one pipeline generation
+later.**
 
 ## Active PRs
-- **None open yet** — `session-117-plan-advisor-dispatch` not yet pushed/opened as of this snapshot.
-- Prior: **S114 [#122](https://github.com/ifelse-codes/vajra/pull/122) MERGED** 2026-08-07, CI green
-  both OS · S113 [#120](https://github.com/ifelse-codes/vajra/pull/120) MERGED · S112
-  [#118](https://github.com/ifelse-codes/vajra/pull/118) + closeout #119 · S111 #117 · S109 #115 ·
-  S110 closeout #116 · S108 #113 + #114 · S107 #112 · S106 #111. **S116 merged as part of
-  [#125](https://github.com/ifelse-codes/vajra/pull/125).**
+- **S118 PR not yet opened** as of this snapshot (`session-118-dogfood-chitra-catalog`).
+- Prior: **S117 [#126](https://github.com/ifelse-codes/vajra/pull/126) MERGED** · S114
+  [#122](https://github.com/ifelse-codes/vajra/pull/122) · S113 #120 · S112 #118 (+#119) · S111 #117 ·
+  S109 #115 · S110 #116 · S108 #113/#114 · S107 #112 · S106 #111 · S116 merged inside #125.
 
 ## Direction (governance is the product — now shaped as a shippable MVP)
 - **The product = provable agent governance** (`DECISION-001`), sold as the **autopilot trust
@@ -63,48 +62,41 @@ absorbed. No `src/` changes (`design-significant: no`).
   **7 commands, no 8th** (all three fleet roles ride `init` + `next`).
 
 ## What Is Broken / Weak
-- **🔴 The launcher (`vajra claude`) has NOT run as a real governed session since S103** — now **14
-  sessions / ~14+ calendar days**. Approved as **S118**, target chitra, but **WAITING on the founder**
-  to finish cleaning chitra's working tree (7 uncommitted files as of this snapshot) before it starts.
-  Do not begin S118 until the founder explicitly says to in chat.
-- **🟡 A real, out-of-scope bug found live at S117, disclosed not fixed:**
-  `src/planner/mod.rs::is_acceptance_heading` matches any heading whose text merely *contains* the
-  word "acceptance" — since this repo's own `## Plan (... cite the acceptance criteria ...)` heading
-  text contains that word, the Plan section's own numbered steps get double-counted as phantom extra
-  acceptance criteria. Live since ≥S112 (checked prompts/112–116), previously masked by coincidence.
-  Does not block `verify-closeout.sh` or the commit hooks (neither calls the Planner gate). Flagged as
-  background task `task_2162b487`. **Slated for S119 (part B, combined with part C below).**
-- **🟡 Fleet consumption + fleet evidence are ADVISORY, never blocking.** Nothing fails when a session
-  ignores a governed handoff. Deliberate; wiring an opt-in blocking gate is **S119's part C.**
-- **🟡 The fleet line counts ARTIFACTS, not agents — except where a real dispatch is independently
-  proven** (now all three roles: S111, S115, S117). Say precisely what was proven in each case.
-- **🟡 An unattended `claude -p` dispatch mode is unbuilt** (deferred, DECISION-007);
-  `ANTHROPIC_API_KEY` is the only auth that survives a fresh no-TTY shell.
-- **🟡 `no-eighth-command` checks are a grep for a hardcoded usage banner** (S111–S117, now 6
-  consecutive CODE sessions flagged, unfixed). House-wide, still not fixed.
-- **🟡 KNOWLEDGE §6 bloat GROWING** (chronic since S60) — now well past 550 lines. The file's own
-  staleness-disclaimer header is itself stale.
-- **🟡 `vajra.varta` re-render drifts every session** — `vajra check` FAILs "varta stale"; no CLOSEOUT
-  gate reads it.
-- **🟡 `vajra --version` gap** · **🟡 `--dogfood-age` durable code fix (subdirectory-recursion +
-  wrong-commit-date, both named at S115)** · **🟡 brew smoke tests a LOCAL formula copy** · **🟡
-  x86_64 prebuilt proven by checksum, never executed**.
-- **🟡 `fable-5` monthly credits exhausted (S102).** Paid launcher dogfood costs real $.
+- **🔴 THE finding (S118): nothing in Vajra asks whether the delivered thing WORKS.** A verify suite
+  made entirely of greps returns ALL GREEN over a broken build, and both the station gates and the
+  fleet's own cold review passed it. **S119 candidate A** = teach the QA station to detect a verify
+  script whose checks never execute the thing they check.
+- **🟡 A cold review is only as good as its inputs.** For a UI deliverable, "prompt + diff" cannot
+  see a page that does not render. S118 pass 1 caught the operator's own version of this sin
+  (verification delivered as prose) but needed PNGs added before pass 2 could confirm anything.
+- **🟡 `vajra next --dogfood-age` does not recurse into artifact subdirectories** (named S115, still
+  unfixed): S118's receipt had to be copied to the artifacts ROOT for the query to see it. S76's
+  run1/run2 receipts are invisible for the same reason.
+- **🟡 The S118 budget gate is real code whose one evaluation was vacuous** (`spent_before=0` vs a
+  $5 cap cannot fail). Within a single `-p` stage there is no cost ceiling at all — this `claude`
+  build has no `--max-turns`, so only a wall clock bounds spend.
+- **🟡 The Planner-gate double-count bug** (`src/planner/mod.rs::is_acceptance_heading`,
+  `task_2162b487`) — carried, still unfixed. **🟡 Fleet consumption + fleet evidence stay ADVISORY.**
+- **🟡 `no-eighth-command` checks are a grep for a hardcoded usage banner** (7 consecutive CODE
+  sessions flagged) · **🟡 KNOWLEDGE §6 bloat past 550 lines** · **🟡 `vajra.varta` re-render drifts
+  every session** · **🟡 `vajra --version` gap** · **🟡 brew smoke tests a LOCAL formula copy** ·
+  **🟡 x86_64 prebuilt proven by checksum, never executed**.
+- **🟡 `fable-5` monthly credits exhausted (S102).** Paid dogfood costs real $ — S118 cost $4.09.
 - **🟡 In THIS repo the commit gate is auditable-not-un-forgeable** (L3 `commit_guard: off`; L2 belt
-  active) · **Compression no-op on real CC** (never claim until measured) · **Cross-agent breadth 0 code**.
-- **🟡 Carried from S115, still unfixed:** `verify-closeout.sh`'s canonical-verdict regex rejects a
-  `|`-table-wrapped verdict line. `vajra next --dogfood-age`'s date field can report the
-  receipt-backfill commit's date rather than the run's own date.
+  active) · **Compression no-op on real CC** · **Cross-agent breadth 0 code**.
+- **🟡 Carried from S115:** `verify-closeout.sh`'s canonical-verdict regex rejects a `|`-table-wrapped
+  verdict line.
 
 ## What Is In Progress
-- **S117 DONE (CODE; three independent cold reviews, final ACCEPT 7 of 11 SHIPPED; all three fleet
-  roles now proven dispatched by name; a real out-of-scope Planner-gate bug found and disclosed).**
-  Summary: `sessions/session-117-summary.md`. Review: `sessions/session-117-review.md`.
-- **Next = S118 — DOGFOOD (paid): the overdue `vajra claude` run** (founder pick A at the S117
-  closeout, over B/C). Target: chitra, once the founder finishes cleaning its working tree and gives
-  the explicit go-ahead. **Do not start until told.**
-- **Then S119 — CODE (B+C combined)**: fix the Planner-gate double-counting bug (`task_2162b487`) +
-  wire fleet handoffs into an opt-in blocking gate (candidate C from the S116 closeout).
+- **S118 DONE (DOGFOOD, paid, ACCEPT).** Summary: `sessions/session-118-summary.md`. Ground truth:
+  `sessions/session-118-ground-truth.md`. Review: `sessions/session-118-review.md`.
+- **chitra is left on `session-11-catalog-two-panel`, LOCAL — not pushed, no PR**, by instruction.
+  11 commits (6 governed run + 5 operator repair); chitra `main` never moved. The founder reviews the
+  page in a browser before anything leaves the machine. The two-panel catalog page works: vim-styled
+  editable buffer left, terminal preview right, live in-browser re-execution, 20 of 20 charts render.
+- **Next = S119 — CODE.** Candidate A (recommended): the grep-only-verify detector. B: feed the
+  fidelity reviewer the running artifact. C: the previously-planned Planner-gate fix + blocking
+  fleet gate. Founder picks.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
@@ -124,4 +116,6 @@ absorbed. No `src/` changes (`design-significant: no`).
 - **S117: $0 metered for the build; four subagent dispatches (1 plan-advisor + 3 fidelity-reviewer
   cold-review passes) roll into this interactive session's receipt, unitemized** — same structural
   reason as S109/S111–S116.
-- Cumulative: **~$79.3 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S117 (unknown, small).**
+- **S118: $4.0911771** authoritative (sonnet, headless `-p`, 1331s) — the first paid dogfood since
+  S103. Two cold-review subagent passes roll into this interactive session's receipt, unitemized.
+- Cumulative: **~$83.4 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S118 subagents (unknown, small).**
