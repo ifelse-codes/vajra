@@ -23,7 +23,7 @@ trap restore EXIT
   echo "file under test : $SRC"
   echo "sha256 (fixed)  : $(shasum -a 256 "$SRC" | cut -d' ' -f1)"
   echo
-  echo "--- RUN 1: the shipped fix (expect 24/24, exit 0) ---"
+  echo "--- RUN 1: the shipped fix (expect all checks to pass, exit 0) ---"
 } > "$OUT"
 
 ( cd "$CH" && pnpm exec tsx scripts/check-catalog-examples.ts ) >> "$OUT" 2>&1
