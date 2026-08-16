@@ -23,9 +23,16 @@
 - **chitra is left on `session-11-catalog-two-panel`, LOCAL — not pushed, no PR.** chitra `main`
   never moved. The founder reviews the page in a browser first.
 
-**Next = S119 — CODE.** Founder picks from A/B/C in `sessions/session-118-summary.md`; A (teach the
-QA station to detect a grep-only verify suite) is my recommendation and the direct product of what
-this $4.09 bought. **New chat.**
+**Next = S119 — CODE: the clean-room re-run** (`prompts/119-task-clean-room-rerun.md`, founder pick
+at the S118 close, chosen over the grep-only-verify detector and the Planner-gate fix). Make QA and
+Demo-er re-run their scripts in a fresh checkout of `HEAD` — no uncommitted files, no gitignored
+build output — instead of in the tree the agent prepared. Opt-in per repo, fail-closed, and proven
+against the exact defect CI caught at S118 while ten cold reviews missed it. **New chat.**
+
+**🔒 FOUNDER DIRECTIVE (S118, in force):** `README.md` / `VISION.md` claims are the **target spec**,
+not a status report. **Never** soften them to match current capability — record gaps in `.ai/` and
+session records instead. **No release** (crates.io `0.1.1`+, announcements, wider distribution)
+until reality meets the claim. When a dogfood exposes a gap: root-cause it, then fix it.
 
 ## Always-True Reminders
 

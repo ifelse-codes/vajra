@@ -29,13 +29,22 @@
   dogfood; Releaser flips once the PR merges).
 
 ## Next Session
-- **Number:** 119 — **CODE: teach the QA station to smell a grep-only verify suite** (founder pick
-  pending; A from the S118 close). Goal: flag a verify script whose checks never execute the thing
-  they check, so a suite that cannot fail on a broken build is visible at close.
-- **Why:** this session paid $4.09 to discover that a 14/14 green verify suite proved nothing. It is
-  the finding, and it generalizes to every repo Vajra governs.
-- **Carried, not dropped:** the Planner-gate double-count bug (`task_2162b487`) and the opt-in
-  blocking fleet gate — both were S119's plan before this run produced a sharper candidate.
+- **Number:** 119 — **CODE: the clean-room re-run** (`prompts/119-task-clean-room-rerun.md`).
+  Founder pick at the S118 close, over the grep-only detector and the Planner-gate fix.
+- **Goal:** QA and Demo-er re-run their scripts in a fresh checkout of `HEAD` (no uncommitted files,
+  no gitignored build output) rather than in the tree the agent prepared. Opt-in per repo via
+  `verify.clean_room.*`, fail-closed on any cannot-evaluate, default OFF.
+- **Why:** S118's root cause — nothing in Vajra ever runs the product independently. Six of eight
+  stations read documents or git; the two that execute run a script the graded agent wrote, in that
+  agent's own tree. Ten cold reviews read the diff and missed a defect CI found in 37 seconds,
+  because CI ran it in an environment nobody had prepared.
+- **The session's real deliverable is the falsifiability fixture:** a verify script that passes in a
+  working tree holding a stale artifact and FAILS in the clean room.
+- **Honest limit to carry:** this proves the product *runs from a clean checkout*, never that it
+  *works*. It would have caught S118's CI failure; it would NOT have caught the 19-of-20 broken
+  charts. The grep-only-verify detector stays queued for that.
+- **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them to
+  match reality; no release until reality meets them.
 
 ## Carry-Forwards
 - **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S118 (when the founder says
