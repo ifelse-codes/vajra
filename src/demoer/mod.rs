@@ -280,11 +280,73 @@ pub fn demo_gate_with(
 }
 
 /// The Demo-er gate against the real repo — re-runs the session's demo script live.
+///
+/// Follows the same clean-room routing as `qa_gate` (S119): when `verify.clean_room.enabled:
+/// true`, the demo script runs inside a fresh checkout of HEAD — absent of uncommitted files and
+/// gitignored artifacts. `VAJRA_SKIP_CLEAN_ROOM=1` bypasses the clean room (disclosed in output).
+/// A failed setup or bootstrap is CannotEvaluate → BLOCK.
 pub fn demo_gate(root: &Path, session: u32) -> DemoVerdict {
-    let timeout = crate::gate_run::gate_timeout(&root.join(".ai/CONSTRAINTS.yaml"), "demo");
-    demo_gate_with(root, session, |script| {
-        crate::gate_run::run_captured(root, script, timeout)
-    })
+    let constraints = root.join(".ai/CONSTRAINTS.yaml");
+    let timeout = crate::gate_run::gate_timeout(&constraints, "demo");
+    let (cr_enabled, cr_bootstrap) = crate::gate_run::clean_room_config(&constraints);
+
+    let skip = std::env::var("VAJRA_SKIP_CLEAN_ROOM").as_deref() == Ok("1");
+    if !cr_enabled || skip {
+        if cr_enabled && skip {
+            eprintln!("[vajra: VAJRA_SKIP_CLEAN_ROOM=1 — skipping clean room, Demo-er runs in working tree]");
+        }
+        return demo_gate_with(root, session, |script| {
+            crate::gate_run::run_captured(root, script, timeout)
+        });
+    }
+
+    // Clean room is enabled — try to create it.
+    let cr = match crate::gate_run::CleanRoom::new(root) {
+        Ok(cr) => {
+            eprintln!(
+                "[vajra: Demo-er running in clean room: {}]",
+                cr.path.display()
+            );
+            cr
+        }
+        Err(reason) => {
+            let contract = gather_contract(root, session);
+            return DemoVerdict {
+                session,
+                contract,
+                state: DemoState::CannotEvaluate(reason),
+                reasons: vec!["Demo-er: could not create a clean checkout of HEAD — \
+                     a check that cannot evaluate FAILS the close"
+                    .to_string()],
+                warnings: vec![],
+            };
+        }
+    };
+
+    // Run bootstrap if configured.
+    if let Some(ref cmd) = cr_bootstrap {
+        eprintln!("[vajra: Demo-er clean-room bootstrap: {cmd}]");
+        if let Err(reason) = crate::gate_run::run_bootstrap(&cr.path, cmd, timeout) {
+            let contract = gather_contract(root, session);
+            return DemoVerdict {
+                session,
+                contract,
+                state: DemoState::CannotEvaluate(reason),
+                reasons: vec![format!(
+                    "Demo-er: bootstrap failed in clean room ({cmd}) — \
+                     a check that cannot evaluate FAILS the close"
+                )],
+                warnings: vec![],
+            };
+        }
+    }
+
+    let run_path = cr.path.clone();
+    let verdict = demo_gate_with(root, session, |script| {
+        crate::gate_run::run_captured(&run_path, script, timeout)
+    });
+    drop(cr); // explicit cleanup before returning
+    verdict
 }
 
 /// Render the `--demo N` surface: the session's recorded sprint-demo contract, read-only —

@@ -241,11 +241,73 @@ pub fn qa_gate_with(
 
 /// The QA gate against the real repo — re-runs the session's verify script live, bounded by the
 /// recorded `verify.timeout_secs` (S73). A run past the bound is killed → cannot-evaluate → BLOCK.
+///
+/// When `verify.clean_room.enabled: true` in CONSTRAINTS.yaml (default false), the script runs
+/// inside a fresh `git worktree add --detach` checkout of HEAD — absent of uncommitted files and
+/// gitignored artifacts by construction. `VAJRA_SKIP_CLEAN_ROOM=1` bypasses the clean room and
+/// runs in the working tree (disclosed in output). A failed clean-room setup or bootstrap is a
+/// CannotEvaluate → BLOCK regardless of script existence (S119).
 pub fn qa_gate(root: &Path, session: u32) -> QaVerdict {
-    let timeout = crate::gate_run::gate_timeout(&root.join(".ai/CONSTRAINTS.yaml"), "verify");
-    qa_gate_with(root, session, |script| {
-        crate::gate_run::run_streamed(root, script, timeout)
-    })
+    let constraints = root.join(".ai/CONSTRAINTS.yaml");
+    let timeout = crate::gate_run::gate_timeout(&constraints, "verify");
+    let (cr_enabled, cr_bootstrap) = crate::gate_run::clean_room_config(&constraints);
+
+    let skip = std::env::var("VAJRA_SKIP_CLEAN_ROOM").as_deref() == Ok("1");
+    if !cr_enabled || skip {
+        if cr_enabled && skip {
+            eprintln!(
+                "[vajra: VAJRA_SKIP_CLEAN_ROOM=1 — skipping clean room, QA runs in working tree]"
+            );
+        }
+        return qa_gate_with(root, session, |script| {
+            crate::gate_run::run_streamed(root, script, timeout)
+        });
+    }
+
+    // Clean room is enabled — try to create it.
+    let cr = match crate::gate_run::CleanRoom::new(root) {
+        Ok(cr) => {
+            eprintln!("[vajra: QA running in clean room: {}]", cr.path.display());
+            cr
+        }
+        Err(reason) => {
+            let contract = gather_contract(root, session);
+            return QaVerdict {
+                session,
+                contract,
+                state: QaState::CannotEvaluate(reason),
+                reasons: vec!["QA: could not create a clean checkout of HEAD — \
+                     a check that cannot evaluate FAILS the close"
+                    .to_string()],
+                warnings: vec![],
+            };
+        }
+    };
+
+    // Run bootstrap if configured.
+    if let Some(ref cmd) = cr_bootstrap {
+        eprintln!("[vajra: QA clean-room bootstrap: {cmd}]");
+        if let Err(reason) = crate::gate_run::run_bootstrap(&cr.path, cmd, timeout) {
+            let contract = gather_contract(root, session);
+            return QaVerdict {
+                session,
+                contract,
+                state: QaState::CannotEvaluate(reason),
+                reasons: vec![format!(
+                    "QA: bootstrap failed in clean room ({cmd}) — \
+                     a check that cannot evaluate FAILS the close"
+                )],
+                warnings: vec![],
+            };
+        }
+    }
+
+    let run_path = cr.path.clone();
+    let verdict = qa_gate_with(root, session, |script| {
+        crate::gate_run::run_streamed(&run_path, script, timeout)
+    });
+    drop(cr); // explicit cleanup before returning
+    verdict
 }
 
 /// Render the `--qa N` surface: the session's recorded QA contract, read-only — script present

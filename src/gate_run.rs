@@ -16,12 +16,21 @@
 //!
 //! The bound is a recorded key on the existing CONSTRAINTS spine (`verify.timeout_secs` /
 //! `demo.timeout_secs`) — no new store, no new command, `vajra init` propagates the defaults.
+//!
+//! **S119:** the clean-room runner. S118 showed nothing in Vajra executes the product in a state
+//! the graded agent did not prepare — the verify suite returned ALL GREEN while 19/20 charts
+//! errored, because every check was a `grep` over source strings and the scripts ran in the agent's
+//! own working tree. `CleanRoom` materialises `HEAD` into a temp dir via `git worktree add
+//! --detach`, which is absent of uncommitted files and gitignored artifacts by construction. QA and
+//! Demo-er route through it when `verify.clean_room.enabled: true` in CONSTRAINTS.yaml (default
+//! off). A bootstrap command (e.g. `pnpm install`) may be configured; if it fails or times out the
+//! gate returns `CannotEvaluate` and BLOCKS — a check that cannot evaluate never silently passes.
 
 use std::fs;
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Stdio};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 #[cfg(unix)]
 use std::os::unix::process::CommandExt;
@@ -264,6 +273,157 @@ fn read_to_end<R: Read + Send + 'static>(pipe: Option<R>) -> std::thread::JoinHa
     })
 }
 
+// ─── S119: Clean-room runner ────────────────────────────────────────────────
+
+/// A clean checkout of `HEAD` in a temp directory, created via `git worktree add --detach`.
+/// Uncommitted files and gitignored artifacts are absent by construction — git worktrees start
+/// from a committed tree with no carry-over from the parent working directory.
+///
+/// Dropped on `Drop`: `git worktree remove --force <path>` cleans up both the directory and the
+/// `.git/worktrees/<name>` entry in the source repo. Callers must keep the guard alive for the
+/// duration of the script run.
+pub struct CleanRoom {
+    /// Root of the source repo — needed for the worktree remove on drop.
+    repo_root: PathBuf,
+    /// The temp dir path containing the clean checkout. Pass this as `root` to the script runner.
+    pub path: PathBuf,
+}
+
+impl CleanRoom {
+    /// Materialise `HEAD` of `repo_root` into a fresh temp directory. Returns
+    /// `Err(CannotEvaluate::SpawnFailure)` when git fails (no commits, detached, permission
+    /// denied, git not on PATH).
+    pub fn new(repo_root: &Path) -> Result<Self, CannotEvaluate> {
+        // Build a path that is guaranteed not to exist yet — git worktree add requires this.
+        let ts = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("vajra-cr-{ts}"));
+
+        let ok = Command::new("git")
+            .args(["worktree", "add", "--detach"])
+            .arg(&path)
+            .arg("HEAD")
+            .current_dir(repo_root)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+
+        if ok {
+            Ok(CleanRoom {
+                repo_root: repo_root.to_path_buf(),
+                path,
+            })
+        } else {
+            Err(CannotEvaluate::SpawnFailure)
+        }
+    }
+}
+
+impl Drop for CleanRoom {
+    fn drop(&mut self) {
+        // Ignore errors — the worst outcome is an orphaned worktree entry, which `git worktree
+        // prune` will clean up. Never panic in Drop.
+        let _ = Command::new("git")
+            .args(["worktree", "remove", "--force"])
+            .arg(&self.path)
+            .current_dir(&self.repo_root)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+    }
+}
+
+/// Read `verify.clean_room.{enabled,bootstrap}` from `.ai/CONSTRAINTS.yaml` (house-style line
+/// scan — no YAML dependency). Returns `(enabled, bootstrap_cmd)`. A missing file, missing
+/// section, or missing key returns `(false, None)` — default off, byte-identical to today.
+pub fn clean_room_config(constraints_path: &Path) -> (bool, Option<String>) {
+    let content = fs::read_to_string(constraints_path).unwrap_or_default();
+    let mut in_verify = false;
+    let mut in_clean_room = false;
+    let mut enabled = false;
+    let mut bootstrap: Option<String> = None;
+
+    for line in content.lines() {
+        let stripped = line.trim_end();
+
+        // Top-level key (no leading whitespace, ends with ':'): track which section we're in.
+        if !line.starts_with([' ', '\t', '#']) && stripped.ends_with(':') {
+            in_verify = stripped == "verify:";
+            in_clean_room = false;
+            continue;
+        }
+
+        if !in_verify {
+            continue;
+        }
+
+        // Two-space indented sub-section under verify:
+        if line.starts_with("  ") && !line.starts_with("   ") && stripped.ends_with(':') {
+            in_clean_room = stripped.trim() == "clean_room:";
+            continue;
+        }
+
+        if !in_clean_room {
+            continue;
+        }
+
+        // Keys at four-space indent under verify.clean_room.
+        let t = stripped.trim_start();
+        if let Some(v) = t.strip_prefix("enabled:") {
+            enabled = v.trim().split('#').next().unwrap_or("").trim() == "true";
+        } else if let Some(v) = t.strip_prefix("bootstrap:") {
+            let cmd = v
+                .trim()
+                .split('#')
+                .next()
+                .unwrap_or("")
+                .trim()
+                .trim_matches(['"', '\'']);
+            if !cmd.is_empty() {
+                bootstrap = Some(cmd.to_string());
+            }
+        }
+    }
+
+    (enabled, bootstrap)
+}
+
+/// Run `sh -c cmd` inside `clean_room` as a bootstrap step (e.g. `pnpm install`), bounded by
+/// `timeout`. Returns `Ok(())` on exit 0; `Err(Timeout)` if the command runs past the bound;
+/// `Err(SpawnFailure)` if the shell cannot be spawned or the command exits non-zero. A failing or
+/// timed-out bootstrap means the gate CANNOT EVALUATE and must BLOCK.
+pub fn run_bootstrap(
+    clean_room: &Path,
+    cmd: &str,
+    timeout: Duration,
+) -> Result<(), CannotEvaluate> {
+    let mut child = match Command::new("sh")
+        .args(["-c", cmd])
+        .current_dir(clean_room)
+        .stdin(Stdio::null())
+        .spawn()
+    {
+        Ok(c) => c,
+        Err(_) => return Err(CannotEvaluate::SpawnFailure),
+    };
+
+    match wait_or_timeout(&mut child, timeout) {
+        Some(status) if status.success() => Ok(()),
+        Some(_) => {
+            // Non-zero exit from bootstrap — treat as a setup failure.
+            Err(CannotEvaluate::SpawnFailure)
+        }
+        None => {
+            kill_tree(&mut child);
+            Err(CannotEvaluate::Timeout)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -441,5 +601,235 @@ mod tests {
             run_streamed(tmp.path(), "scripts/s.sh", Duration::from_secs(30)),
             Ok(3)
         );
+    }
+
+    // ─── S119: Clean-room tests ──────────────────────────────────────────────
+
+    /// Build a minimal committed git repo in a temp dir. Returns the TempDir (keep alive).
+    fn git_repo_with_commit() -> tempfile::TempDir {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let git = |args: &[&str]| {
+            Command::new("git")
+                .args(args)
+                .current_dir(root)
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()
+                .unwrap();
+        };
+        git(&["init"]);
+        git(&["config", "user.email", "t@t.com"]);
+        git(&["config", "user.name", "T"]);
+        fs::write(root.join("README.md"), "test\n").unwrap();
+        git(&["add", "README.md"]);
+        git(&["commit", "-m", "initial"]);
+        tmp
+    }
+
+    #[test]
+    fn clean_room_materialises_head_and_drop_cleans_up() {
+        let repo = git_repo_with_commit();
+        let root = repo.path();
+
+        let cr = CleanRoom::new(root).expect("clean room must be created");
+        // The path must exist and contain the committed file.
+        assert!(cr.path.exists(), "clean room directory must exist");
+        assert!(
+            cr.path.join("README.md").exists(),
+            "committed file must be present"
+        );
+
+        let clean_room_path = cr.path.clone();
+        drop(cr);
+        // After drop the directory is gone (git worktree remove cleaned it).
+        assert!(
+            !clean_room_path.exists(),
+            "clean room must be removed on drop"
+        );
+    }
+
+    #[test]
+    fn clean_room_excludes_uncommitted_and_gitignored_files() {
+        let repo = git_repo_with_commit();
+        let root = repo.path();
+
+        // Untracked file (not staged, not committed).
+        fs::write(root.join("untracked.txt"), "not in git").unwrap();
+        // Gitignored build artifact.
+        fs::create_dir_all(root.join("dist")).unwrap();
+        fs::write(root.join("dist/output.txt"), "stale build artifact").unwrap();
+        fs::write(root.join(".gitignore"), "dist/\n").unwrap();
+
+        let cr = CleanRoom::new(root).expect("clean room must be created");
+        assert!(
+            !cr.path.join("untracked.txt").exists(),
+            "untracked file must be absent"
+        );
+        assert!(
+            !cr.path.join("dist").exists(),
+            "gitignored dir must be absent"
+        );
+        assert!(
+            !cr.path.join("dist/output.txt").exists(),
+            "gitignored artifact must be absent"
+        );
+    }
+
+    /// **The falsifiability fixture — the session's real deliverable (AC 6, S119).**
+    ///
+    /// Reproduces the exact S118/chitra failure class: a verify script that PASSES in a working
+    /// tree containing a stale build artifact, and FAILS in the clean room where that artifact is
+    /// absent. This is the defect CI caught in 37 seconds while ten cold fidelity reviews missed
+    /// it — because CI ran in a clean environment and every local run passed on a stale build.
+    #[test]
+    fn clean_room_falsifiability_fixture() {
+        let repo = tempfile::tempdir().unwrap();
+        let root = repo.path();
+
+        let git = |args: &[&str]| {
+            Command::new("git")
+                .args(args)
+                .current_dir(root)
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()
+                .unwrap();
+        };
+        git(&["init"]);
+        git(&["config", "user.email", "t@t.com"]);
+        git(&["config", "user.name", "T"]);
+
+        // Commit a .gitignore (ignores dist/) and a verify script that PASSES only if dist/output.txt exists.
+        fs::write(root.join(".gitignore"), "dist/\n").unwrap();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(
+            root.join("scripts/verify.sh"),
+            "#!/usr/bin/env bash\n[ -f dist/output.txt ] || { echo 'FAIL: dist/output.txt absent'; exit 1; }\necho 'PASS: dist/output.txt present'\n",
+        ).unwrap();
+        git(&["add", "."]);
+        git(&["commit", "-m", "initial"]);
+
+        // Simulate the stale build artifact left in the working tree (like chitra's dist/).
+        fs::create_dir_all(root.join("dist")).unwrap();
+        fs::write(
+            root.join("dist/output.txt"),
+            "stale artifact — git does not track this\n",
+        )
+        .unwrap();
+
+        // In the working tree: artifact present → verify PASSES.
+        let working_result = run_streamed(root, "scripts/verify.sh", Duration::from_secs(10));
+        assert_eq!(
+            working_result,
+            Ok(0),
+            "working tree: stale artifact present → verify must PASS (reproduces the false green)"
+        );
+
+        // In the clean room: artifact absent (gitignored, not in HEAD) → verify FAILS.
+        let cr = CleanRoom::new(root).expect("clean room must materialise from committed HEAD");
+        assert!(
+            !cr.path.join("dist/output.txt").exists(),
+            "artifact must be absent in clean room"
+        );
+
+        let clean_result = run_streamed(&cr.path, "scripts/verify.sh", Duration::from_secs(10));
+        assert_ne!(
+            clean_result,
+            Ok(0),
+            "clean room: stale artifact absent → verify must FAIL (the S118 defect CI caught)"
+        );
+    }
+
+    #[test]
+    fn clean_room_fails_on_repo_with_no_commits() {
+        let tmp = tempfile::tempdir().unwrap();
+        Command::new("git")
+            .args(["init"])
+            .current_dir(tmp.path())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .unwrap();
+        // No commits → git worktree add fails → SpawnFailure.
+        assert!(matches!(
+            CleanRoom::new(tmp.path()),
+            Err(CannotEvaluate::SpawnFailure)
+        ));
+    }
+
+    #[test]
+    fn clean_room_config_defaults_when_key_absent() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::write(
+            tmp.path().join("C.yaml"),
+            "verify:\n  required_for_done: true\n  timeout_secs: 600\n",
+        )
+        .unwrap();
+        let (enabled, bootstrap) = clean_room_config(&tmp.path().join("C.yaml"));
+        assert!(!enabled, "absent key must default to false");
+        assert!(bootstrap.is_none(), "absent bootstrap must be None");
+    }
+
+    #[test]
+    fn clean_room_config_reads_enabled_and_bootstrap() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::write(
+            tmp.path().join("C.yaml"),
+            "verify:\n  clean_room:\n    enabled: true\n    bootstrap: \"pnpm install --frozen-lockfile\"\n",
+        )
+        .unwrap();
+        let (enabled, bootstrap) = clean_room_config(&tmp.path().join("C.yaml"));
+        assert!(enabled);
+        assert_eq!(bootstrap.as_deref(), Some("pnpm install --frozen-lockfile"));
+    }
+
+    #[test]
+    fn clean_room_config_disabled_is_off() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::write(
+            tmp.path().join("C.yaml"),
+            "verify:\n  clean_room:\n    enabled: false\n",
+        )
+        .unwrap();
+        let (enabled, _) = clean_room_config(&tmp.path().join("C.yaml"));
+        assert!(!enabled);
+    }
+
+    #[test]
+    fn clean_room_config_does_not_bleed_into_demo_section() {
+        // clean_room keys must only be read from the verify section, not from any other.
+        let tmp = tempfile::tempdir().unwrap();
+        fs::write(
+            tmp.path().join("C.yaml"),
+            "demo:\n  clean_room:\n    enabled: true\nverify:\n  clean_room:\n    enabled: false\n",
+        )
+        .unwrap();
+        let (enabled, _) = clean_room_config(&tmp.path().join("C.yaml"));
+        assert!(
+            !enabled,
+            "demo.clean_room must not bleed into verify.clean_room"
+        );
+    }
+
+    #[test]
+    fn run_bootstrap_passes_on_exit_zero() {
+        let tmp = tempfile::tempdir().unwrap();
+        let result = run_bootstrap(tmp.path(), "exit 0", Duration::from_secs(5));
+        assert_eq!(result, Ok(()));
+    }
+
+    #[test]
+    fn run_bootstrap_blocks_on_nonzero_exit() {
+        let tmp = tempfile::tempdir().unwrap();
+        let result = run_bootstrap(tmp.path(), "exit 1", Duration::from_secs(5));
+        assert_eq!(result, Err(CannotEvaluate::SpawnFailure));
+    }
+
+    #[test]
+    fn run_bootstrap_blocks_on_timeout() {
+        let tmp = tempfile::tempdir().unwrap();
+        let result = run_bootstrap(tmp.path(), "sleep 10", Duration::from_millis(200));
+        assert_eq!(result, Err(CannotEvaluate::Timeout));
     }
 }
