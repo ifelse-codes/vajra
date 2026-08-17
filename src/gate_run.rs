@@ -313,7 +313,10 @@ impl CleanRoom {
             .unwrap_or(false);
 
         if ok {
-            Ok(CleanRoom { repo_root: repo_root.to_path_buf(), path })
+            Ok(CleanRoom {
+                repo_root: repo_root.to_path_buf(),
+                path,
+            })
         } else {
             Err(CannotEvaluate::SpawnFailure)
         }
@@ -373,7 +376,13 @@ pub fn clean_room_config(constraints_path: &Path) -> (bool, Option<String>) {
         if let Some(v) = t.strip_prefix("enabled:") {
             enabled = v.trim().split('#').next().unwrap_or("").trim() == "true";
         } else if let Some(v) = t.strip_prefix("bootstrap:") {
-            let cmd = v.trim().split('#').next().unwrap_or("").trim().trim_matches(['"', '\'']);
+            let cmd = v
+                .trim()
+                .split('#')
+                .next()
+                .unwrap_or("")
+                .trim()
+                .trim_matches(['"', '\'']);
             if !cmd.is_empty() {
                 bootstrap = Some(cmd.to_string());
             }
@@ -387,7 +396,11 @@ pub fn clean_room_config(constraints_path: &Path) -> (bool, Option<String>) {
 /// `timeout`. Returns `Ok(())` on exit 0; `Err(Timeout)` if the command runs past the bound;
 /// `Err(SpawnFailure)` if the shell cannot be spawned or the command exits non-zero. A failing or
 /// timed-out bootstrap means the gate CANNOT EVALUATE and must BLOCK.
-pub fn run_bootstrap(clean_room: &Path, cmd: &str, timeout: Duration) -> Result<(), CannotEvaluate> {
+pub fn run_bootstrap(
+    clean_room: &Path,
+    cmd: &str,
+    timeout: Duration,
+) -> Result<(), CannotEvaluate> {
     let mut child = match Command::new("sh")
         .args(["-c", cmd])
         .current_dir(clean_room)
@@ -622,12 +635,18 @@ mod tests {
         let cr = CleanRoom::new(root).expect("clean room must be created");
         // The path must exist and contain the committed file.
         assert!(cr.path.exists(), "clean room directory must exist");
-        assert!(cr.path.join("README.md").exists(), "committed file must be present");
+        assert!(
+            cr.path.join("README.md").exists(),
+            "committed file must be present"
+        );
 
         let clean_room_path = cr.path.clone();
         drop(cr);
         // After drop the directory is gone (git worktree remove cleaned it).
-        assert!(!clean_room_path.exists(), "clean room must be removed on drop");
+        assert!(
+            !clean_room_path.exists(),
+            "clean room must be removed on drop"
+        );
     }
 
     #[test]
@@ -643,9 +662,18 @@ mod tests {
         fs::write(root.join(".gitignore"), "dist/\n").unwrap();
 
         let cr = CleanRoom::new(root).expect("clean room must be created");
-        assert!(!cr.path.join("untracked.txt").exists(), "untracked file must be absent");
-        assert!(!cr.path.join("dist").exists(), "gitignored dir must be absent");
-        assert!(!cr.path.join("dist/output.txt").exists(), "gitignored artifact must be absent");
+        assert!(
+            !cr.path.join("untracked.txt").exists(),
+            "untracked file must be absent"
+        );
+        assert!(
+            !cr.path.join("dist").exists(),
+            "gitignored dir must be absent"
+        );
+        assert!(
+            !cr.path.join("dist/output.txt").exists(),
+            "gitignored artifact must be absent"
+        );
     }
 
     /// **The falsifiability fixture — the session's real deliverable (AC 6, S119).**
@@ -684,7 +712,11 @@ mod tests {
 
         // Simulate the stale build artifact left in the working tree (like chitra's dist/).
         fs::create_dir_all(root.join("dist")).unwrap();
-        fs::write(root.join("dist/output.txt"), "stale artifact — git does not track this\n").unwrap();
+        fs::write(
+            root.join("dist/output.txt"),
+            "stale artifact — git does not track this\n",
+        )
+        .unwrap();
 
         // In the working tree: artifact present → verify PASSES.
         let working_result = run_streamed(root, "scripts/verify.sh", Duration::from_secs(10));
@@ -696,7 +728,10 @@ mod tests {
 
         // In the clean room: artifact absent (gitignored, not in HEAD) → verify FAILS.
         let cr = CleanRoom::new(root).expect("clean room must materialise from committed HEAD");
-        assert!(!cr.path.join("dist/output.txt").exists(), "artifact must be absent in clean room");
+        assert!(
+            !cr.path.join("dist/output.txt").exists(),
+            "artifact must be absent in clean room"
+        );
 
         let clean_result = run_streamed(&cr.path, "scripts/verify.sh", Duration::from_secs(10));
         assert_ne!(
@@ -717,7 +752,10 @@ mod tests {
             .status()
             .unwrap();
         // No commits → git worktree add fails → SpawnFailure.
-        assert!(matches!(CleanRoom::new(tmp.path()), Err(CannotEvaluate::SpawnFailure)));
+        assert!(matches!(
+            CleanRoom::new(tmp.path()),
+            Err(CannotEvaluate::SpawnFailure)
+        ));
     }
 
     #[test]
@@ -768,7 +806,10 @@ mod tests {
         )
         .unwrap();
         let (enabled, _) = clean_room_config(&tmp.path().join("C.yaml"));
-        assert!(!enabled, "demo.clean_room must not bleed into verify.clean_room");
+        assert!(
+            !enabled,
+            "demo.clean_room must not bleed into verify.clean_room"
+        );
     }
 
     #[test]

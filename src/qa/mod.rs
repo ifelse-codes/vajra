@@ -255,7 +255,9 @@ pub fn qa_gate(root: &Path, session: u32) -> QaVerdict {
     let skip = std::env::var("VAJRA_SKIP_CLEAN_ROOM").as_deref() == Ok("1");
     if !cr_enabled || skip {
         if cr_enabled && skip {
-            eprintln!("[vajra: VAJRA_SKIP_CLEAN_ROOM=1 — skipping clean room, QA runs in working tree]");
+            eprintln!(
+                "[vajra: VAJRA_SKIP_CLEAN_ROOM=1 — skipping clean room, QA runs in working tree]"
+            );
         }
         return qa_gate_with(root, session, |script| {
             crate::gate_run::run_streamed(root, script, timeout)
@@ -274,11 +276,9 @@ pub fn qa_gate(root: &Path, session: u32) -> QaVerdict {
                 session,
                 contract,
                 state: QaState::CannotEvaluate(reason),
-                reasons: vec![
-                    "QA: could not create a clean checkout of HEAD — \
+                reasons: vec!["QA: could not create a clean checkout of HEAD — \
                      a check that cannot evaluate FAILS the close"
-                        .to_string(),
-                ],
+                    .to_string()],
                 warnings: vec![],
             };
         }

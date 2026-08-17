@@ -303,7 +303,10 @@ pub fn demo_gate(root: &Path, session: u32) -> DemoVerdict {
     // Clean room is enabled — try to create it.
     let cr = match crate::gate_run::CleanRoom::new(root) {
         Ok(cr) => {
-            eprintln!("[vajra: Demo-er running in clean room: {}]", cr.path.display());
+            eprintln!(
+                "[vajra: Demo-er running in clean room: {}]",
+                cr.path.display()
+            );
             cr
         }
         Err(reason) => {
@@ -312,11 +315,9 @@ pub fn demo_gate(root: &Path, session: u32) -> DemoVerdict {
                 session,
                 contract,
                 state: DemoState::CannotEvaluate(reason),
-                reasons: vec![
-                    "Demo-er: could not create a clean checkout of HEAD — \
+                reasons: vec!["Demo-er: could not create a clean checkout of HEAD — \
                      a check that cannot evaluate FAILS the close"
-                        .to_string(),
-                ],
+                    .to_string()],
                 warnings: vec![],
             };
         }
