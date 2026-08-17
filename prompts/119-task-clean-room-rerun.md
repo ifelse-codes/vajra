@@ -70,7 +70,7 @@ evaluate, and proven against the exact failure class S118 hit.
 - step 4 — done: 3b80265 (cargo fmt fixes)
 - step 5 — done: c423c39 (falsifiability fixture — shell-level fixture in both scripts)
 - step 6 — done: c423c39 (verify-session-119.sh ALL GREEN 19/19; demo-session-119.sh exits 0)
-- step 7 — done: (fidelity-reviewer pass pending — attest last)
+- step 7 — done: cold fidelity-reviewer pass ACCEPT (8/8 SHIPPED); sessions/session-119-review.md
 
 ## Design
 
