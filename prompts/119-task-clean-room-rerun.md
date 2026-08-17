@@ -64,13 +64,13 @@ evaluate, and proven against the exact failure class S118 hit.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done:
-- step 2 — done:
-- step 3 — done:
-- step 4 — done:
-- step 5 — done:
-- step 6 — done:
-- step 7 — done:
+- step 1 — done: d11e835 (CleanRoom, clean_room_config, run_bootstrap + tests in gate_run.rs)
+- step 2 — done: 8bd1800 (wire QA and Demo-er gates through clean room)
+- step 3 — done: a607db6 (CONSTRAINTS.yaml + init scaffold with clean_room keys)
+- step 4 — done: 3b80265 (cargo fmt fixes)
+- step 5 — done: c423c39 (falsifiability fixture — shell-level fixture in both scripts)
+- step 6 — done: c423c39 (verify-session-119.sh ALL GREEN 19/19; demo-session-119.sh exits 0)
+- step 7 — done: (fidelity-reviewer pass pending — attest last)
 
 ## Design
 
