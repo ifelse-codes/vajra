@@ -35,6 +35,14 @@ verify:
   # killed and BLOCKS (cannot-evaluate → FAIL), never a silent pass, never a hang. Generous on
   # purpose — kills hangs, not slow truth. Missing key → gate_run::DEFAULT_TIMEOUT_SECS (600).
   timeout_secs: 600
+  # S119: clean-room re-run. When enabled, QA and Demo-er run their scripts in a fresh
+  # `git worktree add --detach` checkout of HEAD — no uncommitted files, no gitignored build
+  # output. Proves the product runs from a clean checkout (not: proves it is correct).
+  # Default off — repos without this key behave exactly as they did before S119.
+  # bootstrap: command to run inside the clean room before the script (e.g. "pnpm install --frozen-lockfile")
+  clean_room:
+    enabled: false
+    # bootstrap: "pnpm install --frozen-lockfile"
 
 demo:
   script_pattern: 'scripts/demo-session-{NN}.sh'

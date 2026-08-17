@@ -751,6 +751,12 @@ verify:
   # The bound (S73): the QA gate re-runs this script LIVE at close; a run past timeout_secs is
   # killed and BLOCKS (cannot-evaluate → FAIL). Missing key → a generous built-in default (600s).
   timeout_secs: 600
+  # S119: clean-room re-run. When enabled, QA and Demo-er run scripts in a fresh checkout of HEAD
+  # (git worktree add --detach) — no uncommitted files, no gitignored build output. Default off.
+  # bootstrap: command run inside the clean room before the script (e.g. "pnpm install --frozen-lockfile")
+  clean_room:
+    enabled: false
+    # bootstrap: "pnpm install --frozen-lockfile"
 
 demo:
   script_pattern: 'scripts/demo-session-{NN}.sh'
