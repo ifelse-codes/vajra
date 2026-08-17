@@ -1,6 +1,30 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-07 · **Session 116 — CODE: the fleet's THIRD role, the Plan Advisor — ACCEPT.**
+**Updated:** 2026-08-17 · **Session 119 — CODE: the clean-room runner — ACCEPT.**
+QA and Demo-er now route their scripts through a fresh `git worktree add --detach` checkout of HEAD
+when `verify.clean_room.enabled: true` (default off). Bootstrap support; fail-closed on any
+`CannotEvaluate`; `VAJRA_SKIP_CLEAN_ROOM=1` escape. The real deliverable: a falsifiability fixture
+proving both directions — working tree passes with a stale gitignored artifact, clean room fails
+without it. This reproduces the exact defect CI caught at S118 while ten cold reviews missed it.
+334 lib tests; verify **19/19**; demo exits 0; cold `fidelity-reviewer` ACCEPT (8/8 SHIPPED),
+fakest green honestly named. Summary: `sessions/session-119-summary.md`.
+
+*Prior: **Session 118 — DOGFOOD (paid): the overdue `vajra claude` run on chitra — ACCEPT (pass 1
+REJECT → pass 2 ACCEPT).*** $4.0911771 authoritative, 1331s, under the $5 cap. **THE FINDING:**
+self-graded 8-of-8 SHIPPED at 14/14 ALL GREEN while 19 of 20 chart pages errored. Six governance
+gates correct; none asks if the delivered thing works — **S54 fidelity-over-discipline reproduced on
+a paid run.** Operator repaired 4 defects; replaced hollow grep-suite with 81 execute-based checks
+(falsifiable at 5/81). Dogfood staleness RETIRED. S119 = the response (clean-room runner).
+Summary: `sessions/session-118-summary.md`.
+
+*Prior: **Session 117 — CODE: prove the Plan Advisor dispatches by name — ACCEPT.*** Resolved by
+name, first try; two-file cross-check (parent tool-call ID == subagent `toolUseId`) + independent
+transcript-count confirms no hidden retry. All 3 fleet roles now proven dispatched by name. 3 cold
+passes (1 REJECT → 2 more real findings fixed) → ACCEPT (7/11 SHIPPED, 4 PARTIAL), attested
+`a2410535…`. Planner-gate double-count bug found and flagged (`task_2162b487`). Summary:
+`sessions/session-117-summary.md`.
+
+*Prior: **Session 116 — CODE: the fleet's THIRD role, the Plan Advisor — ACCEPT.***
 Founder pick B at the S115 closeout (over the recommended paid dogfood), named **Planner**
 specifically; built as the distinctly-keyed `plan-advisor` (same collision the Reviewer hit at S114
 against the Reviewer station, now hit a second time against the Planner station, S64). Same
@@ -128,12 +152,12 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-08-11 |
-| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) — S109 first slice + S111 dispatch wire + S112 consumption loop + S113 counter-visibility + S114 second role + S115 proved role 2 dispatches by name + S116 THIRD role + S117 proved role 3 dispatches by name:** three roles governed native Claude Code subagents (`DECISION-007`), end-to-end (scaffold → handoff), **ALL THREE now proven dispatched by name** (S111, S115, S117). Order **C→B→A**: C team-voice (S104 ✓) → **B installable (✓ COMPLETE)** → **A fleet (S109 ✓ + S111 ✓ + S112 ✓ + S113 ✓ + S114 ✓ + S115 ✓ + S116 ✓ + S117 ✓ — the fleet build arc is essentially done; next is the paid dogfood, the single highest-leverage undone item, then B+C combined: fix the S117-found Planner-gate bug + wire fleet handoffs into a blocking gate).** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797). |
-| Last closed session | Session 118 — **DOGFOOD (paid): the overdue `vajra claude` run on chitra.** $4.0911771 authoritative, 1331s, under the founder's $5 cap. **THE FINDING:** the governed run delivered chitra S11, self-graded 8-of-8 SHIPPED with `verify-session-11.sh` at 14/14 ALL GREEN — while **19 of 20 chart pages showed an error instead of a chart**; all 11 catalog checks were greps for source strings. Six gates behaved correctly; none asks whether the delivered thing works — **S54 fidelity-over-discipline reproduced on a paid run.** Operator repaired 4 defects to 20/20 and replaced the hollow check with one that EXECUTES 20 examples × 3 renderers (81 checks, falsifiable at 5/81). Cold review **pass 1 REJECT → pass 2 ACCEPT** (5 of 8 SHIPPED, 3 PARTIAL). Dogfood staleness RETIRED. chitra left LOCAL, unpushed, no PR. Summary: `sessions/session-118-summary.md`. |
-| Previous | Session 117 — **CODE: prove the Plan Advisor dispatches by name** (founder pick A at the S116 closeout). Resolved by name, first try; two-file cross-check (parent tool-call ID == subagent meta `toolUseId`) plus an independent transcript-count check the cold review's own findings led to (closes a hollow-green: "first try" is no longer checked by grepping self-authored prose). All 3 fleet roles now proven dispatched by name. No `src/` changes. 3 independent cold-review passes (1 REJECT on a real diff-path orchestrator error, 2 more real findings fixed) → final **ACCEPT** (7 of 11 SHIPPED, 4 PARTIAL, 0 NOT-BUILT), attested `a2410535…`. A real, out-of-scope Planner-gate double-counting bug found live and disclosed (not fixed), flagged as `task_2162b487`. Summary: `sessions/session-117-summary.md`. |
-| Session 116 (prior) | Session 116 — **CODE: the fleet's THIRD role, the Plan Advisor** (founder pick B at the S115 closeout; named Planner, built as `plan-advisor`). Zero changes to `vajra init`/`vajra next`/the S113 counter (traced, not asserted). Key collision with the Planner **station** resolved in writing (`DECISION-007` S116 addendum). 323 lib tests; verify 16/16; demo 10/10; cold review ACCEPT (10 of 12 SHIPPED), attested `1b6c0159…`. |
-| Active session | None — between sessions (Session 118 complete). **S119 next: CODE — the clean-room re-run (approved, `prompts/119-task-clean-room-rerun.md`).** 🔒 Founder directive S118: README/VISION claims are the target spec, never softened to match reality; **no release until reality meets them.** |
+| Today | 2026-08-17 |
+| Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT** (S106+S107+S108 — v0.1 installs FOUR ways, README clean). **A (fleet) — S109 first slice + S111 dispatch wire + S112 consumption loop + S113 counter-visibility + S114 second role + S115 proved role 2 dispatches by name + S116 THIRD role + S117 proved role 3 dispatches by name + S118 DOGFOOD (paid, root-cause) + S119 clean-room runner:** ALL THREE fleet roles proven by name. Executes the product in a clean-room by construction (S119). Now: S120 = mandatory GT (`120 % 5 == 0`). Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797 · S118 $4.0912). |
+| Last closed session | Session 119 — **CODE: the clean-room runner — ACCEPT (8/8 SHIPPED).** QA and Demo-er now route scripts through a fresh `git worktree add --detach` checkout of HEAD when `verify.clean_room.enabled: true` (default off). Bootstrap support; fail-closed; `VAJRA_SKIP_CLEAN_ROOM=1` escape. The falsifiability fixture asserts both directions (working tree passes with stale artifact, clean room fails without it) — reproduces the S118 CI defect class. 334 lib tests; verify 19/19; cold `fidelity-reviewer` ACCEPT. Fakest green named (grep-over-source in verify check). Summary: `sessions/session-119-summary.md`. |
+| Previous | Session 118 — **DOGFOOD (paid): the overdue `vajra claude` run on chitra — pass 1 REJECT → pass 2 ACCEPT (5/8 SHIPPED, 3 PARTIAL).** $4.0911771 authoritative, 1331s, under the $5 cap. The governed run self-graded 8-of-8 SHIPPED at 14/14 ALL GREEN while 19/20 chart pages errored. Root cause: 11 grep-over-source checks — none exercises the product. Six governance gates correct; none asks if the delivered thing works. Operator repaired 4 defects; replaced hollow suite with 81 execute-based checks. Dogfood staleness RETIRED. S119 is the response. Summary: `sessions/session-118-summary.md`. |
+| Session 117 (prior) | Session 117 — **CODE: prove the Plan Advisor dispatches by name** (founder pick A at S116 closeout). Resolved by name, first try; two-file cross-check (parent tool-call ID == subagent meta `toolUseId`) + independent transcript-count. All 3 fleet roles now proven dispatched by name. 3 cold passes → ACCEPT (7/11 SHIPPED, 4 PARTIAL), attested `a2410535…`. Planner-gate double-count bug disclosed (`task_2162b487`). Summary: `sessions/session-117-summary.md`. |
+| Active session | None — between sessions (Session 119 complete, PR not yet opened). **S120 = MANDATORY GT** (`120 % 5 == 0`). Founder picks A/B/C from `sessions/session-119-summary.md` after review. 🔒 Founder directive S118: README/VISION claims are the target spec, never softened to match reality; **no release until reality meets them.** |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **PUBLISHED (S108): `vajractl 0.1.0` is live on crates.io — the name is now BURNED.** `v0.1.0` also tagged + released (GH release, prebuilt binaries) + on a public Homebrew tap. All four install channels real; any future crates.io action stays founder-gated. |
 
 ---

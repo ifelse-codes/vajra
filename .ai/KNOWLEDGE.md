@@ -580,9 +580,10 @@ pub struct CompressionRequest {
   subagent dispatches — 1 plan-advisor + 3 fidelity-reviewer passes — roll into this session's own
   receipt, unitemized, same structural reason as S109/S111–S116). **S118 = DOGFOOD (paid): the
   overdue `vajra claude` run** (founder pick A at the S117 closeout, over B/C) — target chitra, WAITING
-  on the founder to clean its working tree first; do not start until told. **S119 = CODE (B+C
-  combined), planned to run after S118:** fix the Planner-gate bug above + wire fleet handoffs into
-  a blocking gate (candidate C from the S116 closeout, still unpicked). Next mandatory GT = S120.
+  on the founder to clean its working tree first; do not start until told. **S119 = CODE: the
+  clean-room runner — DONE (ACCEPT, 8/8 SHIPPED).** QA + Demo-er route scripts through a fresh
+  `git worktree add --detach` checkout of HEAD when `verify.clean_room.enabled: true` (default
+  off). Falsifiability fixture proves both directions. **S120 = mandatory GT** (`120 % 5 == 0`).
 
 ### S118 — permanent facts from the first paid dogfood since S103
 
@@ -611,3 +612,31 @@ pub struct CompressionRequest {
 - **`VAJRA_CLOSEOUT_WAIVER=NN` on a DOGFOOD session should cover exactly ONE check**
   (`verify-demo-scripts-present`). If it is also covering `fidelity-review-accept` or
   `review-inputs-attested`, the fidelity gate is being bypassed, not waived — attest properly instead.
+
+### S119 — permanent facts from the clean-room runner
+
+- **Clean-room isolation = `git worktree add --detach HEAD <temp_path>`.** Not `git clone`; the
+  worktree is faster (no object copy), simpler cleanup (`git worktree remove --force`), and
+  genuinely absent of uncommitted + gitignored files by construction. RAII guard: `CleanRoom`
+  struct with a `Drop` impl that calls `git worktree remove --force` — the directory and the
+  `.git/worktrees/` entry are reclaimed automatically.
+- **Bootstrap failure → `CannotEvaluate` → BLOCK.** A check that cannot evaluate its preconditions
+  must never silently pass. Reuse `SpawnFailure` for clean-room creation failure and non-zero
+  bootstrap exit; `Timeout` for bootstrap timeout. The message text distinguishes the cases.
+- **The falsifiability fixture pattern:** a test that asserts BOTH directions. (1) The old code
+  path PASSES when the artifact is present; (2) the new code path FAILS when the artifact is absent.
+  This proves the clean-room check is not vacuous — a check that always returns the same result
+  regardless of whether the artifact is present has zero detection power. Re-use whenever building
+  any environment-isolation or presence-gating feature.
+- **`clean_room_config()` is a line-scanner, not a YAML parser.** Reads `verify.clean_room.*`
+  from `.ai/CONSTRAINTS.yaml` using two-space indent nesting (top-level `verify:` → two-space
+  `clean_room:` → four-space keys). Adds no `serde_yaml` dep. Defaults `(false, None)`.
+- **The grep-only-verify pattern (named S118, still undetected by Vajra):** a verify check that
+  greps source strings to confirm a runtime behaviour exists. Returns GREEN because the string is
+  in the code — but never exercises the code path. This pattern appeared in S118 (`verify-session-
+  11.sh`, 11 checks) and appeared AGAIN in S119 (`verify-session-119.sh`, the
+  `run-location-printed-in-output` check). Both were disclosed as fakest greens. The detector that
+  catches this class automatically is still unbuilt (S118 candidate A, deferred by S119).
+- **The clean-room runner does NOT detect hollow verify suites.** It proves the product runs from
+  a clean checkout; it does NOT prove the verify suite exercises the product. The S118 19-of-20
+  broken charts would still have passed the clean-room check. These are two orthogonal gaps.
