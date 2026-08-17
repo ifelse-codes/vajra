@@ -26,3 +26,5 @@ The `run-location-printed-in-output` check in `verify-session-119.sh` greps for 
 Nothing from the contract is missing. AC 8 was pending at diff submission time (structurally required — the cold review must follow the diff) and is fulfilled by this document.
 
 **Verdict:** ACCEPT
+
+**Review-Inputs-SHA:** `0dffd305c34265851fd9b2fdf7f1d8e799dc869cb35b63843ad51a42d30012fd`
