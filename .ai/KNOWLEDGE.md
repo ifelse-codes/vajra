@@ -263,6 +263,16 @@ pub struct CompressionRequest {
   commit path is closed by machinery (`VAJRA_ALLOW_COMMIT`, hook-commit-guard). Recorded in the
   `DECISION-007` S121 addendum.
 
+- **A newly-scaffolded fleet role IS dispatchable in its own creating session (S121, permanent —
+  supersedes the S111 rule).** S111 recorded that a `.claude/agents/*.md` written mid-session is
+  invisible to that session's Task tool, and S114–S121 all planned around it. At S121 the harness
+  registered `qa-specialist` as a dispatchable agent type inside the very session that created it,
+  and `subagent_type: "qa-specialist"` resolved **by name, first try, no workaround**. This is the
+  SECOND observation (`fidelity-reviewer` did the same at S114; left open at S115, never closed).
+  **Do not plan a session around the S111 limit without re-testing it first** — the cheap test is to
+  try the dispatch and record what happened. Evidence:
+  `sessions/session-121-artifacts/qa-specialist-live-run.md`.
+
 ## 10. Ground-Truth Track Record
 
 - **S110 (permanent): the K-of-8 pipeline-advance counter has no unit for fleet work.** S109's realest
