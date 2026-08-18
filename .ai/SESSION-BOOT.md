@@ -1,61 +1,68 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 119 — COMPLETE
-- **Type:** CODE. QA + Demo-er clean-room runner.
-- **Goal:** Make QA and Demo-er re-run their scripts in a fresh `git worktree add --detach` checkout
-  of HEAD — absent of uncommitted files and gitignored build artifacts — instead of in the tree the
-  agent prepared. Opt-in per repo; fail-closed; proven by a falsifiability fixture.
-- **Verdict:** **ACCEPT** (cold `fidelity-reviewer` pass: **8 of 8 SHIPPED**). Fakest green
-  honestly named: `run-location-printed-in-output` in `verify-session-119.sh` greps source strings
-  rather than capturing from a live gate run. No paid spend.
-- **Report:** `sessions/session-119-summary.md` · `sessions/session-119-review.md` ·
-  prompt: `prompts/119-task-clean-room-rerun.md`.
-  **Date last updated:** 2026-08-17.
+- **Number:** 120 — COMPLETE
+- **Type:** NO-CODE MANDATORY GT. Audited S116–S119.
+- **Goal:** All 10 required GT audits; special lenses: grep-only verify sweep across all historical
+  scripts; pipeline-advance counter for S119 (clean-room runner).
+- **Verdict:** **PARTIAL PASS.** No code changes (GT rule); no `verify-session-120.sh` (exempt
+  per CONSTRAINTS.yaml `ground_truth_commit_exempt_branch_suffixes`).
+- **Report:** `sessions/session-120-ground-truth.md`. Prompt: `prompts/120-task-ground-truth.md`.
+  **Date last updated:** 2026-08-18.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 119. Work on `session-119-clean-room-rerun`. **S119 PR not yet opened.**
-- **Key changes:** `src/gate_run.rs` (CleanRoom, clean_room_config, run_bootstrap + 11 unit
-  tests); `src/qa/mod.rs` + `src/demoer/mod.rs` (route through CleanRoom when enabled);
-  `.ai/CONSTRAINTS.yaml` + `src/cli/init.rs` (scaffold the new keys, default off); two shell
-  scripts: `verify-session-119.sh` (19/19 ALL GREEN) + `demo-session-119.sh`.
-- Stations for 119: Analyst ✅ Architect ✅ Planner ✅ Coder ✅ QA ✅ Demo-er ✅ Reviewer (fidelity
-  pass ACCEPT). Releaser flips once the PR merges.
-- **chitra is left on `session-11-catalog-two-panel`, LOCAL — not pushed, no PR**, by instruction.
+- `.ai/SESSION` = 120. Work on `session-120-ground-truth`.
+- **S119 PR (#129) MERGED 2026-08-17.** (STATE was stale on this at S120 open — corrected now.)
+- **Key S120 findings (all NO-CODE — filed, not fixed):**
+  - **Coder-dark for S119:** `## Execution` step 7 records prose ("cold fidelity-reviewer pass
+    ACCEPT") not a commit sha — `git cat-file -e <sha>^{commit}` fails on it. Steps 1-6 have
+    real shas; step 7 is legitimate non-commit evidence but breaks the Coder gate.
+  - **3 behavioral source greps in verify-session-119.sh:** `init_scaffold_has_clean_room` (greps
+    source template text), `skip_env_var_referenced` (greps for env var name in source),
+    `run_location_printed` (the S119 disclosed fakest green — greps for message string in source).
+    Widespread pattern found across older scripts (S19, S21) and fleet sessions (S114, S116).
+  - **VISION.md stale items:** (1) clean-room runner (S119) not mentioned in body; (2) Rules
+    section still says "Under the machinery-freeze rule (S98)..." — freeze was RETIRED at S103;
+    VISION.md preamble correctly says SUPERSEDED but body Rules does not.
+  - **KNOWLEDGE §6:** 642 lines (up from 475 at S105). Chronic, 10 GTs flagged, unfixed.
+  - **Ledger:** not a directory — derived from `sessions/session-NN-review.md` via git show in
+    `_ledger_read()`. By design; no fix needed.
+- 334 lib tests, 7 commands, CI green on main.
 
 ## Next Session
-- **Number:** 120 — **MANDATORY GT** (`120 % 5 == 0`). NO-CODE. Audits S116–S119.
-- **Goal:** Run all required GT audits (vision, roadmap, state, knowledge, constitution, cost,
-  dogfood, pipeline-advance, dogfood-staleness). Special focus: does the grep-only-verify pattern
-  (S118/S119 root cause) appear in **other** historical verify scripts? Does the clean-room runner
-  change the pipeline-advance picture?
-- Founder picks one of S119's A/B/C options for S121 after reviewing the session.
+- **Number:** 121 — **CODE.** QA specialist agent (fleet role 4).
+- **Goal:** Add `qa-specialist` as the fleet's fourth role — the FIRST with full execution
+  capability (Bash, Read, Write, Edit, Grep, Glob). It runs the session's verify script,
+  classifies each check (behavioral source grep vs execute-based), and reports what actually
+  exercised the product. Same zero-new-machinery shape as S114 and S116.
+- **Full prompt:** `prompts/121-task-qa-specialist-agent.md`.
+- **Why this is the founder's pick (S120 GT):** building a real executor agent treats the root
+  cause of hollow verify suites, not the symptom. An agent that actually runs code cannot fake a
+  pass via source grep.
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.
 
-## Carry-Forwards (NEW from S119)
-- **CleanRoom = `git worktree add --detach HEAD`** (not `git clone`). The pattern: RAII `Drop`
-  removes the worktree via `git worktree remove --force`. Bootstrap failure or timeout →
-  `CannotEvaluate::SpawnFailure` → BLOCKS. `VAJRA_SKIP_CLEAN_ROOM=1` escape hatch, disclosed.
-- **The falsifiability fixture pattern** (S119): a test that ASSERTS BOTH DIRECTIONS — the old
-  path passes (artifact present), the new path fails (artifact absent). This is how to prove a
-  clean-room check is not vacuous. Re-use for any future environment-isolation feature.
-- **Fakest green class from S119:** a verify check that greps source strings to confirm a runtime
-  message exists — finds the string in the code but does not prove the message reaches the caller's
-  output during a live run. Identical to the S118 pattern but at one level up (source grep vs.
-  product run). Name it explicitly in future session summaries when this pattern appears.
-- **The grep-only-verify detector (S118 candidate A, still queued):** S119 fixed the clean-room
-  side; it did NOT fix suites that compile and run clean but prove nothing about the product. That
-  detector is still unbuilt.
-- **`run_bootstrap_blocks_on_timeout` uses a 100ms timeout in tests** — the timeout machinery is
-  real, but the production `Duration` comes from the caller; document the coupling if the caller
-  ever exposes a config knob.
+## Carry-Forwards (NEW from S120 GT)
+- **Two classes of source greps:** STRUCTURAL (one-source-of-truth architecture checks — acceptable;
+  no better alternative) vs BEHAVIORAL (checks a feature works by finding its message string in
+  source — the hollow class; the hollow class is widespread). Name the class explicitly in future
+  fakest-green disclosures.
+- **QA STATION ≠ QA ROLE:** `src/qa/mod.rs` = the pipeline's QA STATION (governs the process).
+  `qa-specialist` = the fleet's QA ROLE (does the work). Same pattern as Reviewer/fidelity-reviewer
+  and Planner/plan-advisor. They stay completely separate.
+- **First full-execution fleet agent (S121):** Bash grant is load-bearing — document in DECISION-007
+  addendum with rejected alternatives.
+- **Dispatch proof is S122's job** — mid-session dispatch is invisible (S111 finding); same pattern
+  as S114→S115 (fidelity-reviewer) and S116→S117 (plan-advisor).
+- **S119 Coder-dark root cause:** prose in an `## Execution` step breaks `git cat-file`. Legitimate
+  non-commit evidence (fidelity-reviewer ACCEPT) is not a sha; needs a different gate path or a
+  documentation exception. Filed, not fixed.
 
-## Standing Carry-Forwards (from S118 + prior)
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S120.
+## Standing Carry-Forwards (from S119 + prior)
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S121.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
 - **Dispatch-by-name proven for ALL THREE roles** (Researcher S111, Fidelity Reviewer S115, Plan
-  Advisor S117). The mid-creating-session case still fails per S111 — do not conflate.
+  Advisor S117). Mid-creating-session dispatch still fails per S111 — do not conflate.
 - **Attest LAST:** `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff), the PROMPT IS AN INPUT.
   Compute strictly after every edit to the prompt file itself and confirm two consecutive
   `verify-closeout.sh --inputs-sha NN` runs agree before embedding.
@@ -66,9 +73,8 @@
   matching zero tests. And **`[[:space:]]`, never `\s`**, in any script check (BSD/macOS grep).
 - **Background task flagged, not yet acted on:** `task_2162b487` — the Planner-gate
   `is_acceptance_heading` double-counting bug (S117 finding).
-- **KNOWLEDGE §6 is well past 550 lines, still growing** — chronic since S60, still unpruned.
-- **Known weak check, house-wide, unfixed 7 sessions running (S111–S119, except S115 which built
-  no code):** `no-eighth-command` greps a hardcoded usage banner. Named again.
+- **KNOWLEDGE §6 is at 642 lines, growing** — chronic since S60, still unpruned.
+- **Known weak check, house-wide, unfixed:** `no-eighth-command` greps a hardcoded usage banner.
 - **Untracked stragglers** (standing founder call): `sessions/session-9*-artifacts/*`,
   `sessions/session-10{2,3,7,8,9}-artifacts/*`; `vajra-cto-audit-*.html` + `first-mate.html`.
 - **crates.io is PUBLISHED — `vajractl` name BURNED**; any crates.io action stays founder-gated.
