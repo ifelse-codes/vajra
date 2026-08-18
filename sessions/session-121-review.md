@@ -48,8 +48,8 @@ untested product copy, not a measured property.
 
 ## What changed AFTER the cold pass (disclosed, not hidden)
 
-The cold pass ran against commit `2ef285f`. One commit landed after it, `05a9ad5`, doing exactly
-what the review's landing conditions asked and nothing else:
+The cold pass ran against commit `2ef285f`. Two commits landed after it. The first, `05a9ad5`, did
+exactly what the review's landing conditions asked and nothing else:
 
 1. **`no-eighth-command` reclassified `exec` → `behav`.** Running the product is not enough to earn
    `exec`; the assertion has to bind to the behaviour. The tally is now the honest **13 execute-based
@@ -58,6 +58,14 @@ what the review's landing conditions asked and nothing else:
 2. **Both `vajra init` calls made stdin-safe (`</dev/null`).** Found live: a background run of this
    script hung for 10 minutes inside `verify-session-113.sh` because `vajra init` blocks forever
    waiting on stdin when its runner never sends EOF.
+
+The second, the `scripts/demo-session-121.sh` commit, is the constitution's step-5 DEMO artifact —
+required by `verify-closeout.sh#verify-demo-scripts-present` and simply not yet written when the
+review ran. It adds no product code: 7 cases, all against the real binary, and it closes by stating
+what it does NOT show (nothing dispatched the agent; the tally is a typed label). **Both commits are
+inside the attested `Review-Inputs-SHA` below** — the hash was recomputed after they landed, so it
+binds the verdict to the delivered diff, which now contains two files the reviewer did not read.
+That is stated here rather than hidden behind a matching hash.
 
 The fakest-green finding is NOT retired by (1). The tally is still a self-assigned label. What (1)
 buys is that the label now tells the truth about the one check the review caught mislabelled.
@@ -85,4 +93,4 @@ buys is that the label now tells the truth about the one check the review caught
 - Cold-review input diff: `sessions/session-121-artifacts/review-input.diff`
 - Verify artifacts: `.ai/verify/session-121/latest/`
 
-**Review-Inputs-SHA:** c92a2dad3377f48980458e8a71252b8267948e54badf3b3c6e32683ece48e7a9
+**Review-Inputs-SHA:** fa8d435fac9df4f3222159b39a50df20fc4e4a650ac12b66ff94d5a5dc215758
