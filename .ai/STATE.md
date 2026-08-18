@@ -11,7 +11,7 @@ fidelity-reviewer ACCEPT (5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT), attested
 `sessions/session-121-summary.md`. Review: `sessions/session-121-review.md`.
 
 ## Active PRs
-- **S121 — OPEN** (this session's branch → `main`). S120 (#130) MERGED · S119 (#129) MERGED
+- **S121 [#131](https://github.com/ifelse-codes/vajra/pull/131) — OPEN.** S120 (#130) MERGED · S119 (#129) MERGED
   2026-08-17.
 - Prior: **S118 [#128](https://github.com/ifelse-codes/vajra/pull/128) MERGED** · S117 #126 · S114
   #122 · S113 #120 · S112 #118 (+#119) · S111 #117 · S109 #115 · S110 #116 · S108 #113/#114 · S107

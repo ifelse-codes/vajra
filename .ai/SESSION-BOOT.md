@@ -12,7 +12,7 @@
   Prompt: `prompts/121-task-qa-specialist-agent.md`. **Date last updated:** 2026-08-18.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 121. Work on `session-121-qa-specialist`. **PR open to `main`.**
+- `.ai/SESSION` = 121. Work on `session-121-qa-specialist`. **PR [#131](https://github.com/ifelse-codes/vajra/pull/131) open to `main`.**
 - **335 lib tests** (was 334); `verify-session-121.sh` **17/17 green**; 7 commands, no 8th.
 - **The fleet is FOUR roles:** researcher · fidelity-reviewer · plan-advisor · **qa-specialist**.
   Three proven dispatched by name (S111/S115/S117); **the fourth has NEVER been dispatched** —
