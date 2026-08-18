@@ -85,4 +85,4 @@ buys is that the label now tells the truth about the one check the review caught
 - Cold-review input diff: `sessions/session-121-artifacts/review-input.diff`
 - Verify artifacts: `.ai/verify/session-121/latest/`
 
-**Review-Inputs-SHA:** <pending — computed after the Execution shas land>
+**Review-Inputs-SHA:** c92a2dad3377f48980458e8a71252b8267948e54badf3b3c6e32683ece48e7a9
