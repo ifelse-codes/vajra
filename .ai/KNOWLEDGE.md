@@ -640,3 +640,30 @@ pub struct CompressionRequest {
 - **The clean-room runner does NOT detect hollow verify suites.** It proves the product runs from
   a clean checkout; it does NOT prove the verify suite exercises the product. The S118 19-of-20
   broken charts would still have passed the clean-room check. These are two orthogonal gaps.
+
+### S120 — permanent facts from the mandatory GT
+
+- **Two classes of source-grep verify checks: structural vs behavioral.** STRUCTURAL greps check
+  code architecture (one-source-of-truth, schema membership, module layout) — acceptable, no
+  better alternative. BEHAVIORAL greps check that a feature works by finding its message string in
+  source — the hollow class; finds the string in code but never exercises the code path. When
+  disclosing a fakest green, always name which class it is.
+- **QA STATION ≠ QA ROLE (first full-execution fleet agent, S121).** `src/qa/mod.rs` is the
+  pipeline QA STATION — it governs the process (gates, markers, verify script invocation). The
+  `qa-specialist` fleet role is the QA AGENT — it does the work (runs the verify script, classifies
+  checks, reports findings). They are completely separate. Same pattern as Reviewer STATION vs
+  `fidelity-reviewer` role (S114) and Planner STATION vs `plan-advisor` role (S116).
+- **The first fleet agent with full execution capability (`Bash`) is the fourth role.** Roles 1–3
+  (Researcher, Fidelity Reviewer, Plan Advisor) are all read-only (`Read, Grep, Glob`). The QA
+  specialist breaks this pattern intentionally — an agent that cannot run code cannot produce
+  trustworthy QA evidence. Record the Bash-grant decision in `DECISION-007` addendum with rejected
+  alternatives (read-only QA agent) whenever a new role's tool grant differs from the read-only
+  default.
+- **Dispatch proof is always the NEXT session's job.** Mid-session dispatch is invisible (S111
+  finding: Claude Code snapshots `.claude/agents/` at session boot; a file written mid-session is
+  invisible to that session). Proof pattern: S111→S112 (Researcher), S114→S115 (Fidelity
+  Reviewer), S116→S117 (Plan Advisor), S121→S122 (QA specialist, expected).
+- **`sessions/session-NN-review.md` files are the ledger.** There is no `.ai/ledger/` directory.
+  The ledger is DERIVED by `_ledger_read()` in `scripts/verify-closeout.sh` via `git show
+  HEAD:sessions/session-NN-review.md`. The `--ledger` and `--ledger-verify` flags rebuild it on
+  demand from those files. This is by design (S59); a missing directory is not a bug.
