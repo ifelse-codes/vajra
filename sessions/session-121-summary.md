@@ -55,6 +55,38 @@ every run instead of being dead code.
 ~$0 marginal beyond the session itself: one cold `fidelity-reviewer` subagent pass (≈56k subagent
 tokens). No paid dogfood run.
 
+## POST-CLOSE: the first live run happened after all (founder-directed)
+
+After closeout went green and PR #131 opened, the harness registered `qa-specialist` as a
+dispatchable agent **inside its own creating session** — contradicting the S111 rule this session's
+non-goal and S122's prompt both rest on (second observation; the first was `fidelity-reviewer` at
+S114). The founder directed the dispatch on the spot.
+
+**Result:** resolved by name, first try, no workaround. It ran the suite (exit 0, 17/17), classified
+all 17 checks independently, and **agreed with every self-assigned label** — the labels survived
+scrutiny. It changed nothing: HEAD sha, git index hash and `git status --porcelain` were byte-identical
+before and after, checked rather than trusted.
+
+**It then found four defects this session missed** — the tally is not compositional (the nested S113
+suite carries a second hollow banner grep, so the true hollow count is 2 not 1); an unanchored
+`^tools: Read, Grep, Glob` prefix grep that a leaked `Write`/`Edit` would pass; a booby-trap in
+`one_source_of_role_text` (it does not exclude `.ai/handoffs/`, so a future QA report quoting its
+probe sentence flips the suite RED for reasons its message won't explain); and a near-tautological
+render test (`def.contains(role.system_prompt)` — an empty prompt passes). Full brief:
+`sessions/session-121-artifacts/qa-specialist-live-run.md`.
+
+**The honest reading, recorded against this session's own interest:** none of those four needed
+Bash. They came from careful independent READING. Execution bought the exit code and `335 passed`.
+So the run strongly supports *"an independent agent finds real defects"* and only weakly supports
+this session's actual claim, *"an executor cannot fake a pass."* **The executor thesis is still
+unproven.** The agent's own words on the residual risk: *"that constraint held because I chose to
+hold it, which is not a control."*
+
+**Nothing was fixed here.** The four defects are S122's payload; the reviewed diff (and therefore the
+attested `Review-Inputs-SHA`) is untouched — every file changed in this post-close pass is one the
+canonical hash excludes by design.
+
+
 ## Next — pick one
 
 **A. Prove the dispatch, and take the first live QA run (recommended).**
