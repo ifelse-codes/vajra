@@ -87,12 +87,18 @@ with the rejected alternatives (read-only QA agent).
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha> (register qa-specialist in fleet::ROLES with full tool grant)
-- step 2 — done: <sha> (vajra init scaffolds 4th agent file)
-- step 3 — done: <sha> (vajra next --role qa-specialist --from governs handoff)
-- step 4 — done: <sha> (DECISION-007 S121 addendum)
-- step 5 — done: <sha> (verify-session-121.sh all green)
-- step 6 — done: <sha> (cold fidelity-reviewer ACCEPT; sessions/session-121-review.md)
+- step 1 — done: 98528b2 (register qa-specialist in fleet::ROLES with full tool grant)
+- step 2 — done: 985efdd (vajra init scaffolds 4th agent file)
+- step 3 — done: 2ef285f (vajra next --role qa-specialist --from governs handoff, proven e2e)
+- step 4 — done: 88b7c35 (DECISION-007 S121 addendum)
+- step 5 — done: 05a9ad5 (verify-session-121.sh all green, 17/17, honest class tally)
+- step 6 — done: 36abdb4 (cold fidelity-reviewer ACCEPT; sessions/session-121-review.md)
+
+Note: steps 3 and 5 both land in `scripts/verify-session-121.sh` — step 3's proof IS the
+end-to-end check inside that script. `2ef285f` is where both first went green; `05a9ad5` is the
+cold-review fix on top, recorded against step 5 because that is the check it reclassified. Every
+sha above resolves to a real commit (`git cat-file -e <sha>^{commit}`) — no prose in place of a
+sha, the S119 Coder-dark defect S120 filed.
 
 ## Design
 
