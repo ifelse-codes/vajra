@@ -11,8 +11,14 @@
 #   STRUCTURAL grep — asserts ARCHITECTURE (one source of truth, no second copy, no key collision,
 #                     a file's absence). Legitimate: there is no output to run for "this text exists
 #                     in exactly one place".
-#   BEHAVIORAL grep — the hollow class. Aimed for ZERO here; any that survive are named in the
-#                     summary and in the session's fakest-green disclosure.
+#   BEHAVIORAL grep — the hollow class. Any that survive are named in the summary and in the
+#                     session's fakest-green disclosure. ONE survives here: `no-eighth-command`
+#                     (see below). It is labelled honestly rather than aspirationally, because a
+#                     tally of zero that was reached by relabelling is the exact disease.
+#
+# The tally itself is a SELF-ASSIGNED LABEL, not a measurement — nothing here proves a check marked
+# `exec` executes anything. Named as this session's fakest green (cold review, S121) rather than
+# quoted as a number that was verified.
 #
 # The tally is printed at the end so it cannot be quietly claimed in prose only.
 #
@@ -98,7 +104,7 @@ strip_fleet() { grep -vE '^[[:space:]]*(⚠ )?fleet:'; }
 scaffolds_four_roles() { local TMP; TMP="$(mktemp -d)"; _scaffolds_four_roles "$TMP"; local rc=$?; rm -rf "$TMP"; return $rc; }
 _scaffolds_four_roles() {
   local TMP="$1"
-  ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null ) || { echo "vajra init failed"; return 1; }
+  ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null </dev/null ) || { echo "vajra init failed"; return 1; }
   echo "--- scaffolded agents ---"; ls -1 "$TMP/.claude/agents/"
 
   local N; N="$(find "$TMP/.claude/agents" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')"
@@ -180,7 +186,7 @@ run_check "one-source-of-role-text" struct one_source_of_role_text
 e2e_four_handoffs() { local TMP; TMP="$(mktemp -d)"; _e2e_four_handoffs "$TMP"; local rc=$?; rm -rf "$TMP"; return $rc; }
 _e2e_four_handoffs() {
   local TMP="$1"
-  ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null ) || { echo "vajra init failed"; return 1; }
+  ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null </dev/null ) || { echo "vajra init failed"; return 1; }
   echo "121" > "$TMP/.ai/SESSION"
 
   mkdir -p "$TMP/prompts"
@@ -333,14 +339,17 @@ no_station_collision() {
 run_check "no-station-collision" struct no_station_collision
 
 # --- no 8th command: the fourth role rides `init` + `next`, like the first three -----------------
-# EXECUTE-BASED: runs the real binary and asserts on its real output. (The banner it greps is the
-# house-wide weak check named since S69 — it reads the printed help, not the command table.)
+# BEHAVIORAL, and labelled so (cold review, S121). It runs the real binary, but what it asserts on
+# is a hardcoded usage BANNER STRING: an 8th command could be wired into the dispatcher without
+# touching that line and this check would stay green. Running the product is not enough to earn the
+# `exec` label — the assertion has to bind to the behaviour. The house-wide weak check named since
+# S69; reclassified here rather than left flattering itself.
 help_lists_seven() {
   local help; help="$("$VAJRA" --help 2>&1)"
   echo "$help"
   grep -q "vajra <init|claude|check|next|estimate|hook|meter>" <<<"$help"
 }
-run_check "no-eighth-command" exec help_lists_seven
+run_check "no-eighth-command" behav help_lists_seven
 
 ( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
 
