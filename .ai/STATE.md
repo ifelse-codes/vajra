@@ -7,8 +7,13 @@
 
 S121 built the fleet's FOURTH role, the QA Specialist — the first that can execute. Cold
 fidelity-reviewer ACCEPT (5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT), attested
-`c92a2dad3377f48980458e8a71252b8267948e54badf3b3c6e32683ece48e7a9`. Summary:
+`fa8d435fac9df4f3222159b39a50df20fc4e4a650ac12b66ff94d5a5dc215758`. Summary:
 `sessions/session-121-summary.md`. Review: `sessions/session-121-review.md`.
+
+**POST-CLOSE (founder-directed):** the role was then DISPATCHED, in its own creating session, and
+took the first live QA run. Brief: `sessions/session-121-artifacts/qa-specialist-live-run.md`. It
+found four defects the session missed; none is fixed here (the reviewed diff and its attested hash
+are untouched — every post-close file is one the canonical hash excludes).
 
 ## Active PRs
 - **S121 [#131](https://github.com/ifelse-codes/vajra/pull/131) — OPEN.** S120 (#130) MERGED · S119 (#129) MERGED
@@ -21,8 +26,8 @@ fidelity-reviewer ACCEPT (5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT), attested
 - **The product = provable agent governance** (`DECISION-001`), sold as the **autopilot trust
   layer**. Fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
   tamper-evident (`DECISION-004`). The fleet = **real named agents behind the existing gates**
-  (`DECISION-007`) — **FOUR roles built; three proven dispatched by name; the fourth
-  (`qa-specialist`, S121) not yet dispatched — that is S122.**
+  (`DECISION-007`) — **FOUR roles built, ALL FOUR now proven dispatched by name**
+  (`qa-specialist` proved it at the S121 post-close run, inside its own creating session).
 - **Post-pivot roadmap:** C team-voice (S104 ✓) → **B installable v0.1 ✓ COMPLETE** → **A fleet
   COMPLETE (3 roles)** → Dogfood S118 ✓ → S119 ✓ (clean-room runner) → S120 ✓ MANDATORY GT →
   **S121 ✓ QA Specialist built (fleet role 4, the first that EXECUTES) → S122 = prove its by-name
@@ -31,8 +36,9 @@ fidelity-reviewer ACCEPT (5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT), attested
 ## What Currently Works
 - **The 8 stations** riding `vajra next` (+ gates at `--advance`): Analyst · Architect · Planner ·
   Coder · QA · Demo-er · Releaser · Reviewer. Receipt AUTHORITATIVE (S78 tee path).
-- **The fleet has FOUR named roles.** Researcher · Fidelity Reviewer · Plan Advisor (all three
-  proven dispatched by name) · **QA Specialist (S121, built, NOT yet dispatched).** `vajra init`
+- **The fleet has FOUR named roles, ALL proven dispatched by name.** Researcher · Fidelity
+  Reviewer · Plan Advisor · **QA Specialist (built AND dispatched at S121; its first live run
+  found four real defects).** `vajra init`
   scaffolds all four `.claude/agents/*.md` files; `vajra next --role <key> --from <file>` governs
   any of them; `vajra next --stations NN` reports fleet evidence beside `K of 8`.
 - **Exactly one role executes.** `qa-specialist` holds `Bash, Read, Write, Edit, Grep, Glob`; the
@@ -68,6 +74,23 @@ fidelity-reviewer ACCEPT (5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT), attested
   sessions flagged) · **🟡 KNOWLEDGE §6 bloat at 642 lines** (10 GTs flagged, unfixed) · **🟡
   `vajra.varta` re-render drifts every session** · **🟡 `vajra --version` gap** · **🟡 brew
   smoke tests LOCAL formula**.
+- **🔴 FOUR defects found by the S121 live QA run, ALL UNFIXED (S122's payload).** (1) The tally is
+  **not compositional** — `s113-counter-still-green` hides 14 checks and S113 carries its own hollow
+  banner grep, so the true hollow count in that run was **2, not 1**. (2) The read-only guard's
+  `grep -q "^tools: Read, Grep, Glob"` is an **unanchored PREFIX match** — a role leaking
+  `Write`/`Edit` passes it; only the unit test catches that. (3) `one_source_of_role_text` does not
+  exclude `.ai/handoffs/`, so a future QA report quoting its probe sentence flips the suite RED with
+  a message that does not name the cause — **a live booby-trap.** (4)
+  `render_subagent_definition_is_correct_for_every_registered_role` asserts `def.contains(role.system_prompt)`
+  — the render checked against the field it renders from; an empty prompt passes.
+- **🔴 The executor thesis is UNPROVEN.** S121 shipped the claim that an agent which can run code
+  "cannot physically fake a pass". The live run's four findings **all came from careful independent
+  READING, not from Bash** — execution bought the exit code and `335 passed`. What is evidenced is
+  that an INDEPENDENT agent finds real defects. Never pitch the executor claim as measured.
+- **🔴 The `Write`/`Edit` grant is documented, not FENCED.** Nothing structurally stops the QA role
+  editing the code it tests; on the live run the tree was verified byte-identical before/after, but
+  in the agent's own words *"that constraint held because I chose to hold it, which is not a
+  control."* Leading ROADMAP candidate after S122.
 - **🔴 The S121 check-class tally is a SELF-ASSIGNED LABEL (cold-review finding).** Nothing checks
   that a check marked `exec` executes anything — relabel them all and the summary still prints
   `behavioral source grep: 0`. Same class as S64's `covers:` digit-tag and S67's design marker.
@@ -85,10 +108,10 @@ fidelity-reviewer ACCEPT (5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT), attested
 
 ## What Is In Progress
 - **S121 DONE (CODE, ACCEPT).** The QA Specialist role, `verify-session-121.sh` 17/17.
-- **S122 = CODE: prove `subagent_type: "qa-specialist"` dispatches by name + the FIRST LIVE QA
-  run** (founder pick A at the S121 close). `prompts/122-task-qa-specialist-dispatch.md`. The
-  live run is the point: S121's claim that *an executor cannot fake a pass* is untested. A flat,
-  agreeable report from the agent is a REAL finding to record, never softened into a success.
+- **S122 = CODE: close the four real holes the live QA run found.**
+  `prompts/122-task-qa-suite-real-holes.md`. The original S122 brief (dispatch proof) is
+  SUPERSEDED and deleted — its goal was achieved at the S121 close. Every fix needs a
+  falsifiability fixture: a check never seen RED is not evidence.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.

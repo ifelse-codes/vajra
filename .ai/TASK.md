@@ -16,15 +16,24 @@
 - **Fakest green (never soften this):** the check-class tally
   (`13 execute-based · 3 structural · 1 behavioral`) is **a label the author typed**. Nothing checks
   that a check marked `exec` executes anything. Do NOT cite it as a measurement anywhere.
-- **What was NOT built:** the agent was never dispatched (S111 limit; explicit non-goal). That is
-  S122's job, and it is what tests S121's central claim.
+- **POST-CLOSE (founder-directed):** the agent WAS dispatched after all — the harness registered it
+  inside its own creating session, contradicting S111 (second observation). It resolved by name,
+  first try; ran the suite (exit 0, 17/17); agreed with all 17 self-assigned labels; **and found
+  four defects this session missed.** It changed nothing (HEAD sha, index hash and porcelain
+  byte-identical, checked not trusted). Brief:
+  `sessions/session-121-artifacts/qa-specialist-live-run.md`.
+- **🔴 The executor thesis is UNPROVEN.** All four findings came from careful independent READING,
+  not from Bash. Evidenced: an INDEPENDENT agent finds real defects. Not evidenced: that an executor
+  cannot fake a pass. Never pitch the executor claim as measured.
 - **Found live:** `vajra init` blocks forever on stdin when its runner sends no EOF (10 minutes lost
   inside `verify-session-113.sh`). Non-interactive callers must redirect `</dev/null`.
 
-**Next = S122 — CODE: prove the QA Specialist dispatches by name + the FIRST LIVE QA run.**
-Full prompt: `prompts/122-task-qa-specialist-dispatch.md`. **New chat.**
-Founder pick A at the S121 close. **A flat, agreeable report from the agent is a REAL finding —
-record it, never soften it into a success.**
+**Next = S122 — CODE: close the four real holes the live QA run found.**
+Full prompt: `prompts/122-task-qa-suite-real-holes.md`. **New chat.** The original S122 brief
+(dispatch proof) is SUPERSEDED and deleted — its goal was achieved at the S121 close.
+**Every fix needs a falsifiability fixture: a check never seen RED is not evidence.**
+Leading candidate after S122: **fence the `Write`/`Edit` grant** — the QA role can still edit the
+code it tests, and on the live run that held only because the agent chose to hold it.
 
 **🔒 FOUNDER DIRECTIVE (S118, in force):** `README.md` / `VISION.md` claims are the **target spec**,
 not a status report. **Never** soften them to match current capability — record gaps in `.ai/` and
@@ -43,8 +52,9 @@ until reality meets the claim. When a dogfood exposes a gap: root-cause it, then
   confirm two consecutive `verify-closeout.sh --inputs-sha NN` runs agree before embedding.
 - **The closeout gate counts verdict words ONLY on `|` table rows (≥3)** — a bullet list is BLOCKED,
   and a verdict wrapped in a table row also fails. Only a bare `**Verdict:** ACCEPT` line passes.
-- **The fleet has FOUR roles; THREE are proven dispatched by name** (Researcher S111, Fidelity
-  Reviewer S115, Plan Advisor S117). `qa-specialist` (S121) is built but **never dispatched**.
+- **The fleet has FOUR roles, ALL proven dispatched by name** (Researcher S111, Fidelity Reviewer
+  S115, Plan Advisor S117, QA Specialist S121-post-close). **The S111 "invisible in its own creating
+  session" rule did NOT hold** — re-test it before planning around it again.
 - **Exactly ONE role may execute** — `qa-specialist`. Enforced as a named allowlist so a fifth role
   cannot inherit Bash by being added to the table.
 - **A "first try, no workaround" dispatch claim needs independent evidence** — count

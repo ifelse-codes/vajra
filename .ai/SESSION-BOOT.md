@@ -1,13 +1,13 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 121 — COMPLETE
+- **Number:** 121 — COMPLETE (+ a founder-directed POST-CLOSE live QA run)
 - **Type:** CODE. The fleet's FOURTH role, the QA Specialist — the first that can execute.
 - **Goal:** Register `qa-specialist` in `src/fleet/mod.rs` with `Bash, Read, Write, Edit, Grep,
   Glob`; scaffold it via `vajra init`; govern its handoff through the unchanged `--role --from`
   path; record the grant in `DECISION-007`.
 - **Verdict:** **ACCEPT** — cold `fidelity-reviewer`, 5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT.
-  Attested `c92a2dad3377f48980458e8a71252b8267948e54badf3b3c6e32683ece48e7a9`.
+  Attested `fa8d435fac9df4f3222159b39a50df20fc4e4a650ac12b66ff94d5a5dc215758`.
 - **Report:** `sessions/session-121-summary.md` · `sessions/session-121-review.md`.
   Prompt: `prompts/121-task-qa-specialist-agent.md`. **Date last updated:** 2026-08-18.
 
@@ -15,8 +15,10 @@
 - `.ai/SESSION` = 121. Work on `session-121-qa-specialist`. **PR [#131](https://github.com/ifelse-codes/vajra/pull/131) open to `main`.**
 - **335 lib tests** (was 334); `verify-session-121.sh` **17/17 green**; 7 commands, no 8th.
 - **The fleet is FOUR roles:** researcher · fidelity-reviewer · plan-advisor · **qa-specialist**.
-  Three proven dispatched by name (S111/S115/S117); **the fourth has NEVER been dispatched** —
-  that is S122's whole job.
+  **ALL FOUR are now proven dispatched by name** — `qa-specialist` proved it at the S121
+  POST-CLOSE run, resolving by name **inside its own creating session**, first try. That
+  contradicts the S111 rule (second observation; `fidelity-reviewer` did the same at S114 and it
+  was left open at S115). **S111 should no longer be treated as a constraint without re-testing.**
 - **Exactly one role executes.** `qa-specialist` = `Bash, Read, Write, Edit, Grep, Glob`; the other
   three stay read-only, enforced as a named allowlist of one so a fifth role cannot inherit Bash.
 - **Key S121 findings:**
@@ -29,18 +31,35 @@
     `verify-session-113.sh`. Any non-interactive caller must redirect `</dev/null`.
   - `verify-session-116.sh` is red by construction against this branch (fleet grew to four; the
     read-only invariant was deliberately changed, hence the test was RENAMED not loosened).
+- **The POST-CLOSE live QA run (`sessions/session-121-artifacts/qa-specialist-live-run.md`) found
+  FOUR defects, all unfixed — they are S122's payload:**
+  1. **The tally is not compositional** — one slot (`s113-counter-still-green`) hides 14 checks, and
+     S113 carries its own hollow banner grep. True hollow count that run: **2, not 1.**
+  2. **Unanchored read-only guard** — `grep -q "^tools: Read, Grep, Glob"` is a PREFIX match; a
+     `Write`/`Edit` leak passes it. Only the unit test actually catches that.
+  3. **A live booby-trap** — `one_source_of_role_text` does not exclude `.ai/handoffs/`; a QA report
+     quoting its probe sentence flips the suite RED for a reason its message won't explain.
+  4. **A near-tautology** — `def.contains(role.system_prompt)` checks the render against the field
+     it renders from; an empty prompt passes.
+- **🔴 The executor thesis is UNPROVEN.** All four findings came from careful independent READING,
+  not from Bash. Execution bought the exit code and `335 passed`. Evidenced: an INDEPENDENT agent
+  finds real defects. Not evidenced: that an executor cannot fake a pass.
+- **The agent changed nothing, and it was CHECKED not trusted** — HEAD sha, `git ls-files -s` hash
+  and `git status --porcelain` byte-identical before/after. Its own caveat: *"that constraint held
+  because I chose to hold it, which is not a control."* The `Write`/`Edit` grant is still unfenced.
 
 ## Next Session
-- **Number:** 122 — **CODE.** Prove the QA Specialist dispatches by name + the FIRST LIVE QA run.
-- **Goal:** Dispatch `subagent_type: "qa-specialist"` by name in a fresh session, hand it a REAL
-  verify script, capture non-copyable dispatch evidence, and record honestly what the executing
-  agent produced that a read-only agent could not.
-- **Full prompt:** `prompts/122-task-qa-specialist-dispatch.md`.
-- **Why this is the founder's pick (S121 close, option A):** S121's central claim — *an executor
-  cannot fake a pass* — is untested. This is the only session that can test it. Same S114→S115 and
-  S116→S117 pattern, plus the live-run half those had no analogue for.
-- **The trap to avoid:** a flat, agreeable report from the agent is a **REAL FINDING** to record,
-  never softened into a success.
+- **Number:** 122 — **CODE.** Close the four real holes the live QA run found.
+- **Goal:** Fix the unanchored read-only guard, the `one_source_of_role_text` booby-trap, the
+  near-tautological render test, and the non-compositional tally — **each with a falsifiability
+  fixture** (a check never seen RED is not evidence).
+- **Full prompt:** `prompts/122-task-qa-suite-real-holes.md`. The original S122 brief (dispatch
+  proof) is **SUPERSEDED and deleted** — its goal was achieved at the S121 close.
+- **Why:** first time in this repo's history that a real finding came from an agent RUNNING the
+  project's own verification rather than cold-reading a diff. The findings are the payload.
+- **Do not soften:** the executor thesis stays unproven; say so wherever the QA role is described.
+- **Leading candidate AFTER S122:** fence the `Write`/`Edit` grant (rides the existing L3
+  `hook-pre-write.sh` surface, or the grant changes). It is a design decision, not a patch.
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.
 
