@@ -392,7 +392,7 @@ role_text_carriers() {
     | grep -v '^\./\.ai/handoffs/' \
     | grep -v '^\./\.claude/agents/' | grep -v '^\./docs/decisions/' \
     | grep -v '^\./sessions/' \
-    | grep -vE '^\./scripts/verify-session-[0-9]+\.sh$' \
+    | grep -v '^\./scripts/verify-session-121\.sh$' \
     | sort
 }
 # The exclusions above, stated once in prose so the list is not a wall of unexplained greps:
@@ -400,7 +400,11 @@ role_text_carriers() {
 #   .ai/verify/  .ai/handoffs/    — VAJRA-GENERATED: verify logs and the governed handoff (fix 2)
 #   .claude/agents/               — the RENDER of the canonical source, byte-checked separately
 #   docs/decisions/  sessions/    — the written record quoting the decision, not a second source
-#   scripts/verify-session-NN.sh  — the checks themselves have to name the probe to test for it
+#   scripts/verify-session-121.sh — THIS script, and only this one: the check lives here, so it has
+#                                   to name the probe to test for it. Deliberately NOT a wildcard
+#                                   over verify-session-NN.sh — that would license every future
+#                                   verify script to carry role text (cold review, S122 pass 2).
+#                                   Any other script needing to mention it uses a FRAGMENT.
 one_source_of_role_text() { _one_source_of_role_text "$ROOT"; }
 _one_source_of_role_text() {
   local ROOT_DIR="$1"

@@ -200,7 +200,13 @@ run_check "fix2-fixture-ran-green" exec s121_check_passed "one-source-guard-has-
 # `qa-specialist` handoff quoting the role's own probe sentence is landed in `.ai/handoffs/`, which
 # is exactly what turned the S121 suite red — and the S121 suite above ran GREEN with it present.
 fix2_trap_is_live_and_defused() {
-  local PROBE="Fixing what you just tested destroys the independence"
+  # A FRAGMENT, never the whole sentence. This check used to carry the full probe, which made THIS
+  # file a carrier of role text and was "solved" by widening the one-source exclusion to every
+  # `verify-session-NN.sh` — i.e. by excluding the problem rather than removing it, which would
+  # have licensed every future verify script to carry role text freely (cold review, S122 pass 2).
+  # The exclusion is back to the single script that genuinely must name the probe: S121's, where
+  # the check itself lives.
+  local PROBE="destroys the independence"
   local H; H="$(ls -1 .ai/handoffs/session-122-qa-specialist.md 2>/dev/null)"
   [ -n "$H" ] || { echo "FAIL: no governed qa-specialist handoff for session 122 — the trap is not live, so this proves nothing"; return 1; }
   grep -q "$PROBE" "$H" \
@@ -209,7 +215,17 @@ fix2_trap_is_live_and_defused() {
   grep -n "$PROBE" "$H" | sed 's/^/    /'
   # It is a REAL governed handoff, written by the binary, not a file hand-placed to satisfy this.
   grep -q "^role: qa-specialist$" "$H" || { echo "FAIL: not a governed handoff (no role frontmatter)"; return 1; }
-  grep -qE "^source-sha: [0-9a-f]{64}$" "$H" || { echo "FAIL: no real source hash — hand-written, not governed"; return 1; }
+  # RECOMPUTE the hash — do not just check it is 64 hex characters (cold review, S122 pass 2: sixty
+  # -four typed hex digits satisfied the shape test). Vajra hashes the TRIMMED body, so trim here
+  # too — the standing carry-forward that has bitten every session comparing raw file bytes.
+  local SRC="sessions/session-122-artifacts/qa-specialist-run.md"
+  [ -f "$SRC" ] || { echo "FAIL: the findings artifact the handoff was written from is missing"; return 1; }
+  local WANT GOT
+  WANT="$(printf '%s' "$(cat "$SRC")" | shasum -a 256 | cut -d' ' -f1)"
+  GOT="$(grep '^source-sha: ' "$H" | cut -d' ' -f2)"
+  [ "$WANT" = "$GOT" ] \
+    || { echo "FAIL: source-sha $GOT does not hash the trimmed findings ($WANT) — the handoff does not attest its own input"; return 1; }
+  echo "OK: the recorded source-sha recomputes from the findings artifact: $GOT"
   s121_check_passed "one-source-of-role-text" >/dev/null \
     || { echo "FAIL: the S121 one-source check went RED with the trap armed — it is not defused"; return 1; }
   echo "OK: verify-session-121.sh's one-source check ran GREEN with the trap armed"
@@ -242,7 +258,7 @@ no_render_against_own_field() {
   # surviving instance of the same tautology sitting eleven tests higher in the same file. The
   # cold review named that as the session's fakest green: a check that earns its green by grepping
   # for a spelling rather than for a shape.
-  HITS="$(grep -nE 'def\.contains\([A-Za-z_][A-Za-z0-9_]*\.(system_prompt|description)\)' src/fleet/mod.rs \
+  HITS="$(grep -nE '[A-Za-z_][A-Za-z0-9_]*\.contains\([A-Za-z_][A-Za-z0-9_]*\.(system_prompt|description)\)' src/fleet/mod.rs \
             | grep -vE '^[0-9]+:[[:space:]]*(//|/\*|\*)' \
             | grep -v 'hollow\.' || true)"
   if [ -n "$HITS" ]; then
@@ -250,22 +266,25 @@ no_render_against_own_field() {
   fi
   # Falsifiable: the grep must still MATCH the shape when it is real code, or the absence above is
   # just a comment filter that eats everything. Prove it on a synthetic file.
-  # THE FALSIFIABILITY FIXTURE. Four planted lines: a comment (must be dropped), the loop-variable
-  # spelling, a DIFFERENT identifier (the instance the first cut missed), and a `.description`
-  # variant. The pattern must catch exactly the three code lines.
+  # THE FALSIFIABILITY FIXTURE. Five planted lines: a comment (must be dropped), the loop-variable
+  # spelling, a DIFFERENT right-hand identifier (the instance the first cut missed), a
+  # `.description` variant, and a renamed RECEIVER (`d.contains(...)`) — the half the second cut
+  # still hardcoded, which the cold review caught. The pattern must catch exactly the four code
+  # lines.
   local TMPF; TMPF="$(mktemp)"
   {
     printf '    // def.contains(role.system_prompt) in a comment\n'
     printf '    assert!(def.contains(role.system_prompt));\n'
     printf '    assert!(def.contains(r.system_prompt));\n'
     printf '    assert!(def.contains(anything.description));\n'
+    printf '    assert!(d.contains(role.system_prompt));\n'
   } > "$TMPF"
   local N
-  N="$(grep -nE 'def\.contains\([A-Za-z_][A-Za-z0-9_]*\.(system_prompt|description)\)' "$TMPF" \
+  N="$(grep -nE '[A-Za-z_][A-Za-z0-9_]*\.contains\([A-Za-z_][A-Za-z0-9_]*\.(system_prompt|description)\)' "$TMPF" \
         | grep -vcE '^[0-9]+:[[:space:]]*(//|/\*|\*)')"
   rm -f "$TMPF"
-  [ "$N" = "3" ] || { echo "FAIL: the pattern matched $N code lines on a fixture carrying exactly 3 — it is spelling-bound, not shape-bound"; return 1; }
-  echo "OK: the pattern catches the shape under ANY identifier (3 of 4 fixture lines) and drops prose"
+  [ "$N" = "4" ] || { echo "FAIL: the pattern matched $N code lines on a fixture carrying exactly 4 — it is spelling-bound, not shape-bound"; return 1; }
+  echo "OK: the pattern catches the shape under ANY identifier on BOTH sides (4 of 5 fixture lines)"
   # Positive control: the pattern DOES match where it is legitimate — inside the fixture that
   # reproduces the defect on a deliberately hollow role. Without this the absence proves nothing.
   grep -q 'def\.contains(hollow\.system_prompt)' src/fleet/mod.rs \
@@ -343,59 +362,97 @@ run_check "fix4-own-tally-has-teeth" exec own_tally_has_teeth
 # STRUCTURAL: the claim is "these three lists are the same set", which has no runtime output to
 # exercise. Its positive control is that all three must be found and non-empty — a rename that made
 # any of them unreadable fails the check rather than passing it vacuously.
+# $1 = the Rust source, $2 = the S121 script, $3 = the S122 script. Parameterised (S122 pass 2) so
+# the fixture below can run THIS function against copies carrying planted drift. The first cut took
+# no arguments and its "fixture" retyped the comparison inline against string literals — it would
+# have stayed green with this whole function deleted. The cold review named that the fakest green,
+# and it was: the least-contracted change in the session arrived with the thinnest evidence.
 execution_policy_one_source() {
-  local RUST SH121 SH122
-  RUST="$(grep -o 'for forbidden in \[[^]]*\]' src/fleet/mod.rs | head -1 \
-           | tr -d '[]"' | sed 's/for forbidden in //' | tr ',' '\n' | tr -d ' ' | grep . | sort | tr '\n' ' ')"
-  SH121="$(grep -m1 '^FORBIDDEN_TOOLS=' scripts/verify-session-121.sh | cut -d'"' -f2 | tr ' ' '\n' | grep . | sort | tr '\n' ' ')"
-  SH122="$(grep -m1 '^FORBIDDEN=' scripts/verify-session-122.sh | cut -d'"' -f2 | tr ' ' '\n' | grep . | sort | tr '\n' ' ')"
-  echo "  src/fleet/mod.rs        : $RUST"
-  echo "  verify-session-121.sh   : $SH121"
-  echo "  verify-session-122.sh   : $SH122"
-  for l in "$RUST" "$SH121" "$SH122"; do
-    [ -n "$(tr -d ' ' <<<"$l")" ] || { echo "FAIL: one of the three lists could not be read — cannot evaluate, so it fails"; return 1; }
+  local RS="${1:-src/fleet/mod.rs}"
+  local S1="${2:-scripts/verify-session-121.sh}"
+  local S2="${3:-scripts/verify-session-122.sh}"
+  local RUST SH121 SH122 ARUST A121 A122
+  _norm() { tr ' ,' '\n\n' | grep . | sort -u | tr '\n' ' '; }
+  RUST="$(grep -o 'for forbidden in \[[^]]*\]' "$RS" | head -1 | tr -d '[]"' | sed 's/for forbidden in //' | _norm)"
+  SH121="$(grep -m1 '^FORBIDDEN_TOOLS=' "$S1" | cut -d'"' -f2 | _norm)"
+  SH122="$(grep -m1 '^FORBIDDEN=' "$S2" | cut -d'"' -f2 | _norm)"
+  # BOTH halves of the policy: which tools are forbidden, AND which roles are exempt from that.
+  # The first cut bound only the forbidden lists, so adding a role to the Rust allowlist alone
+  # passed — half the policy unguarded (cold review, S122 pass 2).
+  ARUST="$(grep -o 'MAY_EXECUTE: &\[&str\] = &\[[^]]*\]' "$RS" | head -1 | sed 's/.*= &\[//' | tr -d '[]"' | _norm)"
+  A121="$(grep -m1 '^EXECUTION_ALLOWLIST=' "$S1" | cut -d'"' -f2 | _norm)"
+  A122="$(grep -m1 '^MAY_EXECUTE=' "$S2" | cut -d'"' -f2 | _norm)"
+  echo "  forbidden tools   rust=[$RUST] s121=[$SH121] s122=[$SH122]"
+  echo "  execution exempt  rust=[$ARUST] s121=[$A121] s122=[$A122]"
+  local l
+  for l in "$RUST" "$SH121" "$SH122" "$ARUST" "$A121" "$A122"; do
+    [ -n "$(tr -d ' ' <<<"$l")" ] \
+      || { echo "FAIL: one of the six lists could not be read — cannot evaluate, so it fails"; return 1; }
   done
-  # Non-vacuous: the list must actually contain the tools it exists to forbid.
-  grep -q 'Bash' <<<"$RUST" || { echo "FAIL: the Rust list does not even forbid Bash — the parse is wrong"; return 1; }
+  # Non-vacuous: the parse must actually find the tools and the role it exists to police.
+  grep -q 'Bash' <<<"$RUST" || { echo "FAIL: the Rust forbidden parse does not even contain Bash"; return 1; }
+  grep -q 'qa-specialist' <<<"$ARUST" || { echo "FAIL: the Rust allowlist parse does not contain qa-specialist"; return 1; }
   if [ "$RUST" != "$SH121" ] || [ "$RUST" != "$SH122" ]; then
-    echo "FAIL: the execution policy has drifted between its three copies (sets above must match)"; return 1
+    echo "FAIL: the FORBIDDEN-TOOL half of the policy has drifted between its three copies"; return 1
   fi
-  echo "OK: all three forbidden-tool lists are the same set — a role granted any of them is rejected"
-  echo "    by the unit test AND by both shell guards"
+  if [ "$ARUST" != "$A121" ] || [ "$ARUST" != "$A122" ]; then
+    echo "FAIL: the EXECUTION-ALLOWLIST half of the policy has drifted between its three copies"; return 1
+  fi
+  echo "OK: both halves of the execution policy are the same set in all three copies"
 }
 run_check "execution-policy-one-source" struct execution_policy_one_source
 
-# THE FALSIFIABILITY FIXTURE for that check — the fifth fix this session shipped, and the cold
-# review correctly pointed out it had arrived without one. Plants a drifted list in throwaway
-# copies of the three files and requires the comparator to go RED; then plants agreeing lists and
-# requires GREEN, so it is not a check that always fails.
+# THE FALSIFIABILITY FIXTURE, rebuilt to call the REAL function. It copies the three real files
+# into a temp dir, plants one-line drift in each half in turn, and requires the check to go RED —
+# then requires GREEN on the untouched copies, so it is not a check that always fails.
 execution_policy_guard_has_teeth() {
   local TMP; TMP="$(mktemp -d)"; local rc=0
-  _sets_agree() {  # the same set comparison the real check performs, on three given strings
-    local A B C
-    A="$(tr ' ' '\n' <<<"$1" | grep . | sort | tr '\n' ' ')"
-    B="$(tr ' ' '\n' <<<"$2" | grep . | sort | tr '\n' ' ')"
-    C="$(tr ' ' '\n' <<<"$3" | grep . | sort | tr '\n' ' ')"
-    [ "$A" = "$B" ] && [ "$A" = "$C" ]
-  }
-  echo "--- drifted: the Rust list is missing Task (the exact defect found this session) ---"
-  if _sets_agree "Write Edit Bash NotebookEdit" "Bash Write Edit NotebookEdit Task" "Bash Write Edit NotebookEdit Task"; then
-    echo "FAIL: the comparator accepted three lists that disagree"; rc=1
+  cp src/fleet/mod.rs "$TMP/mod.rs"
+  cp scripts/verify-session-121.sh "$TMP/s121.sh"
+  cp scripts/verify-session-122.sh "$TMP/s122.sh"
+
+  echo "--- control: the three real files, unmodified (must be GREEN) ---"
+  if execution_policy_one_source "$TMP/mod.rs" "$TMP/s121.sh" "$TMP/s122.sh"; then
+    echo "OK: copies of the real files agree"
   else
-    echo "OK: drift REJECTED"
+    echo "FAIL: the check is red on unmodified copies — the fixture proves nothing"; rc=1
   fi
-  echo "--- drifted the other way: a shell guard gains a tool the others lack ---"
-  if _sets_agree "Bash Write Edit NotebookEdit Task" "Bash Write Edit NotebookEdit Task WebFetch" "Bash Write Edit NotebookEdit Task"; then
-    echo "FAIL: the comparator accepted a one-sided addition"; rc=1
+
+  echo "--- planted drift 1: the exact defect found this session (Task missing from the Rust list) ---"
+  sed -i.bak 's/"Write", "Edit", "Bash", "NotebookEdit", "Task"/"Write", "Edit", "Bash", "NotebookEdit"/' "$TMP/mod.rs"
+  grep -q '"NotebookEdit"\]' "$TMP/mod.rs" || grep -q '"NotebookEdit",$' "$TMP/mod.rs" || true
+  if execution_policy_one_source "$TMP/mod.rs" "$TMP/s121.sh" "$TMP/s122.sh"; then
+    echo "FAIL: the check accepted a Rust forbidden list missing Task"; rc=1
+  else
+    echo "OK: forbidden-list drift REJECTED"
+  fi
+  cp src/fleet/mod.rs "$TMP/mod.rs"
+
+  echo "--- planted drift 2: a shell guard gains a tool the others lack ---"
+  sed -i.bak 's/^FORBIDDEN_TOOLS="[^"]*"/FORBIDDEN_TOOLS="Bash Write Edit NotebookEdit Task WebFetch"/' "$TMP/s121.sh"
+  if execution_policy_one_source "$TMP/mod.rs" "$TMP/s121.sh" "$TMP/s122.sh"; then
+    echo "FAIL: the check accepted a one-sided addition to a shell guard"; rc=1
   else
     echo "OK: one-sided addition REJECTED"
   fi
-  echo "--- agreeing (order and spacing differ) ---"
-  if _sets_agree "Task Bash Write Edit NotebookEdit" "Bash Write Edit NotebookEdit Task" "Bash  Edit Write NotebookEdit Task"; then
-    echo "OK: the same set in any order is ACCEPTED — not a check that always fails"
+  cp scripts/verify-session-121.sh "$TMP/s121.sh"
+
+  echo "--- planted drift 3: a SECOND role quietly allowlisted to execute, in one copy only ---"
+  sed -i.bak 's/^MAY_EXECUTE="[^"]*"/MAY_EXECUTE="qa-specialist researcher"/' "$TMP/s122.sh"
+  if execution_policy_one_source "$TMP/mod.rs" "$TMP/s121.sh" "$TMP/s122.sh"; then
+    echo "FAIL: the check accepted a role added to one execution allowlist and not the others"; rc=1
   else
-    echo "FAIL: the comparator is order-sensitive"; rc=1
+    echo "OK: allowlist drift REJECTED — both halves of the policy are bound"
   fi
+
+  echo "--- fail-closed: a file whose policy cannot be parsed at all ---"
+  : > "$TMP/empty.rs"
+  if execution_policy_one_source "$TMP/empty.rs" "$TMP/s121.sh" "$TMP/s122.sh" >/dev/null 2>&1; then
+    echo "FAIL: an unparseable policy passed — the check is not fail-closed"; rc=1
+  else
+    echo "OK: an unreadable policy fails closed"
+  fi
+
   rm -rf "$TMP"; return $rc
 }
 run_check "execution-policy-guard-has-teeth" exec execution_policy_guard_has_teeth
