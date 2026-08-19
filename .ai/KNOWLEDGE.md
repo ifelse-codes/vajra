@@ -684,11 +684,48 @@ pub struct CompressionRequest {
   trustworthy QA evidence. Record the Bash-grant decision in `DECISION-007` addendum with rejected
   alternatives (read-only QA agent) whenever a new role's tool grant differs from the read-only
   default.
-- **Dispatch proof is always the NEXT session's job.** Mid-session dispatch is invisible (S111
-  finding: Claude Code snapshots `.claude/agents/` at session boot; a file written mid-session is
-  invisible to that session). Proof pattern: S111→S112 (Researcher), S114→S115 (Fidelity
-  Reviewer), S116→S117 (Plan Advisor), S121→S122 (QA specialist, expected).
+- **Dispatch proof was thought to be the NEXT session's job — it is not, and the S111 rule should
+  not be planned around without re-testing.** The S111 finding was that Claude Code snapshots
+  `.claude/agents/` at session boot, so a role written mid-session is invisible to that session.
+  Proof pattern held for S111→S112 (Researcher), S114→S115 (Fidelity Reviewer), S116→S117 (Plan
+  Advisor). But `fidelity-reviewer` resolved by name inside its own creating session at S114, and
+  `qa-specialist` did the same at the S121 post-close run — two contradicting observations.
 - **`sessions/session-NN-review.md` files are the ledger.** There is no `.ai/ledger/` directory.
   The ledger is DERIVED by `_ledger_read()` in `scripts/verify-closeout.sh` via `git show
   HEAD:sessions/session-NN-review.md`. The `--ledger` and `--ledger-verify` flags rebuild it on
   demand from those files. This is by design (S59); a missing directory is not a bug.
+
+- **A falsifiability fixture must fail for the RIGHT reason (S122).** Two of S122's five fixtures
+  ended on a "fail-closed" tooth that could not fail, because the planted defect from an earlier
+  assertion was never cleaned out of the directory under test — so the guard rejected for the wrong
+  reason, and deleting the branch under test changed nothing. **Restore the fixture's subject to a
+  known-clean state between assertions, or the tooth is glued on.** Same class as the check that has
+  never been seen RED; one level deeper.
+- **Widening an exclusion list is not a fix (S122).** When a check goes red because a new file
+  carries the string it polices, the reflex is to exclude the new file. S122 did that twice — first
+  for `.ai/handoffs/` (correct: that path is Vajra-GENERATED output), then for
+  `scripts/verify-session-NN.sh` as a wildcard (wrong: it licensed every future verify script to
+  carry role text). **The exclusion list IS the hole.** The right repair is for the new file not to
+  carry the string: assert on a FRAGMENT, or read it from the canonical source at runtime.
+- **A guard bound to a SPELLING will be escaped by the next instance (S122).** The
+  "render asserted against its own field" guard was bound to the identifier `role.`, then to the
+  receiver `def.`, then to the field names `system_prompt|description` — and each time a surviving
+  instance sat a few tests away on a spelling the pattern did not name. **Derive the thing you
+  police from the source of truth** (S122 reads the content-field list out of `pub struct Role`), so
+  a new field is covered the day it is added. Typing a longer list only moves the hole.
+- **Expect more than one cold review pass on a hardening session (S122).** Four were needed —
+  REJECT → ACCEPT-with-findings → REJECT → ACCEPT — and every rejection was correct. Budget for it;
+  pass 1 is not a formality. **And do not fix findings after the ACCEPT:** `Review-Inputs-SHA`
+  hashes the reviewed diff, so a post-ACCEPT repair attests something no reviewer saw. File it into
+  the next session's prompt instead.
+- **The executor thesis is UNPROVEN, and `DECISION-007` carries an S122 addendum retracting it.**
+  S121 shipped the claim that an agent which can run code "cannot physically fake a pass". Across
+  the role's two live runs it found seven real defects and **every single one came from careful
+  independent READING**; execution bought the exit codes and the pass counts, nothing else. What is
+  evidenced is **INDEPENDENCE** — an agent that did not build the thing finds defects the builder
+  cannot see, a property the read-only Fidelity Reviewer already had. Never restate the executor
+  claim as measured.
+- **`vajra init` blocks forever on stdin when its caller sends no EOF.** Cost 10 minutes at S121 and
+  ~20 more at S122, both inside `verify-session-113.sh`. Every non-interactive caller must redirect
+  `</dev/null`. `verify-session-113/121/122.sh` do; older scripts do not; **the binary itself is
+  unchanged, so the real fix is in `vajra init`, not in each caller.**
