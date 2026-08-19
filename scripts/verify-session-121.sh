@@ -143,8 +143,11 @@ print_tally() {
     echo "    - ${n} — runs another whole suite; read that suite's own tally for its classes"
   done
   if [ "$NN" -ne 0 ]; then
-    echo "  DISCLOSED: verify-session-113.sh carries its own \`no-eighth-command\` hardcoded-banner"
-    echo "  grep, so the true number of behavioral source greps this run executed is ${B} + at least 1."
+    # Derived, not hardcoded: a fix for hollowness delivered as a literal count would be the same
+    # disease (qa-specialist finding on the first cut of this line).
+    echo "  DISCLOSED: each of those ${NN} nested suite(s) runs checks of its own, including its own"
+    echo "  behavioral source greps. They are NOT included in the ${B} above, so ${B} is a FLOOR,"
+    echo "  never a total for this run."
   fi
   if [ "$B" -ne 0 ]; then
     echo "NOTE: ${B} behavioral source grep(s) in THIS suite — each must be named in the session's fakest-green disclosure."
@@ -166,7 +169,7 @@ tally_discloses_nesting() {
   grep -q "NOT a census of everything that ran" <<<"$TEXT" || return 1
   grep -q "nested suites (their own checks are NOT counted above)" <<<"$TEXT" || return 1
   grep -q -- "$NESTED_NAME" <<<"$TEXT" || return 1
-  grep -q "at least 1" <<<"$TEXT" || return 1
+  grep -q "is a FLOOR" <<<"$TEXT" || return 1
   return 0
 }
 
