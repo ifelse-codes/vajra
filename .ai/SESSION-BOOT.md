@@ -1,131 +1,103 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 122 — COMPLETE
-- **Type:** CODE. Close the four real holes the S121 live QA run found in S121's own guardrails.
-- **Goal:** Anchor the read-only guard, defuse the `one_source_of_role_text` booby-trap, kill the
-  near-tautological render test, and make the check-class tally honest about nesting — **each with
-  a falsifiability fixture** (a check never seen RED is not evidence).
-- **Verdict:** **ACCEPT** — cold `fidelity-reviewer`, **pass 4**. 5 of 6 SHIPPED, 1 PARTIAL
-  (procedural), 0 NOT-BUILT. Attested `9998bd3f8f62a6ea7c8b0bdfc5da485ca9e8e93dd51b33ec20c1cc4126eb3daf`.
-- **Report:** `sessions/session-122-summary.md` · `sessions/session-122-review.md`.
-  Prompt: `prompts/122-task-qa-suite-real-holes.md`. **Date last updated:** 2026-08-19.
+- **Number:** 123 — COMPLETE
+- **Type:** CODE. Fence the `qa-specialist` role's `Write`/`Edit` grant.
+- **Goal:** Make it structurally impossible for the QA role to edit the code it tests, instead of
+  asking it not to. Steps 1–2 first clear S122's own debt (the two glued-on fail-closed teeth, the
+  byte-duplicated `print_tally`/`tally_discloses_nesting`).
+- **Verdict:** **ACCEPT** — cold `fidelity-reviewer`, **pass 2**. 5 of 6 SHIPPED, 0 PARTIAL,
+  0 NOT-BUILT. Attested `6b729473cc573fcdf7ad1ed0d78e08e8cbfd26156f728fc0c5ed5a2de7d3b04d`.
+- **Report:** `sessions/session-123-summary.md` · `sessions/session-123-review.md`.
+  Prompt: `prompts/123-task-fence-the-write-grant.md`. **Date last updated:** 2026-08-19.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 122. **PR [#133](https://github.com/ifelse-codes/vajra/pull/133) MERGED
-  2026-08-19** (CI green both OS); branch pruned local + remote; `main` synced. S123 starts from a
-  fresh `session-123-*` branch.
-- **337 lib tests** (was 335); `verify-session-122.sh` **22/22 green, exit 0**;
-  `demo-session-122.sh` **9 of 9**; 7 commands, no 8th.
+- `.ai/SESSION` = 123. **PR not yet opened.** Branch `session-123-fence-the-write-grant`, not
+  merged. S124 starts from a fresh `session-124-*` branch once the founder picks a direction.
+- **339 lib tests** (was 337); `verify-session-123.sh` **14/14 green, exit 0**;
+  `demo-session-123.sh` **6 of 6**; 7 commands, no 8th (two new flags on the existing `--role`
+  surface: `--clean-room-open`/`--clean-room-close`).
 - **The fleet is still FOUR roles** — researcher · fidelity-reviewer · plan-advisor · qa-specialist.
-  Exactly one executes. Both halves of the execution policy (forbidden tools AND the allowlist) are
-  now bound across all three hand-maintained copies; before this session the Rust list was missing
-  `Task`, so a role granted execution-by-proxy passed the unit test and was rejected by both shell
-  guards.
-- **What S122 changed, in one line each:**
-  - `read_only_outside_allowlist()` — token-exact. The old `grep -q "^tools: Read, Grep, Glob"` was
-    a PREFIX match and passed `tools: Read, Grep, Glob, Write`.
-  - `role_text_carriers()` — excludes `.ai/handoffs/`, names every carrier by path on failure, and
-    the exclusion is pinned to the ONE script the check lives in, never a `verify-session-NN.sh`
-    wildcard (widening it would license every future script to carry role text).
-  - **Three** render-against-its-own-field tautologies removed. `role_prompt_substance()` is ONE
-    function shared by the real test and the fixture; the guard's field list is DERIVED from
-    `pub struct Role`, so a new content field is policed the day it is added.
-  - Fourth check class `nested`. `print_tally()` names each nested suite, states they are not
-    counted, and calls the behavioral count a FLOOR — derived, never a hardcoded number.
-- **The booby-trap is ARMED in this repo.** A real governed `qa-specialist` handoff quoting the
-  probe sentence sits at `.ai/handoffs/session-122-qa-specialist.md`; the S121 suite runs green with
-  it there. That is the strongest evidence in the session — defused against the live case, not a mock.
-- **Key S122 findings:**
-  - **🔴 The fakest green: two of five fixtures end on a "fail-closed" tooth that CANNOT FAIL.**
-    `read_only_guard_has_teeth` writes its `tools:`-less `mystery.md` into the directory that still
-    holds the planted `Write` leak; `execution_policy_guard_has_teeth` runs its fail-closed case
-    against a copy still carrying planted drift 3. Delete the guarded branch and both still print OK.
-    **Deliberately UNFIXED** — repairing after the ACCEPT would attest a diff no reviewer saw.
-  - **FOUR cold passes were needed: REJECT → ACCEPT-with-findings → REJECT → ACCEPT.** Every
-    rejection was correct. The same tautology was found on a THIRD field after two "fixes"; the
-    booby-trap was re-armed TWICE inside the session closing it; the anti-hollowness demo was itself
-    hollow (six hardcoded `PASS` rows and a case scored by `true`).
-  - **The dispatched `qa-specialist` found three more real defects** before any cold pass ran — a
-    comment-blind structural grep, a hardcoded "nesting disclosure", and the drifted policy list.
-    It changed nothing, checked not trusted.
-  - **`vajra init` hung for ~20 minutes** inside `verify-session-113.sh` — second occurrence of the
-    same defect (10 minutes at S121). That script now redirects `</dev/null`; older ones do not.
-- **🔴 The executor thesis is UNPROVEN, and `DECISION-007` now says so in writing** (S122 addendum
-  retracting the S121 claim). Two live QA runs, seven real defects, EVERY ONE from independent
-  READING. What is evidenced is INDEPENDENCE, not execution. **No check enforces that correction** —
-  it is typed prose in six places and it decays the day someone stops typing it.
+  `qa-specialist`'s grant narrowed `Bash, Read, Write, Edit, Grep, Glob` → `Bash, Read, Grep, Glob`.
+- **What S123 changed, in one line each:**
+  - `read_only_guard_has_teeth` (verify-session-121.sh) and `execution_policy_guard_has_teeth`
+    (verify-session-122.sh) — both isolated to a clean baseline plus exactly one planted defect, so
+    each fails for the RIGHT reason (confirmed live: neutering the guarded branch flips both red).
+  - `print_tally()`/`tally_discloses_nesting()` — extracted to `scripts/lib-tally.sh`, sourced by
+    all three verify suites; `tally_is_one_source()` in each proves it via `declare -F`/`extdebug`.
+  - `tools:` enforcement — MEASURED live (dispatched `researcher`, confirmed no Write/Edit/Bash tool
+    present in its schema at all), not assumed. `DECISION-007` S123 addendum records the mechanism,
+    both rejected alternatives, and the residual risk in full.
+  - `qa-specialist` dispatch routed through a disposable `git worktree` checkout — `vajra next
+    --role <name> --clean-room-open`/`--clean-room-close`, backed by
+    `gate_run::CleanRoom::open_persistent`/`remove_persistent` (S119's primitive, split so a
+    cross-process dispatch can hold the checkout open past this CLI call's own lifetime).
+- **The load-bearing fixture (`clean-room-fence-has-teeth`) holds up.** Built against a throwaway
+  repo, never this one: opens a real clean room, attempts a write while pointed at it, and shows the
+  source repo's HEAD sha / `git ls-files -s` hash / `git status --porcelain` byte-identical before
+  and after — plus a negative control (an unfenced write) proving the detection isn't vacuous.
+- **Key S123 findings:**
+  - **🟡 The fakest green: `measurement-artifact-cited` only proves two committed documents agree
+    with each other**, not that the underlying dispatch happened. The raw transcript
+    (`~/.claude/projects/.../*.jsonl` + `.meta.json`) lives outside the repo, uncommitted — unlike
+    the S111 precedent it explicitly claims to match, which committed the raw JSON. **Left as-is,
+    not softened** — a real, scoped gap, not a blocker.
+  - **A cold-review pass 1 REJECT was correct and scoped**: the measurement was true but
+    unfalsifiable narrative with no artifact. Fixed in one commit (`70b6f91`).
+  - **The dispatched `qa-specialist` found a real defect** in this session's own suite —
+    `grant-write-edit-dropped` mislabeled `exec` when it only greps a static file — before any cold
+    review ran. Fixed (`0e3d7c4`), then the review file recorded the corrected state.
+  - **This dispatch ran under the PRE-S123 grant** (`Bash, Write, Edit`) — the S111 boot-snapshot
+    limit means a mid-session grant change is invisible to that same session's own dispatch.
+    Disclosed in the governed handoff, not hidden.
+- **🔴 The executor thesis is STILL UNPROVEN** — S123 does not change this. It fences one specific
+  way `qa-specialist` could cheat; it does not establish that no executor can fake a pass by any
+  means. **🔴 The clean room isolates the REPO, not the MACHINE** — `Bash` remains granted; what
+  changed is default isolation plus tamper-EVIDENCE, never tamper-proof.
 
 ## Next Session
-- **Number:** 123 — **CODE.** Fence the `Write`/`Edit` grant (founder option A of three).
-- **Goal:** Make it structurally impossible for the QA role to edit the code it tests, instead of
-  asking it not to. Steps 1–2 clear S122's own debt first (the glued-on teeth, the byte-duplicated
-  `print_tally`/`tally_discloses_nesting` across both suites).
-- **Full prompt:** `prompts/123-task-fence-the-write-grant.md`.
-- **Why:** on both live runs the tree was unchanged only because the agent CHOSE to hold the line —
-  *"that constraint held because I chose to hold it, which is not a control."* Last self-granted
-  jurisdiction in the fleet.
-- **Do not soften:** fencing removes one way to cheat; it does not prove the executor thesis. Say so.
-- **Design-significant: YES** — step 3 picks between narrowing the grant and extending the L3
-  `hook-pre-write.sh` surface, and the choice needs a `DECISION-007` S123 addendum before code lands.
+- **Number:** 124 — **TBD.** Three options presented at the S123 close, awaiting the founder's
+  pick (`sessions/session-123-summary.md`):
+  - **A** — make the check-class label EARNED (5th disclosure of this fakest-green class now).
+  - **B** — close the dispatch-side clean-room gap: nothing forces a governed `qa-specialist`
+    handoff to prove it ran in a clean room before being accepted.
+  - **C** — a paid dogfood ride-along (staleness 🟡: 5 sessions / 4 calendar days since S118).
+- **S125 is fixed regardless of the S124 pick**: the mandatory NO-CODE GT (`125 % 5 == 0`).
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.
 
-## Carry-Forwards (NEW from S122)
+## Carry-Forwards (NEW from S123)
+- **`measurement-artifact-cited` proves document self-consistency, not dispatch reality.** The next
+  session that needs to cite a live-dispatch measurement should consider committing the raw
+  transcript excerpt itself (as S111 did), not just a hand-written summary of it, if the bar needs
+  to go higher than "internally consistent."
+- **Nothing structurally forces `vajra next --role qa-specialist --from` to require clean-room
+  evidence.** The clean-room flags are real and tested, but a governed handoff is still accepted on
+  prose alone. Named as S124 option B.
+- **The check-class label is a FIFTH-time disclosed fakest green** (S64, S67, S121, S122, S123).
+  Longest-standing unpicked backlog item. Named as S124 option A.
+- **`gate_run::CleanRoom` now has two lifetimes**: the original RAII-guarded `new()` (single-process,
+  auto-cleanup) and the new `open_persistent()`/`remove_persistent()` (cross-process, explicit
+  cleanup). Both share the same `worktree_add`/`worktree_remove` primitives — no logic duplicated.
+
+## Carry-Forwards (from S122)
 - **A falsifiability fixture must fail for the RIGHT reason.** Clean the planted defect out of the
-  directory before testing the next branch. Two of S122's five teeth were glued on this exact way.
-- **Expect more than one cold pass.** Four were needed at S122 and every rejection was correct.
-  Budget for it; pass 1 is not a formality.
+  directory before testing the next branch — the exact lesson S123 applied to its OWN new fixture
+  (`clean-room-fence-has-teeth`'s two-half, restore-between-halves shape).
+- **Expect more than one cold pass.** S122 needed four; S123 needed two. Every rejection so far has
+  been correct. Budget for it; pass 1 is not a formality.
 - **Do not fix findings after the ACCEPT.** The attestation hashes the reviewed diff; repairing
   afterwards attests something no reviewer saw. File them into the next prompt instead.
-- **Widening an exclusion list is not a fix.** S122 twice "solved" a carrier problem by excluding
-  the carrier, then reversed it: the demo and the S122 suite use a FRAGMENT so they never carry the
-  role text at all. The exclusion list IS the hole.
-- **`print_tally()` and `tally_discloses_nesting()` are byte-duplicated** across
-  `verify-session-121.sh` and `verify-session-122.sh` with nothing binding them — S122 fixed
-  drift-by-copy for the execution policy and created it for the tally in the same diff. S123 step 2.
-- **The landed `qa-specialist-run.md` and its handoff describe a suite that no longer exists** —
-  they report a check RED that was fixed after. `run-evidence.md` carries the later green run, but a
-  reader hitting the handoff first is misled. Left as-is: the handoff is sha-bound and rewriting it
-  would break the attestation it exists to provide.
-- **Five `def.contains(… role.name …)` instances remain by design** — the join key is exempt from
-  the tautology guard, reasoned only in a comment. `assert!(def.contains(role.name))` would pass today.
-
-## Carry-Forwards (from S121)
-- **The self-asserted-label class has now been disclosed THREE times:** S64 (`covers:` digit-tag),
-  S67 (`design-significant:` marker), S121 (the check-class tally). Option B at the S121 close
-  (make the tally machine-derived) is the named, unpicked fix.
-- **Running the product is not enough to earn the `exec` label** — the ASSERTION has to bind to the
-  behaviour. `no-eighth-command` runs the binary and still greps a banner string.
-- **`vajra init` needs `</dev/null`** from any non-interactive caller.
-- **Per-session verify snapshots decay** — S114's, S116's now red by construction. They are
-  historical snapshots, not living suites; the count-agnostic ones (S113, `fleet-smoke.sh`) are the
-  real regressions.
-- **The QA STATION (`src/qa/mod.rs`) and the QA ROLE (`qa-specialist`) stay separate** — the station
-  governs the process, the role does the work. Third instance of that collision, same resolution.
-
-## Carry-Forwards (from S120 GT)
-- **Two classes of source greps:** STRUCTURAL (one-source-of-truth architecture checks — acceptable;
-  no better alternative) vs BEHAVIORAL (checks a feature works by finding its message string in
-  source — the hollow class; the hollow class is widespread). Name the class explicitly in future
-  fakest-green disclosures.
-- **QA STATION ≠ QA ROLE:** `src/qa/mod.rs` = the pipeline's QA STATION (governs the process).
-  `qa-specialist` = the fleet's QA ROLE (does the work). Same pattern as Reviewer/fidelity-reviewer
-  and Planner/plan-advisor. They stay completely separate.
-- **First full-execution fleet agent (S121): DONE.** Bash grant recorded in the `DECISION-007` S121
-  addendum with three rejected alternatives + the residual risk.
-- **Dispatch proof is S122's job** — mid-session dispatch is invisible (S111 finding); same pattern
-  as S114→S115 (fidelity-reviewer) and S116→S117 (plan-advisor). **S121 honoured this: the role was
-  built and never dispatched.**
-- **S119 Coder-dark root cause:** prose in an `## Execution` step breaks `git cat-file`. Legitimate
-  non-commit evidence (fidelity-reviewer ACCEPT) is not a sha; needs a different gate path or a
-  documentation exception. Filed, not fixed.
+- **Widening an exclusion list is not a fix.** The exclusion list IS the hole — assert on a
+  FRAGMENT, or read from the canonical source at runtime, instead.
 
 ## Standing Carry-Forwards (from S119 + prior)
-- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S122.
+- **New session = new chat** (AGENTS.md step 10) — open a fresh chat for S124.
 - **Communicate in the plainest English** (founder request S103) — translate all jargon.
-- **Dispatch-by-name proven for ALL THREE roles** (Researcher S111, Fidelity Reviewer S115, Plan
-  Advisor S117). Mid-creating-session dispatch still fails per S111 — do not conflate.
+- **Dispatch-by-name proven for ALL FOUR roles** (Researcher S111, Fidelity Reviewer S115, Plan
+  Advisor S117, QA Specialist S121-post-close). Mid-creating-session dispatch of a NEW or JUST-
+  MODIFIED role definition still fails per S111 — reconfirmed by S123 (the narrowed grant was
+  invisible to this session's own qa-specialist dispatch).
 - **Attest LAST:** `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff), the PROMPT IS AN INPUT.
   Compute strictly after every edit to the prompt file itself and confirm two consecutive
   `verify-closeout.sh --inputs-sha NN` runs agree before embedding.
@@ -136,12 +108,13 @@
   matching zero tests. And **`[[:space:]]`, never `\s`**, in any script check (BSD/macOS grep).
 - **Background task flagged, not yet acted on:** `task_2162b487` — the Planner-gate
   `is_acceptance_heading` double-counting bug (S117 finding).
-- **KNOWLEDGE §6 is at 642 lines, growing** — chronic since S60, still unpruned.
+- **KNOWLEDGE §6 growing** — chronic since S60, still unpruned.
 - **Known weak check, house-wide, unfixed:** `no-eighth-command` greps a hardcoded usage banner —
-  now formally classified BEHAVIORAL (hollow) at S121. Option C at the S121 close is the fix.
+  formally classified BEHAVIORAL (hollow) at S121, reused honestly (not re-litigated) at S123.
 - **Untracked stragglers** (standing founder call): `sessions/session-9*-artifacts/*`,
   `sessions/session-10{2,3,7,8,9}-artifacts/*`; `vajra-cto-audit-*.html` + `first-mate.html`.
+  Also now: `sessions/session-123-artifacts/review-input.diff` (same pattern as S118/S122).
 - **crates.io is PUBLISHED — `vajractl` name BURNED**; any crates.io action stays founder-gated.
 - **v0.1 installs FOUR ways, all measured, CONFIRMED stranger-shippable at S110 GT.**
 - **Max 7 top-level commands** — any fleet growth rides an existing command; an 8th needs a
-  separate founder "yes".
+  separate founder "yes". S123 added flags to `next`, not a command.
