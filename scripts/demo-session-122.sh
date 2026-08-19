@@ -91,10 +91,16 @@ dim "     granted execution-by-proxy passed the unit test and was rejected by bo
 [ "$RUST" = "$SH1" ] && [ "$RUST" = "$SH2" ]; score $? "one policy, three copies, no drift"
 
 label "4. The booby-trap is LIVE in this repo — and the suite is green with it armed."
-PROBE="Fixing what you just tested destroys the independence"
+# DELIBERATELY A FRAGMENT, never the whole probe sentence. The cold review caught the first cut
+# of this script hardcoding the full sentence — which made THIS FILE a second hand-maintained
+# carrier of the role text and turned verify-session-121.sh's one-source check RED. That is the
+# S121 booby-trap reborn a second time inside the session that was fixing it. Widening the check's
+# exclusion list to cover demo scripts would have been the wrong repair: the exclusion list is the
+# hole. The right repair is for this file not to carry the sentence at all.
+FRAGMENT="destroys the independence"
 H=".ai/handoffs/session-122-qa-specialist.md"
-if [ -f "$H" ] && grep -q "$PROBE" "$H"; then
-  grep -n "$PROBE" "$H" | head -1 | cut -c1-96 | sed 's/^/    /'
+if [ -f "$H" ] && grep -q "$FRAGMENT" "$H"; then
+  grep -n "$FRAGMENT" "$H" | head -1 | cut -c1-96 | sed 's/^/    /'
   dim "    a real governed handoff, written by the binary, quoting the exact sentence that used to"
   dim "    turn the whole suite red"
   true

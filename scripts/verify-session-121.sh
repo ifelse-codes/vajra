@@ -36,6 +36,9 @@
 #      (`src/fleet/mod.rs`), fixture `render_test_cannot_pass_on_an_empty_system_prompt`
 #   4. the tally folded a 14-check nested suite into one `exec` slot → nested suites are their own
 #      class, named and explicitly uncounted, fixture `tally-disclosure-has-teeth`
+# THE EXECUTOR THESIS IS STILL UNPROVEN: across two live runs the QA role has found seven real
+# defects and every one came from independent READING. What is evidenced is INDEPENDENCE, not
+# execution. Never restate the S121 claim as measured.
 # NOT fixed, still true: the class labels are still typed by the author, and `no-eighth-command`
 # (here and in S113's suite) is still a hardcoded-banner grep.
 #
@@ -229,7 +232,12 @@ read_only_outside_allowlist() {
     TOOLS="$(sed -n 's/^tools: \(.*\)$/\1/p' "$f" | head -1)"
     [ -n "$NAME" ]  || { echo "FAIL: $(basename "$f") has no 'name:' line — cannot evaluate, so it fails"; BAD=1; continue; }
     [ -n "$TOOLS" ] || { echo "FAIL: $NAME has no 'tools:' line — cannot evaluate, so it fails"; BAD=1; continue; }
-    if grep -qw -- "$NAME" <<<"$EXECUTION_ALLOWLIST"; then
+    # EXACT token match, never `grep -w`: `-` is a word boundary to grep, so a role keyed `qa` or
+    # `specialist` would word-match inside `qa-specialist` and silently allowlist itself to
+    # execute (cold review, S122).
+    local ALLOWED=0 a
+    for a in $EXECUTION_ALLOWLIST; do [ "$NAME" = "$a" ] && ALLOWED=1; done
+    if [ "$ALLOWED" = "1" ]; then
       echo "  $NAME: [$TOOLS] (allowlisted to execute)"
       continue
     fi

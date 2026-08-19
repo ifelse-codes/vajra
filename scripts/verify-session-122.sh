@@ -23,6 +23,13 @@
 #   NESTED suite    — runs another whole suite. Its checks are NOT folded into the counts above;
 #                     it is named, and the tally says out loud that it is not a census (S122 fix 4).
 #
+# THE EXECUTOR THESIS IS STILL UNPROVEN, and this suite does not pretend otherwise. S121 shipped
+# the claim that a role which can run code cannot fake a pass. Across two live runs the role has
+# found seven real defects and EVERY ONE came from independent READING — execution bought exit
+# codes and pass counts, nothing else. What is evidenced is INDEPENDENCE, not execution. Nothing
+# in this suite tests whether an executor can fake a pass, and the `Write`/`Edit` grant is
+# documented rather than fenced.
+#
 # STILL A SELF-ASSIGNED LABEL, unchanged from S121 and not softened here: nothing in this file
 # proves a check marked `exec` executes anything. S122 made the tally honest about NESTING. It did
 # not make the labels EARNED. That remains the unpicked option B from the S121 close.
@@ -142,7 +149,12 @@ fleet_is_read_only_outside_allowlist() {
     TOOLS="$(sed -n 's/^tools: \(.*\)$/\1/p' "$f" | head -1)"
     { [ -n "$NAME" ] && [ -n "$TOOLS" ]; } \
       || { echo "FAIL: $(basename "$f") has no name:/tools: line — cannot evaluate, so it fails"; BAD=1; continue; }
-    if grep -qw -- "$NAME" <<<"$MAY_EXECUTE"; then echo "  $NAME: [$TOOLS] (allowlisted)"; continue; fi
+    # EXACT token match. `grep -qw "$NAME" <<<"$MAY_EXECUTE"` treats `-` as a word boundary, so a
+    # role keyed `qa` or `specialist` would have word-matched inside `qa-specialist` and silently
+    # granted itself execution (cold review, S122).
+    local ALLOWED=0 a
+    for a in $MAY_EXECUTE; do [ "$NAME" = "$a" ] && ALLOWED=1; done
+    if [ "$ALLOWED" = "1" ]; then echo "  $NAME: [$TOOLS] (allowlisted)"; continue; fi
     echo "  $NAME: [$TOOLS]"
     while IFS= read -r TOK; do
       [ -n "$TOK" ] || continue
@@ -225,19 +237,35 @@ no_render_against_own_field() {
   # the exact S121 defect-2 shape, a check red for a reason its message cannot explain, reborn
   # inside the session that was fixing it. Rust comment forms only (`//`, `///`, `/*`, ` *`);
   # a string literal carrying the shape would still be caught, which is the conservative side.
-  HITS="$(grep -n 'def\.contains(role\.system_prompt)\|def\.contains(role\.description)' src/fleet/mod.rs \
-            | grep -vE '^[0-9]+:[[:space:]]*(//|/\*|\*)' || true)"
+  # ANY identifier, not just the loop variable `role`. The first cut of this check matched the
+  # literal `role.` and was therefore GREEN on `assert!(def.contains(r.system_prompt))`, a
+  # surviving instance of the same tautology sitting eleven tests higher in the same file. The
+  # cold review named that as the session's fakest green: a check that earns its green by grepping
+  # for a spelling rather than for a shape.
+  HITS="$(grep -nE 'def\.contains\([A-Za-z_][A-Za-z0-9_]*\.(system_prompt|description)\)' src/fleet/mod.rs \
+            | grep -vE '^[0-9]+:[[:space:]]*(//|/\*|\*)' \
+            | grep -v 'hollow\.' || true)"
   if [ -n "$HITS" ]; then
     echo "FAIL: the render is still asserted against the field it renders from, in CODE:"; echo "$HITS"; return 1
   fi
   # Falsifiable: the grep must still MATCH the shape when it is real code, or the absence above is
   # just a comment filter that eats everything. Prove it on a synthetic file.
+  # THE FALSIFIABILITY FIXTURE. Four planted lines: a comment (must be dropped), the loop-variable
+  # spelling, a DIFFERENT identifier (the instance the first cut missed), and a `.description`
+  # variant. The pattern must catch exactly the three code lines.
   local TMPF; TMPF="$(mktemp)"
-  printf '    // def.contains(role.system_prompt) in a comment\n    assert!(def.contains(role.system_prompt));\n' > "$TMPF"
-  local N; N="$(grep -n 'def\.contains(role\.system_prompt)' "$TMPF" | grep -vcE '^[0-9]+:[[:space:]]*(//|/\*|\*)')"
+  {
+    printf '    // def.contains(role.system_prompt) in a comment\n'
+    printf '    assert!(def.contains(role.system_prompt));\n'
+    printf '    assert!(def.contains(r.system_prompt));\n'
+    printf '    assert!(def.contains(anything.description));\n'
+  } > "$TMPF"
+  local N
+  N="$(grep -nE 'def\.contains\([A-Za-z_][A-Za-z0-9_]*\.(system_prompt|description)\)' "$TMPF" \
+        | grep -vcE '^[0-9]+:[[:space:]]*(//|/\*|\*)')"
   rm -f "$TMPF"
-  [ "$N" = "1" ] || { echo "FAIL: the comment filter matched $N code lines on a fixture with exactly 1 — it is not selective"; return 1; }
-  echo "OK: the comment filter keeps real code (1 of 2 fixture lines) and drops prose"
+  [ "$N" = "3" ] || { echo "FAIL: the pattern matched $N code lines on a fixture carrying exactly 3 — it is spelling-bound, not shape-bound"; return 1; }
+  echo "OK: the pattern catches the shape under ANY identifier (3 of 4 fixture lines) and drops prose"
   # Positive control: the pattern DOES match where it is legitimate — inside the fixture that
   # reproduces the defect on a deliberately hollow role. Without this the absence proves nothing.
   grep -q 'def\.contains(hollow\.system_prompt)' src/fleet/mod.rs \
@@ -336,6 +364,41 @@ execution_policy_one_source() {
   echo "    by the unit test AND by both shell guards"
 }
 run_check "execution-policy-one-source" struct execution_policy_one_source
+
+# THE FALSIFIABILITY FIXTURE for that check — the fifth fix this session shipped, and the cold
+# review correctly pointed out it had arrived without one. Plants a drifted list in throwaway
+# copies of the three files and requires the comparator to go RED; then plants agreeing lists and
+# requires GREEN, so it is not a check that always fails.
+execution_policy_guard_has_teeth() {
+  local TMP; TMP="$(mktemp -d)"; local rc=0
+  _sets_agree() {  # the same set comparison the real check performs, on three given strings
+    local A B C
+    A="$(tr ' ' '\n' <<<"$1" | grep . | sort | tr '\n' ' ')"
+    B="$(tr ' ' '\n' <<<"$2" | grep . | sort | tr '\n' ' ')"
+    C="$(tr ' ' '\n' <<<"$3" | grep . | sort | tr '\n' ' ')"
+    [ "$A" = "$B" ] && [ "$A" = "$C" ]
+  }
+  echo "--- drifted: the Rust list is missing Task (the exact defect found this session) ---"
+  if _sets_agree "Write Edit Bash NotebookEdit" "Bash Write Edit NotebookEdit Task" "Bash Write Edit NotebookEdit Task"; then
+    echo "FAIL: the comparator accepted three lists that disagree"; rc=1
+  else
+    echo "OK: drift REJECTED"
+  fi
+  echo "--- drifted the other way: a shell guard gains a tool the others lack ---"
+  if _sets_agree "Bash Write Edit NotebookEdit Task" "Bash Write Edit NotebookEdit Task WebFetch" "Bash Write Edit NotebookEdit Task"; then
+    echo "FAIL: the comparator accepted a one-sided addition"; rc=1
+  else
+    echo "OK: one-sided addition REJECTED"
+  fi
+  echo "--- agreeing (order and spacing differ) ---"
+  if _sets_agree "Task Bash Write Edit NotebookEdit" "Bash Write Edit NotebookEdit Task" "Bash  Edit Write NotebookEdit Task"; then
+    echo "OK: the same set in any order is ACCEPTED — not a check that always fails"
+  else
+    echo "FAIL: the comparator is order-sensitive"; rc=1
+  fi
+  rm -rf "$TMP"; return $rc
+}
+run_check "execution-policy-guard-has-teeth" exec execution_policy_guard_has_teeth
 
 # --- the non-goals stay non-goals ---------------------------------------------------------------
 # BEHAVIORAL, and labelled so — the same hardcoded-banner grep named since S69 and formally
