@@ -852,7 +852,12 @@ mod tests {
             if MAY_EXECUTE.contains(&role.name) {
                 continue;
             }
-            for forbidden in ["Write", "Edit", "Bash", "NotebookEdit"] {
+            // S122: `Task` added. The qa-specialist run found this list had DRIFTED from the two
+            // shell guards that police the same invariant — a role granted `Task` (which can spawn
+            // other agents, execution by proxy) would have been rejected by both scripts and
+            // permitted here. `verify-session-122.sh#execution-policy-one-source` now binds all
+            // three lists together so they cannot drift apart again.
+            for forbidden in ["Write", "Edit", "Bash", "NotebookEdit", "Task"] {
                 assert!(
                     !role.tools.contains(forbidden),
                     "{} grants the write/exec tool {forbidden} — only {MAY_EXECUTE:?} may execute",
