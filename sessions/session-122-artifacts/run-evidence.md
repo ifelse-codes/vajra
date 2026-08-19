@@ -1,8 +1,8 @@
 # S122 — landed run evidence (verify + demo)
 
-The cold review's pass-2 note was fair: the only run in the record was RED. This file is the
-green run, captured verbatim. It is EVIDENCE OF ONE RUN on one machine, not a proof of
-correctness — re-run the scripts rather than trusting this file.
+The cold review's fair complaint at pass 2 was that the only run in the record was RED. This is
+the green run, captured verbatim after the pass-3 repairs. It is EVIDENCE OF ONE RUN on one
+machine, not a proof of correctness — re-run the scripts rather than trusting this file.
 
 ## `bash scripts/verify-session-122.sh` — exit 0
 
@@ -52,26 +52,30 @@ ALL GREEN (22 pass, 0 fail)
 
 ```
 == Scorecard  [demo:summary_table] ==
-  CASE                                                   RESULT
-  ------------------------------------------------------ ------
-  B/A 1. prefix grep passed the leak, token guard rejects PASS
-  B/A 2. the tally names what it hides                   PASS
-  1. init scaffolds four roles from one source           PASS
-  2. exactly one role may execute                        PASS
-  3. one forbidden-tool policy, three copies, no drift   PASS
-  4. the booby-trap is armed and the suite is green      PASS
-  5. the render tautology is gone and falsifiable        PASS
-  6. the governed-handoff writer still fails closed      PASS
-  7. no 8th top-level command                            PASS
+  CASE                                                   CLASS   RESULT
+  ------------------------------------------------------ ------- ------
+  the old grep passed it; the new guard rejects it       exec    PASS
+  the real tally names what it hides; the old line does not exec    PASS
+  four roles scaffolded                                  exec    PASS
+  execution is an allowlist of exactly one role          exec    PASS
+  one policy, three copies, no drift                     struct  PASS
+  a governed handoff quotes the probe sentence and nothing breaks exec    PASS
+  the tautology is gone and its replacement is falsifiable exec    PASS
+  all four bad inputs still rejected                     exec    PASS
+  still exactly 7 top-level commands                     behav   PASS
 
   9 of 9 cases passed
+  CHECK CLASSES (this demo's own cases only) — execute-based: 7 · structural: 1 · behavioral: 1
+  STILL A SELF-ASSIGNED LABEL: nothing here proves a case marked `exec` executes anything.
 
 > Stated plainly, because the demo would otherwise flatter itself:
   · The check-class labels are STILL typed by the author. S122 made the tally honest about
     NESTING; it did not make a single label EARNED. That is the unpicked option B from S121.
   · 'no-eighth-command' is still a hardcoded-banner grep, here and in S113's suite.
   · The executor thesis is STILL UNPROVEN. The QA role found three more real defects this
-    session — all of them by READING. Execution bought exit codes, not findings.
+    session (seven across its two runs) — every one by READING. Execution bought exit codes.
+  · Three cold-review passes were needed. Pass 1 REJECT, pass 2 ACCEPT-with-findings, pass 3
+    REJECT — and pass 3 found the same tautology on a THIRD field the guard did not name.
   · The Write/Edit grant is still documented, not FENCED. Next session's candidate.
 DEMO GREEN (9/9)
 ```
