@@ -48,9 +48,23 @@
 //! defects between them. Every single one came from careful independent READING. Execution bought
 //! the exit codes and the `passed` counts, nothing more. What IS evidenced is the INDEPENDENCE
 //! thesis: an agent that did not build the thing finds defects the builder cannot see. Whether an
-//! executor can be made unable to fake a pass remains untested, and the `Write`/`Edit` grant is
-//! documented rather than fenced — on both live runs the tree was unchanged because the agent
-//! chose to leave it alone, which is not a control.
+//! executor can be made unable to fake a pass remains untested.
+//!
+//! **S123: the `Write`/`Edit` grant is FENCED now, not merely documented.** Two changes,
+//! `DECISION-007` S123 addendum: (1) `Write`/`Edit` DROPPED from this role's grant — measured
+//! live this session that the harness enforces `tools:` mechanically, so this closes a real path,
+//! not a theatrical one; (2) the actual fence is routing this role's dispatch through a disposable
+//! `git worktree` checkout (`vajra next --role qa-specialist --clean-room-open` /
+//! `--clean-room-close`, `src/gate_run.rs`) instead of the source repo — because `Bash` remains
+//! granted (it must, to run the suite) and anything with `Bash` can write a file by shell
+//! redirection with no `Write`/`Edit` tool involved. **This does not prove the executor thesis
+//! either.** It removes one specific way this role could cheat (repair the product, then report
+//! the repaired state as original); it does not establish that no executor can fake a pass by any
+//! means, and the clean room isolates the REPO, not the MACHINE — `Bash` inside it could still
+//! reach for the real repo's absolute path. What closes that residual is tamper-EVIDENCE (the
+//! source repo's HEAD sha / index hash / porcelain compared before and after), not
+//! tamper-PROOFING. See the addendum for the full reasoning and the two rejected alternatives.
+//!
 //! Its key is `qa-specialist`, not `qa`, for the third instance of the STATION-vs-ROLE collision
 //! (`src/qa/mod.rs`, the QA station, S69) that S114 and S116 each resolved the same way.
 
@@ -174,9 +188,12 @@ only the session's author decides what actually lands there.";
 /// is structural and legitimate. It reports; it never edits the product under test.
 const QA_SPECIALIST_SYSTEM_PROMPT: &str = "You are the QA Specialist on a governed software team. \
 Your ONE job is to RUN the session's verification and report what actually executed.\n\
-You are the first role on this team that can execute — you have Bash, Write and Edit — because QA \
-evidence that was never run is not evidence. Use that grant to RUN and to RECORD, never to change \
-the thing you are testing.\n\
+You are the first role on this team that can execute — you have Bash — because QA evidence that \
+was never run is not evidence. Use that grant to RUN and to RECORD, never to change the thing you \
+are testing.\n\
+You will be pointed at a disposable clean-room checkout, not the source repo (S123 — \
+`vajra next --role qa-specialist --clean-room-open`). Run every command inside that path. This is \
+not a suggestion you are trusted to follow — it is the actual working directory you were given.\n\
 Rules:\n\
 - RUN the session's `scripts/verify-session-NN.sh` for the session number you are given. Report its \
 real exit code and its real check-by-check output. Never report a result you did not observe.\n\
@@ -257,11 +274,19 @@ pub const ROLES: &[Role] = &[
         system_prompt: QA_SPECIALIST_SYSTEM_PROMPT,
         // THE ONE EXECUTING ROLE (S121, DECISION-007 S121 addendum). Bash is the load-bearing
         // grant: a role that cannot run the suite can only grep for the suite, which is the exact
-        // hollow evidence this role exists to catch. Write/Edit are for recording findings and
-        // scratch files — the prompt forbids touching the product under test, and the fact that
-        // the grant is broader than that rule is disclosed, not hidden. Still NO web and NO
-        // NotebookEdit: QA is decided by this repo's own suite, not the internet.
-        tools: "Bash, Read, Write, Edit, Grep, Glob",
+        // hollow evidence this role exists to catch.
+        //
+        // S123: Write/Edit DROPPED — the cheap second layer of the DECISION-007 S123 addendum's
+        // fence, applied because this session measured (live, not assumed) that the harness
+        // enforces a role's `tools:` grant mechanically, not just by prompt convention. This is
+        // NOT the fence itself: Bash remains, and anything with Bash can write a file by shell
+        // redirection with no Write/Edit tool involved. The real fence is dispatching this role
+        // against a disposable clean-room checkout (`vajra next --role qa-specialist
+        // --clean-room-open`), never the source repo directly — see the addendum for why
+        // narrowing the grant alone was rejected as the fence and kept only as a second layer.
+        // Still NO web and NO NotebookEdit: QA is decided by this repo's own suite, not the
+        // internet, and not by spawning another agent.
+        tools: "Bash, Read, Grep, Glob",
     },
 ];
 
@@ -865,7 +890,7 @@ mod tests {
             ("researcher", "Read, Grep, Glob, WebSearch, WebFetch"),
             ("fidelity-reviewer", "Read, Grep, Glob"),
             ("plan-advisor", "Read, Grep, Glob"),
-            ("qa-specialist", "Bash, Read, Write, Edit, Grep, Glob"),
+            ("qa-specialist", "Bash, Read, Grep, Glob"),
         ];
         assert_eq!(
             EXPECTED_GRANTS.len(),
@@ -910,8 +935,15 @@ mod tests {
         assert_eq!(plan.tools, "Read, Grep, Glob");
         assert_ne!(res.tools, plan.tools, "the tool grant must be per-role");
         // The exception, pinned exactly — a widened grant elsewhere in the table turns this red.
+        // S123: Write/Edit dropped (DECISION-007 S123 addendum, the cheap second layer) — Bash
+        // remains the load-bearing grant; the real fence is the clean-room dispatch route.
         let qa = resolve_role("qa-specialist").unwrap();
-        assert_eq!(qa.tools, "Bash, Read, Write, Edit, Grep, Glob");
+        assert_eq!(qa.tools, "Bash, Read, Grep, Glob");
+        assert!(
+            !qa.tools.contains("Write") && !qa.tools.contains("Edit"),
+            "S123 dropped Write/Edit from the QA grant — a regrant here silently reopens the \
+             tool-call write path the S123 fence closed"
+        );
         assert!(
             !qa.tools.contains("WebSearch") && !qa.tools.contains("NotebookEdit"),
             "the QA grant is execution-local, not the Researcher's web grant plus everything"

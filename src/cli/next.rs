@@ -11,6 +11,7 @@ use crate::coder;
 use crate::demoer;
 use crate::dogfood;
 use crate::fleet;
+use crate::gate_run;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::planner;
 use crate::qa;
@@ -94,7 +95,16 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     // The fleet's handoff governance (S109, DECISION-007) rides `vajra next` — no 8th command.
     if let Some(i) = args.iter().position(|a| a == "--role") {
-        return run_role_handoff(args.get(i + 1), args);
+        let name = args.get(i + 1);
+        // S123: fence the executing role's dispatch behind a disposable checkout instead of the
+        // real tree. Both ride `--role`, not a new flag family — same no-8th-command rule.
+        if args.iter().any(|a| a == "--clean-room-open") {
+            return run_clean_room_open(name);
+        }
+        if let Some(j) = args.iter().position(|a| a == "--clean-room-close") {
+            return run_clean_room_close(name, args.get(j + 1));
+        }
+        return run_role_handoff(name, args);
     }
 
     if args.iter().any(|a| a == "--advance") {
@@ -150,6 +160,75 @@ fn run_dogfood_age() -> Result<()> {
     let report = dogfood::dogfood_age(&root, current);
     print!("{}", dogfood::format_dogfood_age(current, report.as_ref()));
     Ok(())
+}
+
+/// `vajra next --role <name> --clean-room-open` — S123, `DECISION-007` S123 addendum. Materialises
+/// a disposable `git worktree` checkout of HEAD and prints its path plus the dispatch instruction:
+/// point the role at THIS path, not the repo root. Scoped to a role that actually holds `Bash`
+/// (today, only `qa-specialist`) — a read-only role has nothing to isolate. The worktree
+/// deliberately outlives this process (see `gate_run::CleanRoom::open_persistent`); pair with
+/// `--clean-room-close <path>` once the dispatched run is done.
+fn run_clean_room_open(name: Option<&String>) -> Result<()> {
+    let name = name.context("usage: vajra next --role <name> --clean-room-open")?;
+    let role = fleet::resolve_role(name).ok_or_else(|| {
+        anyhow::anyhow!(
+            "unknown role {name:?} — known roles: {}",
+            fleet::known_roles()
+        )
+    })?;
+    if !role.tools.contains("Bash") {
+        bail!(
+            "{} is read-only (tools: {}) — a clean room isolates WRITES an executing role could \
+             make; a role with no Bash grant has nothing to isolate. This flag is scoped to the \
+             fleet's executing role(s).",
+            role.name,
+            role.tools
+        );
+    }
+    let root = repo_root()?;
+    let path = gate_run::CleanRoom::open_persistent(&root)
+        .map_err(|e| anyhow::anyhow!("could not create a clean-room checkout of HEAD: {e:?}"))?;
+    println!("clean room opened for {}: {}", role.name, path.display());
+    println!(
+        "  a full `git worktree` checkout of HEAD — every file and script exists here, isolated \
+         from the working tree above."
+    );
+    println!(
+        "  point every command {} runs at this path, not the repo root — cd there before \
+         running the verify script.",
+        role.name
+    );
+    println!(
+        "  when the run is done: vajra next --role {} --clean-room-close {}",
+        role.name,
+        path.display()
+    );
+    Ok(())
+}
+
+/// `vajra next --role <name> --clean-room-close <path>` — removes a worktree opened by
+/// `--clean-room-open`. A worktree never closed is reclaimed by `git worktree prune` like any
+/// other orphaned entry (the same fallback `CleanRoom`'s `Drop` relies on) — this is tidiness,
+/// not the safety property. The safety property is that nothing was ever pointed at the real tree.
+fn run_clean_room_close(name: Option<&String>, path: Option<&String>) -> Result<()> {
+    let name = name.context("usage: vajra next --role <name> --clean-room-close <path>")?;
+    let role = fleet::resolve_role(name).ok_or_else(|| {
+        anyhow::anyhow!(
+            "unknown role {name:?} — known roles: {}",
+            fleet::known_roles()
+        )
+    })?;
+    let path = path.context("--clean-room-close needs the path --clean-room-open printed")?;
+    let root = repo_root()?;
+    if gate_run::CleanRoom::remove_persistent(&root, Path::new(path)) {
+        println!("clean room closed for {}: {path}", role.name);
+        Ok(())
+    } else {
+        bail!(
+            "`git worktree remove --force {path}` did not succeed — it may already be closed, \
+             or the path is wrong. `git worktree prune` cleans up a stale entry either way."
+        )
+    }
 }
 
 /// `vajra next --role <name> --from <findings-file>` — the fleet's handoff governance (S109,

@@ -427,3 +427,93 @@ Grep, Glob` grant) is unchanged.
 - **Where this correction is repeated:** `src/fleet/mod.rs` module header and the QA role's doc
   comment, both S122 verify-suite headers, and `scripts/demo-session-122.sh`. Anywhere the QA role
   is described, the thesis is described as unproven.
+
+## S123 addendum — fencing the `Write`/`Edit` grant (the last self-granted jurisdiction)
+
+The S121/S122 addenda both name the same open risk: `qa-specialist`'s `Write`/`Edit` grant is
+documented, not controlled. This addendum records the fence — and, first, the measurement the
+S122 `qa-specialist` report itself demanded: *"Nothing proves the runtime honours `tools:`."*
+
+### Measurement — is a role's `tools:` grant actually enforced, or only a convention?
+
+Tested live, in this session, against the real dispatch mechanism (not a mock): the `researcher`
+role — already a real, session-boot-registered subagent, granted `Read, Grep, Glob, WebSearch,
+WebFetch`, no `Write`/`Edit`/`Bash` — was dispatched with an explicit instruction to attempt
+writing a file by any means it could find, and to report the raw mechanism, not to reason about
+whether it should comply.
+
+**Full evidence, captured and cross-verified, is
+`sessions/session-123-artifacts/tools-enforcement-measurement.md`** — not asserted here as prose.
+It reuses the exact evidentiary shape the S111 addendum used to prove a real by-name dispatch: two
+independently-written files (this session's own transcript, and the dispatched subagent's separate
+`meta.json`) agreeing on the same random tool-call ID (`toolu_01BpAnw69h7MVcRAZjbjYQo1`) neither
+side controlled, plus the subagent's tool call and final report quoted verbatim. **A cold
+`fidelity-reviewer` pass rejected the first cut of this addendum for exactly the gap that artifact
+closes** — the claim below was true but, as first written, unfalsifiable narrative with nothing to
+check it against.
+
+**Result: the grant IS enforced, mechanically, at the tool-definition level — not a prompt-level
+convention the agent chooses to follow.** The dispatched agent reported no `Write`, `Edit`, or
+`Bash` function was present in its callable tool schema at all: "not disabled, not erroring, simply
+absent from the list of callable functions I was given." There was no rejected call and no error
+text to quote, because there was nothing to call. The target file was confirmed absent afterward.
+
+**What this measurement does and does not license.** It proves the harness will not hand a
+role a tool outside its recorded grant. It does **not** prove that dropping `Write`/`Edit` from
+`qa-specialist` would close the write path — `qa-specialist` keeps `Bash` (it must, to run the
+verify script), and a granted `Bash` tool can write a file by shell redirection
+(`echo x > src/foo.rs`) with no `Write`/`Edit` tool involved at all. The measurement licenses only
+this: narrowing `Write`/`Edit` is not worth *zero* (it closes one real, now-confirmed-enforced
+path), but it is not the fence — `Bash` is the fence-defeating grant, and it cannot be removed
+without removing the role's entire reason to exist.
+
+### Decision — route the dispatch through the existing clean-room runner (`src/gate_run.rs`, S119)
+
+`qa-specialist`'s dispatch is pointed at a disposable `git worktree add --detach HEAD` checkout,
+not the source repo, via two new flags riding the existing `--role` surface (no 8th top-level
+command): `vajra next --role qa-specialist --clean-room-open` materialises the worktree and prints
+its path (gated: a role without a `Bash` grant is refused — nothing to isolate); `--clean-room-close
+<path>` removes it once the run is done. `gate_run::CleanRoom::open_persistent`/`remove_persistent`
+reuse the exact worktree-add/-remove primitives `qa_gate`'s `CleanRoom` already uses for the S119
+live re-run — split out of that struct's `new`/`Drop` so a **fleet role's** dispatch (which happens
+in a separate, longer-lived Claude Code session, not inside a single `vajra` process) can hold the
+same checkout open across process boundaries instead of it being removed the instant the CLI call
+that created it returns.
+
+**Considered and rejected — narrow the grant alone (drop `Write`/`Edit`, keep `Bash`).** The
+measurement above shows this is not worthless, but it is not sufficient: the role needs `Bash` to
+run the suite, and anything that can run a shell command can write a file. A fence that closes the
+tool path while leaving the command path wide open is exactly the fake-green shape S122 spent four
+review passes removing — it would look like a fence and not be one. **Kept as a cheap SECOND
+layer** alongside the clean room, not as the fence itself; not yet applied to the scaffolded grant
+this session (recorded as the residual, not silently done).
+
+**Considered and rejected — a hook that blocks writes during a QA run.** The only option that
+requires *guessing intent*: the guard would need to know a given write came from the dispatched
+subagent specifically (unverified, and per the measurement above the harness gives no signal for
+this), and to close the `Bash` path it would have to parse arbitrary shell to decide "is this
+write-shaped" — unwinnable in general (`printf`, `dd`, `tee`, a Python one-liner, redirection
+through a pipe of unknown depth). A fence made of *rules* has to be right about everything a
+malicious or confused agent might try; a fence made of *walls* only has to exist.
+
+### Residual risk — stated plainly, not softened
+
+**The clean room isolates the REPO, not the MACHINE.** `qa-specialist` still holds `Bash`, and the
+real repo still exists on disk at a known absolute path — nothing stops `cd /path/to/real/repo &&
+echo x > src/foo.rs`. What the clean room does is remove every *legitimate reason* to touch the
+original and make any touch to it **detectable**: the source repo's `HEAD` sha, `git ls-files -s`
+hash, and `git status --porcelain` are compared before and after (`verify-session-123.sh`'s
+falsifiability fixture, S123 step 5) — the same technique the S121/S122 live runs already used by
+hand. The honest claim is **isolation by default plus tamper-evidence as the backstop** — the same
+posture as the verdict ledger (`DECISION-004`), which is tamper-**evident**, not tamper-**proof**.
+Do not write "the QA role cannot modify the repo." Write what is true: it is not pointed at the
+repo, and if it reaches for it anyway, that is visible. Anything stronger needs OS-level
+sandboxing (a filesystem namespace, a container, a restricted user) — a different session, and
+probably a different product surface than a CLI that scaffolds `.claude/` files.
+
+**This does not touch the executor thesis.** The S122 addendum retracted the claim that an
+executor "cannot physically fake a pass" — this session does not restore it. Fencing removes one
+specific way `qa-specialist` could cheat (repair the product, then report the repaired state as the
+original). It does not establish that no executor can fake a pass by any means, and the property
+actually evidenced by both live runs remains INDEPENDENCE, not execution. Never restate the S121
+claim as measured because this fence now exists.

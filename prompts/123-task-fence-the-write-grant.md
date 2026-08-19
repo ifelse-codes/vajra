@@ -95,12 +95,25 @@ It removes one specific way the role could cheat; it does not establish that it 
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
+- step 1 — done: 8bb41e4
+- step 2 — done: 98756d9
+- step 3 — done: 5ac66e9
+- step 4 — done: 6d4477c
+- step 5 — done: 9829bdc
+- step 6 — done: 44807a2
+
+Landing shas above are the commit where each step FIRST landed. Every step was then REFINED by the
+cold-review pass and the QA dispatch, which is the shape of this session and is recorded rather
+than hidden:
+- step 3 (the measurement + addendum): a cold `fidelity-reviewer` pass 1 REJECTED the measurement as
+  unfalsifiable prose. Fixed in `70b6f91` — a real artifact
+  (`sessions/session-123-artifacts/tools-enforcement-measurement.md`) cross-verifying the dispatch
+  the same way DECISION-007's S111 addendum did, plus a bound `measurement-artifact-cited` check.
+- step 4 (the grant narrowing): `6d4477c` shipped the clean-room primitive; `4a5aa79` shipped
+  dropping `Write`/`Edit` from the grant and re-rendering `.claude/agents/qa-specialist.md`.
+- step 5 (`verify-session-123.sh`): the dispatched `qa-specialist` (step 6) correctly flagged
+  `grant-write-edit-dropped` as mislabeled `exec` — fixed in `0e3d7c4` (reclassified `behav`), then
+  strengthened again in `70b6f91` (the `measurement-artifact-cited` check, backing step 3's fix).
 
 **Record a real commit sha for every step.** Prose in place of a sha breaks `git cat-file` and goes
 Coder-dark (the S119 defect S120 filed, hit again at S122 until it was corrected).

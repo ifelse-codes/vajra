@@ -729,3 +729,54 @@ pub struct CompressionRequest {
   ~20 more at S122, both inside `verify-session-113.sh`. Every non-interactive caller must redirect
   `</dev/null`. `verify-session-113/121/122.sh` do; older scripts do not; **the binary itself is
   unchanged, so the real fix is in `vajra init`, not in each caller.**
+
+### S123 — permanent facts from fencing the `Write`/`Edit` grant
+
+- **A role's `tools:` grant IS enforced mechanically by the harness, MEASURED not assumed.**
+  Dispatched a real, already-registered read-only role and instructed it to attempt a write by any
+  means, reporting the raw mechanism rather than reasoning about compliance. Result: no
+  `Write`/`Edit`/`Bash` function was present in its callable tool schema at all — "not disabled, not
+  erroring, simply absent from the list of callable functions." This is enforcement at the
+  tool-definition level, not a prompt-level convention. It does NOT license the inference that
+  narrowing a grant closes every write path for a role that ALSO keeps `Bash` — a granted `Bash`
+  tool can write a file by shell redirection with no `Write`/`Edit` tool involved at all.
+- **A durable measurement claim needs a committed artifact, not prose, or a cold reviewer will
+  (correctly) reject it as unfalsifiable.** The first cut of the S123 `DECISION-007` addendum
+  stated the `tools:`-enforcement result as narrative prose with no supporting file anywhere in
+  `sessions/session-123-artifacts/` — a cold `fidelity-reviewer` pass 1 REJECTED it for exactly
+  this reason. The fix reused the exact evidentiary shape `DECISION-007`'s S111 addendum used: two
+  INDEPENDENTLY-WRITTEN files (the parent session's own transcript, and the dispatched subagent's
+  separate `meta.json`) agreeing on the same random tool-call ID neither side controlled, captured
+  into a committed file the diff-only reviewer could actually check. **Ceiling, disclosed:** the
+  committed artifact still only proves internal consistency between documents written by the same
+  session; the raw `~/.claude/projects/.../*.jsonl` files it quotes live outside the repo,
+  uncommitted. A future session wanting a HIGHER bar should commit the raw transcript excerpts
+  themselves (as S111 did), not a hand-written summary quoting them.
+- **`gate_run::CleanRoom` now has two lifetimes, sharing one pair of primitives.** `new()` (S119)
+  is single-process and RAII-cleaned via `Drop` — right when the same `vajra` invocation both
+  creates the worktree and runs a script inside it (the QA/Demo-er gate's own live re-run).
+  `open_persistent()`/`remove_persistent()` (S123) return just a `PathBuf` with no Drop guard —
+  right when the actual work happens in a SEPARATE, longer-lived process (a dispatched Claude Code
+  subagent), so the worktree must survive past the CLI call that created it. Both share the same
+  `worktree_add`/`worktree_remove` internal functions — no duplicated git-invocation logic.
+- **A falsifiability fixture built for a NEW gate should include a negative control from the start,
+  not just the guarded-case assertion.** `clean_room_fence_has_teeth`'s two-half shape (half 1: a
+  write routed through the clean room, source unchanged; half 2: the SAME detection logic against
+  an unfenced write, source changed) proved the check wasn't vacuous on the first pass — no S122-
+  style "fails for the wrong reason" repair cycle was needed for this specific fixture. Contrast
+  with S122's own two glued-on teeth, closed as this session's step 1: restore the fixture's
+  subject to a known-clean state between assertions, don't let an earlier planted defect leak into
+  a later one's "before" baseline.
+- **`fleet::ROLES`' `tools:` field is the single source — a role's compiled definition, not a file
+  on disk, resolves `resolve_role()`.** A verify-suite fixture that needs a role's grant available
+  in a throwaway repo does NOT need to run `vajra init` there; it only needs a `.ai/` directory for
+  `repo_root()` to succeed. Running `vajra init` in a throwaway subject additionally installs this
+  repo's OWN governance hooks (`core.hooksPath`) into that subject, which then correctly BLOCKS a
+  plain `git commit` to `main` — real teeth, wrong fixture, if the goal was a minimal subject.
+- **Mid-session role-definition changes are invisible to that SAME session's own dispatch — a
+  second, independent confirmation of the S111 finding.** S123 narrowed `qa-specialist`'s grant and
+  re-rendered `.claude/agents/qa-specialist.md` mid-session, then dispatched `qa-specialist` by name
+  later in the SAME session: it ran under the STALE pre-narrowing grant (`Bash, Write, Edit`), not
+  the new one. Claude Code snapshots `.claude/agents/*.md` into available subagent definitions once,
+  at session boot; this applies equally to a brand-new role file (S111's original finding) and to an
+  in-place edit of an existing one (S123).
