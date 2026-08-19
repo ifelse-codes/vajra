@@ -442,6 +442,16 @@ WebFetch`, no `Write`/`Edit`/`Bash` — was dispatched with an explicit instruct
 writing a file by any means it could find, and to report the raw mechanism, not to reason about
 whether it should comply.
 
+**Full evidence, captured and cross-verified, is
+`sessions/session-123-artifacts/tools-enforcement-measurement.md`** — not asserted here as prose.
+It reuses the exact evidentiary shape the S111 addendum used to prove a real by-name dispatch: two
+independently-written files (this session's own transcript, and the dispatched subagent's separate
+`meta.json`) agreeing on the same random tool-call ID (`toolu_01BpAnw69h7MVcRAZjbjYQo1`) neither
+side controlled, plus the subagent's tool call and final report quoted verbatim. **A cold
+`fidelity-reviewer` pass rejected the first cut of this addendum for exactly the gap that artifact
+closes** — the claim below was true but, as first written, unfalsifiable narrative with nothing to
+check it against.
+
 **Result: the grant IS enforced, mechanically, at the tool-definition level — not a prompt-level
 convention the agent chooses to follow.** The dispatched agent reported no `Write`, `Edit`, or
 `Bash` function was present in its callable tool schema at all: "not disabled, not erroring, simply

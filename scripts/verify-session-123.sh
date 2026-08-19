@@ -124,6 +124,26 @@ grant_is_bash_read_grep_glob_only() {
 }
 run_check "grant-write-edit-dropped" behav grant_is_bash_read_grep_glob_only
 
+# --- the tools: enforcement measurement is a cited artifact, not bare prose in the addendum -------
+# STRUCTURAL: a cold fidelity-reviewer pass REJECTED the first cut of the DECISION-007 addendum
+# for asserting the measurement as unfalsifiable narrative. The fix was an artifact (the raw
+# transcript + the S111-style cross-verified tool-call ID); this check is that fix's own teeth —
+# it fails if the addendum's citation and the artifact's content ever drift apart.
+measurement_artifact_is_cited_and_consistent() {
+  local ART="sessions/session-123-artifacts/tools-enforcement-measurement.md"
+  local ADD="docs/decisions/DECISION-007-agent-fleet.md"
+  [ -f "$ART" ] || { echo "FAIL: $ART does not exist"; return 1; }
+  grep -q "$ART" "$ADD" || { echo "FAIL: the addendum does not cite $ART"; return 1; }
+  local TOOL_ID; TOOL_ID="$(grep -om1 'toolu_[A-Za-z0-9]\+' "$ART" | head -1)"
+  [ -n "$TOOL_ID" ] || { echo "FAIL: the artifact names no tool-call ID"; return 1; }
+  grep -q "$TOOL_ID" "$ADD" \
+    || { echo "FAIL: the addendum's cited tool-call ID does not match the artifact's"; return 1; }
+  grep -q "meta.json" "$ART" \
+    || { echo "FAIL: artifact does not show the independent second file (S111 cross-verification shape)"; return 1; }
+  echo "OK: the addendum cites $ART, and both name the same tool-call ID ($TOOL_ID)"
+}
+run_check "measurement-artifact-cited" struct measurement_artifact_is_cited_and_consistent
+
 # --- clean-room-open is gated to roles that actually hold Bash ------------------------------------
 clean_room_open_refuses_read_only_role() {
   local OUT; OUT="$("$VAJRA" next --role researcher --clean-room-open 2>&1)"; local RC=$?
