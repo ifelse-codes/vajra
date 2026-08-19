@@ -246,31 +246,46 @@ run_check "fix3-render-test-still-green" exec \
 # STRUCTURAL by nature — the claim is "this assertion shape does not appear", an absence with no
 # runtime behaviour to exercise; the positive control below is what stops it being vacuous.
 no_render_against_own_field() {
+  # THE SHAPE, and the field list is DERIVED, not typed. Three earlier cuts of this check were
+  # bound to a spelling and each time a surviving instance sat a few tests away on a field the
+  # pattern did not name: `role.` (missed `r.system_prompt`), then `def.` (missed a renamed
+  # receiver), then `system_prompt|description` (missed `role.tools` inside a `format!`). Typing a
+  # longer list would just move the hole. The forbidden shape is: a render asserted to contain a
+  # CONTENT field read off the very role it was rendered from — directly or through `format!` —
+  # and the content fields are read out of `pub struct Role` itself, so a NEW field is policed the
+  # day it is added.
+  #
+  # `name` is deliberately NOT a content field: it is the JOIN KEY. Asserting a render carries the
+  # key you looked it up by is how every per-role table in this file finds its expectation, and
+  # the key's own correctness is enforced elsewhere (`resolve_role`, the handoff path, the
+  # no-collision test). Content is what a hollow role would have none of.
+  local FIELDS
+  FIELDS="$(sed -n '/^pub struct Role {/,/^}/p' src/fleet/mod.rs \
+              | sed -n 's/^[[:space:]]*pub \([a-z_][a-z_0-9]*\):.*/\1/p' \
+              | grep -vx 'name' | sort -u | tr '\n' '|' | sed 's/|$//')"
+  echo "content fields derived from \`pub struct Role\`: ${FIELDS:-<none>}"
+  # Non-vacuous: an empty or unrecognisable derivation must FAIL, not silently police nothing.
+  [ -n "$FIELDS" ] || { echo "FAIL: no content fields derived — the check would police nothing"; return 1; }
+  grep -q 'system_prompt' <<<"$FIELDS" \
+    || { echo "FAIL: the derivation missed system_prompt — the struct parse is wrong"; return 1; }
+
+  local PAT="[A-Za-z_][A-Za-z0-9_]*\.contains\(&?(format!\([^)]*, *)?[A-Za-z_][A-Za-z0-9_]*\.($FIELDS)\)?\)"
   local HITS
-  # CODE lines only. The first cut of this check greped the whole file and went RED on its own
-  # PROSE — the comments that describe the removed defect — with a failure message that stated
-  # something false ("the render is still asserted against..."). The qa-specialist run caught it:
-  # the exact S121 defect-2 shape, a check red for a reason its message cannot explain, reborn
-  # inside the session that was fixing it. Rust comment forms only (`//`, `///`, `/*`, ` *`);
-  # a string literal carrying the shape would still be caught, which is the conservative side.
-  # ANY identifier, not just the loop variable `role`. The first cut of this check matched the
-  # literal `role.` and was therefore GREEN on `assert!(def.contains(r.system_prompt))`, a
-  # surviving instance of the same tautology sitting eleven tests higher in the same file. The
-  # cold review named that as the session's fakest green: a check that earns its green by grepping
-  # for a spelling rather than for a shape.
-  HITS="$(grep -nE '[A-Za-z_][A-Za-z0-9_]*\.contains\([A-Za-z_][A-Za-z0-9_]*\.(system_prompt|description)\)' src/fleet/mod.rs \
+  HITS="$(grep -nE "$PAT" src/fleet/mod.rs \
             | grep -vE '^[0-9]+:[[:space:]]*(//|/\*|\*)' \
             | grep -v 'hollow\.' || true)"
   if [ -n "$HITS" ]; then
-    echo "FAIL: the render is still asserted against the field it renders from, in CODE:"; echo "$HITS"; return 1
+    echo "FAIL: a render is asserted against a CONTENT field of the role it rendered, in CODE:"
+    echo "$HITS"
+    echo "      Assert an expectation written out literally in the test instead — the shape above"
+    echo "      is true for any value of the field, including an empty one."
+    return 1
   fi
-  # Falsifiable: the grep must still MATCH the shape when it is real code, or the absence above is
-  # just a comment filter that eats everything. Prove it on a synthetic file.
-  # THE FALSIFIABILITY FIXTURE. Five planted lines: a comment (must be dropped), the loop-variable
-  # spelling, a DIFFERENT right-hand identifier (the instance the first cut missed), a
-  # `.description` variant, and a renamed RECEIVER (`d.contains(...)`) — the half the second cut
-  # still hardcoded, which the cold review caught. The pattern must catch exactly the four code
-  # lines.
+
+  # THE FALSIFIABILITY FIXTURE. Seven planted lines: one comment (dropped), FIVE real instances —
+  # one for each way this shape has already escaped a previous cut of this check, every one a live
+  # miss found by a cold review, not a hypothetical — and one `role.name` join-key line that must
+  # NOT match, or the check would flag the legitimate lookups the tests are built on.
   local TMPF; TMPF="$(mktemp)"
   {
     printf '    // def.contains(role.system_prompt) in a comment\n'
@@ -278,19 +293,21 @@ no_render_against_own_field() {
     printf '    assert!(def.contains(r.system_prompt));\n'
     printf '    assert!(def.contains(anything.description));\n'
     printf '    assert!(d.contains(role.system_prompt));\n'
+    printf '    assert!(def.contains(&format!("tools: {}", role.tools)));\n'
+    printf '    assert!(def.contains(&format!("name: {}", role.name)));\n'
   } > "$TMPF"
   local N
-  N="$(grep -nE '[A-Za-z_][A-Za-z0-9_]*\.contains\([A-Za-z_][A-Za-z0-9_]*\.(system_prompt|description)\)' "$TMPF" \
-        | grep -vcE '^[0-9]+:[[:space:]]*(//|/\*|\*)')"
+  N="$(grep -nE "$PAT" "$TMPF" | grep -vcE '^[0-9]+:[[:space:]]*(//|/\*|\*)')"
   rm -f "$TMPF"
-  [ "$N" = "4" ] || { echo "FAIL: the pattern matched $N code lines on a fixture carrying exactly 4 — it is spelling-bound, not shape-bound"; return 1; }
-  echo "OK: the pattern catches the shape under ANY identifier on BOTH sides (4 of 5 fixture lines)"
+  [ "$N" = "5" ] \
+    || { echo "FAIL: the pattern matched $N of 5 planted code instances — it is spelling-bound, not shape-bound"; return 1; }
+
   # Positive control: the pattern DOES match where it is legitimate — inside the fixture that
   # reproduces the defect on a deliberately hollow role. Without this the absence proves nothing.
   grep -q 'def\.contains(hollow\.system_prompt)' src/fleet/mod.rs \
     || { echo "FAIL: the reproduction fixture is gone — the absence above is unanchored"; return 1; }
-  echo "OK: no test asserts the render against its own source field; the fixture that reproduces"
-  echo "    the old shape survives, so this absence is meaningful"
+  echo "OK: no render is asserted against a content field of its own role; the pattern catches all"
+  echo "    5 planted escapes, leaves the \`name\` join key alone, and the reproduction fixture stands"
 }
 run_check "fix3-no-self-referential-assert" struct no_render_against_own_field
 
@@ -420,7 +437,7 @@ execution_policy_guard_has_teeth() {
 
   echo "--- planted drift 1: the exact defect found this session (Task missing from the Rust list) ---"
   sed -i.bak 's/"Write", "Edit", "Bash", "NotebookEdit", "Task"/"Write", "Edit", "Bash", "NotebookEdit"/' "$TMP/mod.rs"
-  grep -q '"NotebookEdit"\]' "$TMP/mod.rs" || grep -q '"NotebookEdit",$' "$TMP/mod.rs" || true
+  grep -q '"Task"' "$TMP/mod.rs" && { echo "FAIL: the sed did not plant the drift — the fixture proves nothing"; rc=1; }
   if execution_policy_one_source "$TMP/mod.rs" "$TMP/s121.sh" "$TMP/s122.sh"; then
     echo "FAIL: the check accepted a Rust forbidden list missing Task"; rc=1
   else

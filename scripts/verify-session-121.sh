@@ -95,7 +95,10 @@ run_check "cargo-clippy"  exec cargo clippy --all-targets -- -D warnings
 # The role-count-agnostic regressions: a fourth role does not get to move what the fleet already
 # guarantees. (S113 tests the counter MECHANISM and never asserts "exactly N roles"; fleet-smoke
 # exercises the researcher path only.)
-run_check "fleet-smoke"              exec bash scripts/fleet-smoke.sh
+# NESTED, not exec (S122 pass 3): fleet-smoke.sh is a SEVEN-check suite of its own — folding it
+# into the exec count is the very defect fix 4 exists to remove, and verify-session-122.sh already
+# classed the same script `nested`. One delivery cannot ship two classifications of one file.
+run_check "fleet-smoke"              nested bash scripts/fleet-smoke.sh
 # NESTED, not exec (S122 fix 4): this ONE slot runs verify-session-113.sh, which is 14 checks of
 # its own — including its own `no-eighth-command` hardcoded-banner grep, i.e. a SECOND behavioral
 # source grep that the S121 tally never showed. Counting it as a single `exec` check made the

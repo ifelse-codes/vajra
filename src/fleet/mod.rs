@@ -856,12 +856,35 @@ mod tests {
     #[test]
     fn tool_grants_are_per_role_and_execution_is_the_qa_specialists_alone() {
         const MAY_EXECUTE: &[&str] = &["qa-specialist"];
+        // The grant each role is EXPECTED to hold, written out literally here. S122 pass 3: this
+        // used to be `def.contains(&format!("tools: {}", role.tools))` — the render asserted
+        // against the field it renders from, the third surviving instance of the same tautology,
+        // true for any value including "". Checking a literal expectation is the only shape that
+        // can fail; the length check keeps a fifth role from being added with no expectation.
+        const EXPECTED_GRANTS: &[(&str, &str)] = &[
+            ("researcher", "Read, Grep, Glob, WebSearch, WebFetch"),
+            ("fidelity-reviewer", "Read, Grep, Glob"),
+            ("plan-advisor", "Read, Grep, Glob"),
+            ("qa-specialist", "Bash, Read, Write, Edit, Grep, Glob"),
+        ];
+        assert_eq!(
+            EXPECTED_GRANTS.len(),
+            ROLES.len(),
+            "a role was added to or removed from ROLES without recording its expected tool grant"
+        );
         for role in ROLES {
             let def = render_subagent_definition(role);
+            let (_, want) = EXPECTED_GRANTS
+                .iter()
+                .find(|(n, _)| *n == role.name)
+                .unwrap_or_else(|| {
+                    panic!("no expected tool grant recorded for role {}", role.name)
+                });
             assert!(
-                def.contains(&format!("tools: {}", role.tools)),
-                "{} does not render its own tools",
-                role.name
+                def.contains(&format!("tools: {want}")),
+                "{} renders `tools: {}` but the recorded grant is `{want}`",
+                role.name,
+                role.tools
             );
             if MAY_EXECUTE.contains(&role.name) {
                 continue;
