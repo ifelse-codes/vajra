@@ -24,12 +24,14 @@
 - **🔴 The executor thesis is STILL UNPROVEN** — fencing removes one way to cheat, not the thesis.
   **🔴 The clean room isolates the REPO, not the MACHINE** — `Bash` remains granted to the role.
 
-**Next = S124 — CODE: close the clean-room dispatch gap** (founder pick B of three).
-Full prompt: `prompts/124-task-clean-room-dispatch-evidence.md`. **New chat.**
-Recommended mechanism: a Vajra-written receipt (never an agent-typed marker) that `--clean-room-open`
-writes and `--clean-room-close` completes with real before/after source-repo fingerprints;
-`--from` fails closed for a Bash-holding role without a matching, fresh, fingerprint-clean receipt.
-Design-significant — confirm or revise in a `DECISION-007` S124 addendum before step 2 lands.
+**Next = S124 — DOGFOOD (paid): does S121–S123's machinery hold under real use?**
+Full prompt: `prompts/124-task-dogfood-paid-run.md`. **New chat.**
+**SUPERSEDES the originally picked option B** (close the clean-room dispatch gap) — founder call,
+in chat, right after the S123 close: three sessions running have now built machinery proven only
+against synthetic fixtures the same agent also wrote, while real dogfood use sits stale at 5
+sessions / 4 calendar days. Run `vajra claude` against chitra for real, watch whether the fleet +
+fence ever engages unprompted, report honestly either way. Option B (the receipt) stays a real,
+named backlog item for whenever it's picked again — it is not abandoned, just not next.
 S125 is fixed regardless of S124: mandatory NO-CODE GT.
 
 **🔒 FOUNDER DIRECTIVE (S118, in force):** `README.md` / `VISION.md` claims are the **target spec**,

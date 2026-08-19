@@ -56,14 +56,18 @@
   changed is default isolation plus tamper-EVIDENCE, never tamper-proof.
 
 ## Next Session
-- **Number:** 124 — **CODE.** Close the dispatch-side clean-room gap (founder pick B of three).
-- **Goal:** Make `vajra next --role qa-specialist --from` require real evidence a clean room was
-  used, not accept any prose. Recommended mechanism: a Vajra-WRITTEN receipt (`--clean-room-open`
-  writes it, `--clean-room-close` completes it with real before/after source-repo fingerprints) —
-  never an agent-typed marker, which would be the self-asserted-marker class's SIXTH disclosure.
-- **Full prompt:** `prompts/124-task-clean-room-dispatch-evidence.md`.
-- **Design-significant: YES** — confirm or revise the receipt mechanism in a `DECISION-007` S124
-  addendum before step 2 lands.
+- **Number:** 124 — **DOGFOOD (paid).** Does the S121–S123 fleet + fence machinery hold under real
+  use? **SUPERSEDES the originally picked option B** (close the clean-room dispatch gap) — founder
+  call in chat right after the S123 close: three sessions running have built machinery proven only
+  against synthetic fixtures the same agent also wrote, while dogfood staleness sits at 5 sessions
+  / 4 calendar days. Option B stays a real backlog item, just not next.
+- **Goal:** Run `vajra claude` against chitra on a real, bounded task (extend the S10 reference-
+  locked line language to bar charts) under a ~$5 cap. Re-init chitra's scaffold first (it predates
+  the fleet — no `.claude/agents/` yet). Watch, without steering, whether the agent reaches for the
+  fleet or the clean-room flags unprompted, and report honestly either way — including "it never
+  touched any of it," which is a valid and important finding, not a failure.
+- **Full prompt:** `prompts/124-task-dogfood-paid-run.md`.
+- **Design-significant: NO** — no `src/` changes; evidence only, disclose-not-fix on any defect.
 - **S125 is fixed regardless**: the mandatory NO-CODE GT (`125 % 5 == 0`), auditing S121–S124.
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.
