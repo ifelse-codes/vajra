@@ -344,7 +344,11 @@ _scaffolds_four_roles() {
   grep -q "vajra next --role qa-specialist --from" "$F" || { echo "FAIL: wrong handoff command"; return 1; }
 
   # CRITERION 2, the load-bearing half: this role EXECUTES, and it is the ONLY one that does.
-  grep -q "^tools: Bash, Read, Write, Edit, Grep, Glob$" "$F" \
+  # S123: Write/Edit dropped from the grant (DECISION-007 S123 addendum, the cheap second layer)
+  # — Bash remains the load-bearing check; the exact grant string is intentionally live, not the
+  # S121-original one (that original is what the DECISION-007 recorded-decision check below still
+  # asserts, since it is checking the historical addendum text, not the current live grant).
+  grep -q "^tools: Bash, Read, Grep, Glob$" "$F" \
     || { echo "FAIL: the qa-specialist tool grant is not the recorded execution grant"; return 1; }
   local NEXEC; NEXEC="$(grep -lE '^tools:.*Bash' "$TMP/.claude/agents/"*.md | wc -l | tr -d ' ')"
   echo "scaffolded roles granted Bash: $NEXEC"
