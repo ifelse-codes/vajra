@@ -401,3 +401,29 @@ commit path in particular stays closed by machinery, not by instruction.
 - Granting execution to this role grants it to no other. The allowlist is one name, asserted by a
   test that fails if a fifth role inherits Bash by being added to the table.
 - A fifth role remains a separate decision.
+
+## S122 addendum — the executor thesis is UNPROVEN (correction, not a new decision)
+
+The S121 addendum above argues the QA role must be an executor because an executor "cannot
+physically fake a pass". **That claim is unproven and must not be repeated as measured.** This
+addendum corrects the record; the decision itself (the role, the key, the `Bash, Read, Write, Edit,
+Grep, Glob` grant) is unchanged.
+
+- **What two live runs actually measured.** The role has now run twice — the S121 post-close audit
+  of `verify-session-121.sh`, and the S122 audit of this session's own suites. Between them it
+  found **seven real defects**. Every single one came from careful independent READING. Execution
+  bought the exit codes and the pass counts; it produced no finding on either run.
+- **What IS evidenced: INDEPENDENCE, not execution.** An agent that did not build the thing finds
+  defects the builder cannot see. That is the load-bearing property, and it is the property the
+  read-only Fidelity Reviewer already had. Execution is a convenience for gathering evidence, not
+  the mechanism that catches the lie.
+- **What is NOT evidenced.** Nothing has tested whether an executor can fake a pass. No check in
+  this repo attempts it.
+- **The residual risk named in the S121 addendum is unchanged and unfenced.** The `Write`/`Edit`
+  grant is documented, not controlled. On both live runs the working tree was byte-identical
+  before and after — verified, not trusted — but in the agent's own words, *"that constraint held
+  because I chose to hold it, which is not a control."* Fencing it is the leading candidate for
+  the next session.
+- **Where this correction is repeated:** `src/fleet/mod.rs` module header and the QA role's doc
+  comment, both S122 verify-suite headers, and `scripts/demo-session-122.sh`. Anywhere the QA role
+  is described, the thesis is described as unproven.

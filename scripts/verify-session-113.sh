@@ -79,7 +79,7 @@ strip_fleet() { grep -vE '^[[:space:]]*(⚠ )?fleet:'; }
 e2e_counter() { local TMP; TMP="$(mktemp -d)"; _e2e_counter "$TMP"; local rc=$?; rm -rf "$TMP"; return $rc; }
 _e2e_counter() {
   local TMP="$1"
-  ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null ) || { echo "vajra init failed"; return 1; }
+  ( cd "$TMP" && git init -q . && "$VAJRA" init >/dev/null </dev/null ) || { echo "vajra init failed"; return 1; }
   echo "113" > "$TMP/.ai/SESSION"
 
   # A NON-DEGENERATE repo: a real prompt so some stations actually PASS (K=2 here). In an empty
