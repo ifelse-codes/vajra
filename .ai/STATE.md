@@ -3,7 +3,7 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-121-qa-specialist` — S121 COMPLETE, PR open to `main`.**
+**None — between sessions. S121 COMPLETE and MERGED (#131, 2026-08-19).**
 
 S121 built the fleet's FOURTH role, the QA Specialist — the first that can execute. Cold
 fidelity-reviewer ACCEPT (5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT), attested
@@ -16,7 +16,8 @@ found four defects the session missed; none is fixed here (the reviewed diff and
 are untouched — every post-close file is one the canonical hash excludes).
 
 ## Active PRs
-- **S121 [#131](https://github.com/ifelse-codes/vajra/pull/131) — OPEN.** S120 (#130) MERGED · S119 (#129) MERGED
+- **No open PRs.** S121 [#131](https://github.com/ifelse-codes/vajra/pull/131) **MERGED 2026-08-19**
+  (CI green both OS; branch pruned local + remote). S120 (#130) MERGED · S119 (#129) MERGED
   2026-08-17.
 - Prior: **S118 [#128](https://github.com/ifelse-codes/vajra/pull/128) MERGED** · S117 #126 · S114
   #122 · S113 #120 · S112 #118 (+#119) · S111 #117 · S109 #115 · S110 #116 · S108 #113/#114 · S107
