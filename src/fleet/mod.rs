@@ -927,10 +927,136 @@ mod tests {
             let def = render_subagent_definition(role);
             assert!(def.starts_with("---\n"));
             assert!(def.contains(&format!("name: {}", role.name)));
-            assert!(def.contains(role.description));
-            assert!(def.contains(role.system_prompt));
+            // S122 fix 3 — this test used to assert `def.contains(role.system_prompt)` and
+            // `def.contains(role.description)`: the RENDER checked against the very field it
+            // renders from. Those pass for ANY value of the field, including an empty one
+            // (`contains("")` is always true), so a role registered with a blank prompt was
+            // "correct". Wiring is now asserted separately from CONTENT: the loop below checks the
+            // render carries substantive text this test names literally, and the fields are
+            // checked for substance directly.
+            assert!(
+                !role.description.trim().is_empty(),
+                "{} has an empty description",
+                role.name
+            );
+            assert!(
+                role.system_prompt.trim().len() > 400,
+                "{} has a stub system prompt ({} bytes) — a role prompt this short cannot carry \
+                 its contract",
+                role.name,
+                role.system_prompt.trim().len()
+            );
+            // Every role's prompt states who it is, what its ONE job is, and its rules.
+            for required in ["You are the", "Your ONE job", "Rules:"] {
+                assert!(
+                    def.contains(required),
+                    "{}'s rendered definition is missing the contract phrase {required:?}",
+                    role.name
+                );
+            }
             assert!(def.contains(&format!(".ai/handoffs/session-<NN>-{}.md", role.name)));
             assert!(def.contains(&format!("vajra next --role {} --from", role.name)));
+        }
+    }
+
+    /// S122 fix 3, the CONTENT half. Each registered role must render a phrase unique to its own
+    /// contract — written out literally here, never read back from the `Role` it is checking. A
+    /// role whose prompt were emptied, stubbed, or cross-wired to another role's text fails this;
+    /// the old `def.contains(role.system_prompt)` assertion could not fail at all.
+    ///
+    /// The list is exhaustive by construction: a fifth role added to `ROLES` with no entry here
+    /// turns this test red, so the check cannot silently stop covering the fleet.
+    #[test]
+    fn every_role_renders_substantive_content_unique_to_its_own_contract() {
+        const EXPECTED: &[(&str, &[&str])] = &[
+            (
+                "researcher",
+                &[
+                    "You are the Researcher on a governed software team.",
+                    "Do NOT write, edit, or run code. You investigate and report only.",
+                ],
+            ),
+            (
+                "fidelity-reviewer",
+                &[
+                    "You are the Fidelity Reviewer on a governed software team.",
+                    "Grade EVERY numbered requirement in the prompt: SHIPPED / PARTIAL / NOT-BUILT",
+                    "Name THE FAKEST GREEN",
+                ],
+            ),
+            (
+                "plan-advisor",
+                &[
+                    "You are the Plan Advisor on a governed software team.",
+                    "in the exact form `covers: N` or `covers: N, M`",
+                ],
+            ),
+            (
+                "qa-specialist",
+                &[
+                    "You are the QA Specialist on a governed software team.",
+                    "BEHAVIORAL SOURCE GREP",
+                    "Fixing what you just tested destroys the independence",
+                ],
+            ),
+        ];
+        assert_eq!(
+            EXPECTED.len(),
+            ROLES.len(),
+            "a role was added to or removed from ROLES without updating this content check"
+        );
+        for role in ROLES {
+            let (_, phrases) = EXPECTED
+                .iter()
+                .find(|(n, _)| *n == role.name)
+                .unwrap_or_else(|| panic!("no expected content recorded for role {}", role.name));
+            let def = render_subagent_definition(role);
+            for phrase in *phrases {
+                assert!(
+                    def.contains(phrase),
+                    "{}'s rendered definition does not carry its own contract text {phrase:?}",
+                    role.name
+                );
+            }
+            // ...and it does not carry ANOTHER role's identity line (a cross-wired prompt).
+            for (other, other_phrases) in EXPECTED {
+                if *other == role.name {
+                    continue;
+                }
+                assert!(
+                    !def.contains(other_phrases[0]),
+                    "{} renders {other}'s identity line — the prompts are cross-wired",
+                    role.name
+                );
+            }
+        }
+    }
+
+    /// The falsifiability fixture for fix 3: the OLD assertion shape is shown passing on a role
+    /// with an empty prompt, and the NEW shape is shown rejecting it. Without this, "we fixed the
+    /// tautology" would itself be an unfalsified claim.
+    #[test]
+    fn render_test_cannot_pass_on_an_empty_system_prompt() {
+        let hollow = Role {
+            name: "hollow",
+            description: "",
+            system_prompt: "",
+            tools: "Read, Grep, Glob",
+        };
+        let def = render_subagent_definition(&hollow);
+
+        // The defect, reproduced: the S121 assertions are GREEN on a role with no contract at all.
+        assert!(def.contains(hollow.system_prompt));
+        assert!(def.contains(hollow.description));
+
+        // The fix: substance is asserted, so the same role fails.
+        assert!(hollow.description.trim().is_empty());
+        assert!(hollow.system_prompt.trim().len() <= 400);
+        for required in ["You are the", "Your ONE job", "Rules:"] {
+            assert!(
+                !def.contains(required),
+                "the empty-prompt render should carry no contract phrase, but it has {required:?}"
+            );
         }
     }
 
