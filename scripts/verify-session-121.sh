@@ -22,6 +22,23 @@
 #
 # The tally is printed at the end so it cannot be quietly claimed in prose only.
 #
+# ── S122 AMENDMENT ──────────────────────────────────────────────────────────────────────────────
+# The `qa-specialist` role this suite verifies was then pointed AT this suite (the S121 post-close
+# live run) and found four real defects in these guardrails. S122 closes them, in place, each with
+# a falsifiability fixture — because a check that has never been seen RED is not evidence:
+#   1. the read-only guard was a PREFIX grep and passed a `Write` leak → now token-exact
+#      (`read_only_outside_allowlist`), fixture `read-only-guard-has-teeth`
+#   2. `one_source_of_role_text` did not exclude `.ai/handoffs/` — a QA report quoting its own probe
+#      sentence turned the suite RED with an unexplaining message → excluded + the message now names
+#      every carrier, fixture `one-source-guard-has-teeth`
+#   3. the render test asserted `def.contains(role.system_prompt)` — the render against the field it
+#      renders from, satisfied by an empty prompt → now asserts substantive per-role CONTENT
+#      (`src/fleet/mod.rs`), fixture `render_test_cannot_pass_on_an_empty_system_prompt`
+#   4. the tally folded a 14-check nested suite into one `exec` slot → nested suites are their own
+#      class, named and explicitly uncounted, fixture `tally-disclosure-has-teeth`
+# NOT fixed, still true: the class labels are still typed by the author, and `no-eighth-command`
+# (here and in S113's suite) is still a hardcoded-banner grep.
+#
 # KNOWN, DISCLOSED: verify-session-116.sh's `init-scaffolds-three-roles` and `test-roles-read-only`
 # go RED by construction against this branch — the fleet grew to four, and the every-role-is-
 # read-only invariant was DELIBERATELY changed at S121 (DECISION-007 S121 addendum), which is why
@@ -40,8 +57,15 @@ ARTIFACTS=".ai/verify/session-${SESSION}/${TS}"
 mkdir -p "$ARTIFACTS"
 
 PASS=0; FAIL=0; RESULTS=()
-EXEC_N=0; STRUCT_N=0; BEHAV_N=0
-# $1 = check name, $2 = class (exec|struct|behav), rest = the command.
+EXEC_N=0; STRUCT_N=0; BEHAV_N=0; NESTED_N=0; NESTED_NAMES=()
+# S122 fix 4 — the fourth class, `nested`. THE DEFECT (qa-specialist live run, S121): the tally
+# said `13 execute-based · 3 structural · 1 behavioral`, and ONE of those 17 slots
+# (`s113-counter-still-green`) was an entire other suite of 14 checks — which carries its OWN
+# hollow banner grep. The true count of hollow checks that run was 2, not 1, and no reader of the
+# printed line could have known. A nested suite is now its own class: it is NAMED, it is NOT folded
+# into the three per-check counts, and the summary says out loud that the tally is a count of THIS
+# suite's own checks only.
+# $1 = check name, $2 = class (exec|struct|behav|nested), rest = the command.
 run_check() {
   local NAME="$1"; local CLASS="$2"; shift 2
   local LOG="$ARTIFACTS/${NAME}.log"
@@ -49,6 +73,7 @@ run_check() {
     exec)   EXEC_N=$((EXEC_N+1)) ;;
     struct) STRUCT_N=$((STRUCT_N+1)) ;;
     behav)  BEHAV_N=$((BEHAV_N+1)) ;;
+    nested) NESTED_N=$((NESTED_N+1)); NESTED_NAMES+=("$NAME") ;;
     *) echo "verify bug: unknown class '$CLASS' for $NAME"; exit 2 ;;
   esac
   if "$@" > "$LOG" 2>&1; then
@@ -68,7 +93,11 @@ run_check "cargo-clippy"  exec cargo clippy --all-targets -- -D warnings
 # guarantees. (S113 tests the counter MECHANISM and never asserts "exactly N roles"; fleet-smoke
 # exercises the researcher path only.)
 run_check "fleet-smoke"              exec bash scripts/fleet-smoke.sh
-run_check "s113-counter-still-green" exec bash scripts/verify-session-113.sh
+# NESTED, not exec (S122 fix 4): this ONE slot runs verify-session-113.sh, which is 14 checks of
+# its own — including its own `no-eighth-command` hardcoded-banner grep, i.e. a SECOND behavioral
+# source grep that the S121 tally never showed. Counting it as a single `exec` check made the
+# printed tally read as a complete census of what ran. It is not one, and now says so.
+run_check "s113-counter-still-green" nested bash scripts/verify-session-113.sh
 
 VAJRA="$ROOT/target/debug/vajra"
 
@@ -97,7 +126,175 @@ filter_guard_has_teeth() {
 }
 run_check "test-filter-guard-has-teeth" exec filter_guard_has_teeth
 
+# --- the tally, as a FUNCTION so it can be falsified (S122 fix 4) --------------------------------
+# The tally used to be four inline `echo`s at the bottom of the file — unreachable by any check, so
+# "the tally is honest now" would have been a claim with no test behind it. It is a function; the
+# real summary calls it, and so does the fixture below, against both the fixed shape and the S121
+# shape it replaced.
+# $1=exec $2=struct $3=behav $4=nested, rest = nested suite names.
+print_tally() {
+  local E="$1" S="$2" B="$3" NN="$4"; shift 4
+  local n
+  echo "CHECK CLASSES (this suite's OWN checks only — NOT a census of everything that ran)"
+  echo "  execute-based: ${E} · structural grep: ${S} · behavioral source grep: ${B}"
+  echo "  nested suites (their own checks are NOT counted above): ${NN}"
+  for n in "$@"; do
+    [ -n "$n" ] || continue
+    echo "    - ${n} — runs another whole suite; read that suite's own tally for its classes"
+  done
+  if [ "$NN" -ne 0 ]; then
+    echo "  DISCLOSED: verify-session-113.sh carries its own \`no-eighth-command\` hardcoded-banner"
+    echo "  grep, so the true number of behavioral source greps this run executed is ${B} + at least 1."
+  fi
+  if [ "$B" -ne 0 ]; then
+    echo "NOTE: ${B} behavioral source grep(s) in THIS suite — each must be named in the session's fakest-green disclosure."
+  fi
+  echo "STILL A SELF-ASSIGNED LABEL: nothing here proves a check marked \`exec\` executes anything."
+  echo "S122 made this tally honest about NESTING. It did not make the labels EARNED."
+}
+
+# The S121 tally, kept verbatim as the negative control for the fixture. This is the line the QA
+# role read as a complete count of 17 checks while one slot hid 14 more.
+print_tally_s121_shape() {
+  echo "CHECK CLASSES — execute-based: $1 · structural grep: $2 · behavioral source grep: $3"
+}
+
+# The predicate: does a tally block disclose that it is not a complete count, and name what it
+# leaves out? Exit 0 = honest.
+tally_discloses_nesting() {
+  local TEXT="$1"; local NESTED_NAME="$2"
+  grep -q "NOT a census of everything that ran" <<<"$TEXT" || return 1
+  grep -q "nested suites (their own checks are NOT counted above)" <<<"$TEXT" || return 1
+  grep -q -- "$NESTED_NAME" <<<"$TEXT" || return 1
+  grep -q "at least 1" <<<"$TEXT" || return 1
+  return 0
+}
+
+# THE FALSIFIABILITY FIXTURE for fix 4.
+tally_disclosure_has_teeth() {
+  local rc=0 OLD NEW
+  OLD="$(print_tally_s121_shape 13 3 1)"
+  NEW="$(print_tally 13 3 1 1 "s113-counter-still-green")"
+  echo "--- the S121 tally (must be judged DISHONEST about nesting) ---"; echo "$OLD"
+  if tally_discloses_nesting "$OLD" "s113-counter-still-green"; then
+    echo "FAIL: the predicate passes the very line the QA run called misleading — it has no teeth"; rc=1
+  else
+    echo "OK: the S121 one-liner is rejected — it implied a complete count of 17"
+  fi
+  echo "--- the S122 tally (must be judged HONEST) ---"; echo "$NEW"
+  if tally_discloses_nesting "$NEW" "s113-counter-still-green"; then
+    echo "OK: the fixed tally discloses the nesting and names the nested suite"
+  else
+    echo "FAIL: the fixed tally does not disclose its own nesting"; rc=1
+  fi
+  # It must also stop naming a nested suite it did not run — no boilerplate disclosure.
+  if tally_discloses_nesting "$(print_tally 13 3 1 0)" "s113-counter-still-green"; then
+    echo "FAIL: the tally claims a nested suite it never ran"; rc=1
+  else
+    echo "OK: with no nested suite, the tally makes no nesting disclosure"
+  fi
+  # And the self-assigned-label caveat is never dropped, at any shape.
+  grep -q "STILL A SELF-ASSIGNED LABEL" <<<"$NEW" \
+    || { echo "FAIL: the S121 fakest-green disclosure was quietly dropped"; rc=1; }
+  return $rc
+}
+run_check "tally-disclosure-has-teeth" exec tally_disclosure_has_teeth
+
 strip_fleet() { grep -vE '^[[:space:]]*(⚠ )?fleet:'; }
+
+# --- the ANCHORED read-only guard (S122 fix 1) ---------------------------------------------------
+# THE DEFECT (found by the qa-specialist live run at the S121 close): the S121 assertion was
+# `grep -q "^tools: Read, Grep, Glob" <agent file>`. `grep` matches a SUBSTRING of the line, so a
+# role whose grant had leaked to `tools: Read, Grep, Glob, Write` matched it and PASSED. The check
+# that looked like the thing stopping a write-tool leak did not stop one; only the Rust unit test
+# did.
+#
+# The fix: read the grant, split it into TOKENS, and reject any write/exec token on a role outside
+# the named allowlist. Tokenising is the load-bearing half — a substring test cannot tell `Edit`
+# from `NotebookEdit`, and cannot tell a trailing `, Write` from the end of the line.
+#
+# $1 = a directory of `.claude/agents/*.md`. Exit 0 = every non-allowlisted role is read-only.
+EXECUTION_ALLOWLIST="qa-specialist"
+FORBIDDEN_TOOLS="Bash Write Edit NotebookEdit Task"
+read_only_outside_allowlist() {
+  local DIR="$1"; local BAD=0; local N=0
+  local f NAME TOOLS TOK t
+  for f in "$DIR"/*.md; do
+    [ -f "$f" ] || continue
+    N=$((N+1))
+    NAME="$(sed -n 's/^name: \(.*\)$/\1/p' "$f" | head -1)"
+    TOOLS="$(sed -n 's/^tools: \(.*\)$/\1/p' "$f" | head -1)"
+    [ -n "$NAME" ]  || { echo "FAIL: $(basename "$f") has no 'name:' line — cannot evaluate, so it fails"; BAD=1; continue; }
+    [ -n "$TOOLS" ] || { echo "FAIL: $NAME has no 'tools:' line — cannot evaluate, so it fails"; BAD=1; continue; }
+    if grep -qw -- "$NAME" <<<"$EXECUTION_ALLOWLIST"; then
+      echo "  $NAME: [$TOOLS] (allowlisted to execute)"
+      continue
+    fi
+    echo "  $NAME: [$TOOLS]"
+    # Tokenise on commas, trim each token, compare WHOLE tokens.
+    while IFS= read -r TOK; do
+      [ -n "$TOK" ] || continue
+      for t in $FORBIDDEN_TOOLS; do
+        if [ "$TOK" = "$t" ]; then
+          echo "FAIL: $NAME grants the write/exec tool '$t' — only [$EXECUTION_ALLOWLIST] may execute"
+          BAD=1
+        fi
+      done
+    done < <(tr ',' '\n' <<<"$TOOLS" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+  done
+  [ "$N" -gt 0 ] || { echo "FAIL: no agent files in $DIR — the guard would be vacuous"; return 1; }
+  [ "$BAD" -eq 0 ] || return 1
+  echo "OK: $N role(s) checked; every role outside [$EXECUTION_ALLOWLIST] is read-only (token-exact)"
+  return 0
+}
+
+# THE FALSIFIABILITY FIXTURE for fix 1. A check never seen RED is not evidence — so plant the exact
+# leak the old prefix grep let through and require the guard to reject it, then plant the clean
+# equivalent and require it to pass. If either half misbehaves, this check fails.
+read_only_guard_has_teeth() {
+  local TMP; TMP="$(mktemp -d)"; local rc=0
+  mkdir -p "$TMP/leak" "$TMP/clean"
+
+  # The leak the S121 assertion PASSED: the read-only prefix is intact, `Write` is appended.
+  printf -- '---\nname: researcher\ndescription: d\ntools: Read, Grep, Glob, Write\n---\nbody\n' > "$TMP/leak/researcher.md"
+  printf -- '---\nname: qa-specialist\ndescription: d\ntools: Bash, Read, Write, Edit, Grep, Glob\n---\nbody\n' > "$TMP/leak/qa-specialist.md"
+  # Control: the same fleet without the leak.
+  printf -- '---\nname: researcher\ndescription: d\ntools: Read, Grep, Glob\n---\nbody\n' > "$TMP/clean/researcher.md"
+  cp "$TMP/leak/qa-specialist.md" "$TMP/clean/qa-specialist.md"
+
+  echo "--- the OLD S121 assertion against the leaking file (shown failing to catch it) ---"
+  if grep -q "^tools: Read, Grep, Glob" "$TMP/leak/researcher.md"; then
+    echo "confirmed: the old prefix grep is GREEN on 'tools: Read, Grep, Glob, Write' — that was the hole"
+  else
+    echo "FAIL: the fixture no longer reproduces the S121 defect — it proves nothing"; rc=1
+  fi
+
+  echo "--- the NEW guard against the leaking file (must go RED) ---"
+  if read_only_outside_allowlist "$TMP/leak"; then
+    echo "FAIL: the anchored guard accepted a Write leak on a non-allowlisted role"; rc=1
+  else
+    echo "OK: the anchored guard REJECTED the leak the old prefix grep accepted"
+  fi
+
+  echo "--- the NEW guard against the clean fleet (must stay GREEN) ---"
+  if read_only_outside_allowlist "$TMP/clean"; then
+    echo "OK: the anchored guard passes a genuinely read-only fleet (not a check that always fails)"
+  else
+    echo "FAIL: the anchored guard rejects a clean fleet — it is not a usable guard"; rc=1
+  fi
+
+  # Fail-closed: a grant it cannot read is a FAIL, never a silent pass (L-layer rule).
+  printf -- '---\nname: mystery\ndescription: d\n---\nbody\n' > "$TMP/leak/mystery.md"
+  if read_only_outside_allowlist "$TMP/leak" >/dev/null 2>&1; then
+    echo "FAIL: an agent file with no tools: line passed — the guard is not fail-closed"; rc=1
+  else
+    echo "OK: an unreadable grant fails closed"
+  fi
+
+  rm -rf "$TMP"
+  return $rc
+}
+run_check "read-only-guard-has-teeth" exec read_only_guard_has_teeth
 
 # --- criteria 1 + 2: a fresh `vajra init` scaffolds FOUR agent files, one of which EXECUTES -------
 # Proven by RUNNING init and asserting on what it produced — never by reading src/cli/init.rs.
@@ -130,14 +327,11 @@ _scaffolds_four_roles() {
   local NEXEC; NEXEC="$(grep -lE '^tools:.*Bash' "$TMP/.claude/agents/"*.md | wc -l | tr -d ' ')"
   echo "scaffolded roles granted Bash: $NEXEC"
   [ "$NEXEC" = "1" ] || { echo "FAIL: $NEXEC roles were granted Bash; the allowlist is exactly one"; return 1; }
-  for f in researcher fidelity-reviewer plan-advisor; do
-    grep -q "^tools: Read, Grep, Glob" "$TMP/.claude/agents/$f.md" \
-      || { echo "FAIL: $f is no longer read-only — the grant leaked past the allowlist"; return 1; }
-  done
-  # No role got the web-plus-everything grant by accident.
-  if grep -qE '^tools:.*NotebookEdit' "$TMP/.claude/agents/"*.md; then
-    echo "FAIL: a role was granted NotebookEdit"; return 1
-  fi
+  # S122 fix 1: the read-only guard is now ANCHORED and TOKENISED. It used to be
+  # `grep -q "^tools: Read, Grep, Glob"` — a PREFIX match, so `tools: Read, Grep, Glob, Write`
+  # sailed through it and only the unit test caught the leak. It now parses the grant into tokens
+  # and rejects ANY write/exec tool on a role outside the named allowlist.
+  read_only_outside_allowlist "$TMP/.claude/agents" || return 1
 
   # This repo's committed copies must be exactly what init renders — a rendering, not a duplicate.
   for f in researcher.md fidelity-reviewer.md plan-advisor.md qa-specialist.md; do
@@ -164,22 +358,108 @@ run_check "init-scaffolds-four-roles" exec scaffolds_four_roles
 # STRUCTURAL by nature: the claim is "this text exists in exactly one hand-maintained file", which
 # has no runtime behaviour to exercise. The probe sentence sits UNBROKEN on one Rust source line —
 # a phrase split across a `\`-continuation is invisible to grep (the S114 trap).
-one_source_of_role_text() {
-  local PROBE="Fixing what you just tested destroys the independence"
-  local HITS
-  HITS="$(grep -rl "$PROBE" . 2>/dev/null \
-            | grep -v '^\./target/' | grep -v '^\./\.git/' | grep -v '^\./\.ai/verify/' \
-            | grep -v '^\./\.claude/agents/' | grep -v '^\./docs/decisions/' \
-            | grep -v '^\./sessions/' | grep -v '^\./scripts/verify-session-121\.sh$' | sort)"
-  echo "carriers of the qa-specialist prompt text:"; echo "$HITS"
+#
+# S122 fix 2 — THE BOOBY-TRAP, found by the qa-specialist live run. The exclusion list omitted
+# `.ai/handoffs/`, which is EXACTLY where this role's governed handoff lands. So the moment a QA
+# report quoted the role's own probe sentence and was landed through `vajra next --role
+# qa-specialist --from`, this check flipped the whole suite RED — for a reason its message
+# ("role text lives in 2 places, not 1") could not explain to the person reading it. The role the
+# session shipped was, by using itself as designed, a live trap for the session's own suite.
+#
+# Two changes: (a) GENERATED and HANDOFF locations are excluded — `.ai/handoffs/` is Vajra-written
+# output, never a hand-maintained source of role text; (b) the failure message NAMES every carrier
+# it found, so a future trip is self-explaining instead of a riddle.
+#
+# $1 = the root to scan (defaults to this repo). Parameterised so the fixture below can prove the
+# check goes RED on a real second source and stays GREEN on a governed handoff.
+ROLE_TEXT_PROBE="Fixing what you just tested destroys the independence"
+role_text_carriers() {
+  local ROOT_DIR="${1:-.}"
+  ( cd "$ROOT_DIR" && grep -rl "$ROLE_TEXT_PROBE" . 2>/dev/null ) \
+    | grep -v '^\./target/' | grep -v '^\./\.git/' \
+    | grep -v '^\./\.ai/verify/' \
+    | grep -v '^\./\.ai/handoffs/' \
+    | grep -v '^\./\.claude/agents/' | grep -v '^\./docs/decisions/' \
+    | grep -v '^\./sessions/' \
+    | grep -vE '^\./scripts/verify-session-[0-9]+\.sh$' \
+    | sort
+}
+# The exclusions above, stated once in prose so the list is not a wall of unexplained greps:
+#   target/ .git/                 — build output and history, not source
+#   .ai/verify/  .ai/handoffs/    — VAJRA-GENERATED: verify logs and the governed handoff (fix 2)
+#   .claude/agents/               — the RENDER of the canonical source, byte-checked separately
+#   docs/decisions/  sessions/    — the written record quoting the decision, not a second source
+#   scripts/verify-session-NN.sh  — the checks themselves have to name the probe to test for it
+one_source_of_role_text() { _one_source_of_role_text "$ROOT"; }
+_one_source_of_role_text() {
+  local ROOT_DIR="$1"
+  local HITS; HITS="$(role_text_carriers "$ROOT_DIR")"
+  echo "carriers of the qa-specialist prompt text (excluding generated + handoff locations):"
+  echo "$HITS"
   grep -q '^\./src/fleet/mod\.rs$' <<<"$HITS" \
     || { echo "FAIL: the pattern does not even match the canonical source — it proves nothing"; return 1; }
   local N; N="$(grep -c . <<<"$HITS")"
-  [ "$N" = "1" ] || { echo "FAIL: role text lives in $N places, not 1"; return 1; }
+  if [ "$N" != "1" ]; then
+    # The message NAMES the carriers (S122 fix 2). The S121 version printed only a count, so a trip
+    # told you the suite was red without telling you which file to look at.
+    echo "FAIL: the qa-specialist role text lives in $N hand-maintained files, not 1."
+    echo "      The canonical source is ./src/fleet/mod.rs. These other carriers must go, or be"
+    echo "      excluded above if they are generated output rather than a second source:"
+    grep -v '^\./src/fleet/mod\.rs$' <<<"$HITS" | sed 's/^/        - /'
+    return 1
+  fi
   echo "OK: the qa-specialist's prompt text exists in exactly one hand-maintained file"
   return 0
 }
 run_check "one-source-of-role-text" struct one_source_of_role_text
+
+# THE FALSIFIABILITY FIXTURE for fix 2. Builds a miniature repo and drives the check through three
+# states: canonical only (GREEN) · canonical + a governed handoff quoting the probe (GREEN — this is
+# the exact trip that made the S121 suite red) · canonical + a real second hand-maintained carrier
+# (RED, and the message must name that carrier by path).
+one_source_guard_has_teeth() {
+  local TMP; TMP="$(mktemp -d)"; local rc=0; local OUT
+  mkdir -p "$TMP/src/fleet" "$TMP/.ai/handoffs" "$TMP/docs"
+  printf 'canonical: %s\n' "$ROLE_TEXT_PROBE" > "$TMP/src/fleet/mod.rs"
+
+  echo "--- state 1: canonical source only (must be GREEN) ---"
+  if _one_source_of_role_text "$TMP"; then echo "OK: green on the canonical source alone"
+  else echo "FAIL: red with only the canonical carrier present"; rc=1; fi
+
+  echo "--- state 2: a governed handoff quotes the probe (must STAY GREEN — the S121 trap) ---"
+  printf 'role: qa-specialist\n\nThe report quotes the rule it was given: %s\n' "$ROLE_TEXT_PROBE" \
+    > "$TMP/.ai/handoffs/session-122-qa-specialist.md"
+  echo "--- the OLD S121 exclusion list against that handoff (shown tripping) ---"
+  if ( cd "$TMP" && grep -rl "$ROLE_TEXT_PROBE" . 2>/dev/null \
+        | grep -v '^\./target/' | grep -v '^\./\.git/' | grep -v '^\./\.ai/verify/' \
+        | grep -v '^\./\.claude/agents/' | grep -v '^\./docs/decisions/' \
+        | grep -v '^\./sessions/' | grep -c . ) | grep -qv '^1$'; then
+    echo "confirmed: the S121 exclusion list counts the handoff as a second source — that was the trap"
+  else
+    echo "FAIL: the fixture no longer reproduces the S121 booby-trap — it proves nothing"; rc=1
+  fi
+  if _one_source_of_role_text "$TMP"; then
+    echo "OK: the fixed check ignores the governed handoff — the trap is defused"
+  else
+    echo "FAIL: a governed handoff quoting the probe still trips the check"; rc=1
+  fi
+
+  echo "--- state 3: a REAL second hand-maintained carrier (must go RED and NAME it) ---"
+  printf 'a second copy of the role text: %s\n' "$ROLE_TEXT_PROBE" > "$TMP/docs/rival.md"
+  OUT="$(_one_source_of_role_text "$TMP" 2>&1)"; local RC3=$?
+  echo "$OUT"
+  if [ "$RC3" -eq 0 ]; then
+    echo "FAIL: a genuine second source passed — the check has no teeth left"; rc=1
+  else
+    echo "OK: a genuine second source is still rejected"
+    grep -q -- '- \./docs/rival\.md' <<<"$OUT" \
+      || { echo "FAIL: the failure message does not name the offending carrier"; rc=1; }
+  fi
+
+  rm -rf "$TMP"
+  return $rc
+}
+run_check "one-source-guard-has-teeth" exec one_source_guard_has_teeth
 
 # --- criterion 3, END-TO-END in a throwaway repo -------------------------------------------------
 # Fail-closed for the new role, the key collision, then FOUR governed handoffs in one session.
@@ -359,10 +639,7 @@ printf '%-34s %-7s %s\n' "STEP" "CLASS" "RESULT"
 printf '%-34s %-7s %s\n' "----------------------------------" "-------" "------"
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo ""
-echo "CHECK CLASSES — execute-based: ${EXEC_N} · structural grep: ${STRUCT_N} · behavioral source grep: ${BEHAV_N}"
-if [ "$BEHAV_N" -ne 0 ]; then
-  echo "NOTE: ${BEHAV_N} behavioral source grep(s) present — each must be named in the session's fakest-green disclosure."
-fi
+print_tally "$EXEC_N" "$STRUCT_N" "$BEHAV_N" "$NESTED_N" "${NESTED_NAMES[@]:-}"
 
 if [ "$FAIL" -eq 0 ]; then echo "ALL GREEN ($PASS pass, 0 fail)"; exit 0
 else echo "RED ($PASS pass, $FAIL fail)"; exit 1; fi
