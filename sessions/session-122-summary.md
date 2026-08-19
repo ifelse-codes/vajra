@@ -5,6 +5,7 @@
 a falsifiability fixture, because a check never seen RED is not evidence.
 **Verdict:** **ACCEPT** — cold `fidelity-reviewer`, pass 4. 5 of 6 SHIPPED · 1 PARTIAL (procedural)
 · 0 NOT-BUILT. Full brief: `sessions/session-122-review.md`.
+Attested `9998bd3f8f62a6ea7c8b0bdfc5da485ca9e8e93dd51b33ec20c1cc4126eb3daf`.
 
 ## What shipped
 
