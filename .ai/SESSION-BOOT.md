@@ -7,7 +7,7 @@
   near-tautological render test, and make the check-class tally honest about nesting — **each with
   a falsifiability fixture** (a check never seen RED is not evidence).
 - **Verdict:** **ACCEPT** — cold `fidelity-reviewer`, **pass 4**. 5 of 6 SHIPPED, 1 PARTIAL
-  (procedural), 0 NOT-BUILT. Attested `<SHA>`.
+  (procedural), 0 NOT-BUILT. Attested `9998bd3f8f62a6ea7c8b0bdfc5da485ca9e8e93dd51b33ec20c1cc4126eb3daf`.
 - **Report:** `sessions/session-122-summary.md` · `sessions/session-122-review.md`.
   Prompt: `prompts/122-task-qa-suite-real-holes.md`. **Date last updated:** 2026-08-19.
 

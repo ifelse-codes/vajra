@@ -89,3 +89,5 @@ What it is, is over-confident in its comments: two "has teeth" fixtures end on a
 cannot fail, and one comment claims binary authorship it does not test.
 
 **Verdict:** ACCEPT
+
+**Review-Inputs-SHA:** `9998bd3f8f62a6ea7c8b0bdfc5da485ca9e8e93dd51b33ec20c1cc4126eb3daf`
