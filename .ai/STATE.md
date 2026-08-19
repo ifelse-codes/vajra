@@ -3,8 +3,9 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-122-qa-suite-real-holes`** — S122 COMPLETE, **PR not yet opened.** Open it, merge, then
-`checkout main` + prune before S123 starts (the S37 return-to-main step, Releaser-enforced).
+**None — between sessions (S122 complete, S123 not yet started).** S122 PR
+[#133](https://github.com/ifelse-codes/vajra/pull/133) **MERGED 2026-08-19** (CI green both OS);
+branch pruned local + remote; `main` synced. S123 starts from a fresh `session-123-*` branch.
 
 S122 closed the four real holes the S121 live QA run found in S121's own guardrails, plus a fifth
 the QA role found this session. Cold `fidelity-reviewer` **pass 4 ACCEPT** (5 of 6 SHIPPED, 1
@@ -18,7 +19,8 @@ demo was itself hollow. The dispatched `qa-specialist` found three more defects 
 ran, and changed nothing.
 
 ## Active PRs
-- **No open PRs.** S122's branch is unpushed at the time of writing. S121
+- **No open PRs.** S122 [#133](https://github.com/ifelse-codes/vajra/pull/133) **MERGED
+  2026-08-19** (CI green both OS; branch pruned local + remote). S121
   [#131](https://github.com/ifelse-codes/vajra/pull/131) MERGED 2026-08-19 · S120 (#130) MERGED ·
   S119 (#129) MERGED 2026-08-17.
 - Prior: **S118 [#128](https://github.com/ifelse-codes/vajra/pull/128) MERGED** · S117 #126 · S114
