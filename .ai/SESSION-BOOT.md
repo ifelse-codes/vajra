@@ -56,13 +56,15 @@
   changed is default isolation plus tamper-EVIDENCE, never tamper-proof.
 
 ## Next Session
-- **Number:** 124 — **TBD.** Three options presented at the S123 close, awaiting the founder's
-  pick (`sessions/session-123-summary.md`):
-  - **A** — make the check-class label EARNED (5th disclosure of this fakest-green class now).
-  - **B** — close the dispatch-side clean-room gap: nothing forces a governed `qa-specialist`
-    handoff to prove it ran in a clean room before being accepted.
-  - **C** — a paid dogfood ride-along (staleness 🟡: 5 sessions / 4 calendar days since S118).
-- **S125 is fixed regardless of the S124 pick**: the mandatory NO-CODE GT (`125 % 5 == 0`).
+- **Number:** 124 — **CODE.** Close the dispatch-side clean-room gap (founder pick B of three).
+- **Goal:** Make `vajra next --role qa-specialist --from` require real evidence a clean room was
+  used, not accept any prose. Recommended mechanism: a Vajra-WRITTEN receipt (`--clean-room-open`
+  writes it, `--clean-room-close` completes it with real before/after source-repo fingerprints) —
+  never an agent-typed marker, which would be the self-asserted-marker class's SIXTH disclosure.
+- **Full prompt:** `prompts/124-task-clean-room-dispatch-evidence.md`.
+- **Design-significant: YES** — confirm or revise the receipt mechanism in a `DECISION-007` S124
+  addendum before step 2 lands.
+- **S125 is fixed regardless**: the mandatory NO-CODE GT (`125 % 5 == 0`), auditing S121–S124.
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.
 

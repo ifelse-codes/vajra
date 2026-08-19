@@ -24,9 +24,13 @@
 - **🔴 The executor thesis is STILL UNPROVEN** — fencing removes one way to cheat, not the thesis.
   **🔴 The clean room isolates the REPO, not the MACHINE** — `Bash` remains granted to the role.
 
-**Next = S124 — TBD.** Three options presented at the S123 close (`sessions/session-123-summary.md`):
-(A) make the check-class label EARNED, (B) close the dispatch-side clean-room gap, (C) a paid
-dogfood ride-along. **Awaiting the founder's pick.** S125 is fixed regardless: mandatory NO-CODE GT.
+**Next = S124 — CODE: close the clean-room dispatch gap** (founder pick B of three).
+Full prompt: `prompts/124-task-clean-room-dispatch-evidence.md`. **New chat.**
+Recommended mechanism: a Vajra-written receipt (never an agent-typed marker) that `--clean-room-open`
+writes and `--clean-room-close` completes with real before/after source-repo fingerprints;
+`--from` fails closed for a Bash-holding role without a matching, fresh, fingerprint-clean receipt.
+Design-significant — confirm or revise in a `DECISION-007` S124 addendum before step 2 lands.
+S125 is fixed regardless of S124: mandatory NO-CODE GT.
 
 **🔒 FOUNDER DIRECTIVE (S118, in force):** `README.md` / `VISION.md` claims are the **target spec**,
 not a status report. **Never** soften them to match current capability — record gaps in `.ai/` and
