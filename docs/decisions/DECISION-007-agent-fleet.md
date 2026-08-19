@@ -325,3 +325,79 @@ consumption arc), explicitly deferred as a non-goal.
   agents ran (the standing S113 reading rule, now exercised at a third count).
 - The role proposes; it does not write the session's `## Plan` section, and has no tool that could.
 - A fourth role remains a separate decision.
+
+## S121 addendum — the QA Specialist BUILT, and the first EXECUTION grant
+
+**Status: BUILT.** Founder pick at the S120 GT closeout. S121 ships it as a FOURTH `fleet::ROLES`
+entry, rendered by the same machinery as roles 1–3 (no second scaffolding path, no second handoff
+writer, no second role-text source). Two things this session had to decide in writing rather than
+leave implicit: the role key, and the tool grant.
+
+### The role key: **`qa-specialist`** (a distinct key)
+
+Third instance of the same collision the S114 and S116 addenda each closed. The pipeline already has
+a **QA station** (`src/qa/mod.rs`, S69), counted in `K of 8`. A role keyed `qa` would put the same
+word on two different things in adjacent lines of one report — `QA PASSED` (the station: the
+session's recorded verify marker re-ran live and exited 0) directly above `fleet: 1 governed
+handoff — qa` (the agent: a subagent that ran the suite and classified its checks).
+
+**Decision: the role key is `qa-specialist`.** `resolve_role("qa")` returns `None` and
+`vajra next --role qa` fails with the known-roles list, asserted by test.
+
+**The station is not touched, and does not learn the role key.** The QA STATION governs the
+process (did a recorded, executable marker actually re-run and pass?); the QA ROLE does the work
+(run it, and say which of its checks were real). Same separation as Reviewer/`fidelity-reviewer`
+and Planner/`plan-advisor`.
+
+### The tool grant: **`Bash, Read, Write, Edit, Grep, Glob`** — the first executing role
+
+Every role before this one is read-only, and the S114 note in `Role::tools` said plainly that a
+role which could write is "a materially bigger governance decision (DECISION-007) and none is taken
+here." It is taken here, scoped to this one role.
+
+**Why Bash is load-bearing.** S118 and S120 measured the failure this role exists to catch: verify
+suites can be built largely out of greps that find a message string in `src/` and call that proof
+the feature works — checks that would still pass with the feature deleted. A read-only agent
+auditing that problem can only grep for the greps. An agent that runs the suite either has an exit
+code and real output, or it has nothing; it cannot physically fake a pass. Treating the root cause
+means the QA agent must be an executor.
+
+**Considered and rejected:**
+- **Rejected — a read-only QA agent (`Read, Grep, Glob`), like the other three.** It would produce
+  exactly the artifact this session exists to stop trusting: prose about source it read, with no
+  live evidence behind it. It could report that `verify-session-NN.sh` *contains* an execute-based
+  check without ever learning whether that check passes, and its own findings would be the same
+  class of hollow evidence it was hired to name. The role would be theatre.
+- **Rejected — `Bash` only (no `Write`/`Edit`).** Considered as the minimal grant, and it is
+  genuinely narrower. Rejected because the role's own contract requires it to hand back a findings
+  brief that Vajra then governs via `vajra next --role qa-specialist --from <file>` — a file on
+  disk — and because a real QA pass writes scratch: captured logs, a reduced repro, a temp fixture.
+  Forcing all of that through stdout would push the agent toward `bash -c 'cat > file'`, which is
+  the same capability with the audit trail removed. The narrowing that actually matters is stated
+  in the role prompt instead: do not edit the product under test, do not repair the checks you
+  criticise, do not commit.
+- **Rejected — grant the existing `fidelity-reviewer` a Bash tool instead of adding a role.** It
+  collapses two jobs that must stay independent: the Reviewer grades requirements from the prompt
+  and the diff and must not be able to run (or fix) the thing it judges; the QA Specialist produces
+  the evidence, and explicitly does not issue the verdict. Merging them would also silently widen
+  the grant of the one role whose whole value is that it only reads.
+
+**The residual risk, stated plainly.** `Write`/`Edit` are broader than the rule that governs them.
+The prompt forbids touching the product under test, but the tools do not enforce that — this is a
+prompt-level constraint, not a sandbox. It is disclosed here rather than hidden behind "the role
+is told not to." The existing L2/L3 hooks (`hook-pre-write.sh`, `hook-commit-guard.sh`,
+`VAJRA_ALLOW_COMMIT`) still apply to anything the agent does inside a governed repo, so the
+commit path in particular stays closed by machinery, not by instruction.
+
+### What this addendum does NOT claim
+
+- Same standing limit as the S113/S114/S116 addenda: a `.claude/agents/*.md` written mid-session is
+  invisible to that same session's Task tool (S111). The role lands at S121 and is first
+  dispatchable **by name** at S122 or later. **This session does not dispatch it.**
+- `fleet: N governed handoff(s)` certifies **N contract-valid files exist**, never that N agents
+  ran (the standing S113 reading rule).
+- The role does not gain a new parser, a new artifact type, or an 8th command; it rides `init` and
+  `next` exactly as roles 1–3 do, and it is reported BESIDE `K of 8`, never inside it (S113).
+- Granting execution to this role grants it to no other. The allowlist is one name, asserted by a
+  test that fails if a fifth role inherits Bash by being added to the table.
+- A fifth role remains a separate decision.

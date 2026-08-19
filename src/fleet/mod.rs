@@ -33,6 +33,17 @@
 //! which already counts a "Planner" in `K of 8`. Its contract is the `covers: N` marker that
 //! station's gate already parses and grades (`cited_criteria` in `src/planner/mod.rs`) — the role
 //! proposes citations in that exact shape; it does not gain any new parsing or grading path.
+//!
+//! S121 adds the FOURTH role — the **QA Specialist** (founder pick at the S120 GT closeout;
+//! `DECISION-007` S121 addendum). Same zero-new-machinery shape again, with ONE deliberate
+//! exception that is the whole point of the role: it is the first registered role granted
+//! `Bash, Write, Edit`. Every prior role can only READ, which means the only "evidence" the fleet
+//! could ever produce was prose about source it had read — and S118/S120 measured what that costs:
+//! verify scripts made largely of source greps that would still pass with the feature deleted. An
+//! executor cannot fake a pass; it either ran the thing and has output, or it does not. The grant
+//! is data on the `ROLES` table, not a new code path — nothing else in this module changed for it.
+//! Its key is `qa-specialist`, not `qa`, for the third instance of the STATION-vs-ROLE collision
+//! (`src/qa/mod.rs`, the QA station, S69) that S114 and S116 each resolved the same way.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -49,9 +60,12 @@ pub struct Role {
     pub system_prompt: &'static str,
     /// This role's tool grant, rendered verbatim into the subagent frontmatter `tools:`. Per-role
     /// (S114) — it was hardcoded to the Researcher's list while only one role existed, which would
-    /// have silently handed every future role the Researcher's web access. **Every registered role
-    /// is read-only**; a role that could write is a materially bigger governance decision
-    /// (DECISION-007) and none is taken here.
+    /// have silently handed every future role the Researcher's web access.
+    ///
+    /// **Advisory roles are read-only. Exactly one role executes:** `qa-specialist` (S121) is
+    /// granted `Bash, Write, Edit` because QA evidence that was never run is not evidence. That is
+    /// the materially bigger governance decision the S114 note said none had taken — it is taken
+    /// now, explicitly, in the `DECISION-007` S121 addendum, and it is scoped to this one role.
     pub tools: &'static str,
 }
 
@@ -143,10 +157,44 @@ Your output is a PROPOSAL, never the plan of record: the session's own `## Plan`
 its own prompt file, is the only place a real plan lives — you do not create a second artifact, and \
 only the session's author decides what actually lands there.";
 
+/// The QA Specialist's contract (S121). The fleet's first EXECUTOR: it runs the session's verify
+/// script and reports what actually ran. The classification it is asked for is the S120 GT finding
+/// made operational — a check that greps `src/` for a message string is hollow (it survives the
+/// feature being deleted), while a grep asserting ARCHITECTURE (one source of truth, no collision)
+/// is structural and legitimate. It reports; it never edits the product under test.
+const QA_SPECIALIST_SYSTEM_PROMPT: &str = "You are the QA Specialist on a governed software team. \
+Your ONE job is to RUN the session's verification and report what actually executed.\n\
+You are the first role on this team that can execute — you have Bash, Write and Edit — because QA \
+evidence that was never run is not evidence. Use that grant to RUN and to RECORD, never to change \
+the thing you are testing.\n\
+Rules:\n\
+- RUN the session's `scripts/verify-session-NN.sh` for the session number you are given. Report its \
+real exit code and its real check-by-check output. Never report a result you did not observe.\n\
+- CLASSIFY every check in that script into exactly one of two classes, and say which:\n\
+  - EXECUTE-BASED — it runs the product (the binary, `cargo test`, a script) and asserts on real \
+output.\n\
+  - BEHAVIORAL SOURCE GREP — it greps source for a message, flag, or prompt string and treats \
+finding that string as proof the feature works. This is HOLLOW: it would still pass if the feature \
+were deleted and only the string survived.\n\
+  A grep that asserts ARCHITECTURE instead of behaviour (one source of truth, no second copy, no \
+name collision, a file's absence) is STRUCTURAL, not hollow — name it as such and keep it out of \
+the hollow tally.\n\
+- REPORT, every time: how many checks fall in each class, the NAME of every hollow check, and the \
+live output that proves you ran the suite (the exit code and the summary lines).\n\
+- Do NOT edit source code, do NOT repair the checks you criticise, and do NOT commit anything. \
+Fixing what you just tested destroys the independence that makes your report worth reading.\n\
+- If the verify script is missing, or will not run, SAY SO and STOP. A QA pass you could not run is \
+a FAIL, never a silent skip — a check that cannot evaluate fails.\n\
+- A green suite is not a passing delivery: say plainly what the suite never exercised.\n\
+Your output is an evidence brief, not a verdict on the delivery — grading the requirements is the \
+Fidelity Reviewer's job, and the gated record of that verdict is `sessions/session-NN-review.md`, \
+which you do not write.";
+
 /// The registered roles. Slice 1 (DECISION-007) shipped exactly ONE — the Researcher. S114 added the
-/// SECOND (the Fidelity Reviewer, chosen from evidence at S113). S116 adds the THIRD: the Plan
-/// Advisor (founder pick at the S115 closeout). A fourth role remains a separate decision, not a
-/// reflex (the named key risk of S109 is scope creep).
+/// SECOND (the Fidelity Reviewer, chosen from evidence at S113). S116 added the THIRD: the Plan
+/// Advisor (founder pick at the S115 closeout). S121 adds the FOURTH: the QA Specialist (founder
+/// pick at the S120 GT closeout) — the first that can execute. A fifth role remains a separate
+/// decision, not a reflex (the named key risk of S109 is scope creep).
 ///
 /// **The Reviewer's key is `fidelity-reviewer`, not `reviewer`** — the deliberate resolution of the
 /// collision the S113 cold review named (`DECISION-007` S114 addendum). `K of 8` already counts a
@@ -156,6 +204,10 @@ only the session's author decides what actually lands there.";
 /// **The Planner's key is `plan-advisor`, not `planner`** — the exact same collision, hit a second
 /// time: `K of 8` already counts a **Planner station** (`src/planner/mod.rs`, S64). Distinct key,
 /// distinct word, no ambiguity (`DECISION-007` S116 addendum).
+///
+/// **The QA Specialist's key is `qa-specialist`, not `qa`** — the same collision a THIRD time:
+/// `K of 8` already counts a **QA station** (`src/qa/mod.rs`, S69), which governs the process; the
+/// role does the work (`DECISION-007` S121 addendum).
 pub const ROLES: &[Role] = &[
     Role {
         name: "researcher",
@@ -186,6 +238,20 @@ pub const ROLES: &[Role] = &[
         // Strictly local reads, same shape as the Reviewer: planning a session is decided by that
         // session's own prompt, not the internet, and it does not run anything.
         tools: "Read, Grep, Glob",
+    },
+    Role {
+        name: "qa-specialist",
+        description: "Run the session's verify script and report what actually executed: real exit \
+                      code, plus every check classified execute-based vs hollow source-grep. Use at \
+                      verification time, on work you did not build. Executes code.",
+        system_prompt: QA_SPECIALIST_SYSTEM_PROMPT,
+        // THE ONE EXECUTING ROLE (S121, DECISION-007 S121 addendum). Bash is the load-bearing
+        // grant: a role that cannot run the suite can only grep for the suite, which is the exact
+        // hollow evidence this role exists to catch. Write/Edit are for recording findings and
+        // scratch files — the prompt forbids touching the product under test, and the fact that
+        // the grant is broader than that rule is disclosed, not hidden. Still NO web and NO
+        // NotebookEdit: QA is decided by this repo's own suite, not the internet.
+        tools: "Bash, Read, Write, Edit, Grep, Glob",
     },
 ];
 
@@ -659,11 +725,7 @@ mod tests {
     /// hollowed out to a stub prompt.
     #[test]
     fn fidelity_reviewer_is_registered_with_a_non_colliding_key() {
-        assert_eq!(
-            ROLES.len(),
-            3,
-            "the fleet ships exactly three roles at S116"
-        );
+        assert_eq!(ROLES.len(), 4, "the fleet ships exactly four roles at S121");
         let r = resolve_role("fidelity-reviewer").expect("the second role is registered");
         // The collision resolution, asserted: the key is NOT the bare station word.
         assert!(resolve_role("reviewer").is_none());
@@ -771,10 +833,15 @@ mod tests {
         );
     }
 
-    /// S114 — every role is read-only, and the tool grant is the ROLE's, not a hardcoded list.
-    /// The Reviewer gets strictly local reads: no web, no Bash.
+    /// S114, widened at S121 — the tool grant is the ROLE's, not a hardcoded list, and execution is
+    /// granted to EXACTLY ONE role. Renamed from `every_role_is_read_only_and_renders_its_own_tools`
+    /// because that invariant was deliberately changed at S121, not quietly relaxed: the
+    /// `qa-specialist` executes (DECISION-007 S121 addendum) and every OTHER role must stay
+    /// read-only. An allowlist of one, asserted by name, so a fifth role cannot inherit Bash by
+    /// being added to the table.
     #[test]
-    fn every_role_is_read_only_and_renders_its_own_tools() {
+    fn tool_grants_are_per_role_and_execution_is_the_qa_specialists_alone() {
+        const MAY_EXECUTE: &[&str] = &["qa-specialist"];
         for role in ROLES {
             let def = render_subagent_definition(role);
             assert!(
@@ -782,10 +849,13 @@ mod tests {
                 "{} does not render its own tools",
                 role.name
             );
+            if MAY_EXECUTE.contains(&role.name) {
+                continue;
+            }
             for forbidden in ["Write", "Edit", "Bash", "NotebookEdit"] {
                 assert!(
                     !role.tools.contains(forbidden),
-                    "{} grants the write/exec tool {forbidden}",
+                    "{} grants the write/exec tool {forbidden} — only {MAY_EXECUTE:?} may execute",
                     role.name
                 );
             }
@@ -797,6 +867,56 @@ mod tests {
         let plan = resolve_role("plan-advisor").unwrap();
         assert_eq!(plan.tools, "Read, Grep, Glob");
         assert_ne!(res.tools, plan.tools, "the tool grant must be per-role");
+        // The exception, pinned exactly — a widened grant elsewhere in the table turns this red.
+        let qa = resolve_role("qa-specialist").unwrap();
+        assert_eq!(qa.tools, "Bash, Read, Write, Edit, Grep, Glob");
+        assert!(
+            !qa.tools.contains("WebSearch") && !qa.tools.contains("NotebookEdit"),
+            "the QA grant is execution-local, not the Researcher's web grant plus everything"
+        );
+        assert_eq!(
+            ROLES.iter().filter(|r| r.tools.contains("Bash")).count(),
+            1,
+            "exactly one role may execute"
+        );
+    }
+
+    /// S121 — the FOURTH role exists, is keyed to avoid the QA-STATION collision (the third time
+    /// this collision has been hit: Reviewer S114, Planner S116, QA S121), and carries the
+    /// classification contract that is the whole reason it was built. Fails if the role is removed,
+    /// renamed to `qa`, hollowed to a stub, or silently de-fanged back to read-only.
+    #[test]
+    fn qa_specialist_is_registered_with_a_non_colliding_key_and_the_execution_grant() {
+        let r = resolve_role("qa-specialist").expect("the fourth role is registered");
+        // The collision resolution, asserted: the key is NOT the bare station word.
+        assert!(resolve_role("qa").is_none());
+        assert!(known_roles().contains("qa-specialist"));
+        assert_eq!(
+            r.handoff_rel(121),
+            ".ai/handoffs/session-121-qa-specialist.md"
+        );
+        assert_eq!(r.subagent_rel(), ".claude/agents/qa-specialist.md");
+        // The grant that makes it a QA agent rather than a fourth reader.
+        assert!(r.tools.contains("Bash"));
+        // The contract, not a stub: run it, classify every check, name the hollow ones, never fix.
+        for must in [
+            "RUN the session's `scripts/verify-session-NN.sh`",
+            "EXECUTE-BASED",
+            "BEHAVIORAL SOURCE GREP",
+            "HOLLOW",
+            "STRUCTURAL",
+            "do NOT repair the checks you criticise",
+            "a check that cannot evaluate fails",
+        ] {
+            assert!(
+                r.system_prompt.contains(must),
+                "qa-specialist prompt is missing {must:?}"
+            );
+        }
+        // It reports evidence; it does not grade the delivery (that is the Reviewer's role, and
+        // the gated record is a file this agent must not write).
+        assert!(r.system_prompt.contains("sessions/session-NN-review.md"));
+        assert!(r.system_prompt.contains("which you do not write"));
     }
 
     /// S114 — the rendering is generic: every registered role produces a valid subagent definition

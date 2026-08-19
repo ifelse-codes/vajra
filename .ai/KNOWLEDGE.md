@@ -248,6 +248,31 @@ pub struct CompressionRequest {
 - **Pricing compiled-in:** binary update needed when Anthropic changes pricing. Stale pricing shows slightly wrong numbers but the receipt's `[estimated]` marker flags schema drift.
 - **Receipt authoritative-first (S66, permanent):** the receipt headline is the JSONL's own `total_cost_usd` (the headless `type:"result"` line) when present — `SessionCost::billed_dollars()` = authoritative-or-estimate, used by both the headline and the budget cap. The compiled-in token recompute is a **labeled `[estimate]` fallback**, never "the bill." A model absent from `MODEL_PRICING` (`is_known_model` = false, e.g. `claude-fable-5`) is estimated at the opus upper bound but **flagged** (`not in pricing table` warning + `[estimate · … priced as opus upper bound]` label), never silently billed as opus — the root cause of the retired ~4.71× overstatement (S63: $5.9665 est vs $1.2662 real). Seam: a fable run with **no** `total_cost_usd` still headlines the labeled inflated estimate (headless always carries it → disclosed-not-billed). The `line_dollars` formula (ADR-0004 §2.5) is unchanged — only the source-of-truth preference is new, so ADR-0004 was not amended.
 
+- **`vajra init` BLOCKS FOREVER on stdin when its runner sends no EOF (S121, permanent).** It reads
+  three interactive prompts (project name, first goal, maturity level). Under a TTY or with
+  `</dev/null` it gets EOF and takes defaults; launched from a background/detached shell whose stdin
+  stays open, it hangs — cost 10 minutes live at S121, inside `verify-session-113.sh`. **Any script
+  or harness invoking `vajra init` non-interactively must redirect `</dev/null`.** Fixed in
+  `verify-session-121.sh`; older scripts still carry the hazard.
+- **Exactly ONE fleet role may execute (S121, permanent).** `qa-specialist` is granted
+  `Bash, Read, Write, Edit, Grep, Glob`; every other role is `Read, Grep, Glob` (+ web for the
+  Researcher). Enforced as a named allowlist in
+  `fleet::tests::tool_grants_are_per_role_and_execution_is_the_qa_specialists_alone`, so a new role
+  cannot inherit Bash by being added to the table. The grant is broader than the rule that governs
+  it — the prompt forbids editing the product under test, but nothing sandboxes that; only the
+  commit path is closed by machinery (`VAJRA_ALLOW_COMMIT`, hook-commit-guard). Recorded in the
+  `DECISION-007` S121 addendum.
+
+- **A newly-scaffolded fleet role IS dispatchable in its own creating session (S121, permanent —
+  supersedes the S111 rule).** S111 recorded that a `.claude/agents/*.md` written mid-session is
+  invisible to that session's Task tool, and S114–S121 all planned around it. At S121 the harness
+  registered `qa-specialist` as a dispatchable agent type inside the very session that created it,
+  and `subagent_type: "qa-specialist"` resolved **by name, first try, no workaround**. This is the
+  SECOND observation (`fidelity-reviewer` did the same at S114; left open at S115, never closed).
+  **Do not plan a session around the S111 limit without re-testing it first** — the cheap test is to
+  try the dispatch and record what happened. Evidence:
+  `sessions/session-121-artifacts/qa-specialist-live-run.md`.
+
 ## 10. Ground-Truth Track Record
 
 - **S110 (permanent): the K-of-8 pipeline-advance counter has no unit for fleet work.** S109's realest

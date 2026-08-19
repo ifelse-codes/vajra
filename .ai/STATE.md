@@ -3,13 +3,21 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S120 GT complete, S121 not yet started).**
+**`session-121-qa-specialist` — S121 COMPLETE, PR open to `main`.**
 
-S120 was a mandatory NO-CODE Ground Truth (120 % 5 == 0). Verdict: PARTIAL PASS. Full report at
-`sessions/session-120-ground-truth.md`. Key findings filed, not fixed (GT rule).
+S121 built the fleet's FOURTH role, the QA Specialist — the first that can execute. Cold
+fidelity-reviewer ACCEPT (5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT), attested
+`fa8d435fac9df4f3222159b39a50df20fc4e4a650ac12b66ff94d5a5dc215758`. Summary:
+`sessions/session-121-summary.md`. Review: `sessions/session-121-review.md`.
+
+**POST-CLOSE (founder-directed):** the role was then DISPATCHED, in its own creating session, and
+took the first live QA run. Brief: `sessions/session-121-artifacts/qa-specialist-live-run.md`. It
+found four defects the session missed; none is fixed here (the reviewed diff and its attested hash
+are untouched — every post-close file is one the canonical hash excludes).
 
 ## Active PRs
-- **No open PRs.** S119 (#129) MERGED 2026-08-17.
+- **S121 [#131](https://github.com/ifelse-codes/vajra/pull/131) — OPEN.** S120 (#130) MERGED · S119 (#129) MERGED
+  2026-08-17.
 - Prior: **S118 [#128](https://github.com/ifelse-codes/vajra/pull/128) MERGED** · S117 #126 · S114
   #122 · S113 #120 · S112 #118 (+#119) · S111 #117 · S109 #115 · S110 #116 · S108 #113/#114 · S107
   #112 · S106 #111 · S116 merged inside #125.
@@ -18,17 +26,24 @@ S120 was a mandatory NO-CODE Ground Truth (120 % 5 == 0). Verdict: PARTIAL PASS.
 - **The product = provable agent governance** (`DECISION-001`), sold as the **autopilot trust
   layer**. Fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
   tamper-evident (`DECISION-004`). The fleet = **real named agents behind the existing gates**
-  (`DECISION-007`) — THREE roles built, **ALL THREE proven dispatched by name**.
+  (`DECISION-007`) — **FOUR roles built, ALL FOUR now proven dispatched by name**
+  (`qa-specialist` proved it at the S121 post-close run, inside its own creating session).
 - **Post-pivot roadmap:** C team-voice (S104 ✓) → **B installable v0.1 ✓ COMPLETE** → **A fleet
-  COMPLETE (3 roles)** → Dogfood S118 ✓ → S119 ✓ (clean-room runner) → **S120 ✓ MANDATORY GT →
-  S121 = CODE: QA specialist (fleet role 4, first full-execution agent).**
+  COMPLETE (3 roles)** → Dogfood S118 ✓ → S119 ✓ (clean-room runner) → S120 ✓ MANDATORY GT →
+  **S121 ✓ QA Specialist built (fleet role 4, the first that EXECUTES) → S122 = prove its by-name
+  dispatch + the FIRST LIVE QA run.**
 
 ## What Currently Works
 - **The 8 stations** riding `vajra next` (+ gates at `--advance`): Analyst · Architect · Planner ·
   Coder · QA · Demo-er · Releaser · Reviewer. Receipt AUTHORITATIVE (S78 tee path).
-- **The fleet has THREE named roles, ALL proven dispatched by name.** `vajra init` scaffolds all
-  three `.claude/agents/*.md` files; `vajra next --role <key> --from <file>` governs any of the
-  three; `vajra next --stations NN` reports fleet evidence beside `K of 8`.
+- **The fleet has FOUR named roles, ALL proven dispatched by name.** Researcher · Fidelity
+  Reviewer · Plan Advisor · **QA Specialist (built AND dispatched at S121; its first live run
+  found four real defects).** `vajra init`
+  scaffolds all four `.claude/agents/*.md` files; `vajra next --role <key> --from <file>` governs
+  any of them; `vajra next --stations NN` reports fleet evidence beside `K of 8`.
+- **Exactly one role executes.** `qa-specialist` holds `Bash, Read, Write, Edit, Grep, Glob`; the
+  other three stay read-only, enforced as a named allowlist of one (a fifth role cannot inherit
+  Bash by being added to the table). `DECISION-007` S121 addendum.
 - **The clean-room runner (S119).** QA and Demo-er route scripts through a fresh `git worktree add
   --detach` checkout of HEAD when `verify.clean_room.enabled: true` (default off). Bootstrap
   command support; failure → `CannotEvaluate` → BLOCK. `VAJRA_SKIP_CLEAN_ROOM=1` escape.
@@ -38,7 +53,7 @@ S120 was a mandatory NO-CODE Ground Truth (120 % 5 == 0). Verdict: PARTIAL PASS.
   DERIVED from `sessions/session-NN-review.md` via `_ledger_read()` in verify-closeout.sh. No
   separate `.ai/ledger/` directory — by design.
 - **v0.1 install: CONFIRMED stranger-shippable (S110 GT).** Four channels, all real.
-- **CI green on `main`** (both OS); 7 commands, no 8th. 334 lib tests.
+- **CI green on `main`** (both OS); 7 commands, no 8th. **335 lib tests.**
 
 ## What Is Broken / Weak
 - **🔴 Coder-dark for S119 (S120 finding):** `## Execution` step 7 records prose ("cold
@@ -59,17 +74,44 @@ S120 was a mandatory NO-CODE Ground Truth (120 % 5 == 0). Verdict: PARTIAL PASS.
   sessions flagged) · **🟡 KNOWLEDGE §6 bloat at 642 lines** (10 GTs flagged, unfixed) · **🟡
   `vajra.varta` re-render drifts every session** · **🟡 `vajra --version` gap** · **🟡 brew
   smoke tests LOCAL formula**.
+- **🔴 FOUR defects found by the S121 live QA run, ALL UNFIXED (S122's payload).** (1) The tally is
+  **not compositional** — `s113-counter-still-green` hides 14 checks and S113 carries its own hollow
+  banner grep, so the true hollow count in that run was **2, not 1**. (2) The read-only guard's
+  `grep -q "^tools: Read, Grep, Glob"` is an **unanchored PREFIX match** — a role leaking
+  `Write`/`Edit` passes it; only the unit test catches that. (3) `one_source_of_role_text` does not
+  exclude `.ai/handoffs/`, so a future QA report quoting its probe sentence flips the suite RED with
+  a message that does not name the cause — **a live booby-trap.** (4)
+  `render_subagent_definition_is_correct_for_every_registered_role` asserts `def.contains(role.system_prompt)`
+  — the render checked against the field it renders from; an empty prompt passes.
+- **🔴 The executor thesis is UNPROVEN.** S121 shipped the claim that an agent which can run code
+  "cannot physically fake a pass". The live run's four findings **all came from careful independent
+  READING, not from Bash** — execution bought the exit code and `335 passed`. What is evidenced is
+  that an INDEPENDENT agent finds real defects. Never pitch the executor claim as measured.
+- **🔴 The `Write`/`Edit` grant is documented, not FENCED.** Nothing structurally stops the QA role
+  editing the code it tests; on the live run the tree was verified byte-identical before/after, but
+  in the agent's own words *"that constraint held because I chose to hold it, which is not a
+  control."* Leading ROADMAP candidate after S122.
+- **🔴 The S121 check-class tally is a SELF-ASSIGNED LABEL (cold-review finding).** Nothing checks
+  that a check marked `exec` executes anything — relabel them all and the summary still prints
+  `behavioral source grep: 0`. Same class as S64's `covers:` digit-tag and S67's design marker.
+  **Never cite that number as a measurement.** Option B at the S121 close (make it machine-derived)
+  is unbuilt and unpicked.
+- **🟡 `vajra init` hangs forever on stdin without EOF** (found live S121; 10 minutes lost inside
+  `verify-session-113.sh`). `verify-session-121.sh` redirects `</dev/null`; older scripts do not.
+- **🟡 `verify-session-116.sh` is red by construction** against S121+: the fleet grew to four and the
+  every-role-is-read-only invariant was deliberately changed (test renamed, not loosened). Fourth
+  session of per-session-snapshot decay; disclosed in a comment, which is not a gate.
 - **🟡 The grep-only-verify detector** (S118 candidate A, deferred at S120 in favor of the QA
   specialist agent) — not yet built.
 - **🟡 In THIS repo the commit gate is auditable-not-un-forgeable** (L3 `commit_guard: off`; L2
   belt active) · **Compression no-op on real CC** · **Cross-agent breadth 0 code**.
 
 ## What Is In Progress
-- **S120 DONE (MANDATORY GT, PARTIAL PASS).** Report: `sessions/session-120-ground-truth.md`.
-- **S121 = CODE: QA specialist agent (fleet role 4).** `prompts/121-task-qa-specialist-agent.md`.
-  First fleet agent with full execution capability (Bash, Read, Write, Edit, Grep, Glob). Runs
-  the session's verify script, classifies checks, reports what actually exercised the product.
-  Same zero-new-machinery shape as S114 and S116. Dispatch proof is S122's job.
+- **S121 DONE (CODE, ACCEPT).** The QA Specialist role, `verify-session-121.sh` 17/17.
+- **S122 = CODE: close the four real holes the live QA run found.**
+  `prompts/122-task-qa-suite-real-holes.md`. The original S122 brief (dispatch proof) is
+  SUPERSEDED and deleted — its goal was achieved at the S121 close. Every fix needs a
+  falsifiability fixture: a check never seen RED is not evidence.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
@@ -80,4 +122,6 @@ S120 was a mandatory NO-CODE Ground Truth (120 % 5 == 0). Verdict: PARTIAL PASS.
 - **S118: $4.0911771** authoritative (sonnet, headless `-p`, 1331s).
 - **S119: $0 metered** (interactive session; fidelity-reviewer subagent tokens roll in, unitemized).
 - **S120: $0** (NO-CODE GT).
-- Cumulative: **~$83.4 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S120 subagents (unknown, small).**
+- **S121: $0 metered** (interactive; one `fidelity-reviewer` subagent pass ≈56k subagent tokens,
+  rolls in unitemized). No paid dogfood run.
+- Cumulative: **~$83.4 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S121 subagents (unknown, small).**
