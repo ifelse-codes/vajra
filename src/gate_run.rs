@@ -289,37 +289,77 @@ pub struct CleanRoom {
     pub path: PathBuf,
 }
 
+/// Shared by `CleanRoom::new` and `CleanRoom::open_persistent` — the worktree-add half.
+fn worktree_add(repo_root: &Path) -> Result<PathBuf, CannotEvaluate> {
+    // Build a path that is guaranteed not to exist yet — git worktree add requires this.
+    let ts = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let path = std::env::temp_dir().join(format!("vajra-cr-{ts}"));
+
+    let ok = Command::new("git")
+        .args(["worktree", "add", "--detach"])
+        .arg(&path)
+        .arg("HEAD")
+        .current_dir(repo_root)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false);
+
+    if ok {
+        Ok(path)
+    } else {
+        Err(CannotEvaluate::SpawnFailure)
+    }
+}
+
+/// Shared by `Drop for CleanRoom` and `CleanRoom::remove_persistent` — the worktree-remove half.
+fn worktree_remove(repo_root: &Path, path: &Path) -> bool {
+    Command::new("git")
+        .args(["worktree", "remove", "--force"])
+        .arg(path)
+        .current_dir(repo_root)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
 impl CleanRoom {
     /// Materialise `HEAD` of `repo_root` into a fresh temp directory. Returns
     /// `Err(CannotEvaluate::SpawnFailure)` when git fails (no commits, detached, permission
     /// denied, git not on PATH).
     pub fn new(repo_root: &Path) -> Result<Self, CannotEvaluate> {
-        // Build a path that is guaranteed not to exist yet — git worktree add requires this.
-        let ts = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_nanos();
-        let path = std::env::temp_dir().join(format!("vajra-cr-{ts}"));
+        let path = worktree_add(repo_root)?;
+        Ok(CleanRoom {
+            repo_root: repo_root.to_path_buf(),
+            path,
+        })
+    }
 
-        let ok = Command::new("git")
-            .args(["worktree", "add", "--detach"])
-            .arg(&path)
-            .arg("HEAD")
-            .current_dir(repo_root)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .map(|s| s.success())
-            .unwrap_or(false);
+    /// S123: materialise a clean room that OUTLIVES this process. `qa_gate`'s `CleanRoom::new`
+    /// exists for the duration of a single `vajra` invocation that both creates the worktree AND
+    /// runs the script inside it. Routing a **fleet role's** dispatch through a clean room cannot
+    /// use that shape — the actual work (the `qa-specialist` subagent running `bash
+    /// scripts/verify-session-NN.sh`) happens in a separate, longer-lived Claude Code session, not
+    /// inside this CLI call. This returns just the path and intentionally does NOT wrap it in a
+    /// `Drop`-cleaning guard — the worktree must still exist after this process exits. Pair with
+    /// `remove_persistent` (`vajra next --role <name> --clean-room-close <path>`) once the
+    /// dispatched role's run is done; a worktree never closed is reclaimed by `git worktree prune`
+    /// like any other orphaned entry (same fallback `Drop` relies on).
+    pub fn open_persistent(repo_root: &Path) -> Result<PathBuf, CannotEvaluate> {
+        worktree_add(repo_root)
+    }
 
-        if ok {
-            Ok(CleanRoom {
-                repo_root: repo_root.to_path_buf(),
-                path,
-            })
-        } else {
-            Err(CannotEvaluate::SpawnFailure)
-        }
+    /// Remove a clean room opened by `open_persistent`, by path. Returns `false` on failure
+    /// (caller decides whether that's fatal — the repo's real state is what the falsifiability
+    /// fixture checks, not whether this specific call succeeded).
+    pub fn remove_persistent(repo_root: &Path, path: &Path) -> bool {
+        worktree_remove(repo_root, path)
     }
 }
 
@@ -327,13 +367,7 @@ impl Drop for CleanRoom {
     fn drop(&mut self) {
         // Ignore errors — the worst outcome is an orphaned worktree entry, which `git worktree
         // prune` will clean up. Never panic in Drop.
-        let _ = Command::new("git")
-            .args(["worktree", "remove", "--force"])
-            .arg(&self.path)
-            .current_dir(&self.repo_root)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status();
+        let _ = worktree_remove(&self.repo_root, &self.path);
     }
 }
 
@@ -646,6 +680,44 @@ mod tests {
         assert!(
             !clean_room_path.exists(),
             "clean room must be removed on drop"
+        );
+    }
+
+    #[test]
+    fn open_persistent_outlives_scope_and_remove_persistent_cleans_it_up() {
+        let repo = git_repo_with_commit();
+        let root = repo.path();
+
+        let path = CleanRoom::open_persistent(root).expect("clean room must be created");
+        assert!(path.exists(), "clean room directory must exist");
+        assert!(
+            path.join("README.md").exists(),
+            "committed file must be present"
+        );
+
+        // The whole point: NOTHING auto-removes this on scope exit — no Drop guard was ever
+        // constructed, so the path must still be there after this function-local `path` binding
+        // goes out of reach of any RAII cleanup (there was never any to invoke).
+        assert!(
+            path.exists(),
+            "open_persistent must not be cleaned up by any implicit Drop"
+        );
+
+        assert!(
+            CleanRoom::remove_persistent(root, &path),
+            "remove_persistent must report success on a real, open worktree"
+        );
+        assert!(!path.exists(), "remove_persistent must actually remove it");
+    }
+
+    #[test]
+    fn remove_persistent_on_a_bad_path_fails_without_panicking() {
+        let repo = git_repo_with_commit();
+        let root = repo.path();
+        let bogus = root.join("this-path-was-never-a-worktree");
+        assert!(
+            !CleanRoom::remove_persistent(root, &bogus),
+            "removing a path that is not a real worktree must report failure, not panic or lie"
         );
     }
 
