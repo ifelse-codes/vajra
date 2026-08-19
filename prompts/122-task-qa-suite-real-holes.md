@@ -67,15 +67,29 @@ role is described.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
+- step 1 — done: 8c21785
+- step 2 — done: 8c21785
+- step 3 — done: c8c83d7
+- step 4 — done: 8c21785
+- step 5 — done: afdf0a8
+- step 6 — done: 83737ec
 
 **Record a real commit sha for every step.** Prose in place of a sha breaks `git cat-file` and goes
 Coder-dark (the S119 defect S120 filed).
+
+Landing shas above are the commit where each step first landed. Steps 1, 2 and 4 shipped in one
+commit because all three are edits to the same file (`scripts/verify-session-121.sh`) and the
+3-files-per-commit rule binds files, not plan steps. Every step was then REFINED by cold-review
+repairs, which is the shape of this session and is recorded rather than hidden:
+
+| step | landed | refined by |
+|---|---|---|
+| 1 anchored read-only guard | `8c21785` | `356aee9` (exact-token allowlist, not `grep -w`) |
+| 2 defused handoff booby-trap | `8c21785` | `f1c7ad9`, `356aee9` (exclusion narrowed, not widened) |
+| 3 killed the render tautology | `c8c83d7` | `3942538`, `233e26d` (2 more surviving instances) |
+| 4 tally honest about nesting | `8c21785` | `356aee9`, `233e26d` (`fleet-smoke` reclassified) |
+| 5 suite + demo + fixtures | `afdf0a8` | `19f328c`, `f1c7ad9`, `356aee9`, `233e26d`, `1398cb7` |
+| 6 QA dispatch + cold review | `83737ec` | the summary + review commit at closeout |
 
 ## Design
 - design-significant: **no** — four contained fixes to existing checks and one test, plus a
