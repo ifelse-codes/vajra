@@ -40,8 +40,17 @@
 //! `Bash, Write, Edit`. Every prior role can only READ, which means the only "evidence" the fleet
 //! could ever produce was prose about source it had read — and S118/S120 measured what that costs:
 //! verify scripts made largely of source greps that would still pass with the feature deleted. An
-//! executor cannot fake a pass; it either ran the thing and has output, or it does not. The grant
-//! is data on the `ROLES` table, not a new code path — nothing else in this module changed for it.
+//! executor could not fake a pass — it either ran the thing and has output, or it does not. The
+//! grant is data on the `ROLES` table, not a new code path — nothing else in this module changed.
+//!
+//! **S122, and do not soften this: THAT THESIS IS UNPROVEN.** The role has now taken two live runs
+//! (the S121 post-close audit and the S122 audit of this session's own suite) and found seven real
+//! defects between them. Every single one came from careful independent READING. Execution bought
+//! the exit codes and the `passed` counts, nothing more. What IS evidenced is the INDEPENDENCE
+//! thesis: an agent that did not build the thing finds defects the builder cannot see. Whether an
+//! executor can be made unable to fake a pass remains untested, and the `Write`/`Edit` grant is
+//! documented rather than fenced — on both live runs the tree was unchanged because the agent
+//! chose to leave it alone, which is not a control.
 //! Its key is `qa-specialist`, not `qa`, for the third instance of the STATION-vs-ROLE collision
 //! (`src/qa/mod.rs`, the QA station, S69) that S114 and S116 each resolved the same way.
 
@@ -157,8 +166,9 @@ Your output is a PROPOSAL, never the plan of record: the session's own `## Plan`
 its own prompt file, is the only place a real plan lives — you do not create a second artifact, and \
 only the session's author decides what actually lands there.";
 
-/// The QA Specialist's contract (S121). The fleet's first EXECUTOR: it runs the session's verify
-/// script and reports what actually ran. The classification it is asked for is the S120 GT finding
+/// The QA Specialist's contract (S121). The fleet's first role granted execution: it runs the
+/// session's verify script and reports what actually ran. Its value so far is measured as
+/// INDEPENDENCE, not execution — see the module header; the executor thesis is unproven. The classification it is asked for is the S120 GT finding
 /// made operational — a check that greps `src/` for a message string is hollow (it survives the
 /// feature being deleted), while a grep asserting ARCHITECTURE (one source of truth, no collision)
 /// is structural and legitimate. It reports; it never edits the product under test.
@@ -667,9 +677,13 @@ mod tests {
         assert!(def.contains("name: researcher"));
         assert!(def.contains("description:"));
         assert!(def.contains("tools:"));
-        // The body is the CANONICAL system prompt (no drift — same string the role carries).
+        // The body is the CANONICAL system prompt (no drift). S122: this used to add
+        // `assert!(def.contains(r.system_prompt))` — the render checked against the field it
+        // renders from, true for any value including "". The cold review found it still standing
+        // after the same shape was removed from the every-role test. Substance is asserted instead.
         assert!(def.contains("You are the Researcher"));
-        assert!(def.contains(r.system_prompt));
+        assert!(def.contains("Do NOT write, edit, or run code."));
+        assert!(role_prompt_substance(r).is_ok());
         // It points at the governed handoff, and tells the subagent NOT to author frontmatter.
         assert!(def.contains(".ai/handoffs/session-<NN>-researcher.md"));
         assert!(def.contains("vajra next --role researcher --from"));
@@ -926,6 +940,37 @@ mod tests {
 
     /// S114 — the rendering is generic: every registered role produces a valid subagent definition
     /// pointing at ITS OWN handoff path and ITS OWN `vajra next --role` command line.
+    /// The substance rule, in ONE place (S122, second cold pass). The first cut hand-mirrored
+    /// these assertions inside the fixture, so the fixture proved only that *the copy it retyped*
+    /// would reject a hollow role — loosen the real test and the "fixture" stayed green. Both the
+    /// real per-role test and the fixture now call THIS function, so they cannot drift apart.
+    ///
+    /// Returns `Err` naming the first failure, so a fixture can assert rejection without
+    /// `catch_unwind`.
+    fn role_prompt_substance(role: &Role) -> Result<(), String> {
+        if role.description.trim().is_empty() {
+            return Err(format!("{} has an empty description", role.name));
+        }
+        let n = role.system_prompt.trim().len();
+        if n <= 400 {
+            return Err(format!(
+                "{} has a stub system prompt ({n} bytes) — a role prompt this short cannot carry \
+                 its contract",
+                role.name
+            ));
+        }
+        let def = render_subagent_definition(role);
+        for required in ["You are the", "Your ONE job", "Rules:"] {
+            if !def.contains(required) {
+                return Err(format!(
+                    "{}'s rendered definition is missing the contract phrase {required:?}",
+                    role.name
+                ));
+            }
+        }
+        Ok(())
+    }
+
     #[test]
     fn render_subagent_definition_is_correct_for_every_registered_role() {
         for role in ROLES {
@@ -939,25 +984,9 @@ mod tests {
             // "correct". Wiring is now asserted separately from CONTENT: the loop below checks the
             // render carries substantive text this test names literally, and the fields are
             // checked for substance directly.
-            assert!(
-                !role.description.trim().is_empty(),
-                "{} has an empty description",
-                role.name
-            );
-            assert!(
-                role.system_prompt.trim().len() > 400,
-                "{} has a stub system prompt ({} bytes) — a role prompt this short cannot carry \
-                 its contract",
-                role.name,
-                role.system_prompt.trim().len()
-            );
-            // Every role's prompt states who it is, what its ONE job is, and its rules.
-            for required in ["You are the", "Your ONE job", "Rules:"] {
-                assert!(
-                    def.contains(required),
-                    "{}'s rendered definition is missing the contract phrase {required:?}",
-                    role.name
-                );
+            // Substance, via the ONE shared rule the fixture below also calls (S122 pass 2).
+            if let Err(e) = role_prompt_substance(role) {
+                panic!("{e}");
             }
             assert!(def.contains(&format!(".ai/handoffs/session-<NN>-{}.md", role.name)));
             assert!(def.contains(&format!("vajra next --role {} --from", role.name)));
@@ -1054,13 +1083,35 @@ mod tests {
         assert!(def.contains(hollow.system_prompt));
         assert!(def.contains(hollow.description));
 
-        // The fix: substance is asserted, so the same role fails.
-        assert!(hollow.description.trim().is_empty());
-        assert!(hollow.system_prompt.trim().len() <= 400);
-        for required in ["You are the", "Your ONE job", "Rules:"] {
+        // The fix, exercised through the SAME function the real per-role test calls — not a
+        // retyped copy of it. Loosen the rule and this fixture goes green with the real test,
+        // which is the point: they are one implementation.
+        let rejected = role_prompt_substance(&hollow);
+        assert!(
+            rejected.is_err(),
+            "the substance rule accepted a role with an empty prompt and description"
+        );
+        assert!(rejected.unwrap_err().contains("empty description"));
+
+        // And it rejects a stub that is non-empty but hollow — an empty string is the easy case.
+        let stub = Role {
+            name: "stub",
+            description: "d",
+            system_prompt: "You are the Stub. Your ONE job is nothing. Rules:\n- none",
+            tools: "Read, Grep, Glob",
+        };
+        assert!(
+            role_prompt_substance(&stub).is_err(),
+            "the substance rule accepted a stub prompt carrying every contract phrase"
+        );
+
+        // Positive control: every REGISTERED role passes the same rule, so it is not a check that
+        // simply rejects everything.
+        for role in ROLES {
             assert!(
-                !def.contains(required),
-                "the empty-prompt render should carry no contract phrase, but it has {required:?}"
+                role_prompt_substance(role).is_ok(),
+                "{} fails the substance rule",
+                role.name
             );
         }
     }
