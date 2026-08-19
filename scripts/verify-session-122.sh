@@ -463,6 +463,13 @@ execution_policy_guard_has_teeth() {
   fi
 
   echo "--- fail-closed: a file whose policy cannot be parsed at all ---"
+  # ISOLATED (S123 fix) — restore both shell copies first. Without this, "$TMP/s122.sh" still
+  # carried planted drift 3 from the block above, so the rejection below was already guaranteed
+  # by that drift and proved nothing about empty.rs: delete this whole branch and the assertion
+  # would still print OK. The control block at the top already proved clean copies agree, so
+  # restoring here isolates empty.rs as the ONLY defect the fail-closed case exercises.
+  cp scripts/verify-session-121.sh "$TMP/s121.sh"
+  cp scripts/verify-session-122.sh "$TMP/s122.sh"
   : > "$TMP/empty.rs"
   if execution_policy_one_source "$TMP/empty.rs" "$TMP/s121.sh" "$TMP/s122.sh" >/dev/null 2>&1; then
     echo "FAIL: an unparseable policy passed — the check is not fail-closed"; rc=1

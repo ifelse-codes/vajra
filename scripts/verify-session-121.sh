@@ -298,11 +298,29 @@ read_only_guard_has_teeth() {
   fi
 
   # Fail-closed: a grant it cannot read is a FAIL, never a silent pass (L-layer rule).
-  printf -- '---\nname: mystery\ndescription: d\n---\nbody\n' > "$TMP/leak/mystery.md"
-  if read_only_outside_allowlist "$TMP/leak" >/dev/null 2>&1; then
+  # ISOLATED from "$TMP/leak" (S123 fix — that dir still carries the Write-leak researcher.md
+  # planted above, so a rejection there proves nothing about THIS branch: delete the missing-
+  # tools:-line check and the leak alone still fails it). Built fresh from "$TMP/clean" instead,
+  # so the only defect present is the one this branch exists to catch.
+  mkdir -p "$TMP/faildeny"
+  cp "$TMP/clean/researcher.md" "$TMP/clean/qa-specialist.md" "$TMP/faildeny/"
+  printf -- '---\nname: mystery\ndescription: d\n---\nbody\n' > "$TMP/faildeny/mystery.md"
+  if read_only_outside_allowlist "$TMP/faildeny" >/dev/null 2>&1; then
     echo "FAIL: an agent file with no tools: line passed — the guard is not fail-closed"; rc=1
   else
     echo "OK: an unreadable grant fails closed"
+  fi
+
+  # Positive control, same isolated dir, differing ONLY in the mystery.md having a valid
+  # read-only tools: line — proves the FAIL above is caused by the missing line, not by mere
+  # presence of a third file (the right-reason check the prior version skipped).
+  mkdir -p "$TMP/failallow"
+  cp "$TMP/clean/researcher.md" "$TMP/clean/qa-specialist.md" "$TMP/failallow/"
+  printf -- '---\nname: mystery\ndescription: d\ntools: Read, Grep, Glob\n---\nbody\n' > "$TMP/failallow/mystery.md"
+  if read_only_outside_allowlist "$TMP/failallow"; then
+    echo "OK: the same dir with a valid tools: line passes — isolates the fail-closed reason"
+  else
+    echo "FAIL: a fully read-only fleet was rejected — fail-closed test is not isolated"; rc=1
   fi
 
   rm -rf "$TMP"
