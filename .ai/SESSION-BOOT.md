@@ -12,8 +12,9 @@
   Prompt: `prompts/122-task-qa-suite-real-holes.md`. **Date last updated:** 2026-08-19.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 122. Work landed on `session-122-qa-suite-real-holes`; **PR not yet opened at the
-  time of writing** — open it, merge, then `checkout main` + prune before S123 starts.
+- `.ai/SESSION` = 122. **PR [#133](https://github.com/ifelse-codes/vajra/pull/133) MERGED
+  2026-08-19** (CI green both OS); branch pruned local + remote; `main` synced. S123 starts from a
+  fresh `session-123-*` branch.
 - **337 lib tests** (was 335); `verify-session-122.sh` **22/22 green, exit 0**;
   `demo-session-122.sh` **9 of 9**; 7 commands, no 8th.
 - **The fleet is still FOUR roles** — researcher · fidelity-reviewer · plan-advisor · qa-specialist.
