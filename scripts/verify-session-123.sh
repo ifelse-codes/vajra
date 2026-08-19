@@ -102,17 +102,27 @@ run_check "s122-suite-green" nested s122_exited_zero
 run_check "gate-run-open-persistent-tests" exec named_test_passed gate_run::tests::open_persistent
 run_check "gate-run-remove-persistent-tests" exec named_test_passed gate_run::tests::remove_persistent
 
-# --- the grant itself: Write/Edit dropped, Bash kept, asserted against the compiled render --------
+# --- the grant itself: Write/Edit dropped, Bash kept ----------------------------------------------
+# BEHAVIORAL, reclassified from an initial `exec` label after the dispatched qa-specialist's live
+# run named it correctly: this greps a STATIC, already-committed file. It proves the checked-in
+# artifact currently reads as the narrowed grant; it does NOT re-render from `fleet::ROLES` and
+# diff, so a hand-edited or stale file would pass identically, and it proves nothing about whether
+# Claude Code's harness actually HONOURS the `tools:` line at dispatch time (that is the S123 step
+# 3(a) measurement, done live against the real dispatch mechanism, not from inside a shell script —
+# see DECISION-007's S123 addendum). The real execute-based coverage of the render logic lives in
+# `cargo test --lib fleet::tests::render_subagent_definition_is_correct_for_every_registered_role`,
+# already exercised by `cargo-test` above.
 grant_is_bash_read_grep_glob_only() {
   local F="$ROOT/.claude/agents/qa-specialist.md"
   [ -f "$F" ] || { echo "FAIL: qa-specialist.md is not scaffolded in this repo"; return 1; }
   grep -q "^tools: Bash, Read, Grep, Glob$" "$F" \
-    || { echo "FAIL: the live scaffolded grant is not the S123 narrowed grant"; return 1; }
+    || { echo "FAIL: the scaffolded grant is not the S123 narrowed grant"; return 1; }
   ! grep -q "Write" "$F" || { echo "FAIL: Write still present in the rendered grant"; return 1; }
   ! grep -q "Edit" "$F" || { echo "FAIL: Edit still present in the rendered grant"; return 1; }
-  echo "OK: the live scaffolded qa-specialist grant is Bash, Read, Grep, Glob — no Write/Edit"
+  echo "OK: the scaffolded qa-specialist grant reads Bash, Read, Grep, Glob — no Write/Edit \
+(this checks the committed FILE, not that the harness enforces it — see the comment above)"
 }
-run_check "grant-write-edit-dropped" exec grant_is_bash_read_grep_glob_only
+run_check "grant-write-edit-dropped" behav grant_is_bash_read_grep_glob_only
 
 # --- clean-room-open is gated to roles that actually hold Bash ------------------------------------
 clean_room_open_refuses_read_only_role() {
