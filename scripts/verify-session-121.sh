@@ -54,6 +54,9 @@ set -uo pipefail
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT"
 
+# shellcheck source=scripts/lib-tally.sh
+source "$ROOT/scripts/lib-tally.sh"
+
 SESSION="121"
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 ARTIFACTS=".ai/verify/session-${SESSION}/${TS}"
@@ -132,51 +135,38 @@ filter_guard_has_teeth() {
 }
 run_check "test-filter-guard-has-teeth" exec filter_guard_has_teeth
 
+# The tally is ONE SOURCE (S123 fix), never a second hand-maintained copy. `extdebug` makes
+# `declare -F` report which FILE a function actually came from — asserts print_tally/
+# tally_discloses_nesting resolved from lib-tally.sh in THIS process, not a local redefinition
+# that happens to have the same name (the exact drift class execution_policy_one_source polices
+# for the tool-grant lists, applied here to the tally).
+tally_is_one_source() {
+  shopt -s extdebug
+  local pt tn
+  pt="$(declare -F print_tally 2>/dev/null | awk '{print $NF}')"
+  tn="$(declare -F tally_discloses_nesting 2>/dev/null | awk '{print $NF}')"
+  shopt -u extdebug
+  case "$pt" in */lib-tally.sh) ;; *) echo "FAIL: print_tally did not resolve from lib-tally.sh (got: $pt)"; return 1 ;; esac
+  case "$tn" in */lib-tally.sh) ;; *) echo "FAIL: tally_discloses_nesting did not resolve from lib-tally.sh (got: $tn)"; return 1 ;; esac
+  echo "OK: both tally functions resolved from lib-tally.sh, not a local copy"
+}
+run_check "tally-is-one-source" struct tally_is_one_source
+
 # --- the tally, as a FUNCTION so it can be falsified (S122 fix 4) --------------------------------
 # The tally used to be four inline `echo`s at the bottom of the file — unreachable by any check, so
 # "the tally is honest now" would have been a claim with no test behind it. It is a function; the
 # real summary calls it, and so does the fixture below, against both the fixed shape and the S121
 # shape it replaced.
-# $1=exec $2=struct $3=behav $4=nested, rest = nested suite names.
-print_tally() {
-  local E="$1" S="$2" B="$3" NN="$4"; shift 4
-  local n
-  echo "CHECK CLASSES (this suite's OWN checks only — NOT a census of everything that ran)"
-  echo "  execute-based: ${E} · structural grep: ${S} · behavioral source grep: ${B}"
-  echo "  nested suites (their own checks are NOT counted above): ${NN}"
-  for n in "$@"; do
-    [ -n "$n" ] || continue
-    echo "    - ${n} — runs another whole suite; read that suite's own tally for its classes"
-  done
-  if [ "$NN" -ne 0 ]; then
-    # Derived, not hardcoded: a fix for hollowness delivered as a literal count would be the same
-    # disease (qa-specialist finding on the first cut of this line).
-    echo "  DISCLOSED: each of those ${NN} nested suite(s) runs checks of its own, including its own"
-    echo "  behavioral source greps. They are NOT included in the ${B} above, so ${B} is a FLOOR,"
-    echo "  never a total for this run."
-  fi
-  if [ "$B" -ne 0 ]; then
-    echo "NOTE: ${B} behavioral source grep(s) in THIS suite — each must be named in the session's fakest-green disclosure."
-  fi
-  echo "STILL A SELF-ASSIGNED LABEL: nothing here proves a check marked \`exec\` executes anything."
-  echo "S122 made this tally honest about NESTING. It did not make the labels EARNED."
-}
+#
+# `print_tally()`/`tally_discloses_nesting()` are ONE SOURCE (S123 fix) — sourced from
+# `scripts/lib-tally.sh` near the top of this file, also sourced by verify-session-122.sh. They
+# used to be byte-duplicated with nothing binding the copies; see that file's header for why that
+# was the same hazard S122 closed for the execution policy and reopened here in the same diff.
 
 # The S121 tally, kept verbatim as the negative control for the fixture. This is the line the QA
 # role read as a complete count of 17 checks while one slot hid 14 more.
 print_tally_s121_shape() {
   echo "CHECK CLASSES — execute-based: $1 · structural grep: $2 · behavioral source grep: $3"
-}
-
-# The predicate: does a tally block disclose that it is not a complete count, and name what it
-# leaves out? Exit 0 = honest.
-tally_discloses_nesting() {
-  local TEXT="$1"; local NESTED_NAME="$2"
-  grep -q "NOT a census of everything that ran" <<<"$TEXT" || return 1
-  grep -q "nested suites (their own checks are NOT counted above)" <<<"$TEXT" || return 1
-  grep -q -- "$NESTED_NAME" <<<"$TEXT" || return 1
-  grep -q "is a FLOOR" <<<"$TEXT" || return 1
-  return 0
 }
 
 # THE FALSIFIABILITY FIXTURE for fix 4.
