@@ -153,6 +153,7 @@ ran, and changed nothing.
   rolls in unitemized). No paid dogfood run.
 - **S122: $0 metered** (interactive). FIVE subagent passes roll in unitemized — one `qa-specialist`
   (~54k) and four `fidelity-reviewer` passes (~80k, ~97k, ~94k, ~105k). No paid dogfood run.
-  **Dogfood staleness is now RED-adjacent: no paid `vajra claude` run since S63.**
+  No paid dogfood run **in this session**; the last one was **S118 ($4.0912, 2026-08-15)** — 4
+  sessions / 4 calendar days ago, confirmed live by `vajra next --dogfood-age`. Staleness 🟢.
 - Cumulative: **~$83.4 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S122 subagents (unknown, and
   no longer small — S122 alone spent ~430k subagent tokens).**
