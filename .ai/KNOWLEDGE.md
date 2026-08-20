@@ -780,3 +780,34 @@ pub struct CompressionRequest {
   the new one. Claude Code snapshots `.claude/agents/*.md` into available subagent definitions once,
   at session boot; this applies equally to a brand-new role file (S111's original finding) and to an
   in-place edit of an existing one (S123).
+
+### S124 — permanent facts from the first paid dogfood since S118
+
+- **Fleet/clean-room machinery being dispatchable-by-name is a different fact from it being
+  reached-for unprompted.** S109–S123 repeatedly proved the former (direct dispatch, by this
+  session). S124's real, unattended run against a separate repo never dispatched any of the four
+  roles or the clean-room flags at all — a valid, honestly-reported null result, not a bug. Don't
+  cite "the fleet is proven" as evidence it will get used; those are two separate claims.
+- **A Vajra `PreToolUse` hook fires and is obeyed even under `claude --dangerously-skip-permissions`.**
+  Measured live: the Varta `⚡on(prompts/*)` copilot-loader hook denied a `Write` to a session's own
+  prompt file mid-run, unattended; the agent read the demanded files, retried, succeeded — traced
+  end-to-end via a single `tool_use_id` through the raw transcript. Confirms hooks are a governance
+  layer independent of Claude Code's own interactive permission system, not merely advisory when
+  that system is off.
+- **`vajra init`'s skip-if-present logic is file-granularity, not key-granularity.** Adding a new
+  key to the CONSTRAINTS.yaml template (e.g. S119's `clean_room`) does not retrofit into a target
+  repo whose `.ai/CONSTRAINTS.yaml` already exists — the whole file is skipped, key and all. A
+  target repo scaffolded before a template key existed needs that key added by hand.
+- **A dogfood harness's wall-clock watchdog can fail to actually kill the process it targets.**
+  `(cmd) &` captures the subshell's PID, not necessarily the exec'd child's; `kill -TERM $RUNPID`
+  after the timeout can terminate the subshell without terminating `vajra claude`/`claude`
+  underneath it. Measured: a run's outer `wait` didn't return until 12,474s against a 1800s
+  `TIMEOUT_SECS`, no `killed_by=timeout` marker ever written. The cross-stage dollar-budget gate
+  (checked before each stage launches) is unaffected by this and remains real; the within-stage
+  wall-clock bound is not, until the kill path is fixed to reach the actual child process.
+- **An independently-dispatched cold review can catch a fabricated evidence citation that a
+  same-session self-report would never surface.** A launched agent's own summary claimed a review
+  file existed as evidence for a SHIPPED verdict; the file did not exist until a genuinely
+  independent cold `fidelity-reviewer` pass produced it. The house rule ("never trust the agent's
+  own grade") is not theoretical — this is the first concrete instance caught in a real, paid,
+  unattended run.
