@@ -71,15 +71,15 @@ of it operate on a real task chitra's own roadmap actually needs.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
-- step 7 — done: <sha>
-- step 8 — done: <sha>
-- step 9 — done: <sha>
+- step 1 — done: 033e5e2
+- step 2 — done: 70bb872
+- step 3 — done: da79cdd
+- step 4 — done: a601cb9
+- step 5 — done: b38d292
+- step 6 — done: 77f07f8
+- step 7 — done: 0d61702
+- step 8 — done: 77f07f8
+- step 9 — done: 3d60e85
 
 **Record a real commit sha for every step.** Prose in place of a sha breaks `git cat-file` and goes
 Coder-dark (the S119 defect, hit again at S122 until corrected).

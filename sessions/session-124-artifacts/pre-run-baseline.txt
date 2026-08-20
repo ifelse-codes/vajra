@@ -1,0 +1,41 @@
+=== dogfood-age (pre-run) ===
+=== dogfood age (derived from git — not from STATE.md) ===
+  last dogfood session : 118
+  date (git-derived)   : 2026-08-15
+  cost (authoritative) : $4.0912
+  receipt file         : receipt.stderr.txt
+  sessions since       : 5 (S118 → current S123)
+  calendar days since  : 4 day(s)
+=== stations 124 (pre-run) ===
+=== session 124 — the pipeline team ===
+
+  ✓ Analyst   framed what to build
+  — Architect no design recorded yet
+  ✓ Planner   mapped a plan to the goal
+  — Coder     no code committed yet
+  — QA        checks not run yet
+  — Demo-er   no demo yet
+  ✓ Releaser  shipped it
+  — Reviewer  no sign-off yet
+
+=== stations: pipeline advance for session 124 ===
+  [PASSED] Analyst   WHAT   — substantive `## Delta`
+  [ABSENT] Architect DESIGN — not design-significant
+  [PASSED] Planner   HOW    — plan covers all criteria
+  [ABSENT] Coder     DID    — steps 1, 2, 3, 4, 5, 6, 7, 8, 9 not recorded
+  [ABSENT] QA        WORKS  — no verify script recorded
+  [ABSENT] Demo-er   SHOW   — no demo script recorded
+  [PASSED] Releaser  SHIP   — branch merged, main synced, locals pruned
+  [ABSENT] Reviewer  REVIEW — no review artifact
+
+  3 of 8 stations passed (derived from each gate's evidence — read-only, nothing executed)
+=== chitra HEAD ===
+2057f48bccfd50096ab8be0d87cf4cd769e3f0a9
+=== vajra binary sha256 ===
+0fc44d2c6178a48398013ab1b875c3f0749dff6fc2a669e176fd8eea2e1e9872  target/release/vajra
+=== claude --version ===
+2.1.183 (Claude Code)
+
+=== correction: PATH vajra was STALE (S118-era, sha 1c736a16...) ===
+installed current build via 'cargo install --path . --force' before launch
+PATH vajra now: c3990ffbffb37585f92322be564b262b6a50b498335c0333c2adedc87fcda23d  /Users/suman/.cargo/bin/vajra

@@ -1,0 +1,97 @@
+# chitra Session 12 — reference-lock the bar chart to the shared design language
+
+## 0. Governance preamble (read before you touch anything)
+
+You are running inside `/Users/suman/playground/chitra`, a **Vajra-governed repo**.
+
+1. STOP and read, in order: `.ai/AGENTS.md`, `.ai/SESSION`, `.ai/SESSION-BOOT.md`, `.ai/TASK.md`,
+   `.ai/STATE.md`, `.ai/CONSTRAINTS.yaml`. Obey them. They outrank convenience. Note:
+   `.ai/CONSTRAINTS.yaml` now carries a `verify.clean_room` key, and `.claude/agents/` now holds
+   four role definitions (`researcher`, `fidelity-reviewer`, `plan-advisor`, `qa-specialist`) — use
+   any of it if it is genuinely useful to this task; do not use it just because it is there.
+2. This is **chitra session 12**. `git checkout -b session-12-bar-chart-lock` from `main` **first**.
+   Never work on `main`.
+3. Your **first deliverable** is `prompts/12-task-bar-chart-lock.md`, written from this brief
+   (chitra's rules require the session prompt file to exist, with `## Plan` steps carrying
+   `covers: N` markers and a `## Design` marker).
+4. Commits require the un-forgeable marker: `VAJRA_ALLOW_COMMIT=12 git commit ...`. Max 3 files per
+   atomic commit. Never `--no-verify`.
+5. **Do NOT push. Do NOT open a PR. Do NOT publish anything.** Finish locally on the branch and
+   stop. The founder reviews the output in a browser before anything leaves this machine.
+6. No new external dependencies.
+
+## 1. Goal
+
+Sessions 09 and 10 locked chitra's design language for the circular (pie/donut), area, and line
+chart families — recorded as `### LOCKED:` sections in `packages/core/README.md`. The **bar chart
+still does not carry it**: `packages/core/src/charts/bar.ts` uses raw rainbow `theme.colors[s % n]`
+per series, a plain solid `└─` axis (no dashed panel frame, no eyebrow row), no `+` axis ticks, and
+no per-series MIN/MAX/AVG/LAST summary. Bring `bar()` up to the same locked language the other three
+families already carry, then LOCK it.
+
+## 2. Context — the shared language you are extending (read the existing LOCKED sections first)
+
+Read `packages/core/README.md`'s `## Design Style` section and all three existing `### LOCKED:`
+sections (circular, area, line) in full before writing any code — they are the actual spec here,
+not this prompt. In summary, every locked family shares:
+
+- **One accent hue + grey tone ramp**, never rainbow color per series. The accent is spent once
+  (biggest/primary value); everything else recedes onto the tone ramp
+  (`#ECECEF → #C6C6CE → #A4A4AE → #6A6A75`).
+- **Series identity via tone + glyph/texture, not separate bright hues**, in monochrome especially.
+- **Dashed panel frame** (`┌╌…╌┐`), **eyebrow row** (uppercase, letter-spaced), `+` axis ticks,
+  `│` y-guide — the shared panel chrome every locked chart uses.
+- **Per-series summary row(s)**: MIN / MAX / AVG / LAST (or the closest sensible analog for bars),
+  right-anchored, echoing the sparkline-panel pattern used by line/area.
+- **Auto-scale to the data**, empty cells are spaces (never phantom fill or blank braille).
+
+Also check `design-reference/tui-chart.html` for any bar-chart-specific visual cues before
+inventing new conventions.
+
+## 3. Scope (bounded — read this before starting)
+
+- **`bar()` only** (`packages/core/src/charts/bar.ts`). Do **not** touch `horizontalBar.ts`,
+  `sparkline.ts`, or `histogram` in this session — those are separate future work, named but not
+  started here.
+- **Do NOT change** the circular, area, or line chart output — S09/S10 are LOCKED. This session
+  extends the language, it does not revise it.
+- If you run short on time/budget, land the terminal (block/ascii) renderer fully before touching
+  the shared `SVG`/web model, and state plainly what you did not reach.
+
+## 4. Deliverables
+
+- `bar()`'s block/ascii output carries: one accent + tone ramp (not per-series rainbow), dashed
+  panel frame + eyebrow row, `+` axis ticks, per-series summary row(s), auto-scaled y-range,
+  empty-cells-are-spaces.
+- If `bar()` shares a model with an SVG/web renderer (check for a `BarChartModel` or similar,
+  mirroring `LineChartModel`), keep both renderers in sync from one source — do not hand-duplicate.
+- `packages/core/README.md` gains `### LOCKED: bar chart — session 12 design`, same shape as the
+  three existing LOCKED sections, describing what must not change going forward.
+- Sync the new locked fact into `.ai/KNOWLEDGE.md`.
+- Tests updated for the new visual contract (accent/tone-ramp, panel chrome, summary rows); docs
+  gallery regenerated if one exists; verify/demo scripts updated; session 12 summary written.
+
+## 5. Acceptance criteria (numbered, testable)
+
+1. `bar()`'s terminal output (block and ascii renderers) uses one accent hue + grey tone ramp for
+   series identity — no raw `theme.colors[s % n]` rainbow assignment remains.
+2. `bar()`'s panel carries the same dashed frame + eyebrow row + `+` axis ticks as the locked
+   line/area charts (or a stated, justified reason why bar's chrome must differ).
+3. A per-series summary row (MIN/MAX/AVG/LAST or the closest honest analog for discrete bars) is
+   present under the chart.
+4. `packages/core/src/charts/circular*.ts`, `area.ts`, `line.ts` output is **byte-identical to
+   `main`** — nothing locked was touched.
+5. `### LOCKED: bar chart — session 12 design` exists in `packages/core/README.md`, following the
+   shape of the three prior LOCKED sections; `.ai/KNOWLEDGE.md` reflects the same fact.
+6. `pnpm --filter @chitra/core run test` and `pnpm --filter @chitra/core run typecheck` are green.
+7. `scripts/verify-session-12.sh` exits 0 and `scripts/demo-session-12.sh` exits 0 (built from the
+   repo's templates, artifacts under `.ai/verify/session-12/`).
+8. `sessions/session-12-summary.md` maps EVERY numbered criterion above to
+   SHIPPED / PARTIAL / NOT-BUILT with evidence, states what was not built, and names the fakest
+   green. An independent cold fidelity review lands at `sessions/session-12-review.md`.
+
+## 6. Close
+
+Stop when the branch is complete locally. **No push, no PR.** Report: what shipped, what did not,
+the fakest green, and the exact command to see a rendered bar chart (terminal `bar()` call is
+enough — a browser is not required for this family unless you built a web/SVG path).

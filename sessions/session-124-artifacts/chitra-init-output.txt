@@ -1,0 +1,59 @@
+vajra init — scaffolding .ai/ workflow
+
+Project name: First session goal: 
+Maturity levels:
+  L1 (Report) — hooks log violations but never block
+  L2 (Gated)  — hooks can reject, human approval required [default]
+  L3 (Auto)   — auto-advance, strict enforcement
+Maturity level [L1/L2/L3]:   skip   .ai/AGENTS.md
+  skip   .ai/SESSION
+  skip   .ai/SESSION-BOOT.md
+  skip   .ai/TASK.md
+  skip   .ai/STATE.md
+  skip   .ai/CONSTRAINTS.yaml
+  skip   .ai/KNOWLEDGE.md
+  skip   .ai/ROADMAP.md
+  skip   CLAUDE.md
+  skip   AGENTS.md
+  skip   .cursorrules
+  skip   .gitignore
+  skip   darshan/SKILL.md
+  skip   reviewer/SKILL.md
+  skip   .claude/settings.json (Vajra hooks already present)
+  skip   .ai/hooks/hook-session-start.sh
+  skip   .ai/hooks/hook-copilot-loader.sh
+  skip   .ai/hooks/hook-copilot-murmur.sh
+  skip   .ai/hooks/hook-session-guard.sh
+  skip   .ai/hooks/hook-publish-guard.sh
+  skip   .ai/hooks/hook-commit-guard.sh
+  skip   .githooks/pre-commit
+  skip   .githooks/pre-push
+  skip   scripts/verify-session-template.sh
+  skip   scripts/demo-session-template.sh
+  skip   scripts/verify-closeout.sh
+  skip   prompts/01-task-kickoff.md
+  skip   prompts/00-task-brownfield-onboarding.md
+  create .claude/agents/researcher.md
+  create .claude/agents/fidelity-reviewer.md
+  create .claude/agents/plan-advisor.md
+  create .claude/agents/qa-specialist.md
+
+Created 4 files, merged 0, skipped 28.
+  skip   core.hooksPath already set to '.githooks' (left as-is)
+
+Existing codebase detected → session 00 is a guided onboarding:
+  study the repo, fill .ai/KNOWLEDGE.md + .ai/STATE.md with reality,
+  then start feature work in session 01.
+  Brief: prompts/00-task-brownfield-onboarding.md
+
+▶ See it work — a 5-second simulation against your new project:
+
+    [vajra co-pilot] ⚡on(cmd:git commit) fired — load these before continuing:
+        - .ai/STATE.md
+      why: STATE.md is a snapshot of reality — confirm it matches before you commit
+      Open them, then retry. (Set maturity: L1 in CONSTRAINTS.yaml for advisory-only.)
+
+↑ That's Vajra guiding your agent: the moment it runs `git commit`, the
+  right context is surfaced first — automatically, for every guarded action.
+
+Next: git add .ai/ && start a guided session →  vajra claude

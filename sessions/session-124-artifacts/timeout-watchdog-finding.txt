@@ -1,0 +1,19 @@
+=== S124 anomaly: wall-clock timeout watchdog did NOT enforce ===
+harness TIMEOUT_SECS default: 1800 (30 min)
+outer wait(RUNPID) elapsed_secs (verdict.txt): 12474  (~3h28m — 6.9x the stated cap)
+Claude Code's own internal duration_ms (run-result.json): 1661962 ms (~27.7 min)
+exit-code.txt has NO 'killed_by=timeout' line -> the SIGTERM/SIGKILL watchdog branch never fired/completed
+run-result.json result field: API Error: Unable to connect to API (ConnectionRefused)
+run-result.json is_error: true (authoritative — this run genuinely failed, matching outer exit_code=1)
+num_turns: 69   cost: $3.2985 (real, under the $5 cap)
+
+Most likely cause: this machine went idle/lost network for hours between the internal ~28min
+of active work and the wrapper actually returning; the wall-clock watchdog measures real time,
+which kept advancing through the stall, but the kill(-TERM) logic did not actually terminate
+the process (the 'killed_by=timeout' marker is absent), so nothing capped it structurally.
+
+Consequence: the harness's documented safety property ('a single stage is bounded by
+TIMEOUT_SECS wall clock') did NOT hold in this run. The dollar cap held only because the
+actual work done before the connection error happened to cost $3.30 < $5 — not because any
+mechanism enforced it. A larger task under this same failure mode could have run past $5
+with nothing stopping it until the process's own eventual, uncontrolled end.
