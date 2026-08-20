@@ -1,0 +1,5 @@
+/Users/suman/playground/chitra/.claude/agents
+/Users/suman/playground/chitra/.claude/agents/researcher.md
+/Users/suman/playground/chitra/.claude/agents/plan-advisor.md
+/Users/suman/playground/chitra/.claude/agents/fidelity-reviewer.md
+/Users/suman/playground/chitra/.claude/agents/qa-specialist.md
