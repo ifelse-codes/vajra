@@ -1,0 +1,23 @@
+=== dogfood-age (post-run) ===
+=== dogfood age (derived from git — not from STATE.md) ===
+  last dogfood session : 118
+  date (git-derived)   : 2026-08-15
+  cost (authoritative) : $4.0912
+  receipt file         : receipt.stderr.txt
+  sessions since       : 5 (S118 → current S123)
+  calendar days since  : 5 day(s)
+=== chitra git state (post-run) ===
+chitra branch: session-12-bar-chart-lock
+chitra HEAD: 2057f48bccfd50096ab8be0d87cf4cd769e3f0a9
+chitra main : 2057f48bccfd50096ab8be0d87cf4cd769e3f0a9
+ M .ai/CONSTRAINTS.yaml
+ M .ai/KNOWLEDGE.md
+ M packages/core/README.md
+ M packages/core/src/charts/bar.ts
+ M packages/core/tests/bar.test.ts
+?? .claude/agents/
+?? prompts/12-task-bar-chart-lock.md
+?? scripts/demo-session-12.sh
+?? scripts/verify-session-12.sh
+?? sessions/session-12-review.md
+?? sessions/session-12-summary.md
