@@ -1,0 +1,3 @@
+exit_code=1
+elapsed_secs=12474
+run_jsonl=/Users/suman/.claude/projects/-Users-suman-playground-chitra/36ce4e18-ba09-4e15-98ee-9913adf6b3f5.jsonl
