@@ -1,0 +1,10 @@
+ M .ai/CONSTRAINTS.yaml
+ M .ai/KNOWLEDGE.md
+ M packages/core/README.md
+ M packages/core/src/charts/bar.ts
+ M packages/core/tests/bar.test.ts
+?? .claude/agents/
+?? prompts/12-task-bar-chart-lock.md
+?? scripts/demo-session-12.sh
+?? scripts/verify-session-12.sh
+?? sessions/session-12-summary.md
