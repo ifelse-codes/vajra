@@ -55,6 +55,10 @@ governance marker this project built specifically to catch sessions like this on
 
 **Verdict:** ACCEPT
 
+**Review-Inputs-SHA:** `219ef9533638d1eb49aebc3c0fd2e30a02f1c90a685b1d8585de7c8dd1d4f11a` — computed via
+`scripts/verify-closeout.sh --inputs-sha 124` after the Execution shas were filled in; two
+consecutive runs agreed before embedding.
+
 This is a faithful build of the whole contract, not a narrow slice dressed up as the whole. All 9
 criteria are independently verifiable against raw evidence, not builder prose; the two PARTIALs
 match independent re-derivation; the headline finding (fleet never engaged) is reported plainly as
