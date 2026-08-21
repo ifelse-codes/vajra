@@ -517,3 +517,115 @@ specific way `qa-specialist` could cheat (repair the product, then report the re
 original). It does not establish that no executor can fake a pass by any means, and the property
 actually evidenced by both live runs remains INDEPENDENCE, not execution. Never restate the S121
 claim as measured because this fence now exists.
+
+---
+
+## S126 addendum — the LAST FIVE roles, and the roster closed at nine
+
+S109 shipped one role and named scope creep as the key risk; S114, S116 and S121 each added
+exactly one more, deliberately. This addendum records adding **five in one pass** — the roster's
+completion — and why that was affordable here when it would not have been at S114.
+
+**Why one pass.** S114, S116 and S121 each traced the same fact independently: a new role is one
+`fleet::ROLES` entry, and `vajra init`, `render_subagent_definition`, `vajra next --role`, the
+handoff contract and the S113 station counter all iterate the table already. Three sessions'
+worth of evidence that the unit of work is one table entry, tested here at n=5 instead of n=1.
+**Traced, not asserted:** this session's diff changes `src/fleet/mod.rs` (the table and its tests)
+and adds five rendered `.claude/agents/*.md` files. No dispatch code, no CLI surface, no gate, no
+new command, no change to `K of 8`.
+
+### The five keys, and the rejected alternative for each
+
+The STATION-vs-ROLE collision has now been resolved five more times, the same way S114 (Reviewer),
+S116 (Planner) and S121 (QA) resolved it: **the role key is never the station's own word.** `K of
+8` narrates the stations; a role sharing a station's word would make one word mean two things in
+the same report. A key that shadows a station name is a REJECT condition here, not a nit.
+
+| station (`K of 8`) | role key registered | rejected alternative — and why |
+|---|---|---|
+| Analyst (`src/analyst/mod.rs`) | **`requirements-analyst`** | `analyst` — the bare station word. |
+| Architect (`src/architect/mod.rs`) | **`design-advisor`** | `architect` — the bare station word. `solution-architect` also rejected: it still reads as the station, and "solution" adds no meaning. |
+| Coder (`src/coder/mod.rs`) | **`implementation-advisor`** | `coder` — the bare station word. `implementer` also rejected: the name would assert execution the grant deliberately withholds. |
+| Demo-er (`src/demoer/mod.rs`) | **`demo-producer`** | `demoer` / `demo` — the station's word, and `demo` would also collide with the `--demo` flag's noun. |
+| Releaser (`src/releaser/mod.rs`) | **`release-coordinator`** | `releaser` — the bare station word. `release-engineer` also rejected: it implies the role performs the release, and on this team every push, merge and prune stays a human act. |
+
+Each key is asserted in both directions by
+`fleet::tests::the_last_five_roles_are_registered_with_non_colliding_keys`: the role resolves, and
+the station word does **not** resolve as a role.
+
+### Each role's contract is a marker its station's gate ALREADY parses
+
+The S116 contract shape, applied five times. No role gains a new parsing or grading path, and
+**every role proposes; none authors the recorded marker section**:
+
+- `requirements-analyst` → the four required prompt sections, the `Status:` line, the `## Delta`
+  bullets' OpenSpec markers, and the exactly-three ranked candidates the Options gate counts. It
+  is told never to propose `Status: APPROVED` — the human's signature is not a role's to draft.
+- `design-advisor` → `design-significant: yes|no` plus a `## Design` citing a record that EXISTS
+  under `docs/adr/` or `docs/decisions/`. Its read tools are load-bearing rather than incidental:
+  they are how it checks a record is real before citing it, which is the exact hole S67 closed.
+- `implementation-advisor` → `step N — done: <sha>` in `## Execution`, every sha resolved against
+  git. It is forbidden to propose a sha or to suggest recording a step done before its commit
+  exists.
+- `demo-producer` → the four elements the Demo-er gate scans in the LIVE re-run output
+  (`demo:header`, `demo:cases`, `demo:summary_table`, `demo:before_after`), with the station's own
+  disclosed floor stated to the role: the scan proves the script printed the element, never that
+  what it printed is true.
+- `release-coordinator` → the three re-derived contract keys `require_merged_prior`,
+  `require_main_synced`, `require_pruned`. It cannot run git, and its prompt makes the consequence
+  a rule: never report ancestry or sync state as if it had been observed (the S124 failure, in the
+  role most exposed to it).
+
+### The tool grants — the one real decision, resolved read-only
+
+Four of the five are read-only without argument. **`implementation-advisor` is the fork**: it is
+the role most obviously "supposed" to write.
+
+**Decision: read-only (`Read, Grep, Glob`). No `Write`, no `Edit`, no `Bash`.**
+
+The argument against granting it write access is that the grant would reverse two things in the
+same session that ships it: S123 *narrowed* the only executing role's grant after measuring that
+the harness enforces `tools:` mechanically, and the S122 addendum *retracted* the executor thesis
+outright — two live `qa-specialist` runs found seven real defects and **every one came from
+independent reading**, not from execution. Granting a second role write access on the strength of
+a thesis this repo has already retracted would be adding capability against its own evidence.
+
+The argument for it — that an advisor who cannot apply the change adds a hop — is real and is not
+dismissed. It is recorded as a **separate, founder-gated decision**: "grant the implementation
+role write access" needs an explicit founder yes in chat, on its own, with its own fence designed
+first (the S123 clean room is the obvious starting point). It was not taken here, and this
+session shipped no deviation from that.
+
+Consequence, asserted in the same test: **five roles added, zero new grants of `Bash`.** The
+execution allowlist is still exactly one role, and the three-copy execution policy
+(`src/fleet/mod.rs` + the two shell guards bound by `verify-session-122.sh`) did not move.
+
+### One file outside the fleet was touched, and why
+
+`scripts/verify-session-121.sh` asserted `N = 4` scaffolded agent files. That pin measured the
+roster SIZE of its day, not the check's substance — which is that the repo's committed copies are
+byte-identical to what `vajra init` renders and that the two sets are exactly equal, both
+count-independent. The pin went red on a roster that grew as designed, and
+`verify-session-122.sh` **re-runs the S121 suite live**, so the breakage chained into a second
+green suite. The pin is now a non-vacuity floor (`-ge 4`); nothing else in that suite changed, and
+both suites were re-run green afterwards. (The older `verify-session-114.sh` and
+`verify-session-116.sh` carry the same class of pin at 2 and 3; they are not in any live chain and
+were left alone — recorded here so the decay is on the record rather than discovered later.)
+
+### Residual risk — stated, not softened
+
+**The roster is complete. Nothing depends on it.** S125 established, and this session does not
+re-litigate, that the four existing roles are never reached for on real work: the shipped scaffold
+never asks for a role, and **no gate anywhere consumes a handoff**. Five more roles inherit that
+unchanged. Nine roles that nothing depends on is nine decorations, and the completeness of the
+roster is **not** evidence that the fleet works.
+
+What S126 claims is the **done** half of the founder's gate ("the fleet is done AND working"). The
+*working* half — S116's own unpicked candidate C (wire handoffs into a blocking gate) and S125's
+F2 (a dispatch receipt) — is not built here and must not be read into this addendum.
+
+Second residual, smaller and specific: the five dispatch proofs each show the runtime resolving a
+role by name when a parent was **told** to dispatch it. That is the wire, not the demand. Nothing
+here shows a session reaching for a role unprompted, and per S124 a dispatched agent's own report
+is never the evidence — which is why the evidence recorded is two runtime-written files agreeing
+on a tool-call id neither the agent nor Vajra chose.
