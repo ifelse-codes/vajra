@@ -1,0 +1,15 @@
+[
+  {
+    "type": "tool_use",
+    "id": "toolu_01SfgRfiAhabAdGMAYcPkMfB",
+    "name": "Agent",
+    "input": {
+      "subagent_type": "requirements-analyst",
+      "description": "S127 goal and acceptance criteria",
+      "prompt": "You are proposing the governed prompt intake for session 127 of the Vajra project.\n\nSESSION 127 SUBJECT (fixed by the founder): Make a fleet handoff something a gate actually consumes. Today the SDLC agent fleet has all 8+ roles registered/scaffolded (S126 finished registering the last five fleet roles), but NO gate depends on any role \u2014 the roles produce advisory briefs that nothing downstream is required to consume. S127 must close that: make at least one station's/role's handoff an input that a gate blocks on, so a role's output becomes load-bearing rather than advisory.\n\nYour job: propose the Goal and exactly THREE testable acceptance criteria for session 127. Do NOT author the prompt file itself and do NOT do the implementation.\n\nGround yourself in the actual repo before proposing:\n- Read .ai/AGENTS.md, .ai/STATE.md, .ai/ROADMAP.md, .ai/CONSTRAINTS.yaml, .ai/KNOWLEDGE.md to understand the constitution, the current pipeline/gate architecture, and hard rules (max 1 story / 3 files per commit / 2 assumptions / ~2h cap, etc.).\n- Look at how existing gates work: the pattern of `vajra next --check-*` gates wired into `--advance`, existence-gating of recorded markers, VAJRA_SKIP_*_GATE bypass env vars. Look under src/ for the station modules (analyst, architect, planner, coder, qa, demo, releaser, reviewer) and how their gates block.\n- Look at how the fleet roles are registered/scaffolded (S126 work) and where a \"handoff\" between roles currently lives (or doesn't).\n- Check verify-closeout.sh / scripts to understand the falsifiability + attestation expectations for a testable criterion.\n\nConstraints on your proposal:\n- Each acceptance criterion must be independently testable (a script or command with a concrete pass/fail), not a subjective judgment.\n- Respect the ~2h / small-diff session budget \u2014 scope for ONE real gate-consumes-a-handoff mechanism, not the whole fleet.\n- Prefer the house pattern (existence-gated recorded markers, a gate that BLOCKS with a nonzero exit and has an escape hatch, a falsifiability fixture that goes red for the RIGHT reason).\n\nReturn a brief with: the proposed Goal (one or two sentences) and the three numbered testable acceptance criteria. Keep it tight \u2014 this brief will be relayed verbatim to the founder."
+    },
+    "parent_timestamp": "2026-08-21T11:18:21.219Z",
+    "parent_sessionId": "1168e5a5-ad73-4b3a-a46e-cb5f0f9944fe",
+    "cwd": "/Users/suman/playground/vajra"
+  }
+]
