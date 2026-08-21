@@ -54,7 +54,7 @@ briefs were landed as governed handoffs through the unchanged S109 path.
 
 ## Numbers
 
-- 341 lib tests green · `verify-session-126.sh` **17 checks, ALL GREEN** (12 exec · 3 struct ·
+- 340 lib tests green · `verify-session-126.sh` **17 checks, ALL GREEN** (12 exec · 3 struct ·
   1 behav · 1 nested — the count grew with the post-review evidence rewire and the ignore-rule fix) · `demo-session-126.sh` **7 executed cases, GREEN**.
 - The nested check re-runs `verify-session-122.sh` LIVE, which itself re-runs the S121 suite — the
   chain this session's one out-of-fleet edit could have broken, proven green rather than assumed.
