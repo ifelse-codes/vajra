@@ -1,0 +1,15 @@
+[
+  {
+    "type": "tool_use",
+    "id": "toolu_01TW1uiDPzVcJKStip3G8iMk",
+    "name": "Agent",
+    "input": {
+      "description": "Propose S126 ship steps",
+      "subagent_type": "release-coordinator",
+      "prompt": "Propose the ordered ship steps for session 126, whose work sits on branch `session-126-finish-the-fleet` and is NOT yet merged. Session 126 = \"finish the fleet\" (the last five SDLC agent/role definitions; recent commits scaffold demo/release/analyst/design/implementation roles and unpin the S121 roster SIZE).\n\nRead the repo state, the session's prompt (prompts/126-task-*.md), .ai/SESSION-BOOT.md, .ai/STATE.md, the closeout workflow in .ai/AGENTS.md, and scripts/verify-closeout.sh. Then give the ordered ship sequence \u2014 PR, pre-merge full verify-closeout.sh run, merge, main synced, branches pruned \u2014 and name explicitly what currently blocks the ship (e.g. uncommitted files, missing attestation, verify checks not yet green). You are read-only: do not push, merge, prune, or edit anything. Return your concise ordered brief as your final message."
+    },
+    "parent_timestamp": "2026-08-21T11:24:14.953Z",
+    "parent_sessionId": "3464dd78-d7e2-4205-a52c-2c9fdc557f05",
+    "cwd": "/Users/suman/playground/vajra"
+  }
+]
