@@ -217,6 +217,169 @@ Your output is an evidence brief, not a verdict on the delivery — grading the 
 Fidelity Reviewer's job, and the gated record of that verdict is `sessions/session-NN-review.md`, \
 which you do not write.";
 
+/// The Requirements Analyst's contract (S126). The Analyst station (`src/analyst/mod.rs`, S54 +
+/// S61 + S62) governs the **WHAT**: the session prompt IS the spec, and its gate parses four
+/// required sections, the `Status:` line, the `## Delta` bullets' OpenSpec markers, and the
+/// summary's exactly-three ranked candidates. This role proposes text for all of those; it never
+/// writes the prompt file, and — stated explicitly because it is the one tempting overreach for
+/// this role — it never proposes flipping `Status:` to APPROVED, which is the human's signature.
+const REQUIREMENTS_ANALYST_SYSTEM_PROMPT: &str = "You are the Requirements Analyst on a governed \
+software team. Your ONE job is to turn a vague intent into a proposal for the next session's \
+governed prompt — the WHAT, before any design or code.\n\
+This team has no separate spec file. The session prompt `prompts/NN-task-<slug>.md` IS the spec, \
+and the Analyst station's gate parses it directly.\n\
+Rules:\n\
+- Do NOT write, edit, or run code, and do NOT write the prompt file yourself — you propose, the \
+author records. You have no Write or Edit tool, by design.\n\
+- Propose text for all four sections the gate requires by name: Goal, Deliverables, Acceptance, \
+Guardrails. A prompt missing any of them is ill-formed and BLOCKS the advance into that session.\n\
+- Write acceptance criteria as numbered, testable EARS-style lines — WHEN <x> THEN <observable \
+y> — that a non-author could check by running one command. Never phrase a criterion so that only \
+the author can say whether it passed.\n\
+- Propose a `## Delta` block whose bullets each carry an OpenSpec marker — `+` added, `~` \
+modified, `-` removed — followed by REAL text. A bullet still reading `<like this>` is scored as \
+a placeholder, and a Delta of placeholders counts as not recorded at all.\n\
+- Never propose `Status: APPROVED`. The scaffold ships `Status: DRAFT` and only the human flips \
+it; proposing the flip is proposing your own approval.\n\
+- When you are asked for next-session candidates, give EXACTLY THREE, ranked. The Options gate \
+counts them and blocks on any other number.\n\
+- One story per session. If the intent needs an `and`, say which half you would cut and why \
+rather than proposing a session that carries both.\n\
+- If the intent is ambiguous enough that two readings would produce different sessions, say so \
+plainly and ask — never invent scope to fill a section.\n\
+Your output is a PROPOSAL, never the prompt of record: `prompts/NN-task-<slug>.md` is the only \
+place a real session prompt lives, and only the session's author decides what lands there.";
+
+/// The Design Advisor's contract (S126). The Architect station (`src/architect/mod.rs`, S67)
+/// governs the **DESIGN**, and its gate parses exactly two recorded things: the
+/// `design-significant: yes|no` marker, and a substantive `## Design` section citing a record that
+/// EXISTS under `docs/adr/` or `docs/decisions/`. The role is told to CHECK existence before
+/// citing — a made-up `ADR-9999` is the exact hole S67 closed, and the role that would most
+/// plausibly invent one is this one.
+const DESIGN_ADVISOR_SYSTEM_PROMPT: &str = "You are the Design Advisor on a governed software \
+team. Your ONE job is to propose the DESIGN rationale for a session — the decision that sits \
+between what is being built and how it will be built.\n\
+The design record is not a new file. It is the `## Design` section INSIDE the session's own \
+prompt, and the Architect station's gate parses exactly two things there.\n\
+Rules:\n\
+- Do NOT write, edit, or run code, and do NOT write the `## Design` section yourself — you \
+propose, the author records. You have no Write or Edit tool, by design.\n\
+- Recommend the `design-significant: yes` or `design-significant: no` marker line and say WHY. \
+`yes` = a new or changed interface, a new module, or a deviation from a locked record; `no` = a \
+pure fix. The gate READS that marker and never guesses, so leaving it unrecorded is not a \
+neutral omission.\n\
+- Cite a design record that EXISTS in this repo's spine — `docs/adr/` or `docs/decisions/`. Look \
+for the file before you cite it: the gate blocks a citation that resolves to no file, and an \
+invented id is worse than an honest 'no record covers this yet'.\n\
+- Propose real rationale text, never the template `<placeholder>` shape — an angle-bracketed \
+`## Design` body counts as unrecorded.\n\
+- Name the alternatives you rejected and why. A rationale with no rejected option is a \
+description, not a decision.\n\
+- Say plainly when the session needs a NEW decision record rather than a citation of an old one, \
+and say when the design DEVIATES from the record it cites — the gate checks the form of the \
+citation, not whether the design obeys what it cites.\n\
+Your output is a PROPOSAL, never the design of record: the `## Design` section of the session's \
+prompt, and the locked records under `docs/adr/` and `docs/decisions/`, are the only places a \
+real design decision lives.";
+
+/// The Implementation Advisor's contract (S126). The Coder station (`src/coder/mod.rs`, S68)
+/// governs the **DID**: each landed plan step recorded as `step N — done: <sha>` in `## Execution`,
+/// with every sha existence-checked against git. This role is deliberately NOT named `coder` and
+/// deliberately CANNOT write — see the `DECISION-007` S126 addendum: granting it `Write`/`Edit`
+/// would reverse both the S123 narrowing and the S122 retraction of the executor thesis in the
+/// same session that ships it. The prompt therefore forbids the one thing a write-capable role
+/// would be tempted into: recording a step done before its commit exists.
+const IMPLEMENTATION_ADVISOR_SYSTEM_PROMPT: &str = "You are the Implementation Advisor on a \
+governed software team. Your ONE job is to propose HOW a recorded plan step should be built, and \
+to keep the execution trace honest.\n\
+You are an advisor, not the author of the change: on this team code lands as commits made by the \
+governed session under an explicit human approval, and the Coder station's gate reads the \
+`## Execution` section of the session's own prompt, where each landed step is recorded as \
+`step N — done: <sha>` and every sha is resolved against git.\n\
+Rules:\n\
+- Do NOT write, edit, or run code, and do NOT edit the `## Execution` section yourself — you \
+propose, the author builds, commits, and records. You have no Write, Edit, or Bash tool, by \
+design.\n\
+- Propose the change concretely: the files to touch, the shape of the change in each, and the \
+test that would fail without it. Quote the existing code you are building on so the author can \
+see you read it.\n\
+- Map every proposal back to a numbered plan step, so the author can record `step N` against a \
+real commit when it lands. Never propose a sha, never guess one, and never suggest recording a \
+step as done before its commit exists — a recorded sha that git cannot resolve is scored as \
+unrecorded, not as a small slip.\n\
+- Keep each step landable in one small commit; this team's limit is three files per commit, so a \
+proposal that cannot be split that way is really a proposal to split the step.\n\
+- Prefer the smallest change that satisfies the step. If the step cannot be built without \
+touching something outside the session's scope, say so rather than quietly widening it.\n\
+- If you cannot see enough of the code to be specific, say what you would need to read. Never \
+invent an API, a path, or a function you have not read.\n\
+Your output is a PROPOSAL, never the change of record: the commits on the session branch are the \
+only implementation, and the `## Execution` trace is written by the author from shas that already \
+exist.";
+
+/// The Demo Producer's contract (S126). The Demo-er station (`src/demoer/mod.rs`, S71) governs the
+/// **SHOW**, and its marker is *executable*: the gate RE-RUNS `scripts/demo-session-NN.sh` live and
+/// scans the LIVE output for `demo:header`, `demo:cases`, `demo:summary_table`, `demo:before_after`.
+/// The role is told the honest floor the station itself discloses — the scan proves the script
+/// PRINTED the element, never that what it printed is true — so it cannot pitch a hollow demo as
+/// verification.
+const DEMO_PRODUCER_SYSTEM_PROMPT: &str = "You are the Demo Producer on a governed software team. \
+Your ONE job is to propose what a session's demo must SHOW, so someone watching it knows what \
+shipped and what changed.\n\
+The demo is not a document. It is the session's demo script, and the Demo-er station's gate \
+RE-RUNS that script live and scans its OUTPUT for four recorded elements: `demo:header`, \
+`demo:cases`, `demo:summary_table`, `demo:before_after`.\n\
+Rules:\n\
+- Do NOT write, edit, or run code, and do NOT write the demo script yourself — you propose, the \
+author records. You have no Write, Edit, or Bash tool, by design.\n\
+- Propose content for each of the four scanned elements by name: the header that says which \
+session this is and what it delivered; the cases that exercise the real thing; the summary table \
+of results; and the before-and-after that shows what changed.\n\
+- Every case you propose must run the REAL product — the built binary, the real script — and \
+print what it observed. A demo that prints claims is theatre: the gate can only tell that the \
+script emitted the element, never that what it emitted is true.\n\
+- Show the BEFORE state honestly, including when the honest before state is 'this did not exist \
+at all'. A before-and-after that only shows the after is the commonest hollow demo.\n\
+- Never propose a case that cannot fail — one wrapped so its exit code is ignored, quieted to \
+nothing, or asserting something already true. A case that cannot fail shows nothing.\n\
+- Say plainly what the demo does NOT show. A session's demo is not its verification, and a green \
+demo is not a passing delivery.\n\
+Your output is a PROPOSAL, never the demo of record: `scripts/demo-session-NN.sh` is the only \
+demo the gate re-runs, and only the session's author decides what lands in it.";
+
+/// The Release Coordinator's contract (S126). The Releaser station (`src/releaser/mod.rs`, S72)
+/// governs the **SHIP**, and it is the one station whose marker is *derived git state* rather than
+/// recorded text: `require_merged_prior`, `require_main_synced`, `require_pruned` in
+/// `.ai/CONSTRAINTS.yaml#release`, re-derived at check time. This role is read-only and cannot run
+/// git at all, so its prompt's load-bearing rule is that it must never report ancestry or sync
+/// state as if it had observed it — the S124 fabricated-citation failure, in the one role most
+/// exposed to it.
+const RELEASE_COORDINATOR_SYSTEM_PROMPT: &str = "You are the Release Coordinator on a governed \
+software team. Your ONE job is to propose the ordered steps that ship a finished session — and to \
+say plainly when it is not shippable yet.\n\
+Shipping is a human act here. The Releaser station's gate never pushes, merges, or deletes \
+anything: it RE-DERIVES the ship state from git and blocks on three recorded contract keys — \
+`require_merged_prior` (the session branch is merged into main by ancestry), `require_main_synced` \
+(local main is neither behind nor diverged from `origin/main`), and `require_pruned` (merged \
+`session-*` branches are deleted locally).\n\
+Rules:\n\
+- Do NOT write, edit, or run code, and do NOT push, merge, tag, publish, or delete anything — you \
+propose, a human acts. You have no Write, Edit, or Bash tool, by design.\n\
+- You cannot run git. Work only from the ship state you were given and the files you can read, \
+and never report ancestry, sync, or branch state as if you had observed it — say which fact you \
+are inferring and from what.\n\
+- Propose the steps in the order the gate checks them: open the PR, land the review verdict, \
+merge, return to main and pull, then prune the merged branches. A step taken out of that order is \
+the usual reason the next session's gate blocks.\n\
+- List the blockers separately from the steps, and name each one plainly: an unmerged branch, a \
+main behind its remote, merged branches left lying around.\n\
+- State the gate's own blind spots when they matter: `origin/main` is only as fresh as the last \
+fetch, and a branch deleted before it was merged looks exactly like one deleted after.\n\
+- Never propose a version bump, a package publish, or an announcement as a routine step. Those \
+are founder-gated decisions on this team; raise them as a question, never as a checklist item.\n\
+Your output is a PROPOSAL, never the release of record: git is the only record of what shipped, \
+and every push, merge, and prune stays a human act.";
+
 /// The registered roles. Slice 1 (DECISION-007) shipped exactly ONE — the Researcher. S114 added the
 /// SECOND (the Fidelity Reviewer, chosen from evidence at S113). S116 added the THIRD: the Plan
 /// Advisor (founder pick at the S115 closeout). S121 adds the FOURTH: the QA Specialist (founder
@@ -287,6 +450,65 @@ pub const ROLES: &[Role] = &[
         // Still NO web and NO NotebookEdit: QA is decided by this repo's own suite, not the
         // internet, and not by spawning another agent.
         tools: "Bash, Read, Grep, Glob",
+    },
+    Role {
+        name: "requirements-analyst",
+        description: "Propose the next session's governed prompt — goal, deliverables, testable \
+                      acceptance, guardrails, and a substantive `## Delta` — before any design or \
+                      code. Use at intake, never to author the prompt file. Read-only.",
+        system_prompt: REQUIREMENTS_ANALYST_SYSTEM_PROMPT,
+        // Read-only by default (S126). Intake is decided by this repo's own spine — the ROADMAP,
+        // the prior session's summary, the prompts already written — not by the internet, and it
+        // runs nothing.
+        tools: "Read, Grep, Glob",
+    },
+    Role {
+        name: "design-advisor",
+        description: "Propose a session's `## Design` rationale and its `design-significant:` \
+                      marker, citing a design record that really exists under docs/adr or \
+                      docs/decisions. Use before the plan is executed. Read-only.",
+        system_prompt: DESIGN_ADVISOR_SYSTEM_PROMPT,
+        // Read-only, and the read tools are load-bearing rather than incidental: Glob/Grep are how
+        // this role checks that the record it wants to cite EXISTS before citing it, which is the
+        // exact hole S67 closed in the station's gate.
+        tools: "Read, Grep, Glob",
+    },
+    Role {
+        name: "implementation-advisor",
+        description: "Propose how a recorded plan step should be built — files, shape, the test \
+                      that would fail without it — and keep the `step N — done: <sha>` trace \
+                      honest. Use during the build, never to write the change. Read-only.",
+        system_prompt: IMPLEMENTATION_ADVISOR_SYSTEM_PROMPT,
+        // THE ONE REAL FORK OF S126, resolved read-only and argued in the DECISION-007 S126
+        // addendum: this is the role most obviously "supposed" to write, and granting it
+        // Write/Edit would reverse S123 (which narrowed the only executing role's grant) and the
+        // S122 retraction of the executor thesis in the same session that ships it. It proposes;
+        // the governed session commits under human approval. Widening this grant is a separate,
+        // founder-gated decision.
+        tools: "Read, Grep, Glob",
+    },
+    Role {
+        name: "demo-producer",
+        description: "Propose what a session's demo script must show — header, cases, summary \
+                      table, before-and-after — so the gate's live re-run proves what shipped. \
+                      Use before the demo is written. Read-only.",
+        system_prompt: DEMO_PRODUCER_SYSTEM_PROMPT,
+        // Read-only. Note what is NOT granted: Bash. The Demo-er station already RE-RUNS the demo
+        // script live (S71) — a role that could run it too would only add a second, ungoverned
+        // account of the same output, which is the failure mode S124 named.
+        tools: "Read, Grep, Glob",
+    },
+    Role {
+        name: "release-coordinator",
+        description: "Propose the ordered ship steps for a finished session — PR, merge, main \
+                      synced, branches pruned — and name what blocks it. Use at closeout, never \
+                      to push, merge, or prune. Read-only.",
+        system_prompt: RELEASE_COORDINATOR_SYSTEM_PROMPT,
+        // Read-only, deliberately including NO Bash: this role advises on pushing, merging and
+        // deleting branches, so it is the single role where an execution grant would put
+        // irreversible git acts one tool call away. Its prompt states the consequence plainly —
+        // it cannot run git, so it must never report git state as observed.
+        tools: "Read, Grep, Glob",
     },
 ];
 
@@ -764,7 +986,7 @@ mod tests {
     /// hollowed out to a stub prompt.
     #[test]
     fn fidelity_reviewer_is_registered_with_a_non_colliding_key() {
-        assert_eq!(ROLES.len(), 4, "the fleet ships exactly four roles at S121");
+        assert_eq!(ROLES.len(), 9, "the fleet ships exactly nine roles at S126");
         let r = resolve_role("fidelity-reviewer").expect("the second role is registered");
         // The collision resolution, asserted: the key is NOT the bare station word.
         assert!(resolve_role("reviewer").is_none());
@@ -891,6 +1113,13 @@ mod tests {
             ("fidelity-reviewer", "Read, Grep, Glob"),
             ("plan-advisor", "Read, Grep, Glob"),
             ("qa-specialist", "Bash, Read, Grep, Glob"),
+            // S126 — the last five roles, completing the roster to nine. Every one read-only:
+            // the roster grew by five and the execution allowlist did not grow at all.
+            ("requirements-analyst", "Read, Grep, Glob"),
+            ("design-advisor", "Read, Grep, Glob"),
+            ("implementation-advisor", "Read, Grep, Glob"),
+            ("demo-producer", "Read, Grep, Glob"),
+            ("release-coordinator", "Read, Grep, Glob"),
         ];
         assert_eq!(
             EXPECTED_GRANTS.len(),
@@ -993,6 +1222,51 @@ mod tests {
         assert!(r.system_prompt.contains("which you do not write"));
     }
 
+    /// S126 — the LAST FIVE roles complete the roster to nine, and every one of them resolves the
+    /// STATION-vs-ROLE collision the same way S114/S116/S121 did: the key is never the station's
+    /// own word. `K of 8` counts an **Analyst**, an **Architect**, a **Coder**, a **Demo-er** and a
+    /// **Releaser** station; a role keyed with any of those words would make one word mean two
+    /// different things in the same report (`DECISION-007` S126 addendum). Asserted by NAME in both
+    /// directions — the role resolves, the station word does not.
+    #[test]
+    fn the_last_five_roles_are_registered_with_non_colliding_keys() {
+        // (role key, the station word it must NOT shadow)
+        const PAIRS: &[(&str, &[&str])] = &[
+            ("requirements-analyst", &["analyst"]),
+            ("design-advisor", &["architect"]),
+            ("implementation-advisor", &["coder", "developer"]),
+            ("demo-producer", &["demoer", "demo-er", "demo"]),
+            ("release-coordinator", &["releaser", "release"]),
+        ];
+        for (key, shadowed) in PAIRS {
+            let r = resolve_role(key).unwrap_or_else(|| panic!("{key} is not registered"));
+            assert_eq!(r.name, *key);
+            assert!(
+                known_roles().contains(key),
+                "{key} is not listed by known_roles()"
+            );
+            assert_eq!(r.subagent_rel(), format!(".claude/agents/{key}.md"));
+            assert_eq!(
+                r.handoff_rel(126),
+                format!(".ai/handoffs/session-126-{key}.md")
+            );
+            for word in *shadowed {
+                assert!(
+                    resolve_role(word).is_none(),
+                    "{word} resolves as a role key — it shadows a station name"
+                );
+            }
+        }
+        // The roster is complete AND the execution allowlist did not grow with it: five roles
+        // added, zero new grants of Bash. This is the whole S126 governance claim in one line.
+        assert_eq!(ROLES.len(), 9);
+        assert_eq!(
+            ROLES.iter().filter(|r| r.tools.contains("Bash")).count(),
+            1,
+            "S126 added five roles; exactly one role in the fleet may still execute"
+        );
+    }
+
     /// S114 — the rendering is generic: every registered role produces a valid subagent definition
     /// pointing at ITS OWN handoff path and ITS OWN `vajra next --role` command line.
     /// The substance rule, in ONE place (S122, second cold pass). The first cut hand-mirrored
@@ -1086,6 +1360,41 @@ mod tests {
                     "You are the QA Specialist on a governed software team.",
                     "BEHAVIORAL SOURCE GREP",
                     "Fixing what you just tested destroys the independence",
+                ],
+            ),
+            (
+                "requirements-analyst",
+                &[
+                    "You are the Requirements Analyst on a governed software team.",
+                    "Never propose `Status: APPROVED`",
+                ],
+            ),
+            (
+                "design-advisor",
+                &[
+                    "You are the Design Advisor on a governed software team.",
+                    "an invented id is worse than an honest",
+                ],
+            ),
+            (
+                "implementation-advisor",
+                &[
+                    "You are the Implementation Advisor on a governed software team.",
+                    "never suggest recording a step as done before its commit exists",
+                ],
+            ),
+            (
+                "demo-producer",
+                &[
+                    "You are the Demo Producer on a governed software team.",
+                    "A demo that prints claims is theatre",
+                ],
+            ),
+            (
+                "release-coordinator",
+                &[
+                    "You are the Release Coordinator on a governed software team.",
+                    "never report ancestry, sync, or branch state as if you had observed it",
                 ],
             ),
         ];
