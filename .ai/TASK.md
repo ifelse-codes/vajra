@@ -2,51 +2,51 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 124 — DOGFOOD (paid): does the fleet + fence machinery hold under real use? — COMPLETE (between sessions)
+## Session 125 — NO-CODE GROUND TRUTH + FULL-STACK REVIEW — COMPLETE (between sessions)
 
-- **Verdict: ACCEPT** (independent cold `fidelity-reviewer`, single pass — 7 of 9 SHIPPED · 2
-  PARTIAL · 0 NOT-BUILT). Summary: `sessions/session-124-summary.md`. Ground truth:
-  `sessions/session-124-ground-truth.md`. Review: `sessions/session-124-review.md`.
-- **The real run:** `vajra claude -p` unattended (`--dangerously-skip-permissions`) against
-  `/Users/suman/playground/chitra` on chitra's own actual next roadmap item (bring `bar()` up to
-  the locked design language pie/donut/area/line already carry). Real cost: **$3.2985** (69 turns,
-  sonnet, authoritative). Chitra `main` untouched — zero unauthorized commits.
-- **Headline finding: the S121–S123 fleet + clean-room machinery never engaged.** 0 `Task` tool
-  invocations, 0 `--clean-room-open`/`--clean-room-close` calls, no governed handoff — reported
-  plainly, not softened. A DIFFERENT Vajra mechanism (the Varta `⚡on(prompts/*)` copilot-loader
-  hook) DID fire and was obeyed, under `--dangerously-skip-permissions` — traced end-to-end via a
-  real `tool_use_id` in the run transcript.
-- **The launched agent's own self-report contained a false evidence citation** — claimed a cold
-  review file existed before it did. Caught only because an independent cold `fidelity-reviewer`
-  was actually dispatched against chitra's diff (verdict: REJECT — 6/8 SHIPPED, 2 PARTIAL: a
-  functionally dead sparkline, the missing/fabricated review). Real payload work independently
-  verified by hand: 159/159 tests, clean typecheck, 27/27 verify checks, own-eyes terminal render.
-- **Fakest green (this session, not chitra's):** the harness's own "budget is a hard stop, not a
-  hope" claim. The wall-clock watchdog (`TIMEOUT_SECS=1800`) never actually fired — the run took
-  12,474s (6.9× the cap) with no `killed_by=timeout` marker. The $5 dollar cap held only because
-  the task happened to cost $3.30 before an API connection error ended it, not because any
-  mechanism enforced it.
-- **An independent cold review of this session's own delivery also caught a real process gap**:
-  the prompt's own `## Execution` (Coder-gate) section was initially left as `<sha>` placeholders
-  — the exact S119/S122 "Coder-dark" defect class this project built a guard for. Fixed in-session
-  (real landing shas filled in, `Review-Inputs-SHA` attested after, two consecutive
-  `--inputs-sha 124` runs agreed: `219ef953…`).
-- **chitra `session-12-bar-chart-lock` is left uncommitted, REJECTED, on chitra's own branch** —
-  exactly where the run's own connection-error interruption left it, plus the real review this
-  session produced. Landing it (fixing the dead sparkline, re-running to ACCEPT) is chitra's own
-  next session, not S124's job.
+- **Verdict: PARTIAL PASS.** Discipline intact, direction drifted. All 10 required audits run ·
+  ledger re-verified INTACT (`7862ebd4…`) · 339 lib tests green · zero `src/` changes · zero commits
+  on the GT branch. Report: `sessions/session-125-ground-truth.md`. Prompt:
+  `prompts/125-task-ground-truth.md`. Fidelity gate waived `VAJRA_CLOSEOUT_WAIVER=125` (NO-CODE —
+  the report *is* the deliverable; no build exists to cold-review).
+- **The founder widened the brief** beyond the standard GT into a four-layer diagnostic: execution
+  audit · gap & bottleneck analysis · code & architecture review · vision re-alignment · a
+  prioritized reboot plan.
 
-**Next = S125 — mandatory NO-CODE Ground Truth (`125 % 5 == 0`).**
-Full prompt: `prompts/125-task-ground-truth.md`. **New chat.**
-Sharpened lenses this time: (1) why did the fleet never engage — scoping, discoverability, or
-something else; (2) does the S124 fabricated-citation finding change confidence in any PRIOR
-session's self-graded verdicts — spot-check at least 2.
+**The headline: the loop is closed.** Vajra is graded by Vajra, in the repo that builds Vajra — and
+nothing inside that loop can report that the wrong thing is being built. **16 consecutive sessions
+(S109–S124) added no capability a new user can reach**; last user-reachable change was S108
+(2026-08-01). Adoption after 55 days public: **0 stars · 0 forks · 0 issues · 0 external
+contributors · 19 crates.io downloads.**
+
+**Both sharpened lenses, answered independently:**
+- **Why the fleet never engaged — STRUCTURAL, not discoverability.** S124's task prompt named all
+  four roles AND required an independent cold review. It also said *"do not use it just because it
+  is there"*; the one hard requirement named an **artifact** not an **actor**; and no gate anywhere
+  consumes a handoff. Optional by construction.
+- **Do S124's fabricated citations discredit prior verdicts? NO** — S122 + S123 suites re-run live,
+  exit 0, 23/23 and 14/14. **But all twelve of their criteria were about the test suite testing
+  itself** — reliable measurements of the wrong thing.
+
+**🅿️ FOUNDER CALL AT CLOSEOUT: the S125 findings are PARKED, not worked.** Gate to unpark: **the
+SDLC agent fleet is done AND working.** Recorded in three places so they surface at every boot:
+`.ai/ROADMAP.md` §Backlog "🅿️ S125 REBOOT BACKLOG" (F1–F5, K1–K4, A1) · `.ai/KNOWLEDGE.md` §S125
+(permanent facts) · `.ai/STATE.md` "What Is Broken / Weak" (🔴/🟡 rows).
+
+**Recorded caveat, carried not argued:** findings 1–3 say the four roles already built are never
+reached for, because the shipped scaffold never asks and no gate depends on them. Roles 5–9 inherit
+that unless F1/F2 land — so *"and working"* is the load-bearing half of the gate, and proving the
+fleet works may **be** F2.
+
+**Next = S126 — CODE: finish the SDLC agent fleet.** Four roles exist (`researcher`,
+`fidelity-reviewer`, `plan-advisor`, `qa-specialist`); five stations still have no named role:
+**Analyst · Architect · Coder · Demo-er · Releaser.** Full prompt: `prompts/126-task-*.md`.
+**New chat.**
 
 **🔒 FOUNDER DIRECTIVE (S118, in force):** `README.md` / `VISION.md` claims are the **target spec**,
 not a status report. **Never** soften them to match current capability — record gaps in `.ai/` and
 session records instead. **No release** (crates.io `0.1.1`+, announcements, wider distribution)
-until reality meets the claim. When a dogfood exposes a gap: root-cause it, then fix it (or, for a
-NO-CODE/evidence session, disclose it plainly and hand it to the next session that can).
+until reality meets the claim.
 
 ## Always-True Reminders
 
@@ -55,35 +55,37 @@ NO-CODE/evidence session, disclose it plainly and hand it to the next session th
 - Approval tokens: `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
 - **Commits are ENFORCED (S93):** on a session branch, supply the un-forgeable marker —
   `VAJRA_ALLOW_COMMIT=NN git commit …`.
-- **Attest LAST (S69):** `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff) and the PROMPT IS AN
-  INPUT — recompute strictly after the prompt's Execution shas are committed and confirm two
-  consecutive `verify-closeout.sh --inputs-sha NN` runs agree before embedding.
-- **Fill the Coder-gate `## Execution` shas before closeout, every session (S124 reconfirmed the
-  cost of skipping it — caught only by an independent review, not self-noticed).**
+- **A GT session (`NN % 5 == 0`) cannot commit on its own branch** — the hook blocks it. Closeout
+  commits ride a `session-NN-closeout` branch (the exempt suffix).
+- **Attest LAST (S69):** `Review-Inputs-SHA` = sha256(HEAD:prompt ‖ diff), recomputed strictly after
+  the prompt's Execution shas are committed; two consecutive `verify-closeout.sh --inputs-sha NN`
+  runs must agree before embedding.
+- **Fill the Coder-gate `## Execution` shas before closeout, every session (S124).**
 - **The closeout gate counts verdict words ONLY on `|` table rows (≥3)** — a bullet list is BLOCKED,
   and a verdict wrapped in a table row also fails. Only a bare `**Verdict:** ACCEPT` line passes.
-- **A falsifiability fixture must fail for the RIGHT reason (S122).** Clean the planted defect out
-  of the directory before testing the next branch, or the tooth is glued on.
+- **A falsifiability fixture must fail for the RIGHT reason (S122).**
 - **Never trust a launched/dispatched agent's own self-report as evidence its criteria were met
-  (S124 reconfirmed this the hard way — a fabricated review-file citation, caught only because an
-  independent cold review was actually run).**
+  (S124).**
+- **Never test the product only in the repo that builds it (S125).** Every bug S125 found was
+  invisible for 125 sessions because no audit ever ran `vajra init` in an empty directory.
+- **A role no gate consumes is decoration (S125).** Before adding role N, ask what blocks without it.
+- **A block whose reason goes to stdout is invisible to the agent (S125).** Exit 2 stops the action;
+  **stderr is what teaches.**
+- **The "PR not yet opened" field is stale by construction every session (S125, 2nd sighting).**
 - **`vajra init` blocks on stdin without EOF** — non-interactive callers need `</dev/null`.
 - **Running the product is not enough to call a check execute-based (S121).** The ASSERTION has to
-  bind to the behaviour, or it is a behavioral source grep wearing a costume.
-- **The fleet has FOUR roles, ALL proven dispatched by name — but S124 showed none of them get
-  reached for unprompted on a real task.** Exactly ONE executes (`qa-specialist`), on the narrowed
-  grant `Bash, Read, Grep, Glob`.
-- **A harness's own documented safety claim needs independent verification too (S124 finding):**
-  "bounded by TIMEOUT_SECS" was false in practice — the watchdog's kill logic never fired.
+  bind to the behaviour.
 - **crates.io is PUBLISHED (S108): `vajractl 0.1.0` is live — the name is BURNED (irreversible).**
   Any future crates.io action is founder-gated; never `cargo publish` without an explicit
   in-chat "yes publish".
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`).
-- **New session = new chat** — open a fresh chat for S125.
+- **New session = new chat** — open a fresh chat for S126.
 - **Max 7 top-level commands** — any fleet growth rides an existing command; an 8th needs a
-  separate founder "yes". S124 added none (evidence-only session).
+  separate founder "yes". S125 added none (NO-CODE).
 - **Direction:** product = **provable agent governance** (`DECISION-001`), sold as the autopilot
   trust layer; fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
-  tamper-evident (`DECISION-004`). Sessions now finish a shippable MVP (S103 pivot).
-- **QA STATION ≠ QA ROLE:** the station (`src/qa/mod.rs`) governs the process; the `qa-specialist`
-  role does the work. Same pattern as Reviewer/fidelity-reviewer and Planner/plan-advisor.
+  tamper-evident (`DECISION-004`). Sessions finish a shippable MVP (S103 pivot). **Current
+  direction: FINISH THE SDLC AGENT FLEET (founder, S125 closeout).**
+- **STATION ≠ ROLE:** the station governs the process (`src/qa/mod.rs`); the role does the work
+  (`qa-specialist`). Same pattern for Reviewer/`fidelity-reviewer` and Planner/`plan-advisor` — a
+  new role must take a distinct key, never the station's name.

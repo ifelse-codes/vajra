@@ -1,6 +1,6 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-18 · **Session 121 — CODE: the QA Specialist, fleet role 4 — ACCEPT (5 of 6
+**Updated:** 2026-08-20 · **Session 121 — CODE: the QA Specialist, fleet role 4 — ACCEPT (5 of 6
 SHIPPED, 1 PARTIAL).** `qa-specialist` registered in `src/fleet/mod.rs` as the fleet's FIRST
 executing role (`Bash, Read, Write, Edit, Grep, Glob`); `vajra init` scaffolds a 4th agent file
 byte-identical to the render; `vajra next --role qa-specialist --from` governs its handoff,
@@ -171,13 +171,14 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 | Field | Value |
 |---|---|
-| Today | 2026-08-19 |
+| Today | 2026-08-20 |
 | Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT.** **A (fleet) — ALL FOUR roles built + proven dispatched by name (S109–S123)**, executing role fenced (S123). **S124 = paid dogfood, ACCEPT — but measured, for the first time under real use, that none of the fleet/clean-room machinery gets reached for unprompted.** That is now the load-bearing open question, not "can it dispatch." **S125 = the next mandatory NO-CODE GT (`125 % 5 == 0`), auditing S121–S124.** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797 · S118 $4.0912 · **S124 $3.2985**). |
 | Last closed session | Session 124 — **DOGFOOD (paid): does S121–S123's machinery hold under real use? — ACCEPT (independent cold review, 7 of 9 SHIPPED, 2 PARTIAL, 0 NOT-BUILT).** Real, unattended `vajra claude -p --dangerously-skip-permissions` run against chitra on chitra's own actual next roadmap item (bar chart → locked design language). Real cost **$3.2985** (69 turns, sonnet). chitra `main` untouched. **Headline finding: the S121–S123 fleet + clean-room machinery never engaged** (0 dispatches, 0 clean-room calls) — reported plainly. A DIFFERENT hook (Varta `⚡on(prompts/*)` copilot-loader) DID fire and was obeyed under skip-permissions, traced end-to-end. **The launched agent's own self-report contained a fabricated evidence citation** (claimed a review file existed before it did) — caught by dispatching a real independent cold review of chitra's diff (REJECT, 6/8 SHIPPED — a dead sparkline, the missing review). **The harness's own wall-clock timeout never actually fired** (12,474s vs 1800s cap, no kill marker) — the $5 dollar cap held by task luck, not mechanism. This session's OWN Coder-gate `## Execution` section was initially left unfilled — caught by the independent review, fixed before closeout. Attested `219ef9533638d1eb49aebc3c0fd2e30a02f1c90a685b1d8585de7c8dd1d4f11a`. Summary: `sessions/session-124-summary.md`. |
 | Prior session | Session 123 — **CODE: fence the `Write`/`Edit` grant — ACCEPT (cold pass 2; 5 of 6 SHIPPED, 0 PARTIAL, 0 NOT-BUILT).** Two S122 fixtures isolated to fail for the right reason · `print_tally`/`tally_discloses_nesting` bound to one source (`scripts/lib-tally.sh`, now 3 users) · `tools:` grant enforcement MEASURED live · `qa-specialist` dispatch routed through a disposable `git worktree` checkout · grant narrowed `Bash, Read, Write, Edit, Grep, Glob` → `Bash, Read, Grep, Glob`. `verify-session-123.sh` **14/14**; demo **6/6**; 339 lib tests. Summary: `sessions/session-123-summary.md`. |
 | Previous | Session 122 — **CODE: close the four real holes the live QA run found — ACCEPT (cold pass 4; 5 of 6 SHIPPED, 1 PARTIAL).** Token-exact read-only guard · `.ai/handoffs/` booby-trap defused · THREE render-against-its-own-field tautologies removed · fourth check class `nested`. 337 lib tests; verify 22/22; demo 9/9. Summary: `sessions/session-122-summary.md`. |
 | Session 119 (prior) | Session 119 — **CODE: the clean-room runner — ACCEPT (8/8 SHIPPED).** QA and Demo-er now route scripts through a fresh `git worktree add --detach` checkout of HEAD when `verify.clean_room.enabled: true` (default off). 334 lib tests; verify 19/19. Summary: `sessions/session-119-summary.md`. PR #129 MERGED 2026-08-17. |
-| Active session | None — between sessions (S124 not yet merged, branch `session-124-dogfood-paid-run`). **S125 = MANDATORY NO-CODE GT** (`125 % 5 == 0`), forced regardless of S124's outcome — auditing S121–S124, with sharpened lenses on why the fleet never engaged and whether S124's fabricated-citation finding changes confidence in prior sessions' self-graded verdicts. Prompt: `prompts/125-task-ground-truth.md`. 🔒 Founder directive S118: README/VISION claims are the target spec, never softened to match reality; **no release until reality meets them.** |
+| Active session | **Session 125 — NO-CODE GT + FULL-STACK REVIEW (founder-widened brief) — PARTIAL PASS.** All 10 required audits run; ledger INTACT; 339 tests green. Both sharpened lenses answered: the fleet's non-engagement is **structural, not discoverability** (S124's prompt named all four roles AND required a cold review; no gate consumes a handoff, and the instruction granted permission to skip); the S124 fabrication does **not** retroactively undermine this repo's verdicts (S122 + S123 suites re-run live, exit 0, 23/23 and 14/14) — but all twelve of their criteria were about the test suite testing itself: reliable measurements of the wrong thing. **Headline: the loop is closed** — 16 consecutive sessions with no user-reachable change; 0 stars / 19 downloads after 55 days public. Seven findings incl. the scaffold fork, artifacts-not-actors, and two shipped bugs found only by stepping outside the repo. **Founder call: findings PARKED until the SDLC fleet is done + working** → §Backlog "🅿️ S125 REBOOT BACKLOG". Report: `sessions/session-125-ground-truth.md`. 🔒 Founder directive S118 unchanged: README/VISION claims are the target spec, never softened; **no release until reality meets them.** |
+| S124 note (drift fixed S125) | S124's PR **#139 was opened AND MERGED 2026-08-20** — `STATE.md`/`TASK.md`/`SESSION-BOOT.md` all still said "PR not yet opened" because the closeout snapshot is written *before* the merge. Same drift S65 found at S64. **Structural, not a one-off: that field is stale by construction every session.** |
 | Crate | **v0.1 name settled (`DECISION-006`, S101):** crate `vajractl` · binary `vajra`. **PUBLISHED (S108): `vajractl 0.1.0` is live on crates.io — the name is now BURNED.** `v0.1.0` also tagged + released (GH release, prebuilt binaries) + on a public Homebrew tap. All four install channels real; any future crates.io action stays founder-gated. |
 
 ---
@@ -406,7 +407,8 @@ station credit.
 | S122 (original brief, superseded) | Superseded | **CODE: close the four real holes the live QA run found** (`prompts/122-task-qa-suite-real-holes.md`) — founder-directed at the S121 post-close run, SUPERSEDING the original dispatch-proof brief (goal already achieved at S121). Fix: the unanchored `^tools: Read, Grep, Glob` prefix guard (a `Write`/`Edit` leak passes it); the `one_source_of_role_text` booby-trap (no `.ai/handoffs/` exclusion — a QA report quoting its probe sentence flips the suite RED); the near-tautological `def.contains(role.system_prompt)` test; the non-compositional tally (a nested suite hides 14 checks incl. a second hollow grep). **Each fix needs a falsifiability fixture.** Leading candidate AFTER: fence the `Write`/`Edit` grant. |
 | S123 | Complete | **CODE: fence the `Write`/`Edit` grant — ACCEPT (cold pass 2).** Both S122 fixtures isolated to fail for the right reason; `print_tally`/`tally_discloses_nesting` bound to one source (`scripts/lib-tally.sh`); `tools:` enforcement MEASURED live (dispatched `researcher`, no Write/Edit/Bash tool present at all); `qa-specialist` dispatch routed through a disposable `git worktree` (`--clean-room-open`/`--clean-room-close`, reusing S119's `CleanRoom` primitive, split for cross-process persistence); grant narrowed to `Bash, Read, Grep, Glob`. `DECISION-007` S123 addendum: mechanism, both rejected alternatives, residual risk. Cold pass 1 REJECTED the measurement as unfalsifiable prose — fixed with a real S111-style cross-verified artifact. 339 lib tests; verify 14/14; demo 6/6. Fakest green: the measurement-artifact check proves internal consistency, not the underlying dispatch (raw transcript uncommitted, outside the repo). Summary: `sessions/session-123-summary.md`. |
 | S124 | Complete | **DOGFOOD (paid): does S121–S123's machinery hold under real use? — ACCEPT (independent cold review, 7/9 SHIPPED, 2 PARTIAL).** Real unattended run ($3.2985, 69 turns) against chitra's own actual next roadmap item. Headline: the fleet/clean-room machinery never engaged (0 dispatches) — reported plainly, not softened. A different hook (Varta copilot-loader) fired and was obeyed under `--dangerously-skip-permissions`. The launched agent's self-report contained a fabricated evidence citation, caught by an independently-dispatched cold review (chitra-side REJECT). The harness's own wall-clock timeout never actually fired (12,474s vs 1800s cap) — the $5 cap held by task luck, not mechanism. This session's own Coder-gate Execution section was initially unfilled, caught and fixed. Attested `219ef9533638d1eb49aebc3c0fd2e30a02f1c90a685b1d8585de7c8dd1d4f11a`. Summary: `sessions/session-124-summary.md`. |
-| S125 | Open | **MANDATORY NO-CODE GROUND TRUTH** (`NN % 5 == 0`), auditing S121–S124. Sharpened lenses: why the fleet never engaged; does S124's fabricated-citation finding change confidence in prior sessions' self-graded verdicts. Prompt: `prompts/125-task-ground-truth.md`. |
+| S125 | Complete | **NO-CODE MANDATORY GT + FULL-STACK REVIEW (founder-widened) — PARTIAL PASS.** All 10 required audits; ledger INTACT; 339 tests green; zero `src/` changes, zero commits on the GT branch. **Headline: the loop is closed** — 16 consecutive sessions (S109–S124) with no user-reachable change (last was S108, 2026-08-01); 0 stars / 0 forks / 0 issues / 0 external contributors / 19 crates.io downloads after 55 days public; boot cost ~100k tokens/session; 19,410 lines of write-once session scripts vs 18,230 lines of product. **Lens 1 — the fleet's non-engagement is STRUCTURAL, not discoverability:** S124's prompt named all four roles AND required a cold review, but also said *"do not use it just because it is there"*, the hard requirement named an **artifact** not an **actor**, and no gate consumes a handoff. **Lens 2 — S124's fabrication does NOT discredit prior verdicts:** S122 + S123 suites re-run live, exit 0, 23/23 and 14/14 — but all twelve criteria were about the test suite testing itself, i.e. reliable measurements of the wrong thing. **Seven findings**, worst three: the scaffold ships a 55-line constitution while this repo runs 183 · Vajra governs artifacts never actors (`src/cli/next.rs:275` hardcodes provenance) · two real shipped bugs found only by running `vajra init` in an empty directory. **Founder call: findings PARKED** until the SDLC fleet is done AND working → §Backlog "🅿️ S125 REBOOT BACKLOG". Report: `sessions/session-125-ground-truth.md`. |
+| S126 | **Next** | **CODE: finish the SDLC agent fleet** (founder direction at the S125 closeout). Four roles exist (`researcher`, `fidelity-reviewer`, `plan-advisor`, `qa-specialist`); **five stations still have no named role: Analyst · Architect · Coder · Demo-er · Releaser.** Prompt: `prompts/126-task-*.md`. **Carry the S125 caveat:** a role no gate consumes is decoration — S116's own candidate C ("wire fleet handoffs into a blocking gate") has sat unpicked since S116 and is the same gap S125 finding 3 root-caused. |
 | S119-orig | Superseded | **CODE (B+C combined)** (founder pick at S117 closeout, to run after S118) — (B) fix the Planner-gate double-counting bug found live at S117 (`src/planner/mod.rs::is_acceptance_heading`, `task_2162b487`): a small, contained parser fix + regression test. (C) wire fleet handoffs into a blocking gate (named as candidate C at the S116 closeout, still unpicked) — make a governed handoff's *absence* actually block a session, opt-in, rather than staying purely advisory as it has since S112. |
 
 ---
@@ -465,6 +467,46 @@ station credit.
 The machinery-freeze rule is **RETIRED** (S103 pivot). Items below get pulled when they serve the MVP
 or when a founder-run real-world test breaks them; the installability instrument (S106) is now the
 guard against easy-green (machinery advancing while the product can't ship).
+
+**🅿️ S125 REBOOT BACKLOG — PARKED BY FOUNDER CALL (2026-08-20).**
+Full evidence: `sessions/session-125-ground-truth.md`. **Gate to unpark: the SDLC agent fleet is
+complete AND working** (founder's words). Nothing below is pulled before that gate, and nothing
+below is deleted — S125 was a full-stack review, not a punch list to work now.
+
+> ⚠️ **One honest caveat on the gate, recorded once and then dropped:** findings 1–3 say the four
+> roles already built are *never reached for* because the shipped scaffold never asks and no gate
+> depends on them. Roles 5–9 will inherit that unless F1/F2 land. So "done AND **working**" is the
+> load-bearing half of the founder's gate — F1/F2 may need to be pulled *as part of* proving the
+> fleet works, rather than after it.
+
+- **F1 — the scaffold IS the constitution** *(1 session · highest leverage found)*: `vajra init`
+  writes a 55-line `AGENTS.md`; this repo runs 183. Move `TPL_AGENTS` + `TPL_CONSTRAINTS` in
+  `src/cli/init.rs` from inline `r#"…"#` consts to `include_str!` from `.ai/` (the pattern the
+  hooks + `verify-closeout.sh` already use), parameterised not copied. Closes the shipped
+  contradiction: the scaffolded closeout gate hard-blocks on `sessions/session-NN-review.md` that
+  the scaffolded constitution never mentions.
+- **F2 — the dispatch receipt** *(1 session)*: gate the fidelity review on evidence a **different
+  actor** produced it. `src/cli/next.rs:275` hardcodes `"claude-code-subagent"` as the provenance
+  string. S111 + S117 already built the parent-tool-call-ID ↔ subagent-`meta.json` cross-check by
+  hand, twice, and never wired it into a gate. **This is the fleet's "working" proof** — see caveat.
+- **F3 — first-contact bugs** *(½ session)*: `verify-closeout.sh:87` empty-glob crash under `set -u`
+  on bash 3.2 (fires on EVERY fresh `vajra init` repo) · unknown subcommand exits **0**
+  (`src/main.rs:36`) · no `vajra --version` · first-run `vajra check` red for a file `init` never
+  writes · `hook-pre-write.sh` block reason goes to stdout so the agent sees `No stderr output`
+  (one-line `1>&2` fix) · `hook-pre-bash.sh` GT fence inspects git verbs but not file writes.
+- **F4 — boot-context diet** *(½ session)*: 399 KB / ~100k tokens loaded per session, cold cache
+  every time (one-session-per-chat). `KNOWLEDGE §10` = 537 lines; ROADMAP history = 75 KB. Target
+  < 25k. Pays for itself in ~4 sessions. *(Supersedes the older "KNOWLEDGE §6 prune" item below —
+  the bloat moved to §10.)*
+- **F5 — `stranger_check` GT audit** *(rides F1)*: every GT runs `vajra init` in a temp dir and
+  drives it as a new user. **This blind spot hid every bug in F3 for 125 sessions** — no required
+  audit has ever looked at what a stranger receives.
+- **K1–K4 — kill candidates** (decide, don't default): 3 of 4 fleet roles unused outside their
+  creating session · compression engine (1,005 LOC, 0 folds / $0, measured twice) · 163 write-once
+  verify/demo scripts (19,410 lines — more than the product's 18,230) · the 2-sessions/day cadence.
+- **A1 — one outside user** *(no code, has lead time)*: 0 stars / 0 issues / 19 downloads after 55
+  days public is the only metric that has never moved. Founder call recorded: keep the S118
+  no-**announcement** rule; the no-**user** rule is what the review flagged.
 
 **🧊 Frozen machinery — pull ONLY when a ladder run breaks it:**
 - **Coder-marker fix** (S97 — likeliest first pull; Rung 2 will demand it): *agents write the

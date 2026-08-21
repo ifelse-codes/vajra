@@ -811,3 +811,49 @@ pub struct CompressionRequest {
   independent cold `fidelity-reviewer` pass produced it. The house rule ("never trust the agent's
   own grade") is not theoretical — this is the first concrete instance caught in a real, paid,
   unattended run.
+
+### S125 — permanent facts from the full-stack review (kept SHORT on purpose; see F4)
+
+*Findings PARKED by founder call until the SDLC fleet is done + working. Backlog: `ROADMAP.md`
+§Backlog "🅿️ S125 REBOOT BACKLOG". Full evidence: `sessions/session-125-ground-truth.md`.*
+
+- **`vajra init` ships a 55-line constitution; this repo runs 183.** The scaffold's `AGENTS.md` and
+  `CONSTRAINTS.yaml` are inline `r#"…"#` consts in `src/cli/init.rs`, hand-maintained, while the
+  hooks and `verify-closeout.sh` beside them use `include_str!`. The teeth stayed in sync; the
+  instructions forked. Everything S54–S124 added to governance exists only here.
+- **The shipped scaffold contains a self-contradiction.** Its `verify-closeout.sh` hard-blocks
+  unless `sessions/session-NN-review.md` exists with an ACCEPT verdict; its `AGENTS.md` never
+  mentions fidelity, independence, that file, or the reviewer role. The user's agent hits a gate
+  demanding an artifact nothing told it to produce — the incentive that produced S124's fabricated
+  citation.
+- **Vajra governs artifacts, never actors.** Every gate asks "does file X contain marker Y?" None
+  can ask "did someone other than you write this?" `src/cli/next.rs:275` hardcodes
+  `"claude-code-subagent"` as the handoff's provenance regardless of origin;
+  `src/stations/mod.rs:102` states in a comment that the counter cannot verify a real dispatch.
+  **The ledger is tamper-evident about content and blind about authorship.**
+- **The fleet's non-engagement is not a discoverability problem.** S124's task prompt named all four
+  roles AND required an independent cold review. It also said *"do not use it just because it is
+  there"* — an anti-instruction. Root cause is structural: no gate consumes a handoff, so the
+  mechanism is optional by construction.
+- **`set -u` + an empty glob is fatal on bash 3.2 (macOS default).** `local a=(nomatch*)` then
+  `${#a[@]}` aborts the script with `unbound variable`, no output, exit 1. Live in
+  `verify-closeout.sh:87` — fires on every repo with no session summaries, i.e. every fresh init.
+  Never seen because this repo has 187 summaries. **Guard-class lesson: a defect that can only fire
+  in a repo you never test is invisible forever.**
+- **Unknown subcommands exit 0** (`src/main.rs:36`, `_ => Subcommand::Help`). `vajra chek && deploy`
+  runs deploy. No `vajra --version` exists at all in a published crate.
+- **Boot cost is ~100k tokens/session** (399 KB across the load order; `KNOWLEDGE.md` 278 KB = 70%,
+  `ROADMAP.md` 75 KB = 19%), on a one-session-per-chat rule that guarantees a cold cache. KNOWLEDGE
+  §10 is 537 of 813 lines at an average line length of 341 chars.
+- **A block whose reason goes to stdout is invisible to the agent.** `hook-pre-write.sh` echoes its
+  explanation then exits 2; the agent receives only `No stderr output`. `hook-copilot-loader.sh`
+  writes to stderr and gets obeyed on the next turn. **Exit 2 stops the action; stderr is what
+  teaches.** One-line fix (`1>&2`).
+- **The GT fence is asymmetric.** `hook-pre-write.sh` fences `Write`/`Edit` by path;
+  `hook-pre-bash.sh` fences Bash by substring-matching git verbs in the command text. Consequence
+  both ways, both measured: it blocked a `cat >` whose HTML payload merely *contained* the phrase
+  for committing, and it let a plain `>` redirect through untouched. Spelling-bound guards
+  over-block on words and under-block on behaviour (the S122 `vajra-fixture-right-reason` lesson,
+  recurring inside the enforcement layer itself).
+- **Adoption, measured 2026-08-20:** 0 stars · 0 forks · 0 issues · 0 external contributors ·
+  19 crates.io downloads. Public 55 days, on crates.io 19 days. Last user-reachable change: S108.
