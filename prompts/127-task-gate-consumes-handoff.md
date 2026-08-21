@@ -122,6 +122,31 @@ dispatched — and prove the difference by running it both ways.
   `sessions/session-126-review.md`).
 - No release, no crates.io action (founder directive).
 
+## Filed findings carried in from S126 (fix as a side-order, or as candidate C)
+
+From the two cold passes on S126, recorded there and not fixed after the ACCEPTs:
+
+1. **`.gitignore` semantics bug (introduced by the S126 artifact removal).**
+   `sessions/session-*-artifacts/` excludes the parent directory of the older S76/S77 `!`
+   carve-outs, and git cannot re-include a file whose parent directory is excluded — those
+   negations are now inert for untracked files. Nothing red today (they are tracked); regenerate
+   one and `verify-session-77.sh` / `-78.sh` go red on a fresh clone with no obvious cause. **This
+   is the one finding worth fixing early — it is a trap, not a debt.**
+2. **The unused binding.** Each role's recorded `brief_sha256` in
+   `sessions/session-126-dispatch-evidence.md` already equals that role's handoff `source-sha`, and
+   nothing compares them — the one in-repo tie between the evidence record and something Vajra
+   itself wrote. Natural to fold into this session if the chosen station consumes handoffs anyway.
+3. **The new artifact rule contradicts live suites.** `demo-session-111.sh` and
+   `verify-session-76/78/117/122/123` all read *tracked* per-session artifact dirs. Tracked files
+   are unaffected by the ignore, but the repo's own precedent now violates its own rule and says so
+   nowhere.
+4. **The S126 review cites a diff that is no longer in git** (`review-input.diff`, under the
+   untracked artifacts dir). The attestation survives (it recomputes from git); the human-readable
+   citation does not.
+5. **`K of 8` invariance is checked at a degenerate `0 of 8` baseline** (S126 pass 1).
+6. **`verify-session-121.sh`'s check name still says "four"** after being unpinned (S126 pass 1),
+   and `verify-session-114.sh` / `-116.sh` remain stale-red on their own roster pins.
+
 ## Delta (vs ROADMAP — OpenSpec markers)
 
 - **ADDED:** one station gate that consumes a role's governed handoff as evidence; a
