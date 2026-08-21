@@ -1,0 +1,39 @@
+
+=== Session 121 Verify Summary ===
+STEP                               CLASS   RESULT
+---------------------------------- ------- ------
+cargo-build                        exec    PASS
+cargo-test                         exec    PASS
+cargo-fmt                          exec    PASS
+cargo-clippy                       exec    PASS
+fleet-smoke                        nested  PASS
+s113-counter-still-green           nested  PASS
+test-role-registered               exec    PASS
+test-execution-allowlist           exec    PASS
+test-delta-names-role              exec    PASS
+test-render-every-role             exec    PASS
+test-filter-guard-has-teeth        exec    PASS
+tally-is-one-source                struct  PASS
+tally-disclosure-has-teeth         exec    PASS
+read-only-guard-has-teeth          exec    PASS
+init-scaffolds-four-roles          exec    FAIL
+one-source-of-role-text            struct  PASS
+one-source-guard-has-teeth         exec    PASS
+e2e-four-governed-handoffs         exec    PASS
+decision-recorded-honoured         struct  PASS
+no-station-collision               struct  PASS
+no-eighth-command                  behav   PASS
+
+CHECK CLASSES (this suite's OWN checks only — NOT a census of everything that ran)
+  execute-based: 14 · structural grep: 4 · behavioral source grep: 1
+  nested suites (their own checks are NOT counted above): 2
+    - fleet-smoke — runs another whole suite; read that suite's own tally for its classes
+    - s113-counter-still-green — runs another whole suite; read that suite's own tally for its classes
+  DISCLOSED: each of those 2 nested suite(s) runs checks of its own, including its own
+  behavioral source greps. They are NOT included in the 1 above, so 1 is a FLOOR,
+  never a total for this run.
+NOTE: 1 behavioral source grep(s) in THIS suite — each must be named in the session's fakest-green disclosure.
+STILL A SELF-ASSIGNED LABEL: nothing here proves a check marked `exec` executes anything.
+S122 made the tally honest about NESTING. It did not make the labels EARNED.
+RED (20 pass, 1 fail)
+S121 exit=1
