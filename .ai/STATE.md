@@ -74,7 +74,7 @@ half of the founder's gate; the *working* half is S127.
 - **Ledger** (S100): `verify-closeout.sh --ledger-verify` **re-confirmed INTACT at S125**
   (`7862ebd4…`, committed == worktree).
 - **v0.1 install: four real channels**, stranger-shippable as measured at S110.
-- **CI green on `main`** (both OS); 7 commands, no 8th. **341 lib tests** (S126 added one: the five new keys asserted in both directions).
+- **CI green on `main`** (both OS); 7 commands, no 8th. **340 lib tests** (S126 added one: the five new keys asserted in both directions).
 
 ## What Is Broken / Weak
 
