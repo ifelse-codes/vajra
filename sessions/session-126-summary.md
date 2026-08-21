@@ -49,7 +49,7 @@ as a separate, founder-gated decision.
 **Evidence, not assertion:** each of the five was dispatched by name from a **separate headless
 `claude -p` session** — the S111 session boundary, crossed five times without waiting five
 sessions — and each dispatch is cross-checked against two files Claude Code itself wrote, agreeing
-on a random tool-call id (`sessions/session-126-artifacts/dispatch/dispatch-run-note.md`). The five
+on a random tool-call id (`sessions/session-126-dispatch-evidence.md`). The five
 briefs were landed as governed handoffs through the unchanged S109 path.
 
 ## Numbers
@@ -72,6 +72,23 @@ binds them to the runtime originals in `~/.claude/projects/`, so a *consistent* 
 pass exactly as a real dispatch does. The fixture proves the checker catches an inconsistent copy,
 not a fabricated one. What makes fabrication implausible is off-check: five result streams with
 per-model usage, five distinct session ids, $4.45 of metered spend, ~600KB of transcripts.
+
+## Post-review, founder-directed: session artifacts are no longer pushed
+
+At the founder's call after the ACCEPT, `sessions/session-126-artifacts/` (1.1 MB, of which 810 KB
+was raw JSONL) was **removed from git** and `sessions/session-*-artifacts/` is now ignored. The
+files stay on disk; nothing was deleted locally. What git carries instead is an 8 KB derived
+record, `sessions/session-126-dispatch-evidence.md`, holding every field the cross-check reads —
+ids in both directions, distinct parent session ids, transcript sha256s, real costs — and stating
+what the removal costs: **a clean clone can check the record, never the runtime's own files.**
+That loss is small precisely because the cold review had already shown the check proved
+consistency, not provenance. Binding evidence to the runtime is S127's candidate B.
+
+The verify and demo suites were rewired to the record and re-run green (15/15 · 7/7), with six
+planted-drift cases required to turn the record check RED, plus a strong path that re-derives from
+the raw files when they are present locally. **This change touched reviewed code, so a second cold
+pass was run over it** — see `sessions/session-126-review.md` §pass 2 — and the attestation was
+recomputed afterwards.
 
 ## Two things this session did to itself, disclosed
 
