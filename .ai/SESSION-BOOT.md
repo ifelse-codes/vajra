@@ -1,6 +1,11 @@
 # Session Boot
 
 ## Current Session
+- **Number:** 126 — IN PROGRESS (CODE: finish the SDLC agent fleet — the last five roles).
+  Branch `session-126-finish-the-fleet`. Prompt: `prompts/126-task-finish-the-fleet.md`.
+  Full S125 record below, unchanged, until this session's closeout rewrites it.
+
+## Previous Session
 - **Number:** 125 — COMPLETE
 - **Type:** NO-CODE mandatory Ground Truth (`125 % 5 == 0`), **widened by the founder into a
   full-stack review**: execution audit · gap & bottleneck analysis · code & architecture review ·
