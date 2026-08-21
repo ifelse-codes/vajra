@@ -1,0 +1,15 @@
+[
+  {
+    "type": "tool_use",
+    "id": "toolu_01CqTSrCttnAy1asrpV7ECtb",
+    "name": "Agent",
+    "input": {
+      "subagent_type": "demo-producer",
+      "description": "Propose demo script for session 126",
+      "prompt": "Session 126 registered five new fleet roles in src/fleet/mod.rs. Propose what this session's demo script (scripts/demo-session-126.sh) must show.\n\nContext you need to gather yourself (read-only):\n- Read src/fleet/mod.rs to see exactly which five roles were registered this session and how roles are represented (the roster, any SIZE constant, role definitions).\n- Look at prior demo scripts in scripts/ (e.g. scripts/demo-session-*.sh) to match the house format for demo scripts \u2014 header, per-case blocks, a summary table, and before-and-after.\n- Recent commits this session: \"S126 1/N: register the last five fleet roles\", \"S126 2/N: scaffold the analyst/design/implementation role definitions\", \"S126 3/N: scaffold the demo/release role definitions\", \"S126 4/N: unpin the S121 roster SIZE so a ninth role is not a defect\".\n\nProduce the demo brief: the header line, the ordered list of cases the demo must run (each with what it proves), the summary table columns/rows, and the before-and-after contrast. The goal is that the QA gate's live re-run of this script proves what actually shipped this session. Do not write the script \u2014 only propose what it must show."
+    },
+    "parent_timestamp": "2026-08-21T11:15:28.098Z",
+    "parent_sessionId": "01223128-b9a6-47b4-8faf-b434a8ab50ca",
+    "cwd": "/Users/suman/playground/vajra"
+  }
+]
