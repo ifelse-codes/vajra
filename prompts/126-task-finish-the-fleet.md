@@ -99,8 +99,8 @@ that, don't assert it.
 - step 5 — done: `4d795e5`
 - step 6 — done: `e754aba`
 - step 7 — done: `980112f`
-- step 8 — done: `<sha>`
-- step 9 — done: `<sha>`
+- step 8 — done: `8783a01`
+- step 9 — done: `28392f3`
 
 > **Fill these with real landing shas before closeout.** S119, S122 and S124 each left `<sha>`
 > placeholders and only an independent cold review caught it — never self-noticed.
