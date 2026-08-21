@@ -327,7 +327,12 @@ _scaffolds_four_roles() {
   echo "--- scaffolded agents ---"; ls -1 "$TMP/.claude/agents/"
 
   local N; N="$(find "$TMP/.claude/agents" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')"
-  [ "$N" = "4" ] || { echo "FAIL: expected 4 scaffolded agent files, got $N"; return 1; }
+  # S126 — this line pinned the roster SIZE of the day (four). That is not what the check is
+  # about: its substance is that the repo's committed copies are byte-identical to what `vajra
+  # init` renders, and that the two sets are EXACTLY equal — both asserted below, both
+  # count-independent. A size pin here goes red every time a role is added, with no defect behind
+  # it. Kept as a non-vacuity FLOOR so an empty or truncated scaffold still fails.
+  [ "$N" -ge 4 ] || { echo "FAIL: expected at least the four S121 roles scaffolded, got $N"; return 1; }
   for f in researcher fidelity-reviewer plan-advisor qa-specialist; do
     [ -f "$TMP/.claude/agents/$f.md" ] || { echo "FAIL: $f not scaffolded"; return 1; }
   done
@@ -375,7 +380,7 @@ _scaffolds_four_roles() {
     echo "FAIL: .claude/agents/ holds files vajra init does not render — a hand-maintained agent definition is a second source"
     diff <(echo "$RENDERED") <(echo "$REPO_AGENTS"); return 1
   fi
-  echo "OK: four roles scaffolded byte-identical to this repo's copies; exactly one grants Bash"
+  echo "OK: $N roles scaffolded byte-identical to this repo's copies; exactly one grants Bash"
   return 0
 }
 run_check "init-scaffolds-four-roles" exec scaffolds_four_roles
