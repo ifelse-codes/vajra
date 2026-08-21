@@ -1,0 +1,37 @@
+
+=== Session 126 Verify Summary ===
+STEP                                     CLASS   RESULT
+---------------------------------------- ------- ------
+cargo-build                              exec    PASS
+cargo-test                               exec    PASS
+cargo-fmt                                exec    PASS
+cargo-clippy                             exec    PASS
+init-scaffolds-nine-roles                exec    PASS
+new-roles-govern-handoffs                exec    PASS
+no-station-collision                     exec    PASS
+k-of-8-unchanged-by-the-roster           exec    PASS
+execution-allowlist-did-not-grow         exec    PASS
+five-dispatches-cross-check              exec    PASS
+cross-check-has-teeth                    exec    PASS
+one-source-of-new-role-text              struct  PASS
+residual-is-recorded                     struct  PASS
+s121-s122-chain-still-green              nested  PASS
+no-eighth-command                        behav   PASS
+
+CHECK CLASSES (this suite's OWN checks only — NOT a census of everything that ran)
+  execute-based: 11 · structural grep: 2 · behavioral source grep: 1
+  nested suites (their own checks are NOT counted above): 1
+    - s121-s122-chain-still-green — runs another whole suite; read that suite's own tally for its classes
+  DISCLOSED: each of those 1 nested suite(s) runs checks of its own, including its own
+  behavioral source greps. They are NOT included in the 1 above, so 1 is a FLOOR,
+  never a total for this run.
+NOTE: 1 behavioral source grep(s) in THIS suite — each must be named in the session's fakest-green disclosure.
+STILL A SELF-ASSIGNED LABEL: nothing here proves a check marked `exec` executes anything.
+S122 made the tally honest about NESTING. It did not make the labels EARNED.
+
+WHAT THIS SUITE NEVER EXERCISED: whether any gate, script, or session REACHES FOR a role.
+Nine roles are registered, scaffolded, dispatchable and governed — and nothing depends on
+any of them. 'Done' is tested here. 'Working' is not, and is not claimed.
+
+ALL GREEN (15 pass, 0 fail)
+exit=0
