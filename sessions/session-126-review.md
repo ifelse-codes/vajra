@@ -98,3 +98,12 @@ summary) and cannot exist in the reviewed diff — but they were not yet built, 
 until the summary lands with the residual stated plainly and both `<sha>` placeholders are filled.
 
 **Verdict:** ACCEPT
+
+**Review-Inputs-SHA:** `39d7030955ac7850b0d1314cbb778e9cd0ec49b2db439e991a8a7c969e308079`
+
+*(Computed strictly last, after every `## Execution` sha landed, and confirmed identical on two
+consecutive `verify-closeout.sh --inputs-sha 126` runs. Stated plainly, as the reviewer's own
+finding 6 required: the attested inputs differ from the inputs this pass actually consumed by
+exactly the two closing sha lines in the prompt's `## Execution` section — steps 8 and 9 could not
+have landed before the verdict that is step 8. This is the recurring, structural ordering hazard,
+recorded rather than papered over.)*
