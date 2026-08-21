@@ -64,6 +64,13 @@ that, don't assert it.
    behavioral source greps smuggled in as `exec` (S121/S123 lesson). `covers: 7`
 8. **Independent cold `fidelity-reviewer` pass** fed only the prompt + the diff. Expect a REJECT;
    every rejection so far has been correct. `covers: 8`
+9. **State the residual plainly in the session summary and the closeout record** — the roster is
+   complete AND nothing depends on it; "done" is claimed, "working" is not. `covers: 9`
+
+> **Added in-session (S126), disclosed not silent:** the Planner station's own gate reported
+> `plan misses criteria 9` against this prompt as written — criterion 9 had no plan step citing
+> it. Step 9 closes that gap; it adds no scope, since criterion 9 was always a required output of
+> the session. The pipeline surfaced the hole in its own brief, which is the gate working.
 
 ## Acceptance criteria
 
@@ -85,14 +92,15 @@ that, don't assert it.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: `<sha>`
-- step 2 — done: `<sha>`
-- step 3 — done: `<sha>`
-- step 4 — done: `<sha>`
-- step 5 — done: `<sha>`
-- step 6 — done: `<sha>`
-- step 7 — done: `<sha>`
+- step 1 — done: `d1b4ac8`
+- step 2 — done: `d1b4ac8`
+- step 3 — done: `d1b4ac8`
+- step 4 — done: `35fbd59`
+- step 5 — done: `4d795e5`
+- step 6 — done: `e754aba`
+- step 7 — done: `980112f`
 - step 8 — done: `<sha>`
+- step 9 — done: `<sha>`
 
 > **Fill these with real landing shas before closeout.** S119, S122 and S124 each left `<sha>`
 > placeholders and only an independent cold review caught it — never self-noticed.
