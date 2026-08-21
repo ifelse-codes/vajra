@@ -126,12 +126,14 @@ dispatched — and prove the difference by running it both ways.
 
 From the two cold passes on S126, recorded there and not fixed after the ACCEPTs:
 
-1. **`.gitignore` semantics bug (introduced by the S126 artifact removal).**
-   `sessions/session-*-artifacts/` excludes the parent directory of the older S76/S77 `!`
-   carve-outs, and git cannot re-include a file whose parent directory is excluded — those
-   negations are now inert for untracked files. Nothing red today (they are tracked); regenerate
-   one and `verify-session-77.sh` / `-78.sh` go red on a fresh clone with no obvious cause. **This
-   is the one finding worth fixing early — it is a trap, not a debt.**
+1. ~~`.gitignore` semantics bug~~ — **FIXED IN S126** at the founder's instruction, not carried
+   here. The rule excludes the CHILDREN and sits above the carve-outs; two execute-based checks
+   pin both directions (S126 review §Pass 3, §Pass 4). Two nits its pass-4 review left, explicitly
+   *"not grounds to hold the delta"*, are carried instead: the fixture's temp repo is **not
+   hermetic** (it inherits the operator's global `core.excludesFile` — `-c
+   core.excludesFile=/dev/null` closes it), and its **carve-out block is a retyped copy** of the
+   real `.gitignore`'s eleven lines, so real-file drift would keep testing the old shape. One-line
+   fixes; the comment that calls it the "real rule block" should read "real rule line".
 2. **The unused binding.** Each role's recorded `brief_sha256` in
    `sessions/session-126-dispatch-evidence.md` already equals that role's handoff `source-sha`, and
    nothing compares them — the one in-repo tie between the evidence record and something Vajra
