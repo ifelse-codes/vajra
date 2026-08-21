@@ -857,3 +857,43 @@ pub struct CompressionRequest {
   recurring inside the enforcement layer itself).
 - **Adoption, measured 2026-08-20:** 0 stars · 0 forks · 0 issues · 0 external contributors ·
   19 crates.io downloads. Public 55 days, on crates.io 19 days. Last user-reachable change: S108.
+
+## S126 — the fleet roster completed (permanent facts)
+
+- **The fleet is NINE roles, one per station plus the station-less `researcher`.** Keys:
+  `requirements-analyst` (Analyst) · `design-advisor` (Architect) · `plan-advisor` (Planner) ·
+  `implementation-advisor` (Coder) · `qa-specialist` (QA) · `demo-producer` (Demo-er) ·
+  `release-coordinator` (Releaser) · `fidelity-reviewer` (Reviewer) · `researcher`.
+- **A role key is never the station's own word** — five more instances of the collision S114,
+  S116 and S121 each resolved the same way. A key that shadows a station name is a REJECT, not a
+  nit, and `verify-session-126.sh::no_station_collision` runs the real binary over all eight
+  station words to prove none resolves.
+- **A new role is ONE `ROLES` entry — now tested at n=5, not n=1.** `vajra init`, the subagent
+  render, `vajra next --role`, the handoff contract and the S113 counter all iterate the table
+  already. Five roles were added with zero changes to dispatch code, the CLI, any gate, `K of 8`,
+  or the command count.
+- **Exactly ONE role may execute, and adding five did not change that.** `qa-specialist` alone
+  holds `Bash` (narrowed at S123). The three-copy execution policy (Rust + the two shell guards)
+  is bound by `verify-session-122.sh::execution_policy_one_source` and did not move.
+- **The Coder role is read-only ON PURPOSE, and is not called `coder`.** Granting an
+  implementation role `Write`/`Edit` would reverse S123 (which narrowed the only executing grant)
+  and the S122 retraction of the executor thesis — where seven real defects all came from
+  independent READING. A write grant is a separate, founder-gated decision (`DECISION-007` S126).
+- **The S111 session boundary can be crossed on demand, five times in one session.** A headless
+  `claude -p` run is a fresh session: it boots and reads `.claude/agents/` from scratch, so a role
+  committed minutes earlier is dispatchable immediately — no need to wait for the next session, as
+  S116→S117 did. Each run's own `total_cost_usd` is the authoritative receipt (five dispatches =
+  $4.4482).
+- **A cross-check over COPIES cannot detect a consistent fabrication (S126 fakest green).** Two
+  committed files agreeing on a tool-call id proves internal consistency, not provenance: nothing
+  binds the copies to the runtime originals under `~/.claude/projects/`. A falsifiability fixture
+  that forges ONE field only proves the checker catches an inconsistent copy.
+- **A roster-SIZE pin in an old verify suite is a booby-trap for the session that grows the
+  roster.** `verify-session-121.sh` pinned `N = 4` scaffolded agent files, and
+  `verify-session-122.sh` re-runs that suite LIVE — so a ninth role turned two green suites red
+  with no defect behind it. Pin the SUBSTANCE (byte-identity, set equality); keep a count only as
+  a non-vacuity floor. `verify-session-114.sh`/`-116.sh` carry the same pin at 2 and 3 and are
+  permanently red if run (no live chain runs them).
+- **DONE ≠ WORKING, and completeness is not evidence.** Nine roles are registered, scaffolded,
+  dispatchable and governed — and no gate consumes a handoff, so nothing depends on any of them.
+  Nine roles that nothing depends on is nine decorations (S125's finding, inherited intact).

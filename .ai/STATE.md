@@ -3,49 +3,36 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S125 complete, S126 not yet started).** Branch
-`session-125-ground-truth` (NO-CODE work) + `session-125-closeout` (the commits — GT branches are
-commit-blocked by hook, `-closeout` is the exempt suffix). S126 starts from a fresh `session-126-*`
-branch.
+**`session-126-finish-the-fleet`** — S126 COMPLETE (CODE), **ACCEPT** on the independent cold
+`fidelity-reviewer` pass (**7 of 9 SHIPPED**, 2 PARTIAL, 0 NOT-BUILT — the two PARTIALs were the
+review record and the summary, which cannot exist in the diff the reviewer reads).
 
-S125 was the mandatory NO-CODE Ground Truth (`125 % 5 == 0`), **widened by the founder into a
-full-stack review**: execution audit · gap & bottleneck analysis · code & architecture review ·
-vision re-alignment · a prioritized reboot plan. All 10 required audits run. **Verdict: PARTIAL
-PASS** — discipline intact, direction drifted. Ledger re-verified **INTACT**. 339 lib tests green.
-Zero `src/` changes, zero commits on the GT branch.
+**The fleet roster is COMPLETE: four roles → nine.** Every one of the 8 stations now has a named
+role, plus the station-less `researcher`. New keys, each resolving the STATION-vs-ROLE collision
+the S114/S116/S121 way: `requirements-analyst` (Analyst) · `design-advisor` (Architect) ·
+`implementation-advisor` (Coder) · `demo-producer` (Demo-er) · `release-coordinator` (Releaser).
 
-**Headline: the loop is closed.** Vajra is graded by Vajra, in the repo that builds Vajra — and
-nothing inside that loop can report that the wrong thing is being built. **16 consecutive sessions
-(S109–S124) added no capability a new user can reach**; last user-reachable change was S108
-(2026-08-01). Adoption after 55 days public: **0 stars · 0 forks · 0 issues · 0 external
-contributors · 19 crates.io downloads.**
+**Five roles added, ZERO new grants of `Bash`.** The one real fork — does the Coder role get
+`Write`/`Edit`? — resolved **read-only**: granting it would reverse S123 and the S122
+executor-thesis retraction in the same session that ships it. A write grant is now a separate,
+founder-gated decision (`DECISION-007` S126 addendum).
 
-**Both sharpened lenses answered, independently:**
-- **Why the fleet never engaged — structural, NOT discoverability.** S124's task prompt named all
-  four roles AND required an independent cold review. It also said *"do not use it just because it
-  is there"* (an anti-instruction), the one hard requirement named an **artifact** not an **actor**,
-  and no gate anywhere consumes a handoff. Optional by construction.
-- **Does S124's fabricated citation discredit prior verdicts? No.** S122 and S123 suites re-run
-  live this session: exit 0, **23/23** and **14/14**. Their self-grades hold. **But all twelve of
-  their criteria were about the test suite testing itself** — reliable measurements of the wrong
-  thing. There is a fidelity gate on *delivery* and no gate on whether the *prompt was worth
-  writing*.
+**All five DISPATCHED BY NAME from five separate headless sessions** — the S111 session boundary
+crossed five times instead of waiting five sessions — each cross-checked against two
+Claude-Code-written files agreeing on a random tool-call id. **$4.4482 metered.**
 
-**Founder call at closeout: the S125 findings are PARKED**, not worked. Gate to unpark: *the SDLC
-agent fleet is done AND working*. Backlog: `.ai/ROADMAP.md` §Backlog "🅿️ S125 REBOOT BACKLOG".
-Full evidence: `sessions/session-125-ground-truth.md`.
+**Residual, stated not softened: the roster is complete and NOTHING DEPENDS ON IT.** No gate
+consumes a handoff; nine roles that nothing depends on is nine decorations. S126 closes the *done*
+half of the founder's gate; the *working* half is S127.
 
 ## Active PRs
-- **No open PRs.** S125 closeout PR to be opened from `session-125-closeout`. **S124
-  [#139](https://github.com/ifelse-codes/vajra/pull/139) MERGED 2026-08-20** (STATE/TASK/BOOT had
-  said "PR not yet opened" — corrected by S125; see the structural note below). S123
-  [#138](https://github.com/ifelse-codes/vajra/pull/138) MERGED · S122
-  [#133](https://github.com/ifelse-codes/vajra/pull/133) MERGED · S121
-  [#131](https://github.com/ifelse-codes/vajra/pull/131) MERGED · S120 (#130) MERGED · S119 (#129)
-  MERGED · S118 (#128) MERGED.
-- **Structural drift, named S125 (2nd sighting — S65 found it at S64):** the closeout snapshot is
-  written *before* the PR is opened and merged, so the "PR not yet opened" field is **stale by
-  construction every single session**. Not a one-off to fix by hand.
+- **S126 PR — to be opened from `session-126-finish-the-fleet`.** (Structural drift, named S125
+  and S65: this field is written *before* the PR is opened, so "not yet opened" is stale by
+  construction every session. Read git, not this line.)
+- S125 [#140](https://github.com/ifelse-codes/vajra/pull/140) MERGED 2026-08-20 · S124
+  [#139](https://github.com/ifelse-codes/vajra/pull/139) MERGED · S123
+  [#138](https://github.com/ifelse-codes/vajra/pull/138) MERGED · S122 (#133) MERGED · S121 (#131)
+  MERGED · S120 (#130) MERGED · S119 (#129) MERGED · S118 (#128) MERGED.
 
 ## Direction (governance is the product — shaped as a shippable MVP)
 - **The product = provable agent governance** (`DECISION-001`), sold as the **autopilot trust
@@ -75,16 +62,38 @@ Full evidence: `sessions/session-125-ground-truth.md`.
 - **The co-pilot hook fires and is obeyed (S125, live).** It blocked this session's own agent mid-run
   and refused until `.ai/STATE.md` was read — the same mechanism S124 traced end-to-end under
   `--dangerously-skip-permissions`.
-- **The fleet has FOUR named roles, ALL proven dispatched by name.** Exactly one executes
-  (`qa-specialist`) on the narrowed grant `Bash, Read, Grep, Glob` (S123); the other three are
-  read-only. Its dispatch routes through a disposable `git worktree` checkout (S123).
+- **The fleet roster is COMPLETE at NINE named roles (S126), all proven dispatched by name.**
+  One per station — `requirements-analyst` · `design-advisor` · `plan-advisor` ·
+  `implementation-advisor` · `qa-specialist` · `demo-producer` · `release-coordinator` ·
+  `fidelity-reviewer` — plus the station-less `researcher`. **Exactly one executes**
+  (`qa-specialist`, narrowed grant `Bash, Read, Grep, Glob`, S123, dispatched through a disposable
+  `git worktree` checkout); the other eight are read-only, token-exact. Each role's prompt cites
+  the exact marker its station's gate already parses, and every role PROPOSES — none authors the
+  recorded marker section. **Read the next section before quoting this one: nothing depends on any
+  of them.**
 - **Ledger** (S100): `verify-closeout.sh --ledger-verify` **re-confirmed INTACT at S125**
   (`7862ebd4…`, committed == worktree).
 - **v0.1 install: four real channels**, stranger-shippable as measured at S110.
-- **CI green on `main`** (both OS); 7 commands, no 8th. **339 lib tests** (S125 made no `src/`
-  changes — count unchanged from S123/S124).
+- **CI green on `main`** (both OS); 7 commands, no 8th. **341 lib tests** (S126 added one: the five new keys asserted in both directions).
 
 ## What Is Broken / Weak
+
+- **🔴 THE FLEET IS DONE BUT NOT WORKING (S126, the session's own headline).** Nine roles are
+  registered, scaffolded, dispatchable and governed — and **no gate consumes a handoff**, so
+  skipping every role has no consequence. Nine decorations. This is the founder's gate to unpark
+  the S125 backlog, and only its *done* half is closed. **S127 = make one gate consume a handoff.**
+- **🟡 The dispatch cross-check runs over COPIES (S126 fakest green, reviewer's call).** The
+  committed `*-parent-tooluse.json` / `*-subagent-meta.json` pairs are checked for internal
+  consistency; nothing binds them to the runtime originals in `~/.claude/projects/`, so a
+  *consistent* fabrication would pass exactly as a real dispatch does. What makes fabrication
+  implausible is off-check (five result streams, distinct session ids, $4.45 metered, ~600KB of
+  transcripts).
+- **🟡 Five smaller S126 review findings, filed to S127, not fixed after the ACCEPT:** the
+  `K of 8` invariance check compares at a degenerate `0 of 8` baseline · the demo omits the one
+  out-of-fleet edit its own `demo-producer` brief said to show · `verify-session-121.sh`'s check
+  name still says "four" after being unpinned · `verify-session-114.sh`/`-116.sh` still pin 2 and 3
+  roles and are permanently red if run (no live chain runs them) · the attestation-ordering hazard
+  (the attested inputs differ from what the reviewer read by exactly the two closing sha lines).
 
 **🅿️ S125 full-stack review — findings PARKED by founder call (2026-08-20).** Gate to unpark: the
 SDLC agent fleet is done AND working. Backlog: `ROADMAP.md` §Backlog "🅿️ S125 REBOOT BACKLOG".
@@ -149,12 +158,13 @@ to be worked before the gate.
   active) · **Compression no-op on real CC** · **Cross-agent breadth 0 code**.
 
 ## What Is In Progress
-- **S125 DONE (NO-CODE GT + full-stack review, PARTIAL PASS).** No `src/` changes, no commits on
-  the GT branch. Fidelity gate waived: `VAJRA_CLOSEOUT_WAIVER=125` (NO-CODE GT — the ground-truth
-  report *is* the deliverable; no build to cold-review).
-- **S126 = finish the SDLC agent fleet** (founder direction at the S125 closeout). Five stations
-  still have no named role: Analyst · Architect · Coder · Demo-er · Releaser. Prompt:
-  `prompts/126-task-*.md`.
+- **S126 DONE (CODE, ACCEPT).** The roster is complete at nine roles; only `src/fleet/mod.rs`
+  changed in `src/`; `K of 8` unmoved; no 8th command. One file outside the fleet was touched —
+  `scripts/verify-session-121.sh`'s roster-SIZE pin (`= 4` → `-ge 4`), because
+  `verify-session-122.sh` re-runs the S121 suite LIVE and the breakage chained. Both re-run green.
+- **S127 = the WORKING half: make a gate CONSUME a handoff** (S116's unpicked candidate C +
+  S125's F2). Prompt: `prompts/127-task-*.md`. Until it lands, the S125 reboot backlog stays
+  parked and the fleet stays decoration.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
@@ -170,5 +180,8 @@ to be worked before the gate.
 - **S125: $0 metered** (interactive NO-CODE GT; zero subagents dispatched — every finding was
   derived first-hand). Dogfood staleness NOT reset by this session: `vajra next --dogfood-age`
   reads S124, 2026-08-20, 0 sessions / 0 days since.
-- Cumulative: **~$86.7 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S124 subagents (unknown,
+- **S126: $4.4482 authoritative** — five headless `claude -p` dispatches (one per new role), each
+  figure the run's own `total_cost_usd`. The orchestrating interactive session's own cost is not
+  metered here. Dogfood staleness unchanged (last paid dogfood = S124).
+- Cumulative: **~$91.2 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S124 subagents (unknown,
   not small).**

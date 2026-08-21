@@ -1,6 +1,24 @@
 # Session Boot
 
 ## Current Session
+- **Number:** 126 — COMPLETE
+- **Type:** CODE — finish the SDLC agent fleet: the last five roles, in one pass (founder pick C at
+  the S125 closeout).
+- **Goal:** Register the five missing roles with distinct keys, correct tool grants and real system
+  prompts; prove each dispatchable by name from a fresh session; record `DECISION-007` S126.
+- **Verdict:** **ACCEPT** — independent cold `fidelity-reviewer`, **7 of 9 SHIPPED**, 2 PARTIAL, 0
+  NOT-BUILT. The roster is complete at **nine roles**; five added with **zero** new grants of
+  `Bash`; all five dispatched by name from five separate headless sessions ($4.4482 metered), each
+  cross-checked the S111 way. 341 lib tests · verify 15/15 · demo 7/7 · only `src/fleet/mod.rs`
+  changed in `src/` · `K of 8` unmoved · no 8th command.
+- **🔴 The residual, unsoftened:** the roster is complete and **nothing depends on it** — no gate
+  consumes a handoff. *Done* is claimed; *working* is not. **S127 = make a gate CONSUME a handoff.**
+- **Report:** `sessions/session-126-summary.md` · **Review:** `sessions/session-126-review.md` ·
+  **Prompt:** `prompts/126-task-finish-the-fleet.md`. **Date last updated:** 2026-08-21.
+- **Branch:** `session-126-finish-the-fleet`. S127 starts from a fresh `session-127-*` branch and a
+  new chat.
+
+## Previous Session
 - **Number:** 125 — COMPLETE
 - **Type:** NO-CODE mandatory Ground Truth (`125 % 5 == 0`), **widened by the founder into a
   full-stack review**: execution audit · gap & bottleneck analysis · code & architecture review ·
