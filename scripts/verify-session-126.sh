@@ -426,83 +426,97 @@ residual_is_recorded() {
 run_check "residual-is-recorded" struct residual_is_recorded
 
 # --- 6b. the ignore rule keeps BOTH directions (the S126 pass-2 trap, fixed) -------------------
-# EXECUTE-BASED: it runs `git check-ignore` against this repo's REAL .gitignore and asserts on real
-# exit codes (0 = ignored, 1 = not), not on the text of the rule.
+# EXECUTE-BASED: it runs `git check-ignore` against a real `.gitignore` and asserts on real exit
+# codes (0 = ignored, 1 = not), never on the text of the rule. `--no-index` is load-bearing: without
+# it the already-TRACKED S76 files would report "not ignored" for free and the second half of the
+# predicate would be vacuous.
 #
 # The trap, for the record: the first cut of the S126 rule was `sessions/session-*-artifacts/` —
 # the DIRECTORY. Git cannot re-include a file whose parent directory is excluded, so that one
 # character silently disabled every `!` carve-out below it (the S76 receipts, the S77 fixture).
 # Nothing went red, because those files were already tracked; it would have bitten the first time
 # one was regenerated on a fresh clone. The rule now excludes the CHILDREN (`/*`) and sits ABOVE
-# the carve-outs, and this check pins both halves so the shape cannot silently regress.
+# the carve-outs, and the fixture below pins BOTH of those halves separately.
+#
+# $1 = the repo root to ask. Parameterised (pass-3 finding) so the fixture drives THIS function
+# against planted defects instead of retyping the predicate — the S122 "real function, not a copy"
+# rule, which the first cut of this fixture broke while proving the point elsewhere.
 ignore_rule_keeps_both_directions() {
-  local rc=0 path want got
-  # (path, expected) — MUST stay ignored: raw session artifacts, at any depth, any session.
+  local R="${1:-$ROOT}"; local rc=0 path
   echo "--- must be IGNORED (the rule bites) ---"
   for path in sessions/session-126-artifacts/dispatch/raw.jsonl \
               sessions/session-126-artifacts/scratch.txt \
               sessions/session-99-artifacts/raw.jsonl \
               sessions/session-76-artifacts/run1/raw-run.jsonl; do
-    if git check-ignore -q --no-index "$path"; then echo "  ignored   $path"
+    if git -C "$R" check-ignore -q --no-index "$path"; then echo "  ignored   $path"
     else echo "  FAIL: NOT ignored — the rule stopped biting: $path"; rc=1; fi
   done
-  # MUST stay trackable: the curated S76/S77 carve-outs the older block re-includes by name.
   echo "--- must be TRACKABLE (the carve-outs still work) ---"
   for path in sessions/session-76-artifacts/capture.sh \
               sessions/session-76-artifacts/task-prompt.txt \
               sessions/session-76-artifacts/measurement-checklist.md \
               sessions/session-76-artifacts/run1/receipt.stderr.txt \
               sessions/session-76-artifacts/run2/receipt.stderr.txt \
-              sessions/session-76-artifacts/fixtures/s76-fable-headless.jsonl; do
-    if git check-ignore -q --no-index "$path"; then
+              sessions/session-76-artifacts/fixtures/s76-fable-headless.jsonl \
+              sessions/session-126-dispatch-evidence.md; do
+    if git -C "$R" check-ignore -q --no-index "$path"; then
       echo "  FAIL: IGNORED — a carve-out went inert (the parent-directory trap is back): $path"; rc=1
     else echo "  trackable $path"; fi
   done
-  # And the record this suite reads is not swept up with the artifacts it replaced.
-  git check-ignore -q --no-index "$EVIDENCE" \
-    && { echo "FAIL: the committed evidence record is itself ignored"; rc=1; } \
-    || echo "  trackable $EVIDENCE"
   return $rc
 }
-run_check "ignore-rule-keeps-both-directions" exec ignore_rule_keeps_both_directions
+run_check "ignore-rule-keeps-both-directions" exec ignore_rule_keeps_both_directions "$ROOT"
 
-# THE FALSIFIABILITY FIXTURE: reproduce the ORIGINAL trap in a throwaway repo and require the same
-# predicate to catch it. Without this, "we fixed the ignore rule" is an unfalsified claim — and the
-# defect is invisible by nature (it changes nothing until a file is regenerated).
+# THE FALSIFIABILITY FIXTURE — rebuilt after the pass-3 review, which named the first cut this
+# session's fakest green: it retyped the predicate and never read this repo's rule, so it would
+# have printed the same OKs with the fix reverted. It now drives the REAL function above against
+# throwaway repos carrying one planted defect each, and each defect isolates ONE claim:
+#   A. the dir-form rule placed ABOVE the carve-outs  → isolates `/` vs `/*` (the actual fix)
+#   B. the fixed pattern placed BELOW the carve-outs  → isolates ORDER (last match wins)
+#   C. no rule at all                                 → the "must be ignored" half is not vacuous
+#   D. everything under sessions/ ignored             → the "must stay trackable" half is not vacuous
+# The control writes THIS repo's real rule block, so a revert of `.gitignore` reddens the control.
 ignore_trap_is_reproducible_and_caught() {
   local TMP; TMP="$(mktemp -d)"; local rc=0
   ( cd "$TMP" && git init -q . ) || { rm -rf "$TMP"; return 1; }
-  local CARVEOUT="sessions/session-76-artifacts/fixtures/slice.jsonl"
+  # The carve-out block, verbatim in shape from this repo's .gitignore (the thing that must survive).
+  local CARVEOUTS='sessions/session-76-artifacts/*
+!sessions/session-76-artifacts/capture.sh
+!sessions/session-76-artifacts/task-prompt.txt
+!sessions/session-76-artifacts/measurement-checklist.md
+!sessions/session-76-artifacts/run1
+!sessions/session-76-artifacts/run2
+sessions/session-76-artifacts/run1/*
+sessions/session-76-artifacts/run2/*
+!sessions/session-76-artifacts/run1/receipt.stderr.txt
+!sessions/session-76-artifacts/run2/receipt.stderr.txt
+!sessions/session-76-artifacts/fixtures'
 
-  echo "--- the DEFECT: the rule written as a directory (`/`), carve-outs below it ---"
-  printf 'sessions/session-76-artifacts/*\n!sessions/session-76-artifacts/fixtures\nsessions/session-*-artifacts/\n' > "$TMP/.gitignore"
-  if ( cd "$TMP" && git check-ignore -q --no-index "$CARVEOUT" ); then
-    echo "  confirmed: the carve-out is swallowed — that was the trap"
-  else
-    echo "  FAIL: the fixture no longer reproduces the trap — it proves nothing"; rc=1
-  fi
+  echo "--- CONTROL: this repo's REAL rule line, above the carve-outs (must be GREEN) ---"
+  # Read the live rule out of the real .gitignore rather than retyping it: revert the fix and this
+  # control goes red, which is the property the first cut of this fixture lacked.
+  local REAL_RULE; REAL_RULE="$(grep -m1 '^sessions/session-\*-artifacts/' "$ROOT/.gitignore" || true)"
+  echo "    rule read from $ROOT/.gitignore: ${REAL_RULE:-<none found>}"
+  [ -n "$REAL_RULE" ] || { echo "FAIL: no session-artifacts rule in the real .gitignore"; rm -rf "$TMP"; return 1; }
+  printf '%s\n%s\n' "$REAL_RULE" "$CARVEOUTS" > "$TMP/.gitignore"
+  if ignore_rule_keeps_both_directions "$TMP" >/dev/null 2>&1; then echo "OK: the real rule satisfies both directions"
+  else echo "FAIL: the REAL rule fails the predicate — the fix is not in place"; rc=1; fi
 
-  echo "--- the FIX: children (`/*`), rule placed ABOVE the carve-outs ---"
-  printf 'sessions/session-*-artifacts/*\nsessions/session-76-artifacts/*\n!sessions/session-76-artifacts/fixtures\n' > "$TMP/.gitignore"
-  if ( cd "$TMP" && git check-ignore -q --no-index "$CARVEOUT" ); then
-    echo "  FAIL: the fixed shape still swallows the carve-out"; rc=1
-  else
-    echo "  OK: the carve-out survives the general rule"
-  fi
-  # ...and the fixed shape must still ignore an ordinary artifact, or "fixed" would mean "gutted".
-  if ( cd "$TMP" && git check-ignore -q --no-index "sessions/session-126-artifacts/raw.jsonl" ); then
-    echo "  OK: an ordinary artifact is still ignored under the fixed shape"
-  else
-    echo "  FAIL: the fixed shape ignores nothing — the rule was gutted, not fixed"; rc=1
-  fi
-
-  echo "--- ORDER matters too: the same fixed pattern placed BELOW the carve-outs must still trap ---"
-  printf 'sessions/session-76-artifacts/*\n!sessions/session-76-artifacts/fixtures\nsessions/session-*-artifacts/*\n' > "$TMP/.gitignore"
-  if ( cd "$TMP" && git check-ignore -q --no-index "$CARVEOUT" ); then
-    echo "  confirmed: last pattern wins — placement is load-bearing, not cosmetic"
-  else
-    echo "  FAIL: the order claim in .gitignore's comment is wrong"; rc=1
-  fi
+  local name gi
+  for name in A-dir-form-above B-fixed-form-below C-no-rule D-ignore-everything; do
+    case "$name" in
+      A-dir-form-above)    gi="$(printf 'sessions/session-*-artifacts/\n%s\n' "$CARVEOUTS")" ;;
+      B-fixed-form-below)  gi="$(printf '%s\nsessions/session-*-artifacts/*\n' "$CARVEOUTS")" ;;
+      C-no-rule)           gi="$CARVEOUTS" ;;
+      D-ignore-everything) gi="$(printf 'sessions/**\n%s\n' "$CARVEOUTS")" ;;
+    esac
+    printf '%s\n' "$gi" > "$TMP/.gitignore"
+    if ignore_rule_keeps_both_directions "$TMP" >/dev/null 2>&1; then
+      echo "FAIL: the predicate accepted planted defect $name"; rc=1
+    else
+      echo "OK: planted defect $name REJECTED"
+    fi
+  done
   rm -rf "$TMP"; return $rc
 }
 run_check "ignore-trap-is-reproducible-and-caught" exec ignore_trap_is_reproducible_and_caught
