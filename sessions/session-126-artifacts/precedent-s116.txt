@@ -1,0 +1,22 @@
+
+=== Session 116 Verify Summary ===
+STEP                               RESULT
+---------------------------------- ------
+cargo-build                        PASS
+cargo-test                         PASS
+cargo-fmt                          PASS
+cargo-clippy                       PASS
+fleet-smoke                        PASS
+s113-counter-still-green           PASS
+test-role-registered               PASS
+test-roles-read-only               FAIL
+test-delta-names-role              PASS
+test-render-every-role             PASS
+test-filter-guard-has-teeth        PASS
+init-scaffolds-three-roles         FAIL
+one-source-of-role-text            PASS
+e2e-three-governed-handoffs        PASS
+decision-recorded-honoured         PASS
+no-eighth-command                  PASS
+RED (14 pass, 2 fail)
+S116 exit=1
