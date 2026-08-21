@@ -425,6 +425,88 @@ residual_is_recorded() {
 }
 run_check "residual-is-recorded" struct residual_is_recorded
 
+# --- 6b. the ignore rule keeps BOTH directions (the S126 pass-2 trap, fixed) -------------------
+# EXECUTE-BASED: it runs `git check-ignore` against this repo's REAL .gitignore and asserts on real
+# exit codes (0 = ignored, 1 = not), not on the text of the rule.
+#
+# The trap, for the record: the first cut of the S126 rule was `sessions/session-*-artifacts/` —
+# the DIRECTORY. Git cannot re-include a file whose parent directory is excluded, so that one
+# character silently disabled every `!` carve-out below it (the S76 receipts, the S77 fixture).
+# Nothing went red, because those files were already tracked; it would have bitten the first time
+# one was regenerated on a fresh clone. The rule now excludes the CHILDREN (`/*`) and sits ABOVE
+# the carve-outs, and this check pins both halves so the shape cannot silently regress.
+ignore_rule_keeps_both_directions() {
+  local rc=0 path want got
+  # (path, expected) — MUST stay ignored: raw session artifacts, at any depth, any session.
+  echo "--- must be IGNORED (the rule bites) ---"
+  for path in sessions/session-126-artifacts/dispatch/raw.jsonl \
+              sessions/session-126-artifacts/scratch.txt \
+              sessions/session-99-artifacts/raw.jsonl \
+              sessions/session-76-artifacts/run1/raw-run.jsonl; do
+    if git check-ignore -q --no-index "$path"; then echo "  ignored   $path"
+    else echo "  FAIL: NOT ignored — the rule stopped biting: $path"; rc=1; fi
+  done
+  # MUST stay trackable: the curated S76/S77 carve-outs the older block re-includes by name.
+  echo "--- must be TRACKABLE (the carve-outs still work) ---"
+  for path in sessions/session-76-artifacts/capture.sh \
+              sessions/session-76-artifacts/task-prompt.txt \
+              sessions/session-76-artifacts/measurement-checklist.md \
+              sessions/session-76-artifacts/run1/receipt.stderr.txt \
+              sessions/session-76-artifacts/run2/receipt.stderr.txt \
+              sessions/session-76-artifacts/fixtures/s76-fable-headless.jsonl; do
+    if git check-ignore -q --no-index "$path"; then
+      echo "  FAIL: IGNORED — a carve-out went inert (the parent-directory trap is back): $path"; rc=1
+    else echo "  trackable $path"; fi
+  done
+  # And the record this suite reads is not swept up with the artifacts it replaced.
+  git check-ignore -q --no-index "$EVIDENCE" \
+    && { echo "FAIL: the committed evidence record is itself ignored"; rc=1; } \
+    || echo "  trackable $EVIDENCE"
+  return $rc
+}
+run_check "ignore-rule-keeps-both-directions" exec ignore_rule_keeps_both_directions
+
+# THE FALSIFIABILITY FIXTURE: reproduce the ORIGINAL trap in a throwaway repo and require the same
+# predicate to catch it. Without this, "we fixed the ignore rule" is an unfalsified claim — and the
+# defect is invisible by nature (it changes nothing until a file is regenerated).
+ignore_trap_is_reproducible_and_caught() {
+  local TMP; TMP="$(mktemp -d)"; local rc=0
+  ( cd "$TMP" && git init -q . ) || { rm -rf "$TMP"; return 1; }
+  local CARVEOUT="sessions/session-76-artifacts/fixtures/slice.jsonl"
+
+  echo "--- the DEFECT: the rule written as a directory (`/`), carve-outs below it ---"
+  printf 'sessions/session-76-artifacts/*\n!sessions/session-76-artifacts/fixtures\nsessions/session-*-artifacts/\n' > "$TMP/.gitignore"
+  if ( cd "$TMP" && git check-ignore -q --no-index "$CARVEOUT" ); then
+    echo "  confirmed: the carve-out is swallowed — that was the trap"
+  else
+    echo "  FAIL: the fixture no longer reproduces the trap — it proves nothing"; rc=1
+  fi
+
+  echo "--- the FIX: children (`/*`), rule placed ABOVE the carve-outs ---"
+  printf 'sessions/session-*-artifacts/*\nsessions/session-76-artifacts/*\n!sessions/session-76-artifacts/fixtures\n' > "$TMP/.gitignore"
+  if ( cd "$TMP" && git check-ignore -q --no-index "$CARVEOUT" ); then
+    echo "  FAIL: the fixed shape still swallows the carve-out"; rc=1
+  else
+    echo "  OK: the carve-out survives the general rule"
+  fi
+  # ...and the fixed shape must still ignore an ordinary artifact, or "fixed" would mean "gutted".
+  if ( cd "$TMP" && git check-ignore -q --no-index "sessions/session-126-artifacts/raw.jsonl" ); then
+    echo "  OK: an ordinary artifact is still ignored under the fixed shape"
+  else
+    echo "  FAIL: the fixed shape ignores nothing — the rule was gutted, not fixed"; rc=1
+  fi
+
+  echo "--- ORDER matters too: the same fixed pattern placed BELOW the carve-outs must still trap ---"
+  printf 'sessions/session-76-artifacts/*\n!sessions/session-76-artifacts/fixtures\nsessions/session-*-artifacts/*\n' > "$TMP/.gitignore"
+  if ( cd "$TMP" && git check-ignore -q --no-index "$CARVEOUT" ); then
+    echo "  confirmed: last pattern wins — placement is load-bearing, not cosmetic"
+  else
+    echo "  FAIL: the order claim in .gitignore's comment is wrong"; rc=1
+  fi
+  rm -rf "$TMP"; return $rc
+}
+run_check "ignore-trap-is-reproducible-and-caught" exec ignore_trap_is_reproducible_and_caught
+
 # --- 7. the chain that this session's change could have broken, re-run LIVE ----------------------
 # NESTED, and load-bearing: verify-session-122.sh re-runs the S121 suite inside itself, so this one
 # call re-proves both. S126's only edit outside the fleet was to a roster-SIZE pin in the S121
