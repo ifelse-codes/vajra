@@ -19,7 +19,7 @@
 - **All five dispatched BY NAME from five separate headless sessions**, each cross-checked the
   S111 way against two Claude-Code-written files agreeing on a random tool-call id. **$4.4482
   metered.** Zero new machinery: only `src/fleet/mod.rs` changed in `src/`, `K of 8` unmoved, no
-  8th command. 341 lib tests · verify 15/15 · demo 7/7.
+  8th command. 340 lib tests · verify 17/17 · demo 7/7.
 
 **🔴 THE RESIDUAL, CARRIED NOT ARGUED: the roster is complete and NOTHING DEPENDS ON IT.** No gate
 consumes a handoff. Nine roles that nothing depends on is nine decorations. S126 closed the *done*
