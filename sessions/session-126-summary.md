@@ -86,9 +86,18 @@ consistency, not provenance. Binding evidence to the runtime is S127's candidate
 
 The verify and demo suites were rewired to the record and re-run green (15/15 · 7/7), with six
 planted-drift cases required to turn the record check RED, plus a strong path that re-derives from
-the raw files when they are present locally. **This change touched reviewed code, so a second cold
-pass was run over it** — see `sessions/session-126-review.md` §pass 2 — and the attestation was
-recomputed afterwards.
+the raw files when they are present locally. The class mix moved honestly with it: `exec 11 ·
+struct 2` → `exec 10 · struct 3`.
+
+**Because this touched reviewed code, a second cold pass judged it** (`sessions/session-126-review.md`
+§Pass 2): **ACCEPT, 5 of 6 SHIPPED**, no criterion weakened below the line. It named the delta's own
+fakest green — the "strong path" that re-derives from the raw files **can only ever run on the
+machine that made them**, and in a clean clone the check goes green without it, unscored. It also
+found a binding left on the table (each role's `brief_sha256` already equals its handoff's
+`source-sha`, and nothing compares them) and a `.gitignore` semantics bug this change introduced
+(an ignored parent directory makes the older S76/S77 `!` carve-outs inert for untracked files —
+nothing red today, a trap later). Both are filed into S127, not fixed after the pass. The
+attestation was then recomputed and re-embedded, twice agreeing.
 
 ## Two things this session did to itself, disclosed
 

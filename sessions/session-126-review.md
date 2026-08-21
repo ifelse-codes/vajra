@@ -11,6 +11,14 @@ Claude-Code-written JSONL), all committed and readable on disk.
 **The brief below is the reviewer's own, landed as returned.** The builder did not edit its
 grades, its fakest-green call, or its findings.
 
+> **Reading note (added when pass 2 landed).** Pass 1 below describes the suite **as it stood at
+> commit `8783a01`**. After that verdict the founder directed that session artifacts must not be
+> pushed to git, which replaced two checks and moved the class tally. Pass 1's words are left
+> exactly as returned — they are the record of what was judged — and **§Pass 2 at the end of this
+> file is the current description.** Check names `five-dispatches-cross-check` and
+> `cross-check-has-teeth`, the tally `11 · 2 · 1 · 1`, and the path
+> `sessions/session-126-artifacts/review-input.diff` all refer to that earlier state.
+
 ---
 
 **Method controls (reviewer's own words).** Cold pass, fresh context, no builder narrative
@@ -99,11 +107,95 @@ until the summary lands with the residual stated plainly and both `<sha>` placeh
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** `39d7030955ac7850b0d1314cbb778e9cd0ec49b2db439e991a8a7c969e308079`
+**Review-Inputs-SHA:** `9d7ae228e34f4238382b167d3c8b925170558072deef7ccfbece5fee33b76126`
 
-*(Computed strictly last, after every `## Execution` sha landed, and confirmed identical on two
-consecutive `verify-closeout.sh --inputs-sha 126` runs. Stated plainly, as the reviewer's own
+*(Recomputed strictly last — after the post-review artifact removal landed, since that change
+touched `scripts/` and `.gitignore`, which the attested inputs include — and confirmed identical on
+two consecutive `verify-closeout.sh --inputs-sha 126` runs. The superseded pass-1 hash was
+`39d7030955ac…`; it is recorded here rather than quietly overwritten. Stated plainly, as the reviewer's own
 finding 6 required: the attested inputs differ from the inputs this pass actually consumed by
 exactly the two closing sha lines in the prompt's `## Execution` section — steps 8 and 9 could not
 have landed before the verdict that is step 8. This is the recurring, structural ordering hazard,
 recorded rather than papered over.)*
+
+
+---
+
+# Pass 2 — the post-review delta: session artifacts un-tracked, evidence rewired
+
+**Why a second pass exists.** After pass 1's ACCEPT the founder directed that session artifacts must
+not be pushed to git. `sessions/session-126-artifacts/` (1.1 MB, 810 KB of it raw subagent JSONL)
+was removed from tracking, `sessions/session-*-artifacts/` was ignored, and the evidence the suites
+read became an 8 KB derived record. That touched **reviewed code**, so it was cold-reviewed again
+rather than attested on pass 1's reading. The reviewer was fed the prompt and the delta since
+`8783a01`, and asked one question: does the delta weaken anything pass 1 graded SHIPPED?
+
+**The brief below is the reviewer's own, landed as returned.**
+
+| # | Criterion (re-examined for delta damage) | Verdict | Evidence / reasoning |
+|---|---|---|---|
+| 5 | Five proven dispatched by name, S111 two-file cross-check | SHIPPED | The check got **stronger**, the evidence base got **weaker**, and the repo says so in three places. Stronger: 10 required fields, both-direction role agreement, id uniqueness, **distinct `parent_session_id`s**, sha256 shape, handoff-exists-and-names-the-role, fail-closed on an unparseable record, and 6 planted-drift cases (was 2). Weaker: the transcript "real assistant usage line" check and the five `-run.json` streams — the off-check ballast pass 1 leaned on — are no longer in git. Not softened: the record's own "**Does not prove**… that this record was derived from them rather than written", the demo's replacement of "an id neither side chose" with "from the committed record", and the suite header's "Neither mode proves provenance" |
+| 7 | Both suites exit 0 with a printed check-class tally | SHIPPED | The real record was hand-traced through the real function: five roles ✓, all 10 fields non-empty ✓, ids equal and unique ✓, five distinct session ids ✓, 64-hex shas ✓, all five handoffs exist with `role:` ✓; every fixture case provably reddens the same function. Tally infra untouched, 15 checks preserved. The class mix moved: `exec 11 · struct 2` → **`exec 10 · struct 3`** |
+| 4 | Traced, not asserted: nothing else moved | SHIPPED | The delta touches `scripts/`, `.gitignore`, one new `sessions/` record. Zero `src/` |
+| 8 | Cold `fidelity-reviewer` ACCEPT, **attested** | PARTIAL | The attested inputs include `scripts/` and `.gitignore`, both changed after `8783a01`, so pass 1's embedded hash was stale by construction and the gate would BLOCK. (Resolved at closeout: recomputed above, twice agreeing, after the delta's last commit.) |
+| 9 | Residual stated plainly, never softened | SHIPPED | Strengthened by the delta: "Say plainly what that costs", "a clean clone checks the RECORD, never the runtime's own files", S127 candidate B named |
+| 1/2/3/6 | Roster keys · marker-citing prompts · tool grants · DECISION-007 addendum | SHIPPED | Untouched by the delta and free of collateral |
+
+**5 of 6 SHIPPED** (1 PARTIAL, 0 NOT-BUILT). No criterion graded SHIPPED at pass 1 is weakened
+below the line; criterion 8 was already PARTIAL at pass 1 and stays PARTIAL for a new, mechanical
+reason.
+
+## The fakest green of the delta
+
+**The "STRONG path" — `if os.path.isdir(raw_dir)`.** It is the one genuinely provenance-bearing
+thing the delta added (re-derive ids and re-hash the transcript from the runtime's own files,
+require a match), and the very policy that motivated the delta guarantees it **can never run
+anywhere except the machine that made the artifacts**. In a clean clone it takes the `else` branch,
+prints a disclosure, and the check goes **green with an identical exit code** — a `struct` check
+that would pass unchanged if the five dispatches had never happened and the record had been typed.
+The fixture's strong case is gated the same way and is **not scored**, so no tally row anywhere
+records whether the strong path ran. The S69 hollow-green class, re-created honestly rather than
+hidden: the check discloses its mode in prose, but the score does not.
+
+Second, and a real overclaim: the comment "This is the one field a purely invented record cannot
+satisfy silently" is **false** — `vajra next --role <name> --from <any file>` mints a governed
+handoff with no dispatch, so handoff-existence costs a fabricator one command. Meanwhile the record
+carries a `brief_sha256` per role that **exactly equals that handoff's `source-sha`** (verified on
+all five) — a real in-repo binding that costs nothing to check, is not in the required-field list,
+and is never compared. **The strongest available check was left on the table while the weaker one
+was labelled the strong one.**
+
+Third: `evidence-record-has-teeth` keeps the `exec` label after its subject was honestly demoted to
+`struct`; it runs the suite's own shell function over text files and never touches the `vajra`
+binary. Credit where due on the S122 lesson: the fixture drives the **real** function, not a
+retyped copy, and mutates a *copy* of the real record.
+
+## Other findings — filed into S127, deliberately NOT fixed after this pass
+
+1. **`.gitignore` semantics bug (introduced by this delta).** `sessions/session-*-artifacts/`
+   excludes the parent directory of the S76/S77 carve-outs above it. Git cannot re-include a file
+   whose parent directory is excluded, so `!sessions/session-76-artifacts/fixtures` is now **inert
+   for untracked files**. Nothing is red today (those files are tracked), but regenerate or re-add
+   one and `verify-session-77.sh` / `verify-session-78.sh` go red on a fresh clone with no obvious
+   cause.
+2. **The new rule contradicts live suites.** `demo-session-111.sh` reads a *committed*
+   `researcher-subagent-meta.json`, and `verify-session-117/122/123/76/78` all read tracked
+   per-session artifact dirs — precisely the shape the new rule forbids going forward. The
+   `.gitignore` comment says tracked files are unaffected (true) but never says the repo's own
+   precedent now violates its new rule.
+3. **The governance chain's human-readable input dangles.** `sessions/session-126-review.md` cites
+   the diff the pass-1 ACCEPT was based on; that file is now untracked. The attestation mechanism
+   survives (it recomputes from git); the citation does not.
+4. **The unused binding.** Add `brief_sha256 == the handoff's source-sha` to the record check — the
+   one in-repo tie between the record and something Vajra itself wrote.
+
+## Verdict
+
+The delta is a faithful, disclosed re-basing of one check, not a quiet weakening: the record check
+is materially harder to satisfy than what it replaced, its fixture drives the real function, the
+class label on the record check was voluntarily *downgraded* to `struct`, and every honesty line
+probed says "record, not proof" rather than implying proved provenance. What it costs — third-party
+re-derivability of criterion 5 — is stated plainly in four places and correctly routed to S127
+candidate B.
+
+**Verdict:** ACCEPT
