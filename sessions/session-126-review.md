@@ -107,12 +107,14 @@ until the summary lands with the residual stated plainly and both `<sha>` placeh
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** `9d7ae228e34f4238382b167d3c8b925170558072deef7ccfbece5fee33b76126`
+**Review-Inputs-SHA:** `5ef4ee732fe096c6d33ea625a25b0df8b649eceefd4666f0c4bb43b5fa93e02a`
 
 *(Recomputed strictly last — after the post-review artifact removal landed, since that change
 touched `scripts/` and `.gitignore`, which the attested inputs include — and confirmed identical on
-two consecutive `verify-closeout.sh --inputs-sha 126` runs. The superseded pass-1 hash was
-`39d7030955ac…`; it is recorded here rather than quietly overwritten. Stated plainly, as the reviewer's own
+two consecutive `verify-closeout.sh --inputs-sha 126` runs. Superseded hashes, kept on the record rather than
+quietly overwritten: `39d7030955ac…` (pass 1) and `9d7ae228e34f…` (pass 2). Each was invalidated by
+a later founder-directed change to `scripts/` or `.gitignore`, which the attested inputs include —
+and each of those changes was cold-reviewed before the hash was recomputed, never after. Stated plainly, as the reviewer's own
 finding 6 required: the attested inputs differ from the inputs this pass actually consumed by
 exactly the two closing sha lines in the prompt's `## Execution` section — steps 8 and 9 could not
 have landed before the verdict that is step 8. This is the recurring, structural ordering hazard,
@@ -178,6 +180,10 @@ retyped copy, and mutates a *copy* of the real record.
    for untracked files**. Nothing is red today (those files are tracked), but regenerate or re-add
    one and `verify-session-77.sh` / `verify-session-78.sh` go red on a fresh clone with no obvious
    cause.
+
+   > **Status: FIXED IN-SESSION, at the founder's explicit instruction** ("fix the gitignore trap
+   > now"), which overrides this pass's "file into S127". The fix and the two checks that pin it
+   > were cold-reviewed on their own — see §Pass 3 and §Pass 4 below.
 2. **The new rule contradicts live suites.** `demo-session-111.sh` reads a *committed*
    `researcher-subagent-meta.json`, and `verify-session-117/122/123/76/78` all read tracked
    per-session artifact dirs — precisely the shape the new rule forbids going forward. The
@@ -199,3 +205,53 @@ re-derivability of criterion 5 — is stated plainly in four places and correctl
 candidate B.
 
 **Verdict:** ACCEPT
+
+
+---
+
+# Pass 3 — the founder-ordered fix to the `.gitignore` trap pass 2 found
+
+**Why.** Pass 2 filed its finding 1 (the ignore rule excluded a directory, silently disabling the
+older S76/S77 carve-outs) for S127. The founder instead instructed: fix it now. It was fixed
+in-session, so it was cold-reviewed on its own — the delta since `662fb30`, covering `.gitignore`
+and `scripts/verify-session-126.sh`. **The brief below is the reviewer's own, landed as returned.**
+
+| # | Question examined | Verdict | Evidence / reasoning |
+|---|---|---|---|
+| 1 | Trap closed in BOTH directions | SHIPPED | `sessions/session-*-artifacts/*` (children, not the dir) placed **above** the S76 block. Ignored: `scratch.txt` matches directly, `dispatch/raw.jsonl` via its parent dir matching `/*` (a `*` cannot cross `/`, so parent-dir exclusion is what carries depth) — same for any session. Trackable: `run1`/`run2`/`fixtures` are matched then re-included by the later `!` lines; last match wins, the dirs stay walkable, so all six carve-out paths are trackable again |
+| 2 | New checks genuinely execute-based; fixture reproduces the ORIGINAL defect | PARTIAL | Genuinely execute-based — both branch on real `git check-ignore -q --no-index` exit codes, and `--no-index` is the load-bearing detail (without it the tracked S76 files return "not ignored" for free). **But** the fixture retyped the predicate instead of driving the real function, and never isolated the `/` vs `/*` claim |
+| 3 | Vacuous-pass risk | PARTIAL | The real-repo check is non-vacuous both ways. The fixture **never reads this repo's `.gitignore`** — it would pass byte-identically with the fix reverted |
+| 4 | New traps introduced by the fix | SHIPPED | None material. Two benign deltas, both disclosed: the artifacts directory itself is no longer ignored (changes only `git clean -fdX` granularity), and nested carve-outs now need each parent re-included, which the comment states with a pointer to `run1` |
+| 5 | Left dangling / now inconsistent | NOT-BUILT | Four records assert something no longer true (two "filed into S127, not fixed" claims, the S127 prompt item, and stale check counts), and the embedded attestation is stale by construction |
+
+**2 of 5 SHIPPED** (2 PARTIAL, 1 NOT-BUILT). Fakest green: **the fixture** — the one check whose
+name promises the guarantee and the one check that cannot fail because of anything in this repo.
+
+**Verdict:** ACCEPT
+
+---
+
+# Pass 4 — the two cheap fixes pass 3 named, applied and judged
+
+Pass 3's two fixes (drive the real predicate; add the isolating case) were implemented and reviewed
+on the delta since `06d04fd`. **The brief below is the reviewer's own, landed as returned.**
+
+| # | Item examined | Verdict | Evidence / reasoning |
+|---|---|---|---|
+| 1 | Fixture drives the REAL predicate, not a copy | SHIPPED | The predicate is parameterised (`local R="${1:-$ROOT}"`, every probe `git -C "$R" …`) and the fixture invokes it five times — control plus one per planted defect. Zero retyped `check-ignore` calls remain |
+| 2 | Control goes RED if `.gitignore` reverts | SHIPPED | The control greps the live rule line out of the real file and writes it into the temp repo, so a revert makes the control byte-equivalent to planted defect A, which the same predicate rejects. A deleted/renamed rule hard-fails rather than skipping |
+| 3 | Defect A isolates `/` → `/*` | SHIPPED | A and the control differ by exactly one token (the trailing `*`), same carve-outs, same position; B holds form constant and varies position. A real 2-cell isolation |
+| 4 | A is rejected for the RIGHT reason (S122) | SHIPPED | Under A the dir pattern matches the directory, git never descends, and the failure surfaces as "a carve-out went inert (the parent-directory trap is back)". Four defects, four distinct right reasons |
+| 5 | No vacuous pass in either direction | SHIPPED | An always-nonzero predicate reddens the control; an always-zero predicate is caught by all four defects. C guards the ignored half, D the trackable half — and D fails on a flat, unambiguous path |
+| 6 | Comments make no new overclaim | PARTIAL | "The control writes THIS repo's real rule **block**" overstates: it writes one grepped *line*; the eleven-line carve-out string is still retyped, so real-file drift goes undetected. The control also always places the rule above the retyped carve-outs, so the fixture pins FORM, never POSITION in the real file (only the real-repo check does) |
+| 7 | Parameterisation opens no new hole | PARTIAL | `${1:-$ROOT}` preserves the real check's behaviour and the call site passes `"$ROOT"` explicitly. Residuals: the temp repo is not hermetic (it still inherits the operator's global `core.excludesFile`; `-c core.excludesFile=/dev/null` would close it), the calls suppress output so a control failure prints no offending path, and the predicate now hardcodes the evidence-record path where it used `$EVIDENCE` |
+
+**5 of 7 SHIPPED** (2 PARTIAL, 0 NOT-BUILT). Fakest green that remains: **the carve-out block in
+the fixture is still a retyped copy** — one line comes from the real file, the eleven-line
+environment whose survival is the point does not, so real-file drift keeps testing the old shape.
+"A far weaker residual than pass 3's; a drift risk, not a hollow assertion."
+
+**Verdict:** ACCEPT
+
+Both pass-3 fixes land and are real. The two PARTIALs are explicitly *"not grounds to hold the
+delta"* — they are filed into S127, and the review chain stops here.

@@ -25,7 +25,7 @@ working"); the *working* half is not built here, is not claimed here, and is S12
 | 4 | Traced, not asserted: nine scaffolded · handoff per role · `K of 8` unchanged | SHIPPED |
 | 5 | All five dispatched BY NAME from a fresh session, S111 two-file cross-check each | SHIPPED |
 | 6 | `DECISION-007` S126 addendum recorded, residual included | SHIPPED |
-| 7 | `verify-session-126.sh` + `demo-session-126.sh` both exit 0 with a class tally | SHIPPED |
+| 7 | `verify-session-126.sh` (17 checks) + `demo-session-126.sh` both exit 0 with a class tally | SHIPPED |
 | 8 | Independent cold `fidelity-reviewer` verdict ACCEPT, attested | SHIPPED (this record) |
 | 9 | The residual stated plainly, never softened | SHIPPED (this record) |
 
@@ -54,8 +54,8 @@ briefs were landed as governed handoffs through the unchanged S109 path.
 
 ## Numbers
 
-- 341 lib tests green · `verify-session-126.sh` **15 checks, ALL GREEN** (11 exec · 2 struct ·
-  1 behav · 1 nested) · `demo-session-126.sh` **7 executed cases, GREEN**.
+- 341 lib tests green · `verify-session-126.sh` **17 checks, ALL GREEN** (12 exec · 3 struct ·
+  1 behav · 1 nested — the count grew with the post-review evidence rewire and the ignore-rule fix) · `demo-session-126.sh` **7 executed cases, GREEN**.
 - The nested check re-runs `verify-session-122.sh` LIVE, which itself re-runs the S121 suite — the
   chain this session's one out-of-fleet edit could have broken, proven green rather than assumed.
 - `vajra next --stations 126` → **5 of 8 stations passed**, with the five handoffs reported beside
@@ -87,7 +87,8 @@ consistency, not provenance. Binding evidence to the runtime is S127's candidate
 The verify and demo suites were rewired to the record and re-run green (15/15 · 7/7), with six
 planted-drift cases required to turn the record check RED, plus a strong path that re-derives from
 the raw files when they are present locally. The class mix moved honestly with it: `exec 11 ·
-struct 2` → `exec 10 · struct 3`.
+struct 2` → `exec 10 · struct 3`, and the ignore-rule fix then added two execute-based checks —
+**17 checks, `exec 12 · struct 3 · behav 1 · nested 1`.**
 
 **Because this touched reviewed code, a second cold pass judged it** (`sessions/session-126-review.md`
 §Pass 2): **ACCEPT, 5 of 6 SHIPPED**, no criterion weakened below the line. It named the delta's own
@@ -96,8 +97,18 @@ machine that made them**, and in a clean clone the check goes green without it, 
 found a binding left on the table (each role's `brief_sha256` already equals its handoff's
 `source-sha`, and nothing compares them) and a `.gitignore` semantics bug this change introduced
 (an ignored parent directory makes the older S76/S77 `!` carve-outs inert for untracked files —
-nothing red today, a trap later). Both are filed into S127, not fixed after the pass. The
-attestation was then recomputed and re-embedded, twice agreeing.
+nothing red today, a trap later). The binding is filed into S127. **The gitignore
+bug was NOT filed — the founder said fix it now**, so it was fixed in-session and cold-reviewed
+twice more on its own (§Pass 3, §Pass 4: ACCEPT, ACCEPT). The rule now excludes the CHILDREN
+(`sessions/session-*-artifacts/*`) and sits **above** the carve-outs, and two execute-based checks
+pin both halves: real `git check-ignore` exit codes on four must-be-ignored and seven
+must-stay-trackable paths, plus a fixture that reads the live rule out of `.gitignore` and drives
+the real predicate against four planted defects — dir-form above the carve-outs (isolating the
+`/`→`/*` fix), fixed-form below them (isolating order), no rule at all, and everything ignored.
+Revert the fix and the fixture's control goes red.
+
+The attestation was recomputed and re-embedded after the last code change, twice agreeing; the two
+superseded hashes are kept on the record.
 
 ## Two things this session did to itself, disclosed
 
