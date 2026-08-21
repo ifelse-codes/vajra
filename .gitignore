@@ -33,3 +33,16 @@ sessions/session-76-artifacts/run2/*
 # S77 regression fixture — real captured message.usage slice, small + committed (the
 # meter/receipt tests + verify-session-77 depend on it; the raw run.jsonl stays local).
 !sessions/session-76-artifacts/fixtures
+
+# ── SESSION ARTIFACTS ARE NOT PUSHED (founder call, S126) ───────────────────────────────────────
+# A session's raw working evidence — transcripts, run captures, harness scratch, before/after logs
+# — stays LOCAL. `sessions/` carries only the small, permanent records: the session summary, the
+# cold review, and any short evidence RECORD a verify suite parses (e.g.
+# sessions/session-126-dispatch-evidence.md). S126 pushed 1.1 MB of raw JSONL before this rule
+# existed; `sessions/` had already grown to 11 MB of a 17 MB repo.
+#
+# The rule for a verify suite: if a check needs evidence, commit a DERIVED record small enough to
+# read (ids, sha256s, costs) and keep the raw file local — the S76/S77 pattern above, now general.
+# Already-tracked artifacts from earlier sessions are unaffected (git ignores only untracked
+# files); removing those from history is a separate, destructive, founder-gated call.
+sessions/session-*-artifacts/
