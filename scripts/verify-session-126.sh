@@ -6,9 +6,10 @@
 #   2. each of the five NEW roles governs a real handoff through the unchanged S109 path;
 #   3. NOTHING else moved — `K of 8` is untouched, no 8th command, and the execution allowlist is
 #      still exactly one role (five roles added, zero new grants of Bash);
-#   4. each of the five was really DISPATCHED BY NAME, cross-checked the S111 way against two
-#      files Claude Code itself wrote — and that cross-check is shown going RED on a forged id, so
-#      it is not a check that cannot fail;
+#   4. each of the five was really DISPATCHED BY NAME — checked against the committed evidence
+#      RECORD (the raw runtime files are untracked by founder call; see
+#      `sessions/session-126-dispatch-evidence.md`), with the check shown going RED on six kinds of
+#      planted drift, so it is not a check that cannot fail;
 #   5. the residual is on the record: the roster is complete and nothing depends on it.
 #
 # CHECK CLASSES — the S121/S122/S123 contract: EXECUTE-BASED (runs the product, asserts on real
@@ -36,7 +37,8 @@ VAJRA="$ROOT/target/release/vajra"
 
 NEW_ROLES="requirements-analyst design-advisor implementation-advisor demo-producer release-coordinator"
 ALL_ROLES="researcher fidelity-reviewer plan-advisor qa-specialist $NEW_ROLES"
-DISPATCH="sessions/session-126-artifacts/dispatch"
+DISPATCH="sessions/session-126-artifacts/dispatch"   # LOCAL ONLY — untracked by policy
+EVIDENCE="sessions/session-126-dispatch-evidence.md"
 
 PASS=0; FAIL=0; RESULTS=()
 EXEC_N=0; STRUCT_N=0; BEHAV_N=0; NESTED_N=0; NESTED_NAMES=()
@@ -207,83 +209,174 @@ execution_allowlist_did_not_grow() {
 }
 run_check "execution-allowlist-did-not-grow" exec execution_allowlist_did_not_grow
 
-# --- 4. the five dispatches, cross-checked against the COMMITTED evidence ------------------------
-# The S111 shape: two files Claude Code itself wrote, in two different places, agreeing on a random
-# tool-call id neither Vajra nor this suite chose. $1 = the directory of evidence to check, so the
-# fixture below can drive this same function against a forged copy.
-cross_check_dir() {
-  python3 - "$1" "$NEW_ROLES" <<'PYEOF'
-import glob, json, os, sys
-d, roles = sys.argv[1], sys.argv[2].split()
+# --- 4. the five dispatches, checked against the COMMITTED evidence RECORD ----------------------
+# The raw runtime evidence (five transcripts + five headless run results, ~810KB of JSONL) was
+# committed at first and then REMOVED FROM GIT at the founder's call — session artifacts do not
+# belong in the repo. What git carries is `sessions/session-126-dispatch-evidence.md`: every field
+# this check reads, plus a sha256 of each raw file, so a LOCAL copy can still be matched against
+# what was recorded. See that file's own opening note for what the removal costs.
+#
+# CLASS, honestly: `struct` when it checks the record alone (a claim about a written record, with no
+# runtime output to exercise) — and the record is checked HARD: every id must agree in both
+# directions, every parent session must be distinct, every field must be present. When the raw
+# evidence IS present in the checkout (the machine that ran the dispatches), the same function
+# re-derives from those files and requires the record to MATCH — a drifted or hand-edited record
+# fails there. Neither mode proves provenance; the cold review already named that (a copy checking
+# itself proves consistency, not origin), and binding evidence to the runtime is S127's candidate B.
+#
+# $1 = the evidence record to check; $2 = the raw dispatch dir to cross-derive from when present.
+# Both parameterised so the fixture below can drive THIS function over planted drift.
+check_evidence_record() {
+  python3 - "$1" "$2" "$NEW_ROLES" <<'PYEOF'
+import json, os, re, sys
+rec_path, raw_dir, roles = sys.argv[1], sys.argv[2], sys.argv[3].split()
 bad = 0
+try:
+    text = open(rec_path).read()
+    block = re.search(r"```json\n(.*?)\n```", text, re.S).group(1)
+    rec = json.loads(block)
+except Exception as e:
+    print(f"FAIL: the evidence record is unreadable or carries no json block ({e}) "
+          f"— cannot evaluate, so it fails")
+    sys.exit(1)
+
+by_role = {d.get("role"): d for d in rec.get("dispatches", [])}
+if sorted(by_role) != sorted(roles):
+    print(f"FAIL: the record covers {sorted(by_role)}, not the five new roles"); sys.exit(1)
+
+seen_ids, seen_sessions = set(), set()
 for r in roles:
-    try:
-        tu = json.load(open(os.path.join(d, f"{r}-parent-tooluse.json")))[0]
-        meta = json.load(open(os.path.join(d, f"{r}-subagent-meta.json")))
-    except Exception as e:
-        print(f"FAIL {r}: evidence unreadable ({e}) — cannot evaluate, so it fails"); bad = 1; continue
-    if tu.get("input", {}).get("subagent_type") != r:
-        print(f"FAIL {r}: parent tool_use requested {tu.get('input',{}).get('subagent_type')!r}"); bad = 1
-    if meta.get("agentType") != r:
-        print(f"FAIL {r}: subagent meta resolved {meta.get('agentType')!r}"); bad = 1
-    if not tu.get("id") or tu["id"] != meta.get("toolUseId"):
-        print(f"FAIL {r}: parent id {tu.get('id')!r} != subagent toolUseId {meta.get('toolUseId')!r}"); bad = 1
-        continue
-    t = os.path.join(d, f"{r}-subagent-transcript.jsonl")
-    usage = False
-    for line in open(t):
-        line = line.strip()
-        if not line:
-            continue
-        v = json.loads(line)
-        if v.get("type") == "assistant" and (v.get("message") or {}).get("usage"):
-            usage = True
-    if not usage:
-        print(f"FAIL {r}: subagent transcript carries no real assistant usage line"); bad = 1; continue
-    print(f"OK {r}: subagent_type == agentType == {r}, both on tool-call {tu['id']}")
+    d = by_role[r]
+    for field in ("subagent_type_requested", "agent_type_resolved", "tool_use_id",
+                  "meta_tool_use_id", "parent_session_id", "parent_timestamp",
+                  "transcript_sha256", "transcript_lines", "run_cost_usd", "handoff"):
+        if not d.get(field):
+            print(f"FAIL {r}: the record has no {field}"); bad = 1
+    if d.get("subagent_type_requested") != r or d.get("agent_type_resolved") != r:
+        print(f"FAIL {r}: requested {d.get('subagent_type_requested')!r} / resolved "
+              f"{d.get('agent_type_resolved')!r} — not this role"); bad = 1
+    tid = d.get("tool_use_id")
+    if not tid or tid != d.get("meta_tool_use_id"):
+        print(f"FAIL {r}: parent id {tid!r} != subagent toolUseId {d.get('meta_tool_use_id')!r}"); bad = 1
+    if tid in seen_ids:
+        print(f"FAIL {r}: tool-call id {tid} is reused — five dispatches cannot share one id"); bad = 1
+    seen_ids.add(tid)
+    sid = d.get("parent_session_id")
+    if sid in seen_sessions:
+        print(f"FAIL {r}: parent session {sid} is reused — each dispatch ran in its OWN fresh session"); bad = 1
+    seen_sessions.add(sid)
+    if not re.fullmatch(r"[0-9a-f]{64}", str(d.get("transcript_sha256", ""))):
+        print(f"FAIL {r}: transcript_sha256 is not a sha256"); bad = 1
+    # The record must point at something that EXISTS in the repo — the governed handoff the brief
+    # was landed as. This is the one field a purely invented record cannot satisfy silently.
+    if not os.path.exists(d.get("handoff", "")):
+        print(f"FAIL {r}: the record names handoff {d.get('handoff')!r}, which does not exist"); bad = 1
+    else:
+        h = open(d["handoff"]).read()
+        if f"role: {r}" not in h:
+            print(f"FAIL {r}: {d['handoff']} is not a governed handoff for this role"); bad = 1
+    print(f"OK {r}: requested == resolved == {r}, both on tool-call {tid}, own session {sid}")
+
+# STRONG PATH, when the raw evidence is present in this checkout: re-derive and require a match.
+import hashlib
+if os.path.isdir(raw_dir):
+    print("raw evidence PRESENT — re-deriving from the runtime's own files")
+    for r in roles:
+        d = by_role[r]
+        try:
+            tu = json.load(open(os.path.join(raw_dir, f"{r}-parent-tooluse.json")))[0]
+            meta = json.load(open(os.path.join(raw_dir, f"{r}-subagent-meta.json")))
+            raw = open(os.path.join(raw_dir, f"{r}-subagent-transcript.jsonl"), "rb").read()
+        except Exception as e:
+            print(f"FAIL {r}: raw evidence present but unreadable ({e})"); bad = 1; continue
+        if tu.get("id") != d["tool_use_id"] or meta.get("toolUseId") != d["meta_tool_use_id"]:
+            print(f"FAIL {r}: the record's ids do not match the raw files"); bad = 1
+        if tu.get("input", {}).get("subagent_type") != r or meta.get("agentType") != r:
+            print(f"FAIL {r}: the raw files do not name this role"); bad = 1
+        if hashlib.sha256(raw).hexdigest() != d["transcript_sha256"]:
+            print(f"FAIL {r}: the recorded transcript sha256 does not match the raw transcript"); bad = 1
+        if not any(json.loads(l).get("type") == "assistant"
+                   and (json.loads(l).get("message") or {}).get("usage")
+                   for l in raw.decode().splitlines() if l.strip()):
+            print(f"FAIL {r}: the raw transcript carries no real assistant usage line"); bad = 1
+    if not bad:
+        print("OK: the record matches the raw runtime files it was derived from")
+else:
+    print(f"raw evidence NOT in this checkout ({raw_dir} absent) — untracked by founder policy.")
+    print("The record was checked; provenance was NOT, and this check never claimed to prove it.")
 sys.exit(bad)
 PYEOF
 }
-run_check "five-dispatches-cross-check" exec cross_check_dir "$DISPATCH"
+run_check "dispatch-evidence-record" struct check_evidence_record "$EVIDENCE" "$DISPATCH"
 
-# THE FALSIFIABILITY FIXTURE: the same function, driven over a copy with ONE forged id. It must go
-# RED there and stay GREEN on the untouched copy — otherwise "cross-checked" is a claim, not a test.
-cross_check_has_teeth() {
+# THE FALSIFIABILITY FIXTURE: the SAME function, over copies of the record carrying planted drift.
+# Each forgery must turn it RED, and the untouched copy must stay GREEN — otherwise "checked" is a
+# claim, not a test. Driven with the raw dir deliberately absent, so the record alone is on trial.
+evidence_record_has_teeth() {
   local TMP; TMP="$(mktemp -d)"; local rc=0
-  cp "$DISPATCH"/*.json "$DISPATCH"/*.jsonl "$TMP/" 2>/dev/null
-  echo "--- control: the committed evidence, unmodified (must be GREEN) ---"
-  if cross_check_dir "$TMP" >/dev/null 2>&1; then echo "OK: green on unmodified copies"
-  else echo "FAIL: red on unmodified copies — the fixture proves nothing"; rc=1; fi
+  local NOPE="$TMP/no-raw-evidence-here"
+  cp "$EVIDENCE" "$TMP/record.md"
 
-  echo "--- planted forgery: one subagent meta claims a different tool-call id ---"
-  python3 - "$TMP" <<'PYEOF'
-import json, os, sys
-p = os.path.join(sys.argv[1], "demo-producer-subagent-meta.json")
-m = json.load(open(p)); m["toolUseId"] = "toolu_" + "0" * 22
-json.dump(m, open(p, "w"))
+  echo "--- control: the committed record, unmodified (must be GREEN) ---"
+  if check_evidence_record "$TMP/record.md" "$NOPE" >/dev/null 2>&1; then echo "OK: green on the real record"
+  else echo "FAIL: red on the unmodified record — the fixture proves nothing"; rc=1; fi
+
+  local case_name; local mutation
+  for case_name in mismatched-id wrong-agent-type reused-session missing-handoff dropped-role; do
+    cp "$EVIDENCE" "$TMP/record.md"
+    python3 - "$TMP/record.md" "$case_name" <<'PYEOF'
+import json, re, sys
+p, case = sys.argv[1], sys.argv[2]
+text = open(p).read()
+block = re.search(r"```json\n(.*?)\n```", text, re.S)
+rec = json.loads(block.group(1))
+d = rec["dispatches"]
+if case == "mismatched-id":       d[0]["meta_tool_use_id"] = "toolu_" + "0" * 22
+elif case == "wrong-agent-type":  d[1]["agent_type_resolved"] = "general-purpose"
+elif case == "reused-session":    d[2]["parent_session_id"] = d[3]["parent_session_id"]
+elif case == "missing-handoff":   d[3]["handoff"] = ".ai/handoffs/session-126-no-such-role.md"
+elif case == "dropped-role":      rec["dispatches"] = d[:4]
+open(p, "w").write(text[:block.start(1)] + json.dumps(rec, indent=2) + text[block.end(1):])
 PYEOF
-  if cross_check_dir "$TMP" >/dev/null 2>&1; then
-    echo "FAIL: the cross-check accepted a forged tool-call id"; rc=1
+    if check_evidence_record "$TMP/record.md" "$NOPE" >/dev/null 2>&1; then
+      echo "FAIL: the check accepted a record with planted drift: $case_name"; rc=1
+    else
+      echo "OK: $case_name REJECTED"
+    fi
+  done
+
+  echo "--- fail-closed: a record with no json block at all ---"
+  echo "not a record" > "$TMP/record.md"
+  if check_evidence_record "$TMP/record.md" "$NOPE" >/dev/null 2>&1; then
+    echo "FAIL: an unparseable record passed — the check is not fail-closed"; rc=1
   else
-    echo "OK: a forged id is REJECTED"
+    echo "OK: an unparseable record fails closed"
   fi
 
-  echo "--- planted forgery 2: the parent asked for a different subagent_type ---"
-  cp "$DISPATCH/demo-producer-subagent-meta.json" "$TMP/"
-  python3 - "$TMP" <<'PYEOF'
-import json, os, sys
-p = os.path.join(sys.argv[1], "demo-producer-parent-tooluse.json")
-tu = json.load(open(p)); tu[0]["input"]["subagent_type"] = "general-purpose"
-json.dump(tu, open(p, "w"))
+  echo "--- the STRONG path, when raw evidence is present: a record that drifts from it must fail ---"
+  if [ -d "$DISPATCH" ]; then
+    cp "$EVIDENCE" "$TMP/record.md"
+    python3 - "$TMP/record.md" <<'PYEOF'
+import json, re, sys
+p = sys.argv[1]
+text = open(p).read()
+block = re.search(r"```json\n(.*?)\n```", text, re.S)
+rec = json.loads(block.group(1))
+rec["dispatches"][0]["transcript_sha256"] = "0" * 64
+open(p, "w").write(text[:block.start(1)] + json.dumps(rec, indent=2) + text[block.end(1):])
 PYEOF
-  if cross_check_dir "$TMP" >/dev/null 2>&1; then
-    echo "FAIL: the cross-check accepted a dispatch of a different agent type"; rc=1
+    if check_evidence_record "$TMP/record.md" "$DISPATCH" >/dev/null 2>&1; then
+      echo "FAIL: a recorded sha that does not match the raw transcript was accepted"; rc=1
+    else
+      echo "OK: a record drifting from the raw evidence is REJECTED"
+    fi
   else
-    echo "OK: a different subagent_type is REJECTED"
+    echo "raw evidence absent in this checkout — the strong path could not be exercised here,"
+    echo "and this fixture says so rather than scoring a case it did not run."
   fi
   rm -rf "$TMP"; return $rc
 }
-run_check "cross-check-has-teeth" exec cross_check_has_teeth
+run_check "evidence-record-has-teeth" exec evidence_record_has_teeth
 
 # --- 5. the role text still lives in exactly ONE hand-maintained file ----------------------------
 # STRUCTURAL: the claim is "this text exists in exactly one hand-maintained file", which has no

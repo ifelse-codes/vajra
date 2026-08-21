@@ -27,7 +27,7 @@ VAJRA="$ROOT/target/release/vajra"
 [ -x "$VAJRA" ] || cargo build -q --release || { echo "build failed"; exit 1; }
 
 NEW_ROLES="requirements-analyst design-advisor implementation-advisor demo-producer release-coordinator"
-DISPATCH="sessions/session-126-artifacts/dispatch"
+EVIDENCE="sessions/session-126-dispatch-evidence.md"
 
 PASS=0; FAIL=0; EXEC_N=0; STRUCT_N=0; BEHAV_N=0; ROWS=()
 score() {
@@ -119,18 +119,27 @@ OUT="$( cd "$TMP" && "$VAJRA" next --stations 126 2>&1 )"
 grep -E 'of 8 stations passed|governed handoff' <<<"$OUT" | sed 's/^/   /'
 grep -q "NOT counted in it" <<<"$OUT"; score $? exec "five handoffs reported beside K, not counted in it"
 
-label "6. Each of the five was really DISPATCHED BY NAME (S111 two-file cross-check, committed evidence)."
-for r in $NEW_ROLES; do
-  ID="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))[0]['id'])" "$DISPATCH/$r-parent-tooluse.json" 2>/dev/null)"
-  MID="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['toolUseId'])" "$DISPATCH/$r-subagent-meta.json" 2>/dev/null)"
-  printf "   %-24s parent tool_use.id=%s  subagent meta.toolUseId=%s\n" "$r" "${ID:0:18}…" "${MID:0:18}…"
-  [ -n "$ID" ] && [ "$ID" = "$MID" ] || BAD=1
-done
-[ -z "${BAD:-}" ]; score $? exec "five dispatches, each agreeing on a tool-call id neither side chose"
+label "6. Each of the five was really DISPATCHED BY NAME (S111 two-file check, from the committed record)."
+dim "The raw transcripts were removed from git at the founder's call — session artifacts do not"
+dim "belong in the repo. What is committed is the RECORD: every id, sha and cost, in $EVIDENCE."
+python3 - "$EVIDENCE" <<'PYEOF'
+import json, re, sys
+rec = json.loads(re.search(r"```json\n(.*?)\n```", open(sys.argv[1]).read(), re.S).group(1))
+ok = 0
+for d in rec["dispatches"]:
+    same = d["tool_use_id"] == d["meta_tool_use_id"] and d["subagent_type_requested"] == d["agent_type_resolved"] == d["role"]
+    print(f"   {d['role']:<24} requested={d['subagent_type_requested']:<22} resolved={d['agent_type_resolved']:<22} id={d['tool_use_id'][:18]}…")
+    ok += 1 if same else 0
+print(f"   {ok} of {len(rec['dispatches'])} agree in both directions on their own tool-call id "
+      f"(${rec['total_cost_usd']:.4f} metered across five fresh sessions)")
+sys.exit(0 if ok == 5 else 1)
+PYEOF
+score $? exec "five dispatches recorded, each agreeing on its own tool-call id"
 
-label "NARRATED, not scored: the five dispatches themselves ran in five separate headless Claude"
-dim "sessions and cost \$4.45 of real metered spend. They cannot be re-run inside a demo. What IS"
-dim "re-run above is the cross-check over their committed evidence — see $DISPATCH/dispatch-run-note.md."
+label "NARRATED, not scored: the five dispatches ran in five separate headless Claude sessions and"
+dim "cost \$4.45 of real metered spend. They cannot be re-run inside a demo, and — since the raw"
+dim "JSONL is untracked by policy — a clean clone checks the RECORD, never the runtime's own files."
+dim "That limit is stated in $EVIDENCE and is S127's candidate B, not a claim this demo makes."
 
 # --- demo:summary_table -------------------------------------------------------------------------
 header "Summary  [demo:summary_table]"
