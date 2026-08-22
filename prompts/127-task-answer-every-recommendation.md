@@ -236,17 +236,24 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 - demo-producer rec 23 — obeyed: 15581a0
 - demo-producer rec 24 — obeyed: 15581a0
 
-**fidelity-reviewer** (8 recommendations, `.ai/handoffs/session-127-fidelity-reviewer.md` — the
-pass-1 REJECT, answered under the very gate this session ships)
+**fidelity-reviewer** (8 recommendations, `.ai/handoffs/session-127-fidelity-reviewer.md`)
 
-- fidelity-reviewer rec 1 — obeyed: 8da2093
-- fidelity-reviewer rec 2 — obeyed: 8da2093
-- fidelity-reviewer rec 3 — obeyed: 8da2093
-- fidelity-reviewer rec 4 — obeyed: 8da2093
-- fidelity-reviewer rec 5 — obeyed: 8da2093
-- fidelity-reviewer rec 6 — obeyed: 4e93ddf
-- fidelity-reviewer rec 7 — obeyed: 1daba29
-- fidelity-reviewer rec 8 — obeyed: 9740be6
+> **Read the numbering, not just the count.** One role writes one handoff, so the reviewer's **pass-2**
+> brief REPLACED its pass-1 brief at that path (the delta records the re-run: 7232 bytes now vs 4091
+> prior). These eight lines therefore answer **pass 2's** recommendations. **Pass 1's** eight, and the
+> commits that closed them (`8da2093`, `9740be6`, `4e93ddf`, `1daba29`), are recorded in
+> `sessions/session-127-review.md` — which is the only place they survive. That is a real limit of
+> this contract, disclosed in the summary rather than smoothed over: **a re-run handoff renumbers,
+> and the gate's orphan warning does not fire when the counts happen to match.**
+
+- fidelity-reviewer rec 1 — obeyed: 0822b79
+- fidelity-reviewer rec 2 — obeyed: 0822b79
+- fidelity-reviewer rec 3 — obeyed: b266a63
+- fidelity-reviewer rec 4 — obeyed: b266a63
+- fidelity-reviewer rec 5 — obeyed: b266a63
+- fidelity-reviewer rec 6 — obeyed: b266a63
+- fidelity-reviewer rec 7 — obeyed: a33b738
+- fidelity-reviewer rec 8 — obeyed: a33b738
 
 > **Read this before reading the ledger as a score.** The gate proves each of these 51 was
 > ANSWERED and that its evidence is real. It does not prove the answer was good — and this session
