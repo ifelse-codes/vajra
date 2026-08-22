@@ -1,7 +1,6 @@
 # Session 128 — CODE: first contact works — fix what a stranger actually hits
 
-> **Status:** DRAFT — the Analyst gate (`vajra next --advance`) BLOCKS starting this session while
-> DRAFT. Flip to `APPROVED` once the founder signs off.
+> **Status:** APPROVED — founder, 2026-08-22, opening S128: *"start session 128, all approved."*
 >
 > **Founder pick at the S127 closeout: candidate C.** The reasoning, in their words, is worth
 > carrying: a mechanical guardrail is the wrong tool for an agent that reads advice and then
@@ -117,16 +116,16 @@ directory**, and each protected by a check that would have caught it.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: `<sha>`
-- step 2 — done: `<sha>`
-- step 3 — done: `<sha>`
-- step 4 — done: `<sha>`
-- step 5 — done: `<sha>`
-- step 6 — done: `<sha>`
-- step 7 — done: `<sha>`
-- step 8 — done: `<sha>`
-- step 9 — done: `<sha>`
-- step 10 — done: `<sha>`
+- step 1 — done: `f83f9c67b74418432c2261a23d1788ffbe5a8500`
+- step 2 — done: `8204ff4bd71bde71da441f78b70f058ab3ea53a2`
+- step 3 — done: `7ca125f11ef344dab7b5c73d39ae422558decb7d`
+- step 4 — done: `fcb22e908c39ca6c3954c9968dcb1e09fb63a7b9`
+- step 5 — done: `9dba06dca7d8b4f7b0f7352b6bf049fd7ab0fff1`
+- step 6 — done: `156b96f4b4a8269f74102e0af6d0663fe73dcfa3`
+- step 7 — done: `73e9bae70a47035b759327e4fea280986decef09`
+- step 8 — done: `3bf5b03064442b23ce25722cc345a2c19cfd20cc`
+- step 9 — done: `93ca02425e8ca943a08eb6e9e425606f8d1a2a8a`
+- step 10 — done: `7319e12e9540ef6686b4261026d21153268053b0`
 - step 11 — done: `<sha>`
 - step 12 — done: `<sha>`
 
@@ -148,7 +147,20 @@ directory**, and each protected by a check that would have caught it.
 > If you did not do it, write `refused:` and say why — that is a pass by design, and it is the
 > only honest option.
 
-- *(none yet — fill as advisors are dispatched)*
+**No advisor was dispatched this session, and that is the honest record — not an empty
+section waiting to be filled.** `vajra next --check-advice 128` returns `READY` by the
+`NoRecommendations` path, which is the gate NAMING ITS OWN DODGE (`advice::DODGE`), not the gate
+being satisfied. Written plainly because S127's lesson is that a clean advice ledger proves a word
+was typed, nothing more.
+
+- *(no recommendations recorded — no role was dispatched for S128)*
+
+**Why none:** the four defects were already reproduced live in an empty directory at the S127
+closeout and re-reproduced here as step 1 before any fix; the design fork was a two-option
+decision the prompt already framed and the founder already scoped. Dispatching an advisor to
+restate a settled scope would have produced a handoff whose only function was to make this
+section longer. **The cost of that choice, stated:** nothing independent shaped the build before
+the cold review at step 11 — the S128 build is one agent's judgement until that pass reads it.
 
 ## Design
 
