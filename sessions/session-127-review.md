@@ -102,7 +102,80 @@ impossible. The only thing that caught it was a reader. That is now recorded in 
 
 ---
 
-## Pass 2 — verdict recorded below
+## Pass 2 — **ACCEPT** (10 SHIPPED · 2 PARTIAL · 0 NOT-BUILT)
 
-*(Pass 2 was run on a fresh cold context, fed only the prompt and the diff, after every fix above
-had landed.)*
+Run on a fresh cold context, fed only the prompt and the diff, after every pass-1 fix had landed.
+It was told pass 1 existed and told **not** to defer to it. Same tooling limit, stated by the
+reviewer: Read/Grep/Glob only, shas verified against `.git/logs/HEAD` rather than `git cat-file`.
+
+**Verdict:** ACCEPT
+
+### What it graded PARTIAL, and why both are now closed
+
+- **Criterion 10** — `scripts/demo-session-127.sh` still used the GNU-only `\s` in a *scored*
+  assertion, the exact escape just fixed in the verify suite. *"On a repo whose own memory records
+  'spelling-bound guards get escaped', fixing the reported instance and leaving its twin is the
+  pattern the lesson warns about."* Fixed in `b266a63`.
+- **Criterion 11** — this file's Pass 2 section was empty when it read it. *"This brief is the
+  missing input; the criterion closes only when it is landed and attested."* Closed by this
+  section plus the attestation below.
+
+**Read the grades as what existed when the reviewer read them.** The two PARTIALs were closed
+after its pass, which is why the summary's fidelity map shows 12; the reviewer's own count stands
+unedited at 10 · 2 · 0.
+
+### The fakest green (pass 2) — deliberately NOT pass 1's
+
+> **The fakest green is the 51-answer ledger the session presents as its own dogfood proof.** …
+> That is a count of well-formed strings. Three of the 51 are demonstrably mis-certified, and I
+> found them with nothing but the reflog. … **The count would be identical if the advice had been
+> read and ignored, provided the author typed three words and pasted any commit from the branch.**
+> The pass-1 reviewer found one such specimen and the session made it a virtue by recording it in
+> the addendum; it then shipped three more without noticing.
+
+The three, all confirmed and all corrected in `b266a63`:
+
+| answer | what was wrong | fix |
+|---|---|---|
+| `implementation-advisor rec 15 — obeyed: 2043432` | `2043432` predates `advice_gate` itself; the `DODGE` hoist landed in `8da2093` | sha corrected |
+| `fidelity-reviewer rec 7 — obeyed: 4e93ddf` | `4e93ddf` is the *summary* commit; the `## Execution` fill it certifies landed after it | → `1daba29` |
+| `demo-producer rec 17 — obeyed: 15581a0` | the demo **declines** that row in its own comment — a refusal wearing an obedience label | → `refused:` with the reason |
+
+**This is the finding of the session, not a footnote to it.** Two independent cold passes each
+found a false `obeyed:` in the ledger built to make dropped advice visible, and the second found
+three. The gate cannot see them; a reader can, in minutes, from the reflog.
+
+### What it confirmed under adversarial reading
+
+- **Criterion 9 binds to behaviour, assertion by assertion.** *"`items.len()==1` can only be true
+  if `recommendations_in` actually read the marker out of the handoff… `Unreal` vs `Missing` is the
+  distinction that makes this bind to `check_evidence` rather than to mere absence."* It also
+  verified each `perl` pattern in the verify twin against current source, and confirmed a silently
+  no-opping substitution leaves the check reporting **FAIL** — drift fails safe.
+- **No `$?` bug anywhere in either script.** It checked the command-substitution capture the
+  builder was worried about and found it correct and consistently applied.
+- **Criterion 12 is the cleanest thing in the delivery.** *"I could not find one."* Every
+  occurrence of `obey|obedien|enforce` in the delivery is a denial of the claim.
+- **Criterion 8: nothing else moved.** `handoff_body`'s output byte-identical; `raw_body` additive;
+  7 commands; `README.md` / `VISION.md` untouched under the S118 directive.
+- **The new close-path check is the best thing added between passes:** *"it neutralises all seven
+  other stages with their own overrides so the refusal can only be this gate's… That check is what
+  turns 'wired into the close path' from source-reading into evidence."*
+
+### Its eight recommendations — all obeyed
+
+`rec 1` this section + the attestation, and the verdict removed from the summary · `rec 2` the
+summary's criterion-11 row and count corrected · `rec 3` the three false `obeyed:` labels ·
+`rec 4` the demo's `\s` twin · `rec 5` the unfalsifiable BEFORE cell now derived and scored ·
+`rec 6` the stale 43-vs-51 counts · `rec 7` two comment drifts · `rec 8` falsifiability **state D**,
+covering the `NoRecommendations` WARN branch — proven non-ceremonial three ways.
+
+### Scope call (pass 2)
+
+> *"A faithful build of the whole contract, not one narrow slice presented as the whole. The pass-1
+> REJECT was closed in substance, not cosmetically… It is short in two places, both narrow: the
+> closeout attestation does not exist yet (this brief is it), and the session's own advice ledger
+> carries three answers that a reader can falsify from the reflog in five minutes. The second one
+> matters more than its size, because it is the third consecutive time this session has
+> demonstrated its own thesis by failing it."*
+

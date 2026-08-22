@@ -3,7 +3,9 @@
 **Prompt:** `prompts/127-task-answer-every-recommendation.md` · **Review:** `sessions/session-127-review.md`
 **Branch:** `session-127-answer-every-recommendation` · **Date:** 2026-08-22
 
-**Verdict:** ACCEPT
+**Verdict:** recorded in `sessions/session-127-review.md`, not here. A verdict field in the
+builder's own summary is a self-certification in the exact shape the gate parses elsewhere — the
+pass-2 reviewer's rec 1, and correct.
 
 ---
 
@@ -62,11 +64,16 @@ shows that live and scores it as a disclosed limit. Retroactively, S127's eviden
 | 8 | `K of 8` and the command count unmoved; no other contract moves | SHIPPED | `s127_added_no_station_and_did_not_move_k_of_8`; verify at a **non-degenerate** `8 of 8` baseline |
 | 9 | Falsifiability fixture RED for the right reason | SHIPPED | `mod falsifiability`; both deletions RED, every message renamed → still GREEN |
 | 10 | Both scripts exit 0 with a check-class tally | SHIPPED | verify **10/10** (9 exec · 1 behav, labelled) · demo **13/13** (all exec) |
-| 11 | Independent cold `fidelity-reviewer` ACCEPT, attested | SHIPPED | `sessions/session-127-review.md` — pass 1 REJECT, fixed, pass 2 ACCEPT |
+| 11 | Independent cold `fidelity-reviewer` verdict, attested | SHIPPED | `sessions/session-127-review.md` — pass 1 **REJECT**, fixed, pass 2 **ACCEPT**. Pass 2 graded this row PARTIAL because its own record was not yet landed; landing + attesting it is what closes it |
 | 12 | Summary states the floor, unsoftened | SHIPPED | this file, above |
 
-**12 SHIPPED · 0 PARTIAL · 0 NOT-BUILT** after the pass-1 fixes. Pass 1's own count was
-8 SHIPPED · 2 PARTIAL · 2 NOT-BUILT, and it was right.
+**The reviewers' own counts, unedited: pass 1 = 8 SHIPPED · 2 PARTIAL · 2 NOT-BUILT (REJECT);
+pass 2 = 10 SHIPPED · 2 PARTIAL · 0 NOT-BUILT (ACCEPT).** Both were right about what existed when
+they read it. The map above shows 12 because pass 2's two PARTIALs were closed after its pass — the
+demo's `\s` twin (`b266a63`) and this review record's own landing and attestation. **That
+distinction is the point of the map, not a technicality:** the builder does not get to convert a
+reviewer's PARTIAL into a SHIPPED by asserting it, only by landing the work and saying which pass
+saw what.
 
 ## What I did NOT build
 
@@ -81,20 +88,37 @@ shows that live and scores it as a disclosed limit. Retroactively, S127's eviden
 
 ## The fakest green
 
-**The one the reviewer named, and it survives the fix.** `obeyed:` certifies that a human typed a
-word and named a commit that exists. Nothing checks that the commit does what the advice asked.
-41 of this session's 43 answers are `obeyed:`, 22 of them pointing at a single commit. One of them
-was **wrong** and passed. It was caught by a reader, not by the gate — which is precisely what the
-gate's own documentation says will happen, and is why criterion 12 forbids the stronger claim.
+**The 51-answer ledger this session presents as its own dogfood proof — pass 2's call, and it is
+sharper than pass 1's.** `obeyed:` certifies that a human typed a word and named a commit that
+exists. Nothing checks that the commit does what the advice asked. Of the 51 answers, 48 are
+`obeyed:` and many point at the same commit.
 
-Second: the verify suite's one behavioral check (the hardcoded usage-banner grep, named since S69).
+**Four of them were wrong and passed the gate.** Pass 1 found one (a stub the advice said to delete,
+still in the file). Pass 2 found three more, from the reflog alone, in minutes: a sha predating the
+function it certified, a sha that could not contain the work it named, and a refusal wearing an
+obedience label. All four are corrected; none was caught by the gate.
+
+In the reviewer's words: *"The count would be identical if the advice had been read and ignored,
+provided the author typed three words and pasted any commit from the branch."* That is the honest
+ceiling of this contract, and it is why criterion 12 forbids the stronger claim. **Two independent
+cold readers each found a false `obeyed:` in the ledger built to make dropped advice visible.**
+
+Second: a re-run handoff **renumbers**. The `fidelity-reviewer`'s pass-2 brief replaced its pass-1
+brief at the same path, so the eight answers recorded against `fidelity-reviewer rec 1..8` now
+answer pass 2's recommendations; pass 1's eight are recorded in `sessions/session-127-review.md`
+with their commits. The gate's orphan warning is the only automatic signal of that class, and it
+does not fire when the counts happen to match. Filed as a real limit, not a nit.
+
+Third: the verify suite's one behavioral check (the hardcoded usage-banner grep, named since S69).
 
 ## Dogfood — this session is the first subject of its own gate
 
 Three roles were dispatched by name and returned **51 numbered recommendations**:
 `implementation-advisor` (19) · `demo-producer` (24) · `fidelity-reviewer` (8). Every one is
-answered in the prompt's `## Advice`. Two are `refused:` with written reasons that match the code.
-Two partial obediences are disclosed in the section itself rather than hidden behind an `obeyed:`.
+answered in the prompt's `## Advice`. Three are `refused:` with written reasons that match the
+code. Both partial obediences are disclosed in the section itself rather than hidden behind an
+`obeyed:` — and four answers that were **wrong** were corrected only because two cold readers
+caught them.
 
 **The mechanism found two real defects in its own author while being built:**
 1. `fleet::handoff_body` drops every `#` line, so a `### rec 3 — …` heading-form recommendation was
