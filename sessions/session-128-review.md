@@ -43,6 +43,13 @@ honest limit it placed on its own ACCEPT.
 
 **Verdict:** ACCEPT
 
+**Review-Inputs-SHA:** `102c2698a88cf47482bb248aaf5ba0325c7674a3805ff3a2e48b02263c00439c`
+
+*(Computed by `scripts/verify-closeout.sh --inputs-sha 128` AFTER every Execution sha landed, and
+after the post-ACCEPT closures. Two consecutive runs agreed before it was embedded. It attests WHAT
+was reviewed, not that the review was right — and this reviewer said in its own words that its
+ACCEPT does not certify per-commit content.)*
+
 > "The real scope is a faithful build of the contract's engineering half — not one narrow slice
 > dressed as the whole. It is short in exactly one place, and that place is the closeout paperwork
 > the contract itself sequenced after this review."
