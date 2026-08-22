@@ -37,6 +37,14 @@ fn typo_short_circuits_a_shell_and_chain() {
         .output()
         .unwrap();
     let stdout = String::from_utf8_lossy(&out.stdout);
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    // POSITIVE ANCHOR FIRST. Without it this test passes when `sh` never ran the binary at all:
+    // stdout would be empty, "RAN" absent, green — the S127 silent-no-op shape, in Rust.
+    assert!(
+        stderr.contains("chek"),
+        "the binary never ran, or never named the word — stderr was {stderr:?}. \
+         A test that cannot tell 'short-circuited' from 'never executed' proves nothing."
+    );
     assert!(
         !stdout.contains("RAN"),
         "`vajra chek && echo RAN` printed RAN — the && chain was not short-circuited"

@@ -11,10 +11,17 @@ set -euo pipefail
 # dies. Both forms are guarded below anyway.) A fresh `vajra init` repo has no session
 # summaries, so the very first array here was empty and the L4 layer died before printing
 # a single result.
-# The `+` alternate form is the portable guard — it never trips the unbound check:
-#   emptiness test : [ -z "${arr[@]+x}" ]
+# Measured on 3.2.57, because guessing here is how the crash got shipped:
+#   `${#arr[@]}`            -> FINE on an empty array. Emptiness tests never needed a guard.
+#   `"${arr[@]}"`           -> ABORTS. This is the one that killed the gate.
+#   `${arr[@]+"${arr[@]}"}` -> the portable guard; expands to nothing when empty.
+# So: count for the test, `+` alternate for the EXPANSION.
+#   emptiness test : [ "${#arr[@]}" -eq 0 ]
 #   safe expansion : for x in ${arr[@]+"${arr[@]}"}; do
-# A gate that cannot RUN is worse than a gate that says RED. Keep both idioms.
+# (The cold reviewer predicted `[ -z "${arr[@]+x}" ]` would emit `[: too many arguments` on a
+# ~100-element array. Tested at 102 elements on 3.2.57: it does NOT — the alternate word expands
+# once, not per element. The count form is used anyway because it is plainer and needs no note.)
+# A gate that cannot RUN is worse than a gate that says RED.
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT"
@@ -99,12 +106,12 @@ check_session_pair() {
   local prompts=(prompts/[0-9]*-task-*.md)
   : > "$LOG"
   local missing=0
-  if [ -z "${summaries[@]+x}" ]; then echo "MISSING: no session summaries" >> "$LOG"; missing=$((missing+1)); fi
-  if [ -z "${prompts[@]+x}" ]; then echo "MISSING: no session prompts" >> "$LOG"; missing=$((missing+1)); fi
+  if [ "${#summaries[@]}" -eq 0 ]; then echo "MISSING: no session summaries" >> "$LOG"; missing=$((missing+1)); fi
+  if [ "${#prompts[@]}" -eq 0 ]; then echo "MISSING: no session prompts" >> "$LOG"; missing=$((missing+1)); fi
   for s in ${summaries[@]+"${summaries[@]}"}; do
     local base; base=$(basename "$s" -summary.md); local nn="${base#session-}"
     local matches=(prompts/${nn}-task-*.md)
-    if [ -z "${matches[@]+x}" ]; then
+    if [ "${#matches[@]}" -eq 0 ]; then
       echo "MISSING prompt for $s (expected prompts/${nn}-task-*.md)" >> "$LOG"
       missing=$((missing+1))
     else
@@ -156,7 +163,7 @@ check_execution_shas() {
   local prompts; prompts=(prompts/${padded}-task-*.md)
   : > "$LOG"
 
-  if [ -z "${prompts[@]+x}" ]; then
+  if [ "${#prompts[@]}" -eq 0 ]; then
     echo "N/A: no prompt file prompts/${padded}-task-*.md" >> "$LOG"; ok "$NAME"; return
   fi
 
@@ -236,7 +243,7 @@ check_verify_demo_scripts() {
   { [ -f "$V" ] && [ -s "$V" ]; } || missing+=("$V")
   { [ -f "$D" ] && [ -s "$D" ]; } || missing+=("$D")
 
-  if [ -z "${missing[@]+x}" ]; then
+  if [ "${#missing[@]}" -eq 0 ]; then
     echo "OK: $V + $D both present and non-empty." >> "$LOG"; ok "$NAME"; return
   fi
 
@@ -343,8 +350,7 @@ canonical_inputs_sha() {
   local padded; padded="$(printf '%02d' "$N")"
   shopt -s nullglob
   local prompts=(prompts/${padded}-task-*.md)
-  [ -n "${prompts[@]+x}" ] || return 1           # 0 contract => uncomputable (bash 3.2 safe)
-  (( ${#prompts[@]} == 1 )) || return 1          # >1 contract => uncomputable
+  (( ${#prompts[@]} == 1 )) || return 1          # 0 or >1 contract => uncomputable
   local base
   base="$(git merge-base main HEAD 2>/dev/null)" || return 1
   [ -n "$base" ] || return 1

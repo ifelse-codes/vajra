@@ -90,22 +90,48 @@ help_lists_seven() {
 }
 run_check "banner-still-lists-seven" behav help_lists_seven
 
-# No gate's evidence contract moved. Computed from git against the merge base — not from prose.
-GATE_MODULES="src/analyst src/architect src/planner src/coder src/qa src/demoer src/releaser src/advice src/stations src/obedience src/fleet"
-no_gate_module_touched() {
+# No gate's evidence contract moved — EXCEPT the one this session was ordered to move.
+#
+# The first cut of this check greped a HAND-TYPED list of eleven gate directories, and the cold
+# reviewer called it the session's fakest green for two reasons, both correct: it passes if S128
+# shipped nothing, and the list it typed omitted `src/cli/check.rs` — the one file whose evidence
+# contract actually changed. The author drew the boundary and then measured inside it.
+#
+# Rewritten as a DECLARATION check. The module inventory is derived from the tree, never typed;
+# every source file this session touched must be DECLARED here with a reason; and a declaration
+# that names a file the diff never touched FAILS too, so the list cannot go stale into a pass.
+#
+# Declared, with why:
+#   src/main.rs       — criteria 1-3. The front door's failure posture and the version flag.
+#   src/cli/check.rs  — criterion 5. THIS ONE MOVES AN EVIDENCE CONTRACT, by design and by order:
+#                       an ABSENT `vajra.varta` used to be a FAIL and is now a PASS. Stated here
+#                       rather than hidden behind a boundary that could not see it.
+DECLARED_SOURCE_CHANGES="src/main.rs src/cli/check.rs"
+no_undeclared_source_change() {
   local base; base="$(git merge-base main HEAD 2>/dev/null)" || return 1
   [ -n "$base" ] || { echo "cannot resolve merge-base — a check that cannot evaluate FAILS"; return 1; }
-  local changed; changed="$(git diff --name-only "$base" HEAD)"
-  echo "changed files vs $base:"; echo "$changed" | sed 's/^/  /'
-  local m
-  for m in $GATE_MODULES; do
-    if grep -q "^${m}/" <<<"$changed"; then
-      echo "FAIL: $m was modified — a gate's evidence contract moved"; return 1
-    fi
+
+  local modules; modules="$(ls -d src/*/ 2>/dev/null | sed 's:/$::')"
+  [ -n "$modules" ] || { echo "derived module inventory is EMPTY — the probe matched nothing"; return 1; }
+  echo "source modules in tree (DERIVED, not typed):"; echo "$modules" | sed 's/^/  /'
+
+  local changed; changed="$(git diff --name-only "$base" HEAD | grep '^src/' || true)"
+  echo "source files changed vs $base:"; echo "${changed:-  (none)}" | sed 's/^/  /'
+
+  local f
+  for f in $changed; do
+    case " $DECLARED_SOURCE_CHANGES " in
+      *" $f "*) echo "  declared: $f" ;;
+      *) echo "FAIL: UNDECLARED source change: $f"; return 1 ;;
+    esac
   done
-  echo "OK: none of the 11 gate/station modules were touched."
+  for f in $DECLARED_SOURCE_CHANGES; do
+    grep -qx "$f" <<<"$changed" || {
+      echo "FAIL: declared file $f was never changed — the declaration is stale, not proven"; return 1; }
+  done
+  echo "OK: $(echo "$modules" | wc -l | tr -d ' ') source modules in tree; every source change is declared."
 }
-run_check "no-gate-evidence-contract-moved" struct no_gate_module_touched
+run_check "no-undeclared-source-change" struct no_undeclared_source_change
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # CRITERIA 1-7, 9, 10 — the product, in a real empty directory.
