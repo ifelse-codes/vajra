@@ -2,37 +2,33 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 126 — CODE: FINISH THE SDLC AGENT FLEET — COMPLETE (between sessions)
+## Session 127 — CODE: EVERY RECOMMENDATION MUST BE ANSWERED — COMPLETE (between sessions)
 
-- **Verdict: ACCEPT** — independent cold `fidelity-reviewer` pass, **7 of 9 SHIPPED**, 2 PARTIAL,
-  0 NOT-BUILT (the two PARTIALs were the review record and this summary, which cannot exist in the
-  diff the reviewer reads). Report: `sessions/session-126-summary.md`. Review:
-  `sessions/session-126-review.md`. Prompt: `prompts/126-task-finish-the-fleet.md`.
-- **The roster is COMPLETE: four roles → nine.** Every station has a named role, plus the
-  station-less `researcher`: `requirements-analyst` (Analyst) · `design-advisor` (Architect) ·
-  `plan-advisor` (Planner) · `implementation-advisor` (Coder) · `qa-specialist` (QA) ·
-  `demo-producer` (Demo-er) · `release-coordinator` (Releaser) · `fidelity-reviewer` (Reviewer).
-- **Five roles added, ZERO new grants of `Bash`.** The Coder role is deliberately read-only and
-  deliberately not named `coder`; granting it `Write`/`Edit` would reverse S123 and the S122
-  executor-thesis retraction in the same session that ships it. That grant is now a separate,
-  founder-gated decision (`DECISION-007` S126 addendum).
-- **All five dispatched BY NAME from five separate headless sessions**, each cross-checked the
-  S111 way against two Claude-Code-written files agreeing on a random tool-call id. **$4.4482
-  metered.** Zero new machinery: only `src/fleet/mod.rs` changed in `src/`, `K of 8` unmoved, no
-  8th command. 340 lib tests · verify 17/17 · demo 7/7.
+- **Verdict: ACCEPT** — independent cold `fidelity-reviewer`, **two passes**. Pass 1 **REJECT**
+  (8 SHIPPED · 2 PARTIAL · 2 NOT-BUILT) and it was right; pass 2 **ACCEPT** (10 SHIPPED · 2 PARTIAL
+  · 0 NOT-BUILT), both PARTIALs closed after it. Report: `sessions/session-127-summary.md`. Review:
+  `sessions/session-127-review.md`. Prompt: `prompts/127-task-answer-every-recommendation.md`.
+- **The first gate that CONSUMES a governed handoff.** `src/advice/mod.rs` reads the numbered
+  `rec N —` markers out of a session's handoffs, reads its prompt's `## Advice`, and BLOCKS the
+  close on any recommendation with no recorded disposition — `obeyed: <sha>` that resolves,
+  `refused: <reason>` that is written, `deferred: <path>` that exists. `vajra next --advice NN` /
+  `--check-advice NN`, wired into `--advance`. **No 8th command, no new store, no new artifact.**
+- **`DECISION-007`'s S116 deferral is LIFTED** in an S127 addendum, out loud, rather than cited
+  around — the Architect gate checks that a cited record EXISTS, not that the design obeys it.
+- **Dogfooded on itself: 3 roles, 51 numbered recommendations, all answered.** The gate found two
+  real defects in its own author mid-build. 360 lib tests · verify 10/10 · demo 13/13.
 
-**🔴 THE RESIDUAL, CARRIED NOT ARGUED: the roster is complete and NOTHING DEPENDS ON IT.** No gate
-consumes a handoff. Nine roles that nothing depends on is nine decorations. S126 closed the *done*
-half of the founder's gate; **the *working* half is S127** — make one gate consume a handoff
-(S116's unpicked candidate C + S125's F2). The S125 reboot backlog stays PARKED until it lands.
+**🔴 THE RESIDUAL, UNSOFTENED — read it before quoting the 51:** **four `obeyed:` labels in that
+ledger were WRONG and passed the gate.** One caught by pass 1, three more by pass 2 from the reflog
+alone. *"The count would be identical if the advice had been read and ignored, provided the author
+typed three words and pasted any commit from the branch."* **Required ≠ obeyed; answered ≠ obeyed
+well.** And run against S126's own handoffs this gate exits 0 — it would not have caught either
+drop that motivated it. **One gate of eight consumes handoffs.**
 
-**Next = S127 — CODE: make a gate CONSUME a handoff.** Full prompt: `prompts/127-task-*.md`.
+**Next = S128 — founder pick pending.** Three ranked candidates in `sessions/session-127-summary.md`
+(A: a second consuming gate · B: close the `obeyed:` hole · C: unpark the S125 backlog). The next
+prompt is scaffolded **DRAFT** and the Analyst gate blocks until the founder approves it.
 **New chat.**
-
-**🔒 FOUNDER DIRECTIVE (S118, in force):** `README.md` / `VISION.md` claims are the **target spec**,
-not a status report. **Never** soften them to match current capability — record gaps in `.ai/` and
-session records instead. **No release** (crates.io `0.1.1`+, announcements, wider distribution)
-until reality meets the claim.
 
 ## Always-True Reminders
 
@@ -65,14 +61,27 @@ until reality meets the claim.
   Any future crates.io action is founder-gated; never `cargo publish` without an explicit
   in-chat "yes publish".
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`).
-- **New session = new chat** — open a fresh chat for S127.
+- **New session = new chat** — open a fresh chat for S128.
 - **Max 7 top-level commands** — any fleet growth rides an existing command; an 8th needs a
   separate founder "yes". S126 added none (five roles, zero commands).
 - **Direction:** product = **provable agent governance** (`DECISION-001`), sold as the autopilot
   trust layer; fidelity load-bearing (`DECISION-002`), verdicts attested (`DECISION-003`), chained
   tamper-evident (`DECISION-004`). Sessions finish a shippable MVP (S103 pivot). **Current
-  direction: FINISH THE SDLC AGENT FLEET (founder, S125 closeout) — the *done* half landed at
-  S126; the *working* half (a gate that consumes a handoff) is S127.**
+  direction: FINISH THE SDLC AGENT FLEET (founder, S125 closeout) — *done* landed at S126, and
+  S127 made ONE gate consume a role's output. Whether one of eight satisfies *working* is the
+  founder's call at the S128 pick.**
+- **A recorded disposition certifies a typed word and a resolving sha — NOTHING MORE (S127).**
+  Four `obeyed:` labels were factually wrong and passed the gate; only cold readers caught them.
+  Never read an advice ledger's count as evidence the advice was followed.
+- **A re-run handoff RENUMBERS (S127).** One role writes one handoff, so a second brief replaces
+  the first at that path and previously-recorded answers silently re-point at different advice.
+  The orphan warning does not fire when the counts happen to match.
+- **Fence your examples (S127).** A fenced `## Advice` block inside a prompt was read as the real
+  section — the gate found it on its own author's prompt. Strip fences BEFORE locating a heading,
+  not merely before parsing its lines.
+- **`handoff_body` drops every `#` line** — a marker-counter must read `handoff_findings_raw` (S127).
+- **A probe that silently no-ops reports false comfort (S127).** Two falsifiability probes matched
+  nothing after `cargo fmt` reflowed the lines and printed GREEN. Assert the pattern matched.
 - **A role that PROPOSES never authors the marker its station parses (S126, nine times over).**
 - **STATION ≠ ROLE:** the station governs the process (`src/qa/mod.rs`); the role does the work
   (`qa-specialist`). Same pattern for Reviewer/`fidelity-reviewer` and Planner/`plan-advisor` — a
