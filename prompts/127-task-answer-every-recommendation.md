@@ -164,16 +164,16 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: `<sha>`
-- step 2 — done: `<sha>`
-- step 3 — done: `<sha>`
-- step 4 — done: `<sha>`
-- step 5 — done: `<sha>`
-- step 6 — done: `<sha>`
-- step 7 — done: `<sha>`
-- step 8 — done: `<sha>`
-- step 9 — done: `<sha>`
-- step 10 — done: `<sha>`
+- step 1 — done: d41fefb
+- step 2 — done: eaa4ff8
+- step 3 — done: 8cd3bea
+- step 4 — done: 01d86a0
+- step 5 — done: 2043432
+- step 6 — done: 61c867a
+- step 7 — done: 6bff7ec
+- step 8 — done: 1e2d5c6
+- step 9 — done: 51e5d14
+- step 10 — done: 7af6d7b
 - step 11 — done: `<sha>`
 - step 12 — done: `<sha>`
 
