@@ -304,6 +304,106 @@ pub fn recommendations_in(handoff: &crate::fleet::Handoff) -> Vec<Recommendation
     out
 }
 
+// ---------------------------------------------------------------------------
+// Step 4 — parse the DISPOSITIONS out of the session's own prompt. Also pure. The `## Advice`
+// section lives inside the prompt for the same reason the `## Execution` trace does (S68):
+// `prompts/` and `.ai/` ARE the memory, so there is no new store and no new artifact type.
+// ---------------------------------------------------------------------------
+
+/// A heading opens the `## Advice` block — first token exactly `advice`, matching the way every
+/// other station finds its section, so a title merely mentioning advice in prose never counts.
+fn is_advice_heading(line: &str) -> bool {
+    line.trim_start_matches('#')
+        .trim()
+        .to_ascii_lowercase()
+        .split_whitespace()
+        .next()
+        == Some("advice")
+}
+
+/// The body of the prompt's `## Advice` section, or `None` when there is no such section.
+pub fn advice_section(text: &str) -> Option<String> {
+    let mut lines = text.lines();
+    lines.find(|l| l.starts_with('#') && is_advice_heading(l))?;
+    let body: Vec<&str> = lines.take_while(|l| !l.starts_with('#')).collect();
+    Some(body.join("\n"))
+}
+
+/// Trim an evidence TOKEN (a sha or a path): surrounding backticks and trailing sentence
+/// punctuation are formatting, not part of the thing that must exist.
+fn clean_token(raw: &str) -> String {
+    raw.trim()
+        .trim_matches('`')
+        .trim_end_matches(['.', ',', ';'])
+        .trim()
+        .to_string()
+}
+
+/// Parse one `## Advice` line into `(role, number, disposition)`.
+///
+/// Role keys never contain the token `rec`, so the first ` rec <N>` boundary splits the line
+/// cleanly even for hyphenated keys like `implementation-advisor`. Everything right of the
+/// separator is `<word>: <evidence>`, split at the FIRST colon so a refusal reason may contain
+/// colons of its own.
+pub fn parse_disposition_line(line: &str) -> Option<(String, u32, Disposition)> {
+    let s = strip_decoration(line);
+    let lower = s.to_ascii_lowercase();
+
+    let mut idx = None;
+    let mut from = 0usize;
+    while let Some(p) = lower[from..].find("rec") {
+        let abs = from + p;
+        let preceded_by_space = abs > 0 && lower.as_bytes()[abs - 1].is_ascii_whitespace();
+        let tail = &lower[abs + 3..];
+        let numbered = tail.starts_with(char::is_whitespace)
+            && tail.trim_start().starts_with(|c: char| c.is_ascii_digit());
+        if preceded_by_space && numbered {
+            idx = Some(abs);
+            break;
+        }
+        from = abs + 3;
+    }
+    let idx = idx?;
+    let role = s[..idx].trim().to_ascii_lowercase();
+    if role.is_empty() {
+        return None;
+    }
+
+    let (number, tail) = parse_rec_marker(&s[idx..])?;
+    let (word, evidence) = tail.split_once(':')?;
+    let disposition = match word.trim().to_ascii_lowercase().as_str() {
+        "obeyed" => Disposition::Obeyed(clean_token(evidence)),
+        "deferred" => Disposition::Deferred(clean_token(evidence)),
+        // A reason is prose: keep its punctuation, strip only the surrounding whitespace.
+        "refused" => Disposition::Refused(evidence.trim().to_string()),
+        // Any other word is NOT a disposition. Failing to parse is correct and safe here: the
+        // recommendation simply stays unanswered and BLOCKS, which is what an invented
+        // disposition word deserves.
+        _ => return None,
+    };
+    Some((role, number, disposition))
+}
+
+/// Every disposition recorded in the prompt's `## Advice` section, keyed `<role> rec <N>` — the
+/// same label `Recommendation::label` produces, which is what joins the two sides. First line
+/// wins, so a later duplicate can never quietly overwrite an earlier answer.
+pub fn dispositions_in(prompt_text: &str) -> Vec<(String, Disposition)> {
+    let Some(section) = advice_section(prompt_text) else {
+        return Vec::new();
+    };
+    let mut out: Vec<(String, Disposition)> = Vec::new();
+    for line in section.lines() {
+        if let Some((role, number, d)) = parse_disposition_line(line) {
+            let label = format!("{role} rec {number}");
+            if out.iter().any(|(l, _)| *l == label) {
+                continue;
+            }
+            out.push((label, d));
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -376,5 +476,65 @@ mod tests {
     fn a_handoff_with_no_markers_records_no_recommendations() {
         let h = handoff("researcher", "I think you should probably do the thing.\n");
         assert!(recommendations_in(&h).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod dispositions_tests {
+    use super::*;
+
+    const PROMPT: &str = "# Session 127\n\n\
+## Advice (every recommendation, answered)\n\n\
+- design-advisor rec 1 — obeyed: `a1b2c3d`\n\
+- demo-producer rec 2 — deferred: prompts/128-task-next.md\n\
+- implementation-advisor rec 3 — refused: out of scope; this session ships one story\n\
+- plan-advisor rec 4 — pondered: not a disposition word\n\
+This paragraph mentions a rec in prose and must not parse.\n\n\
+## Design\n\
+- design-advisor rec 9 — obeyed: deadbeef\n";
+
+    #[test]
+    fn dispositions_are_read_only_from_the_advice_section() {
+        let d = dispositions_in(PROMPT);
+        let labels: Vec<&str> = d.iter().map(|(l, _)| l.as_str()).collect();
+        assert_eq!(
+            labels,
+            vec![
+                "design-advisor rec 1",
+                "demo-producer rec 2",
+                "implementation-advisor rec 3"
+            ],
+            "an invented disposition word, prose, and a line in another section must all be ignored"
+        );
+        assert_eq!(d[0].1, Disposition::Obeyed("a1b2c3d".into()));
+        assert_eq!(
+            d[1].1,
+            Disposition::Deferred("prompts/128-task-next.md".into())
+        );
+        assert_eq!(
+            d[2].1,
+            Disposition::Refused("out of scope; this session ships one story".into()),
+            "a reason keeps its own punctuation, including colons and semicolons"
+        );
+    }
+
+    #[test]
+    fn hyphenated_role_keys_split_cleanly_and_the_first_answer_wins() {
+        let (role, n, d) =
+            parse_disposition_line("- implementation-advisor rec 12 — obeyed: abc1234").unwrap();
+        assert_eq!((role.as_str(), n), ("implementation-advisor", 12));
+        assert_eq!(d, Disposition::Obeyed("abc1234".into()));
+
+        let dup =
+            "## Advice\n- x rec 1 — obeyed: aaa\n- x rec 1 — refused: changed my mind later\n";
+        let got = dispositions_in(dup);
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].1, Disposition::Obeyed("aaa".into()));
+    }
+
+    #[test]
+    fn no_advice_section_records_nothing() {
+        assert!(dispositions_in("# Session 1\n\n## Plan\n1. do it\n").is_empty());
+        assert!(advice_section("# Session 1\n").is_none());
     }
 }
