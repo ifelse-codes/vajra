@@ -206,6 +206,7 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 - implementation-advisor rec 16 — obeyed: 61c867a
 - implementation-advisor rec 17 — obeyed: 1e2d5c6
 - implementation-advisor rec 18 — obeyed: e8cdd49
+- implementation-advisor rec 19 — obeyed: ec4a8c2
 
 **demo-producer** (24 recommendations, `.ai/handoffs/session-127-demo-producer.md`)
 
