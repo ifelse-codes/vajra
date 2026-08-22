@@ -1184,3 +1184,131 @@ mod gate_tests {
             .any(|w| w.contains("no handoff for session 127 records")));
     }
 }
+
+/// The falsifiability fixture (criterion 9, shaped by the implementation-advisor's rec 17).
+///
+/// The S122 lesson is that a fixture which goes red for the WRONG reason is glued on. So this
+/// drives the REAL `advice_gate` over three states of one subject, asserts on `blocks()` and on
+/// labels composed from PARSED input, and never on a message string — renaming any message here
+/// leaves it green, while deleting either half of the consumption turns it red:
+///
+/// - delete the ANSWER classification (make every disposition count) → B and C flip green → RED;
+/// - delete the RECOMMENDATION parser (nothing to answer) → B and C become `NoRecommendations`,
+///   which does not block → also RED.
+///
+/// State A is the negative control that makes both of those meaningful: a gate that simply blocked
+/// unconditionally would sail through B and C and fail here.
+///
+/// Every state REWRITES the prompt from one template. Nothing is mutated in place — that is
+/// exactly how S122's planted defect leaked into the next case's baseline.
+#[cfg(test)]
+mod falsifiability {
+    use super::*;
+    use std::process::Command;
+
+    const HANDOFF_BODY: &str = "rec 1 — lift the S116 deferral in a DECISION-007 addendum";
+
+    fn subject(dir: &Path) -> String {
+        let git = |args: &[&str]| {
+            Command::new("git")
+                .args(args)
+                .current_dir(dir)
+                .output()
+                .unwrap()
+        };
+        git(&["init", "-q", "."]);
+        git(&["config", "user.email", "t@t"]);
+        git(&["config", "user.name", "t"]);
+        fs::write(dir.join("seed.txt"), "seed").unwrap();
+        git(&["add", "-A"]);
+        git(&["commit", "-q", "-m", "seed", "--no-verify"]);
+        let sha = String::from_utf8_lossy(&git(&["rev-parse", "HEAD"]).stdout)
+            .trim()
+            .to_string();
+
+        // The handoff is built through the REAL contract writer, never hand-typed frontmatter, so
+        // if DECISION-007's contract changes the fixture follows it automatically.
+        let role = crate::fleet::resolve_role("design-advisor").unwrap();
+        fs::create_dir_all(dir.join(".ai/handoffs")).unwrap();
+        fs::write(
+            dir.join(role.handoff_rel(127)),
+            crate::fleet::format_handoff(
+                role,
+                127,
+                "claude-code-subagent",
+                &crate::fleet::sha256_hex(HANDOFF_BODY.as_bytes()).unwrap_or_default(),
+                "2026-08-22T00:00:00Z",
+                None,
+                HANDOFF_BODY,
+                &crate::fleet::compute_delta(role, None, HANDOFF_BODY),
+            ),
+        )
+        .unwrap();
+        fs::create_dir_all(dir.join("prompts")).unwrap();
+        sha
+    }
+
+    /// Rewrite the prompt from the ONE template. Never edit the previous state's file (S122).
+    fn write_prompt(dir: &Path, advice_lines: &str) {
+        fs::write(
+            dir.join("prompts/127-task-x.md"),
+            format!("# Session 127\n\n## Advice\n{advice_lines}\n\n## Plan\n1. x\n"),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn deleting_the_consumption_turns_this_red_and_renaming_a_message_does_not() {
+        let tmp = tempfile::tempdir().unwrap();
+        let sha = subject(tmp.path());
+        let label = "design-advisor rec 1";
+
+        // --- State A: the negative control. Answered, with real evidence. MUST BE GREEN. ---
+        write_prompt(tmp.path(), &format!("- {label} — obeyed: {sha}"));
+        let a = advice_gate(tmp.path(), 127);
+        assert!(!a.blocked(), "state A must pass: {:?}", a.reasons);
+        assert_eq!(a.state, AdviceState::Answered);
+        assert_eq!(
+            a.items.len(),
+            1,
+            "the recommendation must be READ, not merely tolerated"
+        );
+
+        // --- State B: the disposition is gone. MUST BE RED, naming the parsed label. ---
+        write_prompt(tmp.path(), "- (nothing answered here)");
+        let b = advice_gate(tmp.path(), 127);
+        assert!(
+            b.blocked(),
+            "state B: an unanswered recommendation must BLOCK"
+        );
+        assert_eq!(b.state, AdviceState::Unanswered(vec![label.to_string()]));
+
+        // --- State C: answered, but every evidence kind is unreal. MUST BE RED, three ways. ---
+        for line in [
+            format!("- {label} — obeyed: 9999999"),
+            format!("- {label} — refused: <reason>"),
+            format!("- {label} — deferred: prompts/999-task-nope.md"),
+        ] {
+            write_prompt(tmp.path(), &line);
+            let c = advice_gate(tmp.path(), 127);
+            assert!(c.blocked(), "state C must BLOCK on `{line}`");
+            assert_eq!(
+                c.state,
+                AdviceState::Unanswered(vec![label.to_string()]),
+                "`{line}` must be scored UNANSWERED, not merely warned about"
+            );
+            assert!(
+                matches!(c.items[0].answer, Answer::Unreal(..)),
+                "`{line}` must classify as a claim whose evidence is not real"
+            );
+        }
+
+        // Re-run state A LAST, from the same template, to prove nothing above left residue.
+        write_prompt(tmp.path(), &format!("- {label} — obeyed: {sha}"));
+        let again = advice_gate(tmp.path(), 127);
+        assert!(
+            !again.blocked(),
+            "the control must still pass after the red states"
+        );
+    }
+}
