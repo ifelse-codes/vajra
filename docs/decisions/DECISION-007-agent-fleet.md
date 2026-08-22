@@ -629,3 +629,112 @@ role by name when a parent was **told** to dispatch it. That is the wire, not th
 here shows a session reaching for a role unprompted, and per S124 a dispatched agent's own report
 is never the evidence — which is why the evidence recorded is two runtime-written files agreeing
 on a tool-call id neither the agent nor Vajra chose.
+
+---
+
+## S127 addendum — the disposition contract, and the S116 deferral is LIFTED
+
+**Date:** 2026-08-22 · **Session:** 127 · **Status:** locked
+
+### What this addendum reverses, stated first
+
+The S116 addendum, in the section *"The `covers: N` contract: reused, not re-derived"*, closed with:
+
+> …consuming a handoff into a station's own gate … **explicitly deferred as a non-goal.**
+
+**S127 lifts that deferral.** This is not a clarification and not a re-reading — it moves a line
+this record locked, and it says so where a reader will find it. The `design-advisor` flagged the
+reversal at dispatch time; the Architect gate would NOT have caught it, because that gate checks
+that a cited spine record EXISTS, not that the design obeys it. Citing `DECISION-007` passes while
+the deviation stands. The addendum is the lock; the citation was never enough.
+
+The deferral is lifted **narrowly**: exactly one gate consumes governed handoffs as a binding
+input. The eight stations, the nine roles and the seven commands are untouched, and no other gate's
+evidence contract moves.
+
+### The problem this closes
+
+S126 asked five roles for advice and dropped two recommendations in silence:
+
+- the `demo-producer` said to show the `verify-session-121.sh` unpin in the before/after,
+  "otherwise the before/after only shows the after". The shipped demo showed only the roster.
+- the `design-advisor` found the deferral this addendum lifts. That finding never reached the first
+  draft of the S127 prompt — the brief was read at dispatch time, the prompt written later, from
+  memory.
+
+Neither was defiance. **Neither left a trace.** The defect is not disobedience — it is *invisible*
+disobedience, and until S127 no gate anywhere could see it.
+
+### The contract
+
+A recommendation is a **recorded marker**, never an inference:
+
+```
+rec 2 — show the verify-121 unpin in the before/after
+```
+
+Its answer is a **disposition**, recorded in the `## Advice` section of the session's own prompt —
+the same place the `## Execution` trace lives, for the same reason (`.ai/` and `prompts/` ARE the
+memory; no new store, no new artifact type):
+
+| disposition | what the gate requires | precedent |
+|---|---|---|
+| `obeyed: <sha>` | the leading hex run resolves via `git cat-file -e <sha>^{commit}` | S68 Coder |
+| `refused: <reason>` | non-empty and not a `<...>` template placeholder | S61 Delta |
+| `deferred: <path>` | an in-repo path that EXISTS | S67 Architect spine-existence |
+
+`vajra next --advice NN` surfaces; `--check-advice NN` blocks; both ride `vajra next`. No 8th
+command. Wired into `--advance` on the CLOSING session, overridable by `VAJRA_SKIP_ADVICE_GATE=1`.
+
+**State precedence, decided rather than left to fall out:** `Malformed` (BLOCK) → `Unanswered`
+(BLOCK) → `NoRecommendations` (WARN, dodge named) → `Answered` (PASS) → `NoHandoffs` (silent).
+
+### The fork, argued rather than assumed
+
+*What happens when a handoff exists but records NO numbered recommendations?*
+
+**Decided: WARN, with the dodge named in the gate's own output.** BLOCK would close the dodge and
+break every handoff written before this contract existed — all eleven currently on disk. WARN keeps
+them working and follows the S68/S71 precedent for a form floor. The cost is stated in the gate's
+own words, not buried: *deleting the numbers dodges this gate.* Revisit once the roles have emitted
+numbered recommendations for a few sessions.
+
+**A deliberate divergence from the two existing `HandoffRead::Malformed` consumers**
+(`format_handoff_brief` prints a ⚠; `stations::fleet_evidence` files it): for this gate a malformed
+handoff is **binding**. It is the first consumer for which that is true, and the reason is S69 — a
+gate that cannot evaluate FAILS.
+
+### Rejected alternatives
+
+- **`REC-N:` upper-case only** — fights the roles' prose voice; invites case drift across nine
+  independently-written prompts.
+- **A YAML list in the handoff frontmatter** — Vajra owns the frontmatter (`format_handoff`); this
+  record already forbids the role authoring it.
+- **Numbering by heading ordinal** — implicit numbering silently re-maps every recorded disposition
+  when a heading is inserted.
+- **Bare ordinals (`1.`)** — every advisory brief is full of numbered lists; ordinals would turn
+  ordinary prose into gate-binding claims.
+- **A role-qualified number (`design-advisor/2`)** — duplicates the `role:` frontmatter the gate
+  already trusts as the placement source of truth, and lets a role mislabel itself.
+- **A new `.ai/advice/` store or an `advice.md` artifact** — `.ai/` and `prompts/` ARE the memory.
+- **Detecting "I recommend…" in free text** — that is the judgement this gate refuses to fake.
+- **Per-role hand-edited numbering rules** (the `implementation-advisor`'s own rec 6) — rejected in
+  favour of one shared rule rendered into every `ROLES` entry, so a tenth role inherits the contract
+  with no edit. The S114 lesson: one hardcoded word stamped every future role.
+- **A stop-word list (`tbd`, `n/a`) and a three-word minimum for `refused:`** — shipped, then
+  removed on the `implementation-advisor`'s rec 13. S122: a guard bound to a spelling gets escaped;
+  a length threshold is a judgement dressed as a check. The floor is disclosed instead.
+
+### What this addendum does NOT claim
+
+- **It does not make the agent obey.** It forces an ANSWER. `refused: <reason>` passes, and that is
+  correct and intended. What becomes impossible is the silent version.
+- **It does not judge the answer.** That an `obeyed:` commit really implements the advice, or that a
+  `refused:` reason is sound, stays a judgement only an independent reader can make.
+  **Required ≠ obeyed; answered ≠ obeyed well.**
+- **The refusal floor is a FORM floor.** A one-word reason passes, by decision.
+- **Jurisdiction is self-granted** (S68/S71). An advisor that never numbers its advice cannot be
+  made to. Measured, not theorised: run against S126's own five handoffs, this gate exits 0 — it
+  would **not** have caught either of the two drops that motivated it. Retroactively it is a WARN.
+- **One gate consumes handoffs; the other seven do not.** The roster is still nine and the fleet is
+  still not "wired in" — this is one notch up from S126, not ten.
