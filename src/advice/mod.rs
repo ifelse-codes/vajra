@@ -371,7 +371,12 @@ fn is_advice_heading(line: &str) -> bool {
 
 /// The body of the prompt's `## Advice` section, or `None` when there is no such section.
 pub fn advice_section(text: &str) -> Option<String> {
-    let mut lines = text.lines();
+    // Fences are stripped BEFORE the heading is located, not merely before its lines are parsed.
+    // Found the hard way, by this gate, on this session's own prompt: the prompt shows the contract
+    // in a fenced example that contains a literal `## Advice` heading, and locating the heading on
+    // raw lines picked up the EXAMPLE — so the real section's 43 answers were never read while the
+    // example's three fake ones were. rec 2's direction-of-error rule, applied one level up.
+    let mut lines = skip_fenced(text).into_iter();
     lines.find(|l| l.starts_with('#') && is_advice_heading(l))?;
     let body: Vec<&str> = lines.take_while(|l| !l.starts_with('#')).collect();
     Some(body.join("\n"))
@@ -965,6 +970,21 @@ This paragraph mentions a rec in prose and must not parse.\n\n\
             got[0].1,
             Disposition::Refused("changed my mind later".into())
         );
+    }
+
+    /// The bug this gate found in ITSELF, on this session's own prompt: a fenced EXAMPLE showing
+    /// the contract contains a literal `## Advice` heading, and locating the section on raw lines
+    /// picked up the example instead of the real section further down.
+    #[test]
+    fn a_fenced_example_heading_is_not_mistaken_for_the_real_advice_section() {
+        let prompt = "# Session 127\n\nHere is the shape:\n\n```\n## Advice (every recommendation, answered)\n- design-advisor rec 1 — obeyed: `a1b2c3d`\n```\n\n## Advice (the real one)\n- demo-producer rec 7 — refused: a real answer\n";
+        let d = dispositions_in(prompt);
+        assert_eq!(
+            d.len(),
+            1,
+            "the fenced example section must be skipped: {d:?}"
+        );
+        assert_eq!(d[0].0, "demo-producer rec 7");
     }
 
     #[test]
