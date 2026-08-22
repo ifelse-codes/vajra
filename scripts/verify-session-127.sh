@@ -202,6 +202,15 @@ fixture_fails_for_the_right_reason() {
   fi
   git -C "$WT" checkout -q -- src/advice/mod.rs
 
+  # Deletion C — the WARN branch criterion 6 rests on: silence the dodge (pass-2 rec 8).
+  perl -0pi -e 's/warnings\.push\(format!\("handoff\(s\) from \{\}: \{DODGE\}", roles\.join\(", "\)\)\)/let _ = roles;/' "$M"
+  if ( cd "$WT" && cargo test -q --lib advice::falsifiability 2>&1 | grep -q "test result: ok" ); then
+    echo "FAIL: silencing the dodge left the fixture GREEN"; rc=1
+  else
+    echo "OK: silencing the disclosed dodge -> RED"
+  fi
+  git -C "$WT" checkout -q -- src/advice/mod.rs
+
   # The other direction (S122): renaming every message string must NOT turn it red.
   perl -pi -e 's/names no commit in this repo/IS NOT A COMMIT, renamed/; s/no line in `## Advice` answers it/NOBODY ANSWERED, renamed/; s/names a file that does not exist/RENAMED MISSING FILE/; s/the refusal reason is still the template placeholder/RENAMED PLACEHOLDER/' "$M"
   if ( cd "$WT" && cargo test -q --lib advice::falsifiability 2>&1 | grep -q "test result: ok" ); then

@@ -79,18 +79,23 @@ B_FLAG=$( git show "$BASE:src/cli/next.rs" 2>/dev/null | grep -c -- '--check-adv
 A_FLAG=$( grep -c -- '--check-advice' src/cli/next.rs )
 # The heading itself existed at the base (this session's own prompt shipped it EMPTY). The honest
 # contrast is the number of RECORDED ANSWERS, which is what the gate actually consumes.
-# Deliberately NOT a count of `## Advice` headings: this session's own prompt shipped that heading
-# EMPTY at the merge-base, and the fenced example in it also matches a naive disposition grep. The
-# only honest source for "how many answers does the gate actually read" is the gate, which does not
-# exist at the base — so this row states the base as 0 by construction and says why.
-B_SEC="0 (section shipped empty)"
+# Deliberately NOT a count of `## Advice` HEADINGS: this session's own prompt shipped that heading
+# EMPTY at the merge-base, so a heading count reads 1-vs-1 and proves nothing (which is why
+# demo-producer rec 17 is answered `refused:` and not `obeyed:`). What IS comparable, and what the
+# gate actually consumes, is the number of RECORDED ANSWERS — counted from git at the base and from
+# the live gate now, so both cells are derived and both are scored.
+# ...and "recorded answers at the base" is itself counted from git rather than typed: at the
+# merge-base this session had NO governed handoff at all, so there was nothing for any gate to
+# read. A naive grep of the base prompt returns 2 — both from its own fenced EXAMPLE — which is
+# precisely why a heading/line grep is not an honest source here.
+B_SEC="$( git ls-tree -r --name-only "$BASE" -- .ai/handoffs 2>/dev/null | grep -c 'session-127' )"
 A_SEC="$( "$VAJRA" next --check-advice 127 2>&1 | grep -cE '^ +\[✓\] ' )"
 printf "  %-38s %-24s %s\n" "" "BEFORE (merge-base)" "AFTER (this branch)"
 printf "  %-38s %-24s %s\n" "--------------------------------------" "------------------------" "-----------"
 printf "  %-38s %-24s %s\n" "src/advice/mod.rs"                 "$B_MOD"    "present"
 printf "  %-38s %-24s %s\n" "'--check-advice' in src/cli/next.rs" "$B_FLAG"  "$A_FLAG"
-printf "  %-38s %-24s %s\n" "answers the gate reads for S127"       "$B_SEC" "$A_SEC"
-[ "$B_FLAG" -eq 0 ] && [ "$A_FLAG" -gt 0 ] && [ "${A_SEC:-0}" -gt 0 ]
+printf "  %-38s %-24s %s\n" "S127 handoffs / answers the gate reads" "$B_SEC" "$A_SEC"
+[ "$B_FLAG" -eq 0 ] && [ "$A_FLAG" -gt 0 ] && [ "${B_SEC:-1}" -eq 0 ] && [ "${A_SEC:-0}" -gt 0 ]
 score $? exec "before: no gate, no recorded answer — after: both, read from git"
 
 label "2. The DECISION-007 deferral — the record change a feature demo would otherwise hide."
@@ -211,7 +216,9 @@ LIMITS=$((LIMITS+1))
 label "11. Nothing else moved: K of 8, and still seven commands."
 STATIONS="$( "$VAJRA" next --stations 126 2>&1 )"
 K_LINE="$( grep -oE '[0-9]+ of 8 stations passed' <<<"$STATIONS" )"
-ROWS_N="$( grep -cE '^\s+\[(PASSED|ABSENT|LEGACY)\]' <<<"$STATIONS" )"
+# POSIX-portable: `\s` is a GNU extension BSD grep reads as a literal `s`, which would silently
+# make this 0 and turn the case red on stock macOS. Same defect, same fix as verify's (rec 4).
+ROWS_N="$( grep -cE '^ *\[(PASSED|ABSENT|LEGACY)\]' <<<"$STATIONS" )"
 echo "  $K_LINE · station rows: $ROWS_N · advice among them: $(grep -ci 'advice' <<<"$STATIONS")"
 HELP="$( "$VAJRA" --help 2>&1 )"
 grep -q "vajra <init|claude|check|next|estimate|hook|meter>" <<<"$HELP" && CMD_OK=0 || CMD_OK=1

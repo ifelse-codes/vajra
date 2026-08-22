@@ -182,8 +182,9 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-> Two advisors were dispatched and returned **43 numbered recommendations** between them. Every one
-> is answered below. **A session that ships this gate and leaves its own advice unanswered has
+> Three roles were dispatched and returned **51 numbered recommendations** between them — the
+> `implementation-advisor` (19), the `demo-producer` (24) and the `fidelity-reviewer` (8, its
+> pass-1 REJECT). Every one is answered below. **A session that ships this gate and leaves its own advice unanswered has
 > refuted itself** — so this section is the delivery, not paperwork about it.
 
 **implementation-advisor** (19 recommendations, `.ai/handoffs/session-127-implementation-advisor.md`)
@@ -202,7 +203,7 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 - implementation-advisor rec 12 — obeyed: 2043432
 - implementation-advisor rec 13 — obeyed: 633994e
 - implementation-advisor rec 14 — obeyed: 633994e
-- implementation-advisor rec 15 — obeyed: 2043432
+- implementation-advisor rec 15 — obeyed: 8da2093
 - implementation-advisor rec 16 — obeyed: 61c867a
 - implementation-advisor rec 17 — obeyed: 1e2d5c6
 - implementation-advisor rec 18 — obeyed: e8cdd49
@@ -226,7 +227,7 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 - demo-producer rec 14 — obeyed: 15581a0
 - demo-producer rec 15 — obeyed: 15581a0
 - demo-producer rec 16 — obeyed: 15581a0
-- demo-producer rec 17 — obeyed: 15581a0
+- demo-producer rec 17 — refused: the row it asked for counts `## Advice` HEADINGS, and this session's own prompt shipped that heading EMPTY at the merge-base while its fenced example matches a naive disposition grep — so the row would have read 1-vs-1 and proved nothing. The demo says so in its own comment and substitutes the count of answers the GATE reads. Recorded as a refusal because that is a substitution, not obedience, and pass 2 was right to call the `obeyed:` a false certification.
 - demo-producer rec 18 — obeyed: 7af6d7b
 - demo-producer rec 19 — obeyed: 15581a0
 - demo-producer rec 20 — obeyed: 15581a0
@@ -244,7 +245,7 @@ pass-1 REJECT, answered under the very gate this session ships)
 - fidelity-reviewer rec 4 — obeyed: 8da2093
 - fidelity-reviewer rec 5 — obeyed: 8da2093
 - fidelity-reviewer rec 6 — obeyed: 4e93ddf
-- fidelity-reviewer rec 7 — obeyed: 4e93ddf
+- fidelity-reviewer rec 7 — obeyed: 1daba29
 - fidelity-reviewer rec 8 — obeyed: 9740be6
 
 > **Read this before reading the ledger as a score.** The gate proves each of these 51 was
