@@ -62,13 +62,14 @@ pub fn run(args: &[String]) -> Result<()> {
     if let Some(i) = args.iter().position(|a| a == "--check-exec") {
         return run_check_exec(args.get(i + 1));
     }
-    // The QA stage (S69) also rides `vajra next` — no 8th command.
+    // The Advice gate (S127) rides `vajra next` — no 8th command.
     if let Some(i) = args.iter().position(|a| a == "--advice") {
         return run_advice(args.get(i + 1));
     }
     if let Some(i) = args.iter().position(|a| a == "--check-advice") {
         return run_check_advice(args.get(i + 1));
     }
+    // The QA stage (S69) also rides `vajra next` — no 8th command.
     if let Some(i) = args.iter().position(|a| a == "--qa") {
         return run_qa(args.get(i + 1));
     }

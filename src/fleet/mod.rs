@@ -699,8 +699,8 @@ pub fn validate_handoff(text: &str) -> Result<(), String> {
 
 /// The findings body — the content between the closing frontmatter fence and the `## Handoff Delta`
 /// section, minus heading lines. `None` when the frontmatter fence or the delta section is absent.
-/// The findings region VERBATIM — the same span `handoff_body` reads, but WITHOUT dropping
-/// headings or blank lines (S127, the implementation-advisor's rec 3).
+/// The findings region VERBATIM: everything between the frontmatter fence and `## Handoff Delta`,
+/// with headings and blank lines INTACT (S127, the implementation-advisor's rec 3).
 ///
 /// `handoff_body` filters every `#` line, which is right for a display summary and wrong for a
 /// consumer that COUNTS markers: an advisor writing `### rec 3 — …` as a heading would have its

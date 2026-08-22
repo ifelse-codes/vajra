@@ -1322,6 +1322,59 @@ mod falsifiability {
             );
         }
 
+        // --- State D: the WARN branch criterion 6 rests on. MUST NOT BLOCK, must NAME itself. ---
+        // rec 8 (pass 2): every other state exercises the BLOCK paths, so deleting the WARN branch
+        // — turning the disclosed dodge into a hard block, or into silence — left the fixture
+        // green. That is the one branch the entire "honest limit" story depends on.
+        let role = crate::fleet::resolve_role("design-advisor").unwrap();
+        let prose = "You should probably do the thing.";
+        fs::write(
+            tmp.path().join(role.handoff_rel(127)),
+            crate::fleet::format_handoff(
+                role,
+                127,
+                "claude-code-subagent",
+                &crate::fleet::sha256_hex(prose.as_bytes()).unwrap_or_default(),
+                "2026-08-22T00:00:00Z",
+                None,
+                prose,
+                &crate::fleet::compute_delta(role, None, prose),
+            ),
+        )
+        .unwrap();
+        write_prompt(tmp.path(), "- (nothing to answer)");
+        let d = advice_gate(tmp.path(), 127);
+        assert!(
+            !d.blocked(),
+            "state D: an unnumbered brief must never block"
+        );
+        assert_eq!(
+            d.state,
+            AdviceState::NoRecommendations(vec!["design-advisor".to_string()]),
+            "state D must be its own state, not silence and not a block"
+        );
+        assert_eq!(d.items.len(), 0, "there is nothing to answer");
+        assert!(
+            !d.warnings.is_empty(),
+            "state D must SAY something — a limit nobody is told about is not disclosed"
+        );
+
+        // Restore the numbered handoff so the control below tests what it says it tests.
+        fs::write(
+            tmp.path().join(role.handoff_rel(127)),
+            crate::fleet::format_handoff(
+                role,
+                127,
+                "claude-code-subagent",
+                &crate::fleet::sha256_hex(HANDOFF_BODY.as_bytes()).unwrap_or_default(),
+                "2026-08-22T00:00:00Z",
+                None,
+                HANDOFF_BODY,
+                &crate::fleet::compute_delta(role, None, HANDOFF_BODY),
+            ),
+        )
+        .unwrap();
+
         // Re-run state A LAST, from the same template, to prove nothing above left residue.
         write_prompt(tmp.path(), &format!("- {label} — obeyed: {sha}"));
         let again = advice_gate(tmp.path(), 127);
