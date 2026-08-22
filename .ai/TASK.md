@@ -30,13 +30,13 @@ cannot run. Two smaller residuals in the same place: a stranger's first `vajra c
 19 downloads** are unchanged — a working front door is a precondition for adoption, never evidence
 of it.
 
-**Next = S129 — the founder's pick from the three ranked candidates in
-`sessions/session-128-summary.md`:**
-- **A (recommended) — one source for what a stranger gets.** Kill the scaffold fork: same
-  constitution, same required-audit list, derived, with a check that fails when the two drift.
-- **B — decide the first-contact exit codes, and unblock `vajra init`.** Is a fresh `vajra check`
-  exiting 1 right? Make `init` work without a TTY.
-- **C — a paid dogfood ride-along through the new front door**, from a freshly scaffolded repo.
+**Next = S129 — FOUNDER PICKED A at the S128 closeout: one source for what a stranger gets.**
+Kill the scaffold fork — the same constitution and the same `required_audits` this repo runs on,
+derived rather than hand-typed, with a check that goes RED when the two drift. This is backlog
+**F1**, grown by S128's second finding (the audit list, not just the constitution).
+**B** (decide the first-contact exit codes, unblock `vajra init`) and **C** (a paid ride-along)
+were not picked and stay on the shelf.
+**Prompt: `prompts/129-task-one-source-scaffold.md` — APPROVED.**
 
 **S130 is the mandatory NO-CODE ground truth**, and the first one that must run `stranger_check`.
 

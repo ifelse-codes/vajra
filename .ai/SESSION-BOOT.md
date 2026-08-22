@@ -74,19 +74,28 @@
   final tree, not from `git show --stat`.
 
 ## Next Session
-- **Number:** S129 — **the founder's pick** from the three ranked candidates in
-  `sessions/session-128-summary.md`. No prompt is scaffolded yet; the pick comes first.
-  - **A (recommended) — one source for what a stranger gets.** Kill the scaffold fork: the same
-    constitution and the same `required_audits` this repo runs on, derived, with a check that fails
-    when the two drift. *Risk:* the two are not supposed to be identical — this repo's constitution
-    names ADRs, sessions and hooks a stranger's project has none of, so "derive" may mean writing a
-    real derivation, not an `include_str!`.
-  - **B — decide the first-contact exit codes, and unblock `vajra init`.** Is a fresh `vajra check`
-    exiting 1 right? Make `init` work without a TTY. *Risk:* small enough to be a footnote unless
-    the exit-code question is genuinely answered rather than patched.
-  - **C — a paid dogfood ride-along through the new front door**, from a freshly scaffolded repo.
-    *Risk:* spends money to produce findings rather than fixes, and S130's GT will run
-    `stranger_check` anyway.
+- **Number:** S129 — **CODE: one source for what a stranger gets.** **Founder pick A**, taken at the
+  S128 closeout after the three candidates were put to them in plain English.
+- **Goal:** make the scaffold a DERIVED artifact of this repo's governance instead of a hand-typed
+  copy — for BOTH the constitution and the required-audit list — plus a check that goes RED when
+  the two drift.
+- **The fork, measured:** `vajra init` writes a **66-line** `AGENTS.md` while this repo runs
+  **183**; the scaffolded `required_audits` has **7** entries against this repo's **11**, missing
+  `stranger_check`, `dogfood_check`, `pipeline_advance_check` and `dogfood_staleness`. In the S128
+  reviewer's words: *"A stranger's ground truth will never run the audit invented to protect
+  strangers."*
+- **Why A:** it is the same blind spot as all four S128 defects, one level deeper — nobody ever
+  looked at what `init` actually hands over. **B** (the small first-contact residuals: a fresh
+  `vajra check` exiting 1, `vajra init` blocking on stdin) and **C** (a paid ride-along from a
+  fresh scaffold) were not picked and stay on the shelf.
+- **The trap, named before it is walked into:** the two files are **not supposed to be identical**.
+  This repo's constitution names ADRs, session numbers, hooks and a fleet a stranger's project has
+  none of. *"Derive from one source"* may mean writing a real derivation, not an `include_str!` —
+  and that decision is the session's load-bearing deliverable, recorded in `## Design` before code.
+- **The counter-example that proves it is cheap:** `scripts/verify-closeout.sh` is already
+  `include_str!`'d into the scaffold and is byte-identical in both places, which is why S128's
+  bash-3.2 fix reached every future scaffold for free.
+- **Full prompt:** `prompts/129-task-one-source-scaffold.md` — **APPROVED**.
 - **S130 is the mandatory NO-CODE ground truth** — and the first GT that must run `stranger_check`.
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.

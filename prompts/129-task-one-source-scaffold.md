@@ -1,12 +1,12 @@
 # Session 129 — CODE: one source for what a stranger gets
 
-> **Status:** DRAFT — the Analyst gate (`vajra next --advance`) BLOCKS starting this session while
-> DRAFT. Flip to `APPROVED` once the founder signs off, **and only if the founder picks A.**
+> **Status:** APPROVED — founder, 2026-08-22, at the S128 closeout. Asked to choose between A, B
+> and C in plain English, they picked **A**.
 >
-> **The pick is not made.** S128 closed with three ranked candidates
-> (`sessions/session-128-summary.md`). This prompt scaffolds **A**, the recommended one. If the
-> founder picks **B** (decide the first-contact exit codes, unblock `vajra init`) or **C** (a paid
-> dogfood ride-along through the new front door), **rewrite this file rather than bending it.**
+> **The pick, and what it means:** A was recommended because it is the same blind spot as all four
+> S128 defects, one level deeper — nobody ever looked at what `vajra init` actually hands a
+> stranger. B (the small first-contact residuals) and C (a paid ride-along) stay on the shelf; C in
+> particular is partly covered by S130's ground truth, which now runs `stranger_check`.
 >
 > **Founder directive in force (S118):** `README.md` / `VISION.md` claims are the **target spec**,
 > not a status report. Do NOT soften them. **No release** until reality meets them.
