@@ -66,23 +66,34 @@
   Every rejection so far in this project's history has been correct; that record holds.
 
 ## Next Session
-- **Number:** S128 — **founder pick pending.** Exactly three ranked candidates, in
-  `sessions/session-127-summary.md`:
-  - **A (recommended) — make a SECOND gate consume its role's handoff.** QA or Demo-er, both of
-    which already re-run live. *Why:* the honest headline is still "one of eight"; the second
-    consumer is where "the fleet works" becomes a claim about the fleet rather than about a gate.
-    *Risk:* a second consumer nothing reaches for is a second decoration — pick the station whose
-    role is actually dispatched.
-  - **B — close the `obeyed:` hole.** Bind the disposition to the diff (the sha must be an ancestor
-    of HEAD and not on `main`, or must touch a file the recommendation names). *Why:* it is S127's
-    disclosed fakest green, with four live specimens. *Risk:* the honest ceiling is low and easy to
-    oversell — "touches a file the advice mentions" is still not "implements the advice".
-  - **C — unpark the S125 reboot backlog.** The 55-line scaffolded constitution,
-    `verify-closeout.sh` crashing on a fresh `vajra init`, unknown subcommands exiting 0. *Why:*
-    the only items a stranger would ever notice; adoption is flat. *Risk:* it is the founder's call
-    whether one consuming gate satisfies *working*.
-- **The prompt is scaffolded DRAFT** and the Analyst gate blocks the advance until the founder
-  flips it to APPROVED — that gate is deliberately the place this decision is recorded.
+- **Number:** S128 — **CODE: first contact works.** Founder pick **C**, taken at the S127
+  closeout after the three candidates were put to them in plain English.
+- **Goal:** make the first ten minutes with Vajra work. Four defects, every one re-confirmed LIVE in
+  an empty directory with the release binary at the S127 closeout — not copied from the S125 audit:
+  - `vajra --version` prints the help banner and exits 0. **There is no version flag at all.**
+  - `vajra chek` (a typo) prints the help banner and exits **0** — so `vajra chek && deploy` **runs
+    deploy**. The front door fails OPEN.
+  - `vajra check` on a fresh `vajra init` is **9/11**, one failure being `vajra.varta missing` — a
+    file `init` never creates. The product fails its own health check on first run.
+  - `scripts/verify-closeout.sh` **crashes** on a fresh repo: `line 83: summaries[@]: unbound
+    variable` (`set -u` + empty glob, bash 3.2 = the macOS default). The L4 layer is broken on
+    first contact.
+  Plus a **`stranger_check`** in `CONSTRAINTS.yaml#ground_truth.required_audits`, so a future GT
+  cannot pass while the shipped product is broken on arrival.
+- **Why C, in the founder's own reasoning:** candidate **B** (bind `obeyed:` harder to the diff) was
+  **rejected on principle** — an agent that reads advice and then reports it did something it did
+  not is a truthfulness problem, and a mechanical guardrail is the wrong tool for it. Candidate
+  **A** (a second consuming gate) was set aside because it extends a team **nobody outside this repo
+  can use yet**. **C is the only option where a stranger notices the difference.**
+- **This UNPARKS the first-contact slice of the S125 reboot backlog** (parked 2026-08-20). The rest
+  of that backlog — notably the scaffolded constitution being a hand-maintained fork, 66 lines vs
+  this repo's 183 — **stays parked, and S128 must say so in its summary rather than widen into it.**
+- **Full prompt:** `prompts/128-task-first-contact-works.md` — **DRAFT**. The Analyst gate blocks
+  the advance until the founder flips it to `APPROVED`; that gate is deliberately where the
+  go-ahead is recorded.
+- **Context that matters:** 57 days public · **0 stars · 0 forks · 0 issues · 0 external
+  contributors · 19 downloads** · last user-reachable change was **S108, 2026-08-01**, 19 sessions
+  ago.
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.
 

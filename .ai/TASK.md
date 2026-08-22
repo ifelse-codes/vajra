@@ -25,9 +25,21 @@ typed three words and pasted any commit from the branch."* **Required ≠ obeyed
 well.** And run against S126's own handoffs this gate exits 0 — it would not have caught either
 drop that motivated it. **One gate of eight consumes handoffs.**
 
-**Next = S128 — founder pick pending.** Three ranked candidates in `sessions/session-127-summary.md`
-(A: a second consuming gate · B: close the `obeyed:` hole · C: unpark the S125 backlog). The next
-prompt is scaffolded **DRAFT** and the Analyst gate blocks until the founder approves it.
+**Next = S128 — CODE: FIRST CONTACT WORKS (founder pick C, taken at the S127 closeout).**
+Fix what a stranger actually hits, all four re-confirmed live in an empty directory at the S127
+closeout: `vajra --version` does not exist (prints help, exit 0) · an unknown subcommand exits **0**,
+so `vajra <typo> && deploy` runs deploy · `vajra check` on a fresh init is **9/11** including
+`vajra.varta missing`, a file `init` never creates · `verify-closeout.sh` **crashes** on a fresh
+repo under bash 3.2. Plus a `stranger_check` added to the required GT audits, because none of this
+was catchable while every instrument measured Vajra governing itself.
+
+**The founder's reasoning, carried because it shapes the work:** candidate B (a stronger `obeyed:`
+check) was **rejected on principle** — an agent that reads advice and reports it did something it
+did not is a truthfulness problem, and *"we can and should not build a mechanical guardrail to it."*
+Candidate A was set aside because it extends a team nobody outside this repo can use yet.
+**This UNPARKS the first-contact slice of the S125 reboot backlog; the rest stays parked.**
+
+Full prompt: `prompts/128-task-first-contact-works.md` (**DRAFT** — the Analyst gate blocks until approved).
 **New chat.**
 
 ## Always-True Reminders
