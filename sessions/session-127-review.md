@@ -110,6 +110,14 @@ reviewer: Read/Grep/Glob only, shas verified against `.git/logs/HEAD` rather tha
 
 **Verdict:** ACCEPT
 
+**Review-Inputs-SHA:** `2a418d452c39c21f1bb828e5b142b465f1ee5e25453748a1c79ec528592f0633`
+
+*sha256(`HEAD:prompts/127-task-answer-every-recommendation.md` ‖ NUL ‖ the branch diff, excluding
+`sessions/`, `prompts/` and the `.ai/` spine). Recomputed strictly AFTER every fix and every
+`## Execution` sha had landed; two consecutive `verify-closeout.sh --inputs-sha 127` runs agreed
+before it was embedded (S69 attest-last). Because the canonical diff excludes `sessions/`, writing
+this line does not move the hash it attests.*
+
 ### What it graded PARTIAL, and why both are now closed
 
 - **Criterion 10** — `scripts/demo-session-127.sh` still used the GNU-only `\s` in a *scored*
