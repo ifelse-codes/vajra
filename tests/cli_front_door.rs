@@ -65,3 +65,37 @@ fn help_and_bare_invocation_still_exit_zero() {
         );
     }
 }
+
+/// Criterion 1 — `vajra --version` / `-V` prints the crate version and exits 0.
+///
+/// The expected value is parsed out of `Cargo.toml` at test time, NOT taken from
+/// `env!("CARGO_PKG_VERSION")`. Comparing the binary against the same compile-time
+/// constant it prints would pass even if someone typed the number by hand; parsing the
+/// manifest is what makes "read from the crate, never typed" falsifiable.
+#[test]
+fn version_flag_prints_the_manifest_version() {
+    let manifest = std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"),
+    )
+    .unwrap();
+    let expected = manifest
+        .lines()
+        .skip_while(|l| l.trim() != "[package]")
+        .find_map(|l| l.strip_prefix("version = "))
+        .map(|v| v.trim().trim_matches('"').to_string())
+        .expect("no [package] version in Cargo.toml");
+
+    for flag in ["--version", "-V"] {
+        let out = vajra().arg(flag).output().unwrap();
+        assert!(out.status.success(), "`vajra {flag}` exited non-zero");
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            stdout.contains(&expected),
+            "`vajra {flag}` printed {stdout:?}, expected it to contain the manifest version {expected:?}"
+        );
+        assert!(
+            !stdout.contains("Scaffold .ai/ workflow"),
+            "`vajra {flag}` printed the help banner instead of a version"
+        );
+    }
+}
