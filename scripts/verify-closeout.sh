@@ -4,6 +4,18 @@
 
 set -euo pipefail
 
+# PORTABILITY (S128): this gate must run on bash 3.2 — the macOS default shell, and the
+# first `bash` on a stranger's PATH. bash 3.2 treats an EMPTY array as UNSET under `set -u`,
+# so EXPANDING one — `"${arr[@]}"` — ABORTS the script with "unbound variable" the moment a
+# glob matches nothing. (Measured on 3.2.57: `${#arr[@]}` is fine; the expansion is what
+# dies. Both forms are guarded below anyway.) A fresh `vajra init` repo has no session
+# summaries, so the very first array here was empty and the L4 layer died before printing
+# a single result.
+# The `+` alternate form is the portable guard — it never trips the unbound check:
+#   emptiness test : [ -z "${arr[@]+x}" ]
+#   safe expansion : for x in ${arr[@]+"${arr[@]}"}; do
+# A gate that cannot RUN is worse than a gate that says RED. Keep both idioms.
+
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT"
 
@@ -87,12 +99,12 @@ check_session_pair() {
   local prompts=(prompts/[0-9]*-task-*.md)
   : > "$LOG"
   local missing=0
-  if (( ${#summaries[@]} == 0 )); then echo "MISSING: no session summaries" >> "$LOG"; missing=$((missing+1)); fi
-  if (( ${#prompts[@]} == 0 )); then echo "MISSING: no session prompts" >> "$LOG"; missing=$((missing+1)); fi
-  for s in "${summaries[@]}"; do
+  if [ -z "${summaries[@]+x}" ]; then echo "MISSING: no session summaries" >> "$LOG"; missing=$((missing+1)); fi
+  if [ -z "${prompts[@]+x}" ]; then echo "MISSING: no session prompts" >> "$LOG"; missing=$((missing+1)); fi
+  for s in ${summaries[@]+"${summaries[@]}"}; do
     local base; base=$(basename "$s" -summary.md); local nn="${base#session-}"
     local matches=(prompts/${nn}-task-*.md)
-    if (( ${#matches[@]} == 0 )); then
+    if [ -z "${matches[@]+x}" ]; then
       echo "MISSING prompt for $s (expected prompts/${nn}-task-*.md)" >> "$LOG"
       missing=$((missing+1))
     else
@@ -144,7 +156,7 @@ check_execution_shas() {
   local prompts; prompts=(prompts/${padded}-task-*.md)
   : > "$LOG"
 
-  if (( ${#prompts[@]} == 0 )); then
+  if [ -z "${prompts[@]+x}" ]; then
     echo "N/A: no prompt file prompts/${padded}-task-*.md" >> "$LOG"; ok "$NAME"; return
   fi
 
@@ -181,7 +193,7 @@ check_execution_shas() {
     echo "OK: no 'done: <sha>' placeholders in ## Execution" >> "$LOG"; ok "$NAME"; return
   fi
 
-  for bl in "${bad_lines[@]}"; do echo "PLACEHOLDER:$bl" >> "$LOG"; done
+  for bl in ${bad_lines[@]+"${bad_lines[@]}"}; do echo "PLACEHOLDER:$bl" >> "$LOG"; done
   echo "BLOCK: $count step(s) in $F still have 'done: <sha>' placeholder(s)" >> "$LOG"
 
   if waiver_ok; then
@@ -224,11 +236,11 @@ check_verify_demo_scripts() {
   { [ -f "$V" ] && [ -s "$V" ]; } || missing+=("$V")
   { [ -f "$D" ] && [ -s "$D" ]; } || missing+=("$D")
 
-  if [ "${#missing[@]}" -eq 0 ]; then
+  if [ -z "${missing[@]+x}" ]; then
     echo "OK: $V + $D both present and non-empty." >> "$LOG"; ok "$NAME"; return
   fi
 
-  for m in "${missing[@]}"; do echo "MISSING: $m" >> "$LOG"; done
+  for m in ${missing[@]+"${missing[@]}"}; do echo "MISSING: $m" >> "$LOG"; done
   echo "BLOCK: session $N is a CODE session but is missing the step-5 script(s) above." >> "$LOG"
   if waiver_ok; then
     echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>} (DOGFOOD / NO-CODE — no scripts)." >> "$LOG"
@@ -331,7 +343,8 @@ canonical_inputs_sha() {
   local padded; padded="$(printf '%02d' "$N")"
   shopt -s nullglob
   local prompts=(prompts/${padded}-task-*.md)
-  (( ${#prompts[@]} == 1 )) || return 1          # 0 or >1 contract => uncomputable
+  [ -n "${prompts[@]+x}" ] || return 1           # 0 contract => uncomputable (bash 3.2 safe)
+  (( ${#prompts[@]} == 1 )) || return 1          # >1 contract => uncomputable
   local base
   base="$(git merge-base main HEAD 2>/dev/null)" || return 1
   [ -n "$base" ] || return 1
@@ -480,7 +493,7 @@ if [ "${1:-}" = "--fidelity-only" ]; then
   check_fidelity_review
   echo ""
   echo "=== Fidelity gate (N=${N:-?}) ==="
-  for r in "${RESULTS[@]}"; do echo "$r"; done
+  for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
   cat "$ARTIFACTS/fidelity-review-accept.log" 2>/dev/null || true
   if [ "$FAIL" -eq 0 ]; then echo "FIDELITY: PASS"; exit 0; else echo "FIDELITY: FAIL"; exit 1; fi
 fi
@@ -491,7 +504,7 @@ if [ "${1:-}" = "--check-exec-shas" ]; then
   check_execution_shas
   echo ""
   echo "=== Execution-sha check (N=${N:-?}) ==="
-  for r in "${RESULTS[@]}"; do echo "$r"; done
+  for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
   cat "$ARTIFACTS/execution-shas-filled.log" 2>/dev/null || true
   if [ "$FAIL" -eq 0 ]; then echo "EXEC-SHAS: PASS"; exit 0; else echo "EXEC-SHAS: FAIL"; exit 1; fi
 fi
@@ -502,7 +515,7 @@ if [ "${1:-}" = "--scripts-only" ]; then
   check_verify_demo_scripts
   echo ""
   echo "=== Verify/Demo script-presence check (N=${N:-?}) ==="
-  for r in "${RESULTS[@]}"; do echo "$r"; done
+  for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
   cat "$ARTIFACTS/verify-demo-scripts-present.log" 2>/dev/null || true
   if [ "$FAIL" -eq 0 ]; then echo "SCRIPTS: PASS"; exit 0; else echo "SCRIPTS: FAIL"; exit 1; fi
 fi
@@ -513,7 +526,7 @@ if [ "${1:-}" = "--attest-only" ]; then
   check_review_attestation
   echo ""
   echo "=== Attestation gate (N=${N:-?}) ==="
-  for r in "${RESULTS[@]}"; do echo "$r"; done
+  for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
   cat "$ARTIFACTS/review-inputs-attested.log" 2>/dev/null || true
   if [ "$FAIL" -eq 0 ]; then echo "ATTEST: PASS"; exit 0; else echo "ATTEST: FAIL"; exit 1; fi
 fi
@@ -579,7 +592,7 @@ echo ""
 echo "=== Closeout Verify Summary (N=${N:-?}) ==="
 printf '%-34s %s\n' "STEP" "RESULT"
 printf '%-34s %s\n' "----------------------------------" "------"
-for r in "${RESULTS[@]}"; do echo "$r"; done
+for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
 echo ""
 echo "Artifacts: $ARTIFACTS"
 
