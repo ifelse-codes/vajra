@@ -185,7 +185,9 @@ fi
 
 # Every remaining FAIL must be one a new user can act on. The only sanctioned one is
 # 'branch: not main', which is true (they are on main) and actionable (branch first).
-UNEXPECTED="$(printf '%s\n' "$CHECK_OUT" | grep "FAIL" | grep -v "branch: not main" | grep -v "^Score" || true)"
+# Match the STATUS COLUMN, not the word: `Score: 10/11 - 1 FAILED` is a tally line, not a
+# check row, and excluding it by name would be an exclusion list — the hole, not the fix (S122).
+UNEXPECTED="$(printf '%s\n' "$CHECK_OUT" | grep -E '[[:space:]]FAIL[[:space:]]' | grep -v "branch: not main" || true)"
 if [ -z "$UNEXPECTED" ]; then
   pass "every reported FAIL is true and actionable"
 else

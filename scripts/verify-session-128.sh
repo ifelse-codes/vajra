@@ -107,6 +107,41 @@ no_gate_module_touched() {
 }
 run_check "no-gate-evidence-contract-moved" struct no_gate_module_touched
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# CRITERIA 1-7, 9, 10 — the product, in a real empty directory.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+# Criteria 1-6: the whole of first contact, driven end to end against the real binary in a real
+# empty directory. This is the ONLY instrument in this repo that measures the product rather than
+# Vajra governing itself, which is exactly why the four defects survived 125 sessions.
+run_check "stranger-check-green" nested /bin/bash "$ROOT/scripts/stranger-check.sh" --bin "$VAJRA"
+
+# Criterion 9: the fixture. Plants each S128 defect back, one at a time, and demands the
+# stranger-check go RED through the check that OWNS it — plus the control that renaming a
+# message leaves it GREEN. Every plant asserts its own edit landed before the result is trusted.
+run_check "falsifiability-fixture" nested /bin/bash "$ROOT/scripts/fixture-session-128.sh"
+
+# Criterion 10: the demo runs green.
+run_check "demo-128-green" nested /bin/bash "$ROOT/scripts/demo-session-128.sh"
+
+# Criterion 7: the audit that stops this class recurring is REGISTERED, with a question list that
+# says what it is for. Structural by nature — a YAML entry has no runtime output to exercise.
+constraints_register_stranger_audit() {
+  local f=".ai/CONSTRAINTS.yaml"
+  grep -E '^  required_audits:.*\bstranger_check\b' "$f" || {
+    echo "MISSING: stranger_check is not in required_audits"; return 1; }
+  grep -q '^  stranger_questions:' "$f" || { echo "MISSING: stranger_questions"; return 1; }
+  grep -q 'measures the PRODUCT a stranger downloads' "$f" || {
+    echo "MISSING: the question list does not say plainly what the audit is for"; return 1; }
+  grep -q 'scripts/stranger-check.sh' "$f" || {
+    echo "MISSING: the question list does not name the script that produces the evidence"; return 1; }
+}
+run_check "constraints-registers-stranger-audit" struct constraints_register_stranger_audit
+
+# The unit + integration suites, including the four varta states and the real-binary front-door
+# tests. Run last: it is the slowest and the least surprising.
+run_check "cargo-tests-green" exec cargo test --release --quiet
+
 ( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
 
 echo ""
@@ -116,6 +151,22 @@ printf '%-42s %-7s %s\n' "------------------------------------------" "-------" 
 for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
 echo ""
 print_tally "$EXEC_N" "$STRUCT_N" "$BEHAV_N" "$NESTED_N" ${NESTED_NAMES[@]+"${NESTED_NAMES[@]}"}
+echo ""
+echo "WHAT THIS SUITE NEVER EXERCISED — stated, not buried:"
+echo "  * ANY user. 0 stars, 0 forks, 0 issues, 19 downloads. A front door that works is a"
+echo "    precondition for adoption; it is not evidence of adoption, and nothing here claims it."
+echo "  * The scaffolded constitution, still a hand-maintained fork (66 lines vs this repo's 183)."
+echo "    Deliberately out of scope this session, and it is the biggest thing a stranger still"
+echo "    gets wrong."
+echo "  * Any shell that is not this host's /bin/bash. Criterion 4 FAILS rather than passes on a"
+echo "    host whose bash lacks 3.2 empty-array semantics — but a green here proves ONE shell."
+echo "  * Whether a future ground-truth session actually RUNS stranger_check. The registration is"
+echo "    proven; the running is not, and it is the same self-granted-jurisdiction class as S68."
+# NOTE the single quotes: an unescaped backtick inside a double-quoted echo is a COMMAND
+# SUBSTITUTION. The first cut of these two lines actually RAN `vajra init` in this repo and
+# hung the whole suite on its stdin prompt. A disclosure line that executes is its own joke.
+echo '  * `vajra init` still blocking on stdin without EOF — known, unfixed, worked around with'
+echo '    `</dev/null` in every script here.' 
 echo ""
 if [ "$FAIL" -eq 0 ]; then
   echo "ALL GREEN ($PASS pass, $FAIL fail)"
