@@ -126,8 +126,8 @@ directory**, and each protected by a check that would have caught it.
 - step 8 — done: `3bf5b03064442b23ce25722cc345a2c19cfd20cc`
 - step 9 — done: `93ca02425e8ca943a08eb6e9e425606f8d1a2a8a`
 - step 10 — done: `7319e12e9540ef6686b4261026d21153268053b0`
-- step 11 — done: `<sha>`
-- step 12 — done: `<sha>`
+- step 11 — done: `4ee8207d16fa84ad239df0149e1c96ec2abfeceb`
+- step 12 — done: `ca5eaca474010b375304e6f624779ab790ce513d`
 
 > **Fill these with real landing shas before closeout.** S119, S122 and S124 each left `<sha>`
 > placeholders and only an independent cold review caught it — never self-noticed. **And do not
