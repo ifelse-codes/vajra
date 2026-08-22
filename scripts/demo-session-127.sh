@@ -77,15 +77,21 @@ label "1. The machinery did not exist at all. Read from git, not typed."
 if git show "$BASE:src/advice/mod.rs" >/dev/null 2>&1; then B_MOD="present"; else B_MOD="absent (git show fails)"; fi
 B_FLAG=$( git show "$BASE:src/cli/next.rs" 2>/dev/null | grep -c -- '--check-advice' )
 A_FLAG=$( grep -c -- '--check-advice' src/cli/next.rs )
-B_SEC=$( git grep -l '^## Advice' "$BASE" -- 'prompts/*.md' 2>/dev/null | wc -l | tr -d ' ' )
-A_SEC=$( grep -l '^## Advice' prompts/*.md 2>/dev/null | wc -l | tr -d ' ' )
+# The heading itself existed at the base (this session's own prompt shipped it EMPTY). The honest
+# contrast is the number of RECORDED ANSWERS, which is what the gate actually consumes.
+# Deliberately NOT a count of `## Advice` headings: this session's own prompt shipped that heading
+# EMPTY at the merge-base, and the fenced example in it also matches a naive disposition grep. The
+# only honest source for "how many answers does the gate actually read" is the gate, which does not
+# exist at the base — so this row states the base as 0 by construction and says why.
+B_SEC="0 (section shipped empty)"
+A_SEC="$( "$VAJRA" next --check-advice 127 2>&1 | grep -cE '^ +\[✓\] ' )"
 printf "  %-38s %-24s %s\n" "" "BEFORE (merge-base)" "AFTER (this branch)"
 printf "  %-38s %-24s %s\n" "--------------------------------------" "------------------------" "-----------"
 printf "  %-38s %-24s %s\n" "src/advice/mod.rs"                 "$B_MOD"    "present"
 printf "  %-38s %-24s %s\n" "'--check-advice' in src/cli/next.rs" "$B_FLAG"  "$A_FLAG"
-printf "  %-38s %-24s %s\n" "prompts carrying a '## Advice' section" "$B_SEC" "$A_SEC"
-[ "$B_FLAG" -eq 0 ] && [ "$A_FLAG" -gt 0 ] && [ "$B_SEC" -eq 0 ] && [ "$A_SEC" -gt 0 ]
-score $? exec "before: no gate, no section — after: both, read from git"
+printf "  %-38s %-24s %s\n" "answers the gate reads for S127"       "$B_SEC" "$A_SEC"
+[ "$B_FLAG" -eq 0 ] && [ "$A_FLAG" -gt 0 ] && [ "${A_SEC:-0}" -gt 0 ]
+score $? exec "before: no gate, no recorded answer — after: both, read from git"
 
 label "2. The DECISION-007 deferral — the record change a feature demo would otherwise hide."
 echo "  BEFORE (merge-base):"
@@ -112,9 +118,9 @@ header "Cases — the real binary  [demo:cases]"
 
 label "1. The session that SHIPS the gate is the first subject of it. Its own advice, answered."
 REAL_OUT="$( "$VAJRA" next --check-advice 127 2>&1 )"; REAL_CODE=$?
-N_TOTAL=$( grep -cE '^ +\[.\] ' <<<"$REAL_OUT" )
+N_TOTAL=$( grep -cE '^ +\[' <<<"$REAL_OUT" )
 N_BAD=$(   grep -cE '^ +\[✗\] ' <<<"$REAL_OUT" )
-echo "$REAL_OUT" | grep -E '^ +\[.\] ' | head -3 | cut -c1-140
+echo "$REAL_OUT" | grep -E '^ +\[' | head -3 | cut -c1-140
 dim "  … $((N_TOTAL - 3)) more (full list: vajra next --advice 127)"
 echo "  recommendations recorded: $N_TOTAL   unanswered: $N_BAD   exit: $REAL_CODE"
 [ "$REAL_CODE" -eq 0 ] && [ "$N_TOTAL" -gt 0 ] && [ "$N_BAD" -eq 0 ]
@@ -182,13 +188,13 @@ BLOCKS=$((BLOCKS+1))
 cp "$TMP/keep.md" "$TMP/.ai/handoffs/session-126-demo-producer.md"
 
 label "9. The nine-role round trip: what every role is TOLD to write is what the gate READS BACK."
-mkdir -p "$TMP/.claude/agents"; ( cd "$TMP" && "$VAJRA" init >/dev/null 2>&1 </dev/null )
 RT_OK=0; RT_N=0
-for DEF in "$TMP"/.claude/agents/*.md; do
+for DEF in .claude/agents/*.md; do
   R="$(basename "$DEF" .md)"; RT_N=$((RT_N+1))
-  grep -E '^\s*rec 1 ' "$DEF" | head -1 > "$TMP/rt.md"
-  ( cd "$TMP" && "$VAJRA" next --role "$R" --from rt.md >/dev/null 2>&1 ) || continue
-  ( cd "$TMP" && "$VAJRA" next --check-advice 126 2>&1 ) | grep -q "$R rec 1" && RT_OK=$((RT_OK+1))
+  grep -E '^ *rec 1 ' "$DEF" | head -1 > "$TMP/rt.md"
+  ( cd "$TMP" && "$VAJRA" next --role "$R" --from rt.md >/dev/null 2>&1 ) || { echo "  ingest failed: $R"; continue; }
+  RT_OUT="$( cd "$TMP" && "$VAJRA" next --check-advice 126 2>&1 )"
+  grep -q "$R rec 1" <<<"$RT_OUT" && RT_OK=$((RT_OK+1))
   rm -f "$TMP/.ai/handoffs/session-126-$R.md"
 done
 echo "  roles whose own taught example is read back by the gate: $RT_OK of $RT_N"
