@@ -738,3 +738,10 @@ gate that cannot evaluate FAILS.
   would **not** have caught either of the two drops that motivated it. Retroactively it is a WARN.
 - **One gate consumes handoffs; the other seven do not.** The roster is still nine and the fleet is
   still not "wired in" — this is one notch up from S126, not ten.
+- **A WRONG `obeyed:` is indistinguishable from a right one, to this gate.** Not an abstraction — a
+  live specimen, caught by the independent cold review of the very session that shipped this
+  contract. The `implementation-advisor`'s rec 9 said "delete the `_uses` stub"; the ledger recorded
+  `obeyed: 8cd3bea`; the stub was still in `src/advice/mod.rs`. The sha resolved, so the gate scored
+  it ANSWERED. **The disposition word carries all the meaning and none of the checking.** Every
+  `obeyed:` in every future ledger should be read that way: it certifies that a human typed a word
+  and named a real commit, and nothing else. The only thing that caught it was a reader.
