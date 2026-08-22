@@ -101,6 +101,14 @@
   no release until reality meets them.
 
 ## Carry-Forwards (NEW from S128)
+- **A post-merge closeout-tail branch CANNOT re-attest, by construction.** `canonical_inputs_sha`
+  hashes the diff against `git merge-base main HEAD`; once main absorbs the session branch that
+  base collapses, so a follow-up branch hashes only its own tail and `review-inputs-attested`
+  reports MISMATCH. **The record that counts is the pre-merge run** — S128's closeout gate was
+  **12/12 GREEN on `session-128-first-contact-works` before the PR merged (S83, obeyed).** Do not
+  re-embed a hash on a tail branch: that would attest the tail, not the reviewed delivery. Either
+  carry the known red with the reason written down, or take a founder waiver. This is S83's lesson
+  recurring one step later, and it is now written down instead of rediscovered.
 - **Measure the shell; do not reason about it.** On bash 3.2 `${#arr[@]}` is FINE and `"${arr[@]}"`
   is what aborts under `set -u`. The first fix guarded both on a guess. The cold reviewer's
   counter-prediction (`[: too many arguments` at ~100 elements) was ALSO wrong — tested at 102, it
