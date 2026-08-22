@@ -1,101 +1,114 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 127 — COMPLETE
-- **Type:** CODE — every recommendation must be ANSWERED (obeyed, refused, or deferred). Founder
-  direction at the S126 closeout, rewritten from "a handoff exists" to "the answer is recorded":
-  *"the obeying is what all Vajra is — the agent obeys the prompt, and obeys in a deterministic
-  way."*
-- **Goal:** Make every numbered recommendation in a session's governed handoffs carry a recorded
-  disposition, and BLOCK the close of a session that leaves any of them unanswered.
-- **Verdict:** **ACCEPT** — independent cold `fidelity-reviewer`, **two passes**. Pass 1 **REJECT**
-  (8 SHIPPED · 2 PARTIAL · 2 NOT-BUILT) and it was right; pass 2 **ACCEPT** (10 SHIPPED · 2 PARTIAL
-  · 0 NOT-BUILT), both PARTIALs closed after it read. **The first gate that CONSUMES a governed
-  handoff as a binding input** (`src/advice/mod.rs`): `obeyed: <sha>` that resolves · `refused:
-  <reason>` that is written · `deferred: <path>` that exists. `vajra next --advice NN` /
-  `--check-advice NN`, wired into the close path. **No 8th command, no new store, no new artifact
-  type.** `DECISION-007`'s S116 deferral **LIFTED** out loud in an S127 addendum. 360 lib tests ·
-  verify 10/10 · demo 13/13 · `K of 8` unmoved.
-- **Dogfooded on itself:** 3 roles, **51 numbered recommendations, all answered**. The gate found
-  two real defects in its own author mid-build (heading-form recs dropped by `handoff_body`; a
-  fenced `## Advice` example read as the real section).
-- **🔴 The residual, unsoftened:** **four `obeyed:` labels in that 51-answer ledger were WRONG and
-  passed the gate** — one caught by pass 1, three by pass 2, from the reflog alone. *"The count
-  would be identical if the advice had been read and ignored."* A disposition certifies a typed
-  word and a resolving sha, and nothing else. **It forces an ANSWER, never obedience.** And run
-  against S126's own handoffs this gate exits 0 — it would not have caught either drop that
-  motivated it. **One gate of eight consumes handoffs.**
-- **Report:** `sessions/session-127-summary.md` · **Review:** `sessions/session-127-review.md` ·
-  **Prompt:** `prompts/127-task-answer-every-recommendation.md`. **Date last updated:** 2026-08-22.
-- **Branch:** `session-127-answer-every-recommendation`. S128 starts from a fresh
-  `session-128-*` branch and a new chat.
+- **Number:** 128 — COMPLETE
+- **Type:** CODE — first contact works: fix what a stranger actually hits. Founder pick **C** at
+  the S127 closeout, in their words: candidate B was *rejected on principle* (a mechanical
+  guardrail is the wrong tool for an agent that reports it did something it did not), candidate A
+  extends a team nobody outside this repo can use yet, and **C is the only option where a stranger
+  notices the difference.**
+- **Goal:** make the first ten minutes with Vajra work — a version flag that exists, a front door
+  that fails CLOSED on a typo, a health check that is honest on a fresh repo, a closeout script
+  that does not crash on the default macOS shell, and an audit that stops the class recurring.
+- **Verdict:** **ACCEPT** — independent cold `fidelity-reviewer`, **one pass**, no re-run, no
+  renumbering. **14 SHIPPED · 2 PARTIAL · 2 NOT-BUILT · 1 N/A**; both PARTIALs and both NOT-BUILTs
+  closed after it read, each named as a post-ACCEPT closure rather than blended in. **The first
+  user-reachable change since S108, twenty sessions ago.**
+- **What a stranger gets now:** `vajra --version` / `-V` (read from the crate, a FLAG not an 8th
+  command) · an unknown subcommand exits **2** and names the word, so `vajra <typo> && deploy`
+  cannot run deploy · `--help` and bare `vajra` still exit 0 · `verify-closeout.sh` runs to
+  completion on a fresh scaffold under bash 3.2 · `vajra check` on a fresh init is **10/11**, the
+  `vajra.varta` demand RETIRED with the drift guard's teeth kept.
+- **`stranger_check`** is now a required GT audit (`scripts/stranger-check.sh`: real empty dir,
+  real `git init`, real binary, 16 checks), and it is falsifiable — each defect planted back turns
+  it RED **through the check that owns it**, while renaming a message leaves it GREEN.
+- **The numbers:** verify **9/9** · demo **13/13** · stranger **16/16** · fixture **12/12** ·
+  **364** tests · `K of 8` unmoved in derivation and shape · **7 commands**, no 8th.
+- **🔴 The residual, unsoftened:** **the front door works; the SCAFFOLD is still a fork.** 66-line
+  constitution vs this repo's 183, AND a 7-entry `required_audits` vs this repo's 11 —
+  `stranger_check` among the four missing. *The audit invented to protect strangers does not reach
+  them*, and **S128 REFUSED to fix that** (reviewer rec 4, refused with a reason). Smaller and also
+  unfixed: a stranger's first `vajra check` still exits **1**; `vajra init` still blocks on stdin.
+  And **0 stars · 0 forks · 0 issues · 19 downloads**, unchanged.
+- **Report:** `sessions/session-128-summary.md` · **Review:** `sessions/session-128-review.md` ·
+  **Prompt:** `prompts/128-task-first-contact-works.md`. **Date last updated:** 2026-08-22.
+- **Branch:** `session-128-first-contact-works`. S129 starts from a fresh `session-129-*` branch
+  and a new chat.
 
 ## Previous Session
-- **Number:** 126 — COMPLETE
-- **Type:** CODE — finish the SDLC agent fleet: the last five roles, in one pass.
-- **Verdict:** **ACCEPT** — 7 of 9 SHIPPED, 2 PARTIAL, 0 NOT-BUILT. The roster completed at **nine
-  roles**, five added with **zero** new grants of `Bash`, all five dispatched by name from separate
-  headless sessions ($4.4482 metered).
-- **Its residual, now half-closed:** the roster was complete and nothing depended on it. S127 made
-  one gate depend on a role's output.
-- **Report:** `sessions/session-126-summary.md` · **Review:** `sessions/session-126-review.md`.
+- **Number:** 127 — COMPLETE
+- **Type:** CODE — every recommendation must be ANSWERED (obeyed, refused, or deferred).
+- **Verdict:** **ACCEPT** (two passes; pass 1 REJECT and it was right). The first gate that
+  CONSUMES a governed handoff as a binding input — `src/advice/mod.rs`.
+- **Its residual, still standing:** four `obeyed:` labels in its own 51-answer ledger were
+  factually wrong and passed the gate. A disposition certifies a typed word and a resolving sha,
+  and nothing else. **S128 used that gate on its own reviewer's eight recommendations** — 7
+  obeyed, 1 refused with a reason — and the same caveat applies to that count.
+- **Report:** `sessions/session-127-summary.md` · **Review:** `sessions/session-127-review.md`.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 127. Branch `session-127-answer-every-recommendation` (merged via PR — read git,
-  not this line). S128 starts from a fresh `session-128-*` branch.
-- **The headline, in one line: advice you asked for can no longer be dropped in silence — and the
-  session that shipped that gate dropped four pieces of advice in a way the gate could not see.**
-  Both halves are true and both belong in the same sentence.
+- `.ai/SESSION` = 128. Branch `session-128-first-contact-works` (PR to open — read git, not this
+  line). S129 starts from a fresh `session-129-*` branch.
+- **The headline, in one line: the product finally works for someone who is not us — and the thing
+  we hand them is still not the thing we run.** Both halves are true and both belong in the same
+  sentence.
 - **What is new and load-bearing:**
-  - `src/advice/mod.rs` — the gate. Reads numbered `rec N —` markers out of governed handoffs,
-    reads the prompt's `## Advice`, classifies each item answered / unanswered /
-    claimed-but-not-real, and BLOCKS on the last two. `Malformed` fails closed; `NoRecommendations`
-    WARNs and names its own dodge (`advice::DODGE`, one const).
-  - `fleet::handoff_findings_raw` + `Handoff.raw_body` — the region a marker-counter must read.
-    `handoff_body` drops every `#` line, which silently under-counted heading-form recommendations.
-  - One `RECOMMENDATION_NUMBERING_RULE` rendered into every `ROLES` entry, so a tenth role inherits
-    the contract with no edit; asserted per role and round-tripped through the real parser.
-- **The numbers:** 360 lib tests · verify **10/10** (9 execute-based · 1 behavioral, labelled) ·
-  demo **13/13** (all execute-based) · `K of 8` = 8 of 8 at S126, unmoved · 7 commands, no 8th.
-- **The falsifiability fixture has four states** and was probed live: deleting the answer
-  classification, deleting the recommendation parser, turning the disclosed dodge into a block,
-  silencing it, and collapsing `NoRecommendations` into `NoHandoffs` each turn it RED; renaming
-  every gate message leaves it GREEN.
-- **Two cold passes, two real catches.** Pass 1: a stub the advice said to delete, still in the
-  file, recorded `obeyed:`. Pass 2: three more mis-certified dispositions, found from the reflog.
-  Every rejection so far in this project's history has been correct; that record holds.
+  - `src/main.rs` — the front door fails CLOSED. `Unknown(String)` carries the offending word,
+    exits `EXIT_UNKNOWN_COMMAND` = 2. `Version` prints `env!("CARGO_PKG_VERSION")`.
+  - `src/cli/check.rs` — **the one evidence contract that MOVED this session, by order.** The varta
+    drift guard now separates *absent* from *stale*: absent+untracked PASSES (labelled optional),
+    absent+**tracked by git** FAILS, present+different FAILS. `is_tracked_by_git` is the
+    discriminator. Declared as a change in the verify suite rather than hidden behind a boundary.
+  - `scripts/stranger-check.sh` — the only instrument here that measures the PRODUCT.
+  - `scripts/fixture-session-128.sh` — plants each defect back; `plant()` exits 3 when its pattern
+    matches nothing, so a silent no-op cannot print green.
+  - `scripts/verify-closeout.sh` — bash 3.2 safe. Measured: `${#arr[@]}` is fine on 3.2, the
+    EXPANSION is what aborts.
+- **Two real defects found while writing the suites, both fixed and both recorded:** matching the
+  word `FAIL` caught the `Score: 10/11 — 1 FAILED` tally line (fixed by matching the STATUS COLUMN,
+  not by excluding the tally by name — an exclusion list is the hole, S122); and an unescaped
+  backtick in a double-quoted disclosure `echo` **command-substituted and ran `vajra init` in this
+  repo**, hanging the verify suite for nine minutes on its stdin prompt.
+- **The cold reviewer's own limit on its ACCEPT, carried verbatim:** *"my ACCEPT does not certify
+  per-commit content"* — it had no shell, so sha→work was verified from reflog subjects and the
+  final tree, not from `git show --stat`.
 
 ## Next Session
-- **Number:** S128 — **CODE: first contact works.** Founder pick **C**, taken at the S127
-  closeout after the three candidates were put to them in plain English.
-- **Goal:** make the first ten minutes with Vajra work. Four defects, every one re-confirmed LIVE in
-  an empty directory with the release binary at the S127 closeout — not copied from the S125 audit:
-  - `vajra --version` prints the help banner and exits 0. **There is no version flag at all.**
-  - `vajra chek` (a typo) prints the help banner and exits **0** — so `vajra chek && deploy` **runs
-    deploy**. The front door fails OPEN.
-  - `vajra check` on a fresh `vajra init` is **9/11**, one failure being `vajra.varta missing` — a
-    file `init` never creates. The product fails its own health check on first run.
-  - `scripts/verify-closeout.sh` **crashes** on a fresh repo: `line 83: summaries[@]: unbound
-    variable` (`set -u` + empty glob, bash 3.2 = the macOS default). The L4 layer is broken on
-    first contact.
-  Plus a **`stranger_check`** in `CONSTRAINTS.yaml#ground_truth.required_audits`, so a future GT
-  cannot pass while the shipped product is broken on arrival.
-- **Why C, in the founder's own reasoning:** candidate **B** (bind `obeyed:` harder to the diff) was
-  **rejected on principle** — an agent that reads advice and then reports it did something it did
-  not is a truthfulness problem, and a mechanical guardrail is the wrong tool for it. Candidate
-  **A** (a second consuming gate) was set aside because it extends a team **nobody outside this repo
-  can use yet**. **C is the only option where a stranger notices the difference.**
-- **This UNPARKS the first-contact slice of the S125 reboot backlog** (parked 2026-08-20). The rest
-  of that backlog — notably the scaffolded constitution being a hand-maintained fork, 66 lines vs
-  this repo's 183 — **stays parked, and S128 must say so in its summary rather than widen into it.**
-- **Full prompt:** `prompts/128-task-first-contact-works.md` — **DRAFT**. The Analyst gate blocks
-  the advance until the founder flips it to `APPROVED`; that gate is deliberately where the
-  go-ahead is recorded.
-- **Context that matters:** 57 days public · **0 stars · 0 forks · 0 issues · 0 external
-  contributors · 19 downloads** · last user-reachable change was **S108, 2026-08-01**, 19 sessions
-  ago.
+- **Number:** S129 — **the founder's pick** from the three ranked candidates in
+  `sessions/session-128-summary.md`. No prompt is scaffolded yet; the pick comes first.
+  - **A (recommended) — one source for what a stranger gets.** Kill the scaffold fork: the same
+    constitution and the same `required_audits` this repo runs on, derived, with a check that fails
+    when the two drift. *Risk:* the two are not supposed to be identical — this repo's constitution
+    names ADRs, sessions and hooks a stranger's project has none of, so "derive" may mean writing a
+    real derivation, not an `include_str!`.
+  - **B — decide the first-contact exit codes, and unblock `vajra init`.** Is a fresh `vajra check`
+    exiting 1 right? Make `init` work without a TTY. *Risk:* small enough to be a footnote unless
+    the exit-code question is genuinely answered rather than patched.
+  - **C — a paid dogfood ride-along through the new front door**, from a freshly scaffolded repo.
+    *Risk:* spends money to produce findings rather than fixes, and S130's GT will run
+    `stranger_check` anyway.
+- **S130 is the mandatory NO-CODE ground truth** — and the first GT that must run `stranger_check`.
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.
+
+## Carry-Forwards (NEW from S128)
+- **Measure the shell; do not reason about it.** On bash 3.2 `${#arr[@]}` is FINE and `"${arr[@]}"`
+  is what aborts under `set -u`. The first fix guarded both on a guess. The cold reviewer's
+  counter-prediction (`[: too many arguments` at ~100 elements) was ALSO wrong — tested at 102, it
+  did not reproduce. Two guesses, two misses, one cheap measurement.
+- **An unescaped backtick inside a double-quoted `echo` is a command substitution.** A disclosure
+  line executed `vajra init` in this repo. Single-quote any echo that quotes a command.
+- **A "nothing else moved" check that greps a hand-typed list measures the boundary its author
+  drew.** It also passes if the session shipped nothing. Derive the inventory; declare each change
+  with a reason; make a STALE declaration fail too.
+- **The scaffold is a fork in more than one file.** Assume any list in this repo has a scaffolded
+  twin in `src/cli/init.rs` that has already drifted — the constitution AND `required_audits` both
+  had.
+- **Match the STATUS COLUMN, not the word.** `grep FAIL` catches the tally line `1 FAILED`. The fix
+  is a tighter match, never an exclusion list naming the tally (S122).
+- **A refusal is a pass, and it has to be said twice** — once in the disposition, once in the
+  summary where a reader will actually see it. Reviewer rec 4 is refused, and item 2 of the
+  stranger-still-broken list is that refusal, in plain words.
 
 ## Carry-Forwards (NEW from S127)
 - **A recorded disposition certifies a typed word and a resolving sha — NOTHING MORE.** Four
