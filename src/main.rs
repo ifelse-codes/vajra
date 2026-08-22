@@ -10,6 +10,10 @@ fn reset_sigpipe() {
     }
 }
 
+/// Usage error: the front door did not recognise the word it was given.
+/// Distinct from `1` (a command ran and failed) so a caller can tell the two apart.
+const EXIT_UNKNOWN_COMMAND: u8 = 2;
+
 enum Subcommand {
     Check,
     Estimate,
@@ -19,6 +23,10 @@ enum Subcommand {
     Meter,
     Next,
     Help,
+    /// Anything the front door does not recognise. Carries the offending word so the
+    /// message can name it. Fails CLOSED (non-zero) — before S128 this fell through to
+    /// `Help` and exited 0, so `vajra <typo> && deploy` ran deploy.
+    Unknown(String),
 }
 
 fn main() -> std::process::ExitCode {
@@ -35,7 +43,7 @@ fn main() -> std::process::ExitCode {
         "meter" => Subcommand::Meter,
         "next" => Subcommand::Next,
         "help" | "--help" | "-h" => Subcommand::Help,
-        _ => Subcommand::Help,
+        other => Subcommand::Unknown(other.to_string()),
     };
 
     let exit_code = match sub {
@@ -58,6 +66,12 @@ fn main() -> std::process::ExitCode {
         Subcommand::Help => {
             print_usage();
             0
+        }
+        Subcommand::Unknown(word) => {
+            eprintln!("vajra: unrecognised command '{word}'");
+            eprintln!("Run `vajra --help` for the list of commands.");
+            print_usage();
+            EXIT_UNKNOWN_COMMAND
         }
     };
 
