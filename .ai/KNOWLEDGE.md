@@ -897,3 +897,74 @@ pub struct CompressionRequest {
 - **DONE ≠ WORKING, and completeness is not evidence.** Nine roles are registered, scaffolded,
   dispatchable and governed — and no gate consumes a handoff, so nothing depends on any of them.
   Nine roles that nothing depends on is nine decorations (S125's finding, inherited intact).
+
+## S127 — the Advice gate: permanent facts
+
+**The contract.** A recommendation is a recorded marker in a governed handoff:
+`rec N — <one line>`, anchored at line start after stripping list markers, emphasis and `#`.
+Its answer is a **disposition** in the `## Advice` section of the session's own prompt:
+`- <role> rec N — obeyed: <sha> | refused: <reason> | deferred: <path>`. Separators accepted:
+em dash, en dash, hyphen, colon. Fenced code blocks are skipped on BOTH sides.
+
+**Existence-gating, per disposition** (`src/advice/mod.rs::check_evidence`):
+- `obeyed:` — the LEADING HEX RUN must resolve via `git cat-file -e <sha>^{commit}`. A bare `HEAD`
+  yields an empty hex run and records nothing (deliberately mirroring `coder::execution_record`).
+- `refused:` — non-empty and not a `<...>` placeholder. **That is the whole rule.** A stop-word
+  list and a three-word minimum were shipped and then REMOVED on advice: a guard bound to a
+  spelling gets escaped (S122), and a length threshold is a judgement dressed as a check.
+  **A one-word reason PASSES, by decision, and the test asserts it so nobody can claim more.**
+- `deferred:` — an in-repo relative path that EXISTS. Absolute paths and `..` escapes are refused
+  before touching the fs.
+
+**State precedence, decided not accidental:** `Malformed` (BLOCK) > `Unanswered` (BLOCK) >
+`NoRecommendations` (WARN, dodge named) > `Answered` (PASS) > `NoHandoffs` (silent).
+This is the FIRST consumer for which a malformed handoff is BINDING — the two older consumers
+(`format_handoff_brief`, `stations::fleet_evidence`) only surface it.
+
+**`fleet::handoff_body` drops every `#` line.** It is right for a display summary and WRONG for a
+consumer that counts markers: a `### rec 3 — …` heading was silently under-counted. Use
+`fleet::handoff_findings_raw` / `Handoff.raw_body` for any marker counting. One span, two readers.
+
+**Locating a section must skip fences too, not just parsing its lines.** A prompt that DEMONSTRATES
+a contract in a fenced block containing a literal `## Advice` heading will otherwise have the
+EXAMPLE read as the real section. Found by the gate on its own author's prompt: 43 real answers
+went unread while 3 fake ones were counted.
+
+**A re-run handoff RENUMBERS.** One role writes one handoff (`role.handoff_rel(session)`), so a
+second brief REPLACES the first at that path and any disposition already recorded against
+`<role> rec N` silently re-points at different advice. The delta records the replacement; the
+orphan warning does NOT fire when the counts happen to match. Record superseded answers in the
+session record, which is the only place they survive.
+
+**THE FLOOR, which must never be softened.** The gate proves a recommendation was ANSWERED and that
+its evidence is REAL. It does not prove the answer was good. **Four `obeyed:` labels in S127's own
+51-answer ledger were factually wrong and passed** — one found by cold pass 1, three by pass 2 from
+the reflog alone: a sha predating the function it certified, a sha that could not contain the work
+it named, and a refusal wearing an obedience label. In the reviewer's words: *"The count would be
+identical if the advice had been read and ignored, provided the author typed three words and pasted
+any commit from the branch."* **Never cite an advice ledger's count as evidence advice was
+followed.** `DECISION-007`'s S127 addendum records this with the specimen attached.
+
+**Jurisdiction is self-granted, measured not theorised.** Run against S126's five committed
+handoffs — the very handoffs whose dropped advice motivated the session — the gate exits 0, because
+they record no numbers. It would not have caught either drop. Deleting the numbers dodges the gate.
+
+**`DECISION-007`'s S116 addendum deferred handoff-into-gate consumption as an explicit non-goal;
+the S127 addendum LIFTS it, narrowly** (one gate). The Architect gate checks that a cited spine
+record EXISTS, not that the design obeys it — so citing a record you are deviating from PASSES.
+A deviation needs an addendum, not a citation.
+
+**Tooling facts learned the hard way:**
+- `.` in a POSIX ERE matches one BYTE under the C locale; `✓`/`✗` are three bytes. Counting rows by
+  `\[.\]` silently returns zero.
+- `\s` is a GNU extension. BSD/macOS `grep` reads it as a literal `s`, so `^\s*\[` never matches
+  and an assertion built on it can never fail.
+- `pipefail` makes `vajra --check-advice … | grep -q …` inherit the GATE's exit 1, so a
+  `&& counter++` never fires. Capture into a variable, then match.
+- `OUT="$(cmd)"; [ $? -eq 1 ]` is correct — but `local OUT="$(cmd)"` captures `local`'s status.
+- **A falsifiability probe that silently no-ops reports false comfort.** Two probes stopped matching
+  after `cargo fmt` reflowed the lines and printed GREEN. Assert the pattern matched before drawing
+  a conclusion — the S122 lesson, biting the person applying it.
+- **`scripts/hook-session-guard.sh` false-arms on PROSE.** Its quoted-span strip only removes shell
+  quotes, so a heredoc body merely DESCRIBING the advance command trips the one-session-per-chat
+  block. S125's "spelling-bound guards over-block on words", inside the enforcement layer.
