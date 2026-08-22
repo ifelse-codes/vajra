@@ -1,7 +1,6 @@
 # Session 128 — CODE: first contact works — fix what a stranger actually hits
 
-> **Status:** DRAFT — the Analyst gate (`vajra next --advance`) BLOCKS starting this session while
-> DRAFT. Flip to `APPROVED` once the founder signs off.
+> **Status:** APPROVED — founder, 2026-08-22, opening S128: *"start session 128, all approved."*
 >
 > **Founder pick at the S127 closeout: candidate C.** The reasoning, in their words, is worth
 > carrying: a mechanical guardrail is the wrong tool for an agent that reads advice and then
@@ -117,18 +116,18 @@ directory**, and each protected by a check that would have caught it.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: `<sha>`
-- step 2 — done: `<sha>`
-- step 3 — done: `<sha>`
-- step 4 — done: `<sha>`
-- step 5 — done: `<sha>`
-- step 6 — done: `<sha>`
-- step 7 — done: `<sha>`
-- step 8 — done: `<sha>`
-- step 9 — done: `<sha>`
-- step 10 — done: `<sha>`
-- step 11 — done: `<sha>`
-- step 12 — done: `<sha>`
+- step 1 — done: `f83f9c67b74418432c2261a23d1788ffbe5a8500`
+- step 2 — done: `8204ff4bd71bde71da441f78b70f058ab3ea53a2`
+- step 3 — done: `7ca125f11ef344dab7b5c73d39ae422558decb7d`
+- step 4 — done: `fcb22e908c39ca6c3954c9968dcb1e09fb63a7b9`
+- step 5 — done: `9dba06dca7d8b4f7b0f7352b6bf049fd7ab0fff1`
+- step 6 — done: `156b96f4b4a8269f74102e0af6d0663fe73dcfa3`
+- step 7 — done: `73e9bae70a47035b759327e4fea280986decef09`
+- step 8 — done: `3bf5b03064442b23ce25722cc345a2c19cfd20cc`
+- step 9 — done: `93ca02425e8ca943a08eb6e9e425606f8d1a2a8a`
+- step 10 — done: `7319e12e9540ef6686b4261026d21153268053b0`
+- step 11 — done: `4ee8207d16fa84ad239df0149e1c96ec2abfeceb`
+- step 12 — done: `ca5eaca474010b375304e6f624779ab790ce513d`
 
 > **Fill these with real landing shas before closeout.** S119, S122 and S124 each left `<sha>`
 > placeholders and only an independent cold review caught it — never self-noticed. **And do not
@@ -148,7 +147,53 @@ directory**, and each protected by a check that would have caught it.
 > If you did not do it, write `refused:` and say why — that is a pass by design, and it is the
 > only honest option.
 
-- *(none yet — fill as advisors are dispatched)*
+**One role was dispatched: the independent cold `fidelity-reviewer` (step 11).** Its brief is a
+governed handoff at `.ai/handoffs/session-128-fidelity-reviewer.md`, so the S127 gate CONSUMES it
+and `vajra next --check-advice 128` blocks this close until every one of its eight numbered
+recommendations carries a disposition. **No other advisor was dispatched**, and the cost of that
+is stated rather than hidden: nothing independent shaped the build before the cold pass read it.
+
+**Read the dispositions with S127's lesson in hand.** A disposition certifies a typed word and a
+resolving sha, and nothing else. Four of S127's fifty-one were factually wrong and passed. Each
+`obeyed:` below names a commit whose message and diff are the claim — check them, do not count them.
+
+- fidelity-reviewer rec 1 — obeyed: `ca5eaca474010b375304e6f624779ab790ce513d`
+  (the summary, with the five-item stranger-still-broken list and 3 ranked candidates)
+- fidelity-reviewer rec 2 — obeyed: `22f5463dac18104f7dc8a879df2813811cbf017b`
+  (the varta fork decision moved into `## Design`, which is what deliverable 4 asked for)
+- fidelity-reviewer rec 3 — obeyed: `f4784c8ffc198d321d4fbf13e392705d231f1ed9`
+  (the named fakest green: hand-typed `GATE_MODULES` replaced by a derived-inventory declaration
+  check where a STALE declaration also fails, and `src/cli/check.rs`'s moved contract is stated)
+- fidelity-reviewer rec 4 — refused: porting `stranger_check` into the scaffolded template is the
+  SAME hand-maintained-fork class as the 66-vs-183 constitution, which this prompt's `## Non-goals`
+  removes from scope by name. It is one line only if you accept that a stranger's `required_audits`
+  should be this repo's list; four of our eleven audits (`dogfood_check`, `pipeline_advance_check`,
+  `dogfood_staleness`, `stranger_check`) reference evidence a scaffolded project does not have —
+  `scripts/stranger-check.sh` is not even scaffolded, so the registration would name a script that
+  does not exist there and every future ground truth would fail a check it cannot run. Fixing it
+  properly means deciding what a stranger's audit list should BE, which is candidate A of the next
+  session. The reviewer asked that a refusal be said out loud in the summary rather than left
+  silent; it is item 2 of "what a stranger still gets wrong".
+- fidelity-reviewer rec 5 — obeyed: `f4784c8ffc198d321d4fbf13e392705d231f1ed9`
+  (positive stderr anchor added first, so the test cannot pass when `sh` never ran the binary)
+- fidelity-reviewer rec 6 — obeyed: `f4784c8ffc198d321d4fbf13e392705d231f1ed9`
+  **and the prediction did NOT reproduce.** Measured at 102 elements on bash 3.2.57:
+  `[ -z "${arr[@]+x}" ]` emits no error and returns the right branch — the alternate word expands
+  once, not per element. Switched to the count form anyway (`${#arr[@]}` is fine on 3.2; the
+  EXPANSION is what aborts) and both measurements are recorded in the script's header, because
+  guessing about bash 3.2 is exactly how the original crash shipped.
+- fidelity-reviewer rec 7 — obeyed: `c5640f8acb6ea867e57fe3843e1414f83a071db8`
+  (Execution steps 11 and 12 recorded, no `<sha>` placeholder left; the full suite re-run at final
+  HEAD and the closeout gate run on the branch BEFORE the PR merges, per S83)
+- fidelity-reviewer rec 8 — obeyed: `ca5eaca474010b375304e6f624779ab790ce513d`
+  (a fresh `vajra check` still exiting 1 is item 3 of the stranger-still-broken list, said plainly
+  and explicitly NOT decided this session, with the reason it is a decision and not a patch)
+
+> **Four of these — recs 2, 3, 5 and 6 — were closed AFTER the ACCEPT**, which breaks the S123 rule
+> ("do not fix findings after the ACCEPT; file them into the next prompt"). Broken deliberately and
+> said out loud: rec 2 and rec 3 close a graded PARTIAL and the named fakest green, and rec 5 closes
+> a probe that could pass without running anything. The reviewer read the pre-fix tree; its verdict
+> stands on that tree, and every post-ACCEPT commit is named above so the two can be separated.
 
 ## Design
 
@@ -158,9 +203,23 @@ directory**, and each protected by a check that would have caught it.
   that fails open at the front door is not governance. (path verified to exist at
   the S127 closeout. **The Architect gate checks that a cited record EXISTS, not that the design
   obeys it — a citation is not permission.**)
-- **The fork to argue, not assume:** the `vajra.varta` check. Either `init` starts creating the
-  render, or `check` stops demanding a file `init` never makes. **Record which and why**, and
-  reject the third option (leaving a new user with a red check on first run) out loud.
+- **The fork, DECIDED: (b) — `check` stops demanding a file `init` never makes.**
+  (Recorded here at the cold reviewer's rec 2: the reasoning shipped in `src/cli/check.rs:64-83`
+  but deliverable 4 asked for it in `## Design`, and `## Design` is where the Architect gate and
+  every future reader look.)
+  - **Why not (a), `init` renders a `vajra.varta`:** the render is DERIVED and one-way. Scaffolding
+    one plants an artifact that goes stale on the user's very next `.ai/` edit — trading one false
+    red on day zero for a recurring one forever, and hand-maintaining a derived copy is the trap
+    this repo already named.
+  - **Why not the third option, leaving a new user red on arrival — rejected out loud:** a health
+    check that is wrong on first run teaches strangers to ignore it, and an ignored check protects
+    nothing. That is worse than having no check.
+  - **What (b) does NOT do — it is not a weakening.** The guard keeps its teeth wherever drift can
+    actually exist: `absent + tracked by git` FAILS (a committed render vanished), `present +
+    different` FAILS (hand-edited or stale). Only `absent + untracked` — where nothing exists and
+    so nothing can have drifted — became a labelled PASS. Both retained failures are driven live in
+    `demo-session-128.sh` cases 9 and 10, precisely so "we relaxed a guard" cannot be asserted
+    without evidence either way.
 - **Scope discipline:** the scaffolded constitution being a hand-maintained fork (S125's F1,
   `include_str!`) is **deliberately NOT in this session.** It is the deeper problem and it is a
   whole story of its own. Say so in the summary; do not quietly widen into it.

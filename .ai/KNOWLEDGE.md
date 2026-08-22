@@ -968,3 +968,59 @@ A deviation needs an addendum, not a citation.
 - **`scripts/hook-session-guard.sh` false-arms on PROSE.** Its quoted-span strip only removes shell
   quotes, so a heredoc body merely DESCRIBING the advance command trips the one-session-per-chat
   block. S125's "spelling-bound guards over-block on words", inside the enforcement layer.
+
+## S128 — first contact: permanent facts
+
+**Every instrument in this repo measured Vajra governing ITSELF, and that is why four defects
+survived 125 sessions and 57 public days.** None of them was subtle. All four were visible in ten
+seconds from an empty directory, and invisible from inside the repo that builds the product.
+`scripts/stranger-check.sh` is the correction: a real `mktemp -d` (with a BLOCK guard if it ever
+lands inside the repo), a real `git init`, the real release binary, 16 checks, registered in
+`CONSTRAINTS.yaml#ground_truth.required_audits`.
+
+**bash 3.2 — measured on 3.2.57, the macOS default and the first `bash` on a stranger's PATH:**
+- `${#arr[@]}` on an empty array under `set -u` — **FINE**. Emptiness tests never needed a guard.
+- `"${arr[@]}"` on an empty array under `set -u` — **ABORTS** with `unbound variable`. This one
+  killed the L4 closeout gate on every fresh scaffold.
+- `${arr[@]+"${arr[@]}"}` — the portable expansion guard; expands to nothing when empty.
+- `"${arr[@]+x}"` expands the alternate word **ONCE**, not per element. Tested at 102 elements: no
+  `[: too many arguments`. (Both the author and the cold reviewer guessed wrong about bash 3.2 in
+  the same session, in opposite directions. One five-second measurement settled it. **Measure the
+  shell; do not reason about it.**)
+- bash 3.2 reports the FUNCTION'S definition line, not the failing line, for such an abort — the
+  crash said `line 83` while the offending expansion was at line 92.
+
+**An unescaped backtick inside a double-quoted `echo` is a COMMAND SUBSTITUTION.** A disclosure
+line reading ``echo "  * `vajra init` still blocks on stdin…"`` actually executed `vajra init` in
+this repo and hung the verify suite for nine minutes on its stdin prompt (and scaffolded files into
+the working tree the first time it happened). Single-quote any `echo` that quotes a command.
+
+**`vajra init` scaffolds into its CWD.** Any script that drives it must `cd` into a temp directory
+AND assert it is not at the repo root before invoking it — plus `</dev/null`, because `init` still
+blocks on stdin without EOF.
+
+**`grep FAIL` catches the tally line.** `Score: 10/11 — 1 FAILED` is not a check row. Match the
+STATUS COLUMN (`grep -E '[[:space:]]FAIL[[:space:]]'`), never a `grep -v` naming the tally — an
+exclusion list is the hole, not the fix (S122).
+
+**The scaffold is a FORK in more than one file.** `src/cli/init.rs` carries a 66-line constitution
+against this repo's 183 **and** a 7-entry `required_audits` against this repo's 11. Assume any list
+in `.ai/` has a scaffolded twin that has already drifted. `scripts/verify-closeout.sh` is the
+counter-example that proves the fix is cheap: it is `include_str!`'d, byte-identical in both
+places, so the S128 bash-3.2 fix reached every future scaffold for free.
+
+**A "nothing else moved" check that greps a hand-typed list measures the boundary its author drew,
+and passes if the session shipped nothing.** S128's fakest green, called by the cold reviewer.
+The replacement pattern: derive the inventory from the tree, require every change to be DECLARED
+with a reason, and fail on a STALE declaration too — a declaration naming a file the diff never
+touched is not proof, it is decoration.
+
+**An `absent` artifact and a `stale` artifact are not the same failure.** The varta drift guard
+conflated them, so a fresh `vajra init` failed on a file `init` never creates. The general shape:
+a drift guard should PASS when nothing exists to drift, and keep its teeth for
+`committed-but-vanished` and `present-but-different`. Git tracking is the discriminator.
+
+**A refusal has to be said twice.** Once as the `refused:` disposition (where the gate reads it),
+and once in the summary in plain words (where a person reads it). Reviewer rec 4 was refused this
+session; the refusal is item 2 of the summary's stranger-still-broken list precisely so it cannot
+be found only by someone parsing markers.

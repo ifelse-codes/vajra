@@ -3,50 +3,55 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S127 complete, S128 not yet started).**
+**`session-128-first-contact-works` — S128 COMPLETE, PR to open.**
 
-S127 closed on `session-127-answer-every-recommendation` with **ACCEPT** on the independent cold
-`fidelity-reviewer` — **two passes**. Pass 1 returned **REJECT** (8 SHIPPED · 2 PARTIAL ·
-2 NOT-BUILT) and was right; pass 2 returned **ACCEPT** (10 SHIPPED · 2 PARTIAL · 0 NOT-BUILT), and
-both of its PARTIALs were closed after it read.
+S128 closed with **ACCEPT** on the independent cold `fidelity-reviewer` — one pass, no re-run,
+no renumbering. **14 SHIPPED · 2 PARTIAL · 2 NOT-BUILT · 1 N/A**; both PARTIALs and both
+NOT-BUILTs were closed after it read, and each closure is named as post-ACCEPT rather than
+blended in.
 
-**The first gate that CONSUMES a governed handoff as a binding input.** `src/advice/mod.rs` reads
-the numbered `rec N —` markers out of a session's handoffs, reads the `## Advice` section of that
-session's own prompt, and BLOCKS the close on any recommendation with no recorded disposition.
-Three dispositions, each existence-gated the house way: `obeyed: <sha>` (`git cat-file -e`, S68) ·
-`refused: <reason>` (non-empty, non-placeholder, S61) · `deferred: <path>` (the file EXISTS, S67).
-`vajra next --advice NN` surfaces, `--check-advice NN` blocks, both riding `vajra next` — **no 8th
-command, no new store, no new artifact type.** The disposition lives in the prompt beside
-`## Execution`, for the same reason.
+**The first session since S108 that a stranger could notice.** Four defects, every one reproduced
+LIVE in an empty directory *before* its fix (`sessions/session-128-repro.md`):
 
-**`DECISION-007`'s S116 addendum marked handoff-into-gate consumption an "explicitly deferred
-non-goal". The S127 addendum LIFTS that deferral out loud** rather than citing around it — the
-Architect gate checks that a cited record EXISTS, not that the design obeys it, so a citation would
-have passed while the deviation stood.
+- **`vajra --version` / `-V` now exists** — `env!("CARGO_PKG_VERSION")`, exit 0, a **FLAG** not an
+  8th command. Its test parses `Cargo.toml` at runtime instead of comparing against the constant
+  the binary prints, so "read from the crate" is falsifiable.
+- **The front door fails CLOSED.** An unknown word exits **2** and is named in the message.
+  `vajra chek && deploy` no longer runs deploy. Help and bare `vajra` still exit 0.
+- **`verify-closeout.sh` survives bash 3.2** on a fresh repo. It reports RED, which is a verdict;
+  it no longer aborts, which was not. **Measured, not guessed:** on 3.2.57 `${#arr[@]}` is fine and
+  `"${arr[@]}"` is what aborts — the emptiness tests never needed guarding, only the expansions.
+- **`vajra check` is honest on arrival: 9/11 → 10/11.** The `vajra.varta missing` demand is
+  RETIRED, not patched around, and the drift guard kept its teeth: `absent + tracked by git` FAILS,
+  `present + different` FAILS. Only `absent + untracked` — where nothing exists, so nothing can
+  have drifted — became a labelled PASS. Both retained failures are driven live in the demo.
+- **`stranger_check`** is a required ground-truth audit (`CONSTRAINTS.yaml`), backed by
+  `scripts/stranger-check.sh`: a real `mktemp -d`, a real `git init`, the real release binary,
+  16 checks, with an in-repo BLOCK guard so it can never measure this repo by accident.
 
-**It forces an ANSWER, never obedience.** A reasoned `refused:` passes by design. What becomes
-impossible is the silent drop that cost S126 twice in its own record.
+**Numbers:** verify **9/9** · demo **13/13** · stranger-check **16/16** · fixture **12/12** ·
+**364** tests · `K of 8` unmoved in derivation and shape · **7 commands**, no 8th.
 
-**Dogfooded on itself: 3 roles dispatched by name, 51 numbered recommendations, all answered** (48
-`obeyed:`, 3 `refused:`). The gate found **two real defects in its own author** mid-build: a
-heading-form `### rec N —` was being dropped by `handoff_body`, and a fenced `## Advice` EXAMPLE in
-the prompt was being read as the real section. 360 lib tests · verify 10/10 (9 exec · 1 behav) ·
-demo 13/13 (all exec) · `K of 8` unmoved · 7 commands.
+**🔴 THE RESIDUAL, UNSOFTENED.** The front door works; the SCAFFOLD is still a fork. A stranger
+gets a **66-line** constitution against this repo's **183**, and a **7-entry** `required_audits`
+against this repo's **11** — `stranger_check` among the four missing. The audit invented to protect
+strangers does not reach them, and **S128 REFUSED to fix that** (reviewer rec 4) because
+registering a script the scaffold does not ship would make every stranger's ground truth fail a
+check it cannot run. The refusal is recorded, with its reason, in the prompt's `## Advice` and as
+item 2 of the summary's stranger-still-broken list. Two smaller residuals in the same place: a
+stranger's first `vajra check` still exits **1** (`branch: not main` on a fresh `git init`), and
+`vajra init` still blocks on stdin without EOF.
 
-**🔴 THE RESIDUAL, UNSOFTENED — read this before quoting the 51.** **Four `obeyed:` labels in that
-ledger were WRONG and passed the gate.** Pass 1 found one (a stub the advice said to delete, still
-in the file); pass 2 found three more from the reflog alone, in minutes. In the reviewer's words:
-*"The count would be identical if the advice had been read and ignored, provided the author typed
-three words and pasted any commit from the branch."* **A disposition certifies a typed word and a
-resolving sha, and nothing else.** Run against S126's own five handoffs, this gate exits 0 — it
-would **not** have caught either drop that motivated the entire session. And **one gate of eight
-consumes handoffs**; the fleet is one notch more wired in than S126, not ten.
+**And the honest limit on the ACCEPT, in the reviewer's own words:** *"my ACCEPT does not certify
+per-commit content"* — it had no shell, so it verified sha→work from reflog subjects and the final
+tree, not from `git show --stat`.
 
 ## Active PRs
-- **S127 PR — to be opened from `session-127-answer-every-recommendation`.** (Structural drift,
-  named S125 and S65: this field is written *before* the PR is opened, so "not yet opened" is stale
-  by construction every session. Read git, not this line.)
-- S126 [#143](https://github.com/ifelse-codes/vajra/pull/143) MERGED · S125
+- **S128 PR — to be opened from `session-128-first-contact-works`.** (Structural drift, named S125
+  and S65 and unfixed on purpose: this field is written *before* the PR is opened, so "not yet
+  opened" is stale by construction every session. Read git, not this line.)
+- S127 [#145](https://github.com/ifelse-codes/vajra/pull/145) MERGED · S126
+  [#143](https://github.com/ifelse-codes/vajra/pull/143) MERGED · S125
   [#140](https://github.com/ifelse-codes/vajra/pull/140) MERGED 2026-08-20 · S124
   [#139](https://github.com/ifelse-codes/vajra/pull/139) MERGED · S123
   [#138](https://github.com/ifelse-codes/vajra/pull/138) MERGED · S122 (#133) MERGED · S121 (#131)
@@ -66,6 +71,11 @@ consumes handoffs**; the fleet is one notch more wired in than S126, not ten.
   never reached for, because the shipped scaffold never asks and no gate depends on them. Roles 5–9
   inherit that unless F1/F2 land — so *"and working"* is the load-bearing half of the founder's
   gate, and proving the fleet works may **be** F2.
+- **S128 UNPARKED the first-contact slice of the S125 reboot backlog** (founder pick C at the S127
+  closeout). The rest of that backlog stays parked. Founder's reasoning, carried because it shapes
+  the work: candidate B — binding `obeyed:` harder to the diff — was **rejected on principle**
+  (*"we can and should not build a mechanical guardrail"* to an agent that reports it did something
+  it did not); candidate A was set aside as extending a team nobody outside this repo can use yet.
 - **Post-pivot path:** C team-voice (S104 ✓) → B installable v0.1 ✓ → A fleet (4 of 9 roles) →
   S118 ✓ dogfood → S119 ✓ clean-room → S120 ✓ GT → S121 ✓ QA Specialist → S122 ✓ guardrails fixed →
   S123 ✓ `Write`/`Edit` grant fenced → S124 ✓ paid dogfood (fleet measured idle) →
@@ -95,6 +105,16 @@ consumes handoffs**; the fleet is one notch more wired in than S126, not ten.
   the session; `vajra next --advice NN` surfaces it read-only. Driven live at close with every
   other stage neutralised by its own override, so the refusal can only be this gate's. **Read its
   residual in §Active Branch before citing it: it proves ANSWERED, never obeyed.**
+- **First contact works (S128) — the first user-reachable change since S108.** `vajra --version` /
+  `-V` exists (a flag, not an 8th command) · an unknown subcommand exits **2** and names the word,
+  so `vajra <typo> && deploy` cannot run deploy · `--help` and bare `vajra` still exit 0 ·
+  `verify-closeout.sh` runs to completion on a fresh scaffold under bash 3.2 · `vajra check` on a
+  fresh init is **10/11** with no failure for a file `init` never creates.
+- **`stranger_check` (S128) — the ONLY instrument that measures the product, not this repo.**
+  `scripts/stranger-check.sh`: real empty dir, real `git init`, real release binary, 16 checks,
+  registered in `CONSTRAINTS.yaml#ground_truth.required_audits` with a question list. Falsifiable:
+  `scripts/fixture-session-128.sh` plants each of the five defects back and each turns it RED
+  **through the check that owns it**, while renaming a message leaves it GREEN.
 - **Ledger** (S100): `verify-closeout.sh --ledger-verify` **re-confirmed INTACT at S125**
   (`7862ebd4…`, committed == worktree).
 - **v0.1 install: four real channels**, stranger-shippable as measured at S110.
@@ -149,11 +169,10 @@ to be worked before the gate.
   provenance; `src/stations/mod.rs:102` says in a comment that the counter cannot verify a real
   dispatch. The ledger is tamper-evident about content, blind about authorship. Fix = the dispatch
   receipt S111/S117 already built by hand twice and never gated (F2).
-- **🔴 `verify-closeout.sh:87` crashes on every fresh `vajra init` repo (S125).** `set -u` + empty
-  glob on bash 3.2 (macOS default) → `summaries[@]: unbound variable`, zero output, exit 1. The L4
-  fail-closed layer is broken on first contact.
-- **🔴 Unknown subcommands exit 0 (S125).** `src/main.rs:36` — `vajra chek && deploy` runs deploy.
-  Fail-open front door. Still no `vajra --version`.
+- **✅ FIXED S128 — `verify-closeout.sh` no longer crashes on a fresh `vajra init` repo.** Kept
+  here one session as the record of what it took: 125 sessions, because no instrument ever ran the
+  product outside this repo.
+- **✅ FIXED S128 — unknown subcommands exit 2 and are named; `vajra --version` exists.**
 - **🟡 Boot cost ~100k tokens/session (S125).** 399 KB across the load order; KNOWLEDGE 278 KB
   (70%), ROADMAP 75 KB (19%); cold cache every session by rule. **Supersedes the "KNOWLEDGE §6
   bloat" item — the bloat is §10 (537 of 813 lines), mislabelled since S60.**
@@ -162,12 +181,21 @@ to be worked before the gate.
 - **🟡 The GT fence is asymmetric (S125).** `hook-pre-write.sh` fences by path;
   `hook-pre-bash.sh` fences Bash by substring-matching git verbs — so a plain `>` redirect writes
   freely under NO-CODE, while a `cat >` merely *mentioning* a git verb in its payload is blocked.
-- **🟡 First-run UX is red (S125).** Fresh init → `vajra check` 9/11, failing on `vajra.varta
-  missing`, a file `init` never creates; `vajra next` calls init's own prompt 00 "predates the
-  team" on 4 of 8 stations.
-- **🟡 No required GT audit looks at what a stranger receives (S125).** Every instrument measures
-  this repo governing itself — which is why all of the above hid for 125 sessions. Fix = a
-  `stranger_check` audit (F5).
+- **✅ HALF-FIXED S128 — first-run `vajra check` is 10/11**, the `vajra.varta` demand retired. Still
+  red in two smaller ways, both named and neither decided: it **exits 1** on a fresh `git init`
+  (`branch: not main` — true and actionable, but `vajra check && …` still stops on a brand-new
+  repo), and `vajra next` still calls init's own prompt 00 "predates the team" on 4 of 8 stations.
+- **✅ FIXED S128 — a required GT audit now looks at what a stranger receives** (`stranger_check`).
+  **But read the next line before crediting it.**
+- **🔴 THE SCAFFOLD IS STILL A FORK, IN TWO PLACES (S128, one of them new).** The 66-vs-183
+  constitution below, **and** `src/cli/init.rs`'s `required_audits`, which ships strangers **seven**
+  entries against this repo's **eleven** — missing `stranger_check`, `dogfood_check`,
+  `pipeline_advance_check` and `dogfood_staleness`. *A stranger's ground truth will never run the
+  audit invented to protect strangers.* **S128 REFUSED to fix it** (reviewer rec 4, refused with a
+  reason): registering an audit whose script the scaffold does not ship would make every stranger's
+  GT fail a check it cannot run. Fixing it means deciding what a stranger's audit list should BE.
+- **🟡 `stranger_check` is REGISTERED, not RUN (S128 second-fakest-green, unfixed).** Nothing forces
+  a future ground-truth session to execute it — the self-granted-jurisdiction class from S68/S71.
 - **🟡 Adoption flat (S125, measured):** 0 stars · 0 forks · 0 issues · 0 external contributors ·
   19 crates.io downloads. Last user-reachable change was **S108 (2026-08-01), 16 sessions ago.**
 
@@ -194,13 +222,13 @@ to be worked before the gate.
   active) · **Compression no-op on real CC** · **Cross-agent breadth 0 code**.
 
 ## What Is In Progress
-- **S126 DONE (CODE, ACCEPT).** The roster is complete at nine roles; only `src/fleet/mod.rs`
-  changed in `src/`; `K of 8` unmoved; no 8th command. One file outside the fleet was touched —
-  `scripts/verify-session-121.sh`'s roster-SIZE pin (`= 4` → `-ge 4`), because
-  `verify-session-122.sh` re-runs the S121 suite LIVE and the breakage chained. Both re-run green.
-- **S127 = the WORKING half: make a gate CONSUME a handoff** (S116's unpicked candidate C +
-  S125's F2). Prompt: `prompts/127-task-*.md`. Until it lands, the S125 reboot backlog stays
-  parked and the fleet stays decoration.
+- **S128 DONE (CODE, ACCEPT).** Two source files changed and both are DECLARED in the verify suite
+  with a reason — `src/main.rs` (the front door + the version flag) and `src/cli/check.rs` (whose
+  evidence contract MOVED, by design and by order: an absent `vajra.varta` was a FAIL and is now a
+  labelled PASS). No gate or station module touched. `K of 8` unmoved; 7 commands, no 8th.
+- **Nothing is in flight.** S129 is the founder's pick from the three candidates in
+  `sessions/session-128-summary.md`. **S130 is the mandatory NO-CODE ground truth** — and it is the
+  first GT that must run `stranger_check`.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
@@ -219,5 +247,7 @@ to be worked before the gate.
 - **S126: $4.4482 authoritative** — five headless `claude -p` dispatches (one per new role), each
   figure the run's own `total_cost_usd`. The orchestrating interactive session's own cost is not
   metered here. Dogfood staleness unchanged (last paid dogfood = S124).
+- **S128: $0 metered for build** (interactive; one `fidelity-reviewer` subagent pass rolls in
+  unitemized). Dogfood staleness unchanged — last paid dogfood remains S124.
 - Cumulative: **~$91.2 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S124 subagents (unknown,
   not small).**

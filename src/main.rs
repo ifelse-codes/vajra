@@ -10,6 +10,10 @@ fn reset_sigpipe() {
     }
 }
 
+/// Usage error: the front door did not recognise the word it was given.
+/// Distinct from `1` (a command ran and failed) so a caller can tell the two apart.
+const EXIT_UNKNOWN_COMMAND: u8 = 2;
+
 enum Subcommand {
     Check,
     Estimate,
@@ -19,6 +23,12 @@ enum Subcommand {
     Meter,
     Next,
     Help,
+    /// `--version` / `-V`. A FLAG, not an 8th top-level command (S128 non-goal).
+    Version,
+    /// Anything the front door does not recognise. Carries the offending word so the
+    /// message can name it. Fails CLOSED (non-zero) — before S128 this fell through to
+    /// `Help` and exited 0, so `vajra <typo> && deploy` ran deploy.
+    Unknown(String),
 }
 
 fn main() -> std::process::ExitCode {
@@ -35,7 +45,8 @@ fn main() -> std::process::ExitCode {
         "meter" => Subcommand::Meter,
         "next" => Subcommand::Next,
         "help" | "--help" | "-h" => Subcommand::Help,
-        _ => Subcommand::Help,
+        "--version" | "-V" => Subcommand::Version,
+        other => Subcommand::Unknown(other.to_string()),
     };
 
     let exit_code = match sub {
@@ -58,6 +69,18 @@ fn main() -> std::process::ExitCode {
         Subcommand::Help => {
             print_usage();
             0
+        }
+        Subcommand::Version => {
+            // READ from the crate at compile time. Never typed into a string here — a
+            // hand-typed version is a lie waiting for the next `cargo release`.
+            println!("vajra {}", env!("CARGO_PKG_VERSION"));
+            0
+        }
+        Subcommand::Unknown(word) => {
+            eprintln!("vajra: unrecognised command '{word}'");
+            eprintln!("Run `vajra --help` for the list of commands.");
+            print_usage();
+            EXIT_UNKNOWN_COMMAND
         }
     };
 
@@ -105,4 +128,5 @@ fn print_usage() {
     eprintln!("  estimate          Predict token spend and cost before running a session");
     eprintln!("  hook              Claude Code PostToolUse hook entrypoint");
     eprintln!("  meter <jsonl>     Print a receipt for a past Claude Code session");
+    eprintln!("  --version, -V     Print the version and exit");
 }

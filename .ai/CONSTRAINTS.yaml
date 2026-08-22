@@ -101,7 +101,7 @@ ground_truth:
   # Every GT must catch BOTH direction drift (vision+roadmap) and discipline drift (rules+constitution+state).
   # Rules exist to serve the vision — auditing rule-following without auditing the vision is the trap S20 caught.
   drift_axes: [vision, roadmap, rules, constitution, state, cost, usage]
-  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check, pipeline_advance_check, dogfood_staleness]
+  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check, pipeline_advance_check, dogfood_staleness, stranger_check]
   # dogfood_check added S30: 7 audits passed green while the product sat un-dogfooded (~$0 spend since S07).
   # No audit measured USAGE — the S25 false-green finding one level deeper. The cost ledger is the evidence.
   # pipeline_advance_check added S74: no audit measured whether the PIPELINE advances (the S25/S60/S65/S70
@@ -110,6 +110,18 @@ ground_truth:
   # dogfood_staleness added S91: STATE.md's dogfood date drifted wrong for 3 GTs because it was
   # hand-maintained. The live query `vajra next --dogfood-age` derives session + date from git
   # (never from STATE.md). Run it at GT time; compare against the last dogfood_check verdict.
+  # stranger_check added S128: EVERY instrument in this repo measures Vajra governing ITSELF.
+  # That blind spot hid four first-contact defects for 125 sessions and 57 public days —
+  # `vajra --version` did not exist, an unknown subcommand exited 0 (so `vajra <typo> && deploy`
+  # ran deploy), `vajra check` failed on a file `init` never creates, and the L4 closeout gate
+  # crashed on bash 3.2. None were visible from inside this repo; all four were visible in ten
+  # seconds from an empty directory. The evidence is `scripts/stranger-check.sh` — a REAL empty
+  # directory, a REAL `vajra init`, the REAL release binary. Run it live at GT time.
+  stranger_questions:
+    - Run `bash scripts/stranger-check.sh` and paste the live tally. Did it exit 0?
+    - Every other audit here measures Vajra governing itself. This one measures the PRODUCT a stranger downloads — if it is red, no other green matters to anyone outside this repo.
+    - Did anything ship since the last ground-truth that a new user could actually reach? (Downloads, stars, issues — name the number, do not guess.)
+    - Is there a first-contact defect this check does not cover yet? Name it and add it, rather than widening an exclusion.
   dogfood_questions:
     - Has real work run through `vajra claude` since the last ground-truth? (The cost ledger is the proof, not test counts.)
     - If not, any "is Vajra-on-Claude satisfying?" verdict is unmeasured by definition — flag it, do not guess.

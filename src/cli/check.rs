@@ -62,8 +62,25 @@ pub fn run(args: &[String]) -> Result<()> {
 }
 
 /// Drift guard: the on-disk `vajra.varta` must equal a fresh render of the live `.ai/`.
-/// Proves the artifact is generated, not hand-edited (the S22 `cmp` pattern). A missing or
-/// stale file fails with the exact fix — `vajra check --render`.
+/// Proves the artifact is generated, not hand-edited (the S22 `cmp` pattern).
+///
+/// **S128 — the fork, decided.** Until now ABSENT and STALE were the same FAIL, so a fresh
+/// `vajra init` scored 9/11 on a file `init` never creates: the product failed its own
+/// health check on arrival. The two candidate fixes were
+///   (a) make `init` render a `vajra.varta`, or
+///   (b) stop demanding a file `init` never makes.
+/// **(b) is what shipped.** `vajra.varta` is a DERIVED, one-way render and the render is
+/// opt-in (`vajra check --render`); (a) would plant a derived artifact in every scaffold that
+/// goes stale on the user's very next `.ai/` edit — trading one false red for a recurring one,
+/// and hand-maintaining a derived copy is the trap this repo already named. The third option —
+/// leaving a new user red on first run — is rejected out loud: a health check that is wrong on
+/// arrival teaches strangers to ignore it, and then it protects nothing.
+///
+/// The guard keeps its teeth where drift can actually exist:
+///   * absent + NOT tracked by git → PASS, labelled optional. Nothing exists, so nothing drifted.
+///   * absent + TRACKED by git     → FAIL. The repo committed a render and it is gone: real drift.
+///   * present + equal             → PASS.
+///   * present + different         → FAIL, stale — the case the guard was built for.
 fn check_varta_render(root: &Path, results: &mut Vec<CheckResult>) {
     let name = "varta: matches render".to_string();
     let rendered = match render_from_root(root) {
@@ -79,9 +96,13 @@ fn check_varta_render(root: &Path, results: &mut Vec<CheckResult>) {
     };
     let on_disk = fs::read_to_string(root.join(RENDER_PATH));
     let (passed, detail) = match on_disk {
-        Err(_) => (
+        Err(_) if is_tracked_by_git(root, RENDER_PATH) => (
             false,
-            format!("{RENDER_PATH} missing — run `vajra check --render`"),
+            format!("{RENDER_PATH} tracked in git but missing — run `vajra check --render`"),
+        ),
+        Err(_) => (
+            true,
+            format!("{RENDER_PATH} not rendered (optional) — `vajra check --render` generates it"),
         ),
         Ok(d) if d == rendered => (true, format!("{RENDER_PATH} up to date")),
         Ok(_) => (
@@ -94,6 +115,18 @@ fn check_varta_render(root: &Path, results: &mut Vec<CheckResult>) {
         passed,
         detail,
     });
+}
+
+/// Is `path` in git's index for `root`? Used to tell "never rendered" (fine) apart from
+/// "the repo committed a render and it vanished" (drift). No git, no repo, or any error =>
+/// `false`: a fresh `git init` must not inherit a failure it cannot act on.
+fn is_tracked_by_git(root: &Path, path: &str) -> bool {
+    Command::new("git")
+        .args(["ls-files", "--error-unmatch", "--", path])
+        .current_dir(root)
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
 }
 
 fn find_repo_root(start: &Path) -> Option<PathBuf> {
@@ -406,6 +439,97 @@ mod tests {
         let mut results = Vec::new();
         check_boot_matches_session(tmp.path(), 5, &mut results);
         assert!(results[0].passed);
+    }
+
+    // ---- S128: the four states of the varta drift guard --------------------------------
+    // A fresh `vajra init` repo has no `vajra.varta`. Before S128 that was a FAIL, so the
+    // product failed its own health check on arrival. Absent-and-untracked is now PASS;
+    // every state where drift can actually exist still FAILS.
+
+    fn git_init(dir: &Path) {
+        for args in [
+            vec!["init", "-q"],
+            vec!["config", "user.email", "t@t"],
+            vec!["config", "user.name", "t"],
+        ] {
+            Command::new("git")
+                .args(&args)
+                .current_dir(dir)
+                .output()
+                .unwrap();
+        }
+    }
+
+    #[test]
+    fn varta_absent_and_untracked_passes_as_optional() {
+        let tmp = tempfile::tempdir().unwrap();
+        setup_minimal_repo(tmp.path(), "01\n");
+        git_init(tmp.path());
+        let mut results = Vec::new();
+        check_varta_render(tmp.path(), &mut results);
+        assert!(
+            results[0].passed,
+            "a fresh init must not fail on a file init never creates: {}",
+            results[0].detail
+        );
+        assert!(
+            results[0].detail.contains("optional"),
+            "{}",
+            results[0].detail
+        );
+    }
+
+    #[test]
+    fn varta_absent_but_git_tracked_fails() {
+        let tmp = tempfile::tempdir().unwrap();
+        setup_minimal_repo(tmp.path(), "01\n");
+        git_init(tmp.path());
+        // Commit a render, then delete it. That is real drift, and it must still be caught.
+        fs::write(tmp.path().join(RENDER_PATH), "whatever").unwrap();
+        Command::new("git")
+            .args(["add", RENDER_PATH])
+            .current_dir(tmp.path())
+            .output()
+            .unwrap();
+        fs::remove_file(tmp.path().join(RENDER_PATH)).unwrap();
+
+        let mut results = Vec::new();
+        check_varta_render(tmp.path(), &mut results);
+        assert!(!results[0].passed, "tracked-but-missing must FAIL");
+        assert!(
+            results[0].detail.contains("tracked in git"),
+            "{}",
+            results[0].detail
+        );
+    }
+
+    #[test]
+    fn varta_stale_fails() {
+        let tmp = tempfile::tempdir().unwrap();
+        setup_minimal_repo(tmp.path(), "01\n");
+        git_init(tmp.path());
+        fs::write(tmp.path().join(RENDER_PATH), "hand-edited, not a render").unwrap();
+        let mut results = Vec::new();
+        check_varta_render(tmp.path(), &mut results);
+        assert!(!results[0].passed, "a stale render must still FAIL");
+        assert!(results[0].detail.contains("stale"), "{}", results[0].detail);
+    }
+
+    #[test]
+    fn varta_matching_render_passes() {
+        let tmp = tempfile::tempdir().unwrap();
+        setup_minimal_repo(tmp.path(), "01\n");
+        git_init(tmp.path());
+        let rendered = render_from_root(tmp.path()).unwrap();
+        fs::write(tmp.path().join(RENDER_PATH), &rendered).unwrap();
+        let mut results = Vec::new();
+        check_varta_render(tmp.path(), &mut results);
+        assert!(results[0].passed, "{}", results[0].detail);
+        assert!(
+            results[0].detail.contains("up to date"),
+            "{}",
+            results[0].detail
+        );
     }
 
     #[test]
