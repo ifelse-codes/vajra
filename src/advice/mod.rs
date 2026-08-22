@@ -210,3 +210,171 @@ impl AdviceVerdict {
 fn _uses(_r: &Path) -> Option<String> {
     fs::read_to_string(_r).ok()
 }
+
+// ---------------------------------------------------------------------------
+// Step 3 — parse the RECOMMENDATIONS out of a governed handoff. Pure: text in, markers out. No
+// fs, no git, no process. The whole grammar lives here so the two sides (advisor writes, session
+// answers) can never drift apart.
+// ---------------------------------------------------------------------------
+
+/// The separator set, longest first. An em dash is what the roles are told to write; the en dash,
+/// hyphen and colon are accepted because nine independently-written agents will produce all four
+/// and rejecting three of them would turn a typography slip into silent unrecorded advice — the
+/// exact failure this module exists to end.
+const SEPARATORS: [&str; 4] = ["—", "–", "-", ":"];
+
+/// Strip one leading list marker (`-`, `*`, `+`, `N.`, `N)`) and any emphasis wrapper from a line,
+/// so `- **rec 1 — x**` and `rec 1 — x` parse identically. Anchoring after this strip is what keeps
+/// the word "rec" in mid-sentence prose from ever counting as a marker.
+fn strip_decoration(line: &str) -> String {
+    let mut s = line.trim();
+    if let Some(r) = s
+        .strip_prefix("- ")
+        .or_else(|| s.strip_prefix("* "))
+        .or_else(|| s.strip_prefix("+ "))
+    {
+        s = r.trim_start();
+    } else if let Some((head, rest)) = s.split_once(['.', ')']) {
+        if !head.is_empty() && head.chars().all(|c| c.is_ascii_digit()) {
+            s = rest.trim_start();
+        }
+    }
+    for m in ["***", "**", "__", "*", "_"] {
+        if let Some(r) = s.strip_prefix(m) {
+            s = r;
+            break;
+        }
+    }
+    let mut out = s.trim();
+    for m in ["***", "**", "__"] {
+        if let Some(r) = out.strip_suffix(m) {
+            out = r.trim_end();
+            break;
+        }
+    }
+    out.to_string()
+}
+
+/// Split `text` at the first separator, returning what follows it. `None` when no separator opens
+/// the remainder — a `rec 3` with nothing after it is not a recommendation.
+fn after_separator(text: &str) -> Option<&str> {
+    SEPARATORS
+        .iter()
+        .find_map(|sep| text.strip_prefix(*sep))
+        .map(str::trim)
+        .filter(|t| !t.is_empty())
+}
+
+/// If `line` records a recommendation marker, return `(number, text)`. The grammar in one function
+/// — everything downstream depends on this and nothing else re-implements it.
+pub fn parse_rec_marker(line: &str) -> Option<(u32, String)> {
+    let s = strip_decoration(line);
+    // ASCII lower-casing preserves byte length, so offsets into `s` stay valid.
+    let lower = s.to_ascii_lowercase();
+    let rest = lower.strip_prefix("rec")?;
+    if !rest.starts_with(char::is_whitespace) {
+        return None;
+    }
+    let rest = s[s.len() - rest.len()..].trim_start();
+    let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
+    let number: u32 = digits.parse().ok()?;
+    let text = after_separator(rest[digits.len()..].trim_start())?;
+    Some((number, text.to_string()))
+}
+
+/// Every numbered recommendation recorded in one contract-valid handoff, in document order and
+/// de-duplicated by number (first wins). A brief that lists `rec 1` in a summary and again in the
+/// body records ONE recommendation, not two — otherwise a conscientious advisor would manufacture
+/// unanswerable duplicates for the author.
+pub fn recommendations_in(handoff: &crate::fleet::Handoff) -> Vec<Recommendation> {
+    let mut out: Vec<Recommendation> = Vec::new();
+    for line in handoff.body.lines() {
+        if let Some((number, text)) = parse_rec_marker(line) {
+            if out.iter().any(|r| r.number == number) {
+                continue;
+            }
+            out.push(Recommendation {
+                role: handoff.role.clone(),
+                number,
+                text,
+                handoff_path: handoff.path.clone(),
+            });
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn handoff(role: &str, body: &str) -> crate::fleet::Handoff {
+        crate::fleet::Handoff {
+            role: role.to_string(),
+            session: 127,
+            path: format!(".ai/handoffs/session-127-{role}.md"),
+            agent: "claude-code-subagent".into(),
+            captured: "2026-08-22T00:00:00Z".into(),
+            source_sha: "deadbeef".into(),
+            body: body.to_string(),
+        }
+    }
+
+    #[test]
+    fn rec_marker_parses_every_accepted_shape_and_refuses_prose() {
+        // The taught shape, and the three tolerated separators.
+        assert_eq!(
+            parse_rec_marker("rec 1 — do the thing"),
+            Some((1, "do the thing".into()))
+        );
+        assert_eq!(parse_rec_marker("rec 2 – do it"), Some((2, "do it".into())));
+        assert_eq!(parse_rec_marker("rec 3 - do it"), Some((3, "do it".into())));
+        assert_eq!(parse_rec_marker("rec 4: do it"), Some((4, "do it".into())));
+        // Decoration: list markers, emphasis, ordered items, mixed case.
+        assert_eq!(
+            parse_rec_marker("- **rec 5 — do it**"),
+            Some((5, "do it".into()))
+        );
+        assert_eq!(
+            parse_rec_marker("  7. REC 6 — do it"),
+            Some((6, "do it".into()))
+        );
+        // Prose must NEVER count — this is the whole reason the marker is anchored.
+        assert_eq!(parse_rec_marker("I rec 9 — you read this"), None);
+        assert_eq!(parse_rec_marker("my recommendation 1 — x"), None);
+        assert_eq!(parse_rec_marker("record 1 — x"), None);
+        // Degenerate: no number, no separator, no text.
+        assert_eq!(parse_rec_marker("rec — x"), None);
+        assert_eq!(parse_rec_marker("rec 1 do it"), None);
+        assert_eq!(parse_rec_marker("rec 1 —"), None);
+    }
+
+    #[test]
+    fn recommendations_are_read_in_order_and_deduped_by_number() {
+        let h = handoff(
+            "demo-producer",
+            "Summary:\nrec 1 — show the unpin\nrec 2 — show the tally\n\
+             Detail follows.\nrec 1 — show the unpin (repeated in the body)\n",
+        );
+        let recs = recommendations_in(&h);
+        assert_eq!(
+            recs.len(),
+            2,
+            "a repeated number is ONE recommendation: {recs:?}"
+        );
+        assert_eq!(recs[0].number, 1);
+        assert_eq!(recs[0].role, "demo-producer");
+        assert_eq!(
+            recs[0].handoff_path,
+            ".ai/handoffs/session-127-demo-producer.md"
+        );
+        assert_eq!(recs[1].text, "show the tally");
+        assert_eq!(recs[0].label(), "demo-producer rec 1");
+    }
+
+    #[test]
+    fn a_handoff_with_no_markers_records_no_recommendations() {
+        let h = handoff("researcher", "I think you should probably do the thing.\n");
+        assert!(recommendations_in(&h).is_empty());
+    }
+}
