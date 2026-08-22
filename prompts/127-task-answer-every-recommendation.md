@@ -240,8 +240,10 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 > obediences are disclosed here rather than hidden behind an `obeyed:`: **impl rec 2's** blockquote
 > sub-clause (count `>` lines in a handoff, skip them in a prompt) was NOT adopted — both sides
 > treat `>` lines as prose, keeping one grammar instead of two; **demo rec 12's** live `--advance`
-> drive was taken via the escape the rec itself offers (score `--check-advice`, state plainly that
-> the wiring is asserted by test and not shown running).
+> drive was first taken via the escape the rec itself offers, and the demo then described the
+> fallback as "asserted by test" — which was **false**, as the cold review's pass-1 REJECT found.
+> It is now genuinely driven, by `verify-session-127.sh`'s
+> `advance-really-binds-on-unanswered-advice` check, so demo rec 12 is obeyed in full.
 
 ## Design
 
