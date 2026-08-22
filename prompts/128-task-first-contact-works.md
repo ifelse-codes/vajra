@@ -170,9 +170,23 @@ the cold review at step 11 — the S128 build is one agent's judgement until tha
   that fails open at the front door is not governance. (path verified to exist at
   the S127 closeout. **The Architect gate checks that a cited record EXISTS, not that the design
   obeys it — a citation is not permission.**)
-- **The fork to argue, not assume:** the `vajra.varta` check. Either `init` starts creating the
-  render, or `check` stops demanding a file `init` never makes. **Record which and why**, and
-  reject the third option (leaving a new user with a red check on first run) out loud.
+- **The fork, DECIDED: (b) — `check` stops demanding a file `init` never makes.**
+  (Recorded here at the cold reviewer's rec 2: the reasoning shipped in `src/cli/check.rs:64-83`
+  but deliverable 4 asked for it in `## Design`, and `## Design` is where the Architect gate and
+  every future reader look.)
+  - **Why not (a), `init` renders a `vajra.varta`:** the render is DERIVED and one-way. Scaffolding
+    one plants an artifact that goes stale on the user's very next `.ai/` edit — trading one false
+    red on day zero for a recurring one forever, and hand-maintaining a derived copy is the trap
+    this repo already named.
+  - **Why not the third option, leaving a new user red on arrival — rejected out loud:** a health
+    check that is wrong on first run teaches strangers to ignore it, and an ignored check protects
+    nothing. That is worse than having no check.
+  - **What (b) does NOT do — it is not a weakening.** The guard keeps its teeth wherever drift can
+    actually exist: `absent + tracked by git` FAILS (a committed render vanished), `present +
+    different` FAILS (hand-edited or stale). Only `absent + untracked` — where nothing exists and
+    so nothing can have drifted — became a labelled PASS. Both retained failures are driven live in
+    `demo-session-128.sh` cases 9 and 10, precisely so "we relaxed a guard" cannot be asserted
+    without evidence either way.
 - **Scope discipline:** the scaffolded constitution being a hand-maintained fork (S125's F1,
   `include_str!`) is **deliberately NOT in this session.** It is the deeper problem and it is a
   whole story of its own. Say so in the summary; do not quietly widen into it.
