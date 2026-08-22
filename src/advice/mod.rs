@@ -61,9 +61,24 @@
 //!    `## Execution` trace does (S68), and the Analyst refused a `spec.md` for the same reason.
 //! 5. **Detecting "I recommend…" in free text** — rejected: that is the judgement this module is
 //!    built to refuse to fake.
-//! 6. **The disposition words `done` / `wontfix` / `later`** — rejected: `done:` collides with the
+//! 6. **Bare ordinals — `1.` as the recommendation number** — rejected: every advisory brief is
+//!    already full of numbered lists, so ordinals would turn ordinary prose into gate-binding
+//!    claims. A marker must be something an advisor CHOSE to write.
+//! 7. **A role-qualified number — `design-advisor/2`** — rejected: it duplicates the `role:`
+//!    frontmatter the gate already trusts as the placement source of truth, and it hands a role
+//!    the ability to mislabel itself.
+//! 8. **The disposition words `done` / `wontfix` / `later`** — rejected: `done:` collides with the
 //!    Coder's own marker, and the other two are issue-tracker jargon. `obeyed` / `refused` /
 //!    `deferred` say exactly what happened, in the founder's own framing.
+//!
+//! # Direction of error (rec 2 — different on each side, and deliberately so)
+//!
+//! Both sides lean the same way: **toward blocking, never toward passing.** On the HANDOFF side,
+//! when a line is ambiguous, COUNT it — one more item the session must answer. On the PROMPT side,
+//! when a line is ambiguous, DON'T CREDIT it — one fewer answer claimed. The one case where both
+//! sides skip is a **fenced code block**: fences are the designated place to SHOW the grammar, and
+//! this very session's prompt and role definitions quote `rec 1 — …` examples inside them. Without
+//! fence-skipping the contract manufactures phantom recommendations and phantom answers on day one.
 //!
 //! # The floor, stated here and repeated in the summary
 //!
@@ -172,12 +187,21 @@ pub enum AdviceState {
     Unanswered(Vec<String>),
     /// Every recorded recommendation carries a disposition whose evidence is real. Passes.
     Answered,
+    /// A file exists at a role's handoff path but fails the DECISION-007 contract, so its
+    /// recommendations cannot be READ AT ALL. BLOCKS — a gate that cannot evaluate fails (S69).
+    ///
+    /// rec 5: without this variant a malformed handoff collapsed into `NoHandoffs` — the state
+    /// said "nothing to answer" while the file on disk said otherwise. Note the deliberate
+    /// divergence from the two existing `HandoffRead::Malformed` consumers, which only SURFACE it
+    /// (`format_handoff_brief` prints a ⚠; `stations::fleet_evidence` files it): this is the first
+    /// consumer for which a malformed handoff is BINDING.
+    Malformed(Vec<(String, String)>),
 }
 
 impl AdviceState {
     /// A blocking state refuses the close at L2/L3.
     pub fn blocks(&self) -> bool {
-        matches!(self, AdviceState::Unanswered(_))
+        matches!(self, AdviceState::Unanswered(_) | AdviceState::Malformed(_))
     }
 }
 
@@ -223,11 +247,33 @@ fn _uses(_r: &Path) -> Option<String> {
 /// exact failure this module exists to end.
 const SEPARATORS: [&str; 4] = ["—", "–", "-", ":"];
 
+/// The lines of `text` that are NOT inside a fenced code block (rec 2). A fence opens and closes
+/// on a trimmed line starting with ``` or ~~~ — the designated escape hatch for SHOWING the
+/// grammar without recording it.
+fn skip_fenced(text: &str) -> Vec<&str> {
+    let mut out = Vec::new();
+    let mut fenced = false;
+    for line in text.lines() {
+        let t = line.trim_start();
+        if t.starts_with("```") || t.starts_with("~~~") {
+            fenced = !fenced;
+            continue;
+        }
+        if !fenced {
+            out.push(line);
+        }
+    }
+    out
+}
+
 /// Strip one leading list marker (`-`, `*`, `+`, `N.`, `N)`) and any emphasis wrapper from a line,
 /// so `- **rec 1 — x**` and `rec 1 — x` parse identically. Anchoring after this strip is what keeps
 /// the word "rec" in mid-sentence prose from ever counting as a marker.
 fn strip_decoration(line: &str) -> String {
     let mut s = line.trim();
+    // rec 3: a heading is a perfectly natural place for an advisor to put a recommendation
+    // (`### rec 1 — …`), so the markers strip here too.
+    s = s.trim_start_matches('#').trim_start();
     if let Some(r) = s
         .strip_prefix("- ")
         .or_else(|| s.strip_prefix("* "))
@@ -288,7 +334,9 @@ pub fn parse_rec_marker(line: &str) -> Option<(u32, String)> {
 /// unanswerable duplicates for the author.
 pub fn recommendations_in(handoff: &crate::fleet::Handoff) -> Vec<Recommendation> {
     let mut out: Vec<Recommendation> = Vec::new();
-    for line in handoff.body.lines() {
+    // rec 3: read the RAW findings region, not the display `body` — `handoff_body` drops every
+    // `#` line, so a `### rec 3 — …` heading would be silently under-counted.
+    for line in skip_fenced(&handoff.raw_body) {
         if let Some((number, text)) = parse_rec_marker(line) {
             if out.iter().any(|r| r.number == number) {
                 continue;
@@ -392,12 +440,14 @@ pub fn dispositions_in(prompt_text: &str) -> Vec<(String, Disposition)> {
         return Vec::new();
     };
     let mut out: Vec<(String, Disposition)> = Vec::new();
-    for line in section.lines() {
+    for line in skip_fenced(&section) {
         if let Some((role, number, d)) = parse_disposition_line(line) {
             let label = format!("{role} rec {number}");
-            if out.iter().any(|(l, _)| *l == label) {
-                continue;
-            }
+            // rec 11: LAST wins here, deliberately the opposite of `recommendations_in`'s
+            // first-wins. An advisor states its number once; a session AUTHOR edits and appends in
+            // `## Advice` exactly as they do in `## Execution`, so the later line is the current
+            // answer. Both rules point the same way: the freshest honest statement.
+            out.retain(|(l, _)| *l != label);
             out.push((label, d));
         }
     }
@@ -411,16 +461,17 @@ pub fn dispositions_in(prompt_text: &str) -> Vec<(String, Disposition)> {
 // whole module would otherwise ship.
 // ---------------------------------------------------------------------------
 
-/// Words that look like an answer and say nothing. Not a spelling list masquerading as a rule —
-/// the real floor is the word count below; these catch the scaffold's own leftovers.
-const EMPTY_REASONS: [&str; 6] = ["tbd", "todo", "n/a", "na", "...", "…"];
-
-/// Is a refusal reason substantive? **A FORM floor, deliberately, and it is stated as one:** this
-/// checks that a human wrote a sentence, never that the sentence is sound. Judging whether a
-/// refusal is JUSTIFIED is exactly the judgement criterion 12 forbids this gate from faking.
+/// Is a refusal reason substantive? **A FORM floor, deliberately, and disclosed as one.**
 ///
-/// The floor is three words, mirroring the S61 Delta substantiveness rule: `refused: no` parses
-/// but answers nothing, and one token is indistinguishable from a placeholder.
+/// The rule is the S61 Delta rule verbatim and nothing more: non-empty after trimming, and not a
+/// `<...>` template placeholder. The implementation-advisor's rec 13 talked this session out of the
+/// two extras it first shipped — a stop-word list (`tbd`, `n/a`) and a three-word minimum. S122's
+/// lesson is that a guard bound to a SPELLING gets escaped by the next instance, and a length
+/// threshold is a judgement dressed up as a check.
+///
+/// **So state the floor instead of faking it: a one-word reason PASSES.** This checks that a reason
+/// was written, never that it is sound. Judging soundness is exactly the judgement criterion 12
+/// forbids this gate from pretending to make.
 pub fn substantive_reason(reason: &str) -> Result<(), String> {
     let r = reason.trim();
     if r.is_empty() {
@@ -429,15 +480,6 @@ pub fn substantive_reason(reason: &str) -> Result<(), String> {
     if r.starts_with('<') && r.ends_with('>') {
         return Err(format!(
             "the refusal reason is still the template placeholder `{r}`"
-        ));
-    }
-    if EMPTY_REASONS.contains(&r.trim_end_matches('.').to_ascii_lowercase().as_str()) {
-        return Err(format!("`{r}` is a filler token, not a reason"));
-    }
-    if r.split_whitespace().count() < 3 {
-        return Err(format!(
-            "the refusal reason `{r}` is under three words — a refusal is allowed, an \
-             unexplained one is not"
         ));
     }
     Ok(())
@@ -449,19 +491,35 @@ pub fn substantive_reason(reason: &str) -> Result<(), String> {
 pub fn check_evidence(root: &Path, d: &Disposition) -> Result<(), String> {
     match d {
         Disposition::Obeyed(sha) => {
-            if crate::coder::commit_exists(root, sha) {
+            // rec 13: only the leading hex run is a sha, so trailing prose falls off — and a ref
+            // like `HEAD` yields an empty run and records nothing (`coder::execution_record`'s
+            // exact behaviour, mirrored deliberately).
+            let hex: String = sha.chars().take_while(char::is_ascii_hexdigit).collect();
+            if hex.is_empty() {
+                Err(format!(
+                    "`obeyed: {sha}` records no commit sha — a ref or a placeholder is not a \
+                     recorded landing commit"
+                ))
+            } else if crate::coder::commit_exists(root, &hex) {
                 Ok(())
             } else {
                 Err(format!(
-                    "`obeyed: {sha}` names no commit in this repo (`git cat-file -e`) — a \
+                    "`obeyed: {hex}` names no commit in this repo (`git cat-file -e`) — a \
                      recorded sha that does not resolve is scored unanswered"
                 ))
             }
         }
         Disposition::Refused(reason) => substantive_reason(reason),
         Disposition::Deferred(path) => {
+            // rec 13: a deferral target outside the repo is not a record this repo can show
+            // anyone — refuse absolute paths and any `..` escape BEFORE touching the fs.
             if path.is_empty() {
                 Err("`deferred:` names no destination".into())
+            } else if Path::new(path).is_absolute() || path.split('/').any(|c| c == "..") {
+                Err(format!(
+                    "`deferred: {path}` points outside the repo — a deferral must name a file this \
+                     repo can show"
+                ))
             } else if root.join(path).exists() {
                 Ok(())
             } else {
@@ -524,13 +582,17 @@ pub fn advice_gate(root: &Path, session: u32) -> AdviceVerdict {
     let reads = crate::fleet::read_handoffs(root, session);
     let mut recs: Vec<Recommendation> = Vec::new();
     let mut roles_without_recs: Vec<String> = Vec::new();
+    let mut malformed: Vec<(String, String)> = Vec::new();
     for r in &reads {
         match r {
             crate::fleet::HandoffRead::Absent => {}
-            crate::fleet::HandoffRead::Malformed(path, why) => reasons.push(format!(
+            crate::fleet::HandoffRead::Malformed(path, why) => {
+                malformed.push((path.clone(), why.clone()));
+                reasons.push(format!(
                 "{path} exists but does not satisfy the handoff contract ({why}) — a gate that \
-                 cannot read its input FAILS; it never passes by treating the file as absent"
-            )),
+                     cannot read its input FAILS; it never passes by treating the file as absent"
+                ));
+            }
             crate::fleet::HandoffRead::Found(h) => {
                 let found = recommendations_in(h);
                 if found.is_empty() {
@@ -573,7 +635,14 @@ pub fn advice_gate(root: &Path, session: u32) -> AdviceVerdict {
         .map(|i| i.rec.label())
         .collect();
 
-    let state = if reads.is_empty() {
+    // rec 14 — the precedence, stated so it is a DECISION and not an accident:
+    //   Malformed (BLOCK, fail closed) > Unanswered (BLOCK) > NoRecommendations (WARN, dodge
+    //   named) > Answered (PASS) > NoHandoffs (silent).
+    // Malformed and Unanswered can coexist; a blocking reason is pushed for each, and only the
+    // reported STATE has to pick one.
+    let state = if !malformed.is_empty() {
+        AdviceState::Malformed(malformed)
+    } else if reads.is_empty() {
         AdviceState::NoHandoffs
     } else if items.is_empty() {
         AdviceState::NoRecommendations(roles_without_recs.clone())
@@ -584,7 +653,8 @@ pub fn advice_gate(root: &Path, session: u32) -> AdviceVerdict {
     };
 
     match &state {
-        AdviceState::NoHandoffs | AdviceState::Answered => {}
+        // The malformed reasons were pushed at read time — a second message would only repeat them.
+        AdviceState::NoHandoffs | AdviceState::Answered | AdviceState::Malformed(_) => {}
         AdviceState::NoRecommendations(roles) => warnings.push(format!(
             "handoff(s) from {} record NO numbered `rec N —` recommendations, so this gate has \
              nothing to enforce. Say it plainly: DELETING THE NUMBERS DODGES THIS GATE. Like every \
@@ -646,6 +716,7 @@ pub fn format_advice_checklist(v: &AdviceVerdict) -> String {
     if v.items.is_empty() {
         s.push_str(match v.state {
             AdviceState::NoHandoffs => "recommendations: (no governed handoff for this session)\n",
+            AdviceState::Malformed(_) => "recommendations: (unreadable — see below)\n",
             _ => "recommendations: (handoffs exist but record no numbered `rec N —` items)\n",
         });
     }
@@ -678,6 +749,13 @@ pub fn format_advice_checklist(v: &AdviceVerdict) -> String {
             roles.join(", ")
         )),
         AdviceState::NoHandoffs => s.push_str("state: NO HANDOFFS (nothing to answer)\n"),
+        AdviceState::Malformed(m) => {
+            for (path, why) in m {
+                s.push_str(&format!(
+                    "state: MALFORMED HANDOFF {path} ({why}) — fails closed\n"
+                ));
+            }
+        }
     }
     s.push_str(
         "note: this proves each recommendation was ANSWERED and its evidence is real. It does \
@@ -698,6 +776,7 @@ mod tests {
             agent: "claude-code-subagent".into(),
             captured: "2026-08-22T00:00:00Z".into(),
             source_sha: "deadbeef".into(),
+            raw_body: body.to_string(),
             body: body.to_string(),
         }
     }
@@ -754,6 +833,75 @@ mod tests {
         assert_eq!(recs[0].label(), "demo-producer rec 1");
     }
 
+    /// rec 3 — a recommendation written as a HEADING must still count. `fleet::handoff_body`
+    /// drops every `#` line, so reading the display body here would silently under-count exactly
+    /// the advice this gate exists to make un-droppable. This test fails the moment someone
+    /// switches the input back to `body`.
+    #[test]
+    fn a_heading_form_recommendation_is_still_counted() {
+        let mut h = handoff("design-advisor", "");
+        h.raw_body = "### rec 1 — lift the S116 deferral\n\nrationale follows\n".into();
+        h.body = "rationale follows".into(); // what handoff_body would have produced
+        let recs = recommendations_in(&h);
+        assert_eq!(
+            recs.len(),
+            1,
+            "a `### rec 1 — …` heading must count: {recs:?}"
+        );
+        assert_eq!(recs[0].number, 1);
+    }
+
+    /// rec 2 — fences are where the grammar is SHOWN, on both sides. Without this, the role
+    /// definitions and this session's own prompt manufacture phantom advice on day one.
+    #[test]
+    fn recommendations_and_dispositions_inside_a_fence_are_never_recorded() {
+        let mut h = handoff("plan-advisor", "");
+        h.raw_body = "Here is the shape:\n```\nrec 9 — an EXAMPLE, not advice\n```\n                      rec 1 — real advice\n"
+            .into();
+        let recs = recommendations_in(&h);
+        assert_eq!(recs.len(), 1, "the fenced example must not count: {recs:?}");
+        assert_eq!(recs[0].number, 1);
+
+        let prompt = "## Advice\nrecord it like this:\n```\n- ghost rec 9 — obeyed: deadbeef\n```\n                      - plan-advisor rec 1 — refused: a real answer\n";
+        let d = dispositions_in(prompt);
+        assert_eq!(
+            d.len(),
+            1,
+            "the fenced example must not claim an answer: {d:?}"
+        );
+        assert_eq!(d[0].0, "plan-advisor rec 1");
+    }
+
+    /// rec 8 — the round trip: the instruction every role is given and the parser that reads it
+    /// back are ONE thing, not two. For every registered role, the example line printed in its own
+    /// definition is fed through the real parser and must come back as exactly one recommendation
+    /// numbered 1. If someone rewords the taught shape, this fails; if someone narrows the parser,
+    /// this fails. A verify-script grep for the sentence would catch neither (S122's hollow-grep
+    /// class), which is why the binding lives here.
+    #[test]
+    fn what_every_role_is_taught_to_write_is_what_the_parser_reads_back() {
+        for role in crate::fleet::ROLES {
+            let def = crate::fleet::render_subagent_definition(role);
+            let taught: Vec<&str> = def
+                .lines()
+                .filter(|l| l.trim_start().starts_with("rec 1 "))
+                .collect();
+            assert_eq!(
+                taught.len(),
+                1,
+                "{}: expected exactly one taught `rec 1` example line, got {taught:?}",
+                role.name
+            );
+            let parsed = parse_rec_marker(taught[0]);
+            assert!(
+                matches!(parsed, Some((1, _))),
+                "{}: the shape its own definition teaches does not parse: {:?} -> {parsed:?}",
+                role.name,
+                taught[0]
+            );
+        }
+    }
+
     #[test]
     fn a_handoff_with_no_markers_records_no_recommendations() {
         let h = handoff("researcher", "I think you should probably do the thing.\n");
@@ -801,7 +949,7 @@ This paragraph mentions a rec in prose and must not parse.\n\n\
     }
 
     #[test]
-    fn hyphenated_role_keys_split_cleanly_and_the_first_answer_wins() {
+    fn hyphenated_role_keys_split_cleanly_and_the_last_answer_wins() {
         let (role, n, d) =
             parse_disposition_line("- implementation-advisor rec 12 — obeyed: abc1234").unwrap();
         assert_eq!((role.as_str(), n), ("implementation-advisor", 12));
@@ -811,7 +959,12 @@ This paragraph mentions a rec in prose and must not parse.\n\n\
             "## Advice\n- x rec 1 — obeyed: aaa\n- x rec 1 — refused: changed my mind later\n";
         let got = dispositions_in(dup);
         assert_eq!(got.len(), 1);
-        assert_eq!(got[0].1, Disposition::Obeyed("aaa".into()));
+        // rec 11: LAST wins — an author edits and appends in `## Advice` as they do in
+        // `## Execution`, so the later line is the current answer.
+        assert_eq!(
+            got[0].1,
+            Disposition::Refused("changed my mind later".into())
+        );
     }
 
     #[test]
@@ -955,12 +1108,21 @@ mod gate_tests {
     }
 
     #[test]
-    fn criterion_4_a_reasoned_refusal_passes_but_a_one_word_one_does_not() {
+    /// The refusal floor, with its limit asserted rather than hidden: an EMPTY or still-template
+    /// reason blocks, and a SHORT real one passes. `rec 13` argued this session out of a stop-word
+    /// list and a word-count threshold — S122 (a guard bound to a spelling gets escaped) and the
+    /// fact that "is this reason good?" is precisely the judgement criterion 12 forbids faking.
+    fn criterion_4_an_empty_or_placeholder_refusal_blocks_and_a_short_real_one_passes() {
         assert!(substantive_reason("out of scope for this session").is_ok());
-        assert!(substantive_reason("no").is_err());
         assert!(substantive_reason("").is_err());
-        assert!(substantive_reason("TBD").is_err());
+        assert!(substantive_reason("   ").is_err());
         assert!(substantive_reason("<reason>").is_err());
+        // The disclosed floor, asserted so nobody can later claim more than it does:
+        assert!(
+            substantive_reason("no").is_ok(),
+            "a one-word reason PASSES — this gate checks that a reason was written, never that \
+             it is sound"
+        );
     }
 
     #[test]
