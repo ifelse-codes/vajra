@@ -699,13 +699,24 @@ pub fn validate_handoff(text: &str) -> Result<(), String> {
 
 /// The findings body — the content between the closing frontmatter fence and the `## Handoff Delta`
 /// section, minus heading lines. `None` when the frontmatter fence or the delta section is absent.
-/// Public so the ingest can extract a PRIOR handoff's body to feed `compute_delta` on a re-run.
-pub fn handoff_body(text: &str) -> Option<String> {
+/// The findings region VERBATIM — the same span `handoff_body` reads, but WITHOUT dropping
+/// headings or blank lines (S127, the implementation-advisor's rec 3).
+///
+/// `handoff_body` filters every `#` line, which is right for a display summary and wrong for a
+/// consumer that COUNTS markers: an advisor writing `### rec 3 — …` as a heading would have its
+/// recommendation silently dropped — the exact class of invisible loss the Advice gate exists to
+/// end. One span, two readers: this is the source of truth and `handoff_body` derives from it.
+pub fn handoff_findings_raw(text: &str) -> Option<&str> {
     let after_fm = text.strip_prefix("---\n")?;
     let close = after_fm.find("\n---\n")?;
     let rest = &after_fm[close + 5..];
-    let (before_delta, _) = rest.split_once("## Handoff Delta")?;
-    let body: Vec<&str> = before_delta
+    rest.split_once("## Handoff Delta")
+        .map(|(before, _)| before)
+}
+
+/// Public so the ingest can extract a PRIOR handoff's body to feed `compute_delta` on a re-run.
+pub fn handoff_body(text: &str) -> Option<String> {
+    let body: Vec<&str> = handoff_findings_raw(text)?
         .lines()
         .map(|l| l.trim())
         .filter(|l| !l.is_empty() && !l.starts_with('#'))
@@ -775,6 +786,10 @@ pub struct Handoff {
     pub source_sha: String,
     /// The findings body, already stripped of headings/blank lines by `handoff_body`.
     pub body: String,
+    /// The findings region VERBATIM (`handoff_findings_raw`) — headings and blank lines intact.
+    /// A consumer that COUNTS recorded markers must read the region as written; `body` is for
+    /// display. (S127 rec 3.)
+    pub raw_body: String,
 }
 
 impl Handoff {
@@ -837,6 +852,7 @@ pub fn parse_handoff(text: &str, session: u32, path: &str) -> Result<Handoff, St
         agent: field("agent:")?,
         captured: field("captured:")?,
         source_sha: field("source-sha:")?,
+        raw_body: handoff_findings_raw(text).unwrap_or("").to_string(),
         body,
     })
 }
