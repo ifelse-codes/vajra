@@ -523,6 +523,39 @@ pub fn known_roles() -> String {
     ROLES.iter().map(|r| r.name).collect::<Vec<_>>().join(", ")
 }
 
+/// The S127 disposition contract, appended to EVERY role's rendered definition.
+///
+/// Criterion 7 asks that every advisory role instruct its agent to number its recommendations in
+/// the exact marker shape the Advice gate parses. Nine hand-edited system prompts would satisfy it
+/// today and rot tomorrow — the S114 lesson (one hardcoded word stamped every future role) applies
+/// exactly here. So the rule lives ONCE and is rendered into every role from `ROLES`: a tenth role
+/// added next session inherits the contract with no edit, and the per-role test below asserts it
+/// for each registered role rather than for a sampled one.
+///
+/// It also restates the standing boundary in the disposition's own terms: the role PROPOSES,
+/// numbered; the SESSION AUTHOR answers, in the prompt's `## Advice`. A role that wrote its own
+/// disposition would be grading its own advice.
+const RECOMMENDATION_NUMBERING_RULE: &str = "\
+## Numbered recommendations (Vajra parses these)\n\
+Put every recommendation you make on its own line, numbered, in exactly this shape:\n\
+\n\
+```\n\
+rec 1 — <the recommendation, in one line>\n\
+rec 2 — <the next one>\n\
+```\n\
+\n\
+Elaborate underneath each line as much as you like — only the `rec N —` line is parsed. Number\n\
+from 1, do not skip numbers, and do not renumber across a re-run: a disposition already recorded\n\
+against `rec 2` must keep meaning the same advice.\n\
+\n\
+The session that asked for your brief MUST answer every one of these in writing — `obeyed: <sha>`,\n\
+`refused: <reason>`, or `deferred: <path>` — in the `## Advice` section of its own prompt, and\n\
+`vajra next --check-advice <NN>` BLOCKS its close until each is answered. You PROPOSE; you never\n\
+write the `## Advice` section, and you never record a disposition against your own advice.\n\
+\n\
+This forces an ANSWER, not obedience. A reasoned `refused:` is a perfectly good outcome — so say\n\
+plainly what you recommend and why, and let the author disagree in writing.\n";
+
 /// Render a role as a native Claude Code subagent definition (`.claude/agents/<name>.md`): YAML
 /// frontmatter (`name`, `description`, read-only `tools`) + the system prompt + a short note that
 /// its findings become a Vajra-governed handoff (so the subagent returns a brief, and does NOT try
@@ -542,11 +575,14 @@ pub fn render_subagent_definition(role: &Role) -> String {
          Return your findings brief as your final message. The orchestrator records it as a\n\
          Vajra-governed, delta-tracked handoff at `.ai/handoffs/session-<NN>-{name}.md` via\n\
          `vajra next --role {name} --from <file>`. Do NOT write the handoff frontmatter yourself —\n\
-         Vajra computes the source hash, the timestamp, and the delta against the prior stage.\n",
+         Vajra computes the source hash, the timestamp, and the delta against the prior stage.\n\
+         \n\
+         {rule}",
         name = role.name,
         desc = role.description,
         tools = role.tools,
         sys = role.system_prompt,
+        rule = RECOMMENDATION_NUMBERING_RULE,
     )
 }
 
@@ -1298,6 +1334,45 @@ mod tests {
             }
         }
         Ok(())
+    }
+
+    /// S127 criterion 7, asserted PER ROLE (not sampled): every registered role's rendered
+    /// definition carries the numbering rule in the exact marker shape `advice::parse` reads, and
+    /// restates that the role proposes but never writes the `## Advice` section. Because the rule
+    /// is rendered from one const for every `ROLES` entry, a tenth role cannot silently skip it —
+    /// and this loop would fail loudly if someone rendered it conditionally.
+    #[test]
+    fn every_role_is_taught_to_number_its_recommendations() {
+        for role in ROLES {
+            let def = render_subagent_definition(role);
+            assert!(
+                def.contains("rec 1 — "),
+                "{}: no `rec N — ` marker example in its definition",
+                role.name
+            );
+            assert!(
+                def.contains("## Numbered recommendations"),
+                "{}: no numbered-recommendations section",
+                role.name
+            );
+            for word in ["obeyed:", "refused:", "deferred:"] {
+                assert!(
+                    def.contains(word),
+                    "{}: definition never names the `{word}` disposition",
+                    role.name
+                );
+            }
+            assert!(
+                def.contains("you never\nwrite the `## Advice` section"),
+                "{}: definition does not state that the role never writes `## Advice`",
+                role.name
+            );
+            assert!(
+                def.contains("--check-advice"),
+                "{}: definition never tells the role which gate consumes its numbers",
+                role.name
+            );
+        }
     }
 
     #[test]
