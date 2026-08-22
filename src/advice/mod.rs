@@ -229,12 +229,6 @@ impl AdviceVerdict {
     }
 }
 
-// Silence dead-code warnings for the imports the later steps use.
-#[allow(dead_code)]
-fn _uses(_r: &Path) -> Option<String> {
-    fs::read_to_string(_r).ok()
-}
-
 // ---------------------------------------------------------------------------
 // Step 3 — parse the RECOMMENDATIONS out of a governed handoff. Pure: text in, markers out. No
 // fs, no git, no process. The whole grammar lives here so the two sides (advisor writes, session
@@ -571,6 +565,16 @@ pub fn classify(
     (items, orphans)
 }
 
+/// The dodge, in ONE place (the `fidelity-reviewer`'s rec 4, and the `implementation-advisor`'s
+/// rec 15 answered properly this time). The gate prints it, the surface prints it, the summary
+/// quotes it — and none of them retypes it, so the three cannot drift into three different
+/// admissions of the same limit.
+pub const DODGE: &str = "NO numbered `rec N —` recommendations are recorded, so this gate has \
+     nothing to enforce. Say it plainly: DELETING THE NUMBERS DODGES THIS GATE. Like every marker \
+     gate here, its jurisdiction is self-granted (S68/S71) — an advisor that never numbers its \
+     advice cannot be made to, and advice dropped from an unnumbered brief stays exactly as \
+     invisible as it was before S127";
+
 /// The Advice gate (S127): CLOSING `session` requires every numbered recommendation in its
 /// governed handoffs to carry a disposition whose evidence is REAL.
 ///
@@ -660,14 +664,9 @@ pub fn advice_gate(root: &Path, session: u32) -> AdviceVerdict {
     match &state {
         // The malformed reasons were pushed at read time — a second message would only repeat them.
         AdviceState::NoHandoffs | AdviceState::Answered | AdviceState::Malformed(_) => {}
-        AdviceState::NoRecommendations(roles) => warnings.push(format!(
-            "handoff(s) from {} record NO numbered `rec N —` recommendations, so this gate has \
-             nothing to enforce. Say it plainly: DELETING THE NUMBERS DODGES THIS GATE. Like every \
-             marker gate here, its jurisdiction is self-granted (S68/S71) — an advisor that never \
-             numbers its advice cannot be made to, and advice dropped from an unnumbered brief \
-             stays exactly as invisible as it was before S127",
-            roles.join(", ")
-        )),
+        AdviceState::NoRecommendations(roles) => {
+            warnings.push(format!("handoff(s) from {}: {DODGE}", roles.join(", ")))
+        }
         AdviceState::Unanswered(_) => {
             for item in items.iter().filter(|i| !i.answer.is_answered()) {
                 let why = match &item.answer {
@@ -750,7 +749,7 @@ pub fn format_advice_checklist(v: &AdviceVerdict) -> String {
             s.push_str(&format!("state: UNANSWERED -> {}\n", u.join(", ")))
         }
         AdviceState::NoRecommendations(roles) => s.push_str(&format!(
-            "state: NO NUMBERED RECOMMENDATIONS ({}) — deleting the numbers dodges this gate\n",
+            "state: NO NUMBERED RECOMMENDATIONS ({}) — {DODGE}\n",
             roles.join(", ")
         )),
         AdviceState::NoHandoffs => s.push_str("state: NO HANDOFFS (nothing to answer)\n"),

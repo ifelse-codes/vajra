@@ -12,7 +12,9 @@
 #   6. every registered role is taught the marker shape the parser actually reads back;
 #   7. NOTHING else moved — `K of 8` unchanged at a NON-degenerate baseline, still 7 commands;
 #   8. the falsifiability fixture goes RED when the consumption is deleted and stays GREEN when
-#      every message string is renamed.
+#      every message string is renamed;
+#   9. the gate really BINDS `vajra next --advance` — driven live, with every other stage
+#      neutralised by its own override, so the refusal can only be this one's.
 #
 # CHECK CLASSES — the S121/S122/S123 contract: EXECUTE-BASED (runs the product, asserts on real
 # output) · STRUCTURAL grep (asserts architecture — no runtime output exists to exercise) ·
@@ -213,6 +215,45 @@ fixture_fails_for_the_right_reason() {
 }
 run_check "fixture-red-on-deletion-green-on-rename" exec fixture_fails_for_the_right_reason
 
+# --- 6b. the gate really BINDS the close path — driven, not read ---------------------------------
+# The fidelity-reviewer's pass-1 REJECT was right: "wired into the close path" was source-reading,
+# not evidence, and the demo said otherwise. This drives the REAL `vajra next --advance` on a
+# throwaway session repo. Every OTHER stage is neutralised with its own documented override, so a
+# refusal here can only come from the Advice gate — and the same run must ADVANCE once
+# VAJRA_SKIP_ADVICE_GATE is set, which is what proves the refusal was this gate's and not a
+# coincidence.
+advance_binds_the_close_path() {
+  local TMP; TMP="$(mktemp -d)"; local rc=0 OUT
+  ( cd "$TMP" && git init -q . && git config user.email t@t && git config user.name t \
+      && "$VAJRA" init >/dev/null 2>&1 </dev/null ) || { echo "FAIL: init"; rm -rf "$TMP"; return 1; }
+  echo "50" > "$TMP/.ai/SESSION"
+  mkdir -p "$TMP/.ai/handoffs" "$TMP/prompts"
+  printf '# S50\n\n## Plan\n1. x\n' > "$TMP/prompts/50-task-x.md"
+  ( cd "$TMP" && git add -A >/dev/null 2>&1 && git commit -q -m seed --no-verify \
+      && git checkout -q -b session-50-x ) || { echo "FAIL: branch"; rm -rf "$TMP"; return 1; }
+  printf 'rec 1 — a recommendation that must be answered\n' > "$TMP/b.md"
+  ( cd "$TMP" && "$VAJRA" next --role design-advisor --from b.md >/dev/null 2>&1 ) \
+    || { echo "FAIL: ingest"; rm -rf "$TMP"; return 1; }
+
+  local SKIPS="VAJRA_SKIP_ANALYST_GATE=1 VAJRA_SKIP_ARCHITECT_GATE=1 VAJRA_SKIP_PLANNER_GATE=1 \
+VAJRA_SKIP_CODER_GATE=1 VAJRA_SKIP_QA_GATE=1 VAJRA_SKIP_DEMOER_GATE=1 VAJRA_SKIP_RELEASER_GATE=1"
+
+  # (a) unanswered advice -> the close is REFUSED, by this gate, by name.
+  OUT="$( cd "$TMP" && eval "$SKIPS" "$VAJRA" next --advance 2>&1 )"; local code=$?
+  echo "$OUT" | grep -iE 'advice|refusing' | head -3
+  [ "$code" -ne 0 ] || { echo "FAIL: --advance succeeded with advice unanswered"; rc=1; }
+  grep -q "\[vajra advice\]" <<<"$OUT" || { echo "FAIL: the refusal did not come from the Advice gate"; rc=1; }
+  grep -q "design-advisor rec 1" <<<"$OUT" || { echo "FAIL: the refusal does not name the recommendation"; rc=1; }
+
+  # (b) the documented override advances, and SAYS it was used.
+  OUT="$( cd "$TMP" && eval "$SKIPS" VAJRA_SKIP_ADVICE_GATE=1 "$VAJRA" next --advance 2>&1 )"; code=$?
+  grep -q "VAJRA_SKIP_ADVICE_GATE set" <<<"$OUT" \
+    || { echo "FAIL: the override does not announce itself"; echo "$OUT" | tail -5; rc=1; }
+  [ "$code" -eq 0 ] || { echo "FAIL: the override did not advance (exit $code)"; echo "$OUT" | tail -5; rc=1; }
+  rm -rf "$TMP"; return $rc
+}
+run_check "advance-really-binds-on-unanswered-advice" exec advance_binds_the_close_path
+
 # --- 7. nothing else moved: K of 8 at a NON-degenerate baseline ----------------------------------
 # S126's review flagged that its own invariance check compared at a degenerate `0 of 8`. This one
 # compares at a session that really passes stations, in a clean worktree of HEAD, before and after
@@ -230,8 +271,15 @@ k_of_8_unchanged_at_a_real_baseline() {
   AFTER="$( cd "$WT" && "$VAJRA" next --stations 126 2>&1 | grep -oE '[0-9]+ of 8 stations passed' )"
   echo "after a numbered handoff lands: $AFTER"
   [ "$BEFORE" = "$AFTER" ] || { echo "FAIL: advice moved K — it must be derived from station gates alone"; rc=1; }
-  ( cd "$WT" && "$VAJRA" next --stations 126 2>&1 | grep -qi '^\s*\[.*\] *advice' ) \
-    && { echo "FAIL: advice appears as a station row"; rc=1; } || echo "OK: advice is not a ninth station"
+  # POSIX-portable: `\s` is a GNU extension BSD grep does not honour, so the previous form could
+  # never match and printed OK unconditionally (fidelity-reviewer rec 5 — an assertion that cannot
+  # fail must never print OK).
+  local SOUT; SOUT="$( cd "$WT" && "$VAJRA" next --stations 126 2>&1 )"
+  if grep -ciE '(\[PASSED\]|\[ABSENT\]|\[LEGACY\]) *advice' <<<"$SOUT" | grep -qv '^0$'; then
+    echo "FAIL: advice appears as a station row"; rc=1
+  else
+    echo "OK: advice is not a ninth station ($(grep -cE '\[(PASSED|ABSENT|LEGACY)\]' <<<"$SOUT") station rows read)"
+  fi
   git worktree remove --force "$WT" >/dev/null 2>&1 || true
   return $rc
 }

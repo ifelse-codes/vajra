@@ -223,9 +223,11 @@ score $? exec "8 station rows at a non-degenerate baseline, no advice station, 7
 dim "NARRATED, not scored: the falsifiability experiment is 'delete the consumption and watch it go"
 dim "red' — a demo cannot perform that on itself without lying. It lives in mod falsifiability"
 dim "(src/advice/mod.rs) and its execute-based twin in scripts/verify-session-127.sh."
-dim "Also narrated: the --advance wiring. Driving a full close inside a throwaway repo needs a"
-dim "session branch, a maturity level and a prior session's ship state; the binding is asserted by"
-dim "test and by the verify suite, and is NOT shown running here."
+dim "Also narrated, and corrected after a cold review called the earlier wording false: the"
+dim "--advance binding IS driven live — by scripts/verify-session-127.sh check"
+dim "'advance-really-binds-on-unanswered-advice', which runs the real close path with every OTHER"
+dim "stage neutralised by its own documented override, so the refusal can only be this gate's, and"
+dim "then advances under VAJRA_SKIP_ADVICE_GATE=1. It is not re-run here; it is not merely asserted."
 
 # --- demo:summary_table -------------------------------------------------------------------------
 header "Summary  [demo:summary_table]"
