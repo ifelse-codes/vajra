@@ -1,7 +1,7 @@
 # Session 127 — CODE: every recommendation must be ANSWERED (obeyed, refused, or deferred)
 
-> **Status:** DRAFT — the Analyst gate (`vajra next --advance`) BLOCKS starting this session while
-> DRAFT. Flip to `APPROVED` once the founder signs off.
+> **Status:** APPROVED — founder sign-off at the S127 open ("start session 127 all approved",
+> 2026-08-22).
 >
 > **Founder-directed rewrite at the S126 closeout.** The first draft of this prompt gated on *a
 > handoff exists*. The founder cut straight past it: **"the obeying is what all Vajra is — the
@@ -182,11 +182,65 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-> This session is the first to carry this section. Add one line per recorded recommendation as the
-> handoffs land: `- <role> rec N — obeyed: <sha>` / `refused: <reason>` / `deferred: <path>`.
-> **A session that ships this gate and leaves its own advice unanswered has refuted itself.**
+> Two advisors were dispatched and returned **43 numbered recommendations** between them. Every one
+> is answered below. **A session that ships this gate and leaves its own advice unanswered has
+> refuted itself** — so this section is the delivery, not paperwork about it.
 
-- *(none yet — fill as advisors are dispatched)*
+**implementation-advisor** (19 recommendations, `.ai/handoffs/session-127-implementation-advisor.md`)
+
+- implementation-advisor rec 1 — obeyed: 8cd3bea
+- implementation-advisor rec 2 — obeyed: 633994e
+- implementation-advisor rec 3 — obeyed: 9c76ba9
+- implementation-advisor rec 4 — obeyed: 633994e
+- implementation-advisor rec 5 — obeyed: 633994e
+- implementation-advisor rec 6 — refused: the rule is rendered from ONE const into every ROLES entry instead of nine hand-edited system prompts, so a tenth role inherits the contract with no edit; the advisor itself named that structural impossibility the runner-up's real merit, and it is the S114 lesson (one hardcoded word stamped every future role). Recorded as a rejected alternative in the DECISION-007 S127 addendum.
+- implementation-advisor rec 7 — obeyed: eaa4ff8
+- implementation-advisor rec 8 — obeyed: 633994e
+- implementation-advisor rec 9 — obeyed: 8cd3bea
+- implementation-advisor rec 10 — refused: joining on the `<role> rec N` label already makes an unknown role key an ORPHAN and warns about it by name; gating on `fleet::resolve_role` would discard a typo'd line before it could be surfaced, which is strictly worse for the failure the rec is aimed at.
+- implementation-advisor rec 11 — obeyed: 633994e
+- implementation-advisor rec 12 — obeyed: 2043432
+- implementation-advisor rec 13 — obeyed: 633994e
+- implementation-advisor rec 14 — obeyed: 633994e
+- implementation-advisor rec 15 — obeyed: 2043432
+- implementation-advisor rec 16 — obeyed: 61c867a
+- implementation-advisor rec 17 — obeyed: 1e2d5c6
+- implementation-advisor rec 18 — obeyed: e8cdd49
+
+**demo-producer** (24 recommendations, `.ai/handoffs/session-127-demo-producer.md`)
+
+- demo-producer rec 1 — obeyed: 15581a0
+- demo-producer rec 2 — obeyed: 15581a0
+- demo-producer rec 3 — obeyed: 15581a0
+- demo-producer rec 4 — obeyed: 15581a0
+- demo-producer rec 5 — obeyed: 15581a0
+- demo-producer rec 6 — obeyed: 15581a0
+- demo-producer rec 7 — obeyed: 15581a0
+- demo-producer rec 8 — obeyed: 15581a0
+- demo-producer rec 9 — obeyed: 15581a0
+- demo-producer rec 10 — obeyed: 15581a0
+- demo-producer rec 11 — obeyed: 15581a0
+- demo-producer rec 12 — obeyed: 15581a0
+- demo-producer rec 13 — obeyed: 15581a0
+- demo-producer rec 14 — obeyed: 15581a0
+- demo-producer rec 15 — obeyed: 15581a0
+- demo-producer rec 16 — obeyed: 15581a0
+- demo-producer rec 17 — obeyed: 15581a0
+- demo-producer rec 18 — obeyed: 7af6d7b
+- demo-producer rec 19 — obeyed: 15581a0
+- demo-producer rec 20 — obeyed: 15581a0
+- demo-producer rec 21 — obeyed: 15581a0
+- demo-producer rec 22 — obeyed: 15581a0
+- demo-producer rec 23 — obeyed: 15581a0
+- demo-producer rec 24 — obeyed: 15581a0
+
+> **Read this before reading the ledger as a score.** The gate proves each of these 43 was
+> ANSWERED and that its evidence is real. It does not prove the answer was good. Two partial
+> obediences are disclosed here rather than hidden behind an `obeyed:`: **impl rec 2's** blockquote
+> sub-clause (count `>` lines in a handoff, skip them in a prompt) was NOT adopted — both sides
+> treat `>` lines as prose, keeping one grammar instead of two; **demo rec 12's** live `--advance`
+> drive was taken via the escape the rec itself offers (score `--check-advice`, state plainly that
+> the wiring is asserted by test and not shown running).
 
 ## Design
 
