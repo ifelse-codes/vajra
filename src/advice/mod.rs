@@ -404,6 +404,288 @@ pub fn dispositions_in(prompt_text: &str) -> Vec<(String, Disposition)> {
     out
 }
 
+// ---------------------------------------------------------------------------
+// Step 5 — EXISTENCE-GATE each disposition, then classify. This is where the house pattern lands:
+// a recorded claim only counts when the thing it names is REAL (S67 spine records, S68 commits).
+// A `<placeholder>` answer that satisfies the parser but names nothing is the fake green this
+// whole module would otherwise ship.
+// ---------------------------------------------------------------------------
+
+/// Words that look like an answer and say nothing. Not a spelling list masquerading as a rule —
+/// the real floor is the word count below; these catch the scaffold's own leftovers.
+const EMPTY_REASONS: [&str; 6] = ["tbd", "todo", "n/a", "na", "...", "…"];
+
+/// Is a refusal reason substantive? **A FORM floor, deliberately, and it is stated as one:** this
+/// checks that a human wrote a sentence, never that the sentence is sound. Judging whether a
+/// refusal is JUSTIFIED is exactly the judgement criterion 12 forbids this gate from faking.
+///
+/// The floor is three words, mirroring the S61 Delta substantiveness rule: `refused: no` parses
+/// but answers nothing, and one token is indistinguishable from a placeholder.
+pub fn substantive_reason(reason: &str) -> Result<(), String> {
+    let r = reason.trim();
+    if r.is_empty() {
+        return Err("the refusal records no reason at all".into());
+    }
+    if r.starts_with('<') && r.ends_with('>') {
+        return Err(format!(
+            "the refusal reason is still the template placeholder `{r}`"
+        ));
+    }
+    if EMPTY_REASONS.contains(&r.trim_end_matches('.').to_ascii_lowercase().as_str()) {
+        return Err(format!("`{r}` is a filler token, not a reason"));
+    }
+    if r.split_whitespace().count() < 3 {
+        return Err(format!(
+            "the refusal reason `{r}` is under three words — a refusal is allowed, an \
+             unexplained one is not"
+        ));
+    }
+    Ok(())
+}
+
+/// Existence-gate one recorded disposition against the real repo. The three checks are the three
+/// precedents, applied to advice: a commit that resolves (S68), a reason that is a sentence (S61),
+/// a destination file that exists (S67).
+pub fn check_evidence(root: &Path, d: &Disposition) -> Result<(), String> {
+    match d {
+        Disposition::Obeyed(sha) => {
+            if crate::coder::commit_exists(root, sha) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "`obeyed: {sha}` names no commit in this repo (`git cat-file -e`) — a \
+                     recorded sha that does not resolve is scored unanswered"
+                ))
+            }
+        }
+        Disposition::Refused(reason) => substantive_reason(reason),
+        Disposition::Deferred(path) => {
+            if path.is_empty() {
+                Err("`deferred:` names no destination".into())
+            } else if root.join(path).exists() {
+                Ok(())
+            } else {
+                Err(format!(
+                    "`deferred: {path}` names a file that does not exist — file it somewhere real"
+                ))
+            }
+        }
+    }
+}
+
+/// Join recommendations to dispositions and classify each one. Pure: `check` is injected so the
+/// whole classifier is unit-testable without a repo, exactly like `coder::exec_report`.
+///
+/// Returns the items in recommendation order plus the ORPHAN labels — disposition lines answering
+/// advice no handoff records. An orphan is surfaced, never silent: it usually means a renumbered
+/// brief, which is the one way a recorded answer can quietly stop meaning what it said.
+pub fn classify(
+    recs: Vec<Recommendation>,
+    dispositions: &[(String, Disposition)],
+    check: impl Fn(&Disposition) -> Result<(), String>,
+) -> (Vec<AdviceItem>, Vec<String>) {
+    let items: Vec<AdviceItem> = recs
+        .into_iter()
+        .map(|rec| {
+            let label = rec.label();
+            let answer = match dispositions.iter().find(|(l, _)| *l == label) {
+                None => Answer::Missing,
+                Some((_, d)) => match check(d) {
+                    Ok(()) => Answer::Answered(d.clone()),
+                    Err(why) => Answer::Unreal(d.clone(), why),
+                },
+            };
+            AdviceItem { rec, answer }
+        })
+        .collect();
+
+    let orphans = dispositions
+        .iter()
+        .map(|(l, _)| l.clone())
+        .filter(|l| !items.iter().any(|i| i.rec.label() == *l))
+        .collect();
+
+    (items, orphans)
+}
+
+/// The Advice gate (S127): CLOSING `session` requires every numbered recommendation in its
+/// governed handoffs to carry a disposition whose evidence is REAL.
+///
+/// Fail-closed, in the order the guardrails demand:
+/// - a MALFORMED handoff BLOCKS — a gate that cannot evaluate FAILS (S69), and `Malformed` is
+///   never swallowed as `Absent`;
+/// - recommendations with no prompt to answer them in BLOCK, for the same reason;
+/// - no handoffs at all is silent and legacy-compatible;
+/// - handoffs with zero numbered recommendations WARN **and name the dodge out loud**.
+pub fn advice_gate(root: &Path, session: u32) -> AdviceVerdict {
+    let mut reasons = Vec::new();
+    let mut warnings = Vec::new();
+
+    let reads = crate::fleet::read_handoffs(root, session);
+    let mut recs: Vec<Recommendation> = Vec::new();
+    let mut roles_without_recs: Vec<String> = Vec::new();
+    for r in &reads {
+        match r {
+            crate::fleet::HandoffRead::Absent => {}
+            crate::fleet::HandoffRead::Malformed(path, why) => reasons.push(format!(
+                "{path} exists but does not satisfy the handoff contract ({why}) — a gate that \
+                 cannot read its input FAILS; it never passes by treating the file as absent"
+            )),
+            crate::fleet::HandoffRead::Found(h) => {
+                let found = recommendations_in(h);
+                if found.is_empty() {
+                    roles_without_recs.push(h.role.clone());
+                }
+                recs.extend(found);
+            }
+        }
+    }
+
+    let prompt_path = crate::analyst::find_prompt_for(root, session);
+    let prompt_text = match &prompt_path {
+        None => None,
+        Some(rel) => match fs::read_to_string(root.join(rel)) {
+            Ok(t) => Some(t),
+            Err(e) => {
+                reasons.push(format!("cannot read {rel}: {e}"));
+                None
+            }
+        },
+    };
+
+    if !recs.is_empty() && prompt_text.is_none() && prompt_path.is_none() {
+        reasons.push(format!(
+            "session {session:02} records {} recommendation(s) in its handoffs but has no prompt \
+             to answer them in — the `## Advice` section lives in the session's own prompt",
+            recs.len()
+        ));
+    }
+
+    let dispositions = prompt_text
+        .as_deref()
+        .map(dispositions_in)
+        .unwrap_or_default();
+    let (items, orphans) = classify(recs, &dispositions, |d| check_evidence(root, d));
+
+    let unanswered: Vec<String> = items
+        .iter()
+        .filter(|i| !i.answer.is_answered())
+        .map(|i| i.rec.label())
+        .collect();
+
+    let state = if reads.is_empty() {
+        AdviceState::NoHandoffs
+    } else if items.is_empty() {
+        AdviceState::NoRecommendations(roles_without_recs.clone())
+    } else if unanswered.is_empty() {
+        AdviceState::Answered
+    } else {
+        AdviceState::Unanswered(unanswered)
+    };
+
+    match &state {
+        AdviceState::NoHandoffs | AdviceState::Answered => {}
+        AdviceState::NoRecommendations(roles) => warnings.push(format!(
+            "handoff(s) from {} record NO numbered `rec N —` recommendations, so this gate has \
+             nothing to enforce. Say it plainly: DELETING THE NUMBERS DODGES THIS GATE. Like every \
+             marker gate here, its jurisdiction is self-granted (S68/S71) — an advisor that never \
+             numbers its advice cannot be made to, and advice dropped from an unnumbered brief \
+             stays exactly as invisible as it was before S127",
+            roles.join(", ")
+        )),
+        AdviceState::Unanswered(_) => {
+            for item in items.iter().filter(|i| !i.answer.is_answered()) {
+                let why = match &item.answer {
+                    Answer::Missing => format!(
+                        "no line in `## Advice` answers it (recorded at {})",
+                        item.rec.handoff_path
+                    ),
+                    Answer::Unreal(_, why) => why.clone(),
+                    Answer::Answered(_) => unreachable!(),
+                };
+                reasons.push(format!(
+                    "{} — {why}. Record `- {} — obeyed: <sha>` / `refused: <reason>` / \
+                     `deferred: <path>` in the prompt's `## Advice`",
+                    item.rec.label(),
+                    item.rec.label()
+                ));
+            }
+        }
+    }
+
+    for o in &orphans {
+        warnings.push(format!(
+            "`## Advice` answers `{o}`, which no handoff for session {session:02} records — a \
+             renumbered brief silently re-points a recorded answer at different advice"
+        ));
+    }
+
+    AdviceVerdict {
+        session,
+        prompt_path,
+        items,
+        orphans,
+        state,
+        reasons,
+        warnings,
+    }
+}
+
+/// Render the `--advice NN` surface: one line per recommendation with the disposition it took,
+/// the advice text INLINE (a path alone is not consumption — S112), and the source handoff named.
+pub fn format_advice_checklist(v: &AdviceVerdict) -> String {
+    let mut s = format!(
+        "=== advice: recommendations for session {:02} ===\n",
+        v.session
+    );
+    s.push_str(&format!(
+        "prompt: {}\n",
+        v.prompt_path.as_deref().unwrap_or("(none)")
+    ));
+
+    if v.items.is_empty() {
+        s.push_str(match v.state {
+            AdviceState::NoHandoffs => "recommendations: (no governed handoff for this session)\n",
+            _ => "recommendations: (handoffs exist but record no numbered `rec N —` items)\n",
+        });
+    }
+
+    for item in &v.items {
+        let (mark, note) = match &item.answer {
+            Answer::Answered(d) => ("✓", format!("{}: {}", d.word(), d.evidence())),
+            Answer::Unreal(d, why) => ("✗", format!("{}: {} — {why}", d.word(), d.evidence())),
+            Answer::Missing => ("✗", "UNANSWERED".to_string()),
+        };
+        s.push_str(&format!(
+            "  [{mark}] {label} — {text}\n        {note}\n        source: {src}\n",
+            label = item.rec.label(),
+            text = item.rec.text,
+            src = item.rec.handoff_path,
+        ));
+    }
+
+    match &v.state {
+        AdviceState::Answered => s.push_str(&format!(
+            "state: ANSWERED ({} of {} recommendations)\n",
+            v.items.len(),
+            v.items.len()
+        )),
+        AdviceState::Unanswered(u) => {
+            s.push_str(&format!("state: UNANSWERED -> {}\n", u.join(", ")))
+        }
+        AdviceState::NoRecommendations(roles) => s.push_str(&format!(
+            "state: NO NUMBERED RECOMMENDATIONS ({}) — deleting the numbers dodges this gate\n",
+            roles.join(", ")
+        )),
+        AdviceState::NoHandoffs => s.push_str("state: NO HANDOFFS (nothing to answer)\n"),
+    }
+    s.push_str(
+        "note: this proves each recommendation was ANSWERED and its evidence is real. It does \
+         NOT prove the answer was good.\n",
+    );
+    s
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -536,5 +818,207 @@ This paragraph mentions a rec in prose and must not parse.\n\n\
     fn no_advice_section_records_nothing() {
         assert!(dispositions_in("# Session 1\n\n## Plan\n1. do it\n").is_empty());
         assert!(advice_section("# Session 1\n").is_none());
+    }
+}
+
+#[cfg(test)]
+mod gate_tests {
+    use super::*;
+    use std::process::Command;
+
+    /// A real git repo with one real commit — the only way to test the `obeyed:` existence gate
+    /// honestly (mirrors `coder`'s fixture).
+    fn git_repo_with_commit(dir: &Path) -> String {
+        let git = |args: &[&str]| {
+            Command::new("git")
+                .args(args)
+                .current_dir(dir)
+                .output()
+                .unwrap()
+        };
+        git(&["init", "-q", "."]);
+        git(&["config", "user.email", "t@t"]);
+        git(&["config", "user.name", "t"]);
+        fs::write(dir.join("seed.txt"), "seed").unwrap();
+        git(&["add", "-A"]);
+        git(&["commit", "-q", "-m", "seed", "--no-verify"]);
+        let out = git(&["rev-parse", "HEAD"]);
+        String::from_utf8_lossy(&out.stdout).trim().to_string()
+    }
+
+    fn write_handoff(root: &Path, role: &str, body: &str) {
+        fs::create_dir_all(root.join(".ai/handoffs")).unwrap();
+        fs::write(
+            root.join(format!(".ai/handoffs/session-127-{role}.md")),
+            format!(
+                "---\nrole: {role}\nsession: 127\nagent: claude-code-subagent\n\
+                 source-sha: abc\ncaptured: 2026-08-22T00:00:00Z\ncost_usd: null\n---\n\n\
+                 # {role} handoff — session 127\n\n{body}\n\n## Handoff Delta\n- `+` new\n"
+            ),
+        )
+        .unwrap();
+    }
+
+    fn write_prompt(root: &Path, advice: &str) {
+        fs::create_dir_all(root.join("prompts")).unwrap();
+        fs::write(
+            root.join("prompts/127-task-x.md"),
+            format!("# Session 127\n\n## Advice\n{advice}\n\n## Plan\n1. x\n"),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn criterion_1_an_unanswered_recommendation_blocks_and_names_role_number_and_path() {
+        let tmp = tempfile::tempdir().unwrap();
+        git_repo_with_commit(tmp.path());
+        write_handoff(
+            tmp.path(),
+            "demo-producer",
+            "rec 1 — show the unpin\nrec 2 — show the tally",
+        );
+        write_prompt(
+            tmp.path(),
+            "- demo-producer rec 1 — refused: the unpin is a separate story",
+        );
+
+        let v = advice_gate(tmp.path(), 127);
+        assert!(v.blocked(), "an unanswered recommendation must BLOCK");
+        assert_eq!(
+            v.state,
+            AdviceState::Unanswered(vec!["demo-producer rec 2".into()])
+        );
+        let joined = v.reasons.join("\n");
+        assert!(joined.contains("demo-producer rec 2"), "{joined}");
+        assert!(
+            joined.contains(".ai/handoffs/session-127-demo-producer.md"),
+            "{joined}"
+        );
+    }
+
+    #[test]
+    fn criterion_2_every_recommendation_answered_passes_and_prints_each_disposition() {
+        let tmp = tempfile::tempdir().unwrap();
+        let sha = git_repo_with_commit(tmp.path());
+        write_handoff(
+            tmp.path(),
+            "demo-producer",
+            "rec 1 — a\nrec 2 — b\nrec 3 — c",
+        );
+        write_prompt(
+            tmp.path(),
+            &format!(
+                "- demo-producer rec 1 — obeyed: {sha}\n\
+                 - demo-producer rec 2 — refused: out of scope for one story\n\
+                 - demo-producer rec 3 — deferred: prompts/127-task-x.md"
+            ),
+        );
+        let v = advice_gate(tmp.path(), 127);
+        assert!(!v.blocked(), "reasons: {:?}", v.reasons);
+        assert_eq!(v.state, AdviceState::Answered);
+        let out = format_advice_checklist(&v);
+        for w in ["obeyed:", "refused:", "deferred:"] {
+            assert!(out.contains(w), "surface omits {w}:\n{out}");
+        }
+        assert!(
+            out.contains("does NOT prove the answer was good"),
+            "the surface must state the floor every time it passes:\n{out}"
+        );
+    }
+
+    #[test]
+    fn criteria_3_4_5_each_unreal_evidence_blocks() {
+        let tmp = tempfile::tempdir().unwrap();
+        git_repo_with_commit(tmp.path());
+        write_handoff(
+            tmp.path(),
+            "plan-advisor",
+            "rec 1 — a\nrec 2 — b\nrec 3 — c",
+        );
+        write_prompt(
+            tmp.path(),
+            "- plan-advisor rec 1 — obeyed: 9999999\n\
+             - plan-advisor rec 2 — refused: <reason>\n\
+             - plan-advisor rec 3 — deferred: prompts/999-does-not-exist.md",
+        );
+        let v = advice_gate(tmp.path(), 127);
+        assert!(v.blocked());
+        assert_eq!(v.items.len(), 3);
+        assert!(v
+            .items
+            .iter()
+            .all(|i| matches!(i.answer, Answer::Unreal(..))));
+        let j = v.reasons.join("\n");
+        assert!(j.contains("names no commit"), "{j}"); // criterion 3
+        assert!(j.contains("template placeholder"), "{j}"); // criterion 4
+        assert!(j.contains("names a file that does not exist"), "{j}"); // criterion 5
+    }
+
+    #[test]
+    fn criterion_4_a_reasoned_refusal_passes_but_a_one_word_one_does_not() {
+        assert!(substantive_reason("out of scope for this session").is_ok());
+        assert!(substantive_reason("no").is_err());
+        assert!(substantive_reason("").is_err());
+        assert!(substantive_reason("TBD").is_err());
+        assert!(substantive_reason("<reason>").is_err());
+    }
+
+    #[test]
+    fn criterion_6_handoffs_with_no_numbers_warn_and_name_the_dodge() {
+        let tmp = tempfile::tempdir().unwrap();
+        git_repo_with_commit(tmp.path());
+        write_handoff(
+            tmp.path(),
+            "researcher",
+            "You should probably do the thing.",
+        );
+        write_prompt(tmp.path(), "- (none)");
+        let v = advice_gate(tmp.path(), 127);
+        assert!(!v.blocked(), "a legacy/unnumbered brief must never block");
+        assert_eq!(
+            v.state,
+            AdviceState::NoRecommendations(vec!["researcher".into()])
+        );
+        assert!(
+            v.warnings
+                .iter()
+                .any(|w| w.contains("DELETING THE NUMBERS DODGES THIS GATE")),
+            "the dodge must be named in plain words: {:?}",
+            v.warnings
+        );
+    }
+
+    #[test]
+    fn a_malformed_handoff_fails_closed_and_is_never_read_as_absent() {
+        let tmp = tempfile::tempdir().unwrap();
+        git_repo_with_commit(tmp.path());
+        fs::create_dir_all(tmp.path().join(".ai/handoffs")).unwrap();
+        fs::write(
+            tmp.path().join(".ai/handoffs/session-127-researcher.md"),
+            "not a handoff at all\n",
+        )
+        .unwrap();
+        write_prompt(tmp.path(), "- (none)");
+        let v = advice_gate(tmp.path(), 127);
+        assert!(v.blocked(), "a gate that cannot read its input FAILS (S69)");
+        assert!(v
+            .reasons
+            .iter()
+            .any(|r| r.contains("cannot read its input FAILS")));
+    }
+
+    #[test]
+    fn no_handoffs_is_silent_and_an_orphan_answer_is_surfaced() {
+        let tmp = tempfile::tempdir().unwrap();
+        git_repo_with_commit(tmp.path());
+        write_prompt(tmp.path(), "- ghost-role rec 4 — obeyed: 9999999");
+        let v = advice_gate(tmp.path(), 127);
+        assert!(!v.blocked());
+        assert_eq!(v.state, AdviceState::NoHandoffs);
+        assert_eq!(v.orphans, vec!["ghost-role rec 4".to_string()]);
+        assert!(v
+            .warnings
+            .iter()
+            .any(|w| w.contains("no handoff for session 127 records")));
     }
 }
