@@ -147,20 +147,53 @@ directory**, and each protected by a check that would have caught it.
 > If you did not do it, write `refused:` and say why — that is a pass by design, and it is the
 > only honest option.
 
-**No advisor was dispatched this session, and that is the honest record — not an empty
-section waiting to be filled.** `vajra next --check-advice 128` returns `READY` by the
-`NoRecommendations` path, which is the gate NAMING ITS OWN DODGE (`advice::DODGE`), not the gate
-being satisfied. Written plainly because S127's lesson is that a clean advice ledger proves a word
-was typed, nothing more.
+**One role was dispatched: the independent cold `fidelity-reviewer` (step 11).** Its brief is a
+governed handoff at `.ai/handoffs/session-128-fidelity-reviewer.md`, so the S127 gate CONSUMES it
+and `vajra next --check-advice 128` blocks this close until every one of its eight numbered
+recommendations carries a disposition. **No other advisor was dispatched**, and the cost of that
+is stated rather than hidden: nothing independent shaped the build before the cold pass read it.
 
-- *(no recommendations recorded — no role was dispatched for S128)*
+**Read the dispositions with S127's lesson in hand.** A disposition certifies a typed word and a
+resolving sha, and nothing else. Four of S127's fifty-one were factually wrong and passed. Each
+`obeyed:` below names a commit whose message and diff are the claim — check them, do not count them.
 
-**Why none:** the four defects were already reproduced live in an empty directory at the S127
-closeout and re-reproduced here as step 1 before any fix; the design fork was a two-option
-decision the prompt already framed and the founder already scoped. Dispatching an advisor to
-restate a settled scope would have produced a handoff whose only function was to make this
-section longer. **The cost of that choice, stated:** nothing independent shaped the build before
-the cold review at step 11 — the S128 build is one agent's judgement until that pass reads it.
+- fidelity-reviewer rec 1 — obeyed: `ca5eaca474010b375304e6f624779ab790ce513d`
+  (the summary, with the five-item stranger-still-broken list and 3 ranked candidates)
+- fidelity-reviewer rec 2 — obeyed: `22f5463dac18104f7dc8a879df2813811cbf017b`
+  (the varta fork decision moved into `## Design`, which is what deliverable 4 asked for)
+- fidelity-reviewer rec 3 — obeyed: `f4784c8ffc198d321d4fbf13e392705d231f1ed9`
+  (the named fakest green: hand-typed `GATE_MODULES` replaced by a derived-inventory declaration
+  check where a STALE declaration also fails, and `src/cli/check.rs`'s moved contract is stated)
+- fidelity-reviewer rec 4 — refused: porting `stranger_check` into the scaffolded template is the
+  SAME hand-maintained-fork class as the 66-vs-183 constitution, which this prompt's `## Non-goals`
+  removes from scope by name. It is one line only if you accept that a stranger's `required_audits`
+  should be this repo's list; four of our eleven audits (`dogfood_check`, `pipeline_advance_check`,
+  `dogfood_staleness`, `stranger_check`) reference evidence a scaffolded project does not have —
+  `scripts/stranger-check.sh` is not even scaffolded, so the registration would name a script that
+  does not exist there and every future ground truth would fail a check it cannot run. Fixing it
+  properly means deciding what a stranger's audit list should BE, which is candidate A of the next
+  session. The reviewer asked that a refusal be said out loud in the summary rather than left
+  silent; it is item 2 of "what a stranger still gets wrong".
+- fidelity-reviewer rec 5 — obeyed: `f4784c8ffc198d321d4fbf13e392705d231f1ed9`
+  (positive stderr anchor added first, so the test cannot pass when `sh` never ran the binary)
+- fidelity-reviewer rec 6 — obeyed: `f4784c8ffc198d321d4fbf13e392705d231f1ed9`
+  **and the prediction did NOT reproduce.** Measured at 102 elements on bash 3.2.57:
+  `[ -z "${arr[@]+x}" ]` emits no error and returns the right branch — the alternate word expands
+  once, not per element. Switched to the count form anyway (`${#arr[@]}` is fine on 3.2; the
+  EXPANSION is what aborts) and both measurements are recorded in the script's header, because
+  guessing about bash 3.2 is exactly how the original crash shipped.
+- fidelity-reviewer rec 7 — obeyed: `c5640f8acb6ea867e57fe3843e1414f83a071db8`
+  (Execution steps 11 and 12 recorded, no `<sha>` placeholder left; the full suite re-run at final
+  HEAD and the closeout gate run on the branch BEFORE the PR merges, per S83)
+- fidelity-reviewer rec 8 — obeyed: `ca5eaca474010b375304e6f624779ab790ce513d`
+  (a fresh `vajra check` still exiting 1 is item 3 of the stranger-still-broken list, said plainly
+  and explicitly NOT decided this session, with the reason it is a decision and not a patch)
+
+> **Four of these — recs 2, 3, 5 and 6 — were closed AFTER the ACCEPT**, which breaks the S123 rule
+> ("do not fix findings after the ACCEPT; file them into the next prompt"). Broken deliberately and
+> said out loud: rec 2 and rec 3 close a graded PARTIAL and the named fakest green, and rec 5 closes
+> a probe that could pass without running anything. The reviewer read the pre-fix tree; its verdict
+> stands on that tree, and every post-ACCEPT commit is named above so the two can be separated.
 
 ## Design
 
