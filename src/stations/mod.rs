@@ -1860,4 +1860,40 @@ release:
             "a broken artifact must not render as a good one:\n{rendered}"
         );
     }
+
+    /// S127 criterion 8, asserted rather than assumed: the Advice gate added no station and moved
+    /// no derivation. `K of 8` counts the eight fixed classifiers and nothing else — the fleet's
+    /// evidence has always been reported BESIDE the count, never inside it, and advice is fleet
+    /// evidence. If someone ever wires `advice` into `station_report`, this fails and the
+    /// invariance claim in the S127 summary stops being true silently.
+    #[test]
+    fn s127_added_no_station_and_did_not_move_k_of_8() {
+        assert_eq!(STATION_COUNT, 8, "the counter is K of 8, fixed");
+        let tmp = tempfile::tempdir().unwrap();
+        let report = station_report(tmp.path(), 127);
+        assert_eq!(
+            report.stations.len(),
+            STATION_COUNT,
+            "station_report must derive exactly {STATION_COUNT} statuses"
+        );
+        let names: Vec<&str> = report.stations.iter().map(|s| s.name).collect();
+        assert_eq!(
+            names,
+            vec![
+                "Analyst",
+                "Architect",
+                "Planner",
+                "Coder",
+                "QA",
+                "Demo-er",
+                "Releaser",
+                "Reviewer"
+            ],
+            "the eight stations, in order, unchanged by S127"
+        );
+        assert!(
+            !names.iter().any(|n| n.eq_ignore_ascii_case("advice")),
+            "advice is a GATE over fleet evidence, never a ninth station"
+        );
+    }
 }

@@ -22,3 +22,23 @@ Return your findings brief as your final message. The orchestrator records it as
 Vajra-governed, delta-tracked handoff at `.ai/handoffs/session-<NN>-requirements-analyst.md` via
 `vajra next --role requirements-analyst --from <file>`. Do NOT write the handoff frontmatter yourself —
 Vajra computes the source hash, the timestamp, and the delta against the prior stage.
+
+## Numbered recommendations (Vajra parses these)
+Put every recommendation you make on its own line, numbered, in exactly this shape:
+
+```
+rec 1 — <the recommendation, in one line>
+rec 2 — <the next one>
+```
+
+Elaborate underneath each line as much as you like — only the `rec N —` line is parsed. Number
+from 1, do not skip numbers, and do not renumber across a re-run: a disposition already recorded
+against `rec 2` must keep meaning the same advice.
+
+The session that asked for your brief MUST answer every one of these in writing — `obeyed: <sha>`,
+`refused: <reason>`, or `deferred: <path>` — in the `## Advice` section of its own prompt, and
+`vajra next --check-advice <NN>` BLOCKS its close until each is answered. You PROPOSE; you never
+write the `## Advice` section, and you never record a disposition against your own advice.
+
+This forces an ANSWER, not obedience. A reasoned `refused:` is a perfectly good outcome — so say
+plainly what you recommend and why, and let the author disagree in writing.

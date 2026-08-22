@@ -1,76 +1,106 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 126 — COMPLETE
-- **Type:** CODE — finish the SDLC agent fleet: the last five roles, in one pass (founder pick C at
-  the S125 closeout).
-- **Goal:** Register the five missing roles with distinct keys, correct tool grants and real system
-  prompts; prove each dispatchable by name from a fresh session; record `DECISION-007` S126.
-- **Verdict:** **ACCEPT** — independent cold `fidelity-reviewer`, **7 of 9 SHIPPED**, 2 PARTIAL, 0
-  NOT-BUILT. The roster is complete at **nine roles**; five added with **zero** new grants of
-  `Bash`; all five dispatched by name from five separate headless sessions ($4.4482 metered), each
-  cross-checked the S111 way. 340 lib tests · verify 17/17 · demo 7/7 · only `src/fleet/mod.rs`
-  changed in `src/` · `K of 8` unmoved · no 8th command.
-- **🔴 The residual, unsoftened:** the roster is complete and **nothing depends on it** — no gate
-  consumes a handoff. *Done* is claimed; *working* is not. **S127 = make a gate CONSUME a handoff.**
-- **Report:** `sessions/session-126-summary.md` · **Review:** `sessions/session-126-review.md` ·
-  **Prompt:** `prompts/126-task-finish-the-fleet.md`. **Date last updated:** 2026-08-21.
-- **Branch:** `session-126-finish-the-fleet`. S127 starts from a fresh `session-127-*` branch and a
-  new chat.
+- **Number:** 127 — COMPLETE
+- **Type:** CODE — every recommendation must be ANSWERED (obeyed, refused, or deferred). Founder
+  direction at the S126 closeout, rewritten from "a handoff exists" to "the answer is recorded":
+  *"the obeying is what all Vajra is — the agent obeys the prompt, and obeys in a deterministic
+  way."*
+- **Goal:** Make every numbered recommendation in a session's governed handoffs carry a recorded
+  disposition, and BLOCK the close of a session that leaves any of them unanswered.
+- **Verdict:** **ACCEPT** — independent cold `fidelity-reviewer`, **two passes**. Pass 1 **REJECT**
+  (8 SHIPPED · 2 PARTIAL · 2 NOT-BUILT) and it was right; pass 2 **ACCEPT** (10 SHIPPED · 2 PARTIAL
+  · 0 NOT-BUILT), both PARTIALs closed after it read. **The first gate that CONSUMES a governed
+  handoff as a binding input** (`src/advice/mod.rs`): `obeyed: <sha>` that resolves · `refused:
+  <reason>` that is written · `deferred: <path>` that exists. `vajra next --advice NN` /
+  `--check-advice NN`, wired into the close path. **No 8th command, no new store, no new artifact
+  type.** `DECISION-007`'s S116 deferral **LIFTED** out loud in an S127 addendum. 360 lib tests ·
+  verify 10/10 · demo 13/13 · `K of 8` unmoved.
+- **Dogfooded on itself:** 3 roles, **51 numbered recommendations, all answered**. The gate found
+  two real defects in its own author mid-build (heading-form recs dropped by `handoff_body`; a
+  fenced `## Advice` example read as the real section).
+- **🔴 The residual, unsoftened:** **four `obeyed:` labels in that 51-answer ledger were WRONG and
+  passed the gate** — one caught by pass 1, three by pass 2, from the reflog alone. *"The count
+  would be identical if the advice had been read and ignored."* A disposition certifies a typed
+  word and a resolving sha, and nothing else. **It forces an ANSWER, never obedience.** And run
+  against S126's own handoffs this gate exits 0 — it would not have caught either drop that
+  motivated it. **One gate of eight consumes handoffs.**
+- **Report:** `sessions/session-127-summary.md` · **Review:** `sessions/session-127-review.md` ·
+  **Prompt:** `prompts/127-task-answer-every-recommendation.md`. **Date last updated:** 2026-08-22.
+- **Branch:** `session-127-answer-every-recommendation`. S128 starts from a fresh
+  `session-128-*` branch and a new chat.
 
 ## Previous Session
-- **Number:** 125 — COMPLETE
-- **Type:** NO-CODE mandatory Ground Truth (`125 % 5 == 0`), **widened by the founder into a
-  full-stack review**: execution audit · gap & bottleneck analysis · code & architecture review ·
-  vision re-alignment · a prioritized reboot plan.
-- **Goal:** Run all 10 required audits, answer the two sharpened lenses independently, and say
-  plainly where the effort is lagging and what to kill / fix / accelerate.
-- **Verdict:** **PARTIAL PASS.** Discipline intact, direction drifted. 10 of 10 required audits
-  run · ledger re-verified INTACT (`7862ebd4…`) · 339 lib tests green · zero `src/` changes ·
-  zero commits on the GT branch. Fidelity gate waived: `VAJRA_CLOSEOUT_WAIVER=125` (NO-CODE — the
-  ground-truth report *is* the deliverable; there is no build to cold-review).
-- **Report:** `sessions/session-125-ground-truth.md`. Prompt: `prompts/125-task-ground-truth.md`.
-  **Date last updated:** 2026-08-20.
+- **Number:** 126 — COMPLETE
+- **Type:** CODE — finish the SDLC agent fleet: the last five roles, in one pass.
+- **Verdict:** **ACCEPT** — 7 of 9 SHIPPED, 2 PARTIAL, 0 NOT-BUILT. The roster completed at **nine
+  roles**, five added with **zero** new grants of `Bash`, all five dispatched by name from separate
+  headless sessions ($4.4482 metered).
+- **Its residual, now half-closed:** the roster was complete and nothing depended on it. S127 made
+  one gate depend on a role's output.
+- **Report:** `sessions/session-126-summary.md` · **Review:** `sessions/session-126-review.md`.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 125. Branch `session-125-ground-truth` (NO-CODE work, no commits) +
-  `session-125-closeout` (the commits — GT branches are commit-blocked by hook; `-closeout` is the
-  exempt suffix). S126 starts from a fresh `session-126-*` branch.
-- **The headline, in one line: the loop is closed.** Vajra is graded by Vajra, in the repo that
-  builds Vajra — and nothing inside that loop can report that the wrong thing is being built.
-- **The numbers, all re-derived live this session:**
-  - **16 consecutive sessions (S109–S124) added no capability a new user can reach.** Last
-    user-reachable change: **S108, 2026-08-01.**
-  - Adoption after 55 days public: **0 stars · 0 forks · 0 issues · 0 external contributors ·
-    19 crates.io downloads.**
-  - Boot cost **~100k tokens/session** (399 KB across the load order; KNOWLEDGE 278 KB = 70%),
-    cold cache every session by the one-session-per-chat rule.
-  - **19,410 lines** of write-once verify/demo scripts vs **18,230 lines** of product source.
-  - Longest unattended run ever: **3h28m** (S124). VISION claims *days*.
-- **Both sharpened lenses, answered independently (not repeated from S124):**
-  - **Why the fleet never engaged — STRUCTURAL, not discoverability.** S124's prompt named all
-    four roles AND required an independent cold review. It also said *"do not use it just because
-    it is there"* (an anti-instruction); the one hard requirement named an **artifact** not an
-    **actor**; and no gate anywhere consumes a handoff. Optional by construction.
-  - **Do S124's fabricated citations discredit prior verdicts? NO.** S122 + S123 suites re-run
-    live: exit 0, **23/23** and **14/14**. Their self-grades hold. **But all twelve criteria were
-    about the test suite testing itself** — reliable measurements of the wrong thing.
-- **Seven findings** — full evidence in the report. Worst three: the scaffold ships a 55-line
-  constitution while this repo runs 183 · Vajra governs artifacts, never actors
-  (`src/cli/next.rs:275` hardcodes the provenance string) · two real bugs in what ships, found only
-  by running `vajra init` in an empty directory.
-- **Founder call at closeout: the findings are PARKED, not worked.** Gate to unpark: *the SDLC
-  agent fleet is done AND working.* Backlog: `.ai/ROADMAP.md` §Backlog "🅿️ S125 REBOOT BACKLOG";
-  facts in `.ai/KNOWLEDGE.md` §S125; boot-visible rows in `.ai/STATE.md`.
+- `.ai/SESSION` = 127. Branch `session-127-answer-every-recommendation` (merged via PR — read git,
+  not this line). S128 starts from a fresh `session-128-*` branch.
+- **The headline, in one line: advice you asked for can no longer be dropped in silence — and the
+  session that shipped that gate dropped four pieces of advice in a way the gate could not see.**
+  Both halves are true and both belong in the same sentence.
+- **What is new and load-bearing:**
+  - `src/advice/mod.rs` — the gate. Reads numbered `rec N —` markers out of governed handoffs,
+    reads the prompt's `## Advice`, classifies each item answered / unanswered /
+    claimed-but-not-real, and BLOCKS on the last two. `Malformed` fails closed; `NoRecommendations`
+    WARNs and names its own dodge (`advice::DODGE`, one const).
+  - `fleet::handoff_findings_raw` + `Handoff.raw_body` — the region a marker-counter must read.
+    `handoff_body` drops every `#` line, which silently under-counted heading-form recommendations.
+  - One `RECOMMENDATION_NUMBERING_RULE` rendered into every `ROLES` entry, so a tenth role inherits
+    the contract with no edit; asserted per role and round-tripped through the real parser.
+- **The numbers:** 360 lib tests · verify **10/10** (9 execute-based · 1 behavioral, labelled) ·
+  demo **13/13** (all execute-based) · `K of 8` = 8 of 8 at S126, unmoved · 7 commands, no 8th.
+- **The falsifiability fixture has four states** and was probed live: deleting the answer
+  classification, deleting the recommendation parser, turning the disclosed dodge into a block,
+  silencing it, and collapsing `NoRecommendations` into `NoHandoffs` each turn it RED; renaming
+  every gate message leaves it GREEN.
+- **Two cold passes, two real catches.** Pass 1: a stub the advice said to delete, still in the
+  file, recorded `obeyed:`. Pass 2: three more mis-certified dispositions, found from the reflog.
+  Every rejection so far in this project's history has been correct; that record holds.
 
 ## Next Session
-- **Number:** 126 — **CODE: finish the SDLC agent fleet** (founder direction at the S125 closeout).
-- **Goal:** Four roles exist (`researcher`, `fidelity-reviewer`, `plan-advisor`, `qa-specialist`).
-  **Five stations still have no named role: Analyst · Architect · Coder · Demo-er · Releaser.**
-  S126 closes that gap.
-- **Full prompt:** `prompts/126-task-*.md`.
+- **Number:** S128 — **founder pick pending.** Exactly three ranked candidates, in
+  `sessions/session-127-summary.md`:
+  - **A (recommended) — make a SECOND gate consume its role's handoff.** QA or Demo-er, both of
+    which already re-run live. *Why:* the honest headline is still "one of eight"; the second
+    consumer is where "the fleet works" becomes a claim about the fleet rather than about a gate.
+    *Risk:* a second consumer nothing reaches for is a second decoration — pick the station whose
+    role is actually dispatched.
+  - **B — close the `obeyed:` hole.** Bind the disposition to the diff (the sha must be an ancestor
+    of HEAD and not on `main`, or must touch a file the recommendation names). *Why:* it is S127's
+    disclosed fakest green, with four live specimens. *Risk:* the honest ceiling is low and easy to
+    oversell — "touches a file the advice mentions" is still not "implements the advice".
+  - **C — unpark the S125 reboot backlog.** The 55-line scaffolded constitution,
+    `verify-closeout.sh` crashing on a fresh `vajra init`, unknown subcommands exiting 0. *Why:*
+    the only items a stranger would ever notice; adoption is flat. *Risk:* it is the founder's call
+    whether one consuming gate satisfies *working*.
+- **The prompt is scaffolded DRAFT** and the Analyst gate blocks the advance until the founder
+  flips it to APPROVED — that gate is deliberately the place this decision is recorded.
 - **🔒 Founder directive (S118):** README/VISION claims are the target spec — never soften them;
   no release until reality meets them.
+
+## Carry-Forwards (NEW from S127)
+- **A recorded disposition certifies a typed word and a resolving sha — NOTHING MORE.** Four
+  `obeyed:` labels were factually wrong and passed. Never read an advice ledger's count as evidence
+  the advice was followed. **Required ≠ obeyed; answered ≠ obeyed well.**
+- **A re-run handoff RENUMBERS.** One role writes one handoff, so a second brief replaces the first
+  at that path and previously-recorded answers silently re-point at different advice. The orphan
+  warning does not fire when the counts happen to match.
+- **Fence your examples.** A fenced `## Advice` block inside a prompt was read as the real section
+  — found by the gate, on its own author's prompt. Strip fences BEFORE locating a heading.
+- **A probe that silently no-ops reports false comfort.** Two falsifiability probes matched nothing
+  after `cargo fmt` reflowed the lines, and printed GREEN. Assert the pattern matched.
+- **`hook-session-guard.sh` false-arms on PROSE.** Writing STATE.md text that merely *described*
+  the advance command tripped the one-session-per-chat block: the guard's quoted-span strip only
+  removes shell quotes, and a heredoc body is unquoted. S125's "spelling-bound guards over-block on
+  words", recurring inside the enforcement layer. Worth a fix, not a workaround.
 
 ## Carry-Forwards (NEW from S125)
 - **"Done AND working" is the founder's gate, and *working* is the load-bearing half.** S125

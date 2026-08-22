@@ -1,4 +1,5 @@
 pub mod adapter;
+pub mod advice;
 pub mod analyst;
 pub mod architect;
 pub mod budget;

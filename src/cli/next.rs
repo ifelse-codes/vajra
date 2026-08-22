@@ -5,6 +5,7 @@ use std::io::{self, BufRead, Read as _, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::advice;
 use crate::analyst;
 use crate::architect;
 use crate::coder;
@@ -60,6 +61,13 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-exec") {
         return run_check_exec(args.get(i + 1));
+    }
+    // The Advice gate (S127) rides `vajra next` — no 8th command.
+    if let Some(i) = args.iter().position(|a| a == "--advice") {
+        return run_advice(args.get(i + 1));
+    }
+    if let Some(i) = args.iter().position(|a| a == "--check-advice") {
+        return run_check_advice(args.get(i + 1));
     }
     // The QA stage (S69) also rides `vajra next` — no 8th command.
     if let Some(i) = args.iter().position(|a| a == "--qa") {
@@ -502,6 +510,70 @@ fn run_check_exec(nn: Option<&String>) -> Result<()> {
     for w in &verdict.warnings {
         println!("  ⚠ {w}");
     }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --advice NN` — the Advice gate's SURFACE step (S127): print every numbered
+/// recommendation session NN's governed handoffs record, INLINE (a path is not consumption —
+/// S112), with the disposition the session recorded against each. Read-only; the binary surfaces
+/// the advice and the answer, it never authors either.
+fn run_advice(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--advice")?;
+    let root = repo_root()?;
+    let verdict = advice::advice_gate(&root, session);
+    print!("{}", advice::format_advice_checklist(&verdict));
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    Ok(())
+}
+
+/// `vajra next --check-advice NN` — the Advice GATE (S127): does every numbered recommendation in
+/// session NN's governed handoffs carry a disposition whose evidence is REAL? Exit 1 on an
+/// unanswered or unreal answer (BLOCK); a session with no handoffs, or handoffs carrying no
+/// numbered recommendations, WARNs at most. Mirrors `--check-exec`.
+fn run_check_advice(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-advice")?;
+    let root = repo_root()?;
+
+    let verdict = advice::advice_gate(&root, session);
+    println!("=== advice: dispositions for session {session:02} ===");
+    println!(
+        "prompt: {}",
+        verdict.prompt_path.as_deref().unwrap_or("(none)")
+    );
+    // Criterion 2: pass or fail, print one line per recommendation showing its disposition.
+    for item in &verdict.items {
+        let note = match &item.answer {
+            advice::Answer::Answered(d) => format!("{}: {}", d.word(), d.evidence()),
+            advice::Answer::Unreal(d, why) => format!("{}: {} — {why}", d.word(), d.evidence()),
+            advice::Answer::Missing => "UNANSWERED".to_string(),
+        };
+        let mark = if item.answer.is_answered() {
+            "✓"
+        } else {
+            "✗"
+        };
+        println!("  [{mark}] {} — {note}", item.rec.label());
+    }
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    println!(
+        "note: this proves each recommendation was ANSWERED and its evidence is real — never that \
+         the answer was a good one."
+    );
     if verdict.blocked() {
         std::process::exit(1);
     }
@@ -999,6 +1071,40 @@ fn run_advance() -> Result<()> {
                  commit (Coder gate). Run `vajra next --exec {current:02}`, record \
                  `step N — done: <sha>` per step in the prompt's `## Execution`, or set \
                  VAJRA_SKIP_CODER_GATE=1 to override."
+            );
+        }
+    }
+
+    // Advice gate (S127): the pipeline's ANSWERED bookend. Like the Coder gate it binds on the
+    // session being CLOSED — the advice was given during `current`, so closing it requires every
+    // numbered recommendation in `current`'s governed handoffs to carry a recorded disposition
+    // whose evidence is REAL. This is the first gate to consume a governed handoff as a binding
+    // input (DECISION-007 S127 addendum lifts the S116 deferral that forbade it).
+    //
+    // It does NOT enforce obedience. `refused: <reason>` passes. What it makes impossible is the
+    // silent drop — the failure that cost S126 twice in its own record.
+    let advice_verdict = advice::advice_gate(&root, current);
+    for w in &advice_verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if advice_verdict.blocked() {
+        eprintln!(
+            "[vajra advice] session {current:02} cannot close — advice it asked for is unanswered:"
+        );
+        for r in &advice_verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_ADVICE_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_ADVICE_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {current:02} leaves a recorded recommendation \
+                 unanswered (Advice gate). Run `vajra next --advice {current:02}`, record \
+                 `- <role> rec N — obeyed: <sha>` / `refused: <reason>` / `deferred: <path>` in \
+                 the prompt's `## Advice`, or set VAJRA_SKIP_ADVICE_GATE=1 to override. A reasoned \
+                 refusal passes — silence does not."
             );
         }
     }

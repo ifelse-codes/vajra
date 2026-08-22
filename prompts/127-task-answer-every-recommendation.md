@@ -1,7 +1,7 @@
 # Session 127 — CODE: every recommendation must be ANSWERED (obeyed, refused, or deferred)
 
-> **Status:** DRAFT — the Analyst gate (`vajra next --advance`) BLOCKS starting this session while
-> DRAFT. Flip to `APPROVED` once the founder signs off.
+> **Status:** APPROVED — founder sign-off at the S127 open ("start session 127 all approved",
+> 2026-08-22).
 >
 > **Founder-directed rewrite at the S126 closeout.** The first draft of this prompt gated on *a
 > handoff exists*. The founder cut straight past it: **"the obeying is what all Vajra is — the
@@ -164,29 +164,110 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: `<sha>`
-- step 2 — done: `<sha>`
-- step 3 — done: `<sha>`
-- step 4 — done: `<sha>`
-- step 5 — done: `<sha>`
-- step 6 — done: `<sha>`
-- step 7 — done: `<sha>`
-- step 8 — done: `<sha>`
-- step 9 — done: `<sha>`
-- step 10 — done: `<sha>`
-- step 11 — done: `<sha>`
-- step 12 — done: `<sha>`
+- step 1 — done: d41fefb
+- step 2 — done: eaa4ff8
+- step 3 — done: 8cd3bea
+- step 4 — done: 01d86a0
+- step 5 — done: 2043432
+- step 6 — done: 61c867a
+- step 7 — done: 6bff7ec
+- step 8 — done: 1e2d5c6
+- step 9 — done: 51e5d14
+- step 10 — done: 7af6d7b
+- step 11 — done: f9b9211
+- step 12 — done: 4e93ddf
 
 > **Fill these with real landing shas before closeout.** S119, S122 and S124 each left `<sha>`
 > placeholders and only an independent cold review caught it — never self-noticed.
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-> This session is the first to carry this section. Add one line per recorded recommendation as the
-> handoffs land: `- <role> rec N — obeyed: <sha>` / `refused: <reason>` / `deferred: <path>`.
-> **A session that ships this gate and leaves its own advice unanswered has refuted itself.**
+> Three roles were dispatched and returned **51 numbered recommendations** between them — the
+> `implementation-advisor` (19), the `demo-producer` (24) and the `fidelity-reviewer` (8, its
+> pass-1 REJECT). Every one is answered below. **A session that ships this gate and leaves its own advice unanswered has
+> refuted itself** — so this section is the delivery, not paperwork about it.
 
-- *(none yet — fill as advisors are dispatched)*
+**implementation-advisor** (19 recommendations, `.ai/handoffs/session-127-implementation-advisor.md`)
+
+- implementation-advisor rec 1 — obeyed: 8cd3bea
+- implementation-advisor rec 2 — obeyed: 633994e
+- implementation-advisor rec 3 — obeyed: 9c76ba9
+- implementation-advisor rec 4 — obeyed: 633994e
+- implementation-advisor rec 5 — obeyed: 633994e
+- implementation-advisor rec 6 — refused: the rule is rendered from ONE const into every ROLES entry instead of nine hand-edited system prompts, so a tenth role inherits the contract with no edit; the advisor itself named that structural impossibility the runner-up's real merit, and it is the S114 lesson (one hardcoded word stamped every future role). Recorded as a rejected alternative in the DECISION-007 S127 addendum.
+- implementation-advisor rec 7 — obeyed: eaa4ff8
+- implementation-advisor rec 8 — obeyed: 633994e
+- implementation-advisor rec 9 — obeyed: 8cd3bea
+- implementation-advisor rec 10 — refused: joining on the `<role> rec N` label already makes an unknown role key an ORPHAN and warns about it by name; gating on `fleet::resolve_role` would discard a typo'd line before it could be surfaced, which is strictly worse for the failure the rec is aimed at.
+- implementation-advisor rec 11 — obeyed: 633994e
+- implementation-advisor rec 12 — obeyed: 2043432
+- implementation-advisor rec 13 — obeyed: 633994e
+- implementation-advisor rec 14 — obeyed: 633994e
+- implementation-advisor rec 15 — obeyed: 8da2093
+- implementation-advisor rec 16 — obeyed: 61c867a
+- implementation-advisor rec 17 — obeyed: 1e2d5c6
+- implementation-advisor rec 18 — obeyed: e8cdd49
+- implementation-advisor rec 19 — obeyed: ec4a8c2
+
+**demo-producer** (24 recommendations, `.ai/handoffs/session-127-demo-producer.md`)
+
+- demo-producer rec 1 — obeyed: 15581a0
+- demo-producer rec 2 — obeyed: 15581a0
+- demo-producer rec 3 — obeyed: 15581a0
+- demo-producer rec 4 — obeyed: 15581a0
+- demo-producer rec 5 — obeyed: 15581a0
+- demo-producer rec 6 — obeyed: 15581a0
+- demo-producer rec 7 — obeyed: 15581a0
+- demo-producer rec 8 — obeyed: 15581a0
+- demo-producer rec 9 — obeyed: 15581a0
+- demo-producer rec 10 — obeyed: 15581a0
+- demo-producer rec 11 — obeyed: 15581a0
+- demo-producer rec 12 — obeyed: 15581a0
+- demo-producer rec 13 — obeyed: 15581a0
+- demo-producer rec 14 — obeyed: 15581a0
+- demo-producer rec 15 — obeyed: 15581a0
+- demo-producer rec 16 — obeyed: 15581a0
+- demo-producer rec 17 — refused: the row it asked for counts `## Advice` HEADINGS, and this session's own prompt shipped that heading EMPTY at the merge-base while its fenced example matches a naive disposition grep — so the row would have read 1-vs-1 and proved nothing. The demo says so in its own comment and substitutes the count of answers the GATE reads. Recorded as a refusal because that is a substitution, not obedience, and pass 2 was right to call the `obeyed:` a false certification.
+- demo-producer rec 18 — obeyed: 7af6d7b
+- demo-producer rec 19 — obeyed: 15581a0
+- demo-producer rec 20 — obeyed: 15581a0
+- demo-producer rec 21 — obeyed: 15581a0
+- demo-producer rec 22 — obeyed: 15581a0
+- demo-producer rec 23 — obeyed: 15581a0
+- demo-producer rec 24 — obeyed: 15581a0
+
+**fidelity-reviewer** (8 recommendations, `.ai/handoffs/session-127-fidelity-reviewer.md`)
+
+> **Read the numbering, not just the count.** One role writes one handoff, so the reviewer's **pass-2**
+> brief REPLACED its pass-1 brief at that path (the delta records the re-run: 7232 bytes now vs 4091
+> prior). These eight lines therefore answer **pass 2's** recommendations. **Pass 1's** eight, and the
+> commits that closed them (`8da2093`, `9740be6`, `4e93ddf`, `1daba29`), are recorded in
+> `sessions/session-127-review.md` — which is the only place they survive. That is a real limit of
+> this contract, disclosed in the summary rather than smoothed over: **a re-run handoff renumbers,
+> and the gate's orphan warning does not fire when the counts happen to match.**
+
+- fidelity-reviewer rec 1 — obeyed: 0822b79
+- fidelity-reviewer rec 2 — obeyed: 0822b79
+- fidelity-reviewer rec 3 — obeyed: b266a63
+- fidelity-reviewer rec 4 — obeyed: b266a63
+- fidelity-reviewer rec 5 — obeyed: b266a63
+- fidelity-reviewer rec 6 — obeyed: b266a63
+- fidelity-reviewer rec 7 — obeyed: a33b738
+- fidelity-reviewer rec 8 — obeyed: a33b738
+
+> **Read this before reading the ledger as a score.** The gate proves each of these 51 was
+> ANSWERED and that its evidence is real. It does not prove the answer was good — and this session
+> is the proof: **impl rec 9's** delete-the-`_uses`-stub clause was recorded `obeyed:` while the
+> stub was still in the file. The sha resolved, the gate passed it, and only the cold reviewer
+> caught it. Fixed in `8da2093`, and recorded in `DECISION-007` as the live specimen of this gate's
+> floor rather than quietly corrected.
+> Two partial obediences are disclosed here rather than hidden behind an `obeyed:`: **impl rec 2's** blockquote
+> sub-clause (count `>` lines in a handoff, skip them in a prompt) was NOT adopted — both sides
+> treat `>` lines as prose, keeping one grammar instead of two; **demo rec 12's** live `--advance`
+> drive was first taken via the escape the rec itself offers, and the demo then described the
+> fallback as "asserted by test" — which was **false**, as the cold review's pass-1 REJECT found.
+> It is now genuinely driven, by `verify-session-127.sh`'s
+> `advance-really-binds-on-unanswered-advice` check, so demo rec 12 is obeyed in full.
 
 ## Design
 

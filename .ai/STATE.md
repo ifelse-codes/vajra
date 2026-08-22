@@ -3,33 +3,51 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-126-finish-the-fleet`** — S126 COMPLETE (CODE), **ACCEPT** on the independent cold
-`fidelity-reviewer` pass (**7 of 9 SHIPPED**, 2 PARTIAL, 0 NOT-BUILT — the two PARTIALs were the
-review record and the summary, which cannot exist in the diff the reviewer reads).
+**None — between sessions (S127 complete, S128 not yet started).**
 
-**The fleet roster is COMPLETE: four roles → nine.** Every one of the 8 stations now has a named
-role, plus the station-less `researcher`. New keys, each resolving the STATION-vs-ROLE collision
-the S114/S116/S121 way: `requirements-analyst` (Analyst) · `design-advisor` (Architect) ·
-`implementation-advisor` (Coder) · `demo-producer` (Demo-er) · `release-coordinator` (Releaser).
+S127 closed on `session-127-answer-every-recommendation` with **ACCEPT** on the independent cold
+`fidelity-reviewer` — **two passes**. Pass 1 returned **REJECT** (8 SHIPPED · 2 PARTIAL ·
+2 NOT-BUILT) and was right; pass 2 returned **ACCEPT** (10 SHIPPED · 2 PARTIAL · 0 NOT-BUILT), and
+both of its PARTIALs were closed after it read.
 
-**Five roles added, ZERO new grants of `Bash`.** The one real fork — does the Coder role get
-`Write`/`Edit`? — resolved **read-only**: granting it would reverse S123 and the S122
-executor-thesis retraction in the same session that ships it. A write grant is now a separate,
-founder-gated decision (`DECISION-007` S126 addendum).
+**The first gate that CONSUMES a governed handoff as a binding input.** `src/advice/mod.rs` reads
+the numbered `rec N —` markers out of a session's handoffs, reads the `## Advice` section of that
+session's own prompt, and BLOCKS the close on any recommendation with no recorded disposition.
+Three dispositions, each existence-gated the house way: `obeyed: <sha>` (`git cat-file -e`, S68) ·
+`refused: <reason>` (non-empty, non-placeholder, S61) · `deferred: <path>` (the file EXISTS, S67).
+`vajra next --advice NN` surfaces, `--check-advice NN` blocks, both riding `vajra next` — **no 8th
+command, no new store, no new artifact type.** The disposition lives in the prompt beside
+`## Execution`, for the same reason.
 
-**All five DISPATCHED BY NAME from five separate headless sessions** — the S111 session boundary
-crossed five times instead of waiting five sessions — each cross-checked against two
-Claude-Code-written files agreeing on a random tool-call id. **$4.4482 metered.**
+**`DECISION-007`'s S116 addendum marked handoff-into-gate consumption an "explicitly deferred
+non-goal". The S127 addendum LIFTS that deferral out loud** rather than citing around it — the
+Architect gate checks that a cited record EXISTS, not that the design obeys it, so a citation would
+have passed while the deviation stood.
 
-**Residual, stated not softened: the roster is complete and NOTHING DEPENDS ON IT.** No gate
-consumes a handoff; nine roles that nothing depends on is nine decorations. S126 closes the *done*
-half of the founder's gate; the *working* half is S127.
+**It forces an ANSWER, never obedience.** A reasoned `refused:` passes by design. What becomes
+impossible is the silent drop that cost S126 twice in its own record.
+
+**Dogfooded on itself: 3 roles dispatched by name, 51 numbered recommendations, all answered** (48
+`obeyed:`, 3 `refused:`). The gate found **two real defects in its own author** mid-build: a
+heading-form `### rec N —` was being dropped by `handoff_body`, and a fenced `## Advice` EXAMPLE in
+the prompt was being read as the real section. 360 lib tests · verify 10/10 (9 exec · 1 behav) ·
+demo 13/13 (all exec) · `K of 8` unmoved · 7 commands.
+
+**🔴 THE RESIDUAL, UNSOFTENED — read this before quoting the 51.** **Four `obeyed:` labels in that
+ledger were WRONG and passed the gate.** Pass 1 found one (a stub the advice said to delete, still
+in the file); pass 2 found three more from the reflog alone, in minutes. In the reviewer's words:
+*"The count would be identical if the advice had been read and ignored, provided the author typed
+three words and pasted any commit from the branch."* **A disposition certifies a typed word and a
+resolving sha, and nothing else.** Run against S126's own five handoffs, this gate exits 0 — it
+would **not** have caught either drop that motivated the entire session. And **one gate of eight
+consumes handoffs**; the fleet is one notch more wired in than S126, not ten.
 
 ## Active PRs
-- **S126 PR — to be opened from `session-126-finish-the-fleet`.** (Structural drift, named S125
-  and S65: this field is written *before* the PR is opened, so "not yet opened" is stale by
-  construction every session. Read git, not this line.)
-- S125 [#140](https://github.com/ifelse-codes/vajra/pull/140) MERGED 2026-08-20 · S124
+- **S127 PR — to be opened from `session-127-answer-every-recommendation`.** (Structural drift,
+  named S125 and S65: this field is written *before* the PR is opened, so "not yet opened" is stale
+  by construction every session. Read git, not this line.)
+- S126 [#143](https://github.com/ifelse-codes/vajra/pull/143) MERGED · S125
+  [#140](https://github.com/ifelse-codes/vajra/pull/140) MERGED 2026-08-20 · S124
   [#139](https://github.com/ifelse-codes/vajra/pull/139) MERGED · S123
   [#138](https://github.com/ifelse-codes/vajra/pull/138) MERGED · S122 (#133) MERGED · S121 (#131)
   MERGED · S120 (#130) MERGED · S119 (#129) MERGED · S118 (#128) MERGED.
@@ -40,9 +58,10 @@ half of the founder's gate; the *working* half is S127.
   tamper-evident (`DECISION-004`). Fleet = real named agents behind the existing gates
   (`DECISION-007`).
 - **Current direction, set by the founder at the S125 closeout: FINISH THE SDLC AGENT FLEET.**
-  Four roles built (`researcher`, `fidelity-reviewer`, `plan-advisor`, `qa-specialist`); **five
-  stations still have no named role** — Analyst, Architect, Coder, Demo-er, Releaser. The S125
-  reboot backlog stays parked until the fleet is done **and working**.
+  **S126 closed the *done* half** (nine roles, one per station). **S127 closed the first slice of
+  the *working* half** — one gate now consumes a role's output, so skipping that role has a
+  consequence. **Whether ONE gate of eight satisfies *working* is the founder's call at the next
+  pick**; the S125 reboot backlog stays parked until they say so.
 - **Recorded caveat (S125, carried not argued):** S125 findings 1–3 say the four existing roles are
   never reached for, because the shipped scaffold never asks and no gate depends on them. Roles 5–9
   inherit that unless F1/F2 land — so *"and working"* is the load-bearing half of the founder's
@@ -71,6 +90,11 @@ half of the founder's gate; the *working* half is S127.
   the exact marker its station's gate already parses, and every role PROPOSES — none authors the
   recorded marker section. **Read the next section before quoting this one: nothing depends on any
   of them.**
+- **The Advice gate (S127) — the first gate that CONSUMES a governed handoff.** Advice a session
+  asked for must carry a recorded, existence-gated disposition or the close path refuses to finish
+  the session; `vajra next --advice NN` surfaces it read-only. Driven live at close with every
+  other stage neutralised by its own override, so the refusal can only be this gate's. **Read its
+  residual in §Active Branch before citing it: it proves ANSWERED, never obeyed.**
 - **Ledger** (S100): `verify-closeout.sh --ledger-verify` **re-confirmed INTACT at S125**
   (`7862ebd4…`, committed == worktree).
 - **v0.1 install: four real channels**, stranger-shippable as measured at S110.
@@ -78,10 +102,22 @@ half of the founder's gate; the *working* half is S127.
 
 ## What Is Broken / Weak
 
-- **🔴 THE FLEET IS DONE BUT NOT WORKING (S126, the session's own headline).** Nine roles are
-  registered, scaffolded, dispatchable and governed — and **no gate consumes a handoff**, so
-  skipping every role has no consequence. Nine decorations. This is the founder's gate to unpark
-  the S125 backlog, and only its *done* half is closed. **S127 = make one gate consume a handoff.**
+- **🔴 A DISPOSITION CERTIFIES A TYPED WORD, NOT A DEED (S127, the session's own headline).**
+  Four `obeyed:` labels in S127's own 51-answer ledger were factually wrong and passed the gate;
+  every one was caught by a cold reader, none by the mechanism. **Never read an advice ledger's
+  count as evidence the advice was followed.**
+- **🟡 ONE gate of eight consumes a handoff (S127).** S126's "nine decorations" is no longer true
+  and is not yet false: skipping the roles the *other seven* stations own still has no consequence.
+- **🟡 A re-run handoff RENUMBERS (S127).** One role writes one handoff, so a second brief replaces
+  the first at that path and previously-recorded answers silently re-point at different advice. The
+  gate's orphan warning does not fire when the counts happen to match.
+- **🟡 Jurisdiction is self-granted (S127, measured not theorised).** Run against S126's own five
+  committed handoffs the Advice gate exits 0 — it would not have caught either drop that motivated
+  it. An advisor that never numbers its advice cannot be made to.
+- **🟡 `hook-session-guard.sh` false-armed on PROSE (S127, live).** Writing STATE.md text that
+  merely *described* the advance command tripped the one-session-per-chat block, because the
+  guard's quoted-span strip only removes shell quotes and a heredoc body is unquoted. The S125
+  "spelling-bound guards over-block on words" finding, recurring inside the enforcement layer.
 - **🟡 The dispatch cross-check runs over COPIES (S126 fakest green, reviewer's call).** The
   committed `*-parent-tooluse.json` / `*-subagent-meta.json` pairs are checked for internal
   consistency; nothing binds them to the runtime originals in `~/.claude/projects/`, so a
