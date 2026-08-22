@@ -174,8 +174,8 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 - step 8 — done: 1e2d5c6
 - step 9 — done: 51e5d14
 - step 10 — done: 7af6d7b
-- step 11 — done: `<sha>`
-- step 12 — done: `<sha>`
+- step 11 — done: f9b9211
+- step 12 — done: 4e93ddf
 
 > **Fill these with real landing shas before closeout.** S119, S122 and S124 each left `<sha>`
 > placeholders and only an independent cold review caught it — never self-noticed.
@@ -235,9 +235,25 @@ Each disposition is **existence-gated**, mirroring the house pattern exactly:
 - demo-producer rec 23 — obeyed: 15581a0
 - demo-producer rec 24 — obeyed: 15581a0
 
-> **Read this before reading the ledger as a score.** The gate proves each of these 43 was
-> ANSWERED and that its evidence is real. It does not prove the answer was good. Two partial
-> obediences are disclosed here rather than hidden behind an `obeyed:`: **impl rec 2's** blockquote
+**fidelity-reviewer** (8 recommendations, `.ai/handoffs/session-127-fidelity-reviewer.md` — the
+pass-1 REJECT, answered under the very gate this session ships)
+
+- fidelity-reviewer rec 1 — obeyed: 8da2093
+- fidelity-reviewer rec 2 — obeyed: 8da2093
+- fidelity-reviewer rec 3 — obeyed: 8da2093
+- fidelity-reviewer rec 4 — obeyed: 8da2093
+- fidelity-reviewer rec 5 — obeyed: 8da2093
+- fidelity-reviewer rec 6 — obeyed: 4e93ddf
+- fidelity-reviewer rec 7 — obeyed: 4e93ddf
+- fidelity-reviewer rec 8 — obeyed: 9740be6
+
+> **Read this before reading the ledger as a score.** The gate proves each of these 51 was
+> ANSWERED and that its evidence is real. It does not prove the answer was good — and this session
+> is the proof: **impl rec 9's** delete-the-`_uses`-stub clause was recorded `obeyed:` while the
+> stub was still in the file. The sha resolved, the gate passed it, and only the cold reviewer
+> caught it. Fixed in `8da2093`, and recorded in `DECISION-007` as the live specimen of this gate's
+> floor rather than quietly corrected.
+> Two partial obediences are disclosed here rather than hidden behind an `obeyed:`: **impl rec 2's** blockquote
 > sub-clause (count `>` lines in a handoff, skip them in a prompt) was NOT adopted — both sides
 > treat `>` lines as prose, keeping one grammar instead of two; **demo rec 12's** live `--advance`
 > drive was first taken via the escape the rec itself offers, and the demo then described the
