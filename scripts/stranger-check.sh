@@ -11,7 +11,7 @@
 # from an empty directory.
 #
 # So: a REAL empty directory, a REAL `git init`, the REAL release binary, and the first
-# five things a stranger does. Every assertion asserts its own pattern matched (S127) —
+# six things a stranger does — the sixth (S129) being the GOVERNANCE they are handed. Every assertion asserts its own pattern matched (S127) —
 # a probe that silently no-ops reports false comfort.
 #
 # Usage:  bash scripts/stranger-check.sh [--bin /path/to/vajra]
@@ -192,6 +192,63 @@ if [ -z "$UNEXPECTED" ]; then
   pass "every reported FAIL is true and actionable"
 else
   fail "every reported FAIL is true and actionable" "unexpected: $(printf '%s' "$UNEXPECTED" | tr '\n' ';')"
+fi
+echo ""
+
+# =====================================================================================
+# Criterion 6 — the GOVERNANCE a stranger is handed (S129).
+#
+# S128's cold reviewer found the second half of the fork: "a stranger's ground truth will
+# never run the audit invented to protect strangers." Every audit in a scaffolded project's
+# CONSTRAINTS.yaml must be one a stranger can actually produce evidence for — and the list
+# must not have silently shrunk back to a hand-typed subset. The DEEP comparison against the
+# live .ai/ is scaffold-drift.sh's job; this is the stranger-facing half of it, asserted from
+# inside the scaffold alone.
+# =====================================================================================
+echo "--- criterion 6: the governance a stranger is handed ---"
+SC_AGENTS="$WORK/.ai/AGENTS.md"
+SC_CONSTRAINTS="$WORK/.ai/CONSTRAINTS.yaml"
+
+SC_RULES="$(awk '/^## Hard Rules/{f=1;next} f&&/^## /{exit} f&&/^\|/{print}' "$SC_AGENTS" \
+  | grep -v '^| *Rule *|' | grep -v '^|[ -]*---' | wc -l | tr -d ' ')"
+if [ "${SC_RULES:-0}" -ge 13 ]; then
+  pass "the scaffolded constitution carries $SC_RULES binding rules"
+else
+  fail "the scaffolded constitution carries >= 13 binding rules" \
+       "only $SC_RULES — the 8-rule hand-typed fork is back (S129)"
+fi
+
+SC_AUDITS_RAW="$(grep -m1 '^ *required_audits:' "$SC_CONSTRAINTS" | sed 's/.*\[//; s/\].*//')"
+if [ -z "$SC_AUDITS_RAW" ]; then
+  fail "the scaffolded ground truth has a readable audit list" "no required_audits: [...] line"
+else
+  SC_AUDITS="$(printf '%s' "$SC_AUDITS_RAW" | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -v '^$')"
+  SC_AUDIT_N="$(printf '%s\n' "$SC_AUDITS" | wc -l | tr -d ' ')"
+  if [ "$SC_AUDIT_N" -ge 10 ]; then
+    pass "the scaffolded ground truth requires $SC_AUDIT_N audits"
+  else
+    fail "the scaffolded ground truth requires >= 10 audits" \
+         "only $SC_AUDIT_N — the 7-entry hand-typed fork is back (S129)"
+  fi
+
+  # An audit whose evidence a stranger cannot produce makes their ground truth fail a check
+  # it cannot run. That is exactly why S128 refused to register stranger_check here.
+  UNRUNNABLE="$(printf '%s\n' "$SC_AUDITS" | grep -E '^(stranger_check|scaffold_drift_check)$' || true)"
+  if [ -z "$UNRUNNABLE" ]; then
+    pass "no audit a stranger cannot produce evidence for"
+  else
+    fail "no audit a stranger cannot produce evidence for" \
+         "requires: $(printf '%s' "$UNRUNNABLE" | tr '\n' ' ') — the evidence script is not shipped"
+  fi
+
+  # ...and the withholding must be VISIBLE to them, with a reason, not silent.
+  WITHHELD="$(grep -c 'scaffold-omits-audit: .* — .' "$SC_CONSTRAINTS" 2>/dev/null | tr -d ' ')"
+  if [ "${WITHHELD:-0}" -ge 1 ]; then
+    pass "$WITHHELD withheld audit(s) named in the stranger's own file, with reasons"
+  else
+    fail "withheld audits are named in the stranger's own file, with reasons" \
+         "nothing declared — a stranger cannot tell what governance was kept from them"
+  fi
 fi
 echo ""
 
