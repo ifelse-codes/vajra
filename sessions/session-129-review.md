@@ -196,6 +196,21 @@ the same advice."* (This is the S127 renumbering trap, avoided by the reviewer u
 
 ---
 
+## Attestation
+
+**Verdict:** ACCEPT
+
+**Review-Inputs-SHA:** `fca673defe06a39ed91f9bcacebd02f59139c2ad8a927f05f070d07f2b7cb015`
+
+Recomputed strictly AFTER every `## Execution` sha landed and after both passes were recorded
+(S69, and pass 2's rec 16). Two consecutive `scripts/verify-closeout.sh --inputs-sha 129` runs
+agreed before this line was written. **What it certifies and nothing more:** that this review was
+written against this prompt and this diff. It does not certify per-commit content — **neither
+reviewer had a shell, and both said so** — and it does not certify that the advice was good, only
+that it was answered.
+
+---
+
 **Both passes ACCEPT. Two independent cold readers, two forks found that the builder had not seen —
 `drift_axes` by pass 1 (fixed), the `TPL_CONSTRAINTS` family by pass 2 (refused, named, and made
 candidate A). Neither reader had a shell, and both said so.**
