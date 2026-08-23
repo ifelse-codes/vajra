@@ -123,3 +123,56 @@ unchanged.**
 - **Ledger** (S100): `verify-closeout.sh --ledger-verify` re-confirmed INTACT at S125.
 - **v0.1 install: four real channels**, stranger-shippable as measured at S110. `vajractl 0.1.0` on
   crates.io predates everything above.
+
+## What Is Broken / Weak
+- **🔴 THE FOURTH FORK — refused at S129, and TWO of its keys are already WRONG in a stranger's
+  file.** `TPL_CONSTRAINTS` in `src/cli/init.rs` hand-types twins of live `.ai/CONSTRAINTS.yaml`
+  keys: `communication.forbid` ships **4 of our 5**; **`commit.forbid_skip_hooks` is absent while
+  `src/varta/render.rs:84` READS it**, so a stranger's Varta render silently drops that governance
+  line. Also absent: `commit.forbid_force_push_to`, `self_review_questions` (read at
+  `src/varta/render.rs:194`), the whole `end_of_session` block (cited by `src/analyst/mod.rs` and
+  `src/cli/next.rs`). Plus `demo.required_elements` and `verify.artifacts_dir` (twins that agree
+  today), the scaffolded load order (8 vs 9) and session loop (9 vs 10). **S131 candidate A.**
+- **🔴 A registered gate nobody executes is not a gate.** `vajra next --check-plan` had been
+  mis-parsing every prompt since the `## Plan (ordered — cite the acceptance criteria each step
+  covers)` heading was adopted; the Planner station in `K of 8` reported PASSED off it. Fixed at
+  S129. **Assume the same of any other gate no session has run** — that is an S130 GT question.
+- **`stranger_check` and `scaffold_drift_check` are REGISTERED, not RUN.** Nothing forces a ground
+  truth to execute either. S130 is the first that must.
+- **Carrying a rule is not enforcing it.** A stranger READS all 13 binding rules; what enforces them
+  is the same hook set as before, untouched by S129.
+- **A declared rewrite's wording is unconstrained forever after.** `scaffold-retexts-rule:` proves a
+  declaration and a reason exist; it never proves the rewrite preserves the rule.
+- **The fleet is nine roles that almost nothing reaches for.** One gate consumes one handoff (S127);
+  S128 and S129 each dispatched exactly one role. The founder's "done AND working" gate is open.
+- **A recorded disposition certifies a typed word and a resolving sha, nothing more (S127).**
+- **`vajra init` blocks on stdin without EOF**; a stranger's first `vajra check` exits 1.
+- **Adoption has never moved: 0 stars · 0 forks · 0 issues · 19 downloads.**
+- **Dogfood is stale.** Last paid run S124 (`$3.2985`). Read `vajra next --dogfood-age`, never this
+  file.
+
+## What Is In Progress
+- **Nothing is mid-flight.** S129 is complete and its PR is to be opened; S130 is the mandatory
+  NO-CODE ground truth (`prompts/130-task-ground-truth.md`) and takes no code.
+- Queued for the founder's pick at the S130 closeout: **A** the fourth fork + a KEY-SET inventory ·
+  **B** F2, the dispatch receipt · **C** a paid dogfood ride-along from a FRESH scaffold.
+
+## Cost Tracking
+- Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
+- S53–75: ~$0 each. **S76: real but UNKNOWN** (opus-estimate ≤ ~$26.6).
+- **S77–91: ~$0 each** (S78 ~$0.055). **S92: $0.2713** · **S97: $1.2758** · **S102: $0.4644** ·
+  **S103: $0.6797** (all authoritative). **S104–109: ~$0 each.**
+- **S110: $0 (NO-CODE GT).** **S111–S117: $0 metered for build** (subagent tokens roll in unitemized).
+- **S118: $4.0911771** authoritative (sonnet, headless `-p`, 1331s).
+- **S119: $0 metered.** **S120: $0** (NO-CODE GT). **S121–S123: $0 metered.**
+- **S124: $3.2984944499999984** authoritative (sonnet, headless `-p`) — **the last paid dogfood.**
+- **S125: $0 metered** (interactive NO-CODE GT).
+- **S126: $4.4482 authoritative** — five headless `claude -p` dispatches, each figure the run's own
+  `total_cost_usd`. The orchestrating interactive session's own cost is not metered here.
+- **S128: $0 metered for build** (interactive; one `fidelity-reviewer` subagent pass, unitemized).
+- **S129: $0 metered for build** (interactive; **two** `fidelity-reviewer` subagent passes roll in
+  unitemized — ~113k and ~154k subagent tokens respectively, which is the largest un-metered review
+  spend of any session so far and worth naming rather than reporting as "$0"). **Dogfood staleness
+  unchanged — the last paid dogfood remains S124.**
+- Cumulative: **~$91.2 + S76 (unknown, ≤ ~$26.6 opus-estimate) + S111–S129 subagents (unknown,
+  not small).**
