@@ -113,9 +113,19 @@ run_check "banner-still-lists-seven" behav help_lists_seven
 #   scripts/verify-session-129.sh   — step 9, NEW. This file.
 #   scripts/demo-session-129.sh     — step 9, NEW.
 #   scripts/fixture-session-129.sh  — step 8, NEW. The falsifiability plants.
+#   src/planner/mod.rs              — UNPLANNED, and the reason is the point: running the Planner
+#                                     gate at close revealed it was mis-parsing. The house heading
+#                                     `## Plan (ordered — cite the acceptance criteria each step
+#                                     covers)` contains the word "acceptance", and the acceptance
+#                                     parser matched on `contains`, so eleven plan steps were read
+#                                     as eleven acceptance criteria and the gate demanded a
+#                                     `covers: 11` for a criterion that does not exist. Two-line
+#                                     precedence fix (`&& !is_plan_heading`) + a falsifiable test.
+#                                     Fixed at the source rather than by rewording the prompt,
+#                                     because every prompt since the heading was adopted has this.
 #   (.ai/AGENTS.md is a build input too and is deliberately NOT declared — this session changed
 #    no binding rule, and over-declaring it would fail the stale half of this check.)
-DECLARED_BUILD_INPUT_CHANGES="build.rs src/cli/init.rs Cargo.toml .ai/CONSTRAINTS.yaml scripts/scaffold-drift.sh scripts/stranger-check.sh scripts/verify-session-129.sh scripts/demo-session-129.sh scripts/fixture-session-129.sh"
+DECLARED_BUILD_INPUT_CHANGES="build.rs src/cli/init.rs src/planner/mod.rs Cargo.toml .ai/CONSTRAINTS.yaml scripts/scaffold-drift.sh scripts/stranger-check.sh scripts/verify-session-129.sh scripts/demo-session-129.sh scripts/fixture-session-129.sh"
 no_undeclared_build_input_change() {
   local base; base="$(git merge-base main HEAD 2>/dev/null)" || return 1
   [ -n "$base" ] || { echo "cannot resolve merge-base — a check that cannot evaluate FAILS"; return 1; }
@@ -199,6 +209,23 @@ constraints_register_drift_audit() {
     echo "MISSING: the question list does not ask the widening question"; return 1; }
 }
 run_check "constraints-registers-drift-audit" struct constraints_register_drift_audit
+
+# The Planner gate is GREEN on this session's OWN prompt — the check that found the mis-parse.
+# EXECUTE-BASED: runs the real binary against the real prompt file and reads its verdict.
+planner_gate_green_on_own_prompt() {
+  local out; out="$("$VAJRA" next --check-plan 129 2>&1)"; echo "$out"
+  grep -q "verdict: READY" <<<"$out" || {
+    echo "the Planner gate refuses this session's own prompt"; return 1; }
+  # ...and the mis-parse itself. The checklist must surface exactly the TEN real acceptance
+  # criteria. Before the fix it surfaced twenty-one — the ten, then the plan's own eleven steps
+  # read as criteria — so a `[11]` line is the signature of the bug and must not come back.
+  local plan; plan="$("$VAJRA" next --plan 129 2>&1)"; echo "$plan"
+  local n; n="$(grep -cE '^  \[[0-9]+\] ' <<<"$plan")"
+  [ "$n" -eq 10 ] || { echo "expected exactly 10 surfaced acceptance criteria, got $n"; return 1; }
+  grep -qE '^  \[11\] ' <<<"$plan" && { echo "a [11] criterion is back — the plan is being parsed as acceptance again"; return 1; }
+  grep -q '^  \[10\] ' <<<"$plan" || { echo "criterion 10 is missing — the probe matched nothing"; return 1; }
+}
+run_check "planner-gate-green-on-own-prompt" exec planner_gate_green_on_own_prompt
 
 # The unit + integration suites. Run last: slowest, least surprising.
 run_check "cargo-tests-green" exec cargo test --release --quiet
