@@ -149,7 +149,7 @@ so nobody has to guess which sha carries which half:
 One advisor was dispatched: an independent cold `fidelity-reviewer` (step 10), which returned
 **ACCEPT** with eight recommendations. **All eight were obeyed** — none refused, none deferred.
 
-- fidelity-reviewer rec 1 (fill `## Execution` with real landing shas) — obeyed: `PENDING`
+- fidelity-reviewer rec 1 (fill `## Execution` with real landing shas) — obeyed: `56672a4`
 - fidelity-reviewer rec 2 (derive `drift_axes` or declare it out, **this** session) — obeyed: `0fa9dd5`
 - fidelity-reviewer rec 3 (make `RETEXT_RULES` visible to the stranger and to the drift check) — obeyed: `0fa9dd5`
 - fidelity-reviewer rec 4 (stop hardcoding `>= 13` / `>= 10`; derive the unrunnable-audit set) — obeyed: `b771887`
