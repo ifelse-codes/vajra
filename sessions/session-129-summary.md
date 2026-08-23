@@ -17,6 +17,7 @@ for 128 sessions. Nothing compared them, so nothing noticed. Measured before any
 |---|---|---|
 | binding rules a stranger receives | **8 of 13**, two of them under a different NAME | **13 of 13**, names byte-exact |
 | ground-truth audits required of them | **7 of 11** | **10 of 12** |
+| ground-truth drift axes | **6 of 7** — *nobody knew; found mid-session by the cold reviewer* | **7 of 7** |
 | reason on record for anything missing | **none** | one per withheld audit, **in their own file** |
 | what keeps the two in step | somebody remembers | **derived at build time** |
 | what happens when they diverge | nothing, for 128 sessions | `scaffold-drift.sh` goes **RED** |
@@ -80,23 +81,66 @@ with both alternatives rejected out loud.
 
 | what | result |
 |---|---|
-| `scripts/verify-session-129.sh` | **11/11 ALL GREEN** — exec 3 · struct 3 · behav 1 · nested 4 |
-| `scripts/demo-session-129.sh` | **13/13 GREEN** — exec 12 · struct 1 |
-| `scripts/scaffold-drift.sh` | **12/12 GREEN** |
-| `scripts/stranger-check.sh` | **20/20 GREEN** (was 16/16) |
-| `scripts/fixture-session-129.sh` | **13/13 GREEN** — 5 plants + 1 control |
-| `cargo test --release` | **364 passed, 0 failed** |
+| `scripts/verify-session-129.sh` | **12/12 ALL GREEN** — exec 4 · struct 3 · behav 1 · nested 4 |
+| `scripts/demo-session-129.sh` | **15/15 GREEN** — exec 14 · struct 1 |
+| `scripts/scaffold-drift.sh` | **18/18 GREEN** — three inventories, both directions |
+| `scripts/stranger-check.sh` | **21/21 GREEN** (was 16/16) |
+| `scripts/fixture-session-129.sh` | **18/18 GREEN** — 7 plants + 1 control |
+| `cargo test --release` | **365 passed, 0 failed** |
 | `vajra next --stations 128` | **8 of 8**, same derivation, same eight names |
+| `vajra next --check-plan 129` | **READY** — after fixing the gate that refused it (below) |
 | top-level commands | **7** — `scaffold` and `drift` both rejected as unrecognised |
 
-**Falsifiability, in detail.** Five plants, each required to go red *through the check that owns it*:
+**Falsifiability, in detail.** Seven plants, each required to land *through the check that owns it*:
 P1 a binding rule added live and never shipped → RED through the RULES check, naming the rule ·
 P2 an audit added live and never shipped → RED through the AUDITS check, naming the audit ·
 P3 a declaration gone stale → the **BUILD** fails, naming it · P4 a derivation source dropped from
 the crate → RED through the PACKAGE check · P5 the `stranger_check` omission declaration deleted →
-`stranger-check` RED through the runnable-audit check, because the default is carried. **The
-control is the point:** rewording a rule's DETAIL while leaving its NAME alone stays **GREEN** — the
-contract is the rule's identity, not the file's bytes.
+`stranger-check` RED through the runnable-evidence check, naming the missing script, because the
+default is carried · **P6 a rule genuinely withheld → GREEN, with the round trip proven** (the rule
+leaves the scaffold, its reason arrives in the stranger's file, and the declaration count moves off
+zero) · P7 a rewrite claimed for wording that did not change → RED as a stale claim. **The control
+is the point:** rewording a rule's DETAIL while leaving its NAME alone stays **GREEN** — the contract
+is the rule's identity, not the file's bytes.
+
+---
+
+## What the cold review changed — every recommendation obeyed
+
+Pass 1 returned **ACCEPT** and eight recommendations. **All eight were obeyed; none refused.** The
+work is named here as post-ACCEPT rather than blended into the sections above, and a **fresh pass 2**
+was run on the result.
+
+| rec | what it caught | what landed |
+|---|---|---|
+| 2 | **`drift_axes` — a THIRD hand-typed fork**, 6 against 7, three lines above the derived include, in the block this session rewrote | derived, with its own `OMIT_AXES` declaration list and the same build-time stale panic (`0fa9dd5`) |
+| 3 | `RETEXT_RULES` was an **undeclared deviation channel** — two rules shipped with rewritten wording while the file read "Declared omissions: none" | a reason field, a `scaffold-retexts-rule:` marker in the stranger's file, and a drift check that compares DETAIL text: an undeclared rewrite FAILS, a rewrite claimed for unchanged wording FAILS (`0fa9dd5`) |
+| 4 | criterion 6 **hardcoded `>= 13` and `>= 10`** and a typed exclusion list — a hand-typed twin of a live count, in the session that exists to kill those | every assertion is now RELATIVE: the file against its own derivation notes, and **no audit may name an evidence script the scaffold does not ship** — derived, so it holds for future audits with no list to maintain (`b771887`) |
+| 5 | `OMIT_RULES` was empty, so the drift check's **rule-omission branch was a pass over an empty list** | P6 plants a real omission and proves the round trip; the declaration count moves off zero (`b771887`) |
+| 6 | `scripts/stranger-check.sh` changed this session and sat **outside the declaration boundary** | `scripts` joins the derived inventory roots; nine shipped files declared with reasons (`41d4fa9`) |
+| 7 | the declaration check is **branch-only by construction** and goes RED after merge | said in the script (`41d4fa9`) |
+| 8 | publishing now **ships this repo's `.ai/AGENTS.md` and `.ai/CONSTRAINTS.yaml` inside the crate** | recorded in `KNOWLEDGE.md`, with the consequence that a stray brace or an emptied list breaks a stranger's build (`41d4fa9`) |
+| 1 | `## Execution` was unfilled | eleven landing shas, plus a table naming which commit carries each step's post-review extension (`56672a4`) |
+
+## And one thing nobody recommended, because running the gate found it
+
+**`vajra next --check-plan 129` REFUSED this session's own APPROVED prompt**, demanding a
+`covers: 11` for an acceptance criterion that does not exist. The cause is exact: the house heading
+is `## Plan (ordered — cite the acceptance criteria each step covers)`, it contains the word
+*acceptance*, and the acceptance parser matched on `contains` — so the plan's own eleven steps were
+read as eleven acceptance criteria.
+
+**This has been true of every prompt since that heading was adopted.** It did not surface earlier
+because S128's plan had no more steps than it had criteria, so the phantom numbers happened to be
+covered anyway. S129's eleven-against-ten is the first time the arithmetic exposed it. The Planner
+station in `K of 8` reads this same gate, so **a station has been reporting PASSED off a parser that
+mis-read the prompt** — the "registered, not run" class, one level in.
+
+Fixed at the source (`is_plan_heading` wins over `is_acceptance_heading`) rather than by rewording
+the prompt, with a falsifiable test: revert the guard and it fails, naming `[1, 2, 1, 2]`.
+`src/planner/mod.rs` is declared in the verify suite as an UNPLANNED change with that reason, and a
+new execute-based check asserts the gate is READY on this session's own prompt and that a `[11]`
+line never comes back.
 
 ---
 
@@ -132,33 +176,37 @@ contract is the rule's identity, not the file's bytes.
 
 ## The fakest green
 
-**The drift check's inventory is a two-item boundary its own author drew — which is exactly the
-class S128 named, one level up.**
+**Pass 1's answer was `drift_axes`, and it was right — so it is fixed, and the honest thing is to
+say what took its place rather than to claim the class is closed.**
 
-`scaffold-drift.sh` compares the Hard Rules table and `required_audits`. Those two are now
-airtight. **Everything else in the scaffold's constitution is still hand-written prose that nothing
-compares to anything** — its "What This Repo Is", its load order (8 entries against this repo's 9),
-its session loop (9 steps against 10), its speaking-skills section. A divergence there is invisible
-today in precisely the way the rule table was invisible yesterday. The session's own headline —
-"one source for what a stranger gets" — is true of two lists and false of the file.
+**My call now: `stranger-check` criterion 6c passes vacuously today.** The check that matters most
+in the whole session — *no audit may demand an evidence script the scaffold does not ship* — reports
+`no audit demands a script at all (nothing to be unable to run)`. That is TRUE: none of the ten
+carried audits names a script; their evidence is `vajra` commands the stranger already has. It is
+also a green over an empty set, which is the exact shape pass 1 condemned in `OMIT_RULES`. It bites
+only under fixture P5, and P5 is the only reason it is not decoration.
 
-Named honestly rather than fixed, because fixing it means deciding what those sections should BE for
-a stranger, which is a second decision the size of this session's.
+**Runner-up, and still the largest thing: the derivation covers three lists, not the file.** The
+scaffold's constitution is 76 lines against this repo's 183. Its load order lists 8 entries where
+this repo loads 9; its session loop has 9 steps where this repo runs 10 — and the live file labels
+both of those sections *Mandatory*. Nothing compares them. A divergence there is invisible today in
+precisely the way `drift_axes` was invisible yesterday. Pass 1's warning is the one to carry:
+**"the honest form of the residual is: we did not look one line up."** Three lists later, that is
+still the right instruction.
 
-Runners-up, both real:
+**Third: carrying a rule is not enforcing it.** A stranger now READS all 13. What enforces them in
+their repo is the same hook set as before, untouched this session.
 
-- **Carrying a rule is not enforcing it.** A stranger now READS all 13. What enforces them in their
-  repo is the same hook set as before, untouched this session.
-- **`scaffold_drift_check` is REGISTERED, not RUN.** Identical to S128's `stranger_check` residual:
-  nothing forces a ground-truth session to execute it. S130 is the first that must run both.
-
----
+**Fourth: `scaffold_drift_check` is REGISTERED, not RUN** — identical to S128's `stranger_check`
+residual. S130 is the first ground truth that must execute both, and the Planner mis-parse above is
+what that residual costs when nobody runs a gate.
 
 ## What a stranger STILL gets wrong after this session
 
-1. **The rest of their constitution is still a fork.** 76 lines against this repo's 183. Only the
-   binding rules and the audit list are derived. Their load order lists 8 entries where this repo
-   loads 9; their session loop has 9 steps where this repo runs 10.
+1. **The rest of their constitution is still a fork.** 76 lines against this repo's 183. Only three
+   lists are derived — binding rules, `required_audits`, `drift_axes`. Their load order lists 8
+   entries where this repo loads 9; their session loop has 9 steps where this repo runs 10 — and
+   the live file labels both of those sections *Mandatory*.
 2. **`vajra init` still blocks on stdin without EOF.** Every script in this repo works around it
    with `</dev/null`. A stranger scripting their setup hits a hang with no message.
 3. **Their first `vajra check` still exits 1** — `branch: not main` on a fresh `git init`, which is
@@ -186,8 +234,10 @@ truth*, which is the standing residual in both sessions.
 Three ranked candidates for **S131**, after that GT signs off:
 
 **A — finish the derivation (close this session's own fakest green).** *Goal:* bring the rest of the
-scaffold's constitution under one source — load order, session loop, and a hunt for every OTHER list
-in this repo with a scaffolded twin nobody has compared. *Why:* it is the residual this session
+scaffold's constitution under one source — load order and session loop, both labelled *Mandatory* in
+the live file and both still forked — plus a hunt for every OTHER list in this repo with a
+scaffolded twin nobody has compared. **`drift_axes` is the argument for it:** a third fork was found
+by a reader, mid-session, three lines from the fix. *Why:* it is the residual this session
 named itself, the mechanism already exists, and S128's lesson was that any list here may have a
 twin. *Risk:* the remaining sections are genuinely Vajra-specific prose, so this is a second design
 decision, not an extension of the first — and it could turn into scaffold-polishing while nothing
