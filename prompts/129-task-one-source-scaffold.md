@@ -142,6 +142,50 @@ drift, so this class cannot come back the way it came.
   not that the design obeys it — a citation is not permission.)**
 - **The fork to argue, not assume:** *what should a stranger's constitution and audit list BE?*
   Full copy, parameterised derivation, or a declared subset. Name the rejected options.
+
+### THE DECISION (recorded before any code — S129 step 2)
+
+**A stranger's governance is a PARAMETERISED DERIVATION of this repo's, with every deviation
+declared at the source and a stale declaration failing the BUILD.**
+
+Mechanism, precisely:
+
+- `build.rs` reads the live `.ai/AGENTS.md` `## Hard Rules` table and the live
+  `.ai/CONSTRAINTS.yaml#ground_truth.required_audits`, and emits generated fragments that
+  `src/cli/init.rs` `include_str!`s into `TPL_AGENTS` and `TPL_CONSTRAINTS`.
+- **The default for anything new is CARRIED, verbatim.** A rule added to `.ai/AGENTS.md`
+  appears in the next scaffold with no action taken — the failure mode that produced this
+  fork is structurally gone, not merely detected.
+- Deviating needs a declaration in `build.rs`: `OMIT` (element → reason) or `RETEXT`
+  (rule → stranger-facing detail). Both are compile-time data, adjacent to the template they
+  modify — **no new artifact, no new store, no new command** (the S53 mapping rule).
+- **A stale declaration FAILS THE BUILD.** Declaring an omission or an override for something
+  that is no longer in the live source panics `build.rs`. S128's fakest green was a
+  hand-typed list that measured the boundary its own author drew; a declaration that cannot
+  go stale is the fix.
+- `scripts/scaffold-drift.sh` is the execute-based second opinion: it compares the LIVE `.ai/`
+  against the files a REAL `vajra init` writes in a REAL empty directory, using the REAL
+  release binary — never against the template constants that produce them. It names every
+  element it compared.
+
+**REJECTED — full copy (`include_str!` of `.ai/AGENTS.md`).** The counter-example that makes
+this session cheap, `verify-closeout.sh`, is byte-identical in both places precisely *because
+it is project-agnostic*. The constitution is not. A copy would tell a stranger their repo is
+"Vajra — one CLI that guides any AI coding agent", that its owner is Suman, that they are bound
+by ADR-0001…0005 they never wrote, and that a nine-role fleet and a `prompts/NN-task-<slug>.md`
+load-order entry govern them. Accurate to this repo, false about theirs.
+
+**REJECTED — declared subset (keep the hand-typed template, add a check on top).** Cheaper, and
+it is the half of this design that survives: the check. What it cannot do is fix the default. A
+new rule would stay silently absent from every scaffold until someone ran the check and then
+hand-typed it — the same hand-typing, with a tripwire. The founder's word was *derived*.
+
+**What is NOT derived, stated here so the summary cannot quietly claim otherwise:** only the
+Hard Rules table and the audit list are. The rest of the scaffold's constitution — its
+"What This Repo Is", its load order, its session loop, its speaking-skill sections — remains
+hand-written, because those sections are Vajra-specific prose in the live file and a stranger's
+project is not Vajra. The derived inventory is *the binding sets*, and the drift check says so
+in its own output rather than reporting a bare OK.
 - **Scope discipline:** this is the scaffold's CONTENT and its drift guard. It is not the
   boot-context diet (F4), not the dispatch receipt (F2), and not a release.
 
