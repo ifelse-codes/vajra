@@ -206,49 +206,94 @@ echo ""
 # inside the scaffold alone.
 # =====================================================================================
 echo "--- criterion 6: the governance a stranger is handed ---"
+# NO MAGIC NUMBERS. The first cut asserted ">= 13 rules" and ">= 10 audits" and carried a typed
+# list of audits a stranger cannot run — a hand-typed twin of a live count, introduced by the
+# session whose whole purpose was to kill hand-typed twins. S129's cold reviewer called it: it
+# would go stale by construction, not by neglect. Every assertion below is RELATIVE — the file
+# is checked against its OWN derivation notes and its OWN contents.
 SC_AGENTS="$WORK/.ai/AGENTS.md"
 SC_CONSTRAINTS="$WORK/.ai/CONSTRAINTS.yaml"
 
-SC_RULES="$(awk '/^## Hard Rules/{f=1;next} f&&/^## /{exit} f&&/^\|/{print}' "$SC_AGENTS" \
+# 6a. The constitution's derivation note claims N rules; the table must have exactly N rows.
+# A hand-typed regression loses the note (fails) or keeps a count that no longer matches (fails).
+SC_CLAIMED="$(grep -o 'These [0-9]* rules are generated at build time' "$SC_AGENTS" | grep -o '[0-9]*')"
+SC_ACTUAL="$(awk '/^## Hard Rules/{f=1;next} f&&/^## /{exit} f&&/^\|/{print}' "$SC_AGENTS" \
   | grep -v '^| *Rule *|' | grep -v '^|[ -]*---' | wc -l | tr -d ' ')"
-if [ "${SC_RULES:-0}" -ge 13 ]; then
-  pass "the scaffolded constitution carries $SC_RULES binding rules"
+if [ -z "$SC_CLAIMED" ]; then
+  fail "the constitution states how many rules it derived" \
+       "no derivation note — this file was hand-typed, which is the S129 regression"
+elif [ "$SC_CLAIMED" = "$SC_ACTUAL" ]; then
+  pass "the constitution derives $SC_ACTUAL rules and carries $SC_CLAIMED"
 else
-  fail "the scaffolded constitution carries >= 13 binding rules" \
-       "only $SC_RULES — the 8-rule hand-typed fork is back (S129)"
+  fail "the constitution's rule count matches its own derivation note" \
+       "note says $SC_CLAIMED, table has $SC_ACTUAL"
 fi
 
-SC_AUDITS_RAW="$(grep -m1 '^ *required_audits:' "$SC_CONSTRAINTS" | sed 's/.*\[//; s/\].*//')"
-if [ -z "$SC_AUDITS_RAW" ]; then
-  fail "the scaffolded ground truth has a readable audit list" "no required_audits: [...] line"
+# 6b. Same for the audit list: its note says "N of M audits", and M - N omissions must be declared.
+SC_NOTE="$(grep -o '— [0-9]* of [0-9]* audits' "$SC_CONSTRAINTS" | head -1)"
+SC_AUDIT_N="$(grep -m1 '^ *required_audits:' "$SC_CONSTRAINTS" | sed 's/.*\[//; s/\].*//' \
+  | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -c '[a-z]')"
+if [ -z "$SC_NOTE" ]; then
+  fail "the ground truth states how many audits it derived" "no derivation note on required_audits"
 else
-  SC_AUDITS="$(printf '%s' "$SC_AUDITS_RAW" | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -v '^$')"
-  SC_AUDIT_N="$(printf '%s\n' "$SC_AUDITS" | wc -l | tr -d ' ')"
-  if [ "$SC_AUDIT_N" -ge 10 ]; then
-    pass "the scaffolded ground truth requires $SC_AUDIT_N audits"
+  SC_CARRIED="$(printf '%s' "$SC_NOTE" | awk '{print $2}')"
+  SC_TOTAL="$(printf '%s' "$SC_NOTE" | awk '{print $4}')"
+  SC_DECL="$(grep -c 'scaffold-omits-audit: .* — .' "$SC_CONSTRAINTS" | tr -d ' ')"
+  if [ "$SC_CARRIED" = "$SC_AUDIT_N" ] && [ "$((SC_TOTAL - SC_CARRIED))" -eq "$SC_DECL" ]; then
+    pass "$SC_AUDIT_N audits required, $SC_DECL withheld, and the arithmetic closes"
   else
-    fail "the scaffolded ground truth requires >= 10 audits" \
-         "only $SC_AUDIT_N — the 7-entry hand-typed fork is back (S129)"
+    fail "the audit list, its note and its declarations agree" \
+         "note '$SC_NOTE', list has $SC_AUDIT_N, $SC_DECL declared omission(s)"
   fi
+fi
 
-  # An audit whose evidence a stranger cannot produce makes their ground truth fail a check
-  # it cannot run. That is exactly why S128 refused to register stranger_check here.
-  UNRUNNABLE="$(printf '%s\n' "$SC_AUDITS" | grep -E '^(stranger_check|scaffold_drift_check)$' || true)"
-  if [ -z "$UNRUNNABLE" ]; then
-    pass "no audit a stranger cannot produce evidence for"
-  else
-    fail "no audit a stranger cannot produce evidence for" \
-         "requires: $(printf '%s' "$UNRUNNABLE" | tr '\n' ' ') — the evidence script is not shipped"
-  fi
+# 6c. THE POINT, derived rather than listed: no audit may demand evidence from a script this
+# scaffold does not ship. That is exactly why S128 refused to register `stranger_check` here —
+# and it now holds for any FUTURE audit too, without anyone maintaining an exclusion list.
+#
+# Read from the QUESTION ITEMS only (`^    - `), which is where an audit names the evidence it
+# demands. The `scaffold-omits-audit:` comments also name scripts — that is the whole point of
+# those comments, and counting them would make the check fire on its own explanation.
+UNRUNNABLE=""; SCRIPTS_SEEN=0
+while IFS= read -r ref; do
+  [ -z "$ref" ] && continue
+  SCRIPTS_SEEN=$((SCRIPTS_SEEN+1))
+  [ -f "$WORK/$ref" ] || UNRUNNABLE="$UNRUNNABLE $ref"
+done <<EOF
+$(grep '^    - ' "$SC_CONSTRAINTS" | grep -o 'scripts/[a-zA-Z0-9_.-]*\.sh' | sort -u)
+EOF
+if [ "$SCRIPTS_SEEN" -eq 0 ]; then
+  pass "no audit demands a script at all (nothing to be unable to run)"
+elif [ -z "$UNRUNNABLE" ]; then
+  pass "all $SCRIPTS_SEEN script(s) their ground truth names are shipped"
+else
+  fail "every script their ground truth names is shipped" \
+       "missing:$UNRUNNABLE — their ground truth would fail a check they cannot run"
+fi
 
-  # ...and the withholding must be VISIBLE to them, with a reason, not silent.
-  WITHHELD="$(grep -c 'scaffold-omits-audit: .* — .' "$SC_CONSTRAINTS" 2>/dev/null | tr -d ' ')"
-  if [ "${WITHHELD:-0}" -ge 1 ]; then
-    pass "$WITHHELD withheld audit(s) named in the stranger's own file, with reasons"
-  else
-    fail "withheld audits are named in the stranger's own file, with reasons" \
-         "nothing declared — a stranger cannot tell what governance was kept from them"
-  fi
+# 6d. A withholding must be VISIBLE to them, with a reason — and must not contradict the list.
+WITHHELD="$(grep 'scaffold-omits-audit:' "$SC_CONSTRAINTS" 2>/dev/null | sed 's/.*scaffold-omits-audit: *//; s/ *—.*//')"
+CONTRADICTION=""
+for w in $WITHHELD; do
+  grep -m1 '^ *required_audits:' "$SC_CONSTRAINTS" | grep -q "\b$w\b" && CONTRADICTION="$CONTRADICTION $w"
+  grep -q "scaffold-omits-audit: $w — ." "$SC_CONSTRAINTS" || CONTRADICTION="$CONTRADICTION $w(no reason)"
+done
+if [ -z "$WITHHELD" ]; then
+  pass "nothing was withheld from this stranger"
+elif [ -z "$CONTRADICTION" ]; then
+  pass "every withheld audit is named to them with a reason, and none is also required"
+else
+  fail "withheld audits are named with a reason and not also required" "contradiction:$CONTRADICTION"
+fi
+
+# 6e. Reworded rules are declared to them too — the detail-rewrite channel, made visible.
+RETEXT_N="$(grep -c 'scaffold-retexts-rule: .* — .' "$SC_AGENTS" | tr -d ' ')"
+RETEXT_CLAIM="$(grep -c 'Reworded details' "$SC_AGENTS" | tr -d ' ')"
+if [ "$RETEXT_CLAIM" -ge 1 ]; then
+  pass "the constitution states its reworded details ($RETEXT_N declared)"
+else
+  fail "the constitution states its reworded details" \
+       "no 'Reworded details' line — a rewritten rule would be invisible to them"
 fi
 echo ""
 

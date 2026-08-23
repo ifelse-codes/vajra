@@ -8,16 +8,20 @@
 # plant asserts its own edit LANDED before its result is trusted; a plant that silently
 # no-ops reports false comfort.
 #
-# Five plants and one control:
+# Seven plants and one control:
 #   P1  a binding rule added to the live constitution, never shipped   -> drift RED (rules)
 #   P2  an audit added to the live constraints, never shipped          -> drift RED (audits)
 #   P3  a declaration that has gone stale                              -> the BUILD fails
 #   P4  a derivation source excluded from the published crate          -> drift RED (package)
 #   P5  the stranger_check omission declaration removed                -> stranger-check RED
+#   P6  a rule genuinely withheld, with a declared reason              -> drift GREEN, round-trip
+#   P7  a rewrite claimed for wording that did not change              -> drift RED (stale rewrite)
 #   C   a rule's DETAIL reworded, its NAME untouched                   -> both stay GREEN
 #
-# The control is the point: identity is the rule NAME. A check that went red on P1..P5 and
-# also on C would be diffing bytes, not governing a contract.
+# The control is the point: identity is the rule NAME. A check that went red on P1..P7 and
+# also on C would be diffing bytes, not governing a contract. P6 is the other half of that
+# point — the only plant that must stay GREEN, because a DECLARED withholding is a pass by
+# design, and it exists because a branch that never runs is not a check (S129 cold review).
 #
 # Usage:  bash scripts/fixture-session-129.sh
 # Exit:   0 = every plant fired through its own check, and the control stayed green.
@@ -226,10 +230,11 @@ if ! grep -q '"stranger_check"' "$SRC_BUILD"; then
   REBUILT=1
   if cargo build --release >/dev/null 2>&1; then
     OUT="$(/bin/bash scripts/stranger-check.sh --bin "$ROOT/target/release/vajra" 2>&1)"
-    if printf '%s' "$OUT" | grep -q 'no audit a stranger cannot produce evidence for *FAIL'; then
-      pass "P5 turns stranger-check RED through the runnable-audit check"
+    if printf '%s' "$OUT" | grep -q 'every script their ground truth names is shipped *FAIL' \
+       && printf '%s' "$OUT" | grep -q 'scripts/stranger-check.sh'; then
+      pass "P5 turns stranger-check RED through the runnable-evidence check, naming the script"
     else
-      fail "P5 turns stranger-check RED through the runnable-audit check" \
+      fail "P5 turns stranger-check RED through the runnable-evidence check, naming the script" \
            "a stranger's ground truth now demands an audit they cannot run, and nothing noticed"
     fi
   else
@@ -237,6 +242,94 @@ if ! grep -q '"stranger_check"' "$SRC_BUILD"; then
   fi
 else
   fail "P5 plant landed in $SRC_BUILD" "the edit no-opped — this plant measured nothing"
+fi
+cp "$BACKUP/build.rs" "$SRC_BUILD"
+cargo build --release >/dev/null 2>&1
+echo ""
+
+# ---- P6: the OMIT_RULES path, exercised end to end ---------------------------------------
+# S129's cold reviewer: `OMIT_RULES` is empty, so its `scaffold-omits-rule:` markers are never
+# produced and the drift check's rule-omission branch is a pass over an empty list. Declare one
+# for real, and prove the whole round trip: the rule LEAVES the scaffold, its marker and reason
+# ARRIVE in the stranger's file, and the drift check stays GREEN because it is declared.
+echo "--- P6: a rule genuinely withheld, with a declared reason ---"
+python3 - "$SRC_BUILD" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p).read()
+anchor = "const OMIT_RULES: &[(&str, &str)] = &[];"
+assert anchor in s, "fixture P6: OMIT_RULES not found — the plant would have no-opped"
+plant = ('const OMIT_RULES: &[(&str, &str)] = &[\n'
+         '    ("~2h per session cap", "a reason planted by fixture-129 to exercise this path"),\n'
+         '];')
+open(p, "w").write(s.replace(anchor, plant, 1))
+PY
+if grep -q 'a reason planted by fixture-129' "$SRC_BUILD"; then
+  pass "P6 plant landed in $SRC_BUILD"
+  REBUILT=1
+  if cargo build --release >/dev/null 2>&1; then
+    P6WORK="$(mktemp -d "${TMPDIR:-/tmp}/vajra-p6-XXXXXX")"
+    ( cd "$P6WORK" && git init -q . && "$ROOT/target/release/vajra" init </dev/null ) >/dev/null 2>&1
+    GONE=0; MARKED=0
+    grep -q '^| ~2h per session cap |' "$P6WORK/.ai/AGENTS.md" || GONE=1
+    grep -q 'scaffold-omits-rule: ~2h per session cap — a reason planted by fixture-129' \
+      "$P6WORK/.ai/AGENTS.md" && MARKED=1
+    if [ "$GONE" -eq 1 ] && [ "$MARKED" -eq 1 ]; then
+      pass "P6: the rule leaves the scaffold and its reason arrives in the stranger's file"
+    else
+      fail "P6: the rule leaves the scaffold and its reason arrives in the stranger's file" \
+           "rule-removed=$GONE marker-present=$MARKED"
+    fi
+    OUT="$(/bin/bash scripts/scaffold-drift.sh --bin "$ROOT/target/release/vajra" 2>&1)"
+    if printf '%s' "$OUT" | grep -q '^GREEN' \
+       && printf '%s' "$OUT" | grep -q 'no stale rules declaration (1 checked)'; then
+      pass "P6: a DECLARED omission stays GREEN, and the declaration is checked (1, not 0)"
+    else
+      fail "P6: a DECLARED omission stays GREEN, and the declaration is checked" \
+           "a declared withholding should pass — and the count should stop being zero"
+    fi
+    rm -rf "$P6WORK"
+  else
+    fail "P6 rebuild succeeds so the check can be evaluated" "build failed — cannot evaluate"
+  fi
+else
+  fail "P6 plant landed in $SRC_BUILD" "the edit no-opped — this plant measured nothing"
+fi
+cp "$BACKUP/build.rs" "$SRC_BUILD"
+echo ""
+
+# ---- P7: a rewrite claim that is not a rewrite -------------------------------------------
+# The detail-rewrite channel, in the direction build.rs cannot see: the rule NAME is still live,
+# so no STALE DECLARATION fires, but the "rewritten" wording is identical to ours. The claim is
+# false, and the drift check must say so.
+echo "--- P7: a rewrite declared for wording that did not change ---"
+python3 - "$SRC_BUILD" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p).read()
+old = 'A green verify script proves discipline, never fidelity.",'
+assert old in s, "fixture P7: the retext detail was not found — the plant would have no-opped"
+new = 'A green verify script proves discipline, never fidelity. (DECISION-002)",'
+open(p, "w").write(s.replace(old, new, 1))
+PY
+if grep -q 'never fidelity. (DECISION-002)"' "$SRC_BUILD"; then
+  pass "P7 plant landed in $SRC_BUILD"
+  REBUILT=1
+  if cargo build --release >/dev/null 2>&1; then
+    OUT="$(/bin/bash scripts/scaffold-drift.sh --bin "$ROOT/target/release/vajra" 2>&1)"
+    if printf '%s' "$OUT" | grep -q '^RED' \
+       && printf '%s' "$OUT" | grep -q 'no stale rewrite declaration *FAIL' \
+       && printf '%s' "$OUT" | grep -q 'declared reworded, but the wording is identical'; then
+      pass "P7 turns it RED through the STALE-REWRITE check"
+    else
+      fail "P7 turns it RED through the STALE-REWRITE check" \
+           "a false rewrite claim passed — the declaration channel is decoration"
+    fi
+  else
+    fail "P7 rebuild succeeds so the check can be evaluated" "build failed — cannot evaluate"
+  fi
+else
+  fail "P7 plant landed in $SRC_BUILD" "the edit no-opped — this plant measured nothing"
 fi
 cp "$BACKUP/build.rs" "$SRC_BUILD"
 cargo build --release >/dev/null 2>&1
@@ -272,7 +365,7 @@ echo ""
 
 echo "=== fixture-129: $PASS passed, $FAIL failed ==="
 if [ "$FAIL" -eq 0 ]; then
-  echo "GREEN — five plants, each red through the check that owns it; the control stayed green."
+  echo "GREEN — seven plants, each landing through the check that owns it; the control stayed green."
   exit 0
 fi
 echo "RED — the one-source guard does not bite the way it claims."
