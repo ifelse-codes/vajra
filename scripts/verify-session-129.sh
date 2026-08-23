@@ -86,43 +86,53 @@ help_lists_seven() {
 }
 run_check "banner-still-lists-seven" behav help_lists_seven
 
-# Every BUILD INPUT this session touched is DECLARED here with a reason, and a declaration that
+# Every SHIPPED FILE this session touched is DECLARED here with a reason, and a declaration that
 # names a file the diff never touched FAILS too (S128's replacement for its own fakest green).
 #
-# S129 widens the inventory, because the derivation moved OUTSIDE src/: the binary is now built
-# from build.rs and, through it, from two files in .ai/. The inventory is DERIVED twice over —
-# `git ls-files` for the tree, and build.rs's own `cargo:rerun-if-changed=` lines for the
-# governance files it reads. Nothing here is typed, so adding a new derivation source widens the
-# check automatically.
+# The inventory is DERIVED twice over — `git ls-files` for the tree, and build.rs's own
+# `cargo:rerun-if-changed=` lines for the governance files it reads, so a new derivation source
+# widens the check automatically. S129's cold review caught the remaining boundary: the roots
+# were `src build.rs Cargo.toml`, which left `scripts/` outside — and `scripts/stranger-check.sh`,
+# modified this session, was therefore neither flagged nor declared. `scripts` is now a root.
+#
+# BRANCH-ONLY BY CONSTRUCTION: this resolves `git merge-base main HEAD`. Once the PR merges,
+# nothing shows as changed and the stale-declaration half fails. Run the suite on the BRANCH
+# before merging (S83) — a later session nesting it cumulatively will see RED, correctly.
 #
 # Declared, with why:
-#   build.rs             — steps 3+4, NEW. The derivation and the declaration manifest.
-#   src/cli/init.rs      — steps 3+4. TPL_AGENTS and TPL_CONSTRAINTS now include_str! the derived
-#                          fragments in place of the hand-typed Hard Rules table and audit list.
-#   Cargo.toml           — step 3. Un-excludes the two derivation sources so a PACKAGED crate can
-#                          still build; without it `cargo install vajractl` would break.
-#   .ai/CONSTRAINTS.yaml — step 4. Registers scaffold_drift_check as the 12th required audit,
-#                          with its question list. It is a build input now, hence in scope here.
+#   build.rs                        — steps 3+4, NEW. The derivation and the declaration manifest.
+#   src/cli/init.rs                 — steps 3+4. TPL_AGENTS / TPL_CONSTRAINTS include_str! the
+#                                     derived fragments in place of the hand-typed table, audit
+#                                     list and drift_axes.
+#   Cargo.toml                      — step 3. Un-excludes the two derivation sources so a PACKAGED
+#                                     crate can still build; without it `cargo install` breaks.
+#   .ai/CONSTRAINTS.yaml            — step 4. Registers scaffold_drift_check as the 12th required
+#                                     audit. It is a build input now, hence in scope here.
+#   scripts/scaffold-drift.sh       — step 5, NEW. The drift guard itself.
+#   scripts/stranger-check.sh       — step 6. Criterion 6 — the governance a stranger is handed.
+#   scripts/verify-session-129.sh   — step 9, NEW. This file.
+#   scripts/demo-session-129.sh     — step 9, NEW.
+#   scripts/fixture-session-129.sh  — step 8, NEW. The falsifiability plants.
 #   (.ai/AGENTS.md is a build input too and is deliberately NOT declared — this session changed
 #    no binding rule, and over-declaring it would fail the stale half of this check.)
-DECLARED_BUILD_INPUT_CHANGES="build.rs src/cli/init.rs Cargo.toml .ai/CONSTRAINTS.yaml"
+DECLARED_BUILD_INPUT_CHANGES="build.rs src/cli/init.rs Cargo.toml .ai/CONSTRAINTS.yaml scripts/scaffold-drift.sh scripts/stranger-check.sh scripts/verify-session-129.sh scripts/demo-session-129.sh scripts/fixture-session-129.sh"
 no_undeclared_build_input_change() {
   local base; base="$(git merge-base main HEAD 2>/dev/null)" || return 1
   [ -n "$base" ] || { echo "cannot resolve merge-base — a check that cannot evaluate FAILS"; return 1; }
 
   # Derivation 1: what the crate compiles from, straight out of git.
-  local tree; tree="$(git ls-files src build.rs Cargo.toml 2>/dev/null)"
+  local tree; tree="$(git ls-files src scripts build.rs Cargo.toml 2>/dev/null)"
   [ -n "$tree" ] || { echo "derived tree inventory is EMPTY — the probe matched nothing"; return 1; }
   # Derivation 2: the governance files build.rs declares it reads. Read from build.rs, not typed.
   local rerun; rerun="$(grep -o 'cargo:rerun-if-changed=[^"]*' build.rs | sed 's/.*=//' | grep -v '^build.rs$')"
   [ -n "$rerun" ] || { echo "build.rs declares no rerun-if-changed sources — the probe matched nothing"; return 1; }
-  echo "build inputs (DERIVED, not typed):"
+  echo "shipped files (DERIVED, not typed):"
   echo "  from git ls-files : $(echo "$tree" | wc -l | tr -d ' ') file(s)"
   echo "  from build.rs rerun-if-changed:"; echo "$rerun" | sed 's/^/    /'
 
   local inventory; inventory="$(printf '%s\n%s\n' "$tree" "$rerun" | sort -u)"
   local changed; changed="$(git diff --name-only "$base" HEAD | grep -Fx -f <(printf '%s\n' "$inventory") || true)"
-  echo "build inputs changed vs $base:"; echo "${changed:-  (none)}" | sed 's/^/  /'
+  echo "shipped files changed vs $base:"; echo "${changed:-  (none)}" | sed 's/^/  /'
 
   local f
   for f in $changed; do
@@ -135,9 +145,9 @@ no_undeclared_build_input_change() {
     grep -qx "$f" <<<"$changed" || {
       echo "FAIL: declared file $f was never changed — the declaration is stale, not proven"; return 1; }
   done
-  echo "OK: $(echo "$inventory" | wc -l | tr -d ' ') build inputs in the derived inventory; every change is declared."
+  echo "OK: $(echo "$inventory" | wc -l | tr -d ' ') shipped files in the derived inventory; every change is declared."
 }
-run_check "no-undeclared-build-input-change" struct no_undeclared_build_input_change
+run_check "no-undeclared-shipped-file-change" struct no_undeclared_build_input_change
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # CRITERIA 1-5, 7, 8 — the scaffold, in a real empty directory.

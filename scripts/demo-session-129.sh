@@ -51,6 +51,12 @@ audit_names() {
   grep -m1 '^ *required_audits:' "$1" | sed 's/.*\[//; s/\].*//' \
     | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -v '^$'
 }
+axis_names() {
+  grep -m1 '^ *drift_axes:' "$1" | sed 's/.*\[//; s/\].*//' \
+    | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -v '^$'
+}
+LIVE_AXES=$(axis_names "$ROOT/.ai/CONSTRAINTS.yaml" | wc -l | tr -d ' ')
+SCAF_AXES=$(axis_names "$TMP/.ai/CONSTRAINTS.yaml" | wc -l | tr -d ' ')
 LIVE_RULES=$(rule_names "$ROOT/.ai/AGENTS.md" | wc -l | tr -d ' ')
 SCAF_RULES=$(rule_names "$TMP/.ai/AGENTS.md" | wc -l | tr -d ' ')
 LIVE_AUDITS=$(audit_names "$ROOT/.ai/CONSTRAINTS.yaml" | wc -l | tr -d ' ')
@@ -69,6 +75,7 @@ printf '%-38s %-24s %s\n' "WHAT A STRANGER RECEIVES" "BEFORE S129" "AFTER S129"
 printf '%-38s %-24s %s\n' "-------------------------------------" "-----------------------" "-----------------------"
 printf '%-38s %-24s %s\n' "binding rules in their constitution"  "8 of 13 (2 renamed)"  "$SCAF_RULES of $LIVE_RULES, names exact"
 printf '%-38s %-24s %s\n' "ground-truth audits required"         "7 of 11"              "$SCAF_AUDITS of $LIVE_AUDITS"
+printf '%-38s %-24s %s\n' "ground-truth drift axes"              "6 of 7 (found mid-session)" "$SCAF_AXES of $LIVE_AXES"
 printf '%-38s %-24s %s\n' "reason on record for what is missing" "none"                 "one per withheld audit, in their file"
 printf '%-38s %-24s %s\n' "how the two stay in step"             "somebody remembers"   "derived at build time"
 printf '%-38s %-24s %s\n' "what happens when they diverge"       "nothing, for 128 sessions" "scaffold-drift.sh goes RED"
@@ -108,9 +115,25 @@ dim "$(grep 'scaffold-omits-audit:' "$TMP/.ai/CONSTRAINTS.yaml" | cut -c1-108 | 
 score $? exec "case 5: both withheld audits ship their reason to the stranger"
 
 label "case 6 — an audit a stranger cannot run is NOT demanded of them"
-audit_names "$TMP/.ai/CONSTRAINTS.yaml" | grep -Eq '^(stranger_check|scaffold_drift_check)$'; RC=$?
-[ "$RC" -ne 0 ]
-score $? exec "case 6: their ground truth demands nothing they cannot produce"
+# DERIVED, not a typed exclusion list: no question item may name an evidence script the
+# scaffold does not ship. Holds for future audits with nobody maintaining a list.
+UNRUNNABLE=""
+for ref in $(grep '^    - ' "$TMP/.ai/CONSTRAINTS.yaml" | grep -o 'scripts/[a-zA-Z0-9_.-]*\.sh' | sort -u); do
+  [ -f "$TMP/$ref" ] || UNRUNNABLE="$UNRUNNABLE $ref"
+done
+dim "    evidence scripts their ground truth names, but does not have:${UNRUNNABLE:- none}"
+[ -z "$UNRUNNABLE" ]
+score $? exec "case 6: their ground truth names no evidence script they lack"
+
+label "case 6b — the third fork, found by this session's own cold review"
+dim "    drift_axes — live: $LIVE_AXES · scaffold: $SCAF_AXES (was 6 of 7, hand-typed and uncompared)"
+[ "$SCAF_AXES" -eq "$LIVE_AXES" ]
+score $? exec "case 6b: drift_axes is derived too, not a third hand-typed twin"
+
+label "case 6c — a rule whose wording was rewritten says so, with a reason"
+dim "$(grep 'scaffold-retexts-rule:' "$TMP/.ai/AGENTS.md" | cut -c1-108 | sed 's/^/    /')"
+[ "$(grep -c 'scaffold-retexts-rule: .* — .' "$TMP/.ai/AGENTS.md")" -ge 1 ]
+score $? exec "case 6c: the detail-rewrite channel is declared, not silent"
 
 label "case 7 — the scaffold says out loud that it is derived"
 dim "    $(grep -m1 'Derived, not typed' "$TMP/.ai/AGENTS.md" | cut -c1-100)"
@@ -163,9 +186,10 @@ echo "WHAT THIS DEMO DOES NOT SHOW, in order:"
 echo "  1. It does not show anyone USING Vajra. 0 stars, 0 forks, 0 issues, 19 downloads are"
 echo "     unchanged by this session. A stranger now gets the same rulebook we do; nobody has"
 echo "     yet asked for it."
-echo "  2. Only TWO lists are derived — the Hard Rules table and required_audits. The rest of"
-echo "     the scaffold's constitution is still hand-written prose, and any OTHER list in this"
-echo "     repo may still have a scaffolded twin nobody has looked at."
+echo "  2. Only THREE lists are derived — Hard Rules, required_audits, drift_axes. The third was"
+echo "     found by this session's own cold reviewer, forked 6-against-7, three lines above the"
+echo "     fix. The rest of the scaffold's constitution is still hand-written prose, and any"
+echo "     OTHER list in this repo may still have a scaffolded twin nobody has looked at."
 echo "  3. Case 10 is a structural grep. The build-time panic is really exercised in"
 echo "     fixture-session-129.sh (P3), not here."
 echo "  4. Carrying a rule is not enforcing it. A stranger now READS all 13; what enforces them"
