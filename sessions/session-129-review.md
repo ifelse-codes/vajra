@@ -91,3 +91,111 @@ Two runners-up the summary did not name:
 8. Record that publishing now ships Vajra's own `.ai/AGENTS.md` and `.ai/CONSTRAINTS.yaml` inside the crate.
 
 ---
+
+# PASS 2 — a FRESH cold `fidelity-reviewer`, on the tree after every rec-1..8 change
+
+> Run because the post-ACCEPT work was substantive. Fed the prompt, the full re-generated diff and
+> the commit list; **no shell**, and it said so. It was told to treat pass 1's ACCEPT as a claim to
+> be checked, not as truth.
+
+**Verdict:** ACCEPT
+
+**14 of 16 SHIPPED · 2 PARTIAL · 0 NOT-BUILT.** In its words: *"The real scope is a faithful build
+of the contract as its own pre-registered `## Design` scoped it — not a narrow slice presented as
+the whole."*
+
+## Where it differed from pass 1
+
+| id | pass 2 verdict | why |
+|---|---|---|
+| A1 | **PARTIAL** (pass 1: SHIPPED with a caveat) | the live file also marks `## Mandatory Load Order (Every Session)` (9 entries; scaffold 8) and `## Session Loop (10 Steps — All Mandatory)` (scaffold 9 — live step 8, *write `prompts/NN+1`*, is absent) as binding. Those omissions are declared in **prose**, which is neither of the two paths A1 offered. *"Disclosed, not hidden — hence PARTIAL, and I judge it non-material because the contract itself made the Design the governing decision and pre-registered this boundary before any code."* |
+| A9 | **PARTIAL — in flight** | the review carried no `Review-Inputs-SHA` at its snapshot, and pass 2 itself had not landed. Structurally cannot close before this section exists. |
+| all others | SHIPPED | re-derived independently from the diff |
+
+## It verified all eight pass-1 dispositions as real work
+
+*"Nothing here is an S127-class fake `obeyed:`."* One shortfall: **rec 1's Execution extension table
+carried three factual errors** — it said "six steps" over seven rows, presented `bce033c` as a
+post-review extension when the commit list places it before `34d7dcd` and long before the review,
+and omitted step 11's real extension `69baaba`. *"The table's own promise — so nobody has to guess
+which sha carries which half — is partly false."* Corrected at `06431df`.
+
+## THE FOURTH FORK — pass 2's own find
+
+> *"`TPL_CONSTRAINTS` still hand-types at least six machine-readable twins of live
+> `.ai/CONSTRAINTS.yaml` keys, and two have **already drifted**."*
+
+- `communication.forbid` — live 5 entries, scaffold **4**. Drifted. Uncompared. Unnamed anywhere.
+- `commit.forbid_skip_hooks` — absent from the scaffold, **and read by the product** at
+  `src/varta/render.rs:84`. A stranger's Varta render silently drops that governance line.
+- `commit.forbid_force_push_to` · `self_review_questions` (read at `src/varta/render.rs:194`) ·
+  the whole `end_of_session` block (cited by `src/analyst/mod.rs` and `src/cli/next.rs`) — absent.
+- `verify.artifacts_dir` · `communication.max_bullets_per_section` — live-only ·
+  `demo.required_elements` — a twin that happens to agree today · `load_order` — 8 vs 9.
+
+*"The summary names the AGENTS.md side and generalises to 'any OTHER list'. It never names the
+CONSTRAINTS.yaml side — which is the more damning instance, because `build.rs` parses that exact
+file three lines away from these keys, and two of them are already wrong. This is pass 1's
+`drift_axes` find one level out."*
+
+## Pass 2's fakest green
+
+> **"The drift check's jurisdiction is defined by the thing it audits, and its verdict sentence does
+> not say so."** *"'Every difference declared with a reason' reads as a statement about the two
+> files. It is a statement about the three lists `build.rs` happens to derive… The check can never
+> go red on any of them, because the derivation decides what the check compares."*
+
+On the summary's self-nomination (criterion 6c's vacuous pass): *"honest and correct as far as it
+goes… but it is the second-order item, and naming it distracts from the first-order one."*
+Runner-up it named: **stranger-check 6e, a check that passes if the retext feature it guards is
+deleted.** Both fixed or labelled at `c692db5`.
+
+## Other findings, all acted on
+
+- **Two new vacuous passes** introduced by the post-review work (drift §3's axes arm, and 6e) →
+  labelled `STRUCTURAL NO-OP` in their own PASS lines, and 6e now asserts its count.
+- **Both marker parsers split on the em dash**, so a name containing one mis-parses into a wrong
+  element — the S122 spelling-bound-guard shape → `build.rs` panics on such a name.
+- **Only ONE direction of the rewrite guard is falsified** (P7, the stale claim); the
+  undeclared-rewrite direction is a renderer-regression guard, *"and the summary states both as
+  proven; only one is"* → disclosed in the script and in the summary.
+- **Standing limit nobody had written down:** *"once a rule is declared retexted, its stranger-facing
+  wording is unconstrained. The guard proves a declaration exists, never that the rewrite preserves
+  the rule."* → recorded in the fakest-green list.
+- **Stale tallies across the record**, including `.ai/ROADMAP.md` → all re-synced against a live run.
+- **The Planner fix**: *"correct, minimal, falsifiable, and it breaks no other heading shape"* —
+  `is_plan_heading` matches the first token exactly, so `## Acceptance`, `## Planning notes` and
+  `# Session 64 — the PLANNER stage` are unaffected.
+
+## Pass 2's limits on its own verdict
+
+- **No shell; nothing executed.** Every tally — verify 12/12, demo 15/15, drift 17/17, stranger
+  21/21, fixture 18/18, 365 tests — is unverified by it.
+- **Per-commit tree content not verified** — a squashed diff and a commit list; the `bce033c`
+  ordering finding is inferred from the list, not from inspecting trees.
+- **It read the working tree** (read-only) for the fourth-fork probe and flagged that itself:
+  *"those reads produced findings against the delivery, never in its favour."*
+- **The Cargo negation is unverified** — `cargo install vajractl` still building is an unrun claim.
+- **A9 cannot be closed by it.** *"I do not attest myself."*
+
+## Pass 2 recommendations — numbered from 9, and why
+
+*"I number from 9, continuing pass 1's sequence, because rec 1…rec 8 already carry recorded
+dispositions and re-using those numbers would break the guarantee that a disposition keeps meaning
+the same advice."* (This is the S127 renumbering trap, avoided by the reviewer unprompted.)
+
+9. Hunt the FOURTH fork now, key by key. — **REFUSED**, with the reason recorded in four places.
+10. Correct the Execution extension table's three factual errors. — obeyed `06431df`
+11. Re-sync every stale tally in the record. — obeyed `8461d94`
+12. Plant the missing RETEXT direction, or disclose it. — obeyed `c692db5`
+13. Label the structural no-ops; make 6e assert its count. — obeyed `c692db5`
+14. Widen or name 6c's shape-bound read. — obeyed `c692db5`
+15. De-fang the em-dash-bound marker parsers. — obeyed `c692db5`
+16. Attest LAST, after this brief lands; run the full closeout on the branch. — obeyed at closeout
+17. Record the RETEXT channel's standing limit in the fakest-green list. — obeyed `8461d94`
+
+---
+
+**Both passes ACCEPT. Two independent cold readers, two forks found that the builder had not seen —
+`drift_axes` by pass 1 (fixed), the `TPL_CONSTRAINTS` family by pass 2 (refused, named, and made
+candidate A). Neither reader had a shell, and both said so.**
