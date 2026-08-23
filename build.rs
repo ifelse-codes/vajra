@@ -306,6 +306,18 @@ fn render_hard_rules(agents: &str) -> String {
                  rule in .ai/AGENTS.md, or add a RETEXT_RULES override."
             );
         }
+        // The scaffold's declaration markers are `<marker>: <name> — <reason>`, and
+        // `scripts/scaffold-drift.sh` splits them on that em dash to recover the name. A name
+        // carrying one would silently mis-parse into a DIFFERENT element and the guard would then
+        // pass on the wrong subject — the S122 spelling-bound-guard shape, named by S129's pass-2
+        // review. Fail the build instead of shipping a guard that reads the wrong name.
+        if name.contains(" — ") {
+            panic!(
+                "vajra build: hard rule `{name}` contains ' — ', which is the delimiter the \n\
+                 scaffold's declaration markers use to separate an element from its reason. \n\
+                 Reword the rule name in .ai/AGENTS.md."
+            );
+        }
         s.push_str(&format!("| {name} | {text} |\n"));
         carried += 1;
     }
@@ -341,6 +353,17 @@ fn render_ground_truth(constraints: &str) -> String {
 
     assert_declarations_live("OMIT_AUDITS", OMIT_AUDITS, &audits);
     assert_declarations_live("OMIT_AXES", OMIT_AXES, &axes);
+
+    // Same delimiter guard as the rules (S129 pass-2 review): a name carrying ' — ' would make
+    // scaffold-drift.sh recover the wrong element from a declaration marker.
+    for name in audits.iter().chain(axes.iter()) {
+        if name.contains(" — ") {
+            panic!(
+                "vajra build: `{name}` contains ' — ', the delimiter the scaffold's declaration \n\
+                 markers use. Rename it in .ai/CONSTRAINTS.yaml."
+            );
+        }
+    }
 
     let carried: Vec<&String> = audits
         .iter()

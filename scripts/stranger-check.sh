@@ -254,6 +254,13 @@ fi
 # Read from the QUESTION ITEMS only (`^    - `), which is where an audit names the evidence it
 # demands. The `scaffold-omits-audit:` comments also name scripts — that is the whole point of
 # those comments, and counting them would make the check fire on its own explanation.
+#
+# THE LIMIT, stated rather than left to be discovered: this read is SHAPE-BOUND. An audit that
+# names its evidence script in a key, in a comment, or in a differently-indented list escapes it
+# silently. And on the shipped tree it sees ZERO scripts — every carried audit's evidence is a
+# `vajra` command a stranger already has — so this branch is a STRUCTURAL NO-OP today and says so
+# in its own PASS line. The only thing keeping it honest is fixture P5, which carries
+# `stranger_check` back in and makes it fire, naming the missing script.
 UNRUNNABLE=""; SCRIPTS_SEEN=0
 while IFS= read -r ref; do
   [ -z "$ref" ] && continue
@@ -263,7 +270,7 @@ done <<EOF
 $(grep '^    - ' "$SC_CONSTRAINTS" | grep -o 'scripts/[a-zA-Z0-9_.-]*\.sh' | sort -u)
 EOF
 if [ "$SCRIPTS_SEEN" -eq 0 ]; then
-  pass "no audit demands a script at all (nothing to be unable to run)"
+  pass "STRUCTURAL NO-OP today: no carried audit names a script at all"
 elif [ -z "$UNRUNNABLE" ]; then
   pass "all $SCRIPTS_SEEN script(s) their ground truth names are shipped"
 else
@@ -287,13 +294,28 @@ else
 fi
 
 # 6e. Reworded rules are declared to them too — the detail-rewrite channel, made visible.
+# The first cut asserted only that a "Reworded details" line EXISTED, which is a line the
+# renderer emits even when the feature is empty ("Reworded details: **none**") — so it passed
+# whether or not the feature it guarded still worked. S129's pass-2 review called it. Now the
+# LINE and the MARKER COUNT have to agree with each other.
 RETEXT_N="$(grep -c 'scaffold-retexts-rule: .* — .' "$SC_AGENTS" | tr -d ' ')"
-RETEXT_CLAIM="$(grep -c 'Reworded details' "$SC_AGENTS" | tr -d ' ')"
-if [ "$RETEXT_CLAIM" -ge 1 ]; then
-  pass "the constitution states its reworded details ($RETEXT_N declared)"
+if grep -q 'Reworded details: \*\*none\*\*' "$SC_AGENTS"; then
+  if [ "$RETEXT_N" -eq 0 ]; then
+    pass "the constitution declares no reworded details, and carries none"
+  else
+    fail "the constitution's rewrite claim matches its markers" \
+         "says 'none' but carries $RETEXT_N scaffold-retexts-rule marker(s)"
+  fi
+elif grep -q 'Reworded details' "$SC_AGENTS"; then
+  if [ "$RETEXT_N" -ge 1 ]; then
+    pass "the constitution declares $RETEXT_N reworded detail(s), each with a reason"
+  else
+    fail "the constitution's rewrite claim matches its markers" \
+         "announces reworded details but carries 0 markers with a reason"
+  fi
 else
   fail "the constitution states its reworded details" \
-       "no 'Reworded details' line — a rewritten rule would be invisible to them"
+       "no 'Reworded details' line at all — a rewritten rule would be invisible to them"
 fi
 echo ""
 

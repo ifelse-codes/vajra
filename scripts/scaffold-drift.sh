@@ -21,6 +21,12 @@
 #   3b. Is every rewritten rule DETAIL declared with a reason, and is every rewrite claim real?
 #      Names are the identity, so a detail rewrite would otherwise be a silent channel to
 #      invert a rule's meaning while the file still read "Declared omissions: none".
+#      HONEST ABOUT WHICH HALF IS PROVEN: the STALE-CLAIM direction is falsified by fixture P7.
+#      The UNDECLARED-REWRITE direction is a RENDERER-REGRESSION GUARD, not a live check — every
+#      `RETEXT_RULES` entry auto-emits its own marker, so reaching that branch means the renderer
+#      broke. And a standing limit neither half covers: once a rule is declared retexted, its
+#      stranger-facing wording is unconstrained. The guard proves a declaration and a reason
+#      exist; it never proves the rewrite preserves the rule.
 #
 # It NAMES what it compared. A bare OK would be indistinguishable from a check that ran
 # over an empty list, which is exactly how a probe reports false comfort (S127).
@@ -167,7 +173,10 @@ echo ""
 echo "--- 3. every declared omission is still true (live, and still absent) ---"
 for kind in rules audits axes; do
   if [ ! -s "$LIST/decl_$kind" ]; then
-    pass "no stale $kind declaration (none declared)"
+    # Say so. A pass over an empty list is a STRUCTURAL NO-OP, and this repo's own rule (S129
+    # KNOWLEDGE) is: plant a fixture that exercises the branch, or label it in the tally.
+    # Fixture P6 plants a real OMIT_RULES entry and drives this branch to `(1 checked)`.
+    pass "STRUCTURAL NO-OP today: no $kind declared, so nothing to go stale"
     continue
   fi
   STALE=""
@@ -281,8 +290,17 @@ echo ""
 # ---- verdict ---------------------------------------------------------------------------
 echo "=== scaffold-drift: $PASS passed, $FAIL failed ==="
 if [ "$FAIL" -eq 0 ]; then
-  echo "GREEN — a stranger is governed by $(n "$LIST/scaf_rules") of this repo's $(n "$LIST/live_rules") binding rules"
-  echo "        and $(n "$LIST/scaf_audits") of its $(n "$LIST/live_audits") ground-truth audits, every difference declared with a reason."
+  echo "GREEN — across the THREE LISTS THIS CHECK COVERS, a stranger is governed by"
+  echo "        $(n "$LIST/scaf_rules") of this repo's $(n "$LIST/live_rules") binding rules, $(n "$LIST/scaf_audits") of its $(n "$LIST/live_audits") ground-truth audits and"
+  echo "        $(n "$LIST/scaf_axes") of its $(n "$LIST/live_axes") drift axes, every difference declared with a reason."
+  echo ""
+  echo "        READ THAT SCOPE LITERALLY. The derivation decides what this check compares, so"
+  echo "        this GREEN can never go red on anything outside those three lists — and there IS"
+  echo "        more outside them. \`src/cli/init.rs\` still hand-types \`communication.forbid\`,"
+  echo "        \`load_order\`, \`demo.required_elements\` and others against live twins in"
+  echo "        \`.ai/CONSTRAINTS.yaml\`; the scaffolded constitution's load order and session loop"
+  echo "        are hand-written against sections the live file labels Mandatory. Named by S129's"
+  echo "        pass-2 cold review, refused in-session with a reason, and top of the next pick."
   exit 0
 fi
 echo "RED — the scaffold and the live .ai/ have drifted. Fix the SOURCE, never the copy:"
