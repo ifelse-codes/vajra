@@ -109,17 +109,31 @@ drift, so this class cannot come back the way it came.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: `<sha>`
-- step 2 — done: `<sha>`
-- step 3 — done: `<sha>`
-- step 4 — done: `<sha>`
-- step 5 — done: `<sha>`
-- step 6 — done: `<sha>`
-- step 7 — done: `<sha>`
-- step 8 — done: `<sha>`
-- step 9 — done: `<sha>`
-- step 10 — done: `<sha>`
-- step 11 — done: `<sha>`
+- step 1 — done: `2f7477b`
+- step 2 — done: `c1702c9`
+- step 3 — done: `34d7dcd`
+- step 4 — done: `34d7dcd`
+- step 5 — done: `0d0dc8a`
+- step 6 — done: `a9c09b8`
+- step 7 — done: `64a00c7`
+- step 8 — done: `64a00c7`
+- step 9 — done: `64a00c7`
+- step 10 — done: `4a29eda`
+- step 11 — done: `d20c155`
+
+**The shas above are each step's LANDING commit — where the step first became real.** Six steps
+were then EXTENDED after the cold review, and those commits are named here rather than swapped in,
+so nobody has to guess which sha carries which half:
+
+| step | landing | extended by | what the extension added |
+|---|---|---|---|
+| 3 | `34d7dcd` | `0fa9dd5` | `drift_axes` derived too; `RETEXT_RULES` gains a reason field |
+| 4 | `34d7dcd` | `bce033c` | registers `scaffold_drift_check` as the 12th live audit |
+| 5 | `0d0dc8a` | `0fa9dd5` | third inventory (axes) + the detail-rewrite comparison |
+| 6 | `a9c09b8` | `b771887` | criterion 6 rewritten with no magic numbers |
+| 7 | `64a00c7` | `41d4fa9` | `scripts/` joins the derived inventory roots |
+| 8 | `64a00c7` | `b771887` | plants P6 (omission round-trip) and P7 (false rewrite claim) |
+| 9 | `64a00c7` | `41d4fa9` | demo cases 6b/6c; verify renamed to what it measures |
 
 > **Fill these with real landing shas before closeout,** and **do not record a sha that does not
 > contain the work.** S119, S122, S124 and S127 each got this wrong; only a cold reader ever caught
@@ -132,7 +146,21 @@ drift, so this class cannot come back the way it came.
 > **A disposition certifies a typed word and a resolving sha, and nothing else (S127).** If you did
 > not do it, write `refused:` and say why — that is a pass by design and the only honest option.
 
-- *(none yet — fill as advisors are dispatched)*
+One advisor was dispatched: an independent cold `fidelity-reviewer` (step 10), which returned
+**ACCEPT** with eight recommendations. **All eight were obeyed** — none refused, none deferred.
+
+- fidelity-reviewer rec 1 (fill `## Execution` with real landing shas) — obeyed: `PENDING`
+- fidelity-reviewer rec 2 (derive `drift_axes` or declare it out, **this** session) — obeyed: `0fa9dd5`
+- fidelity-reviewer rec 3 (make `RETEXT_RULES` visible to the stranger and to the drift check) — obeyed: `0fa9dd5`
+- fidelity-reviewer rec 4 (stop hardcoding `>= 13` / `>= 10`; derive the unrunnable-audit set) — obeyed: `b771887`
+- fidelity-reviewer rec 5 (exercise the `OMIT_RULES` path, or disclose it as a no-op) — obeyed: `b771887`
+- fidelity-reviewer rec 6 (close the declaration boundary over `scripts/`) — obeyed: `41d4fa9`
+- fidelity-reviewer rec 7 (note that the declaration check is branch-only) — obeyed: `41d4fa9`
+- fidelity-reviewer rec 8 (record that publishing now ships `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml`) — obeyed: `41d4fa9`
+
+> **A disposition certifies a typed word and a resolving sha, and nothing else (S127).** rec 2 is
+> the one to check by hand: it was the reviewer's own named fakest green, and the claim is that
+> `drift_axes` went from a hand-typed 6 to a derived 7 with a guard on it.
 
 ## Design
 
