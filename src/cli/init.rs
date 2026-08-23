@@ -792,7 +792,6 @@ ground_truth:
   forbid_commits: true
   forbid_prs: true
   required_outputs: [sessions/session-{NN}-ground-truth.md]
-  drift_axes: [vision, roadmap, rules, constitution, state, cost]
 "#,
     // DERIVED from .ai/CONSTRAINTS.yaml#ground_truth at build time (build.rs, S129) — the audit
     // list AND each carried audit's question block. Audits withheld from a scaffolded project

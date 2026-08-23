@@ -41,14 +41,22 @@ const OMIT_RULES: &[(&str, &str)] = &[];
 /// Rules carried, whose DETAIL column is rewritten for a stranger because the live text
 /// cites a record only this repo has. The RULE NAME is never rewritten — the name is the
 /// identity the drift check compares on.
-const RETEXT_RULES: &[(&str, &str)] = &[
+///
+/// `(rule name, the stranger's detail, why it was rewritten)`. The REASON is not decoration:
+/// it is emitted into the stranger's own constitution as `scaffold-retexts-rule:`, and
+/// `scripts/scaffold-drift.sh` fails if a rewritten rule arrives without its marker. S129's
+/// cold reviewer named this channel unguarded and unlabelled — an author could invert a rule's
+/// meaning while the file still said "Declared omissions: none". Now it says what changed.
+const RETEXT_RULES: &[(&str, &str, &str)] = &[
     (
         "**Fidelity ≠ discipline**",
         "Following the rules is not delivering what was asked. Map **every** numbered requirement in the prompt to evidence (SHIPPED / PARTIAL / NOT-BUILT). A green verify script proves discipline, never fidelity.",
+        "the live detail cites DECISION-002, a decision record only this repo has",
     ),
     (
         "**No self-certification**",
         "The builder does not accept its own delivery. Fidelity is judged by an **independent** pass fed only the prompt + the diff, adversarially — not by the agent that wrote the code. See `reviewer/SKILL.md`.",
+        "same DECISION-002 citation, replaced by the pointer to `reviewer/SKILL.md` that the scaffold does ship",
     ),
 ];
 
@@ -66,6 +74,13 @@ const OMIT_AUDITS: &[(&str, &str)] = &[
         "it compares this scaffold against the repo that generates it. A scaffolded project has no scaffold of its own to compare, so the audit has no subject there.",
     ),
 ];
+
+/// Ground-truth drift AXES in `.ai/CONSTRAINTS.yaml` withheld from a scaffolded project.
+/// Empty, and this list exists because of S129's cold review: `drift_axes` was a THIRD
+/// hand-typed fork — six entries against seven — sitting three lines above the derived
+/// include, in the same `ground_truth:` block this session rewrote. It was invisible to every
+/// instrument the session built. A list you did not derive is a list that has already drifted.
+const OMIT_AXES: &[(&str, &str)] = &[];
 
 fn main() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -158,26 +173,40 @@ fn parse_hard_rules(agents: &str) -> Vec<(String, String)> {
     rules
 }
 
-/// `ground_truth.required_audits`, in declaration order.
-fn parse_required_audits(constraints: &str) -> Vec<String> {
+/// An inline `key: [a, b, c]` list under `ground_truth`, in declaration order.
+fn parse_inline_list(constraints: &str, key: &str) -> Vec<String> {
+    let want = format!("{key}:");
     let line = defenced(constraints)
         .into_iter()
-        .find(|l| l.trim_start().starts_with("required_audits:"))
-        .expect("vajra build: no `required_audits:` in .ai/CONSTRAINTS.yaml");
+        .find(|l| l.trim_start().starts_with(&want))
+        .unwrap_or_else(|| panic!("vajra build: no `{key}:` in .ai/CONSTRAINTS.yaml"));
     let inner = line
         .split_once('[')
         .and_then(|(_, r)| r.rsplit_once(']'))
         .map(|(v, _)| v)
-        .expect("vajra build: `required_audits:` is not an inline [list]");
-    let audits: Vec<String> = inner
+        .unwrap_or_else(|| panic!("vajra build: `{key}:` is not an inline [list]"));
+    let items: Vec<String> = inner
         .split(',')
         .map(|a| a.trim().to_string())
         .filter(|a| !a.is_empty())
         .collect();
-    if audits.is_empty() {
-        panic!("vajra build: `required_audits:` is empty");
+    if items.is_empty() {
+        panic!("vajra build: `{key}:` is empty");
     }
-    audits
+    items
+}
+
+/// Panic by name when a declaration no longer matches the live source. One function, so every
+/// declared list fails the build the same way.
+fn assert_declarations_live(kind: &str, decls: &[(&str, &str)], live: &[String]) {
+    for (name, _) in decls {
+        if !live.iter().any(|l| l == name) {
+            panic!(
+                "vajra build: STALE DECLARATION — the {kind} declaration names `{name}`, which is \n\
+                 no longer in the live .ai/. Remove the declaration or restore the entry."
+            );
+        }
+    }
 }
 
 /// Every `  <key>_questions:` block under `ground_truth`, as (key, full block text).
@@ -245,20 +274,13 @@ fn render_hard_rules(agents: &str) -> String {
     let rules = parse_hard_rules(agents);
     let names: Vec<&str> = rules.iter().map(|(n, _)| n.as_str()).collect();
 
-    for (name, _) in OMIT_RULES {
-        if !names.contains(name) {
-            panic!(
-                "vajra build: STALE DECLARATION — OMIT_RULES names `{name}`, which is no longer \n\
-                 a rule in .ai/AGENTS.md#Hard Rules. Remove the declaration or restore the rule."
-            );
-        }
-    }
-    for (name, _) in RETEXT_RULES {
-        if !names.contains(name) {
-            panic!(
-                "vajra build: STALE DECLARATION — RETEXT_RULES rewrites `{name}`, which is no \n\
-                 longer a rule in .ai/AGENTS.md#Hard Rules. Remove the override or restore the rule."
-            );
+    let live_names: Vec<String> = names.iter().map(|n| n.to_string()).collect();
+    assert_declarations_live("OMIT_RULES", OMIT_RULES, &live_names);
+    let retext_decls: Vec<(&str, &str)> = RETEXT_RULES.iter().map(|(n, _, w)| (*n, *w)).collect();
+    assert_declarations_live("RETEXT_RULES", &retext_decls, &live_names);
+    for (name, _, why) in RETEXT_RULES {
+        if why.trim().is_empty() {
+            panic!("vajra build: RETEXT_RULES rewrites `{name}` with no reason. A silent rewrite is the channel this field exists to close.");
         }
     }
 
@@ -271,8 +293,8 @@ fn render_hard_rules(agents: &str) -> String {
         }
         let text = RETEXT_RULES
             .iter()
-            .find(|(n, _)| n == name)
-            .map(|(_, t)| *t)
+            .find(|(n, _, _)| n == name)
+            .map(|(_, t, _)| *t)
             .unwrap_or(detail.as_str());
         // The scaffold templates substitute `{PLACEHOLDER}` tokens. A brace that arrived
         // from the live constitution would be substituted or left dangling — either way the
@@ -297,31 +319,56 @@ fn render_hard_rules(agents: &str) -> String {
     } else {
         s.push_str("> Declared omissions (withheld on purpose, with the reason):\n");
         for (name, why) in OMIT_RULES {
-            s.push_str(&format!("> - `scaffold-omits-rule: {name}` — {why}\n"));
+            s.push_str(&format!("> - scaffold-omits-rule: {name} — {why}\n"));
+        }
+    }
+    if RETEXT_RULES.is_empty() {
+        s.push_str(
+            "> Reworded details: **none** — every rule above reads exactly as Vajra's own does.\n",
+        );
+    } else {
+        s.push_str("> Reworded details (the rule is unchanged; its wording was rewritten for you, with the reason):\n");
+        for (name, _, why) in RETEXT_RULES {
+            s.push_str(&format!("> - scaffold-retexts-rule: {name} — {why}\n"));
         }
     }
     s
 }
 
 fn render_ground_truth(constraints: &str) -> String {
-    let audits = parse_required_audits(constraints);
+    let audits = parse_inline_list(constraints, "required_audits");
+    let axes = parse_inline_list(constraints, "drift_axes");
 
-    for (name, _) in OMIT_AUDITS {
-        if !audits.iter().any(|a| a == name) {
-            panic!(
-                "vajra build: STALE DECLARATION — OMIT_AUDITS names `{name}`, which is no longer \n\
-                 in .ai/CONSTRAINTS.yaml#ground_truth.required_audits. Remove the declaration or \n\
-                 restore the audit."
-            );
-        }
-    }
+    assert_declarations_live("OMIT_AUDITS", OMIT_AUDITS, &audits);
+    assert_declarations_live("OMIT_AXES", OMIT_AXES, &axes);
 
     let carried: Vec<&String> = audits
         .iter()
         .filter(|a| !OMIT_AUDITS.iter().any(|(n, _)| *n == a.as_str()))
         .collect();
 
+    let carried_axes: Vec<&String> = axes
+        .iter()
+        .filter(|a| !OMIT_AXES.iter().any(|(n, _)| *n == a.as_str()))
+        .collect();
+
     let mut s = String::new();
+    s.push_str(&format!(
+        "  # DERIVED at build time from Vajra's own .ai/CONSTRAINTS.yaml — {} of {} drift axes.\n",
+        carried_axes.len(),
+        axes.len()
+    ));
+    for (name, why) in OMIT_AXES {
+        s.push_str(&format!("  # scaffold-omits-axis: {name} — {why}\n"));
+    }
+    s.push_str(&format!(
+        "  drift_axes: [{}]\n",
+        carried_axes
+            .iter()
+            .map(|a| a.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+    ));
     s.push_str(&format!(
         "  # DERIVED at build time from Vajra's own .ai/CONSTRAINTS.yaml — {} of {} audits.\n\
          \x20 # Vajra's repo fails `scripts/scaffold-drift.sh` when this list and its own diverge.\n",

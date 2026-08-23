@@ -10,12 +10,17 @@
 # template constants or the generated fragments, only the files a REAL `vajra init` writes
 # into a REAL empty directory using the REAL release binary.
 #
-# Three questions, both directions, for rules and for audits:
+# Four questions, both directions, over three inventories — binding RULES, ground-truth
+# AUDITS, and drift AXES (the axes are here because S129's own cold review found them forked
+# 6-against-7, three lines above the fix, invisible to every instrument the session built):
 #   1. Is every LIVE element either carried into the scaffold, or DECLARED out with a reason?
 #   2. Did the scaffold INVENT an element this repo does not have?
 #   3. Is every DECLARATION still true — the element still live, and still actually absent?
 #      (S128's fakest green was a hand-typed list that measured the boundary its own author
 #      drew. A declaration that can go stale unnoticed is the same bug.)
+#   3b. Is every rewritten rule DETAIL declared with a reason, and is every rewrite claim real?
+#      Names are the identity, so a detail rewrite would otherwise be a silent channel to
+#      invert a rule's meaning while the file still read "Declared omissions: none".
 #
 # It NAMES what it compared. A bare OK would be indistinguishable from a check that ran
 # over an empty list, which is exactly how a probe reports false comfort (S127).
@@ -66,29 +71,41 @@ esac
   echo "BLOCK: vajra init did not scaffold .ai/ — nothing can be compared"; exit 1; }
 
 # ---- extraction (IDENTICAL code on both sides, so the comparison is symmetric) ---------
-rule_names() {  # $1 = an AGENTS.md
+rule_rows() {   # $1 = an AGENTS.md -> `name<TAB>detail`
   awk '/^## Hard Rules/{f=1;next} f&&/^## /{exit} f&&/^\|/{print}' "$1" \
     | grep -v '^| *Rule *|' | grep -v '^|[ -]*---' \
-    | sed 's/^| *//; s/ *|.*$//'
+    | sed 's/^| *//; s/ *|$//' | awk -F' *\\| *' '{print $1 "\t" $2}'
 }
-audit_names() { # $1 = a CONSTRAINTS.yaml
-  grep -m1 '^ *required_audits:' "$1" \
+rule_names() {  # $1 = an AGENTS.md
+  rule_rows "$1" | cut -f1
+}
+inline_list() { # $1 = a CONSTRAINTS.yaml, $2 = the key
+  grep -m1 "^ *$2:" "$1" \
     | sed 's/.*\[//; s/\].*//' | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -v '^$'
 }
-declared() {    # $1 = file, $2 = marker word (scaffold-omits-rule | scaffold-omits-audit)
+declared() {    # $1 = file, $2 = marker word (scaffold-omits-rule|-audit|-axis, scaffold-retexts-rule)
   grep "$2:" "$1" 2>/dev/null | sed "s/.*$2: *//; s/ *—.*$//" | sed 's/ *$//' | grep -v '^$'
 }
+reason_for() {  # $1 = file, $2 = marker word, $3 = element -> the text after the em dash
+  grep -F "$2: $3 — " "$1" 2>/dev/null | head -1 | sed 's/.*— *//'
+}
 
-rule_names   "$ROOT/.ai/AGENTS.md"          > "$LIST/live_rules"
-rule_names   "$WORK/.ai/AGENTS.md"          > "$LIST/scaf_rules"
-audit_names  "$ROOT/.ai/CONSTRAINTS.yaml"   > "$LIST/live_audits"
-audit_names  "$WORK/.ai/CONSTRAINTS.yaml"   > "$LIST/scaf_audits"
-declared "$WORK/.ai/AGENTS.md"        scaffold-omits-rule  > "$LIST/decl_rules"
-declared "$WORK/.ai/CONSTRAINTS.yaml" scaffold-omits-audit > "$LIST/decl_audits"
+rule_rows    "$ROOT/.ai/AGENTS.md"                        > "$LIST/live_rows"
+rule_rows    "$WORK/.ai/AGENTS.md"                        > "$LIST/scaf_rows"
+cut -f1 "$LIST/live_rows"                                 > "$LIST/live_rules"
+cut -f1 "$LIST/scaf_rows"                                 > "$LIST/scaf_rules"
+inline_list "$ROOT/.ai/CONSTRAINTS.yaml" required_audits  > "$LIST/live_audits"
+inline_list "$WORK/.ai/CONSTRAINTS.yaml" required_audits  > "$LIST/scaf_audits"
+inline_list "$ROOT/.ai/CONSTRAINTS.yaml" drift_axes       > "$LIST/live_axes"
+inline_list "$WORK/.ai/CONSTRAINTS.yaml" drift_axes       > "$LIST/scaf_axes"
+declared "$WORK/.ai/AGENTS.md"        scaffold-omits-rule   > "$LIST/decl_rules"
+declared "$WORK/.ai/CONSTRAINTS.yaml" scaffold-omits-audit  > "$LIST/decl_audits"
+declared "$WORK/.ai/CONSTRAINTS.yaml" scaffold-omits-axis   > "$LIST/decl_axes"
+declared "$WORK/.ai/AGENTS.md"        scaffold-retexts-rule > "$LIST/retext_rules"
 
 # S127/S128: a probe that silently no-ops reports false comfort. If either side extracted
 # nothing, this script cannot evaluate — and a check that cannot evaluate FAILS (S69).
-for f in live_rules scaf_rules live_audits scaf_audits; do
+for f in live_rules scaf_rules live_audits scaf_audits live_axes scaf_axes; do
   if [ ! -s "$LIST/$f" ]; then
     echo "BLOCK: extracted ZERO elements for '$f'. The parser and the file disagree —"
     echo "       a green verdict here would be meaningless. Fix the extractor, not the list."
@@ -98,8 +115,9 @@ done
 
 n() { wc -l < "$1" | tr -d ' '; }
 echo "--- what is being compared ---"
-echo "  live rules   : $(n "$LIST/live_rules")   scaffold rules   : $(n "$LIST/scaf_rules")   declared omissions: $(n "$LIST/decl_rules")"
+echo "  live rules   : $(n "$LIST/live_rules")   scaffold rules   : $(n "$LIST/scaf_rules")   declared omissions: $(n "$LIST/decl_rules")   reworded: $(n "$LIST/retext_rules")"
 echo "  live audits  : $(n "$LIST/live_audits")   scaffold audits  : $(n "$LIST/scaf_audits")   declared omissions: $(n "$LIST/decl_audits")"
+echo "  live axes    : $(n "$LIST/live_axes")   scaffold axes    : $(n "$LIST/scaf_axes")   declared omissions: $(n "$LIST/decl_axes")"
 echo ""
 echo "  live rules, by name:"
 sed 's/^/    · /' "$LIST/live_rules"
@@ -111,7 +129,7 @@ has() { grep -Fxq "$1" "$2"; }
 
 # ---- 1. every LIVE element is carried, or DECLARED out --------------------------------
 echo "--- 1. every live element reaches a stranger, or is declared out with a reason ---"
-for kind in rules audits; do
+for kind in rules audits axes; do
   MISSING=""
   while IFS= read -r el; do
     [ -z "$el" ] && continue
@@ -130,7 +148,7 @@ echo ""
 
 # ---- 2. the scaffold invented nothing --------------------------------------------------
 echo "--- 2. the scaffold invented nothing this repo is not governed by ---"
-for kind in rules audits; do
+for kind in rules audits axes; do
   EXTRA=""
   while IFS= read -r el; do
     [ -z "$el" ] && continue
@@ -147,7 +165,7 @@ echo ""
 
 # ---- 3. no stale declaration -----------------------------------------------------------
 echo "--- 3. every declared omission is still true (live, and still absent) ---"
-for kind in rules audits; do
+for kind in rules audits axes; do
   if [ ! -s "$LIST/decl_$kind" ]; then
     pass "no stale $kind declaration (none declared)"
     continue
@@ -166,6 +184,54 @@ for kind in rules audits; do
     fail "no stale $kind declaration" "$STALE"
   fi
 done
+echo ""
+
+# ---- 3b. a rewritten rule DETAIL is declared, with a reason -----------------------------
+# The rule NAME is the identity, so the checks above are name-based on purpose. That leaves a
+# channel S129's cold reviewer named: an author could rewrite a rule's DETAIL — inverting its
+# meaning — while the file still said "Declared omissions: none". So compare the details too,
+# and require every difference to carry its own marker AND a reason.
+echo "--- 3b. every reworded rule detail is declared, with a reason ---"
+UNDECLARED_RETEXT=""; CHECKED_DETAIL=0
+while IFS="$(printf '\t')" read -r name detail; do
+  [ -z "$name" ] && continue
+  has "$name" "$LIST/scaf_rules" || continue          # omitted rules are section 1's business
+  CHECKED_DETAIL=$((CHECKED_DETAIL+1))
+  SCAF_DETAIL="$(grep -F "$name$(printf '\t')" "$LIST/scaf_rows" | head -1 | cut -f2-)"
+  [ "$SCAF_DETAIL" = "$detail" ] && continue
+  if has "$name" "$LIST/retext_rules" \
+     && [ -n "$(reason_for "$WORK/.ai/AGENTS.md" scaffold-retexts-rule "$name")" ]; then
+    continue
+  fi
+  UNDECLARED_RETEXT="$UNDECLARED_RETEXT
+    · $name — the stranger's wording differs from ours and nothing declares it"
+done < "$LIST/live_rows"
+if [ "$CHECKED_DETAIL" -eq 0 ]; then
+  fail "every reworded rule detail is declared" "compared ZERO details — the probe matched nothing"
+elif [ -z "$UNDECLARED_RETEXT" ]; then
+  pass "every reworded rule detail is declared ($CHECKED_DETAIL detail(s) compared)"
+else
+  fail "every reworded rule detail is declared" "$UNDECLARED_RETEXT"
+fi
+# ...and the reverse: a rewrite marker for a rule that is not actually reworded is a stale claim.
+STALE_RETEXT=""
+while IFS= read -r name; do
+  [ -z "$name" ] && continue
+  LIVE_DETAIL="$(grep -F "$name$(printf '\t')" "$LIST/live_rows" | head -1 | cut -f2-)"
+  SCAF_DETAIL="$(grep -F "$name$(printf '\t')" "$LIST/scaf_rows" | head -1 | cut -f2-)"
+  if [ -z "$LIVE_DETAIL" ]; then
+    STALE_RETEXT="$STALE_RETEXT
+    · $name — declared reworded, but it is not a live rule at all"
+  elif [ "$LIVE_DETAIL" = "$SCAF_DETAIL" ]; then
+    STALE_RETEXT="$STALE_RETEXT
+    · $name — declared reworded, but the wording is identical"
+  fi
+done < "$LIST/retext_rules"
+if [ -z "$STALE_RETEXT" ]; then
+  pass "no stale rewrite declaration ($(n "$LIST/retext_rules") checked)"
+else
+  fail "no stale rewrite declaration" "$STALE_RETEXT"
+fi
 echo ""
 
 # ---- 4. the provenance a stranger can read ---------------------------------------------
