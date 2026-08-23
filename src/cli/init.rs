@@ -602,7 +602,8 @@ fn files(
 
 // ── Templates ───────────────────────────────────────────────────────────────
 
-const TPL_AGENTS: &str = r#"# {PROJECT_NAME} — AI Agent Constitution
+const TPL_AGENTS: &str = concat!(
+    r#"# {PROJECT_NAME} — AI Agent Constitution
 
 > Every AI agent MUST read this file and the load order below before executing any task.
 
@@ -651,24 +652,20 @@ closeout on a missing / incomplete / REJECT verdict, absent a founder waiver.
 
 ## Hard Rules
 
-| Rule | Detail |
-|---|---|
-| Max 2 assumptions | More = STOP and ask |
-| Max 2 retries | 3rd failure = escalate |
-| No autonomous commits | Wait for approval |
-| No `main` commits | Branch first |
-| Max 3 files per commit | Atomic changes |
-| Verification = exit 0 | Never leave red |
-| Fidelity ≠ discipline | Map every requirement to evidence (SHIPPED/PARTIAL/NOT-BUILT). A green verify script proves discipline, never fidelity. |
-| No self-certification | The builder never accepts its own delivery — an independent review (`reviewer/SKILL.md`) does. |
-
+"#,
+    // DERIVED from .ai/AGENTS.md#Hard Rules at build time (build.rs, S129). Not typed here:
+    // a rule added to this repo's constitution reaches every future scaffold with no action
+    // taken, and withholding one requires a declared reason that ships in the file below.
+    include_str!(concat!(env!("OUT_DIR"), "/scaffold_hard_rules.md")),
+    r#"
 ## Communication Style
 
 - Under 200 words per response
 - Bullets and tables, no paragraphs
 - No filler phrases, no trailing summaries
 - Code first, explanation after
-"#;
+"#
+);
 
 const TPL_SESSION: &str = "{FIRST_NN}\n";
 
@@ -718,7 +715,8 @@ None — initialization complete, S01 not yet started.
 - Cumulative: $0.00
 "#;
 
-const TPL_CONSTRAINTS: &str = r#"version: 3
+const TPL_CONSTRAINTS: &str = concat!(
+    r#"version: 3
 
 maturity: {MATURITY}
 
@@ -795,19 +793,13 @@ ground_truth:
   forbid_prs: true
   required_outputs: [sessions/session-{NN}-ground-truth.md]
   drift_axes: [vision, roadmap, rules, constitution, state, cost]
-  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review]
-  vision_questions:
-    - Is the north-star still the right destination?
-    - Is current work the shortest path to it, or intellectually-fun scope creep?
-    - What new evidence would make us pivot or abandon this direction?
-  roadmap_questions:
-    - Does each phase still map to the north-star?
-    - Is the next item the highest-leverage one, or just the easiest?
-    - Any item now obsolete, or any the vision now demands but the roadmap lacks?
-  constitution_questions:
-    - Is any rule now blocking the vision instead of protecting it?
-    - Did this audit's own mechanism have a blind spot? (meta-check)
-
+"#,
+    // DERIVED from .ai/CONSTRAINTS.yaml#ground_truth at build time (build.rs, S129) — the audit
+    // list AND each carried audit's question block. Audits withheld from a scaffolded project
+    // are declared in build.rs's OMIT_AUDITS and their reasons ship as comments right here, so
+    // a stranger can read what was withheld from them and why.
+    include_str!(concat!(env!("OUT_DIR"), "/scaffold_ground_truth.yaml")),
+    r#"
 load_order:
   - .ai/AGENTS.md
   - .ai/SESSION
@@ -829,7 +821,8 @@ copilot:
   on:
     - "cmd:git commit => .ai/STATE.md | STATE.md is a snapshot of reality — confirm it matches before you commit"
     - "prompts/* => .ai/TASK.md, .ai/ROADMAP.md | the prompt is the session contract — re-read the task + roadmap before editing it"
-"#;
+"#
+);
 
 const TPL_KNOWLEDGE: &str = r#"# {PROJECT_NAME} — Knowledge Base
 
