@@ -171,7 +171,7 @@ run_check "scaffold-drift-green" nested /bin/bash "$ROOT/scripts/scaffold-drift.
 # governance a stranger is handed.
 run_check "stranger-check-green" nested /bin/bash "$ROOT/scripts/stranger-check.sh" --bin "$VAJRA"
 
-# Criterion 7: five plants, each red through the check that OWNS it, plus a control that stays
+# Criterion 7: seven plants, each landing through the check that OWNS it, plus a control that stays
 # green. Includes the build-time half (a stale declaration must fail `cargo build`), which no
 # shell check above can reach.
 run_check "falsifiability-fixture" nested /bin/bash "$ROOT/scripts/fixture-session-129.sh"

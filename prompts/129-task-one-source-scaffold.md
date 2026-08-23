@@ -171,13 +171,13 @@ One advisor was dispatched: an independent cold `fidelity-reviewer` (step 10), w
 numbered from 9 so an answered number never changes meaning. **Eight obeyed, one REFUSED.**
 
 - fidelity-reviewer rec 9 (hunt the FOURTH fork — the hand-typed twins in `TPL_CONSTRAINTS`) — refused: it is a second design decision the size of this session's, not an extension of it — the keys are block-shaped (`self_review_questions`, `end_of_session`), sit under three different YAML parents, and need a KEY-SET inventory rather than three more list comparisons. Hand-patching the two already-drifted lines would put fresh hand-typed content into the session that removed it. **Refused, not deferred silently:** it is named in the drift check's own GREEN output, in the summary's fakest green, in `STATE.md`, and it is the sharpened candidate A for S131.
-- fidelity-reviewer rec 10 (correct the three errors in the Execution extension table) — obeyed: `PENDING-2`
-- fidelity-reviewer rec 11 (re-sync every stale tally in the record) — obeyed: `PENDING-2`
+- fidelity-reviewer rec 10 (correct the three errors in the Execution extension table) — obeyed: `06431df`
+- fidelity-reviewer rec 11 (re-sync every stale tally in the record) — obeyed: `06431df`
 - fidelity-reviewer rec 12 (plant the missing RETEXT direction, or disclose it) — obeyed: `c692db5`
 - fidelity-reviewer rec 13 (label the structural no-ops in the printed tallies; make 6e assert) — obeyed: `c692db5`
 - fidelity-reviewer rec 14 (widen or name 6c's shape-bound read) — obeyed: `c692db5`
 - fidelity-reviewer rec 15 (de-fang the em-dash-bound marker parsers) — obeyed: `c692db5`
-- fidelity-reviewer rec 16 (attest LAST, after pass 2 lands; run the full closeout on the branch) — obeyed: `PENDING-2`
+- fidelity-reviewer rec 16 (attest LAST, after pass 2 lands; run the full closeout on the branch) — obeyed: `06431df`
 - fidelity-reviewer rec 17 (record the RETEXT channel's standing limit in the fakest-green list) — obeyed: `c692db5`
 
 > **A disposition certifies a typed word and a resolving sha, and nothing else (S127).** Two to
