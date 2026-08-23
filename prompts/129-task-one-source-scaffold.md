@@ -121,19 +121,27 @@ drift, so this class cannot come back the way it came.
 - step 10 — done: `4a29eda`
 - step 11 — done: `d20c155`
 
-**The shas above are each step's LANDING commit — where the step first became real.** Six steps
-were then EXTENDED after the cold review, and those commits are named here rather than swapped in,
-so nobody has to guess which sha carries which half:
+**The shas above are each step's LANDING commit — where the step first became real.** Seven steps
+were then EXTENDED after the cold reviews, and those commits are named here rather than swapped in,
+so nobody has to guess which sha carries which half.
 
-| step | landing | extended by | what the extension added |
-|---|---|---|---|
-| 3 | `34d7dcd` | `0fa9dd5` | `drift_axes` derived too; `RETEXT_RULES` gains a reason field |
-| 4 | `34d7dcd` | `bce033c` | registers `scaffold_drift_check` as the 12th live audit |
-| 5 | `0d0dc8a` | `0fa9dd5` | third inventory (axes) + the detail-rewrite comparison |
-| 6 | `a9c09b8` | `b771887` | criterion 6 rewritten with no magic numbers |
-| 7 | `64a00c7` | `41d4fa9` | `scripts/` joins the derived inventory roots |
-| 8 | `64a00c7` | `b771887` | plants P6 (omission round-trip) and P7 (false rewrite claim) |
-| 9 | `64a00c7` | `41d4fa9` | demo cases 6b/6c; verify renamed to what it measures |
+> **Corrected after pass 2 (rec 10), which caught three errors in the first version of this table:**
+> it said "six steps" over seven rows; it listed `bce033c` as a post-review extension of step 4 when
+> `bce033c` landed BEFORE `34d7dcd` and long before the review (it is original step-4 work, and is
+> named as a prerequisite below); and it omitted step 11's real extension, `69baaba`. The prompt's
+> own warning — *do not record a sha that does not contain the work* — applies to the table that
+> warning sits under.
+
+| step | landing | prerequisite | extended after review by | what the extension added |
+|---|---|---|---|---|
+| 3 | `34d7dcd` | — | `0fa9dd5`, `c692db5` | `drift_axes` derived; `RETEXT_RULES` gains a reason field; the em-dash delimiter panic |
+| 4 | `34d7dcd` | `bce033c` (registers `scaffold_drift_check` as the 12th live audit) | `0fa9dd5` | the axes list joins the derived ground-truth fragment |
+| 5 | `0d0dc8a` | — | `0fa9dd5`, `c692db5` | third inventory (axes) + the detail-rewrite comparison; no-op labelling; the verdict states its own jurisdiction |
+| 6 | `a9c09b8` | — | `b771887`, `c692db5` | criterion 6 rewritten with no magic numbers; 6e made falsifiable; 6c's shape-bound limit named |
+| 7 | `64a00c7` | — | `41d4fa9`, `295ae96` | `scripts/` joins the derived inventory roots; `src/planner/mod.rs` declared as UNPLANNED |
+| 8 | `64a00c7` | — | `b771887` | plants P6 (omission round-trip) and P7 (false rewrite claim) |
+| 9 | `64a00c7` | — | `41d4fa9`, `295ae96` | demo cases 6b/6c; the check renamed to what it measures; the Planner-gate check |
+| 11 | `d20c155` | — | `69baaba` | the post-ACCEPT section, and the revised fakest green |
 
 > **Fill these with real landing shas before closeout,** and **do not record a sha that does not
 > contain the work.** S119, S122, S124 and S127 each got this wrong; only a cold reader ever caught
@@ -158,9 +166,24 @@ One advisor was dispatched: an independent cold `fidelity-reviewer` (step 10), w
 - fidelity-reviewer rec 7 (note that the declaration check is branch-only) — obeyed: `41d4fa9`
 - fidelity-reviewer rec 8 (record that publishing now ships `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml`) — obeyed: `41d4fa9`
 
-> **A disposition certifies a typed word and a resolving sha, and nothing else (S127).** rec 2 is
-> the one to check by hand: it was the reviewer's own named fakest green, and the claim is that
-> `drift_axes` went from a hand-typed 6 to a derived 7 with a guard on it.
+**Pass 2** (a fresh cold `fidelity-reviewer` on the resulting tree) returned **ACCEPT** — 14 SHIPPED
+· 2 PARTIAL · 0 NOT-BUILT — verified all eight dispositions above as real work, and raised nine more,
+numbered from 9 so an answered number never changes meaning. **Eight obeyed, one REFUSED.**
+
+- fidelity-reviewer rec 9 (hunt the FOURTH fork — the hand-typed twins in `TPL_CONSTRAINTS`) — refused: it is a second design decision the size of this session's, not an extension of it — the keys are block-shaped (`self_review_questions`, `end_of_session`), sit under three different YAML parents, and need a KEY-SET inventory rather than three more list comparisons. Hand-patching the two already-drifted lines would put fresh hand-typed content into the session that removed it. **Refused, not deferred silently:** it is named in the drift check's own GREEN output, in the summary's fakest green, in `STATE.md`, and it is the sharpened candidate A for S131.
+- fidelity-reviewer rec 10 (correct the three errors in the Execution extension table) — obeyed: `PENDING-2`
+- fidelity-reviewer rec 11 (re-sync every stale tally in the record) — obeyed: `PENDING-2`
+- fidelity-reviewer rec 12 (plant the missing RETEXT direction, or disclose it) — obeyed: `c692db5`
+- fidelity-reviewer rec 13 (label the structural no-ops in the printed tallies; make 6e assert) — obeyed: `c692db5`
+- fidelity-reviewer rec 14 (widen or name 6c's shape-bound read) — obeyed: `c692db5`
+- fidelity-reviewer rec 15 (de-fang the em-dash-bound marker parsers) — obeyed: `c692db5`
+- fidelity-reviewer rec 16 (attest LAST, after pass 2 lands; run the full closeout on the branch) — obeyed: `PENDING-2`
+- fidelity-reviewer rec 17 (record the RETEXT channel's standing limit in the fakest-green list) — obeyed: `c692db5`
+
+> **A disposition certifies a typed word and a resolving sha, and nothing else (S127).** Two to
+> check by hand: **rec 2** — the claim is that `drift_axes` went from a hand-typed 6 to a derived 7
+> with a guard on it — and **rec 9**, the only refusal, whose whole defence is that it is named in
+> four places a reader will actually reach.
 
 ## Design
 
