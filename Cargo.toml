@@ -12,6 +12,11 @@ keywords = ["ai", "agent", "workflow", "cli", "developer-tools"]
 categories = ["command-line-utilities", "development-tools"]
 exclude = [
   ".ai/",
+  # S129: the scaffold's binding rules and audit list are DERIVED from these two files by
+  # build.rs. They must ship inside the published crate or `cargo install vajractl` cannot
+  # build. scripts/scaffold-drift.sh asserts `cargo package --list` still carries them.
+  "!.ai/AGENTS.md",
+  "!.ai/CONSTRAINTS.yaml",
   ".claude/",
   ".githooks/",
   "!.githooks/pre-commit",

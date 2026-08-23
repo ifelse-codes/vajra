@@ -1003,11 +1003,13 @@ blocks on stdin without EOF.
 STATUS COLUMN (`grep -E '[[:space:]]FAIL[[:space:]]'`), never a `grep -v` naming the tally — an
 exclusion list is the hole, not the fix (S122).
 
-**The scaffold is a FORK in more than one file.** `src/cli/init.rs` carries a 66-line constitution
+**The scaffold is a FORK in more than one file.** `src/cli/init.rs` carried a 66-line constitution
 against this repo's 183 **and** a 7-entry `required_audits` against this repo's 11. Assume any list
 in `.ai/` has a scaffolded twin that has already drifted. `scripts/verify-closeout.sh` is the
 counter-example that proves the fix is cheap: it is `include_str!`'d, byte-identical in both
 places, so the S128 bash-3.2 fix reached every future scaffold for free.
+**S129 fixed three of those lists** — Hard Rules, `required_audits`, `drift_axes` — but the warning
+above still stands for every list it did not look at.
 
 **A "nothing else moved" check that greps a hand-typed list measures the boundary its author drew,
 and passes if the session shipped nothing.** S128's fakest green, called by the cold reviewer.
@@ -1024,3 +1026,35 @@ a drift guard should PASS when nothing exists to drift, and keep its teeth for
 and once in the summary in plain words (where a person reads it). Reviewer rec 4 was refused this
 session; the refusal is item 2 of the summary's stranger-still-broken list precisely so it cannot
 be found only by someone parsing markers.
+
+**`.ai/AGENTS.md` and `.ai/CONSTRAINTS.yaml` are COMPILE INPUTS now, and they ship inside the
+published crate (S129).** `build.rs` reads them to derive the scaffold's binding rules, audit list
+and drift axes, so `Cargo.toml` un-excludes those two paths by name from an otherwise-excluded
+`.ai/`. Three consequences, none obvious from either file:
+- Every `cargo install vajractl` downloads this repo's own governance commentary as build input.
+- A parse failure, an emptied list, or a stray `{` in either file **breaks a stranger's build**.
+  `build.rs` panics by name on the brace case and on an empty list; the rest is on the editor.
+- `scripts/scaffold-drift.sh` asserts `cargo package --list` still carries both. If someone
+  re-excludes them, that check is the only thing standing between here and a broken `cargo install`.
+
+**The default decides whether a copy drifts; the check only tells you afterwards (S129).** A
+derived artifact whose DEFAULT is *carried* cannot silently fall behind — the failure mode has to
+be declared, and a declaration that no longer matches the source is made to fail the BUILD. A
+hand-typed artifact plus a drift check has the same drift with a tripwire on it. Prefer moving the
+default; add the check as the second opinion, never as the mechanism.
+
+**A branch that never runs is not a check (S129 cold review).** `OMIT_RULES` was empty, so the
+drift check's rule-omission branch was a pass over an empty list contributing to its own green
+tally. Either plant a fixture that exercises the branch, or say in the tally that it is a
+structural no-op today.
+
+**Names are the identity; DETAILS are a silent channel (S129 cold review).** Comparing rule NAMES
+between a source and its derived copy leaves an author free to rewrite what a rule MEANS while the
+file still reads "Declared omissions: none". If you compare on identity, also compare the payload —
+and make the rewrite declare itself, with a reason, in the artifact the reader receives.
+
+**A cold reviewer with no shell still finds what a shell would not.** S129's pass-1 reviewer could
+execute nothing and said so plainly, then found a third fork (`drift_axes`, 6 against 7) sitting
+three lines above the fix, inside the block the session had rewritten. Its words: *"the honest form
+of the summary's residual is: we did not look one line up."* Never discount a read-only pass because
+it could not run the suite.

@@ -101,7 +101,7 @@ ground_truth:
   # Every GT must catch BOTH direction drift (vision+roadmap) and discipline drift (rules+constitution+state).
   # Rules exist to serve the vision — auditing rule-following without auditing the vision is the trap S20 caught.
   drift_axes: [vision, roadmap, rules, constitution, state, cost, usage]
-  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check, pipeline_advance_check, dogfood_staleness, stranger_check]
+  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check, pipeline_advance_check, dogfood_staleness, stranger_check, scaffold_drift_check]
   # dogfood_check added S30: 7 audits passed green while the product sat un-dogfooded (~$0 spend since S07).
   # No audit measured USAGE — the S25 false-green finding one level deeper. The cost ledger is the evidence.
   # pipeline_advance_check added S74: no audit measured whether the PIPELINE advances (the S25/S60/S65/S70
@@ -117,6 +117,18 @@ ground_truth:
   # crashed on bash 3.2. None were visible from inside this repo; all four were visible in ten
   # seconds from an empty directory. The evidence is `scripts/stranger-check.sh` — a REAL empty
   # directory, a REAL `vajra init`, the REAL release binary. Run it live at GT time.
+  # scaffold_drift_check added S129: for 128 sessions the constitution `vajra init` hands a
+  # stranger was a hand-typed FORK of the one this repo runs on — 8 binding rules against 13,
+  # 7 audits against 11, with no reason on record for a single omission. The binding sets are
+  # now DERIVED at build time (build.rs) from these two files, so the default for anything new
+  # is CARRIED and deviation must be declared with a reason. The evidence is
+  # `scripts/scaffold-drift.sh` — a REAL empty directory, a REAL `vajra init`, the REAL release
+  # binary, compared against the LIVE .ai/. It is declared OUT of the scaffold's own audit list
+  # (build.rs OMIT_AUDITS): a scaffolded project has no scaffold of its own to compare.
+  scaffold_drift_questions:
+    - Run `bash scripts/scaffold-drift.sh` and paste the live tally. Did it exit 0, and does it NAME what it compared?
+    - Is the derived inventory still the right inventory? It covers the Hard Rules table and required_audits — has any OTHER binding list grown a scaffolded twin since?
+    - Read the declared omissions in build.rs. Is each reason still true, or has one become a convenience?
   stranger_questions:
     - Run `bash scripts/stranger-check.sh` and paste the live tally. Did it exit 0?
     - Every other audit here measures Vajra governing itself. This one measures the PRODUCT a stranger downloads — if it is red, no other green matters to anyone outside this repo.

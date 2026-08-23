@@ -2,43 +2,42 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 128 — CODE: FIRST CONTACT WORKS — COMPLETE (between sessions)
+## Session 129 — CODE: ONE SOURCE FOR WHAT A STRANGER GETS — COMPLETE (between sessions)
 
-- **Verdict: ACCEPT** — independent cold `fidelity-reviewer`, **one pass**, 14 SHIPPED · 2 PARTIAL
-  · 2 NOT-BUILT · 1 N/A. Both PARTIALs and both NOT-BUILTs closed after it read, each named as a
-  post-ACCEPT closure rather than blended in. Report: `sessions/session-128-summary.md`. Review:
-  `sessions/session-128-review.md`. Prompt: `prompts/128-task-first-contact-works.md`.
-- **The first user-reachable change since S108 (2026-08-01, 20 sessions).** `vajra --version` /
-  `-V` exists, read from the crate, a FLAG not an 8th command · an unknown subcommand exits **2**
-  and names the word, so `vajra <typo> && deploy` cannot run deploy · `--help` and bare `vajra`
-  still exit 0 · `verify-closeout.sh` runs to completion on a fresh scaffold under bash 3.2 ·
-  `vajra check` on a fresh init is **10/11**, the `vajra.varta` demand RETIRED with the drift
-  guard's teeth kept (absent+tracked FAILS, stale FAILS).
-- **`stranger_check` is a required GT audit** — `scripts/stranger-check.sh`, a real empty dir, a
-  real `git init`, the real binary, 16 checks. Falsifiable: each defect planted back turns it RED
-  **through the check that owns it**; renaming a message leaves it GREEN.
-- verify **9/9** · demo **13/13** · stranger **16/16** · fixture **12/12** · **364** tests ·
-  `K of 8` unmoved · **7 commands**, no 8th.
+- **Verdict: ACCEPT on TWO independent cold passes.** The second was run because the work done
+  after pass 1 was substantive — shipping pass 1's verdict over changed code would have been
+  dishonest. Pass 2: **14 SHIPPED · 2 PARTIAL · 0 NOT-BUILT**. **17 recommendations across both
+  passes: 16 obeyed, 1 REFUSED with a reason.** Report: `sessions/session-129-summary.md`.
+  Both reviews: `sessions/session-129-review.md`. Prompt: `prompts/129-task-one-source-scaffold.md`.
+- **What a stranger is governed by now:** **13 of 13** binding rules (was 8, two renamed so equality
+  was never checkable) · **10 of 12** ground-truth audits (was 7) · **7 of 7** drift axes (was 6,
+  and nobody knew) — all DERIVED at build time by `build.rs`. **The DEFAULT is CARRIED**; deviation
+  needs a declared reason that **ships into the stranger's own file**; **a stale declaration panics
+  the build.** `scripts/scaffold-drift.sh` is the guard (17/17) and `scaffold_drift_check` is the
+  12th required GT audit.
+- verify **12/12** · demo **15/15** · drift **17/17** · stranger **21/21** · fixture **18/18**
+  (7 plants + a control) · **365** tests · `K of 8` unmoved · **7 commands**.
 
-**🔴 THE RESIDUAL, UNSOFTENED:** **the front door works; the SCAFFOLD is still a fork.** A stranger
-gets a **66-line** constitution against this repo's **183**, and a **7-entry** `required_audits`
-against this repo's **11** — `stranger_check` among the four missing. **The audit invented to
-protect strangers does not reach them, and S128 REFUSED to fix that** (reviewer rec 4), because
-registering a script the scaffold does not ship would make every stranger's GT fail a check it
-cannot run. Two smaller residuals in the same place: a stranger's first `vajra check` still exits
-**1**, and `vajra init` still blocks on stdin without EOF. And **0 stars · 0 forks · 0 issues ·
-19 downloads** are unchanged — a working front door is a precondition for adoption, never evidence
-of it.
+**🔴 THE RESIDUAL, UNSOFTENED — THE FOURTH FORK, REFUSED.** `TPL_CONSTRAINTS` in `src/cli/init.rs`
+still hand-types a family of twins of live `.ai/CONSTRAINTS.yaml` keys, **and two are already WRONG
+in a stranger's file**: `communication.forbid` ships **4 of our 5**, and
+**`commit.forbid_skip_hooks` is absent while `src/varta/render.rs:84` reads it**. Also absent:
+`commit.forbid_force_push_to`, `self_review_questions`, the whole `end_of_session` block. Plus the
+scaffolded load order (8 vs 9) and session loop (9 vs 10) — sections the live file labels
+*Mandatory*. **Refused because it needs a KEY-SET inventory, not a fourth list comparison**, and
+hand-patching would put fresh hand-typed content into the session that removed it. Named in four
+places including the drift check's own GREEN output. **It is S131's candidate A.**
 
-**Next = S129 — FOUNDER PICKED A at the S128 closeout: one source for what a stranger gets.**
-Kill the scaffold fork — the same constitution and the same `required_audits` this repo runs on,
-derived rather than hand-typed, with a check that goes RED when the two drift. This is backlog
-**F1**, grown by S128's second finding (the audit list, not just the constitution).
-**B** (decide the first-contact exit codes, unblock `vajra init`) and **C** (a paid ride-along)
-were not picked and stay on the shelf.
-**Prompt: `prompts/129-task-one-source-scaffold.md` — APPROVED.**
+**🔴 UNPLANNED FIND, and the general lesson to carry:** running `vajra next --check-plan` at close
+showed it had been **mis-parsing every prompt** since the heading changed — a `K of 8` station was
+reporting PASSED off a parser that mis-read the prompt. **A registered gate nobody executes is not
+a gate.**
 
-**S130 is the mandatory NO-CODE ground truth**, and the first one that must run `stranger_check`.
+**Next = S130 — the MANDATORY NO-CODE GROUND TRUTH** (`130 % 5 == 0`), auditing S126–S129, and
+**the first GT that must RUN both product-facing audits** (`stranger_check`, `scaffold_drift_check`).
+Its lenses: is nine roles a fleet or a roster · is one-cold-pass-at-close the right review shape.
+**Prompt: `prompts/130-task-ground-truth.md`.** Three ranked S131 candidates are carried there and
+in the summary; the founder picks at the S130 closeout.
 
 **New chat.**
 
@@ -88,7 +87,27 @@ were not picked and stay on the shelf.
   Any future crates.io action is founder-gated; never `cargo publish` without an explicit
   in-chat "yes publish".
 - **Write `prompts/NN+1-task-<slug>.md` BEFORE closing** (`end_of_session`).
-- **New session = new chat** — open a fresh chat for S129.
+- **New session = new chat** — open a fresh chat for S130.
+- **A registered gate nobody executes is not a gate (S129).** `vajra next --check-plan` had been
+  mis-parsing EVERY prompt since the heading `## Plan (ordered — cite the acceptance criteria each
+  step covers)` was adopted — the acceptance parser matched on `contains("acceptance")`, so plan
+  steps were counted as criteria, and the Planner station in `K of 8` reported PASSED off it. It
+  surfaced only because one session's plan had more steps than criteria. **Run your gates.**
+- **A derived artifact's DEFAULT decides whether it drifts; the check only tells you afterwards
+  (S129).** Prefer moving the default to *carried*; add the check as the second opinion, never as
+  the mechanism. And **a declaration that cannot go stale** — one that fails the BUILD — is the fix
+  for S128's hand-typed-list class.
+- **A branch that never runs is not a check (S129).** Plant a fixture that exercises it, or label it
+  a STRUCTURAL NO-OP in the printed tally. Both were done this session.
+- **Names are the identity; DETAILS are a silent channel (S129).** If you compare on identity, also
+  compare the payload — and make a rewrite declare itself, with a reason, in the artifact the reader
+  receives.
+- **`.ai/AGENTS.md` and `.ai/CONSTRAINTS.yaml` are COMPILE INPUTS now (S129)** and ship inside the
+  published crate. A stray `{`, an emptied list or a parse failure in either **breaks a stranger's
+  build**.
+- **Assume any list in this repo has a scaffolded twin that has already drifted (S128, twice
+  re-proved at S129).** Two cold readers each found one the builder had missed, both inside the
+  blast radius of the fix. Three lists are derived; the fourth fork is named and open.
 - **Max 7 top-level commands** — any fleet growth rides an existing command; an 8th needs a
   separate founder "yes". S126 added none; S128 added none — `--version` is a FLAG, and the verify
   suite drives eight candidate command words through the real binary to prove there is no 8th.

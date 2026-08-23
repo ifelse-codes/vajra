@@ -109,17 +109,39 @@ drift, so this class cannot come back the way it came.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: `<sha>`
-- step 2 — done: `<sha>`
-- step 3 — done: `<sha>`
-- step 4 — done: `<sha>`
-- step 5 — done: `<sha>`
-- step 6 — done: `<sha>`
-- step 7 — done: `<sha>`
-- step 8 — done: `<sha>`
-- step 9 — done: `<sha>`
-- step 10 — done: `<sha>`
-- step 11 — done: `<sha>`
+- step 1 — done: `2f7477b`
+- step 2 — done: `c1702c9`
+- step 3 — done: `34d7dcd`
+- step 4 — done: `34d7dcd`
+- step 5 — done: `0d0dc8a`
+- step 6 — done: `a9c09b8`
+- step 7 — done: `64a00c7`
+- step 8 — done: `64a00c7`
+- step 9 — done: `64a00c7`
+- step 10 — done: `4a29eda`
+- step 11 — done: `d20c155`
+
+**The shas above are each step's LANDING commit — where the step first became real.** Seven steps
+were then EXTENDED after the cold reviews, and those commits are named here rather than swapped in,
+so nobody has to guess which sha carries which half.
+
+> **Corrected after pass 2 (rec 10), which caught three errors in the first version of this table:**
+> it said "six steps" over seven rows; it listed `bce033c` as a post-review extension of step 4 when
+> `bce033c` landed BEFORE `34d7dcd` and long before the review (it is original step-4 work, and is
+> named as a prerequisite below); and it omitted step 11's real extension, `69baaba`. The prompt's
+> own warning — *do not record a sha that does not contain the work* — applies to the table that
+> warning sits under.
+
+| step | landing | prerequisite | extended after review by | what the extension added |
+|---|---|---|---|---|
+| 3 | `34d7dcd` | — | `0fa9dd5`, `c692db5` | `drift_axes` derived; `RETEXT_RULES` gains a reason field; the em-dash delimiter panic |
+| 4 | `34d7dcd` | `bce033c` (registers `scaffold_drift_check` as the 12th live audit) | `0fa9dd5` | the axes list joins the derived ground-truth fragment |
+| 5 | `0d0dc8a` | — | `0fa9dd5`, `c692db5` | third inventory (axes) + the detail-rewrite comparison; no-op labelling; the verdict states its own jurisdiction |
+| 6 | `a9c09b8` | — | `b771887`, `c692db5` | criterion 6 rewritten with no magic numbers; 6e made falsifiable; 6c's shape-bound limit named |
+| 7 | `64a00c7` | — | `41d4fa9`, `295ae96` | `scripts/` joins the derived inventory roots; `src/planner/mod.rs` declared as UNPLANNED |
+| 8 | `64a00c7` | — | `b771887` | plants P6 (omission round-trip) and P7 (false rewrite claim) |
+| 9 | `64a00c7` | — | `41d4fa9`, `295ae96` | demo cases 6b/6c; the check renamed to what it measures; the Planner-gate check |
+| 11 | `d20c155` | — | `69baaba` | the post-ACCEPT section, and the revised fakest green |
 
 > **Fill these with real landing shas before closeout,** and **do not record a sha that does not
 > contain the work.** S119, S122, S124 and S127 each got this wrong; only a cold reader ever caught
@@ -132,7 +154,36 @@ drift, so this class cannot come back the way it came.
 > **A disposition certifies a typed word and a resolving sha, and nothing else (S127).** If you did
 > not do it, write `refused:` and say why — that is a pass by design and the only honest option.
 
-- *(none yet — fill as advisors are dispatched)*
+One advisor was dispatched: an independent cold `fidelity-reviewer` (step 10), which returned
+**ACCEPT** with eight recommendations. **All eight were obeyed** — none refused, none deferred.
+
+- fidelity-reviewer rec 1 (fill `## Execution` with real landing shas) — obeyed: `56672a4`
+- fidelity-reviewer rec 2 (derive `drift_axes` or declare it out, **this** session) — obeyed: `0fa9dd5`
+- fidelity-reviewer rec 3 (make `RETEXT_RULES` visible to the stranger and to the drift check) — obeyed: `0fa9dd5`
+- fidelity-reviewer rec 4 (stop hardcoding `>= 13` / `>= 10`; derive the unrunnable-audit set) — obeyed: `b771887`
+- fidelity-reviewer rec 5 (exercise the `OMIT_RULES` path, or disclose it as a no-op) — obeyed: `b771887`
+- fidelity-reviewer rec 6 (close the declaration boundary over `scripts/`) — obeyed: `41d4fa9`
+- fidelity-reviewer rec 7 (note that the declaration check is branch-only) — obeyed: `41d4fa9`
+- fidelity-reviewer rec 8 (record that publishing now ships `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml`) — obeyed: `41d4fa9`
+
+**Pass 2** (a fresh cold `fidelity-reviewer` on the resulting tree) returned **ACCEPT** — 14 SHIPPED
+· 2 PARTIAL · 0 NOT-BUILT — verified all eight dispositions above as real work, and raised nine more,
+numbered from 9 so an answered number never changes meaning. **Eight obeyed, one REFUSED.**
+
+- fidelity-reviewer rec 9 (hunt the FOURTH fork — the hand-typed twins in `TPL_CONSTRAINTS`) — refused: it is a second design decision the size of this session's, not an extension of it — the keys are block-shaped (`self_review_questions`, `end_of_session`), sit under three different YAML parents, and need a KEY-SET inventory rather than three more list comparisons. Hand-patching the two already-drifted lines would put fresh hand-typed content into the session that removed it. **Refused, not deferred silently:** it is named in the drift check's own GREEN output, in the summary's fakest green, in `STATE.md`, and it is the sharpened candidate A for S131.
+- fidelity-reviewer rec 10 (correct the three errors in the Execution extension table) — obeyed: `06431df`
+- fidelity-reviewer rec 11 (re-sync every stale tally in the record) — obeyed: `06431df`
+- fidelity-reviewer rec 12 (plant the missing RETEXT direction, or disclose it) — obeyed: `c692db5`
+- fidelity-reviewer rec 13 (label the structural no-ops in the printed tallies; make 6e assert) — obeyed: `c692db5`
+- fidelity-reviewer rec 14 (widen or name 6c's shape-bound read) — obeyed: `c692db5`
+- fidelity-reviewer rec 15 (de-fang the em-dash-bound marker parsers) — obeyed: `c692db5`
+- fidelity-reviewer rec 16 (attest LAST, after pass 2 lands; run the full closeout on the branch) — obeyed: `06431df`
+- fidelity-reviewer rec 17 (record the RETEXT channel's standing limit in the fakest-green list) — obeyed: `c692db5`
+
+> **A disposition certifies a typed word and a resolving sha, and nothing else (S127).** Two to
+> check by hand: **rec 2** — the claim is that `drift_axes` went from a hand-typed 6 to a derived 7
+> with a guard on it — and **rec 9**, the only refusal, whose whole defence is that it is named in
+> four places a reader will actually reach.
 
 ## Design
 
@@ -142,6 +193,50 @@ drift, so this class cannot come back the way it came.
   not that the design obeys it — a citation is not permission.)**
 - **The fork to argue, not assume:** *what should a stranger's constitution and audit list BE?*
   Full copy, parameterised derivation, or a declared subset. Name the rejected options.
+
+### THE DECISION (recorded before any code — S129 step 2)
+
+**A stranger's governance is a PARAMETERISED DERIVATION of this repo's, with every deviation
+declared at the source and a stale declaration failing the BUILD.**
+
+Mechanism, precisely:
+
+- `build.rs` reads the live `.ai/AGENTS.md` `## Hard Rules` table and the live
+  `.ai/CONSTRAINTS.yaml#ground_truth.required_audits`, and emits generated fragments that
+  `src/cli/init.rs` `include_str!`s into `TPL_AGENTS` and `TPL_CONSTRAINTS`.
+- **The default for anything new is CARRIED, verbatim.** A rule added to `.ai/AGENTS.md`
+  appears in the next scaffold with no action taken — the failure mode that produced this
+  fork is structurally gone, not merely detected.
+- Deviating needs a declaration in `build.rs`: `OMIT` (element → reason) or `RETEXT`
+  (rule → stranger-facing detail). Both are compile-time data, adjacent to the template they
+  modify — **no new artifact, no new store, no new command** (the S53 mapping rule).
+- **A stale declaration FAILS THE BUILD.** Declaring an omission or an override for something
+  that is no longer in the live source panics `build.rs`. S128's fakest green was a
+  hand-typed list that measured the boundary its own author drew; a declaration that cannot
+  go stale is the fix.
+- `scripts/scaffold-drift.sh` is the execute-based second opinion: it compares the LIVE `.ai/`
+  against the files a REAL `vajra init` writes in a REAL empty directory, using the REAL
+  release binary — never against the template constants that produce them. It names every
+  element it compared.
+
+**REJECTED — full copy (`include_str!` of `.ai/AGENTS.md`).** The counter-example that makes
+this session cheap, `verify-closeout.sh`, is byte-identical in both places precisely *because
+it is project-agnostic*. The constitution is not. A copy would tell a stranger their repo is
+"Vajra — one CLI that guides any AI coding agent", that its owner is Suman, that they are bound
+by ADR-0001…0005 they never wrote, and that a nine-role fleet and a `prompts/NN-task-<slug>.md`
+load-order entry govern them. Accurate to this repo, false about theirs.
+
+**REJECTED — declared subset (keep the hand-typed template, add a check on top).** Cheaper, and
+it is the half of this design that survives: the check. What it cannot do is fix the default. A
+new rule would stay silently absent from every scaffold until someone ran the check and then
+hand-typed it — the same hand-typing, with a tripwire. The founder's word was *derived*.
+
+**What is NOT derived, stated here so the summary cannot quietly claim otherwise:** only the
+Hard Rules table and the audit list are. The rest of the scaffold's constitution — its
+"What This Repo Is", its load order, its session loop, its speaking-skill sections — remains
+hand-written, because those sections are Vajra-specific prose in the live file and a stranger's
+project is not Vajra. The derived inventory is *the binding sets*, and the drift check says so
+in its own output rather than reporting a bare OK.
 - **Scope discipline:** this is the scaffold's CONTENT and its drift guard. It is not the
   boot-context diet (F4), not the dispatch receipt (F2), and not a release.
 

@@ -76,7 +76,15 @@ pub fn acceptance_criteria(content: &str) -> Vec<Criterion> {
         let t = line.trim();
         if t.starts_with('#') {
             // Entering the acceptance section, or leaving it at the next heading.
-            in_block = is_acceptance_heading(t);
+            //
+            // A `## Plan` heading NEVER opens the acceptance block, even when it names the word
+            // (S129): the house heading is `## Plan (ordered — cite the acceptance criteria each
+            // step covers)`, and `is_acceptance_heading` matches on `contains("acceptance")`, so
+            // the plan's own eleven steps were being read as eleven acceptance criteria. The gate
+            // then demanded `covers: 11` for a criterion that did not exist and refused the close.
+            // Present in every prompt since the heading was adopted; nobody had run `--check-plan`
+            // against one until S129 did. The plan heading is the more specific match, so it wins.
+            in_block = is_acceptance_heading(t) && !is_plan_heading(t);
             continue;
         }
         if in_block {
@@ -548,6 +556,23 @@ Do one thing.
         // (symmetric with the Delta placeholder). This locks the template ↔ parser alignment.
         let scaffold = crate::analyst::render_scaffold(64, "planner-stage");
         assert_eq!(plan_coverage(&scaffold), PlanState::Placeholder);
+    }
+
+    #[test]
+    fn plan_heading_naming_acceptance_does_not_add_criteria() {
+        // S129: the house plan heading names the word "acceptance", and `is_acceptance_heading`
+        // matches on `contains`. Every plan step was therefore counted as an acceptance criterion,
+        // so an 11-step plan against 10 criteria demanded a `covers: 11` for a criterion that does
+        // not exist. Falsifiable: revert the `&& !is_plan_heading(t)` guard and this fails at 4.
+        let prompt = "## Acceptance\n\n1. first.\n2. second.\n\n                      ## Plan (ordered — cite the acceptance criteria each step covers)\n\n                      1. do a thing. `covers: 1`\n2. do another. `covers: 2`\n";
+        let criteria = acceptance_criteria(prompt);
+        assert_eq!(
+            criteria.len(),
+            2,
+            "the plan's own steps were read as acceptance criteria: {:?}",
+            criteria.iter().map(|c| c.number).collect::<Vec<_>>()
+        );
+        assert_eq!(plan_coverage(prompt), PlanState::Covered);
     }
 
     #[test]
