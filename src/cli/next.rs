@@ -16,6 +16,7 @@ use crate::fidelity;
 use crate::fleet;
 use crate::gate_run;
 use crate::maturity::{read_maturity, MaturityLevel};
+use crate::obeyed;
 use crate::planner;
 use crate::qa;
 use crate::releaser;
@@ -76,6 +77,12 @@ pub fn run(args: &[String]) -> Result<()> {
     // itself EXISTS and is PROVABLY real (DECISION-007 S131 addendum).
     if let Some(i) = args.iter().position(|a| a == "--check-fidelity-handoff") {
         return run_check_fidelity_handoff(args.get(i + 1));
+    }
+    // The Obeyed gate (S132) rides `vajra next` — no 8th command. Distinct from the Advice gate
+    // again, and for the same kind of reason S131 gave: `--check-advice` asks whether every
+    // recommendation was ANSWERED; this asks whether an `obeyed:` answer is TRUE.
+    if let Some(i) = args.iter().position(|a| a == "--check-obeyed") {
+        return run_check_obeyed(args.get(i + 1));
     }
     // The QA stage (S69) also rides `vajra next` — no 8th command.
     if let Some(i) = args.iter().position(|a| a == "--qa") {
@@ -632,6 +639,55 @@ fn run_check_fidelity_handoff(nn: Option<&String>) -> Result<()> {
          never that the review's own verdict was thorough or correct (that is \
          sessions/session-NN-review.md, gated separately by verify-closeout.sh)."
     );
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --check-obeyed NN` — the Obeyed GATE (S132): does every `obeyed: <sha>` disposition
+/// session NN records carry an admissible, INDEPENDENT judgment that the cited commit really does
+/// what the recommendation asked? Exit 1 on a `mismatch:` verdict (any session), on a judgment that
+/// is not admissible (any session), or on a missing judgment from session
+/// `OBEYED_JUDGMENT_FROM_SESSION` onward. Before that threshold a missing judgment WARNs and the
+/// warning names the exemption — the migration posture, recorded rather than silent.
+fn run_check_obeyed(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-obeyed")?;
+    let root = repo_root()?;
+
+    let verdict = obeyed::obeyed_gate(&root, session);
+    println!(
+        "=== obeyed: independent judgment on session {session:02}'s `obeyed:` dispositions ==="
+    );
+    println!(
+        "prompt: {}",
+        verdict.prompt_path.as_deref().unwrap_or("(none)")
+    );
+    for item in &verdict.items {
+        let (mark, note) = match &item.state {
+            obeyed::ObeyedState::Implemented(j) => {
+                ("✓", format!("implemented ({}): {}", j.judge_role, j.note))
+            }
+            obeyed::ObeyedState::Mismatch(j) => {
+                ("✗", format!("MISMATCH ({}): {}", j.judge_role, j.note))
+            }
+            obeyed::ObeyedState::Rejected(why) => ("✗", format!("judgment REFUSED — {why}")),
+            obeyed::ObeyedState::Unjudged => ("?", "UNJUDGED".to_string()),
+        };
+        println!("  [{mark}] {} — obeyed: {} — {note}", item.label, item.sha);
+    }
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    println!("note: {}.", obeyed::CEILING);
     if verdict.blocked() {
         std::process::exit(1);
     }
@@ -1199,6 +1255,39 @@ fn run_advance() -> Result<()> {
                  handoff (Fidelity gate). Dispatch the cold review and run `vajra next --role \
                  fidelity-reviewer --from <findings>`, or set VAJRA_SKIP_FIDELITY_GATE=1 to \
                  override."
+            );
+        }
+    }
+
+    // Obeyed gate (S132): the pipeline's TRUE bookend, one level below the Advice gate. The
+    // Advice gate proves each recommendation was ANSWERED; this proves an `obeyed:` answer was
+    // JUDGED TRUE by an independent, provenance-verified role. Binds on the session being CLOSED,
+    // like the Coder and Advice gates. `VAJRA_SKIP_OBEYED_GATE=1` is the documented override
+    // (distinct from the others', so each stage overrides alone).
+    let obeyed_verdict = obeyed::obeyed_gate(&root, current);
+    for w in &obeyed_verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if obeyed_verdict.blocked() {
+        eprintln!(
+            "[vajra obeyed] session {current:02} cannot close — an `obeyed:` disposition is \
+             unjudged, or judged a mismatch:"
+        );
+        for r in &obeyed_verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_OBEYED_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_OBEYED_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {current:02} records an `obeyed:` disposition no \
+                 independent judge has graded true (Obeyed gate). Run `vajra next --check-obeyed \
+                 {current:02}`, have an independent role record `obeyed-check <role> rec <N> — \
+                 implemented: <sha> — <note>` in its governed handoff, or set \
+                 VAJRA_SKIP_OBEYED_GATE=1 to override. A reasoned `refused:` passes — a false \
+                 `obeyed:` does not."
             );
         }
     }

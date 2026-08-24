@@ -474,18 +474,27 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
                     ));
                 } else {
                     warnings.push(format!(
-                        "{} — `obeyed: {}` carries no independent judgment, and session \
-                         {session:02} predates this gate (threshold: session \
-                         {OBEYED_JUDGMENT_FROM_SESSION}), so it WARNs instead of blocking. Named, \
-                         not silently exempt: the disposition was recorded under a contract with \
-                         no judgment marker in it, and re-grading every past session is not what \
-                         this gate was built to do. Any later session may still grade it by \
-                         recording `obeyed-check session {session:02} {} — …`",
-                        item.label, item.sha, item.label
+                        "{} — `obeyed: {}` carries no independent judgment (pre-threshold: WARN)",
+                        item.label, item.sha
                     ));
                 }
             }
         }
+    }
+
+    // The exemption, stated ONCE and out loud rather than buried in a constant — the S68/S71
+    // self-granted-jurisdiction class, disclosed in the output that relies on it.
+    if !warnings.is_empty() {
+        warnings.push(format!(
+            "session {session:02} predates this gate (threshold: session \
+             {OBEYED_JUDGMENT_FROM_SESSION}), so the {} unjudged disposition(s) above WARN instead \
+             of blocking. Named, not silently exempt: they were recorded under a contract that had \
+             no judgment marker in it, and re-grading every past session is not what this gate was \
+             built to do. The exemption is not permanent — any later session may grade one by \
+             recording `obeyed-check session {session:02} <role> rec <N> — …` in its own governed \
+             handoff",
+            warnings.len()
+        ));
     }
 
     ObeyedVerdict {
