@@ -1,0 +1,50 @@
+---
+role: fidelity-reviewer
+session: 131
+agent: claude-code-subagent (verified: toolu_01FsZj2Rs9E6vdhsgKo7SUSX)
+source-sha: a23cad2471a7be9fc75ab3c2cd21af13d183889ee6f0711b400a77abba2a6138
+captured: 2026-08-24T12:25:39Z
+cost_usd: null
+---
+
+# Fidelity-reviewer handoff — session 131
+
+# Session 131 — Independent Cold Fidelity Review
+
+**Reviewed by:** independent subagent (cold — no conversation context, prompt + diff only)
+**Date:** 2026-08-24
+
+## Method controls
+Cold inputs only: `s131-prompt.md` + `s131-delivery.diff`, read in full. Corroborated by reading the actual landed files (`src/dispatch/mod.rs`, `src/fidelity/mod.rs`, `src/cli/next.rs`, `src/fleet/mod.rs`, `src/stations/mod.rs`) directly in the repo, never `sessions/` or the builder's own summary. No code executed — verdicts on AC1–AC5, AC7 rest on reading the actual gate/cross-check logic; AC6 rests on reading the verify/demo scripts' logic (not their claimed exit codes, per instruction).
+
+| AC | Description | Verdict | Notes |
+|---|---|---|---|
+| 1 | `verify-closeout.sh`/gate FAILS if `.ai/handoffs/session-{NN}-fidelity-reviewer.md` absent, proven on a real session dir | SHIPPED | `src/fidelity/mod.rs::fidelity_gate` `HandoffRead::Absent` → `blocked: true`; wired into `run_advance` (`src/cli/next.rs` ~L1170) with no L1 legacy-WARN escape at L2/L3; new `--check-fidelity-handoff` command (`src/cli/next.rs`); `scripts/verify-session-131.sh` check `absent-handoff-blocks` drives the real binary against a fresh tmp git repo asserting exit=1 and the exact missing-path string. |
+| 2 | `--role fidelity-reviewer --from` provenance derived from real dispatch evidence, not `"claude-code-subagent"` literal | SHIPPED | `src/cli/next.rs` replaces the literal with `dispatch::derive_provenance(&root, role.name, session)`; `src/dispatch/mod.rs` reads real `~/.claude/projects/<slug>/*/subagents/agent-*.meta.json` + sibling `.jsonl` + parent transcript `tool_use` blocks — three independently-written facts, unit-tested (`derive_provenance_in_verifies_a_real_looking_dispatch`). |
+| 3 | Unverifiable provenance treated as absent/invalid, fail-closed (mirrors S67/S68 posture) | SHIPPED | `fidelity_gate`'s `HandoffRead::Found` branch: `claimed_tool_use_id` failure → blocked with "no verifiable dispatch id"; `dispatch::reverify` `Err` → blocked with "could not be independently re-verified... treated as absent/invalid, not trusted" — both paths tested (`fabricated_provenance_blocks`, `a_pre_s131_bare_agent_label_blocks_as_no_derivable_id`). |
+| 4 | Falsifiability fixture drives all 3 directions, each probe asserts its own pattern matched | SHIPPED | `verify-session-131.sh`'s `fixture-red-on-bypass-green-on-rename` uses a `git worktree`, `perl`-patches `cross_check` to bypass the gitBranch bind and the role check, confirms the *specific* named unit test goes RED for each, then renames every gate message string and confirms the suite stays GREEN (real S122 posture, not glued-on). Demo/verify cases 1–5 each `grep -q` a specific string, not just an exit code. |
+| 5 | `K of 8` and 7-command floor unchanged; no other gate's contract moves | SHIPPED | `src/stations/mod.rs` and `src/main.rs` are **not present in the diff at all** (confirmed against the live repo); only `src/cli/next.rs` (additive), `src/dispatch/mod.rs` and `src/fidelity/mod.rs` (new files), `src/lib.rs` (2 `mod` lines) touched. Verify check `k-of-8-unchanged-and-not-a-ninth-station` asserts the before/after station count is identical and non-degenerate, and that no `[PASSED]/[ABSENT]/[LEGACY]` row names "fidelity". |
+| 6 | `verify-session-131.sh` + `demo-session-131.sh` both exit 0, printed check-class tally, execute-based or honestly labelled | SHIPPED | Logic read directly (not the scripts' own PASS banners): every check drives the real release binary against throwaway `mktemp -d` git repos (never this repo), asserts on live stdout/exit codes, and the one grep-only check (`no-eighth-command`) is explicitly labelled `behav` in the tally, matching the S121/S122 class contract. This reviewer has no Bash tool and did not re-run the scripts; grading rests on logic inspection per the task's own instruction to check the logic, not the claimed result. |
+| 7 | Independent cold fidelity-reviewer verdict ACCEPT, attested, dispatched via the mechanism it hardens | SHIPPED | This review pass **is** that dispatch — produced cold, adversarially, against the diff and prompt only, matching the exact contract `fidelity_gate`/`dispatch::derive_provenance` will independently re-verify once landed as `.ai/handoffs/session-131-fidelity-reviewer.md`. Attestation SHA and gate re-verification happen after this pass lands (explicitly out of this diff's scope per task framing). |
+| 8 | Summary states plainly what's still NOT fixed (only fidelity-reviewer mandatory; obedience is S132's job) | PARTIAL | `sessions/session-131-summary.md` is **not in the diff** and this reviewer is instructed not to read `sessions/`. The `docs/decisions/DECISION-007-agent-fleet.md` addendum in the diff *does* honestly disclose this scope limit ("Nine roles, one now mandatory; eight remain optional... explicitly out of scope"), which is good corroborating evidence, but the actual required artifact (the summary) cannot be confirmed from this diff — graded PARTIAL as an out-of-scope-for-this-pass finding, not a delivery defect. |
+
+**7 of 8 SHIPPED**
+
+**Verdict:** ACCEPT
+
+## Fakest Green
+The provenance chain's honesty rests entirely on trusting the **contents** of `~/.claude/projects/<slug>/*/subagents/agent-*.meta.json` and its sibling `.jsonl` as ground truth. These are plain, unsigned JSON/JSONL files with no cryptographic or process binding to an actual running Claude Code subagent — and this session's own `scripts/demo-session-131.sh` (case 3, case 5) and `scripts/verify-session-131.sh` (`build_real_dispatch_fixture`) prove exactly how trivial that is to fabricate: three `printf` calls produce a "real dispatch" the gate reports as `Verified`. The delivery is honest about *some* of this ("local-machine-only", "newest-first is a heuristic") but does not name the sharper fact plainly: **anyone with ordinary shell access to this machine can hand-write a passing "verified" dispatch with a text editor, using the exact schema this PR just made public**, without ever invoking a real subagent. Compare this to the Coder gate's `git cat-file -e <sha>` (S68), which requires an actual git commit object to exist — a materially higher forgery bar than writing two small files nobody signs. "Verified" here proves *a file matching a shape exists*, not *a subagent ran*.
+
+## Numbered recommendations
+
+rec 1 — Add an explicit line to the DECISION-007 S131 addendum naming the sharper limit plainly: the on-disk dispatch-evidence files (`meta.json`/`.jsonl`) are unsigned and trivially hand-fabricable with a text editor (as this session's own fixtures demonstrate) — "local-machine-only" understates this; say "forgeable by anyone with shell access, not just off-machine" so no future session or founder reads "provable" as "tamper-proof."
+
+rec 2 — Have the closing session (or S132) confirm `sessions/session-131-summary.md` actually contains AC8's required disclosure (only `fidelity-reviewer` mandatory; obedience-checking is S132's job) — this cold pass could not read `sessions/` and could not verify that file exists or says what AC8 requires.
+
+rec 3 — Before merge, actually execute `scripts/verify-session-131.sh` and `scripts/demo-session-131.sh` live on the session branch (per the prompt's own S83 guardrail) and attach the real run's printed tally as landed evidence — this review's AC6 grade rests on reading the scripts' logic, not on an observed exit code, since this role has no Bash tool.
+
+rec 4 — Consider hardening `reverify` (or documenting it as an explicit, named residual rather than folding it into "proves dispatch, not verdict quality") against reuse-within-session: today a single real `fidelity-reviewer` dispatch on this session's branch can be cited by `--role --from` to stamp `Verified` provenance onto arbitrarily different `--from` findings content written later in the same session — the gate checks that a real dispatch of the right role/session occurred, never that the findings it's stamping came from that dispatch.
+
+## Handoff Delta
+- `+` new: first fidelity-reviewer handoff for this session (8067 bytes of findings)
+- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
