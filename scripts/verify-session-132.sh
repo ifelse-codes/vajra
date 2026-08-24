@@ -331,11 +331,11 @@ HAND
 VAJRA_SKIP_CODER_GATE=1 VAJRA_SKIP_QA_GATE=1 VAJRA_SKIP_DEMOER_GATE=1 VAJRA_SKIP_RELEASER_GATE=1 \
 VAJRA_SKIP_ADVICE_GATE=1 VAJRA_SKIP_FIDELITY_GATE=1"
 
-  OUT="$( cd "$TMP" && eval "$SKIPS" "$VAJRA" next --advance 2>&1 )"; local code=$?
+  OUT="$( cd "$TMP" && eval "$SKIPS" "$VAJRA" next --advance 2>&1 </dev/null )"; local code=$?
   echo "$OUT" | grep -iE 'obeyed|refusing' | head -5
   [ "$code" -ne 0 ] || { echo "FAIL: --advance succeeded with an unjudged obeyed:"; rc=1; }
   grep -q "\[vajra obeyed\]" <<<"$OUT" || { echo "FAIL: the refusal did not come from the Obeyed gate"; rc=1; }
-  OUT="$( cd "$TMP" && eval "$SKIPS" VAJRA_SKIP_OBEYED_GATE=1 "$VAJRA" next --advance 2>&1 )"; code=$?
+  OUT="$( cd "$TMP" && eval "$SKIPS" VAJRA_SKIP_OBEYED_GATE=1 "$VAJRA" next --advance 2>&1 </dev/null )"; code=$?
   grep -q "VAJRA_SKIP_OBEYED_GATE set" <<<"$OUT" \
     || { echo "FAIL: the override does not announce itself"; echo "$OUT" | tail -5; rc=1; }
   [ "$code" -eq 0 ] || { echo "FAIL: the override did not advance (exit $code)"; echo "$OUT" | tail -5; rc=1; }
@@ -370,9 +370,22 @@ expect_test_red() { # worktree, test name
   rm -f "$LOG"; return 0
 }
 fixture_fails_for_the_right_reason() {
-  local WT; WT="$(mktemp -d)"; local rc=0
+  # Measured this session, not assumed: the SAME `cargo test` takes ~12s in a worktree under the
+  # repo's gitignored `target/` and more than TEN MINUTES in one under $TMPDIR. Probe worktrees
+  # live inside the repo for that reason alone.
+  local WT="$ROOT/target/s132-fixture-wt"; local rc=0
+  rm -rf "$WT"; git worktree prune
   git worktree add --detach -q "$WT" HEAD 2>/dev/null || { echo "FAIL: no clean-room worktree"; return 1; }
   local D="$WT/src/obeyed/mod.rs"
+  # One PERSISTENT target dir (inside the gitignored `target/`) shared by the six probe compiles
+  # below, so each is incremental and the dependency graph is built once ever, not once per run.
+  # Measured, not assumed: with a fresh mktemp target dir this check alone pushed the suite past
+  # the QA gate's 600s live-rerun budget (CONSTRAINTS.yaml#verify.timeout_secs), and a check that
+  # gets killed is a BLOCK, never a silent pass (S73). Honest limit: the FIRST run on a cold
+  # machine still pays the full dependency build.
+  local PROBE_TARGET="$ROOT/target/s132-probes"
+  mkdir -p "$PROBE_TARGET"
+  export CARGO_TARGET_DIR="$PROBE_TARGET"
 
   obeyed_green "$WT" && echo "OK: shipped fixture GREEN" \
     || { echo "FAIL: the shipped fixture is not green"; rc=1; }
@@ -423,32 +436,66 @@ fixture_fails_for_the_right_reason() {
     echo "FAIL: the fixture is bound to message strings, not behaviour"; rc=1
   fi
 
+  unset CARGO_TARGET_DIR
   git worktree remove --force "$WT" >/dev/null 2>&1 || true
   return $rc
 }
 run_check "fixture-red-on-bypass-green-on-rename" exec fixture_fails_for_the_right_reason
 
 # --- 9. nothing else moved: K of 8 at a non-degenerate baseline, not a 9th station ------------------
+# Measured, not assumed (this session, live): `vajra next --stations` costs ~17s in this repo and
+# more than TEN MINUTES inside a `git worktree` checkout — a pre-existing property of the stations
+# derivation, not something this session changed. Running the before/after here instead keeps the
+# whole suite inside the QA gate's 600s live-rerun budget. The cost of that choice, stated: this
+# check writes ONE file into the live repo (`.ai/handoffs/session-126-fidelity-reviewer.md`, which
+# does not otherwise exist) and removes it again, guarded so it is removed even on failure.
 k_of_8_unchanged_and_not_a_ninth_station() {
-  local WT; WT="$(mktemp -d)"; local rc=0 BEFORE AFTER
-  git worktree add --detach -q "$WT" HEAD 2>/dev/null || { echo "FAIL: no worktree"; return 1; }
-  BEFORE="$( cd "$WT" && "$VAJRA" next --stations 126 2>&1 | grep -oE '[0-9]+ of 8 stations passed' )"
+  local rc=0 BEFORE AFTER
+  local LANDED=".ai/handoffs/session-126-fidelity-reviewer.md"
+  [ -e "$LANDED" ] && { echo "FAIL: $LANDED already exists — refusing to overwrite a real handoff"; return 1; }
+  local BRIEF; BRIEF="$(mktemp)"
+  # shellcheck disable=SC2064
+  trap "rm -f '$LANDED' '$BRIEF'" RETURN
+
+  BEFORE="$( "$VAJRA" next --stations 126 2>&1 | grep -oE '[0-9]+ of 8 stations passed' )"
   echo "baseline (session 126): $BEFORE"
   case "$BEFORE" in
     "0 of 8 stations passed"|"") echo "FAIL: DEGENERATE baseline — this check would prove nothing"; rc=1 ;;
   esac
-  printf 'rec 1 — a fixture finding\nobeyed-check plan-advisor rec 1 — implemented: deadbeef — must not move K\n' > "$WT/b.md"
-  ( cd "$WT" && "$VAJRA" next --role fidelity-reviewer --from b.md >/dev/null 2>&1 ) || rc=1
-  AFTER="$( cd "$WT" && "$VAJRA" next --stations 126 2>&1 | grep -oE '[0-9]+ of 8 stations passed' )"
+  # Written directly, NOT through `vajra next --role --from`: that command always writes the
+  # CURRENT session's handoff, which here would clobber this session's real cold review. The write
+  # path is exercised by checks 2, 3 and 4; what this check needs is a landed handoff carrying the
+  # new marker.
+  cat > "$LANDED" <<HAND
+---
+role: fidelity-reviewer
+session: 126
+agent: claude-code-subagent (verified: toolu_KOF8FIXTURE)
+source-sha: deadbeef
+captured: 2026-08-24T00:00:00Z
+cost_usd: null
+---
+
+# Fidelity-reviewer handoff — session 126
+
+rec 1 — a fixture finding
+obeyed-check plan-advisor rec 1 — implemented: deadbeef — must not move K
+
+## Handoff Delta
+- \`+\` new: K-of-8 fixture handoff
+HAND
+  [ -f "$LANDED" ] || { echo "FAIL: the handoff did not land, so the after-reading proves nothing"; return 1; }
+  # One invocation, read twice — `--stations` costs ~30s here and the suite must stay inside the
+  # QA gate's 600s live-rerun budget.
+  local SOUT; SOUT="$( "$VAJRA" next --stations 126 2>&1 )"
+  AFTER="$( grep -oE '[0-9]+ of 8 stations passed' <<<"$SOUT" )"
   echo "after a handoff carrying an obeyed-check lands: $AFTER"
   [ "$BEFORE" = "$AFTER" ] || { echo "FAIL: the judgment marker moved K"; rc=1; }
-  local SOUT; SOUT="$( cd "$WT" && "$VAJRA" next --stations 126 2>&1 )"
   if grep -ciE '(\[PASSED\]|\[ABSENT\]|\[LEGACY\]) *obeyed' <<<"$SOUT" | grep -qv '^0$'; then
     echo "FAIL: obeyed appears as a station row"; rc=1
   else
     echo "OK: obeyed is not a ninth station ($(grep -cE '\[(PASSED|ABSENT|LEGACY)\]' <<<"$SOUT") station rows read)"
   fi
-  git worktree remove --force "$WT" >/dev/null 2>&1 || true
   return $rc
 }
 run_check "k-of-8-unchanged-and-not-a-ninth-station" exec k_of_8_unchanged_and_not_a_ninth_station
