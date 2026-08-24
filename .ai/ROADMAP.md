@@ -544,7 +544,21 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
   load-bearing, not a fresh one. **Locked sequence:**
   - **S131** — fleet part 1: make the `fidelity-reviewer` governed handoff MANDATORY before a
     session can close (steps 1–2 above), and fix its hardcoded `"claude-code-subagent"` provenance
-    (step 3) so the handoff can't be satisfied by a hand-typed fake.
+    (step 3) so the handoff can't be satisfied by a hand-typed fake. **[x] DONE at S131** — new
+    `--check-fidelity-handoff` gate (own command, distinct from `--check-advice`), wired into
+    `--advance` with no legacy-WARN escape; `src/dispatch/mod.rs` derives + independently
+    re-verifies provenance from real Claude Code dispatch evidence (parent transcript ↔ subagent
+    `meta.json`, bound to the session via the subagent's own recorded `gitBranch`). Cold review
+    ACCEPT, 7/8 SHIPPED (`sessions/session-131-review.md`). **Named, not softened:** the dispatch
+    evidence is unsigned and hand-fabricable by anyone with shell access to this machine — S131
+    raises the forgery bar over a hardcoded string, it does not close it. **New residual the cold
+    review's rec 4 found, deferred (not closed this session):** `reverify` proves a real dispatch
+    of the right role/session occurred; it does NOT bind that dispatch's own returned content to
+    the specific `--from` findings file later ingested — within one session a real dispatch could
+    in principle stamp `Verified` onto different text than what the subagent actually said. Closing
+    it means hashing the subagent's own last transcript message and requiring `--from` content
+    match/derive from it — a real design decision for a future session, not folded into S131 or
+    S132 without an explicit founder pick.
   - **S132** — fleet part 2: verify the recorded `obeyed:` disposition is actually true (step 4),
     closing the S127 residual for keeps.
   Full evidence and the lens that found this: `sessions/session-130-ground-truth.md`.

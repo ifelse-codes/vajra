@@ -835,3 +835,24 @@ with a fabricated or stale id fails the re-derivation, not the string match.
 - **Nine roles, one now mandatory; eight remain optional**, exactly as before. This addendum does
   not generalise the pattern to a second role — S131's own prompt names that explicitly out of
   scope, to be repeated only after this one is proven in use.
+- **Named plainly, not softened (the cold review's rec 1): the on-disk dispatch evidence is
+  UNSIGNED and hand-fabricable with a text editor by anyone with ordinary shell access to this
+  machine.** `agent-<id>.meta.json`, its sibling `.jsonl`, and the parent transcript are plain
+  JSON/JSONL with no cryptographic or process binding to a subagent that actually ran — this
+  session's OWN `scripts/verify-session-131.sh` (`build_real_dispatch_fixture`) and
+  `scripts/demo-session-131.sh` prove exactly how cheap that is: three `printf` calls produce a
+  dispatch the gate reports `Verified`. "Local-machine-only" (stated above) is true but
+  understates this — the honest reading is **"provable" means proves a real dispatch happened
+  when nobody on this machine is adversarially forging one, not "tamper-proof."** The bar this
+  raises over the pre-S131 hardcoded literal is real (a forger must now reproduce a specific,
+  three-fact-consistent shape rather than type any string) but it is a bar, not a wall.
+- **A residual the cold review's rec 4 named and this session did NOT close, deferred rather than
+  silently dropped (`.ai/ROADMAP.md` F2):** `reverify` proves a real `fidelity-reviewer` dispatch
+  occurred for this session; it does NOT bind that dispatch's OWN returned content to the specific
+  `--from` findings file the orchestrator later ingests. Within one session, a single real dispatch
+  could in principle be cited to stamp `Verified` provenance onto different findings text than what
+  that subagent actually returned. Normal usage (capture the subagent's final message, then
+  `--from` that exact file) does not hit this; nothing today PROVES it. Closing it would mean
+  hashing the subagent's own last transcript message and requiring the `--from` content match (or
+  derive from) it — a real design decision, not a quick fix, and out of this session's locked
+  scope (one story: mandatory + provable dispatch, not content-binding).
