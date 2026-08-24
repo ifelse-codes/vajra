@@ -248,25 +248,54 @@ run_check "pre-threshold-warns-and-names-the-exemption" exec pre_threshold_warns
 # --- 6. the S127 HISTORICAL specimen, on the REAL record of this repo — no fixture ------------------
 # Read-only against this very repo: the disposition (`prompts/127-…`), the recommendation
 # (`.ai/handoffs/session-127-implementation-advisor.md`), the commit (`8cd3bea`) and the judgment
-# are all real, landed artifacts. This is the check that proves the mechanism WOULD have caught the
-# S127 defect, rather than asserting it in prose.
-historical_specimen_127_is_caught() {
-  local rc=0 OUT
+# are all real, landed artifacts.
+#
+# rec 1 (cold review): this check must NOT pre-specify the verdict the independent judge is
+# supposed to reach — a check that only goes green when the reviewer agrees with the builder tests
+# the reviewer's cooperation, not the mechanism. So the expected verdict is DERIVED from the landed
+# judgment line, and what is asserted is the JOIN and the BLOCKING BEHAVIOUR: the gate reports the
+# verdict that was actually recorded, and exits 1 if and only if that verdict is `mismatch`.
+historical_specimen_127_is_joined_and_binds() {
+  local rc=0 OUT LINE WORD JUDGE_HANDOFF
+  JUDGE_HANDOFF=".ai/handoffs/session-132-fidelity-reviewer.md"
+  [ -f "$JUDGE_HANDOFF" ] || { echo "FAIL: no landed fidelity-reviewer handoff to read a judgment from"; return 1; }
+  # The probe asserts its own pattern matched (S127) before it asserts anything about the gate.
+  LINE="$(grep -E '^obeyed-check session 127 implementation-advisor rec 9 —' "$JUDGE_HANDOFF" | tail -1)"
+  [ -n "$LINE" ] || { echo "FAIL: the landed handoff records no judgment for the S127 specimen"; return 1; }
+  echo "landed judgment: $LINE"
+  WORD="$(sed -E 's/.* rec 9 — ([a-z]+):.*/\1/' <<<"$LINE")"
+  case "$WORD" in
+    implemented|mismatch) echo "recorded verdict: $WORD (derived from the handoff, not assumed)" ;;
+    *) echo "FAIL: could not derive a verdict word from the landed judgment"; return 1 ;;
+  esac
+
   OUT="$( "$VAJRA" next --check-obeyed 127 2>&1 )"; local code=$?
-  echo "$OUT" | grep -E 'implementation-advisor rec 9|verdict:' | head -5
+  echo "$OUT" | grep -E 'implementation-advisor rec 9|verdict:' | head -3
   echo "exit=$code"
-  [ "$code" -eq 1 ] || { echo "FAIL: the specimen does not BLOCK (exit $code)"; rc=1; }
-  grep -q "implementation-advisor rec 9 — obeyed: 8cd3bea — MISMATCH" <<<"$OUT" \
-    || { echo "FAIL: rec 9 is not reported a MISMATCH on the real record"; rc=1; }
-  grep -q "_uses" <<<"$OUT" \
-    || { echo "FAIL: the judgment does not name what the commit failed to do"; rc=1; }
-  # And the pre-threshold exemption still applies to the OTHER 47 dispositions of that session —
-  # the threshold governs silence, never a judgment that exists.
+
+  # (a) THE JOIN: the gate reports the verdict that was actually recorded, against the right label.
+  case "$WORD" in
+    mismatch)
+      grep -q "implementation-advisor rec 9 — obeyed: 8cd3bea — MISMATCH" <<<"$OUT" \
+        || { echo "FAIL: a recorded mismatch did not surface against rec 9"; rc=1; }
+      # (b) THE BLOCKING BEHAVIOUR: a mismatch must refuse, at a session below the threshold too.
+      [ "$code" -eq 1 ] || { echo "FAIL: a recorded mismatch did not BLOCK (exit $code)"; rc=1; }
+      ;;
+    implemented)
+      grep -q "implementation-advisor rec 9 — obeyed: 8cd3bea — implemented" <<<"$OUT" \
+        || { echo "FAIL: a recorded implemented verdict did not surface against rec 9"; rc=1; }
+      [ "$code" -eq 0 ] || { echo "FAIL: an implemented verdict must not block (exit $code)"; rc=1; }
+      ;;
+  esac
+  # (c) The judge's own words are carried through, whatever they are — never the script's.
+  grep -qF "$(sed -E 's/.*: [0-9a-f]+ — //' <<<"$LINE" | cut -c1-40)" <<<"$OUT" \
+    || { echo "FAIL: the gate does not carry the judge's own reason into its output"; rc=1; }
+  # (d) The threshold still exempts SILENCE only: S127's other dispositions warn, they do not block.
   grep -q "pre-threshold: WARN" <<<"$OUT" \
     || { echo "FAIL: the rest of S127 is not warned as pre-threshold"; rc=1; }
   return $rc
 }
-run_check "s127-historical-specimen-is-a-mismatch" exec historical_specimen_127_is_caught
+run_check "s127-specimen-joins-and-drives-the-exit-code" exec historical_specimen_127_is_joined_and_binds
 
 # --- 7. the gate really BINDS `--advance`, with every other stage neutralised -----------------------
 advance_binds_the_close_path() {
@@ -316,6 +345,30 @@ run_check "advance-really-binds-on-an-unjudged-obeyed" exec advance_binds_the_cl
 
 # --- 8. the falsifiability fixture is real: RED on each bypass, GREEN on renaming -------------------
 obeyed_green() { ( cd "$1" && cargo test -q --lib obeyed::tests:: 2>&1 | grep -q "test result: ok" ); }
+
+# rec 3 (cold review): a bypass probe that silently no-ops reports false comfort, and a bypass that
+# fails to COMPILE is not a falsification either. So each probe asserts (a) the exact source it
+# means to patch was present and is gone afterwards, and (b) the red it produces is a TEST FAILURE,
+# not a compile error.
+apply_bypass() {   # file, fixed-string-to-replace, replacement
+  local F="$1" FROM="$2" TO="$3"
+  grep -qF "$FROM" "$F" || { echo "PROBE FAIL: the bypass target is not present: $FROM"; return 1; }
+  FROM="$FROM" TO="$TO" perl -0pi -e 'BEGIN{$f=$ENV{FROM};$r=$ENV{TO}} s/\Q$f\E/$r/' "$F"
+  grep -qF "$FROM" "$F" && { echo "PROBE FAIL: the substitution did not land"; return 1; }
+  return 0
+}
+expect_test_red() { # worktree, test name
+  local LOG; LOG="$(mktemp)"
+  ( cd "$1" && cargo test -q --lib "$2" ) > "$LOG" 2>&1
+  if grep -qE "error\[E[0-9]+\]|could not compile" "$LOG"; then
+    echo "PROBE FAIL: the bypass broke the BUILD, so the red proves nothing"; sed -n '1,5p' "$LOG"; rm -f "$LOG"; return 1
+  fi
+  if grep -q "test result: ok" "$LOG"; then
+    rm -f "$LOG"; return 1   # still green: the rule was not load-bearing
+  fi
+  grep -qE "FAILED|panicked" "$LOG" || { echo "PROBE FAIL: red, but not as a test failure"; rm -f "$LOG"; return 1; }
+  rm -f "$LOG"; return 0
+}
 fixture_fails_for_the_right_reason() {
   local WT; WT="$(mktemp -d)"; local rc=0
   git worktree add --detach -q "$WT" HEAD 2>/dev/null || { echo "FAIL: no clean-room worktree"; return 1; }
@@ -325,29 +378,40 @@ fixture_fails_for_the_right_reason() {
     || { echo "FAIL: the shipped fixture is not green"; rc=1; }
 
   # Bypass A — the no-self-certification rule: let an advisor grade its own recommendation.
-  perl -0pi -e 's/if j\.judge_role\.eq_ignore_ascii_case\(&j\.advisor_role\) \{/if false {/' "$D"
-  if ( cd "$WT" && cargo test -q --lib obeyed::tests::an_advisor_may_not_grade_its_own_recommendation 2>&1 | grep -q "test result: ok" ); then
-    echo "FAIL: bypassing no-self-certification left its own test GREEN"; rc=1
+  if apply_bypass "$D" "if j.judge_role.eq_ignore_ascii_case(&j.advisor_role) {" "if false {" \
+     && expect_test_red "$WT" obeyed::tests::an_advisor_may_not_grade_its_own_recommendation; then
+    echo "OK: bypassing no-self-certification -> RED (as a test failure)"
   else
-    echo "OK: bypassing no-self-certification -> RED"
+    echo "FAIL: bypassing no-self-certification did not produce an honest red"; rc=1
   fi
   git -C "$WT" checkout -q -- src/obeyed/mod.rs
 
   # Bypass B — the sha bind: accept a judgment about any commit.
-  perl -0pi -e 's/if !same_commit\(&j\.sha, disposition_sha\) \{/if false {/' "$D"
-  if ( cd "$WT" && cargo test -q --lib obeyed::tests::a_judgment_about_a_different_commit_is_stale_not_evidence 2>&1 | grep -q "test result: ok" ); then
-    echo "FAIL: bypassing the sha bind left its own test GREEN"; rc=1
+  if apply_bypass "$D" "if !same_commit(&j.sha, disposition_sha) {" "if false {" \
+     && expect_test_red "$WT" obeyed::tests::a_judgment_about_a_different_commit_is_stale_not_evidence; then
+    echo "OK: bypassing the sha bind -> RED (as a test failure)"
   else
-    echo "OK: bypassing the sha bind -> RED"
+    echo "FAIL: bypassing the sha bind did not produce an honest red"; rc=1
   fi
   git -C "$WT" checkout -q -- src/obeyed/mod.rs
 
   # Bypass C — the provenance re-verification: trust whatever the handoff claims.
-  perl -0pi -e 's/    verified\(j\)\n\}/    let _ = verified; Ok(())\n}/' "$D"
-  if ( cd "$WT" && cargo test -q --lib obeyed::tests::an_unverifiable_judge_is_refused 2>&1 | grep -q "test result: ok" ); then
-    echo "FAIL: bypassing provenance re-verification left its own test GREEN"; rc=1
+  if apply_bypass "$D" "    verified(j)" "    let _ = &verified; Ok(())" \
+     && expect_test_red "$WT" obeyed::tests::an_unverifiable_judge_is_refused; then
+    echo "OK: bypassing provenance re-verification -> RED (as a test failure)"
   else
-    echo "OK: bypassing provenance re-verification -> RED"
+    echo "FAIL: bypassing provenance re-verification did not produce an honest red"; rc=1
+  fi
+  git -C "$WT" checkout -q -- src/obeyed/mod.rs
+
+  # Bypass D — sticky mismatch (rec 5's fix): let a later `implemented:` clear a recorded
+  # disagreement. Without this probe the fix would be untested in the falsifiable direction.
+  if apply_bypass "$D" "let chosen = sticky_mismatch.or_else(|| admitted.last());" \
+        "let chosen = admitted.last().or(sticky_mismatch);" \
+     && expect_test_red "$WT" obeyed::tests::a_recorded_mismatch_is_sticky_whatever_the_order; then
+    echo "OK: bypassing sticky-mismatch -> RED (as a test failure)"
+  else
+    echo "FAIL: bypassing sticky-mismatch did not produce an honest red"; rc=1
   fi
   git -C "$WT" checkout -q -- src/obeyed/mod.rs
 
@@ -402,6 +466,31 @@ advice_gate_contract_unchanged() {
   return $rc
 }
 run_check "advice-gate-contract-unchanged" exec advice_gate_contract_unchanged
+
+# --- 10b. S131's Fidelity gate contract is UNCHANGED — traced, not asserted (cold review rec 4) ----
+# AC 6 names S131's gate by hand, and the first draft of this suite never ran it once.
+fidelity_gate_contract_unchanged() {
+  local TMP; TMP="$(real_tmpdir)"; local rc=0 OUT PROJROOT
+  build_subject "$TMP" 132 >/dev/null || { rm -rf "$TMP"; return 1; }
+  # (a) absence still BLOCKS with S131's own message
+  OUT="$( cd "$TMP" && "$VAJRA" next --check-fidelity-handoff 132 2>&1 )"; local code=$?
+  echo "--- absent: exit=$code"; echo "$OUT" | grep -E 'no fidelity-reviewer handoff|verdict:' | head -2
+  [ "$code" -eq 1 ] || { echo "FAIL: absence no longer blocks (exit $code)"; rc=1; }
+  grep -q "no fidelity-reviewer handoff recorded for session 132" <<<"$OUT" \
+    || { echo "FAIL: S131's absence message changed"; rc=1; }
+  # (b) a real dispatch still PASSES — and a handoff carrying this session's new marker does not
+  #     disturb that (the marker rides the findings body, which S131's gate never parsed).
+  PROJROOT="$TMP/fake-cc-projects"
+  build_real_dispatch_fixture "$PROJROOT" "$TMP" "session-132-fixture" "toolu_01FIDELITY"
+  land_judge_handoff "$TMP" 132 "$PROJROOT" fidelity-reviewer \
+    "obeyed-check plan-advisor rec 1 — implemented: deadbeef — a marker in the body"
+  OUT="$( cd "$TMP" && VAJRA_CLAUDE_PROJECTS_DIR="$PROJROOT" "$VAJRA" next --check-fidelity-handoff 132 2>&1 )"; code=$?
+  echo "--- real dispatch: exit=$code"; echo "$OUT" | grep -E 'verdict:|agent:' | head -2
+  [ "$code" -eq 0 ] || { echo "FAIL: a real dispatch no longer passes S131's gate (exit $code)"; rc=1; }
+  grep -q "verdict: READY" <<<"$OUT" || { echo "FAIL: expected READY from the Fidelity gate"; rc=1; }
+  rm -rf "$TMP"; return $rc
+}
+run_check "s131-fidelity-gate-contract-unchanged" exec fidelity_gate_contract_unchanged
 
 # --- 11. the whole library is green, including the new module --------------------------------------
 run_check "lib-tests-green" exec cargo test -q --lib

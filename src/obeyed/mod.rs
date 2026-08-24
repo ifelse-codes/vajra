@@ -350,14 +350,19 @@ pub fn classify(
                     Err(why) => refused.push(format!("{} — {why}", j.handoff_path)),
                 }
             }
-            let state = if let Some(m) = admitted.iter().find(|j| j.verdict == Verdict::Mismatch) {
-                ObeyedState::Mismatch((*m).clone())
-            } else if let Some(i) = admitted.last() {
-                ObeyedState::Implemented((*i).clone())
-            } else if let Some(why) = refused.first() {
-                ObeyedState::Rejected(why.clone())
-            } else {
-                ObeyedState::Unjudged
+            // Stickiness lives in ONE expression, so the falsifiability fixture can neutralise
+            // exactly this rule and nothing else (verify-session-132.sh, bypass D).
+            let sticky_mismatch = admitted.iter().find(|j| j.verdict == Verdict::Mismatch);
+            let chosen = sticky_mismatch.or_else(|| admitted.last());
+            let state = match chosen {
+                Some(j) => match j.verdict {
+                    Verdict::Mismatch => ObeyedState::Mismatch((*j).clone()),
+                    Verdict::Implemented => ObeyedState::Implemented((*j).clone()),
+                },
+                None => match refused.first() {
+                    Some(why) => ObeyedState::Rejected(why.clone()),
+                    None => ObeyedState::Unjudged,
+                },
             };
             ObeyedItem {
                 label: label.clone(),
