@@ -1071,3 +1071,28 @@ reproduced live).** `verify-session-129.sh` went RED post-merge purely because `
 HEAD` resolves differently after `main` absorbs the branch — the script's own S129 comment predicted
 this. It is why `K of 8`'s QA/Demo-er stations are correctly labelled `[static — not live-green]`
 for any past session, not a bug to chase.
+
+**A Claude Code subagent's own transcript records `gitBranch` on its FIRST JSONL line (S131,
+measured on a real dispatch, not assumed).** `agent-<id>.jsonl`'s first entry carries the parent
+session's branch at dispatch time — a free, forger-independent-of-clock fact for binding a dispatch
+to the session that made it. `agent-<id>.meta.json` (`agentType`, `toolUseId`) does NOT carry it;
+read the sibling `.jsonl`'s first line separately. Used to close the S111/S117/S123 addenda's open
+gap: a real but STALE tool-use id can no longer pass as this session's.
+
+**Dispatch evidence (`~/.claude/projects/<slug>/**/subagents/agent-*.meta.json` + `.jsonl`) is
+UNSIGNED and hand-fabricable with a text editor by anyone with shell access to this machine (S131,
+named by the cold review's rec 1).** "Provable provenance" built on these files raises the forgery
+bar over a hardcoded literal; it does not make the claim tamper-proof. Say so in those words, not
+"local-machine-only" — that phrasing undersells the limit to an off-machine threat model only.
+
+**`scripts/verify-closeout.sh --inputs-sha N`'s preimage is `<HEAD:prompt file bytes> \0 <diff>` —
+the LIVE PROMPT is hashed directly, not only through the (prompts-excluded) diff (S131, tripped
+over live).** Filling `## Execution`/`## Advice`/`## Design` in the prompt AFTER computing
+`--inputs-sha` changes the hash even though `prompts/` is excluded from the diff half — "attest
+LAST" (S69) means after EVERY prompt edit, not just after the diff stabilises. Recompute (twice, to
+confirm stability) and re-embed `**Review-Inputs-SHA:**` as the very last edit before closing.
+
+**`cargo test` accepts exactly ONE `TESTNAME` filter positional argument (S131, hit live).**
+`cargo test -q --lib dispatch::tests fidelity::tests` errors ("unexpected argument") rather than
+running both — it silently looked like a typo-tolerant multi-filter and is not one. Two modules
+need two invocations, joined by `&&` if both must pass.

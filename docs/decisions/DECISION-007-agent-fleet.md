@@ -745,3 +745,114 @@ gate that cannot evaluate FAILS.
   it ANSWERED. **The disposition word carries all the meaning and none of the checking.** Every
   `obeyed:` in every future ledger should be read that way: it certifies that a human typed a word
   and named a real commit, and nothing else. The only thing that caught it was a reader.
+
+## S131 addendum — `fidelity-reviewer` made MANDATORY, and its provenance made PROVABLE
+
+**Status: BUILT.** S130's ground truth found the fleet's usage falling every session it measured
+(S126 5 handoffs -> S127 3 -> S128 1 -> S129 **0**) with no gate that ever complained about the
+zero — `--check-advice` (S127) only fires once a handoff already exists. Layered on top,
+`src/cli/next.rs`'s `agent:` field was a hardcoded literal, `"claude-code-subagent"`, never derived
+from any real dispatch evidence — a hand-typed handoff satisfied it for free. The founder's own
+words at the S130 closeout, choosing which role to harden first: not a new pre-work advisor, but
+the one that "ensure[s] the session complete[s] all acceptance criteria and what it build[s] is
+actually high quality work — not fake stamping and shortcuts." That is `fidelity-reviewer`
+(DECISION-002's fidelity auditor, already the most-used role S127-S129).
+
+### Two changes, one session
+
+1. **Mandatory.** A session cannot close without `.ai/handoffs/session-{NN}-fidelity-reviewer.md`
+   existing and satisfying the DECISION-007 handoff contract — a NEW gate (`src/fidelity/mod.rs`),
+   wired into `vajra next --advance` exactly like the Coder/Advice/QA/Demo gates (binds on the
+   session being CLOSED), `VAJRA_SKIP_FIDELITY_GATE=1` the documented override. Unlike every prior
+   stage gate, **absence here carries no legacy WARN-only escape hatch** — the founder locked this
+   role mandatory, so a missing handoff blocks at L2/L3 exactly like a fabricated one.
+2. **Provable.** `src/cli/next.rs`'s hardcoded `agent:` literal is replaced by
+   `dispatch::derive_provenance` (`src/dispatch/mod.rs`), which independently cross-checks this
+   machine's real Claude Code dispatch history and reports honestly (`Verified{tool_use_id}` /
+   `Unverifiable(reason)`) rather than asserting a claim it cannot back.
+
+### Design choice, recorded rather than left implicit: its own command
+
+The Advice gate (S127) already exists at `--check-advice`. This session's prompt asked whether the
+new gate should extend it or stand alone. **Decided: its own command,
+`--check-fidelity-handoff`.** The two gates check genuinely different things — Advice proves every
+numbered *recommendation* a handoff makes was ANSWERED; this gate proves the *handoff itself*
+EXISTS and its provenance is REAL. A handoff can pass one and fail the other (a real dispatch with
+no numbered recs WARNs on Advice but PASSES here; a hand-typed handoff with perfect numbered recs
+PASSES Advice but FAILS here). Folding them into one command would blur two distinct failure modes
+behind one exit code — the same reasoning DECISION-007's S114 addendum used to give the role a
+distinct key from the station it sits beside.
+
+### The provenance mechanism: S111's evidentiary shape, automated, plus a third fact
+
+S111/S117/S123 each proved a real by-name dispatch BY HAND, once, as a committed evidence artifact:
+two independently-written Claude Code files — the parent session's own transcript
+(`subagent_type` on a `tool_use` call) and the dispatched subagent's own `agent-<id>.meta.json`
+(`agentType`) — agreeing on a random tool-use id neither side controlled. `dispatch::cross_check`
+makes this a pure, unit-tested function instead of a hand-assembled artifact, run live on every
+write and re-run independently by the gate.
+
+A gap the three hand-assembled addenda left open: an old, genuinely real tool-use id from an
+unrelated past session could be pasted into a forged handoff and would satisfy the two-file
+agreement. **Closed with a third, independent fact the runtime already writes and a forger does not
+control: the subagent transcript's own first line records `gitBranch`** — the branch the
+dispatching session was actually on. The cross-check requires it to start with
+`session-{NN:02}-`, binding the dispatch to the SESSION being gated, not merely to a real
+dispatch of the right role at some point in this repo's history. No new heuristic, no clock, no
+age window — a field Claude Code already writes, read the same way `vajra meter` already reads the
+transcripts next to it.
+
+**The gate never trusts the handoff's own label.** `vajra next --role --from` writes what it found
+at write time (`Provenance::label()` — `claude-code-subagent (verified: <id>)` or
+`(unverifiable: <reason>)`); the gate (`fidelity::fidelity_gate`) parses only the tool-use id back
+out (`dispatch::claimed_tool_use_id`) and independently re-derives whether it still cross-checks
+(`dispatch::reverify`) against a FRESH scan. A forged label copying the exact `(verified: …)` shape
+with a fabricated or stale id fails the re-derivation, not the string match.
+
+### Known limits of this choice (disclosed now, so a future session cannot claim more)
+
+- **Local-machine-only**, the same disclosed limitation as `scripts/check-subagent-cost-fields.sh`
+  (S111) and `vajra next --dogfood-age` (S91): a fresh CI runner or a different machine has no
+  `~/.claude/projects` history, so this gate cannot run there at all. It is not wired into any
+  CI/remote closeout path today.
+- **Proves dispatch, not verdict quality.** This gate proves the handoff exists and was really
+  produced by a `fidelity-reviewer` subagent on this session's branch. It says nothing about
+  whether that subagent's review was thorough or its ACCEPT/REJECT correct — that remains
+  `sessions/session-NN-review.md`'s job, gated separately and pre-existing
+  (`verify-closeout.sh#check_fidelity_review`, `#check_review_attestation`).
+  **The pre-stage-input / record-of-record split from the S114 addendum is unchanged** — this
+  gate governs the PRE-STAGE INPUT only.
+  - **It does not prove the review's ACCEPT/REJECT informed the delivery, or reads the same
+    session as the review artifact.** A stray dispatch that happens to name the right role, the
+    right session number, and land its cross-check would satisfy this gate even if its findings
+    were never read by anyone — the fleet's OLD problem (a written-but-unread artifact,
+    `handoff_body` not `Absent`), not solved by mandating existence, only surfaced. S132's job.
+- **`derive_provenance`'s newest-first selection at WRITE time is a heuristic, not a proof** — if
+  two matching dispatches exist on this machine, the write path binds to whichever has the
+  freshest meta.json mtime. The GATE's `reverify` does not depend on this choice (it re-checks the
+  SPECIFIC id the handoff recorded), so a wrong pick at write time is visible immediately (the
+  wrong provenance line prints) rather than hidden.
+- **Nine roles, one now mandatory; eight remain optional**, exactly as before. This addendum does
+  not generalise the pattern to a second role — S131's own prompt names that explicitly out of
+  scope, to be repeated only after this one is proven in use.
+- **Named plainly, not softened (the cold review's rec 1): the on-disk dispatch evidence is
+  UNSIGNED and hand-fabricable with a text editor by anyone with ordinary shell access to this
+  machine.** `agent-<id>.meta.json`, its sibling `.jsonl`, and the parent transcript are plain
+  JSON/JSONL with no cryptographic or process binding to a subagent that actually ran — this
+  session's OWN `scripts/verify-session-131.sh` (`build_real_dispatch_fixture`) and
+  `scripts/demo-session-131.sh` prove exactly how cheap that is: three `printf` calls produce a
+  dispatch the gate reports `Verified`. "Local-machine-only" (stated above) is true but
+  understates this — the honest reading is **"provable" means proves a real dispatch happened
+  when nobody on this machine is adversarially forging one, not "tamper-proof."** The bar this
+  raises over the pre-S131 hardcoded literal is real (a forger must now reproduce a specific,
+  three-fact-consistent shape rather than type any string) but it is a bar, not a wall.
+- **A residual the cold review's rec 4 named and this session did NOT close, deferred rather than
+  silently dropped (`.ai/ROADMAP.md` F2):** `reverify` proves a real `fidelity-reviewer` dispatch
+  occurred for this session; it does NOT bind that dispatch's OWN returned content to the specific
+  `--from` findings file the orchestrator later ingests. Within one session, a single real dispatch
+  could in principle be cited to stamp `Verified` provenance onto different findings text than what
+  that subagent actually returned. Normal usage (capture the subagent's final message, then
+  `--from` that exact file) does not hit this; nothing today PROVES it. Closing it would mean
+  hashing the subagent's own last transcript message and requiring the `--from` content match (or
+  derive from) it — a real design decision, not a quick fix, and out of this session's locked
+  scope (one story: mandatory + provable dispatch, not content-binding).
