@@ -132,19 +132,22 @@ Dispatched: `fidelity-reviewer` cold pass on this session's own diff (Plan step 
 `agent-a6fc7f07a30f0f897`, tool-use `toolu_01FsZj2Rs9E6vdhsgKo7SUSX`. Verdict: **ACCEPT, 7/8
 SHIPPED** (`sessions/session-131-review.md`). Four numbered recommendations, all answered:
 
-- fidelity-reviewer rec 1 -- obeyed: 3b955ac (DECISION-007 addendum now says plainly that
-  on-disk dispatch evidence is unsigned and hand-fabricable by anyone with shell access to this
-  machine, not merely "local-machine-only" -- the sharper, honest framing the reviewer asked for)
-- fidelity-reviewer rec 2 -- obeyed: adf36ed (this summary states AC8's disclosure directly: only
-  `fidelity-reviewer` is mandatory after this session; obedience-checking is explicitly S132's job)
-- fidelity-reviewer rec 3 -- obeyed: adf36ed (`verify-session-131.sh` and `demo-session-131.sh`
-  were both run live on this branch -- 10/10 and 8/8 GREEN -- and the tallies are landed in this
-  summary as the committed record; raw run artifacts stay local/gitignored per this repo's
-  no-session-artifacts-in-git rule, so the summary is where "landed evidence" lives)
-- fidelity-reviewer rec 4 -- deferred: .ai/ROADMAP.md (F2) -- a real, not-quick-fix hardening
-  question (binding a dispatch's own returned content to the specific `--from` findings file, not
-  just proving a dispatch of the right role/session occurred); recorded as an explicit residual
-  rather than rushed into this session's locked one-story scope
+- fidelity-reviewer rec 1 — obeyed: `3b955ac`
+  (name the forgery bar plainly, not "local-machine-only" — the DECISION-007 addendum now says
+  dispatch evidence is "forgeable by anyone with shell access to this machine," the sharper,
+  honest framing the reviewer asked for)
+- fidelity-reviewer rec 2 — obeyed: `adf36ed`
+  (confirm the summary states AC8's disclosure directly — it does: only `fidelity-reviewer` is
+  mandatory after this session; obedience-checking is explicitly S132's job)
+- fidelity-reviewer rec 3 — obeyed: `adf36ed`
+  (attach the live verify/demo tallies as landed evidence — `verify-session-131.sh` and
+  `demo-session-131.sh` were both run live on this branch, 10/10 and 8/8 GREEN, and the tallies
+  are landed in the summary as the committed record; raw run artifacts stay local/gitignored per
+  this repo's no-session-artifacts-in-git rule, so the summary is where "landed evidence" lives)
+- fidelity-reviewer rec 4 — deferred: `.ai/ROADMAP.md`
+  (a real, not-quick-fix hardening question — binding a dispatch's own returned content to the
+  specific `--from` findings file, not just proving a dispatch of the right role/session
+  occurred — recorded in F2 there rather than rushed into this session's locked one-story scope)
 
 ## Design
 
