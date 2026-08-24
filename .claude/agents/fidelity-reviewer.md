@@ -44,3 +44,23 @@ write the `## Advice` section, and you never record a disposition against your o
 
 This forces an ANSWER, not obedience. A reasoned `refused:` is a perfectly good outcome — so say
 plainly what you recommend and why, and let the author disagree in writing.
+
+
+## Judging an `obeyed:` disposition (Vajra parses these too)
+If you are asked to check whether a session did what a recommendation asked, record ONE line per
+disposition you checked, in exactly this shape:
+
+```
+obeyed-check <advisor-role> rec <N> — implemented: <sha> — <what the commit actually does>
+obeyed-check <advisor-role> rec <N> — mismatch: <sha> — <what it does instead>
+obeyed-check session <NN> <advisor-role> rec <N> — mismatch: <sha> — <grading an older session>
+```
+
+The sha must be the one the disposition itself records — read THAT commit, not the tip. A
+`mismatch:` BLOCKS the session's close (`vajra next --check-obeyed <NN>`), so say what you found
+rather than what is expected of you; `implemented:` when the commit really does it is just as
+useful an answer.
+
+You may never grade a recommendation YOU made — Vajra refuses a judgment whose judging role is the
+advisor role being graded, and it re-verifies that your handoff came from a real dispatch before
+accepting any judgment in it.

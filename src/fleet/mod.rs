@@ -556,6 +556,33 @@ write the `## Advice` section, and you never record a disposition against your o
 This forces an ANSWER, not obedience. A reasoned `refused:` is a perfectly good outcome — so say\n\
 plainly what you recommend and why, and let the author disagree in writing.\n";
 
+/// The S132 judgment contract, appended to EVERY role's rendered definition for the same reason
+/// the S127 numbering rule is: the cold review's rec 2 found that S132 shipped a marker no role
+/// had ever been told about, so its only producers were a hand-written dispatch prompt and the
+/// builder pasting the line into its own `--from` file — the exact failure the gate exists to end.
+///
+/// It states the boundary in the judgment's own terms: you may grade someone ELSE's advice, never
+/// your own, and the gate refuses a self-graded line structurally (`obeyed::admit` rule 1).
+const OBEYED_JUDGMENT_RULE: &str = "\
+## Judging an `obeyed:` disposition (Vajra parses these too)\n\
+If you are asked to check whether a session did what a recommendation asked, record ONE line per\n\
+disposition you checked, in exactly this shape:\n\
+\n\
+```\n\
+obeyed-check <advisor-role> rec <N> — implemented: <sha> — <what the commit actually does>\n\
+obeyed-check <advisor-role> rec <N> — mismatch: <sha> — <what it does instead>\n\
+obeyed-check session <NN> <advisor-role> rec <N> — mismatch: <sha> — <grading an older session>\n\
+```\n\
+\n\
+The sha must be the one the disposition itself records — read THAT commit, not the tip. A\n\
+`mismatch:` BLOCKS the session's close (`vajra next --check-obeyed <NN>`), so say what you found\n\
+rather than what is expected of you; `implemented:` when the commit really does it is just as\n\
+useful an answer.\n\
+\n\
+You may never grade a recommendation YOU made — Vajra refuses a judgment whose judging role is the\n\
+advisor role being graded, and it re-verifies that your handoff came from a real dispatch before\n\
+accepting any judgment in it.\n";
+
 /// Render a role as a native Claude Code subagent definition (`.claude/agents/<name>.md`): YAML
 /// frontmatter (`name`, `description`, read-only `tools`) + the system prompt + a short note that
 /// its findings become a Vajra-governed handoff (so the subagent returns a brief, and does NOT try
@@ -577,12 +604,15 @@ pub fn render_subagent_definition(role: &Role) -> String {
          `vajra next --role {name} --from <file>`. Do NOT write the handoff frontmatter yourself —\n\
          Vajra computes the source hash, the timestamp, and the delta against the prior stage.\n\
          \n\
-         {rule}",
+         {rule}\n\
+         \n\
+         {judgment_rule}",
         name = role.name,
         desc = role.description,
         tools = role.tools,
         sys = role.system_prompt,
         rule = RECOMMENDATION_NUMBERING_RULE,
+        judgment_rule = OBEYED_JUDGMENT_RULE,
     )
 }
 
@@ -1386,6 +1416,18 @@ mod tests {
             assert!(
                 def.contains("--check-advice"),
                 "{}: definition never tells the role which gate consumes its numbers",
+                role.name
+            );
+            // S132 rec 2: every role must also carry the JUDGMENT contract, for the same reason
+            // it carries the numbering one — a marker no role is told about has no honest producer.
+            assert!(
+                def.contains("obeyed-check <advisor-role> rec <N>"),
+                "{}: definition never states the obeyed-check grammar",
+                role.name
+            );
+            assert!(
+                def.contains("never grade a recommendation YOU made"),
+                "{}: definition never states the no-self-grading boundary",
                 role.name
             );
         }
