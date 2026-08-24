@@ -568,17 +568,28 @@ mod tests {
         .is_none());
     }
 
+    // The three admissibility tests below assert BEHAVIOUR (Err-ness plus a matched positive
+    // control), never message wording — S122's lesson, hit live by S131: a test bound to the exact
+    // text makes "renaming every gate message must stay GREEN" impossible to satisfy honestly.
+    // Each case differs from its own control in exactly ONE input, so only one rule can be the
+    // reason it fails.
     #[test]
     fn an_advisor_may_not_grade_its_own_recommendation() {
-        let jj = j(
+        let mine = j(
             "implementation-advisor",
             9,
             Verdict::Implemented,
             "8cd3bea",
             "implementation-advisor",
         );
-        let why = admit(&jj, "8cd3bea", ok).unwrap_err();
-        assert!(why.contains("graded its OWN recommendation"), "{why}");
+        assert!(admit(&mine, "8cd3bea", ok).is_err());
+        // Control: the SAME judgment from any other role is admissible — so the refusal above can
+        // only be the self-certification rule.
+        let theirs = Judgment {
+            judge_role: "fidelity-reviewer".into(),
+            ..mine
+        };
+        assert!(admit(&theirs, "8cd3bea", ok).is_ok());
     }
 
     #[test]
@@ -590,9 +601,8 @@ mod tests {
             "deadbee",
             "fidelity-reviewer",
         );
-        let why = admit(&jj, "1a2b3c4", ok).unwrap_err();
-        assert!(why.contains("stale"), "{why}");
-        // An abbreviation of the same commit is the same commit.
+        assert!(admit(&jj, "1a2b3c4", ok).is_err());
+        // Control: an ABBREVIATION of the same commit is the same commit.
         assert!(admit(&jj, "deadbeef1234", ok).is_ok());
     }
 
@@ -605,8 +615,28 @@ mod tests {
             "1a2b3c4",
             "fidelity-reviewer",
         );
-        let why = admit(&jj, "1a2b3c4", |_| Err("no dispatch evidence".into())).unwrap_err();
-        assert_eq!(why, "no dispatch evidence");
+        assert!(admit(&jj, "1a2b3c4", |_| Err("no dispatch evidence".into())).is_err());
+        // Control: everything else about this judgment is admissible.
+        assert!(admit(&jj, "1a2b3c4", ok).is_ok());
+    }
+
+    #[test]
+    fn an_empty_or_placeholder_note_is_refused() {
+        let base = j(
+            "plan-advisor",
+            2,
+            Verdict::Implemented,
+            "1a2b3c4",
+            "fidelity-reviewer",
+        );
+        for note in ["", "   ", "<what the commit does>"] {
+            let jj = Judgment {
+                note: note.into(),
+                ..base.clone()
+            };
+            assert!(admit(&jj, "1a2b3c4", ok).is_err(), "note {note:?} admitted");
+        }
+        assert!(admit(&base, "1a2b3c4", ok).is_ok());
     }
 
     #[test]
