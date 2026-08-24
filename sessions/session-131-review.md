@@ -36,4 +36,4 @@ rec 3 — Before merge, actually execute `scripts/verify-session-131.sh` and `sc
 
 rec 4 — Consider hardening `reverify` (or documenting it as an explicit, named residual rather than folding it into "proves dispatch, not verdict quality") against reuse-within-session: today a single real `fidelity-reviewer` dispatch on this session's branch can be cited by `--role --from` to stamp `Verified` provenance onto arbitrarily different `--from` findings content written later in the same session — the gate checks that a real dispatch of the right role/session occurred, never that the findings it's stamping came from that dispatch.
 
-**Review-Inputs-SHA:** 4a5312770d16740f7fc49069caa6295bb2a1ffca8ec27238fca76dbf50ce28a6
+**Review-Inputs-SHA:** 8eb72c672ebce96b57ab5b046469d4cc2176118aa91a903b9bfbf1ca038de15f
