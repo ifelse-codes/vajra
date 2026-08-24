@@ -10,7 +10,9 @@ use crate::analyst;
 use crate::architect;
 use crate::coder;
 use crate::demoer;
+use crate::dispatch;
 use crate::dogfood;
+use crate::fidelity;
 use crate::fleet;
 use crate::gate_run;
 use crate::maturity::{read_maturity, MaturityLevel};
@@ -68,6 +70,12 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-advice") {
         return run_check_advice(args.get(i + 1));
+    }
+    // The Fidelity gate (S131) rides `vajra next` — no 8th command. Distinct from the Advice gate:
+    // that one proves recommendations ANSWERED, this one proves the fidelity-reviewer handoff
+    // itself EXISTS and is PROVABLY real (DECISION-007 S131 addendum).
+    if let Some(i) = args.iter().position(|a| a == "--check-fidelity-handoff") {
+        return run_check_fidelity_handoff(args.get(i + 1));
     }
     // The QA stage (S69) also rides `vajra next` — no 8th command.
     if let Some(i) = args.iter().position(|a| a == "--qa") {
@@ -275,12 +283,20 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
     let source_sha =
         fleet::sha256_hex(body.as_bytes()).unwrap_or_else(|| "unavailable".to_string());
     let delta = fleet::compute_delta(role, prior_body.as_deref(), body);
+    // S131: the `agent:` field is DERIVED, not the hardcoded literal `"claude-code-subagent"` a
+    // hand-typed handoff could satisfy for free. `dispatch::derive_provenance` independently
+    // cross-checks this machine's real Claude Code dispatch evidence (S111/S117/S123's
+    // evidentiary shape, automated) and reports honestly when nothing verifies — the gate that
+    // reads this field (`--check-fidelity-handoff`) re-derives it again rather than trusting the
+    // label written here.
+    let provenance = dispatch::derive_provenance(&root, role.name, session);
+    let agent_label = provenance.label();
     let handoff = fleet::format_handoff(
         role,
         session,
         // A subagent's cost rolls into the parent session receipt — recorded as `null` here (S77
         // honest null), with the session total disclosed in the summary.
-        "claude-code-subagent",
+        &agent_label,
         &source_sha,
         &utc_now(),
         None,
@@ -298,6 +314,7 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
     );
     println!("  handoff:    {handoff_rel}");
     println!("  source-sha: {source_sha}");
+    println!("  provenance: {agent_label}");
     println!(
         "  delta:      {}",
         delta.lines().next().unwrap_or("").trim_start_matches("- ")
@@ -573,6 +590,47 @@ fn run_check_advice(nn: Option<&String>) -> Result<()> {
     println!(
         "note: this proves each recommendation was ANSWERED and its evidence is real — never that \
          the answer was a good one."
+    );
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --check-fidelity-handoff NN` — the Fidelity GATE (S131): does session NN carry a
+/// `fidelity-reviewer` governed handoff whose provenance independently re-verifies against real
+/// Claude Code subagent-dispatch evidence? Exit 1 on absence, malformation, or unverifiable
+/// provenance (BLOCK) — this gate has no legacy WARN-only escape hatch: the founder locked
+/// `fidelity-reviewer` mandatory at the S130 closeout, so unlike the other stage gates a missing
+/// handoff is never merely advisory once maturity is L2/L3 (see the `--advance` wiring).
+fn run_check_fidelity_handoff(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-fidelity-handoff")?;
+    let root = repo_root()?;
+
+    let verdict = fidelity::fidelity_gate(&root, session);
+    println!("=== fidelity: fidelity-reviewer handoff for session {session:02} ===");
+    println!(
+        "handoff: {}",
+        verdict.handoff_path.as_deref().unwrap_or("(none)")
+    );
+    if let Some(agent) = &verdict.agent_field {
+        println!("agent:   {agent}");
+    }
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    println!(
+        "note: this proves the handoff EXISTS and its provenance independently re-verifies — \
+         never that the review's own verdict was thorough or correct (that is \
+         sessions/session-NN-review.md, gated separately by verify-closeout.sh)."
     );
     if verdict.blocked() {
         std::process::exit(1);
@@ -1105,6 +1163,42 @@ fn run_advance() -> Result<()> {
                  `- <role> rec N — obeyed: <sha>` / `refused: <reason>` / `deferred: <path>` in \
                  the prompt's `## Advice`, or set VAJRA_SKIP_ADVICE_GATE=1 to override. A reasoned \
                  refusal passes — silence does not."
+            );
+        }
+    }
+
+    // Fidelity gate (S131): the pipeline's MANDATORY-HANDOFF bookend. Like the Advice gate it
+    // binds on the session being CLOSED — `current` cannot close without a `fidelity-reviewer`
+    // governed handoff whose provenance independently re-verifies against real dispatch evidence.
+    // Founder-locked at the S130 closeout: this is the first role made mandatory, chosen because
+    // it is the one that "ensure[s] the session complete[s] all acceptance criteria and what it
+    // build[s] is actually high quality work — not fake stamping and shortcuts." Unlike every
+    // other gate above, absence here is NOT a legacy-compat WARN — a session with no
+    // fidelity-reviewer handoff blocks at L2/L3 exactly the same as a fabricated one.
+    // `VAJRA_SKIP_FIDELITY_GATE=1` is the documented override (distinct from the others', so each
+    // stage overrides alone).
+    let fidelity_verdict = fidelity::fidelity_gate(&root, current);
+    for w in &fidelity_verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if fidelity_verdict.blocked() {
+        eprintln!(
+            "[vajra fidelity] session {current:02} cannot close — its fidelity-reviewer handoff \
+             is missing or unprovable:"
+        );
+        for r in &fidelity_verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else if env::var("VAJRA_SKIP_FIDELITY_GATE").is_ok() {
+            eprintln!("  (VAJRA_SKIP_FIDELITY_GATE set — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {current:02} has no provable fidelity-reviewer \
+                 handoff (Fidelity gate). Dispatch the cold review and run `vajra next --role \
+                 fidelity-reviewer --from <findings>`, or set VAJRA_SKIP_FIDELITY_GATE=1 to \
+                 override."
             );
         }
     }
