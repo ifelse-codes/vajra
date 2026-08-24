@@ -244,7 +244,7 @@ const SEPARATORS: [&str; 4] = ["—", "–", "-", ":"];
 /// The lines of `text` that are NOT inside a fenced code block (rec 2). A fence opens and closes
 /// on a trimmed line starting with ``` or ~~~ — the designated escape hatch for SHOWING the
 /// grammar without recording it.
-fn skip_fenced(text: &str) -> Vec<&str> {
+pub(crate) fn skip_fenced(text: &str) -> Vec<&str> {
     let mut out = Vec::new();
     let mut fenced = false;
     for line in text.lines() {
@@ -263,7 +263,7 @@ fn skip_fenced(text: &str) -> Vec<&str> {
 /// Strip one leading list marker (`-`, `*`, `+`, `N.`, `N)`) and any emphasis wrapper from a line,
 /// so `- **rec 1 — x**` and `rec 1 — x` parse identically. Anchoring after this strip is what keeps
 /// the word "rec" in mid-sentence prose from ever counting as a marker.
-fn strip_decoration(line: &str) -> String {
+pub(crate) fn strip_decoration(line: &str) -> String {
     let mut s = line.trim();
     // rec 3: a heading is a perfectly natural place for an advisor to put a recommendation
     // (`### rec 1 — …`), so the markers strip here too.
@@ -386,14 +386,14 @@ fn clean_token(raw: &str) -> String {
         .to_string()
 }
 
-/// Parse one `## Advice` line into `(role, number, disposition)`.
+/// Split a `<role> rec <N> <sep> <tail>` line into its three parts, already decoration-stripped by
+/// the caller. Factored out at S132 so the `obeyed-check` marker family reuses this boundary rule
+/// verbatim rather than re-implementing it — two parsers drifting apart on what counts as a role
+/// is exactly how a recorded answer silently stops matching the advice it answers.
 ///
 /// Role keys never contain the token `rec`, so the first ` rec <N>` boundary splits the line
-/// cleanly even for hyphenated keys like `implementation-advisor`. Everything right of the
-/// separator is `<word>: <evidence>`, split at the FIRST colon so a refusal reason may contain
-/// colons of its own.
-pub fn parse_disposition_line(line: &str) -> Option<(String, u32, Disposition)> {
-    let s = strip_decoration(line);
+/// cleanly even for hyphenated keys like `implementation-advisor`.
+pub(crate) fn split_role_rec(s: &str) -> Option<(String, u32, String)> {
     let lower = s.to_ascii_lowercase();
 
     let mut idx = None;
@@ -415,8 +415,18 @@ pub fn parse_disposition_line(line: &str) -> Option<(String, u32, Disposition)> 
     if role.is_empty() {
         return None;
     }
-
     let (number, tail) = parse_rec_marker(&s[idx..])?;
+    Some((role, number, tail))
+}
+
+/// Parse one `## Advice` line into `(role, number, disposition)`.
+///
+/// Role keys never contain the token `rec`, so the first ` rec <N>` boundary splits the line
+/// cleanly even for hyphenated keys like `implementation-advisor`. Everything right of the
+/// separator is `<word>: <evidence>`, split at the FIRST colon so a refusal reason may contain
+/// colons of its own.
+pub fn parse_disposition_line(line: &str) -> Option<(String, u32, Disposition)> {
+    let (role, number, tail) = split_role_rec(&strip_decoration(line))?;
     let (word, evidence) = tail.split_once(':')?;
     let disposition = match word.trim().to_ascii_lowercase().as_str() {
         "obeyed" => Disposition::Obeyed(clean_token(evidence)),
