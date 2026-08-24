@@ -1,65 +1,66 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 129 — COMPLETE
-- **Type:** CODE — one source for what a stranger gets. Founder pick **A** at the S128 closeout,
-  chosen in plain English over the first-contact residuals (B) and a paid ride-along (C).
-- **Goal:** make what `vajra init` hands a stranger a DERIVED artifact of what this repo runs on,
-  and make it impossible for the two to silently drift again.
-- **Verdict:** **ACCEPT on TWO independent cold passes.** A second pass was run because the work
-  done after pass 1 was substantive — shipping pass 1's verdict over changed code would have been
-  dishonest. **Pass 2: 14 SHIPPED · 2 PARTIAL · 0 NOT-BUILT.** 17 recommendations across both
-  passes: **16 obeyed, 1 refused with a reason.** Report: `sessions/session-129-summary.md`.
-  Both reviews: `sessions/session-129-review.md`. Measurement: `sessions/session-129-fork-measurement.md`.
-- **What a stranger gets now:** **13 of 13** binding rules (was 8, two of them renamed so equality
-  was never checkable) · **10 of 12** ground-truth audits (was 7) · **7 of 7** drift axes (was 6,
-  and nobody knew) — all DERIVED at build time by `build.rs`. **The default is CARRIED**, so a rule
-  added here reaches every future scaffold with no action taken; deviating needs a declared reason
-  that **ships into the stranger's own file**; a stale declaration **panics the build**.
-- **The guard that was missing for 128 sessions:** `scripts/scaffold-drift.sh` — real empty dir,
-  real `git init`, the real release binary, three inventories, both directions, and **a GREEN line
-  that states its own jurisdiction**. `scaffold_drift_check` is the 12th required GT audit.
-- verify **12/12** · demo **15/15** · drift **17/17** · stranger **21/21** (was 16) · fixture
-  **18/18** (7 plants + a control) · **365** tests · `K of 8` unmoved · **7 commands**, no 8th.
+- **Number:** 130 — COMPLETE
+- **Type:** NO-CODE MANDATORY GROUND TRUTH (`130 % 5 == 0`), auditing S126–S129.
+- **Goal:** run both product-facing audits LIVE for the first time (`stranger_check`,
+  `scaffold_drift_check`), answer all 12 required audits, and settle the two sharpened lenses —
+  is the 9-role fleet a fleet or a roster, and is one cold pass at close the right review shape.
+- **Verdict:** **PARTIAL PASS.** Both mandated audits ran live and are GREEN (21/21, 17/17).
+  Discipline held (zero constraint violations S126–S129, independently re-verified via git). But
+  the fleet is trending toward pure decoration, two documents have been quietly stale for weeks in
+  the direction nobody watches, and a second live landmine — same bug class as S129's Planner fix —
+  was found untriggered in the Analyst's delta parser. Report:
+  `sessions/session-130-ground-truth.md`.
+- **The two live audits, pasted:**
+  - `stranger_check`: **21/21 PASS.** Real empty dir, real release binary.
+  - `scaffold_drift_check`: **17/17 PASS.** GREEN is scoped to 3 derived lists, stated in its own
+    output.
+  - `verify-closeout.sh --ledger-verify`: **INTACT**, re-run live.
+- **Fleet lens (1): roster, not fleet, and worsening.** Governed handoffs: S126 5 → S127 3 →
+  S128 1 → S129 **0**. The one gate touching a handoff (S127 Advice gate) never fires on zero
+  handoffs. The provenance every handoff carries (`src/cli/next.rs:283`) is a hardcoded literal
+  string, not derived from any real dispatch evidence.
+- **Review-shape lens (2): one cold pass at close is not enough.** Three-for-three: every narrow,
+  read-only pass run in this repo (S129 pass 1, S129 pass 2, this session) has found a real defect
+  the builder missed, twice already live and silently wrong, not merely latent.
+- **New finding: `parse_delta()` (`src/analyst/mod.rs:318`) has the Planner's exact bug class** —
+  `heading.contains("delta")`. Untriggered so far by luck of formatting, not correctness; the
+  trigger condition already exists in `prompts/59-*` and `prompts/61-*`'s own titles.
+- **VISION.md (lines 5, 21) and `.ai/AGENTS.md:118` are both stale**, understating real progress —
+  named, not yet fixed (small, bundle-able fixes, not consuming an S131–S134 slot).
 
-**🔴 BOTH COLD READERS FOUND A FORK THE BUILDER HAD MISSED, INSIDE THE BLAST RADIUS OF THE FIX.**
-Pass 1 found `drift_axes` (6 vs 7, *three lines above the derived include*) — fixed in-session.
-Pass 2 found **the FOURTH fork**: `TPL_CONSTRAINTS` hand-types a family of twins of live
-`.ai/CONSTRAINTS.yaml` keys, **two already WRONG in a stranger's file** — `communication.forbid`
-ships 4 of our 5, and `commit.forbid_skip_hooks` is absent **while `src/varta/render.rs:84` reads
-it**. **REFUSED in-session** (it needs a KEY-SET inventory, not a fourth list comparison; and
-hand-patching would put fresh hand-typed content into the session that removed it), named in four
-places, and it is the **S131 candidate A**.
+**🟢 FOUNDER LOCKED S131–S134 AT THIS CLOSEOUT**, after a plain-language walkthrough of the
+findings (full exchange preserved in `sessions/session-130-ground-truth.md`'s closeout context):
 
-**🔴 UNPLANNED, AND THE THING TO CARRY FORWARD:** running `vajra next --check-plan` at close showed
-it had been **mis-parsing every prompt** since the heading `## Plan (ordered — cite the acceptance
-criteria each step covers)` was adopted — the acceptance parser matched on `contains("acceptance")`,
-so plan steps were counted as criteria. **The Planner station in `K of 8` reported PASSED off that
-parser.** Fixed at the source with a falsifiable test. **A registered gate nobody executes is not a
-gate.**
+- **S131** — make the `fidelity-reviewer` handoff MANDATORY (existence-gated, like every other
+  Vajra gate) and fix its hardcoded provenance so a hand-typed fake can't satisfy it. Founder's own
+  words for why this role first: it should "ensure the session complete[s] all acceptance criteria
+  and what it build[s] is actually high quality work — not fake stamping and shortcuts."
+- **S132** — verify the reviewer's advice was actually OBEYED, not just answered (closes the S127
+  residual: 4 factually-wrong `obeyed:` labels once passed the gate).
+- **S133** — founder decides: keep or kill the compression engine (1,005 LOC, $0 saved, measured
+  twice). Bounded cleanup session either way.
+- **S134** — a real paid dogfood run from a FRESH scaffold, not this repo.
+- **Rung 3** (3-day unattended, multi-repo) **and outside adoption are PUSHED BACK past S134,
+  explicit founder call** — neither is code-closeable; named, not silently dropped.
 
-**Fakest green (pass 2's call, adopted over the builder's):** the drift check's jurisdiction is
-defined by the thing it audits — its GREEN can never go red outside the three derived lists. The fix
-shipped is **honesty, not coverage**.
-
-**Still true for a stranger:** `vajra init` blocks on stdin without EOF · their first `vajra check`
-exits 1 · **0 stars · 0 forks · 0 issues · 19 downloads, unchanged.**
+`.ai/ROADMAP.md`'s F2 backlog item, the Autopilot Ladder table, and the K1/A1 backlog entries all
+carry this lock with the founder's rationale in full.
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 129.
-- Last paid dogfood: **S124, `$3.2985`** (`vajra next --dogfood-age` is the live query — never
-  STATE.md).
-- Two product-facing audits registered, **neither ever run BY a ground truth**.
+- `.ai/SESSION` = 130.
+- Last paid dogfood: **S124, `$3.2985`** — 5 sessions / 4 days stale at S130
+  (`vajra next --dogfood-age` is the live query — never STATE.md).
+- Adoption: **0 stars · 0 forks · 0 issues · 19 downloads** — unchanged, re-confirmed live via `gh`
+  and the crates.io API this session, not repeated from memory.
 
 ## Next Session
-- **Read prompt:** `prompts/130-task-ground-truth.md`
-- **Session 130 is the MANDATORY NO-CODE GROUND TRUTH** (`130 % 5 == 0`), auditing S126–S129, and
-  **the first GT that must RUN `stranger_check` and `scaffold_drift_check` live.** No `src/` edits,
-  no commits on its own branch — closeout rides `session-130-closeout`.
-- Its two sharpened lenses: **is nine roles a fleet or a roster** (S128 and S129 each reached for
-  exactly one), and **is one-cold-pass-at-close the right review shape** when two read-only passes
-  each found a fork the builder missed.
-- Three ranked candidates for **S131** are carried in the summary and the GT prompt; the founder
-  picks at the S130 closeout.
+- **Read prompt:** `prompts/131-task-fleet-mandatory-gate.md`
+- **Session 131 is CODE**, locked at this closeout: make the `fidelity-reviewer` governed handoff
+  mandatory before a session can close, and replace its hardcoded provenance string with real
+  dispatch evidence (reusing the S111/S117 cross-check design).
+- **Not this session:** the other 8 roles, whether advice is obeyed (S132), the fourth fork
+  (parked), Rung 3 / adoption (pushed back past S134).
 
 **New chat.**

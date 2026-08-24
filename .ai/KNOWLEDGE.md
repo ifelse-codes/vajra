@@ -1058,3 +1058,16 @@ execute nothing and said so plainly, then found a third fork (`drift_axes`, 6 ag
 three lines above the fix, inside the block the session had rewritten. Its words: *"the honest form
 of the summary's residual is: we did not look one line up."* Never discount a read-only pass because
 it could not run the suite.
+
+**A `.contains()` heading match is a class, not a one-off (S130 GT).** The Planner's S129 bug
+(`heading.contains("acceptance")` matching its own heading text) recurs verbatim in the Analyst's
+`parse_delta()` (`heading.contains("delta")`, `src/analyst/mod.rs:318`) — untriggered only because
+two real prompt titles that already sit on the trigger (`prompts/59-*`, `prompts/61-*`) happen to
+close the false window cleanly. Any substring-match heading/marker parser in this repo is suspect
+until it is tested against its own trigger word appearing in a title, not just in a body line.
+
+**A session's own verify script cannot be meaningfully re-run once its branch is merged (S130,
+reproduced live).** `verify-session-129.sh` went RED post-merge purely because `git merge-base main
+HEAD` resolves differently after `main` absorbs the branch — the script's own S129 comment predicted
+this. It is why `K of 8`'s QA/Demo-er stations are correctly labelled `[static — not live-green]`
+for any past session, not a bug to chase.

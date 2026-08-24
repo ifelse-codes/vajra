@@ -2,31 +2,30 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 129 — CODE: ONE SOURCE FOR WHAT A STRANGER GETS — COMPLETE (between sessions)
+## Session 130 — NO-CODE GROUND TRUTH — COMPLETE (between sessions)
 
-- **Verdict: ACCEPT on TWO independent cold passes.** The second was run because the work done
-  after pass 1 was substantive — shipping pass 1's verdict over changed code would have been
-  dishonest. Pass 2: **14 SHIPPED · 2 PARTIAL · 0 NOT-BUILT**. **17 recommendations across both
-  passes: 16 obeyed, 1 REFUSED with a reason.** Report: `sessions/session-129-summary.md`.
-  Both reviews: `sessions/session-129-review.md`. Prompt: `prompts/129-task-one-source-scaffold.md`.
-- **What a stranger is governed by now:** **13 of 13** binding rules (was 8, two renamed so equality
-  was never checkable) · **10 of 12** ground-truth audits (was 7) · **7 of 7** drift axes (was 6,
-  and nobody knew) — all DERIVED at build time by `build.rs`. **The DEFAULT is CARRIED**; deviation
-  needs a declared reason that **ships into the stranger's own file**; **a stale declaration panics
-  the build.** `scripts/scaffold-drift.sh` is the guard (17/17) and `scaffold_drift_check` is the
-  12th required GT audit.
-- verify **12/12** · demo **15/15** · drift **17/17** · stranger **21/21** · fixture **18/18**
-  (7 plants + a control) · **365** tests · `K of 8` unmoved · **7 commands**.
+- **Verdict: PARTIAL PASS.** Both mandated product-facing audits (`stranger_check`,
+  `scaffold_drift_check`) ran LIVE for the first time ever — 21/21 and 17/17, both GREEN. All 12
+  required audits answered; ledger re-verified INTACT; constraint compliance re-verified directly
+  against git (no violations, S126–S129). Report: `sessions/session-130-ground-truth.md`.
+- **Fleet handoffs are falling every session, not stabilising:** S126 5 → S127 3 → S128 1 → S129
+  **0**. The fleet is a roster, not a fleet — lens 1's verdict, with the trend as evidence.
+- **A second live landmine found, same bug class as S129's Planner fix:** `parse_delta()` in
+  `src/analyst/mod.rs:318` uses `heading.contains("delta")` — the exact trigger condition already
+  sits in two of this repo's own prompt titles (`prompts/59-*`, `prompts/61-*`), untested, not yet
+  triggered. Named, not yet fixed.
+- **VISION.md and AGENTS.md:118 are both stale**, in the direction that UNDERSTATES progress —
+  VISION still says "Rung 1 of 3" (Rung 2 passed S103) and "package ~0%" (v0.1 shipped S108);
+  AGENTS.md:118 calls one-session-per-chat "convention" though it's been hook-enforced since S26.
+- **Founder locked the S131–S134 sequence at this closeout** (plain-language exchange, recorded in
+  full in the GT report): **S131** — make the `fidelity-reviewer` handoff mandatory + fix its
+  hardcoded provenance. **S132** — verify the reviewer's advice was actually obeyed, not just
+  answered. **S133** — founder decides compression: keep or kill. **S134** — real paid dogfood from
+  a fresh scaffold. **Rung 3 and outside-adoption are explicitly pushed back past S134** — named
+  not-code-closeable, not silently dropped.
 
-**🔴 THE RESIDUAL, UNSOFTENED — THE FOURTH FORK, REFUSED.** `TPL_CONSTRAINTS` in `src/cli/init.rs`
-still hand-types a family of twins of live `.ai/CONSTRAINTS.yaml` keys, **and two are already WRONG
-in a stranger's file**: `communication.forbid` ships **4 of our 5**, and
-**`commit.forbid_skip_hooks` is absent while `src/varta/render.rs:84` reads it**. Also absent:
-`commit.forbid_force_push_to`, `self_review_questions`, the whole `end_of_session` block. Plus the
-scaffolded load order (8 vs 9) and session loop (9 vs 10) — sections the live file labels
-*Mandatory*. **Refused because it needs a KEY-SET inventory, not a fourth list comparison**, and
-hand-patching would put fresh hand-typed content into the session that removed it. Named in four
-places including the drift check's own GREEN output. **It is S131's candidate A.**
+**Next: Session 131.** Prompt: `prompts/131-task-fleet-mandatory-gate.md`. `.ai/ROADMAP.md`'s F2
+item carries the full locked plan and rationale.
 
 **🔴 UNPLANNED FIND, and the general lesson to carry:** running `vajra next --check-plan` at close
 showed it had been **mis-parsing every prompt** since the heading changed — a `K of 8` station was
