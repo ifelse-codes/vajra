@@ -108,18 +108,17 @@ provable, not asserted. Two parts:
 
 ## Execution (the Coder gate -- record each plan step's landing commit as work lands)
 
-- step 1 -- done: <sha>
-- step 2 -- done: <sha>
-- step 3 -- done: <sha>
-- step 4 -- done: <sha>
-- step 5 -- done: <sha>
-- step 6 -- done: <sha>
-- step 7 -- done: <sha>
-- step 8 -- done: <sha>
-
-> Fill these with real landing shas before closeout -- S119, S122, S124 all left <sha> placeholders
-> once, caught only by an independent cold review. Do not record a sha that does not contain the
-> work (S127 did that three times).
+- step 1 -- done: 7f4db94 (gap reproduced live before any fix; captured durably as
+  `absent-handoff-blocks` + `fabricated-provenance-blocks` in the verify suite)
+- step 2 -- done: 7cee5eb (dispatch provenance module: pure `cross_check` + fs edges,
+  `derive_provenance`)
+- step 3 -- done: ac9df27 (the mandatory existence+provenance gate itself), wired by 4f1cf45
+- step 4 -- done: 2eb7deb (decoupled unit tests from message text so the fixture's
+  red-on-bypass/green-on-rename direction is real), fixture landed in 7f4db94
+- step 5 -- done: 7f4db94 (`k-of-8-unchanged-and-not-a-ninth-station` check)
+- step 6 -- done: 7f4db94, 65a9b1d (verify-session-131.sh, demo-session-131.sh)
+- step 7 -- done: bacfd4e (the real fidelity-reviewer handoff, this session's own dispatch)
+- step 8 -- done: adf36ed (this summary; states plainly what is and is not fixed)
 
 ## Advice (every recommendation from this session's advisors, answered)
 
@@ -129,8 +128,23 @@ provable, not asserted. Two parts:
 > there were factually wrong and passed the gate. A disposition certifies a typed word and a
 > resolving sha, nothing more -- check the commit, don't count the label.
 
-(Filled during S131 -- this session should dispatch at least the `fidelity-reviewer` cold pass per
-Plan step 7, and its recommendations get answered here.)
+Dispatched: `fidelity-reviewer` cold pass on this session's own diff (Plan step 7), real subagent
+`agent-a6fc7f07a30f0f897`, tool-use `toolu_01FsZj2Rs9E6vdhsgKo7SUSX`. Verdict: **ACCEPT, 7/8
+SHIPPED** (`sessions/session-131-review.md`). Four numbered recommendations, all answered:
+
+- fidelity-reviewer rec 1 -- obeyed: 3b955ac (DECISION-007 addendum now says plainly that
+  on-disk dispatch evidence is unsigned and hand-fabricable by anyone with shell access to this
+  machine, not merely "local-machine-only" -- the sharper, honest framing the reviewer asked for)
+- fidelity-reviewer rec 2 -- obeyed: adf36ed (this summary states AC8's disclosure directly: only
+  `fidelity-reviewer` is mandatory after this session; obedience-checking is explicitly S132's job)
+- fidelity-reviewer rec 3 -- obeyed: adf36ed (`verify-session-131.sh` and `demo-session-131.sh`
+  were both run live on this branch -- 10/10 and 8/8 GREEN -- and the tallies are landed in this
+  summary as the committed record; raw run artifacts stay local/gitignored per this repo's
+  no-session-artifacts-in-git rule, so the summary is where "landed evidence" lives)
+- fidelity-reviewer rec 4 -- deferred: .ai/ROADMAP.md (F2) -- a real, not-quick-fix hardening
+  question (binding a dispatch's own returned content to the specific `--from` findings file, not
+  just proving a dispatch of the right role/session occurred); recorded as an explicit residual
+  rather than rushed into this session's locked one-story scope
 
 ## Design
 
@@ -140,9 +154,14 @@ Plan step 7, and its recommendations get answered here.)
 - Spine record to cite: the nearest existing ADR/decision record naming the fidelity auditor as
   load-bearing (DECISION-002) -- verify it exists before citing it; the Architect gate checks
   existence, not obedience.
-- Open design question for S131 to resolve and record here: does the new gate live inside
-  `vajra next --check-advice` (extending the existing Advice gate) or as its own
-  `--check-fidelity-handoff`? Either is acceptable; record the choice and why.
+- **Resolved: its own command, `--check-fidelity-handoff`, not an extension of `--check-advice`.**
+  The two gates check genuinely different things -- Advice proves every numbered recommendation a
+  handoff makes was ANSWERED; this gate proves the handoff itself EXISTS and its provenance is
+  REAL. A handoff can pass one and fail the other (a real dispatch with no numbered recs WARNs on
+  Advice but PASSES here; a hand-typed handoff with perfect numbered recs PASSES Advice but FAILS
+  here). Folding them into one command would blur two distinct failure modes behind one exit code
+  -- the same reasoning DECISION-007's S114 addendum used to give the role a distinct key from the
+  station beside it. Full reasoning: `docs/decisions/DECISION-007-agent-fleet.md`'s S131 addendum.
 
 ## Non-goals (not built this session)
 
