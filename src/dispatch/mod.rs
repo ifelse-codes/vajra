@@ -418,23 +418,37 @@ mod tests {
     }
 
     #[test]
+    // These three assert BEHAVIOR only (Err, not a specific string) — deliberately, so the
+    // falsifiability fixture's "renaming every message must stay GREEN" direction (S122/S127) has
+    // real teeth: a test bound to exact wording would go red on a harmless rename and mask a
+    // genuine bypass. `cross_check_reports_three_distinct_reasons` below still proves the three
+    // branches are not collapsed into one message, without pinning what any of them says.
     fn cross_check_fails_when_no_parent_call_matches() {
         let metas = [meta("t1", "fidelity-reviewer", Some("session-131-x"))];
-        let err = cross_check("fidelity-reviewer", 131, "t1", &[], &metas).unwrap_err();
-        assert!(err.contains("no parent-transcript tool_use call"), "{err}");
+        assert!(cross_check("fidelity-reviewer", 131, "t1", &[], &metas).is_err());
     }
 
     #[test]
     fn cross_check_fails_when_no_meta_matches() {
         let calls = [call("t1", "fidelity-reviewer")];
-        let err = cross_check("fidelity-reviewer", 131, "t1", &calls, &[]).unwrap_err();
-        assert!(err.contains("no subagent meta.json"), "{err}");
+        assert!(cross_check("fidelity-reviewer", 131, "t1", &calls, &[]).is_err());
     }
 
     #[test]
     fn cross_check_fails_when_neither_side_has_the_id() {
-        let err = cross_check("fidelity-reviewer", 131, "t1", &[], &[]).unwrap_err();
-        assert!(err.contains("appears in neither"), "{err}");
+        assert!(cross_check("fidelity-reviewer", 131, "t1", &[], &[]).is_err());
+    }
+
+    #[test]
+    fn cross_check_reports_three_distinct_reasons_for_the_three_missing_evidence_shapes() {
+        let metas = [meta("t1", "fidelity-reviewer", Some("session-131-x"))];
+        let calls = [call("t1", "fidelity-reviewer")];
+        let only_meta = cross_check("fidelity-reviewer", 131, "t1", &[], &metas).unwrap_err();
+        let only_parent = cross_check("fidelity-reviewer", 131, "t1", &calls, &[]).unwrap_err();
+        let neither = cross_check("fidelity-reviewer", 131, "t1", &[], &[]).unwrap_err();
+        assert_ne!(only_meta, only_parent);
+        assert_ne!(only_meta, neither);
+        assert_ne!(only_parent, neither);
     }
 
     #[test]
