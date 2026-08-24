@@ -160,12 +160,56 @@ the natural first user of the mechanism being built.)
 - Spine record to cite: DECISION-007's S127 addendum (the `implementation-advisor` rec 9 specimen,
   "the disposition word carries all the meaning and none of the checking") and DECISION-002
   (no-self-certification) -- verify both exist before citing them.
-- Open design question for S132 to resolve and record here: Deliverables (a) vs (b) above -- does
-  the judgment ride the mandatory `fidelity-reviewer` handoff, or a separate narrower dispatch?
-- Second open question: what is the migration posture for dispositions recorded BEFORE this gate
-  existed (every session S1-S131)? Silently exempting all of them is the S68/S71 "self-granted
-  jurisdiction" class this repo already names and avoids elsewhere -- decide explicitly and record
-  the reasoning, do not let it fall out by accident.
+- **Step 1 — the gap, REPRODUCED LIVE before any fix** (2026-08-24, release binary, this repo):
+  `vajra next --check-advice 127` prints `[✓] implementation-advisor rec 9 — obeyed: 8cd3bea` and
+  `verdict: READY`. `git show 8cd3bea | grep -n -A3 _uses` shows `fn _uses(_r: &Path)` as a
+  CONTEXT line (a leading space, not `-`): the commit adds 168 lines of parser and does not delete
+  the stub rec 9 asked it to delete. The sha resolves, so today's gate scores it ANSWERED. That is
+  the whole defect, on the real historical record, no fixture involved.
+
+### Step 2 — the two open questions, RESOLVED and recorded (S132's design call)
+
+**Q1 — (a) ride the mandatory handoff, or (b) a new narrower dispatch? → (a), the handoff.**
+The judgment is recorded as an `obeyed-check` marker inside a governed handoff body, and the
+handoff this session's own close depends on is already `fidelity-reviewer`'s (S131, mandatory).
+Why (a):
+- (b) would add a second dispatch shape whose independence has to be re-proved from scratch, while
+  (a) inherits S131's `dispatch::reverify` provenance chain unchanged — the judge is already cold
+  (prompt + diff only), already not the builder, and already existence-gated as a REAL dispatch.
+- DECISION-007's own line — "a role that PROPOSES never authors the marker its station parses"
+  (S126) — is respected either way, but (a) adds no new role and no new mandatory role, which this
+  prompt's Non-goals require.
+- DECISION-002 (no self-certification) is what makes the judge admissible at all; the gate enforces
+  it structurally, not by trust: a judgment is REFUSED when the judging handoff's role equals the
+  advisor role whose recommendation is being graded.
+- The marker is not fidelity-reviewer-only by construction — ANY provenance-verified handoff from a
+  role other than the graded advisor may carry it. (a) is where it lands today, not a lock.
+
+**Q2 — migration posture for every disposition recorded S1-S131 → an explicit, recorded threshold,
+never a silent exemption.**
+- `OBEYED_JUDGMENT_FROM_SESSION = 132`. For sessions **≥ 132** a missing judgment BLOCKS. For
+  sessions **< 132** a missing judgment WARNS and the warning NAMES the exemption and its reason
+  (the disposition was recorded under a contract that had no judgment marker; retro-grading 131
+  sessions is not this session's one story) — the S68/S71 self-granted-jurisdiction class,
+  disclosed in the output itself rather than hidden in a constant.
+- A recorded `mismatch:` judgment BLOCKS at ANY session number, including historical ones. The
+  threshold governs SILENCE, never a judgment that actually exists — which is exactly what makes
+  the S127 specimen (`--check-obeyed 127`) reportable as a MISMATCH on the real record.
+- The exemption is therefore not permanent: any later session may grade an older one by qualifying
+  the marker with `session NN`.
+
+**Q3 — own gate or an extension of `--check-advice`? → its own flag, `vajra next --check-obeyed NN`,
+the same call S131 made for `--check-fidelity-handoff`, for the same reason.** `--check-advice`
+answers "was every recommendation ANSWERED?" and must keep answering exactly that (a session
+mid-flight is legitimately answered-but-not-yet-judged); this gate answers "is the `obeyed:` answer
+TRUE?" — a different question, a different evidence source (a judgment in a handoff vs. a
+disposition in the prompt), and a different blocking message. No 8th top-level command: it rides
+`vajra next`, like every station gate since S64.
+
+**Q4 — what stops a STALE judgment (not asked, but the same class one level down; S131 rec 4).**
+The marker records the sha it judged, and the gate refuses a judgment whose sha does not match the
+disposition's recorded sha. Editing `obeyed:` to a different commit after the review therefore
+invalidates the judgment instead of silently inheriting it.
 
 ## Non-goals (not built this session)
 
