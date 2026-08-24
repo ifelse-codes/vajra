@@ -265,7 +265,9 @@ pub fn parse_parent_calls(text: &str) -> Vec<ParentCall> {
             let Some(id) = block.get("id").and_then(|i| i.as_str()) else {
                 continue;
             };
-            let Some(subagent_type) = block.pointer("/input/subagent_type").and_then(|s| s.as_str())
+            let Some(subagent_type) = block
+                .pointer("/input/subagent_type")
+                .and_then(|s| s.as_str())
             else {
                 continue;
             };
@@ -307,7 +309,10 @@ pub fn derive_provenance_in(project_dir: &Path, role_name: &str, session: u32) -
         };
         let parent_transcript = parent_transcript_for(project_dir, session_dir_name);
         let Ok(parent_text) = fs::read_to_string(&parent_transcript) else {
-            last_err = format!("parent transcript {} unreadable", parent_transcript.display());
+            last_err = format!(
+                "parent transcript {} unreadable",
+                parent_transcript.display()
+            );
             continue;
         };
         let parent_calls = parse_parent_calls(&parent_text);
@@ -354,7 +359,9 @@ pub fn reverify_in(
     tool_use_id: &str,
 ) -> Result<(), String> {
     let candidates = scan_role_candidates(project_dir, role_name);
-    let Some((meta_path, meta, _)) = candidates.iter().find(|(_, m, _)| m.tool_use_id == tool_use_id)
+    let Some((meta_path, meta, _)) = candidates
+        .iter()
+        .find(|(_, m, _)| m.tool_use_id == tool_use_id)
     else {
         return Err(format!(
             "no {role_name} subagent meta.json on this machine records tool-use id {tool_use_id}"
@@ -367,8 +374,12 @@ pub fn reverify_in(
         .and_then(|n| n.to_str())
         .ok_or_else(|| format!("malformed subagent path {}", meta_path.display()))?;
     let parent_transcript = parent_transcript_for(project_dir, session_dir_name);
-    let parent_text = fs::read_to_string(&parent_transcript)
-        .map_err(|e| format!("parent transcript {} unreadable: {e}", parent_transcript.display()))?;
+    let parent_text = fs::read_to_string(&parent_transcript).map_err(|e| {
+        format!(
+            "parent transcript {} unreadable: {e}",
+            parent_transcript.display()
+        )
+    })?;
     let parent_calls = parse_parent_calls(&parent_text);
     cross_check(
         role_name,
@@ -381,9 +392,15 @@ pub fn reverify_in(
 
 /// `reverify_in`, resolving `project_dir` from the real machine — the impure entry point the
 /// fidelity gate (`src/fidelity/mod.rs`) calls.
-pub fn reverify(repo_root: &Path, role_name: &str, session: u32, tool_use_id: &str) -> Result<(), String> {
-    let project_dir = project_dir_for(repo_root)
-        .ok_or_else(|| "could not resolve this machine's Claude Code project directory (no $HOME)".to_string())?;
+pub fn reverify(
+    repo_root: &Path,
+    role_name: &str,
+    session: u32,
+    tool_use_id: &str,
+) -> Result<(), String> {
+    let project_dir = project_dir_for(repo_root).ok_or_else(|| {
+        "could not resolve this machine's Claude Code project directory (no $HOME)".to_string()
+    })?;
     reverify_in(&project_dir, role_name, session, tool_use_id)
 }
 
@@ -410,7 +427,11 @@ mod tests {
     #[test]
     fn cross_check_passes_when_all_three_facts_agree() {
         let calls = [call("t1", "fidelity-reviewer")];
-        let metas = [meta("t1", "fidelity-reviewer", Some("session-131-fleet-mandatory-gate"))];
+        let metas = [meta(
+            "t1",
+            "fidelity-reviewer",
+            Some("session-131-fleet-mandatory-gate"),
+        )];
         assert_eq!(
             cross_check("fidelity-reviewer", 131, "t1", &calls, &metas),
             Ok(())
@@ -456,7 +477,10 @@ mod tests {
         let calls = [call("t1", "researcher")];
         let metas = [meta("t1", "fidelity-reviewer", Some("session-131-x"))];
         let err = cross_check("fidelity-reviewer", 131, "t1", &calls, &metas).unwrap_err();
-        assert!(err.contains("subagent_type") && err.contains("researcher"), "{err}");
+        assert!(
+            err.contains("subagent_type") && err.contains("researcher"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -464,13 +488,20 @@ mod tests {
         let calls = [call("t1", "fidelity-reviewer")];
         let metas = [meta("t1", "researcher", Some("session-131-x"))];
         let err = cross_check("fidelity-reviewer", 131, "t1", &calls, &metas).unwrap_err();
-        assert!(err.contains("agentType") && err.contains("researcher"), "{err}");
+        assert!(
+            err.contains("agentType") && err.contains("researcher"),
+            "{err}"
+        );
     }
 
     #[test]
     fn cross_check_fails_when_git_branch_is_a_different_session() {
         let calls = [call("t1", "fidelity-reviewer")];
-        let metas = [meta("t1", "fidelity-reviewer", Some("session-93-prove-commit-gate-teeth"))];
+        let metas = [meta(
+            "t1",
+            "fidelity-reviewer",
+            Some("session-93-prove-commit-gate-teeth"),
+        )];
         let err = cross_check("fidelity-reviewer", 131, "t1", &calls, &metas).unwrap_err();
         assert!(err.contains("different session"), "{err}");
     }
@@ -490,7 +521,10 @@ mod tests {
         let p = Provenance::Verified {
             tool_use_id: "toolu_01ABC".into(),
         };
-        assert_eq!(claimed_tool_use_id(&p.label()), Some("toolu_01ABC".to_string()));
+        assert_eq!(
+            claimed_tool_use_id(&p.label()),
+            Some("toolu_01ABC".to_string())
+        );
     }
 
     #[test]
@@ -506,7 +540,10 @@ mod tests {
 
     #[test]
     fn claimed_id_is_none_for_an_empty_parenthetical() {
-        assert_eq!(claimed_tool_use_id("claude-code-subagent (verified: )"), None);
+        assert_eq!(
+            claimed_tool_use_id("claude-code-subagent (verified: )"),
+            None
+        );
     }
 
     // ---- parse_parent_calls ----
@@ -604,7 +641,9 @@ mod tests {
         );
         let p = derive_provenance_in(&tmp, "fidelity-reviewer", 131);
         match p {
-            Provenance::Unverifiable(reason) => assert!(reason.contains("different session"), "{reason}"),
+            Provenance::Unverifiable(reason) => {
+                assert!(reason.contains("different session"), "{reason}")
+            }
             other => panic!("expected Unverifiable, got {other:?}"),
         }
     }
@@ -625,7 +664,10 @@ mod tests {
             Ok(())
         );
         let err = reverify_in(&tmp, "fidelity-reviewer", 131, "toolu_FABRICATED").unwrap_err();
-        assert!(err.contains("no fidelity-reviewer subagent meta.json"), "{err}");
+        assert!(
+            err.contains("no fidelity-reviewer subagent meta.json"),
+            "{err}"
+        );
     }
 
     /// A fresh, uniquely-named tempdir under the OS temp root — plain `std::env::temp_dir` plus a

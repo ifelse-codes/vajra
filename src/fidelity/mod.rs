@@ -96,31 +96,29 @@ pub fn fidelity_gate(root: &Path, session: u32) -> FidelityVerdict {
                 )],
                 warnings: vec![],
             },
-            Some(tool_use_id) => {
-                match dispatch::reverify(root, role.name, session, &tool_use_id) {
-                    Ok(()) => FidelityVerdict {
-                        session,
-                        handoff_path: Some(h.path),
-                        agent_field: Some(h.agent),
-                        blocked: false,
-                        reasons: vec![],
-                        warnings: vec![],
-                    },
-                    Err(reason) => FidelityVerdict {
-                        session,
-                        handoff_path: Some(h.path.clone()),
-                        agent_field: Some(h.agent),
-                        blocked: true,
-                        reasons: vec![format!(
-                            "{}'s provenance could not be independently re-verified: {reason} — \
+            Some(tool_use_id) => match dispatch::reverify(root, role.name, session, &tool_use_id) {
+                Ok(()) => FidelityVerdict {
+                    session,
+                    handoff_path: Some(h.path),
+                    agent_field: Some(h.agent),
+                    blocked: false,
+                    reasons: vec![],
+                    warnings: vec![],
+                },
+                Err(reason) => FidelityVerdict {
+                    session,
+                    handoff_path: Some(h.path.clone()),
+                    agent_field: Some(h.agent),
+                    blocked: true,
+                    reasons: vec![format!(
+                        "{}'s provenance could not be independently re-verified: {reason} — \
                              a claim this gate cannot re-derive is treated as absent/invalid, not \
                              trusted",
-                            h.path
-                        )],
-                        warnings: vec![],
-                    },
-                }
-            }
+                        h.path
+                    )],
+                    warnings: vec![],
+                },
+            },
         },
     }
 }
@@ -168,7 +166,11 @@ mod tests {
         let root = tmp_root();
         let v = fidelity_gate(&root, 131);
         assert!(v.blocked());
-        assert!(v.reasons[0].contains("no fidelity-reviewer handoff recorded"), "{:?}", v.reasons);
+        assert!(
+            v.reasons[0].contains("no fidelity-reviewer handoff recorded"),
+            "{:?}",
+            v.reasons
+        );
         assert!(v.reasons[0].contains("session 131"));
     }
 
@@ -176,7 +178,11 @@ mod tests {
     #[test]
     fn fabricated_provenance_blocks() {
         let root = tmp_root();
-        write_handoff(&root, 131, "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)");
+        write_handoff(
+            &root,
+            131,
+            "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)",
+        );
         let v = fidelity_gate(&root, 131);
         assert!(v.blocked());
         assert!(
@@ -192,7 +198,11 @@ mod tests {
         write_handoff(&root, 131, "claude-code-subagent");
         let v = fidelity_gate(&root, 131);
         assert!(v.blocked());
-        assert!(v.reasons[0].contains("no verifiable dispatch id"), "{:?}", v.reasons);
+        assert!(
+            v.reasons[0].contains("no verifiable dispatch id"),
+            "{:?}",
+            v.reasons
+        );
     }
 
     #[test]
@@ -205,7 +215,11 @@ mod tests {
         .unwrap();
         let v = fidelity_gate(&root, 131);
         assert!(v.blocked());
-        assert!(v.reasons[0].contains("does not satisfy the handoff contract"), "{:?}", v.reasons);
+        assert!(
+            v.reasons[0].contains("does not satisfy the handoff contract"),
+            "{:?}",
+            v.reasons
+        );
     }
 
     // (c) a real, independently-verifiable dispatch -> PASSES. `reverify` is real machine IO
