@@ -308,6 +308,19 @@ pub fn admit(
 }
 
 /// Join `obeyed:` dispositions to judgments and classify each one. Pure.
+///
+/// Two rules the cold review's rec 5 forced into the open, because "LAST wins" alone was wrong:
+///
+/// 1. **A `mismatch` is STICKY.** Among the admissible judgments for one disposition, a recorded
+///    disagreement wins over any `implemented` verdict, whatever the order. Ordering here comes
+///    from filenames, and `session-99-…` sorts after `session-131-…` lexicographically — so
+///    "the freshest wins" was a claim the data could not support. Sticky is also the safer rule
+///    for a BLOCKING gate, and it costs the author nothing honest: landing the work the
+///    recommendation asked for produces a NEW sha, and the old judgment stops being admissible
+///    against it the moment `obeyed:` is updated (the sha bind, rule 2 of `admit`).
+/// 2. **An inadmissible judgment only speaks when there is no admissible one.** A forged or stale
+///    line sitting beside a real judgment is reported, not obeyed; with no real judgment beside
+///    it, its refusal reason is what blocks.
 pub fn classify(
     dispositions: &[(String, Disposition)],
     rec_text: impl Fn(&str) -> String,
@@ -322,18 +335,29 @@ pub fn classify(
         })
         .map(|(label, sha)| {
             let disposition_sha = leading_hex(sha);
-            // LAST wins, the same rule `dispositions_in` uses: a re-run cold pass restates its
-            // verdict, and the freshest honest statement is the current one.
-            let found = judgments.iter().rfind(|j| j.label() == *label);
-            let state = match found {
-                None => ObeyedState::Unjudged,
-                Some(j) => match admit(j, &disposition_sha, &verified) {
-                    Err(why) => ObeyedState::Rejected(format!("{} — {why}", j.handoff_path)),
-                    Ok(()) => match j.verdict {
-                        Verdict::Implemented => ObeyedState::Implemented(j.clone()),
-                        Verdict::Mismatch => ObeyedState::Mismatch(j.clone()),
-                    },
-                },
+            // rec 8: both sides already lower-case their role through `advice::split_role_rec`,
+            // and this comparison says so explicitly rather than relying on that invariant
+            // holding forever in two files.
+            let mine: Vec<&Judgment> = judgments
+                .iter()
+                .filter(|j| j.label().eq_ignore_ascii_case(label))
+                .collect();
+            let mut admitted: Vec<&Judgment> = Vec::new();
+            let mut refused: Vec<String> = Vec::new();
+            for j in &mine {
+                match admit(j, &disposition_sha, &verified) {
+                    Ok(()) => admitted.push(j),
+                    Err(why) => refused.push(format!("{} — {why}", j.handoff_path)),
+                }
+            }
+            let state = if let Some(m) = admitted.iter().find(|j| j.verdict == Verdict::Mismatch) {
+                ObeyedState::Mismatch((*m).clone())
+            } else if let Some(i) = admitted.last() {
+                ObeyedState::Implemented((*i).clone())
+            } else if let Some(why) = refused.first() {
+                ObeyedState::Rejected(why.clone())
+            } else {
+                ObeyedState::Unjudged
             };
             ObeyedItem {
                 label: label.clone(),
@@ -362,9 +386,8 @@ pub fn all_handoffs(root: &Path) -> Vec<Handoff> {
     let Ok(entries) = std::fs::read_dir(&dir) else {
         return Vec::new();
     };
-    let mut paths: Vec<std::path::PathBuf> = entries.flatten().map(|e| e.path()).collect();
-    paths.sort();
-    paths
+    let paths: Vec<std::path::PathBuf> = entries.flatten().map(|e| e.path()).collect();
+    let mut out: Vec<Handoff> = paths
         .iter()
         .filter_map(|path| {
             let name = path.file_name()?.to_str()?;
@@ -375,7 +398,11 @@ pub fn all_handoffs(root: &Path) -> Vec<Handoff> {
             let rel = format!(".ai/handoffs/{name}");
             fleet::parse_handoff(&text, session, &rel).ok()
         })
-        .collect()
+        .collect();
+    // rec 5: sort by session NUMBER, never by filename — `session-99-…` sorts after
+    // `session-131-…` as a string, which silently inverted "a later session's judgment".
+    out.sort_by(|a, b| (a.session, &a.path).cmp(&(b.session, &b.path)));
+    out
 }
 
 /// Independently re-verify that the handoff carrying a judgment came from a REAL dispatch of that
@@ -695,15 +722,15 @@ mod tests {
     }
 
     #[test]
-    fn the_last_recorded_judgment_wins() {
+    fn a_recorded_mismatch_is_sticky_whatever_the_order() {
         let ds = vec![(
             "plan-advisor rec 2".to_string(),
             Disposition::Obeyed("1a2b3c4".into()),
         )];
-        let items = classify(
-            &ds,
-            |_| String::new(),
-            &[
+        // Both orders, same answer: a disagreement is never cleared by a later `implemented:`
+        // about the SAME commit — only landing new work (a new sha) clears it.
+        for pair in [
+            vec![
                 j(
                     "plan-advisor",
                     2,
@@ -719,9 +746,77 @@ mod tests {
                     "fidelity-reviewer",
                 ),
             ],
-            ok,
+            vec![
+                j(
+                    "plan-advisor",
+                    2,
+                    Verdict::Implemented,
+                    "1a2b3c4",
+                    "fidelity-reviewer",
+                ),
+                j(
+                    "plan-advisor",
+                    2,
+                    Verdict::Mismatch,
+                    "1a2b3c4",
+                    "fidelity-reviewer",
+                ),
+            ],
+        ] {
+            let items = classify(&ds, |_| String::new(), &pair, ok);
+            assert!(matches!(items[0].state, ObeyedState::Mismatch(_)));
+        }
+    }
+
+    #[test]
+    fn an_inadmissible_judgment_only_speaks_when_no_admissible_one_exists() {
+        let ds = vec![(
+            "plan-advisor rec 2".to_string(),
+            Disposition::Obeyed("1a2b3c4".into()),
+        )];
+        let forged = j(
+            "plan-advisor",
+            2,
+            Verdict::Implemented,
+            "1a2b3c4",
+            "plan-advisor",
         );
-        assert!(matches!(items[0].state, ObeyedState::Implemented(_)));
+        let real = j(
+            "plan-advisor",
+            2,
+            Verdict::Implemented,
+            "1a2b3c4",
+            "fidelity-reviewer",
+        );
+        assert!(matches!(
+            classify(&ds, |_| String::new(), std::slice::from_ref(&forged), ok)[0].state,
+            ObeyedState::Rejected(_)
+        ));
+        assert!(matches!(
+            classify(&ds, |_| String::new(), &[forged, real], ok)[0].state,
+            ObeyedState::Implemented(_)
+        ));
+    }
+
+    #[test]
+    fn a_judgment_joins_its_disposition_regardless_of_case() {
+        let ds = vec![(
+            "plan-advisor rec 2".to_string(),
+            Disposition::Obeyed("1a2b3c4".into()),
+        )];
+        let mut mixed = j(
+            "plan-advisor",
+            2,
+            Verdict::Implemented,
+            "1a2b3c4",
+            "fidelity-reviewer",
+        );
+        mixed.advisor_role = "Plan-Advisor".into();
+        let items = classify(&ds, |_| String::new(), &[mixed], ok);
+        assert!(
+            matches!(items[0].state, ObeyedState::Implemented(_)),
+            "a mixed-case judgment must not read as UNJUDGED"
+        );
     }
 
     #[test]
