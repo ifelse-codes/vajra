@@ -1,0 +1,206 @@
+# Session 132 — CODE: verify the recorded `obeyed:` disposition is actually true
+
+> **Status:** APPROVED — founder, at the S130 closeout. Locked sequence: S131 -> **S132** -> S133 ->
+> S134. S131 made the `fidelity-reviewer` handoff mandatory and its provenance provable; this
+> session closes the OTHER half of "recorded ceq real" for the fleet: whether a disposition a
+> session writes against a recommendation (`obeyed: <sha>`) is actually true, not merely a sha that
+> resolves.
+>
+> Founder directive in force (S118): README.md / VISION.md claims are the target spec, not a
+> status report. Do NOT soften them. No release until reality meets them.
+
+## Type
+
+CODE. Max 2 assumptions, 2 retries, 1 story, ~2h, new chat. One story: close the S127 residual --
+`obeyed:` today certifies a typed word and a resolving sha, nothing more. Commits need the
+un-forgeable marker on the command line at commit time.
+
+## Why this session
+
+The Advice gate (S127, `src/advice/mod.rs`) proves every numbered recommendation was ANSWERED, and
+that the answer's evidence is existence-real -- the sha resolves, the deferral target exists, the
+refusal reason is non-empty. It does **not** prove an `obeyed:` claim is TRUE. DECISION-007's own
+S127 addendum records a live specimen from the very session that shipped the contract: the
+`implementation-advisor`'s rec 9 said "delete the `_uses` stub"; the ledger recorded
+`obeyed: 8cd3bea`; the stub was still in `src/advice/mod.rs`. The sha resolved, so the gate scored
+it ANSWERED. Only an independent cold reader caught it -- the same class S131's own rec 4 found one
+level out (a real dispatch proves a role ran, not that its findings are what got ingested).
+
+**The pattern repeats at every layer of this repo's governance: a recorded claim and a verified one
+are not the same thing**, and each session that closes one instance tends to surface the next.
+
+S131 made `fidelity-reviewer` mandatory and its own EXISTENCE provable. That gives this session a
+tool it did not have before: a MANDATORY, real cold-review pass already runs every session. This
+session's job is to make that pass (or an equivalent independently-derived check) actually GRADE
+whether each `obeyed:` disposition is true, and wire that grade into a gate.
+
+## Goal
+
+An `obeyed: <sha>` disposition that does not actually implement its recommendation can no longer
+pass silently. "Actually true" here means: an INDEPENDENT judge (never the author, never the
+advisor that made the recommendation) looks at the recommendation text and the cited commit's real
+diff, and says whether the commit does what the recommendation asked -- the same posture
+DECISION-002 already requires for fidelity itself, applied one level down to individual
+dispositions instead of the whole delivery.
+
+## Deliverables
+
+- A recorded, existence-gated JUDGMENT per `obeyed:` disposition -- not a new free-text field
+  invented ad hoc; reuse the same "recorded marker, existence-gated" house pattern this repo has
+  used five times already (Delta S61, `covers:` S64, `design-significant:` S67, `done: <sha>` S68,
+  disposition S127). Decide and RECORD (in `## Design`) whether this judgment:
+  (a) rides the ALREADY-MANDATORY `fidelity-reviewer` handoff (S131) -- e.g. the handoff itself
+      names which dispositions it checked and its verdict on each, or
+  (b) is a new, narrower dispatch scoped ONLY to grading dispositions.
+  Either is acceptable; a THIRD option is not (do not invent a new mechanism family without an
+  explicit reason the first two are insufficient).
+- A gate (own command or an extension of `--check-advice` -- make and record the same kind of
+  explicit design choice S131 made for its own gate) that BLOCKS when an `obeyed:` disposition has
+  no recorded independent judgment, or when that judgment says the commit does NOT do what the
+  recommendation asked.
+- Re-graded, as a live test case: the S127 addendum's own historical specimen
+  (`implementation-advisor` rec 9, `obeyed: 8cd3bea`, the stub still present) -- prove the new
+  mechanism WOULD have caught it, on the real historical data, not a synthetic fixture alone.
+- A falsifiability fixture: (a) a TRUE `obeyed:` (the commit really does it) -> PASSES: (b) a FALSE
+  `obeyed:` (sha resolves, commit does something else) -> BLOCKS; (c) no judgment recorded at all
+  -> BLOCKS or WARNs, a DELIBERATE choice, recorded and reasoned (existing dispositions predate this
+  gate -- decide and state the migration posture, do not silently break every past session).
+- `scripts/verify-session-132.sh` + `scripts/demo-session-132.sh`, both exit 0, printed check-class
+  tally.
+- `sessions/session-132-summary.md` + exactly 3 ranked next candidates (S133 -- compression
+  keep/kill -- is the locked default; still present it as one of the three, not as the only option).
+
+## Acceptance (testable, EARS-style)
+
+1. WHEN a session records `obeyed: <sha>` against a recommendation THEN closeout/the relevant
+   `--check-*` gate requires a recorded, independent judgment of whether that commit actually
+   implements the recommendation -- not merely that the sha resolves.
+2. WHEN the independent judgment says the commit does NOT do what the recommendation asked THEN the
+   gate BLOCKS, naming the role, the recommendation number, and the disagreement.
+3. WHEN re-run against the S127 historical specimen (`implementation-advisor` rec 9,
+   `obeyed: 8cd3bea`) THEN the new mechanism reports it as a MISMATCH -- proven on the real
+   historical record, not asserted in prose.
+4. The judgment is produced by an INDEPENDENT party -- never the session's own builder, never the
+   advisor whose recommendation is being graded (mirrors DECISION-002's no-self-certification rule,
+   applied to a disposition instead of a whole delivery).
+5. A falsifiability fixture drives TRUE / FALSE / ABSENT judgment, each probe asserting its own
+   pattern matched (S127's lesson: a probe that silently no-ops is false comfort).
+6. Traced, not asserted: `K of 8`, 7 commands, S131's Fidelity gate and every other gate's evidence
+   contract are unchanged by this session.
+7. `verify-session-132.sh` and `demo-session-132.sh` both exit 0 with a printed check-class tally,
+   every check execute-based or honestly labelled.
+8. Independent cold `fidelity-reviewer` verdict ACCEPT, attested -- via the now-MANDATORY S131 gate,
+   so this session's own close satisfies its target the same way S131's did.
+9. The summary states plainly what is still NOT fixed -- in particular whether `refused:` and
+   `deferred:` dispositions get the same treatment or are explicitly out of scope, and whether the
+   judgment mechanism this session ships could itself be gamed (name the honest ceiling, do not
+   overclaim "obedience is now provable" the way S131's own addendum had to correct itself on
+   "provable" meaning "tamper-proof").
+
+## Plan (ordered -- cite the acceptance criteria each step covers)
+
+1. Reproduce the gap first: confirm live, on the real historical record, that
+   `implementation-advisor` rec 9's `obeyed: 8cd3bea` still passes `vajra next --check-advice` today
+   despite the stub still being present. No fix before its own red. covers: 1, 3
+2. Resolve the design question in Deliverables (a) vs (b) and record the choice + why in
+   `## Design`, citing DECISION-007 and DECISION-002. covers: 1, 4
+3. Build the judgment-recording mechanism chosen in step 2, existence-gated like every prior marker
+   in this repo. covers: 1
+4. Wire the gate: BLOCKS on a missing judgment (per the migration posture decided in Deliverables)
+   or a judgment that disagrees. covers: 2
+5. Re-run against the S127 historical specimen and confirm it is caught. covers: 3
+6. Falsifiability fixture, all three directions (TRUE / FALSE / ABSENT), each probe asserting its
+   own pattern matched. covers: 5
+7. Prove nothing else moved -- `K of 8`, 7 commands, S131's Fidelity gate, other gates' contracts.
+   covers: 6
+8. `scripts/verify-session-132.sh` + `scripts/demo-session-132.sh`. covers: 7
+9. Dispatch the real `fidelity-reviewer` cold pass on this session's own diff (now mandatory, S131)
+   -- its handoff is this session's own proof that the mandate holds under real use, not just the
+   builder's. covers: 8
+10. Say in the summary what is still not fixed, including the honest ceiling on this mechanism
+    itself. covers: 9
+
+## Execution (the Coder gate -- record each plan step's landing commit as work lands)
+
+- step 1 -- done: <sha>
+- step 2 -- done: <sha>
+- step 3 -- done: <sha>
+- step 4 -- done: <sha>
+- step 5 -- done: <sha>
+- step 6 -- done: <sha>
+- step 7 -- done: <sha>
+- step 8 -- done: <sha>
+- step 9 -- done: <sha>
+- step 10 -- done: <sha>
+
+> Fill these with real landing shas before closeout -- S119, S122, S124 all left <sha> placeholders
+> once, caught only by an independent cold review. Do not record a sha that does not contain the
+> work (S127 did that three times).
+
+## Advice (every recommendation from this session's advisors, answered)
+
+> The S127 contract. One line per recorded recommendation: `- <role> rec N -- obeyed: <sha>` /
+> `refused: <reason>` / `deferred: <path>`. `vajra next --check-advice 132` BLOCKS the close until
+> every one is answered. Read the S127 residual before trusting any count: four `obeyed:` labels
+> there were factually wrong and passed the gate -- exactly what this session exists to stop
+> happening again. A disposition certifies a typed word and a resolving sha, nothing more -- check
+> the commit, don't count the label.
+
+(Filled during S132 -- this session should dispatch at least the `fidelity-reviewer` cold pass per
+Plan step 9, and its recommendations get answered here. Given this session's own subject matter,
+apply extra scrutiny to its OWN `obeyed:` dispositions -- the fidelity-reviewer that grades them is
+the natural first user of the mechanism being built.)
+
+## Design
+
+- design-significant: yes -- this changes what evidence the Advice gate (or a new gate beside it)
+  requires for an `obeyed:` disposition to pass, a real behaviour change for anyone relying on the
+  current existence-only check, and it decides how the fleet's now-mandatory `fidelity-reviewer`
+  role's output is consumed a second way.
+- Spine record to cite: DECISION-007's S127 addendum (the `implementation-advisor` rec 9 specimen,
+  "the disposition word carries all the meaning and none of the checking") and DECISION-002
+  (no-self-certification) -- verify both exist before citing them.
+- Open design question for S132 to resolve and record here: Deliverables (a) vs (b) above -- does
+  the judgment ride the mandatory `fidelity-reviewer` handoff, or a separate narrower dispatch?
+- Second open question: what is the migration posture for dispositions recorded BEFORE this gate
+  existed (every session S1-S131)? Silently exempting all of them is the S68/S71 "self-granted
+  jurisdiction" class this repo already names and avoids elsewhere -- decide explicitly and record
+  the reasoning, do not let it fall out by accident.
+
+## Non-goals (not built this session)
+
+- Not a second role made mandatory. `fidelity-reviewer` stays the only mandatory role; this session
+  consumes its output a second way, it does not add a second mandatory role.
+- Not S131's own rec 4 residual (binding a dispatch's returned content to the specific `--from`
+  findings file) -- named, deferred, `.ai/ROADMAP.md` F2, a different mechanism than this session's.
+- Not `refused:`/`deferred:` dispositions' soundness, unless Deliverables explicitly scopes them in
+  -- the locked ask is `obeyed:` truth first (the S127 specimen is an `obeyed:` case).
+- Not the fourth fork (`TPL_CONSTRAINTS`) -- parked, not dropped, per `.ai/ROADMAP.md`.
+- Not S133 (compression keep/kill) or S134 (fresh-scaffold paid dogfood) -- both explicitly next,
+  not this session's.
+- No release, no crates.io action (founder directive; `vajractl` already burned at 0.1.0).
+
+## Delta (vs ROADMAP -- OpenSpec markers)
+
+- ADDED: an independent-judgment marker for `obeyed:` dispositions, existence-gated; a gate
+  consuming it.
+- MODIFIED: the Advice gate's evidence contract for `obeyed:` specifically (`refused:`/`deferred:`
+  unchanged unless Deliverables says otherwise); how the mandatory `fidelity-reviewer` handoff is
+  consumed (a second consumer, S131's `fidelity_gate` being the first).
+- UNCHANGED: the 9 roles (still one mandatory), the 8 stations, the 7 commands, `K of 8`'s
+  derivation, S131's Fidelity gate and every OTHER gate's evidence contract.
+
+## Guardrails
+
+- Un-forgeable commit marker required on every commit, session number 132. Max 3 files per atomic
+  commit. Never skip hooks.
+- A check that cannot evaluate FAILS (S69). A fixture must fail for the RIGHT reason (S122), and a
+  probe must assert its own pattern matched (S127).
+- Do not silently exempt every pre-S132 disposition without an explicit, recorded reason.
+- Answer this session's own advisor in Advice, honestly. A `refused:` with a reason beats an
+  `obeyed:` that is not true -- the exact failure this session exists to stop.
+- Attest LAST (S69, and S131's own lesson): the `--inputs-sha` preimage hashes the LIVE PROMPT
+  FILE directly, not only the (prompts-excluded) diff -- recompute AFTER every edit to this prompt,
+  including `## Execution`/`## Advice`/`## Design`, not just after the code diff stabilises. Two
+  consecutive `verify-closeout.sh --inputs-sha 132` runs must agree before embedding. Run the full
+  `verify-closeout.sh` on the branch BEFORE merging the PR (S83) -- merge-base collapses after.
