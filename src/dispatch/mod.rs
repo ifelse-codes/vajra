@@ -241,7 +241,7 @@ fn scan_role_candidates(
             ));
         }
     }
-    out.sort_by(|a, b| b.2.cmp(&a.2));
+    out.sort_by_key(|b| std::cmp::Reverse(b.2));
     out
 }
 
