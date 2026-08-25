@@ -393,7 +393,7 @@ mod tests {
 
     fn write_prompt(root: &Path, session: u32, body: &str) {
         fs::write(
-            root.join(format!("prompts/{session}-task-fixture.md")),
+            root.join(format!("prompts/{session:02}-task-fixture.md")),
             body,
         )
         .unwrap();
@@ -716,6 +716,28 @@ mod tests {
         assert_eq!(
             v.skip_line().as_deref(),
             Some("implementation-advisor review SKIPPED — a genuinely trivial change")
+        );
+    }
+
+    // rec 6's fresh-project fix, proven against the REAL scaffold rather than a hand-typed copy:
+    // a session-NUMBER threshold would exempt sessions 1..132 of a freshly `vajra init`ed project,
+    // so the scaffolded prompt carries the marker as a placeholder — rung 4, which blocks at ANY
+    // session number. Number-based exemption for legacy prompts, marker-based enforcement for
+    // everything scaffolded.
+    #[test]
+    fn the_real_scaffold_template_lands_on_rung_4_not_the_threshold_exemption() {
+        let m = parse_skip_marker(crate::analyst::PROMPT_TEMPLATE, "design-advisor");
+        assert!(
+            matches!(&m, SkipMarker::Unusable(w) if w.contains("template placeholder")),
+            "the scaffold must carry an UNUSABLE marker, not none: {m:?}"
+        );
+
+        let root = tmp_root();
+        write_prompt(&root, 1, crate::analyst::PROMPT_TEMPLATE);
+        let v = design_advisor_gate(&root, 1);
+        assert!(
+            v.blocked(),
+            "a scaffolded session 1 must block despite sitting below the threshold"
         );
     }
 
