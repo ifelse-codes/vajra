@@ -173,7 +173,9 @@ fn classify_marker_value(role: &str, value: &str) -> SkipMarker {
     };
     match substantive_reason(reason) {
         Ok(()) => SkipMarker::Recorded(reason.to_string()),
-        Err(why) => SkipMarker::Unusable(format!("`{role}:` skip reason is not substantive: {why}")),
+        Err(why) => {
+            SkipMarker::Unusable(format!("`{role}:` skip reason is not substantive: {why}"))
+        }
     }
 }
 
@@ -443,7 +445,10 @@ mod tests {
     fn a_fenced_example_is_not_a_record() {
         // S127's own bug, in the shape this grammar would have inherited.
         let prompt = "## Design\n\n```\ndesign-advisor: skipped — this is only an EXAMPLE\n```\n";
-        assert_eq!(parse_skip_marker(prompt, "design-advisor"), SkipMarker::Absent);
+        assert_eq!(
+            parse_skip_marker(prompt, "design-advisor"),
+            SkipMarker::Absent
+        );
     }
 
     #[test]
@@ -512,11 +517,18 @@ mod tests {
     #[test]
     fn silence_at_the_threshold_blocks_and_names_both_ways_out() {
         let root = tmp_root();
-        write_prompt(&root, 133, "# fixture\n\n## Design\n- design-significant: no\n");
+        write_prompt(
+            &root,
+            133,
+            "# fixture\n\n## Design\n- design-significant: no\n",
+        );
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
         let r = v.reasons.join(" ");
-        assert!(r.contains("records neither a design-advisor handoff"), "{r}");
+        assert!(
+            r.contains("records neither a design-advisor handoff"),
+            "{r}"
+        );
         assert!(r.contains("--role design-advisor --from"), "{r}");
         assert!(r.contains("skipped — <reason>"), "{r}");
         assert!(r.contains("no environment variable"), "{r}");
@@ -538,8 +550,13 @@ mod tests {
             v.skipped.as_deref(),
             Some("a one-line README typo; no interface, module, or locked record moves")
         );
-        let line = v.skip_line().expect("a skipped gate must render a skip line");
-        assert!(line.starts_with("design-advisor review SKIPPED — "), "{line}");
+        let line = v
+            .skip_line()
+            .expect("a skipped gate must render a skip line");
+        assert!(
+            line.starts_with("design-advisor review SKIPPED — "),
+            "{line}"
+        );
     }
 
     // Rung 4 (acceptance 3): a placeholder reason BLOCKS — at ANY session, threshold or not.
@@ -588,7 +605,11 @@ mod tests {
     fn a_fabricated_dispatch_id_blocks() {
         let root = tmp_root();
         write_prompt(&root, 133, "# fixture\n");
-        write_handoff(&root, 133, "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)");
+        write_handoff(
+            &root,
+            133,
+            "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)",
+        );
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
         assert!(
@@ -610,7 +631,11 @@ mod tests {
             133,
             "# fixture\n- design-advisor: skipped — a perfectly good reason, recorded in the repo\n",
         );
-        write_handoff(&root, 133, "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)");
+        write_handoff(
+            &root,
+            133,
+            "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)",
+        );
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked(), "a forged claim is not cured by a sentence");
         assert!(v.skipped.is_none());
@@ -624,7 +649,11 @@ mod tests {
     #[test]
     fn a_malformed_handoff_fails_closed_not_silently_absent() {
         let root = tmp_root();
-        write_prompt(&root, 133, "# fixture\n- design-advisor: skipped — a real reason\n");
+        write_prompt(
+            &root,
+            133,
+            "# fixture\n- design-advisor: skipped — a real reason\n",
+        );
         fs::write(
             root.join(".ai/handoffs/session-133-design-advisor.md"),
             "not a handoff at all",
@@ -633,7 +662,9 @@ mod tests {
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
         assert!(
-            v.reasons.join(" ").contains("does not satisfy the handoff contract"),
+            v.reasons
+                .join(" ")
+                .contains("does not satisfy the handoff contract"),
             "{:?}",
             v.reasons
         );
@@ -681,7 +712,9 @@ mod tests {
         let v = design_advisor_gate(&root, 133);
         assert!(!v.blocked(), "{:?}", v.reasons);
         assert!(
-            v.warnings.join(" ").contains("design-significant: yes` AND skipped"),
+            v.warnings
+                .join(" ")
+                .contains("design-significant: yes` AND skipped"),
             "{:?}",
             v.warnings
         );
@@ -694,7 +727,9 @@ mod tests {
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
         assert!(
-            v.warnings.join(" ").contains("only a real design-advisor handoff"),
+            v.warnings
+                .join(" ")
+                .contains("only a real design-advisor handoff"),
             "{:?}",
             v.warnings
         );
