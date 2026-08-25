@@ -607,6 +607,20 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
     `obeyed:` needs a judgment; the judge's own recommendations, if obeyed, mint new `obeyed:`
     claims needing new judgments. S132 terminated it by batching fixes before a judging dispatch
     and answering the last pass with `refused:`/`deferred:`. Nothing in the machine ends it.
+  - **F2e (NEW, open — S133's own design-advisor dispatch, rec 8): two copies of the mandatory-role
+    ladder.** `src/mandate/mod.rs` (S133) and `src/fidelity/mod.rs` (S131) now check the same three
+    things — handoff exists, contract-valid, provenance independently re-verifies. S133 deliberately
+    left `fidelity/` untouched because acceptance 7 required S131's gate unchanged; folding
+    `fidelity_gate` into `mandate` is the right end state and is filed here rather than discovered
+    later. S134 must NOT add a third copy — it is a call site on `mandate`.
+  - **F2f (NEW, open — S133's design-advisor dispatch, rec 14, DEFERRED not refused): nothing
+    observes rubber-stamp ordering.** A session can write all its code, dispatch the advisor at
+    close, land the handoff, and show a green mandate gate — the advice changed nothing. The cheap
+    partial answer the advisor proposed: compare the handoff's own `captured:` timestamp against the
+    session's first code commit and WARN (never block) when the advice arrived after the code. Not
+    built at S133 (a second story, and "which commit is code" is a judgement the binary should not
+    guess). Until it exists, the observable is manual and named in
+    `sessions/session-133-summary.md`.
   Full evidence and the lens that found this: `sessions/session-130-ground-truth.md`.
 - **F3 — first-contact bugs** — **[x] MOSTLY DONE at S128** (the founder UNPARKED this slice at the
   S127 closeout; the rest of this backlog stays parked). Fixed and proven live in an empty
