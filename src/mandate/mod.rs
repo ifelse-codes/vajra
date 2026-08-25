@@ -114,7 +114,7 @@ pub enum SkipDefect {
 /// tests bind to them rather than to the sentences the CLI prints.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MandateCause {
-    /// Rung 1 — a handoff exists but does not satisfy the handoff contract.
+    /// Rung 1 — a handoff exists but fails the DECISION-007 handoff contract.
     HandoffMalformed,
     /// Rung 1 — a handoff exists but its `agent:` field carries no derivable dispatch id.
     ProvenanceMissingId,
@@ -813,10 +813,11 @@ mod tests {
         let v = mandate_gate(&root, role, 134, 134);
         assert!(!v.blocked(), "{:?}", v.reasons);
         assert_eq!(v.role, "implementation-advisor");
-        assert_eq!(
-            v.skip_line().as_deref(),
-            Some("implementation-advisor review SKIPPED — a genuinely trivial change")
-        );
+        let line = v
+            .skip_line()
+            .expect("a skipped gate must render a skip line");
+        assert!(line.contains("implementation-advisor"), "{line}");
+        assert!(line.contains("a genuinely trivial change"), "{line}");
     }
 
     // rec 6's fresh-project fix, proven against the REAL scaffold rather than a hand-typed copy:
