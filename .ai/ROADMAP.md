@@ -561,7 +561,30 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
     match/derive from it — a real design decision for a future session, not folded into S131 or
     S132 without an explicit founder pick.
   - **S132** — fleet part 2: verify the recorded `obeyed:` disposition is actually true (step 4),
-    closing the S127 residual for keeps.
+    closing the S127 residual for keeps. **[x] DONE at S132** — the `obeyed-check` judgment marker
+    (`src/obeyed/mod.rs`), four admissibility rules (no self-grading · the judgment must name the
+    disposition's own sha · a substantive note · the judging handoff's provenance must
+    independently re-verify), `vajra next --check-obeyed NN` wired into `--advance` AND into
+    `verify-closeout.sh`, an explicit session-132 threshold instead of a silent exemption for
+    S1–S131, and the S127 specimen re-graded a MISMATCH on the real historical record. Cold review
+    ACCEPT twice (`sessions/session-132-review.md`, `sessions/session-132-review-pass1.md`).
+    **Named, not softened:** a judge that writes `implemented:` without reading the diff still
+    passes — the gate proves an independent, provenance-verified role graded the exact commit
+    named, never that the grade is right.
+  - **F2a (NEW, open — found by S132's own second cold pass, rec 9): the judge cannot be the
+    mandatory role when the mandatory role is the advisor.** `obeyed::admit` rule 1 refuses a
+    judgment whose judging ROLE equals the graded advisor's role. Since `fidelity-reviewer` is the
+    one role every session is guaranteed to hear from, its own recommendations can never be graded
+    by another `fidelity-reviewer` dispatch — S132 resolved this by dispatching a DIFFERENT role
+    (`implementation-advisor`) as judge, which works today and costs one dispatch, no code. The
+    open design question, deliberately not decided at S132's close: should rule 1 narrow from
+    ROLE identity to DISPATCH identity, so a distinct provenance-verified dispatch may grade an
+    earlier one of the same role? That needs its own `## Design` record and its own falsifiability
+    probe — a real decision, not a closeout patch.
+  - **F2b (NEW, open — S132 second pass, rec 9b/rec 14): the regress is terminated by hand.** Every
+    `obeyed:` needs a judgment; the judge's own recommendations, if obeyed, mint new `obeyed:`
+    claims needing new judgments. S132 terminated it by batching fixes before a judging dispatch
+    and answering the last pass with `refused:`/`deferred:`. Nothing in the machine ends it.
   Full evidence and the lens that found this: `sessions/session-130-ground-truth.md`.
 - **F3 — first-contact bugs** — **[x] MOSTLY DONE at S128** (the founder UNPARKED this slice at the
   S127 closeout; the rest of this backlog stays parked). Fixed and proven live in an empty

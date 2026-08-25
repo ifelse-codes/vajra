@@ -122,16 +122,21 @@ dispositions instead of the whole delivery.
 
 ## Execution (the Coder gate -- record each plan step's landing commit as work lands)
 
-- step 1 -- done: <sha>
-- step 2 -- done: <sha>
-- step 3 -- done: <sha>
-- step 4 -- done: <sha>
-- step 5 -- done: <sha>
-- step 6 -- done: <sha>
-- step 7 -- done: <sha>
-- step 8 -- done: <sha>
-- step 9 -- done: <sha>
-- step 10 -- done: <sha>
+- step 1 — done: 27927f2
+- step 2 — done: 27927f2
+- step 3 — done: 12cbaed
+- step 4 — done: 9bb50ed
+- step 5 — done: b2facd4
+- step 6 — done: 008a86f
+- step 7 — done: b2facd4
+- step 8 — done: 00966aa
+- step 9 — done: 0e2214b
+- step 10 — done: 0e2214b
+
+> Steps 1+2 and 9+10 landed together, and three steps were completed across two commits: step 3
+> (`12cbaed`, hardened in `12c8686`), step 6 (`008a86f`, probes hardened in `b2facd4`) and step 8
+> (verify `008a86f`, demo `00966aa`, both retimed in `9eb8491`). Each sha above CONTAINS the work
+> its step claims; the extra commits are named here rather than hidden.
 
 > Fill these with real landing shas before closeout -- S119, S122, S124 all left <sha> placeholders
 > once, caught only by an independent cold review. Do not record a sha that does not contain the
@@ -146,10 +151,14 @@ dispositions instead of the whole delivery.
 > happening again. A disposition certifies a typed word and a resolving sha, nothing more -- check
 > the commit, don't count the label.
 
-(Filled during S132 -- this session should dispatch at least the `fidelity-reviewer` cold pass per
-Plan step 9, and its recommendations get answered here. Given this session's own subject matter,
-apply extra scrutiny to its OWN `obeyed:` dispositions -- the fidelity-reviewer that grades them is
-the natural first user of the mechanism being built.)
+- fidelity-reviewer rec 1 — obeyed: b2facd4
+- fidelity-reviewer rec 2 — obeyed: 5ca0b82
+- fidelity-reviewer rec 3 — obeyed: b2facd4
+- fidelity-reviewer rec 4 — obeyed: b2facd4
+- fidelity-reviewer rec 5 — obeyed: 12c8686
+- fidelity-reviewer rec 6 — obeyed: 9eb8491
+- fidelity-reviewer rec 7 — obeyed: 0e2214b
+- fidelity-reviewer rec 8 — refused: already true, checked before answering -- both sides of the join lower-case the role through the same `advice::split_role_rec`, so a mixed-case judgment already joined. `12c8686` makes the comparison say so explicitly and adds the regression test, but calling that "obeyed" would claim a fix for a defect that did not exist; the honest answer is a refusal with the evidence.
 
 ## Design
 
@@ -205,6 +214,20 @@ mid-flight is legitimately answered-but-not-yet-judged); this gate answers "is t
 TRUE?" — a different question, a different evidence source (a judgment in a handoff vs. a
 disposition in the prompt), and a different blocking message. No 8th top-level command: it rides
 `vajra next`, like every station gate since S64.
+
+**Q5 — RESOLVED IN-SESSION, after the second cold pass found it (its rec 9): who may judge the
+MANDATORY role's own advice?** `obeyed::admit` rule 1 refuses a judgment whose judging ROLE equals
+the graded advisor's role (DECISION-002, one level down). `fidelity-reviewer` is the one role every
+session is guaranteed to hear from, so its own recommendations can never be graded by another
+`fidelity-reviewer` dispatch — this session's own seven dispositions hit exactly that, and the gate
+correctly refused them. **Resolution taken: dispatch a DIFFERENT registered role
+(`implementation-advisor`) as the independent judge** — works today, costs one dispatch, changes no
+code, and keeps the no-self-certification rule intact rather than widening it under closeout
+pressure. The alternative (narrow rule 1 from role identity to DISPATCH identity, so a distinct
+provenance-verified dispatch may grade an earlier one of the same role) is recorded as an OPEN
+design question at `.ai/ROADMAP.md` F2a — it needs its own design record and falsifiability probe,
+not a patch at close. Explicitly refused: `VAJRA_SKIP_OBEYED_GATE=1` or a closeout waiver, which
+would be skipping the gate on the session that built it.
 
 **Q4 — what stops a STALE judgment (not asked, but the same class one level down; S131 rec 4).**
 The marker records the sha it judged, and the gate refuses a judgment whose sha does not match the
