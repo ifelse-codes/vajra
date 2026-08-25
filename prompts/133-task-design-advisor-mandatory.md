@@ -137,22 +137,43 @@ no longer possible; a reasoned skip always is.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
-- step 7 — done: <sha>
-- step 8 — done: <sha>
+- step 1 — done: 4c2f29f
+- step 2 — done: 526e44a
+- step 3 — done: 0fd93f4
+- step 4 — done: 1a36817
+- step 5 — done: 56cba81
+- step 6 — done: 73267da
+- step 7 — done: 59b72a7
+- step 8 — done: 7325456
 - step 9 — done: <sha>
 - step 10 — done: <sha>
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-(Filled during S133. `vajra next --check-advice 133` BLOCKS the close until every recorded
-recommendation is answered, and `vajra next --check-obeyed 133` BLOCKS until every `obeyed:` claim
-carries an independent judgment from a role that is not the one that gave the advice.)
+From `.ai/handoffs/session-133-design-advisor.md` — a real dispatch, provenance
+`verified: toolu_01FgiKkQM1U1AD6eRXth3fFv`, landed BEFORE any code (Plan step 1).
+
+- design-advisor rec 1 — obeyed: 0fd93f4
+- design-advisor rec 2 — obeyed: 1a36817
+- design-advisor rec 3 — obeyed: 1a36817
+- design-advisor rec 4 — obeyed: 1a36817
+- design-advisor rec 5 — obeyed: f85b5ad
+- design-advisor rec 6 — obeyed: 56cba81
+- design-advisor rec 7 — obeyed: 0fd93f4
+- design-advisor rec 8 — obeyed: 1a36817
+- design-advisor rec 9 — obeyed: 1a36817
+- design-advisor rec 10 — obeyed: 1a36817
+- design-advisor rec 11 — obeyed: cab4563
+- design-advisor rec 12 — obeyed: 526e44a
+- design-advisor rec 13 — obeyed: cab4563
+- design-advisor rec 14 — deferred: .ai/ROADMAP.md
+- design-advisor rec 15 — obeyed: f85b5ad
+
+rec 14 is the one DEFERRAL, and the reason is recorded rather than left implicit: comparing the
+handoff's `captured:` timestamp against the session's first code commit is a SECOND story (max 1
+story), and "which commit counts as code" is a judgement the binary should not guess. Filed as
+`.ai/ROADMAP.md` F2f, named in the summary as this design's honest residual, and carried into
+S134's intake rather than dropped.
 
 ## Design
 
