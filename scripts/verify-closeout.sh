@@ -333,14 +333,33 @@ check_obeyed_judgments() {
   : > "$LOG"
   local BIN="target/release/vajra"
   if [ ! -x "$BIN" ]; then
-    echo "WARN: $BIN not built — cannot evaluate the Obeyed gate here." >> "$LOG"
-    echo "      Build it (cargo build --release) to have this check bind at closeout." >> "$LOG"
-    ok "$NAME"; return
+    # S69, and the S132 cold review's rec 10: a check that CANNOT EVALUATE fails. The first draft
+    # of this branch called `ok`, so a missing binary counted as a pass — the gate greened by not
+    # running, one line below the fix for exactly that class.
+    echo "BLOCK: $BIN not built — this check cannot evaluate the Obeyed gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: run \`cargo build --release\` so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
+    fi
+    return
   fi
   local out code
   out="$("$BIN" next --check-obeyed "$N" 2>&1)"; code=$?
   echo "$out" >> "$LOG"
   echo "exit=$code" >> "$LOG"
+  # rec 10, second half: an UNRECOGNISED flag falls through to `run_dump()` and exits 0, so a
+  # binary built without this gate would green this check while reporting nothing. Require the
+  # gate's own header, not merely a zero exit.
+  if ! grep -q "=== obeyed: independent judgment on session" <<<"$out"; then
+    echo "BLOCK: the binary produced no Obeyed-gate output — this build does not carry the gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: \`$BIN next --check-obeyed $N\` did not run the gate (an unknown flag exits 0 via run_dump)." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
   if [ "$code" -eq 0 ]; then
     echo "OK: every \`obeyed:\` disposition for session $N carries an admissible independent judgment." >> "$LOG"
     ok "$NAME"; return

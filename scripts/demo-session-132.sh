@@ -150,10 +150,21 @@ printf '%s' "$SELF"  | grep -q "graded its OWN recommendation" \
 score $? exec "case 4: all three inadmissible judgments refused, each for its own reason"
 
 label "case 5 — the S127 specimen, on the REAL record of this repo (not a fixture)"
+# The verdict word is DERIVED from the landed judgment, never assumed (cold review rec 1, applied
+# here too by rec 11): this case must be green under either honest verdict and red only when the
+# join or the exit code breaks. What it demonstrates is that a real judgment on real historical
+# data drives the gate — not that a particular reviewer agreed with the builder.
+JUDGMENT="$(grep -hE '^obeyed-check session 127 implementation-advisor rec 9 —' "$ROOT"/.ai/handoffs/*.md 2>/dev/null | tail -1)"
+WORD="$(sed -E 's/.* rec 9 — ([a-z]+):.*/\1/' <<<"${JUDGMENT:-none}")"
 OUT="$( "$VAJRA" next --check-obeyed 127 2>&1 )"; RC=$?
+dim "    landed judgment: ${WORD:-<none>}"
 dim "    $(printf '%s\n' "$OUT" | grep 'implementation-advisor rec 9' | head -1)"
-[ "$RC" -eq 1 ] && printf '%s' "$OUT" | grep -q "implementation-advisor rec 9 — obeyed: 8cd3bea — MISMATCH"
-score $? exec "case 5: the defect that started this is caught on the real historical record"
+case "$WORD" in
+  mismatch)    printf '%s' "$OUT" | grep -q "implementation-advisor rec 9 — obeyed: 8cd3bea — MISMATCH" && [ "$RC" -eq 1 ] ;;
+  implemented) printf '%s' "$OUT" | grep -q "implementation-advisor rec 9 — obeyed: 8cd3bea — implemented" && [ "$RC" -eq 0 ] ;;
+  *)           false ;;
+esac
+score $? exec "case 5: a real judgment on the real historical record drives the gate"
 
 label "case 6 — a TRUE judgment from a verified independent judge passes"
 rm -f "$TMP/.ai/handoffs/session-132-fidelity-reviewer.md"

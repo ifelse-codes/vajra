@@ -428,8 +428,14 @@ fixture_fails_for_the_right_reason() {
   fi
   git -C "$WT" checkout -q -- src/obeyed/mod.rs
 
-  # The other direction (S122): renaming every message string must NOT turn it red.
-  perl -pi -e 's/graded its OWN recommendation/RENAMED: self-graded/; s/is stale, not evidence/RENAMED: wrong commit/; s/the judgment records no usable note/RENAMED: no note/' "$D"
+  # The other direction (S122): renaming every message string must NOT turn it red — and rec 12:
+  # the control itself must assert its substitutions landed, or a reworded message silently makes
+  # it pass for the wrong reason (the very class the four bypasses above just fixed).
+  local renamed=1
+  apply_bypass "$D" "graded its OWN recommendation" "RENAMED: self-graded" || renamed=0
+  apply_bypass "$D" "is stale, not evidence" "RENAMED: wrong commit" || renamed=0
+  apply_bypass "$D" "the judgment records no usable note" "RENAMED: no note" || renamed=0
+  [ "$renamed" -eq 1 ] || { echo "FAIL: the rename control did not actually rename anything"; rc=1; }
   if obeyed_green "$WT"; then
     echo "OK: renaming every gate message -> still GREEN (the fixture binds to behaviour)"
   else
