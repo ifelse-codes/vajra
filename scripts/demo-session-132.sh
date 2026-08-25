@@ -114,6 +114,10 @@ dim "    $(printf '%s\n' "$OUT" | grep -E 'MISMATCH' | head -1)"
 score $? exec "case 3: a mismatch BLOCKS, naming role, rec number and disagreement"
 
 label "case 4 — the three forgeries: self-graded, stale sha, hand-typed provenance"
+# Case 3 left an ADMISSIBLE judgment on disk, and an inadmissible one only speaks when no
+# admissible one exists (the sticky/precedence rule). Clear it so each forgery below is judged on
+# its own, not silently outvoted by the real judgment from the previous case.
+rm -f "$TMP/.ai/handoffs/session-132-fidelity-reviewer.md"
 build_dispatch plan-advisor toolu_01DEMOSELF
 land_judgment "obeyed-check plan-advisor rec 1 — implemented: ${SHA} — graded by its own author" plan-advisor
 SELF="$( cd "$TMP" && VAJRA_CLAUDE_PROJECTS_DIR="$PROJROOT" "$VAJRA" next --check-obeyed 132 2>&1 )"
