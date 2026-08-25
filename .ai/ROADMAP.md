@@ -613,7 +613,7 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
   nothing forces a GT session to execute it (the S68/S71 self-granted-jurisdiction class) — and it
   is **absent from the SCAFFOLD's own `required_audits`**, which ships strangers 7 entries against
   this repo's 11. S128 refused to fix the second one; it is F1's story.
-- **K1 — compression engine, keep or kill** — **the S133 pick (founder call at S130 closeout).**
+- **K1 — compression engine, keep or kill** — **the S133 pick (founder call at S130 closeout); prompt WRITTEN at the S132 closeout (`prompts/133-task-compression-keep-or-kill.md`), Planner + Architect gates both READY on it.**
   1,005 LOC, 0 folds / $0 saved, measured twice (S63, S124). S133 = the founder decides; the losing
   branch is a bounded cleanup session either way (remove the engine + the README claim, or keep it
   and stop implying savings that don't happen). The other three kill candidates (K2–K4: 3 of 4
