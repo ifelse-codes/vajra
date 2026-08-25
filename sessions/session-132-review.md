@@ -25,6 +25,8 @@ I read the governed prompt, the full delivery diff, pass 1's eight recommendatio
 
 **Verdict:** ACCEPT
 
+**Review-Inputs-SHA:** 3bba6c2aa9b8e3e47d76e83fe4371e17c806b564421d43daea68a56e2a91ddbe
+
 The mechanism is real, reachable and honestly bounded, and all seven answered recommendations genuinely landed in the commits they cite — I checked each cited commit rather than the tip. The delivery is not short. But be clear what this ACCEPT does not cover: as shipped, this session's own gate will refuse this session's own judgments (rec 9), and that must be resolved on the merits, not waived.
 
 ## Fakest Green
