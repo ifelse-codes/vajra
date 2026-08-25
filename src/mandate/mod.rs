@@ -82,12 +82,48 @@ pub const DESIGN_ADVISOR_MANDATE_FROM_SESSION: u32 = 133;
 pub enum SkipMarker {
     /// No `<role-name>:` line anywhere in the prompt (outside fenced blocks).
     Absent,
-    /// A `<role-name>:` line EXISTS but records no usable reason — still the template `<...>`,
-    /// empty, the word `skipped` with nothing after it, or a value that is not a skip claim at all.
-    /// Carries why. Blocks at any session: the threshold governs silence, and this is not silence.
-    Unusable(String),
+    /// A `<role-name>:` line EXISTS but records no usable reason. Carries a machine-readable
+    /// defect AND the human sentence. Blocks at any session: the threshold governs silence, and a
+    /// marker that exists is not silence.
+    Unusable(SkipDefect, String),
     /// `<role-name>: skipped — <substantive reason>`. Carries the reason, which the gate PRINTS.
     Recorded(String),
+}
+
+/// Why a recorded marker is unusable — the DISCRIMINANT, so this crate's own tests bind to
+/// behaviour instead of to message text.
+///
+/// This is not decoration. S122's falsifiability contract has two directions: bypassing a rule
+/// must go RED, and RENAMING every message must stay GREEN. A test that asserts
+/// `reasons[0].contains("template placeholder")` fails the second direction for the wrong reason,
+/// so the wording contract is asserted where it belongs — live, against the real binary's output,
+/// in `scripts/verify-session-133.sh` — and the unit tests assert the variant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SkipDefect {
+    /// Nothing after the colon.
+    Empty,
+    /// Still the angle-bracketed template, either whole or as the reason (the scaffold's shape).
+    Placeholder,
+    /// A value that is not a skip claim at all (`done`, `yes`, `consulted`).
+    NotASkip,
+    /// The word `skipped` with no reason after it.
+    NoReason,
+}
+
+/// Why the gate blocked. Same purpose as `SkipDefect`: the ladder's rungs are behaviour, and the
+/// tests bind to them rather than to the sentences the CLI prints.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MandateCause {
+    /// Rung 1 — a handoff exists but does not satisfy the handoff contract.
+    HandoffMalformed,
+    /// Rung 1 — a handoff exists but its `agent:` field carries no derivable dispatch id.
+    ProvenanceMissingId,
+    /// Rung 1 — a handoff exists but its claimed dispatch does not independently re-verify.
+    ProvenanceUnverifiable,
+    /// Rung 4 — no handoff, and the recorded marker is unusable.
+    SkipUnusable(SkipDefect),
+    /// Rung 5 — no handoff, no marker, at or after the threshold.
+    Silence,
 }
 
 /// The Mandate gate's decision for CLOSING `session`. Mirrors `fidelity::FidelityVerdict` field for
@@ -107,6 +143,8 @@ pub struct MandateVerdict {
     /// `Some(reason)` when the gate passed on a RECORDED skip rather than a handoff. The CLI must
     /// print this: acceptance 2 forbids a skipped design review reading as a clean green.
     pub skipped: Option<String>,
+    /// WHICH rung refused, as a value rather than as a sentence. `None` when nothing blocked.
+    pub cause: Option<MandateCause>,
     blocked: bool,
     /// Blocking reasons — non-empty means L2/L3 must refuse the close.
     pub reasons: Vec<String>,
@@ -142,40 +180,56 @@ fn after_separator(text: &str) -> Option<&str> {
 fn classify_marker_value(role: &str, value: &str) -> SkipMarker {
     let v = value.trim();
     if v.is_empty() {
-        return SkipMarker::Unusable(format!(
-            "`{role}:` records nothing after the colon — the grammar is \
-             `{role}: skipped — <reason>`"
-        ));
+        return SkipMarker::Unusable(
+            SkipDefect::Empty,
+            format!(
+                "`{role}:` records nothing after the colon — the grammar is \
+                 `{role}: skipped — <reason>`"
+            ),
+        );
     }
     // The scaffolded placeholder lands here: an angle-bracketed template is a marker that EXISTS
     // and records nothing, which is rung 4, not rung 6. That is what makes the mandate bind from
     // session 1 in a fresh project despite the session-number threshold.
     if v.starts_with('<') && v.ends_with('>') {
-        return SkipMarker::Unusable(format!(
-            "`{role}: {v}` is still the template placeholder — dispatch the role, or replace it \
-             with `{role}: skipped — <a real reason>`"
-        ));
+        return SkipMarker::Unusable(
+            SkipDefect::Placeholder,
+            format!(
+                "`{role}: {v}` is still the template placeholder — dispatch the role, or replace \
+                 it with `{role}: skipped — <a real reason>`"
+            ),
+        );
     }
     let lower = v.to_ascii_lowercase();
     let Some(rest) = lower.strip_prefix("skipped") else {
-        return SkipMarker::Unusable(format!(
-            "`{role}: {v}` is not a recorded skip — the only value this gate accepts is \
-             `skipped — <reason>` (a role that really ran is recorded as a handoff, not as a marker)"
-        ));
+        return SkipMarker::Unusable(
+            SkipDefect::NotASkip,
+            format!(
+                "`{role}: {v}` is not a recorded skip — the only value this gate accepts is \
+                 `skipped — <reason>` (a role that really ran is recorded as a handoff, not as a \
+                 marker)"
+            ),
+        );
     };
     // Offsets stay valid: ASCII lower-casing preserves byte length.
     let rest = v[v.len() - rest.len()..].trim();
     let Some(reason) = after_separator(rest) else {
-        return SkipMarker::Unusable(format!(
-            "`{role}: {v}` records the word `skipped` with no reason after it — a skip must cost a \
-             sentence"
-        ));
+        return SkipMarker::Unusable(
+            SkipDefect::NoReason,
+            format!(
+                "`{role}: {v}` records the word `skipped` with no reason after it — a skip must \
+                 cost a sentence"
+            ),
+        );
     };
     match substantive_reason(reason) {
         Ok(()) => SkipMarker::Recorded(reason.to_string()),
-        Err(why) => {
-            SkipMarker::Unusable(format!("`{role}:` skip reason is not substantive: {why}"))
-        }
+        // A reason that is still `<...>` is the same defect as a whole-value placeholder — the
+        // scaffold's shape, one level in.
+        Err(why) => SkipMarker::Unusable(
+            SkipDefect::Placeholder,
+            format!("`{role}:` skip reason is not substantive: {why}"),
+        ),
     }
 }
 
@@ -235,6 +289,7 @@ pub fn mandate_gate(
         handoff_path: None,
         agent_field: None,
         skipped: None,
+        cause: None,
         blocked: false,
         reasons: vec![],
         warnings: vec![],
@@ -253,6 +308,7 @@ pub fn mandate_gate(
         HandoffRead::Malformed(path, why) => {
             v.handoff_path = Some(path.clone());
             v.blocked = true;
+            v.cause = Some(MandateCause::HandoffMalformed);
             v.reasons.push(format!(
                 "{path} exists but does not satisfy the handoff contract ({why}) — delete it and \
                  record the skip, or dispatch {} for real; a recorded reason does not cure a \
@@ -267,9 +323,11 @@ pub fn mandate_gate(
                 // Rung 1 — a hand-typed handoff is not fleet evidence (S131's rule, reused).
                 None => {
                     v.blocked = true;
+                    v.cause = Some(MandateCause::ProvenanceMissingId);
                     v.reasons.push(format!(
                         "{}'s provenance ({:?}) carries no verifiable dispatch id — a hand-typed \
-                         or pre-S131 handoff does not satisfy a mandatory role",
+                         or pre-S131 handoff does not satisfy a mandatory role, and a recorded \
+                         reason does not cure it",
                         h.path, h.agent
                     ));
                 }
@@ -288,6 +346,7 @@ pub fn mandate_gate(
                     // trusted, and never downgraded to "absent" so a marker could rescue it.
                     Err(why) => {
                         v.blocked = true;
+                        v.cause = Some(MandateCause::ProvenanceUnverifiable);
                         v.reasons.push(format!(
                             "{}'s provenance could not be independently re-verified: {why} — a \
                              claim this gate cannot re-derive is invalid, and a recorded reason \
@@ -318,8 +377,9 @@ pub fn mandate_gate(
             }
             // Rung 4 — a marker that exists but records nothing usable. Blocks at ANY session:
             // the threshold governs silence, and a placeholder is not silence.
-            SkipMarker::Unusable(why) => {
+            SkipMarker::Unusable(defect, why) => {
                 v.blocked = true;
+                v.cause = Some(MandateCause::SkipUnusable(*defect));
                 v.reasons.push(format!(
                     "session {session:02} has no {} handoff and its recorded skip is unusable: \
                      {why}",
@@ -338,6 +398,7 @@ pub fn mandate_gate(
                 if session >= from_session {
                     // Rung 5 — the silence the whole session exists to end.
                     v.blocked = true;
+                    v.cause = Some(MandateCause::Silence);
                     v.reasons.push(format!(
                         "session {session:02} records neither a {} handoff ({}) nor a reason for \
                          skipping it — {how}",
@@ -473,7 +534,7 @@ mod tests {
             "design-advisor",
         );
         assert!(
-            matches!(&m, SkipMarker::Unusable(w) if w.contains("template placeholder")),
+            matches!(m, SkipMarker::Unusable(SkipDefect::Placeholder, _)),
             "{m:?}"
         );
     }
@@ -482,7 +543,31 @@ mod tests {
     fn skipped_with_no_reason_is_unusable() {
         let m = parse_skip_marker("- design-advisor: skipped\n", "design-advisor");
         assert!(
-            matches!(&m, SkipMarker::Unusable(w) if w.contains("no reason after it")),
+            matches!(m, SkipMarker::Unusable(SkipDefect::NoReason, _)),
+            "{m:?}"
+        );
+    }
+
+    #[test]
+    fn a_template_reason_after_skipped_is_unusable() {
+        // The scaffold's shape one level in: the value IS a skip claim, and the reason is still
+        // `<...>`. This is the only path through `advice::substantive_reason`, so without this
+        // test the substantiveness floor is unfalsifiable.
+        let m = parse_skip_marker(
+            "- design-advisor: skipped — <why this session needs no design review>\n",
+            "design-advisor",
+        );
+        assert!(
+            matches!(m, SkipMarker::Unusable(SkipDefect::Placeholder, _)),
+            "{m:?}"
+        );
+    }
+
+    #[test]
+    fn a_colon_with_nothing_after_it_is_unusable() {
+        let m = parse_skip_marker("- design-advisor:\n", "design-advisor");
+        assert!(
+            matches!(m, SkipMarker::Unusable(SkipDefect::Empty, _)),
             "{m:?}"
         );
     }
@@ -493,7 +578,7 @@ mod tests {
         for v in ["done", "yes", "consulted informally"] {
             let m = parse_skip_marker(&format!("design-advisor: {v}\n"), "design-advisor");
             assert!(
-                matches!(&m, SkipMarker::Unusable(w) if w.contains("is not a recorded skip")),
+                matches!(m, SkipMarker::Unusable(SkipDefect::NotASkip, _)),
                 "{v:?} -> {m:?}"
             );
         }
@@ -524,14 +609,12 @@ mod tests {
         );
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
-        let r = v.reasons.join(" ");
-        assert!(
-            r.contains("records neither a design-advisor handoff"),
-            "{r}"
-        );
-        assert!(r.contains("--role design-advisor --from"), "{r}");
-        assert!(r.contains("skipped — <reason>"), "{r}");
-        assert!(r.contains("no environment variable"), "{r}");
+        assert_eq!(v.cause, Some(MandateCause::Silence));
+        // Acceptance 1 also demands the message NAME both ways out and the no-env-var rule. That
+        // is a WORDING contract, asserted live against the real binary in
+        // `scripts/verify-session-133.sh` (check 1) rather than here — otherwise renaming a
+        // message would go red and S122's second falsifiability direction could not be tested.
+        assert_eq!(v.reasons.len(), 1, "{:?}", v.reasons);
     }
 
     // Rung 3 (acceptance 2): a substantive reason PASSES and the reason comes back out for printing.
@@ -566,10 +649,9 @@ mod tests {
         write_prompt(&root, 42, "# fixture\n\n- design-advisor: <why not>\n");
         let v = design_advisor_gate(&root, 42);
         assert!(v.blocked(), "the threshold governs SILENCE only");
-        assert!(
-            v.reasons.join(" ").contains("template placeholder"),
-            "{:?}",
-            v.reasons
+        assert_eq!(
+            v.cause,
+            Some(MandateCause::SkipUnusable(SkipDefect::Placeholder))
         );
     }
 
@@ -579,10 +661,9 @@ mod tests {
         write_prompt(&root, 133, "# fixture\n\n- design-advisor: skipped —\n");
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
-        assert!(
-            v.reasons.join(" ").contains("no reason after it"),
-            "{:?}",
-            v.reasons
+        assert_eq!(
+            v.cause,
+            Some(MandateCause::SkipUnusable(SkipDefect::NoReason))
         );
     }
 
@@ -594,11 +675,7 @@ mod tests {
         write_handoff(&root, 133, "claude-code-subagent");
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
-        assert!(
-            v.reasons.join(" ").contains("no verifiable dispatch id"),
-            "{:?}",
-            v.reasons
-        );
+        assert_eq!(v.cause, Some(MandateCause::ProvenanceMissingId));
     }
 
     #[test]
@@ -612,13 +689,7 @@ mod tests {
         );
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
-        assert!(
-            v.reasons
-                .join(" ")
-                .contains("could not be independently re-verified"),
-            "{:?}",
-            v.reasons
-        );
+        assert_eq!(v.cause, Some(MandateCause::ProvenanceUnverifiable));
     }
 
     // Rung 1 BEATS rung 3 — the decided conflict. A recorded reason does not launder a forged
@@ -639,11 +710,7 @@ mod tests {
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked(), "a forged claim is not cured by a sentence");
         assert!(v.skipped.is_none());
-        assert!(
-            v.reasons.join(" ").contains("does not cure it"),
-            "{:?}",
-            v.reasons
-        );
+        assert_eq!(v.cause, Some(MandateCause::ProvenanceUnverifiable));
     }
 
     #[test]
@@ -661,13 +728,7 @@ mod tests {
         .unwrap();
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
-        assert!(
-            v.reasons
-                .join(" ")
-                .contains("does not satisfy the handoff contract"),
-            "{:?}",
-            v.reasons
-        );
+        assert_eq!(v.cause, Some(MandateCause::HandoffMalformed));
     }
 
     // Rung 6: below the threshold, silence WARNs and the warning NAMES the exemption.
@@ -677,9 +738,13 @@ mod tests {
         write_prompt(&root, 100, "# fixture\n");
         let v = design_advisor_gate(&root, 100);
         assert!(!v.blocked(), "{:?}", v.reasons);
-        let w = v.warnings.join(" ");
-        assert!(w.contains("predates the design-advisor mandate"), "{w}");
-        assert!(w.contains("threshold 133"), "{w}");
+        assert_eq!(v.cause, None);
+        assert_eq!(
+            v.warnings.len(),
+            1,
+            "silence below the threshold must WARN exactly once: {:?}",
+            v.warnings
+        );
     }
 
     // rec 3: `design-significant: no` is a reason a human may WRITE, never an exemption the
@@ -711,11 +776,11 @@ mod tests {
         );
         let v = design_advisor_gate(&root, 133);
         assert!(!v.blocked(), "{:?}", v.reasons);
-        assert!(
-            v.warnings
-                .join(" ")
-                .contains("design-significant: yes` AND skipped"),
-            "{:?}",
+        assert!(v.skipped.is_some());
+        assert_eq!(
+            v.warnings.len(),
+            1,
+            "the significant+skipped contradiction must produce exactly one WARN: {:?}",
             v.warnings
         );
     }
@@ -726,11 +791,11 @@ mod tests {
         let root = tmp_root();
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
-        assert!(
-            v.warnings
-                .join(" ")
-                .contains("only a real design-advisor handoff"),
-            "{:?}",
+        assert_eq!(v.cause, Some(MandateCause::Silence));
+        assert_eq!(
+            v.warnings.len(),
+            1,
+            "a session with no prompt must say so: {:?}",
             v.warnings
         );
     }
@@ -763,7 +828,7 @@ mod tests {
     fn the_real_scaffold_template_lands_on_rung_4_not_the_threshold_exemption() {
         let m = parse_skip_marker(crate::analyst::PROMPT_TEMPLATE, "design-advisor");
         assert!(
-            matches!(&m, SkipMarker::Unusable(w) if w.contains("template placeholder")),
+            matches!(m, SkipMarker::Unusable(SkipDefect::Placeholder, _)),
             "the scaffold must carry an UNUSABLE marker, not none: {m:?}"
         );
 
