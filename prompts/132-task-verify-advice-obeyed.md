@@ -122,16 +122,21 @@ dispositions instead of the whole delivery.
 
 ## Execution (the Coder gate -- record each plan step's landing commit as work lands)
 
-- step 1 -- done: <sha>
-- step 2 -- done: <sha>
-- step 3 -- done: <sha>
-- step 4 -- done: <sha>
-- step 5 -- done: <sha>
-- step 6 -- done: <sha>
-- step 7 -- done: <sha>
-- step 8 -- done: <sha>
-- step 9 -- done: <sha>
-- step 10 -- done: <sha>
+- step 1 — done: 27927f2
+- step 2 — done: 27927f2
+- step 3 — done: 12cbaed
+- step 4 — done: 9bb50ed
+- step 5 — done: b2facd4
+- step 6 — done: 008a86f
+- step 7 — done: b2facd4
+- step 8 — done: 00966aa
+- step 9 — done: 0e2214b
+- step 10 — done: 0e2214b
+
+> Steps 1+2 and 9+10 landed together, and three steps were completed across two commits: step 3
+> (`12cbaed`, hardened in `12c8686`), step 6 (`008a86f`, probes hardened in `b2facd4`) and step 8
+> (verify `008a86f`, demo `00966aa`, both retimed in `9eb8491`). Each sha above CONTAINS the work
+> its step claims; the extra commits are named here rather than hidden.
 
 > Fill these with real landing shas before closeout -- S119, S122, S124 all left <sha> placeholders
 > once, caught only by an independent cold review. Do not record a sha that does not contain the
@@ -146,10 +151,21 @@ dispositions instead of the whole delivery.
 > happening again. A disposition certifies a typed word and a resolving sha, nothing more -- check
 > the commit, don't count the label.
 
-(Filled during S132 -- this session should dispatch at least the `fidelity-reviewer` cold pass per
-Plan step 9, and its recommendations get answered here. Given this session's own subject matter,
-apply extra scrutiny to its OWN `obeyed:` dispositions -- the fidelity-reviewer that grades them is
-the natural first user of the mechanism being built.)
+- fidelity-reviewer rec 1 — obeyed: b2facd4
+- fidelity-reviewer rec 2 — obeyed: 5ca0b82
+- fidelity-reviewer rec 3 — obeyed: b2facd4
+- fidelity-reviewer rec 4 — obeyed: b2facd4
+- fidelity-reviewer rec 5 — obeyed: 12c8686
+- fidelity-reviewer rec 6 — obeyed: 9eb8491
+- fidelity-reviewer rec 7 — obeyed: 0e2214b
+- fidelity-reviewer rec 9 — obeyed: f48b70e
+- fidelity-reviewer rec 10 — obeyed: 6047361
+- fidelity-reviewer rec 11 — obeyed: 6047361
+- fidelity-reviewer rec 12 — obeyed: 6047361
+- fidelity-reviewer rec 13 — obeyed: a27c620
+- fidelity-reviewer rec 14 — refused: partly followed, partly declined, and the difference matters. Recs 9-13 WERE answered `obeyed:` rather than deferred -- but every one of them was landed BEFORE the judging dispatch, so all twelve `obeyed:` claims were graded in a single independent pass and no regress restarted. What rec 14 was protecting against (an `obeyed:` minted after the last judge has spoken) did not happen. rec 14 itself and rec 20 are answered without new `obeyed:` claims, which is where the chain stops.
+- implementation-advisor rec 20 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 8 — refused: already true, checked before answering -- both sides of the join lower-case the role through the same `advice::split_role_rec`, so a mixed-case judgment already joined. `12c8686` makes the comparison say so explicitly and adds the regression test, but calling that "obeyed" would claim a fix for a defect that did not exist; the honest answer is a refusal with the evidence.
 
 ## Design
 
@@ -160,12 +176,70 @@ the natural first user of the mechanism being built.)
 - Spine record to cite: DECISION-007's S127 addendum (the `implementation-advisor` rec 9 specimen,
   "the disposition word carries all the meaning and none of the checking") and DECISION-002
   (no-self-certification) -- verify both exist before citing them.
-- Open design question for S132 to resolve and record here: Deliverables (a) vs (b) above -- does
-  the judgment ride the mandatory `fidelity-reviewer` handoff, or a separate narrower dispatch?
-- Second open question: what is the migration posture for dispositions recorded BEFORE this gate
-  existed (every session S1-S131)? Silently exempting all of them is the S68/S71 "self-granted
-  jurisdiction" class this repo already names and avoids elsewhere -- decide explicitly and record
-  the reasoning, do not let it fall out by accident.
+- **Step 1 — the gap, REPRODUCED LIVE before any fix** (2026-08-24, release binary, this repo):
+  `vajra next --check-advice 127` prints `[✓] implementation-advisor rec 9 — obeyed: 8cd3bea` and
+  `verdict: READY`. `git show 8cd3bea | grep -n -A3 _uses` shows `fn _uses(_r: &Path)` as a
+  CONTEXT line (a leading space, not `-`): the commit adds 168 lines of parser and does not delete
+  the stub rec 9 asked it to delete. The sha resolves, so today's gate scores it ANSWERED. That is
+  the whole defect, on the real historical record, no fixture involved.
+
+### Step 2 — the two open questions, RESOLVED and recorded (S132's design call)
+
+**Q1 — (a) ride the mandatory handoff, or (b) a new narrower dispatch? → (a), the handoff.**
+The judgment is recorded as an `obeyed-check` marker inside a governed handoff body, and the
+handoff this session's own close depends on is already `fidelity-reviewer`'s (S131, mandatory).
+Why (a):
+- (b) would add a second dispatch shape whose independence has to be re-proved from scratch, while
+  (a) inherits S131's `dispatch::reverify` provenance chain unchanged — the judge is already cold
+  (prompt + diff only), already not the builder, and already existence-gated as a REAL dispatch.
+- DECISION-007's own line — "a role that PROPOSES never authors the marker its station parses"
+  (S126) — is respected either way, but (a) adds no new role and no new mandatory role, which this
+  prompt's Non-goals require.
+- DECISION-002 (no self-certification) is what makes the judge admissible at all; the gate enforces
+  it structurally, not by trust: a judgment is REFUSED when the judging handoff's role equals the
+  advisor role whose recommendation is being graded.
+- The marker is not fidelity-reviewer-only by construction — ANY provenance-verified handoff from a
+  role other than the graded advisor may carry it. (a) is where it lands today, not a lock.
+
+**Q2 — migration posture for every disposition recorded S1-S131 → an explicit, recorded threshold,
+never a silent exemption.**
+- `OBEYED_JUDGMENT_FROM_SESSION = 132`. For sessions **≥ 132** a missing judgment BLOCKS. For
+  sessions **< 132** a missing judgment WARNS and the warning NAMES the exemption and its reason
+  (the disposition was recorded under a contract that had no judgment marker; retro-grading 131
+  sessions is not this session's one story) — the S68/S71 self-granted-jurisdiction class,
+  disclosed in the output itself rather than hidden in a constant.
+- A recorded `mismatch:` judgment BLOCKS at ANY session number, including historical ones. The
+  threshold governs SILENCE, never a judgment that actually exists — which is exactly what makes
+  the S127 specimen (`--check-obeyed 127`) reportable as a MISMATCH on the real record.
+- The exemption is therefore not permanent: any later session may grade an older one by qualifying
+  the marker with `session NN`.
+
+**Q3 — own gate or an extension of `--check-advice`? → its own flag, `vajra next --check-obeyed NN`,
+the same call S131 made for `--check-fidelity-handoff`, for the same reason.** `--check-advice`
+answers "was every recommendation ANSWERED?" and must keep answering exactly that (a session
+mid-flight is legitimately answered-but-not-yet-judged); this gate answers "is the `obeyed:` answer
+TRUE?" — a different question, a different evidence source (a judgment in a handoff vs. a
+disposition in the prompt), and a different blocking message. No 8th top-level command: it rides
+`vajra next`, like every station gate since S64.
+
+**Q5 — RESOLVED IN-SESSION, after the second cold pass found it (its rec 9): who may judge the
+MANDATORY role's own advice?** `obeyed::admit` rule 1 refuses a judgment whose judging ROLE equals
+the graded advisor's role (DECISION-002, one level down). `fidelity-reviewer` is the one role every
+session is guaranteed to hear from, so its own recommendations can never be graded by another
+`fidelity-reviewer` dispatch — this session's own seven dispositions hit exactly that, and the gate
+correctly refused them. **Resolution taken: dispatch a DIFFERENT registered role
+(`implementation-advisor`) as the independent judge** — works today, costs one dispatch, changes no
+code, and keeps the no-self-certification rule intact rather than widening it under closeout
+pressure. The alternative (narrow rule 1 from role identity to DISPATCH identity, so a distinct
+provenance-verified dispatch may grade an earlier one of the same role) is recorded as an OPEN
+design question at `.ai/ROADMAP.md` F2a — it needs its own design record and falsifiability probe,
+not a patch at close. Explicitly refused: `VAJRA_SKIP_OBEYED_GATE=1` or a closeout waiver, which
+would be skipping the gate on the session that built it.
+
+**Q4 — what stops a STALE judgment (not asked, but the same class one level down; S131 rec 4).**
+The marker records the sha it judged, and the gate refuses a judgment whose sha does not match the
+disposition's recorded sha. Editing `obeyed:` to a different commit after the review therefore
+invalidates the judgment instead of silently inheriting it.
 
 ## Non-goals (not built this session)
 

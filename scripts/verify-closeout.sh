@@ -317,6 +317,63 @@ check_fidelity_review() {
   fi
 }
 
+# --- Obeyed-judgment gate (S132 — the cold review's rec 6) -------------------
+# The Obeyed gate (src/obeyed/mod.rs) blocks a running session, but ONLY if the closing
+# `--advance` is invoked. That is the S129 "registered != run" hole, and this file is the
+# artifact CLAUDE.md declares the close depends on — the same reasoning check_execution_shas
+# (S81) already records for the Coder gate, applied to this one.
+#
+# Runs the REAL binary read-only: `vajra next --check-obeyed N`. A `mismatch:` verdict or an
+# unjudged `obeyed:` exits 1 and BLOCKS here too. No binary (a stranger's checkout, or before
+# `cargo build`) is a WARN, not a false green — the gate that cannot evaluate says so out loud
+# and the `--advance` path still binds.
+check_obeyed_judgments() {
+  local NAME="obeyed-judgments"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+  local BIN="target/release/vajra"
+  if [ ! -x "$BIN" ]; then
+    # S69, and the S132 cold review's rec 10: a check that CANNOT EVALUATE fails. The first draft
+    # of this branch called `ok`, so a missing binary counted as a pass — the gate greened by not
+    # running, one line below the fix for exactly that class.
+    echo "BLOCK: $BIN not built — this check cannot evaluate the Obeyed gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: run \`cargo build --release\` so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  local out code
+  out="$("$BIN" next --check-obeyed "$N" 2>&1)"; code=$?
+  echo "$out" >> "$LOG"
+  echo "exit=$code" >> "$LOG"
+  # rec 10, second half: an UNRECOGNISED flag falls through to `run_dump()` and exits 0, so a
+  # binary built without this gate would green this check while reporting nothing. Require the
+  # gate's own header, not merely a zero exit.
+  if ! grep -q "=== obeyed: independent judgment on session" <<<"$out"; then
+    echo "BLOCK: the binary produced no Obeyed-gate output — this build does not carry the gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: \`$BIN next --check-obeyed $N\` did not run the gate (an unknown flag exits 0 via run_dump)." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  if [ "$code" -eq 0 ]; then
+    echo "OK: every \`obeyed:\` disposition for session $N carries an admissible independent judgment." >> "$LOG"
+    ok "$NAME"; return
+  fi
+  echo "BLOCK: session $N records an \`obeyed:\` that is unjudged, judged a MISMATCH, or whose judgment is inadmissible." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: have an independent role record \`obeyed-check <role> rec <N> — implemented: <sha> — <note>\`," >> "$LOG"
+    echo "      change the disposition to an honest \`refused: <reason>\`, or record a founder waiver." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
 # --- Verdict-authorship attestation (S58 — DECISION-003) --------------------
 # check_fidelity_review proves the review's SHAPE + the WAIVER's authorship, but not
 # the VERDICT's authorship: a builder can hand-write its own `**Verdict:** ACCEPT`.
@@ -590,6 +647,7 @@ check_cost_tracking
 check_execution_shas
 check_verify_demo_scripts
 check_fidelity_review
+check_obeyed_judgments
 check_review_attestation
 
 ( cd ".ai/verify/closeout" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true

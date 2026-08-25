@@ -16,6 +16,7 @@ pub mod launcher;
 pub mod maturity;
 pub mod meter;
 pub mod obedience;
+pub mod obeyed;
 pub mod planner;
 pub mod qa;
 pub mod releaser;

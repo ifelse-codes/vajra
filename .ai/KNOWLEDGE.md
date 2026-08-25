@@ -1096,3 +1096,58 @@ confirm stability) and re-embed `**Review-Inputs-SHA:**` as the very last edit b
 `cargo test -q --lib dispatch::tests fidelity::tests` errors ("unexpected argument") rather than
 running both — it silently looked like a typo-tolerant multi-filter and is not one. Two modules
 need two invocations, joined by `&&` if both must pass.
+
+## S132 — judging an `obeyed:` disposition: permanent facts
+
+**The judge may never be the graded advisor's ROLE — and `fidelity-reviewer` is the role every
+session hears from, so its own advice needs a DIFFERENT role's dispatch to grade it (S132, found by
+this session's own second cold pass, on this session's own dispositions).** `obeyed::admit` rule 1
+compares judging role to graded advisor role, case-insensitively; both sides lower-case through
+`advice::split_role_rec`. Since the mandatory role's recommendations are the common case in this
+repo, the working pattern is: dispatch `implementation-advisor` (or any other registered role) as
+the judge, over the same cold inputs. Whether rule 1 should narrow from ROLE identity to DISPATCH
+identity is an OPEN design question (`.ai/ROADMAP.md` F2a) — do not decide it at a closeout, and do
+not reach for `VAJRA_SKIP_OBEYED_GATE=1`, which is skipping the gate on the session that built it.
+
+**Land every commit an `obeyed:` will cite BEFORE the judging dispatch (S132).** Every `obeyed:`
+needs an admissible judgment, so a fix committed AFTER the last judge has spoken mints a claim
+nobody can grade without another dispatch. Batch the fixes, then judge once. The regress is
+terminated by hand, not by mechanism (`.ai/ROADMAP.md` F2b) — the last pass's advice must be
+answered with `refused:` / `deferred:`, never a fresh `obeyed:`.
+
+**A judgment binds to the SHA it names, so editing `obeyed:` afterwards invalidates it (S132).**
+`admit` rule 2 requires the judgment's sha and the disposition's sha to be the same commit
+(shorter must be a prefix of the longer, at least 4 hex chars). A recorded `mismatch` is also
+STICKY: no later `implemented:` about the same commit clears it, and only landing new work under a
+new sha does. An inadmissible judgment (self-graded, stale, unverifiable) speaks ONLY when no
+admissible one exists — so a demo/fixture that expects a REFUSAL must first clear any admissible
+judgment an earlier case left on disk (found live, by running the demo, not by reading it).
+
+**A `git worktree` under `$TMPDIR` is pathologically slow to build in this environment (S132,
+measured): the SAME `cargo test` takes ~12s in a worktree under the repo's gitignored `target/` and
+more than TEN MINUTES under `$TMPDIR`.** Put probe worktrees inside the repo. Separately,
+`vajra next --stations NN` costs ~30s per call in this repo and more than ten minutes inside ANY
+worktree — a pre-existing property of the stations derivation, not something S132 changed. Both
+matter because `CONSTRAINTS.yaml#verify.timeout_secs` is 600 and the QA gate KILLS a slower suite,
+which BLOCKS the close rather than passing it (S73).
+
+**The sanctioned advance command blocks on stdin once it actually advances (S132)** — a
+non-interactive caller needs `</dev/null` or the check hangs until something kills it.
+
+**An unrecognised `vajra next` flag falls through the `position()` scan to `run_dump()` and exits 0
+(S132).** A check that reads only the exit code therefore cannot distinguish a gate that ran from a
+gate that does not exist in this build. Assert on the gate's own header line, not the exit code
+alone — `verify-closeout.sh::check_obeyed_judgments` does exactly that.
+
+**`scripts/hook-session-guard.sh` FALSE-FIRES on documentation (S132, hit live).** Its trigger scans
+the Bash command for the sanctioned advance phrase after stripping QUOTED spans — heredoc bodies are
+not quoted, so writing that phrase into KNOWLEDGE.md or a commit message arms the N->N+1 boundary
+and blocks the command. Same family as S128's "spelling-bound guards get escaped", from the other
+side: a guard bound to a spelling also fires on prose ABOUT the spelling. Workaround when writing
+such docs: write a placeholder and `sed` it afterwards.
+
+**The house pattern, stated once more because S132 is its seventh instance:** a judgement a machine
+cannot make becomes a RECORDED MARKER a machine can existence-check — Delta (S61), `covers:` (S64),
+`design-significant:` (S67), `step N — done: <sha>` (S68), `demo:<element>` (S71), the disposition
+(S127), and now `obeyed-check` (S132). Each one enforces that someone TYPED something real; none of
+them proves the typist thought. Say the limit out loud every time.
