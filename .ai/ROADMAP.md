@@ -581,6 +581,14 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
     ROLE identity to DISPATCH identity, so a distinct provenance-verified dispatch may grade an
     earlier one of the same role? That needs its own `## Design` record and its own falsifiability
     probe — a real decision, not a closeout patch.
+  - **F2c (NEW, open — S132's independent judge, rec 20): one fact, three selection rules.** The
+    S127 judgment is selected three different ways — `demo-session-132.sh` takes the last line of a
+    filename-ordered glob over `.ai/handoffs/*.md`, `verify-session-132.sh` check 6 reads one named
+    file, and `obeyed::classify` picks by sticky-mismatch over session-number order. They coincide
+    today because only one handoff carries that line; the day two disagree, the demo goes red for
+    the wrong reason (the S122 fixture rule, one layer down). Cheapest honest fix: have the demo
+    assert only that the gate's own reported word matches the gate's own exit code, needing no
+    judgment lookup at all. Not blocking — named by the judge itself as deferrable.
   - **F2b (NEW, open — S132 second pass, rec 9b/rec 14): the regress is terminated by hand.** Every
     `obeyed:` needs a judgment; the judge's own recommendations, if obeyed, mint new `obeyed:`
     claims needing new judgments. S132 terminated it by batching fixes before a judging dispatch
