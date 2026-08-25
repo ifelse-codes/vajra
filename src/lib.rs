@@ -13,6 +13,7 @@ pub mod fidelity;
 pub mod fleet;
 pub mod gate_run;
 pub mod launcher;
+pub mod mandate;
 pub mod maturity;
 pub mod meter;
 pub mod obedience;

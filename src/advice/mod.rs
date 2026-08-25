@@ -239,7 +239,7 @@ impl AdviceVerdict {
 /// hyphen and colon are accepted because nine independently-written agents will produce all four
 /// and rejecting three of them would turn a typography slip into silent unrecorded advice — the
 /// exact failure this module exists to end.
-const SEPARATORS: [&str; 4] = ["—", "–", "-", ":"];
+pub(crate) const SEPARATORS: [&str; 4] = ["—", "–", "-", ":"];
 
 /// The lines of `text` that are NOT inside a fenced code block (rec 2). A fence opens and closes
 /// on a trimmed line starting with ``` or ~~~ — the designated escape hatch for SHOWING the
