@@ -856,3 +856,82 @@ with a fabricated or stale id fails the re-derivation, not the string match.
   hashing the subagent's own last transcript message and requiring the `--from` content match (or
   derive from) it — a real design decision, not a quick fix, and out of this session's locked
   scope (one story: mandatory + provable dispatch, not content-binding).
+
+---
+
+## S133 addendum — the `design-advisor` made MANDATORY, and the RECORDED SKIP as a first-class outcome
+
+**Status:** accepted, session 133. Extends `DECISION-007` and its S131 addendum.
+
+### The measurement that forced it
+
+Counted live at the S132 closeout: **18 governed handoffs across 132 sessions** —
+`fidelity-reviewer` 5 · `implementation-advisor` 3 · `researcher` 2 · `qa-specialist` 2 ·
+`demo-producer` 2 · `requirements-analyst` 1 · `release-coordinator` 1 · `plan-advisor` 1 ·
+`design-advisor` 1 — and most of the 1s were the session that CREATED the role. Of 30 recorded
+dispositions only 13% were refusals, so the advice is not being dodged; it is not being sought.
+
+S131's mandatory role runs at the END and grades finished work. The advisors that could change
+what gets BUILT were all optional, and optional loses to time pressure every session. The two most
+expensive discoveries of S131 and S132 (`.ai/ROADMAP.md` F2 and F2a) were both DESIGN holes found
+by a cold reader after the code was already written.
+
+### The decision
+
+1. **`design-advisor` is the fleet's SECOND mandatory role.** A session cannot close without
+   either a `design-advisor` governed handoff whose provenance independently re-verifies through
+   the S131 chain, or a recorded reason for skipping it.
+2. **A skip is a first-class outcome, and it costs a sentence.** The grammar is
+   `<role-name>: skipped — <reason>`, recorded in the session's own prompt, line-anchored,
+   fence-skipping, and substantiveness-gated by `advice::substantive_reason`. It is keyed on the
+   ROLE NAME, not on a design-specific literal, so a second mandatory advisor inherits it whole.
+3. **No environment variable satisfies or bypasses this gate.** `VAJRA_SKIP_*_GATE=1` is the
+   pattern every other gate uses and it is refused here: an env var leaves no trace a reader can
+   find months later, and the whole novelty of this gate is that its escape hatch does.
+   `VAJRA_CLOSEOUT_WAIVER` still applies at `verify-closeout.sh`, and that difference is
+   deliberate — a founder-held, session-scoped marker the AGENT cannot set (S56/S93) is a
+   different animal from a flag the agent writes on its own command line. L1 maturity still
+   advises rather than blocks, uniformly with every other gate.
+4. **Its own command, not a ride on `--check-design`.** `vajra next --check-design-handoff NN`.
+   `--check-design` binds on the session being advanced INTO and asks whether the `## Design`
+   rationale is substantive; this binds on the session being CLOSED and asks whether a real
+   advisor was consulted at all. Folding them would also have made `design-significant: no`
+   silently exempt a mandatory role, because `architect::parse_design` never blocks on that value.
+   `--check-design` prints a cross-reference line instead, so a reader still has one place to
+   start. The 7-command floor is untouched — both are sub-flags on `vajra next`.
+5. **`design-significant: no` does NOT excuse the handoff.** An author's own judgement that their
+   work is not design-significant is exactly what a second brain exists to check; accepting it as
+   an exemption would be the cheapest instance of the self-granted-jurisdiction class (S68/S71). A
+   pure fix skips in one sentence like anything else. Recording `design-significant: yes` AND a
+   skip passes, with a loud WARN naming the contradiction.
+6. **Migration threshold 133, governing SILENCE ONLY** (the S132 precedent). A marker that exists
+   but records no usable reason, and a handoff that exists but does not re-verify, both BLOCK at
+   any session number. Below 133, silence WARNs and the warning names the exemption.
+7. **The mechanism is named for the mechanism.** `src/mandate/mod.rs`, generic over a
+   `fleet::Role` plus its marker key, so a second mandatory advisor is a call site rather than a
+   third copy of the ladder.
+
+### The condition this relaxes, stated rather than implied
+
+The S131 addendum closes with: *this addendum does not generalise the pattern to a second role —
+S131's own prompt names that explicitly out of scope, to be repeated only after this one is proven
+in use.* **S133 IS that repetition**, on n=2 sessions of enforced use (S131, S132), under the
+founder's direct instruction at the S132 closeout. Citing `DECISION-007` passes the Architect gate
+while moving a line that record locked, which is the deviation class the S127 addendum already
+documented — so the relaxation is written here rather than left to a citation to imply.
+
+### What this does NOT establish
+
+- **Not that the advice is good, or that it was read.** The gate proves a dispatch happened, or
+  that a sentence was written. `design-advisor: skipped — pure fix`, typed reflexively, passes.
+- **Not that the advice reached the design.** A session may write all its code, dispatch at close,
+  land the handoff, and show green. `.ai/ROADMAP.md` F2f records the cheap partial answer that was
+  proposed and deliberately not built here (compare the handoff's `captured:` timestamp against
+  the session's first code commit and WARN).
+- **Not that a reasoned skip will stay rare.** Assume it drifts into a ritual unless someone
+  counts. The counting rule, fixed now so a later session cannot pick a flattering one: **skips
+  outnumbering dispatches in any rolling 5-session window means the skip has become the default.**
+- **Not that all nine roles should be mandatory.** The founder named two. The second
+  (`implementation-advisor`) is S134, on this mechanism.
+- **Nothing improves on S131's disclosed limit:** the on-disk dispatch evidence is UNSIGNED and
+  hand-fabricable by anyone with shell access to this machine. Inherited whole.
