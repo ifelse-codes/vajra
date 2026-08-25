@@ -38,10 +38,18 @@
   0 issues · 19 downloads).
 
 ## Next Session
-- **Read prompt:** `prompts/133-task-compression-keep-or-kill.md`
-- **Session 133 is CODE**, locked at the S130 closeout: decide with a MEASUREMENT, not a memory,
-  whether the compression hook earns its place in the product or is cut.
-- **Not this session:** the F2a judge-identity design question, F2b (the regress), F2c (three
-  selection rules), S131's F2 content-binding residual, the fourth fork, S134's paid dogfood.
+- **Read prompt:** `prompts/133-task-design-advisor-mandatory.md`
+- **Session 133 is CODE**, re-picked by the founder in chat at the S132 closeout (the previously
+  locked compression keep/kill is demoted to a pre-release checklist line — cutting unused code
+  delivers nothing to a user): make the **`design-advisor` mandatory before code**, and make a SKIP
+  cost a **recorded, substantive reason in the repo** — never a silent env var, which is exactly
+  what `VAJRA_SKIP_*_GATE=1` is and what this session must not extend. **S134 = the same treatment
+  for `implementation-advisor`**, on the same mechanism.
+- **Why this role:** measured live at this closeout — 18 governed handoffs across 132 sessions, most
+  from the session that created the role; `design-advisor` used ONCE. And the two most expensive
+  discoveries of S131/S132 were both DESIGN holes found by a cold reader after the code was written.
+- **Not this session:** the `implementation-advisor` (S134), the other seven roles, compression,
+  F2/F2a/F2b/F2c, the fourth fork, and the fresh-scaffold paid dogfood — **deferred again, and now
+  the oldest un-run item on the roadmap** (last paid dogfood S124).
 
 **New chat.**

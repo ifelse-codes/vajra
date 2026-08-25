@@ -96,10 +96,13 @@ throwaway repos. `--check-obeyed 127` exits 1 naming `implementation-advisor rec
 - **Dogfood: S124, now 8 sessions stale.** S134 is the locked next fresh-scaffold paid dogfood.
 
 ## What Is In Progress
-- **Nothing is mid-flight.** S132 is complete; `prompts/133-task-compression-keep-or-kill.md` is
-  written.
-- **Locked, not queued:** S133 (compression keep/kill) → S134 (fresh-scaffold paid dogfood). Rung 3
-  and outside adoption stay after S134.
+- **Nothing is mid-flight.** S132 is complete; `prompts/133-task-design-advisor-mandatory.md` is
+  written (Planner + Architect gates READY on it).
+- **RE-SEQUENCED by the founder in chat at the S132 closeout:** S133 = `design-advisor` mandatory
+  before code + a recorded reasoned skip (no env-var escape) → S134 = the same for
+  `implementation-advisor`. **Compression keep/killis demoted** to a pre-release checklist line
+  (cutting unused code delivers nothing to a user). **The fresh-scaffold paid dogfood is deferred
+  again and is now the oldest un-run item on the roadmap** — last paid dogfood S124.
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
