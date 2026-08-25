@@ -590,6 +590,19 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
     the wrong reason (the S122 fixture rule, one layer down). Cheapest honest fix: have the demo
     assert only that the gate's own reported word matches the gate's own exit code, needing no
     judgment lookup at all. Not blocking — named by the judge itself as deferrable.
+  - **F2d (NEW, open — the S132 closeout's live measurement + the founder's re-sequence): the fleet's
+    real failure is that nobody ASKS.** Counted live at the S132 closeout: **18 governed handoffs
+    across 132 sessions** —
+    `fidelity-reviewer` 5 · `implementation-advisor` 3 · `researcher` 2 · `qa-specialist` 2 ·
+    `demo-producer` 2 · `requirements-analyst` 1 · `release-coordinator` 1 · `plan-advisor` 1 ·
+    `design-advisor` 1 — and most of the 1s were the session that CREATED the role. Of 30 recorded
+    dispositions, only **13% were refusals**, so advice is not being dodged; it is not being sought.
+    The one mandatory role runs at the END and grades finished work. **Founder call at the S132
+    closeout: make the two advisors that could change what gets BUILT mandatory — `design-advisor`
+    (S133) then `implementation-advisor` (S134) — with a SKIP that costs a recorded, substantive
+    reason in the repo, never a silent `VAJRA_SKIP_*_GATE=1`.** Evidence for starting with
+    `design-advisor`: the two most expensive discoveries of S131 and S132 (F2 and F2a) were both
+    DESIGN holes found by a cold reader after the code was written.
   - **F2b (NEW, open — S132 second pass, rec 9b/rec 14): the regress is terminated by hand.** Every
     `obeyed:` needs a judgment; the judge's own recommendations, if obeyed, mint new `obeyed:`
     claims needing new judgments. S132 terminated it by batching fixes before a judging dispatch
@@ -614,7 +627,7 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
   nothing forces a GT session to execute it (the S68/S71 self-granted-jurisdiction class) — and it
   is **absent from the SCAFFOLD's own `required_audits`**, which ships strangers 7 entries against
   this repo's 11. S128 refused to fix the second one; it is F1's story.
-- **K1 — compression engine, keep or kill** — **the S133 pick (founder call at S130 closeout); prompt WRITTEN at the S132 closeout (`prompts/133-task-compression-keep-or-kill.md`), Planner + Architect gates both READY on it.**
+- **K1 — compression engine, keep or kill** — **DEMOTED at the S132 closeout, founder call in chat: this is a pre-release CHECKLIST LINE, not a session.** In the founder's own words, cutting ~1,000 lines of unused code delivers nothing to a user and can be done in the hour before release; spending a session on it while the product has 0 users is the "optimise for a session that closes green" bias this repo keeps catching in itself. The measurement stands (0 folds / $0 saved, S63 and S124) — what changes is WHEN we act on it. Do it at release, with the README/VISION claim, in one pass.
   1,005 LOC, 0 folds / $0 saved, measured twice (S63, S124). S133 = the founder decides; the losing
   branch is a bounded cleanup session either way (remove the engine + the README claim, or keep it
   and stop implying savings that don't happen). The other three kill candidates (K2–K4: 3 of 4

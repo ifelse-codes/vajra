@@ -23,8 +23,12 @@
   402 lib tests, clippy clean. `K of 8` and the 7-command floor unchanged.
 - Reports: `sessions/session-132-summary.md`, `sessions/session-132-review.md`.
 
-**Next: Session 133.** Prompt: `prompts/133-task-compression-keep-or-kill.md`. Locked at the S130
-closeout: decide with a measurement whether the compression hook earns its place or is cut.
+**Next: Session 133.** Prompt: `prompts/133-task-design-advisor-mandatory.md`. Re-picked by the
+founder in chat at the S132 closeout: make the `design-advisor` mandatory before code, and make a
+SKIP cost a recorded, substantive reason in the repo — never a silent environment variable. S134
+gives the `implementation-advisor` the same treatment on the same mechanism. Compression keep/kill
+is demoted to a pre-release checklist line; the fresh-scaffold paid dogfood is deferred again and
+is now the oldest un-run item on the roadmap.
 
 **New chat.**
 
