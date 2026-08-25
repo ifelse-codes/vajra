@@ -158,6 +158,13 @@ dispositions instead of the whole delivery.
 - fidelity-reviewer rec 5 — obeyed: 12c8686
 - fidelity-reviewer rec 6 — obeyed: 9eb8491
 - fidelity-reviewer rec 7 — obeyed: 0e2214b
+- fidelity-reviewer rec 9 — obeyed: f48b70e
+- fidelity-reviewer rec 10 — obeyed: 6047361
+- fidelity-reviewer rec 11 — obeyed: 6047361
+- fidelity-reviewer rec 12 — obeyed: 6047361
+- fidelity-reviewer rec 13 — obeyed: a27c620
+- fidelity-reviewer rec 14 — refused: partly followed, partly declined, and the difference matters. Recs 9-13 WERE answered `obeyed:` rather than deferred -- but every one of them was landed BEFORE the judging dispatch, so all twelve `obeyed:` claims were graded in a single independent pass and no regress restarted. What rec 14 was protecting against (an `obeyed:` minted after the last judge has spoken) did not happen. rec 14 itself and rec 20 are answered without new `obeyed:` claims, which is where the chain stops.
+- implementation-advisor rec 20 — deferred: .ai/ROADMAP.md
 - fidelity-reviewer rec 8 — refused: already true, checked before answering -- both sides of the join lower-case the role through the same `advice::split_role_rec`, so a mixed-case judgment already joined. `12c8686` makes the comparison say so explicitly and adds the regression test, but calling that "obeyed" would claim a fix for a defect that did not exist; the honest answer is a refusal with the evidence.
 
 ## Design
