@@ -633,13 +633,14 @@ mod tests {
             v.skipped.as_deref(),
             Some("a one-line README typo; no interface, module, or locked record moves")
         );
+        // Bound to CONTENT, not to the label's wording: the line must name the ROLE and carry
+        // the author's own reason. The exact sentence is a user-facing contract, asserted live in
+        // `scripts/verify-session-133.sh` (check 2) so the rename control stays meaningful.
         let line = v
             .skip_line()
             .expect("a skipped gate must render a skip line");
-        assert!(
-            line.starts_with("design-advisor review SKIPPED — "),
-            "{line}"
-        );
+        assert!(line.contains("design-advisor"), "{line}");
+        assert!(line.contains(v.skipped.as_deref().unwrap()), "{line}");
     }
 
     // Rung 4 (acceptance 3): a placeholder reason BLOCKS — at ANY session, threshold or not.
