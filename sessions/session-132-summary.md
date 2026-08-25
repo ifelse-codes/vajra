@@ -69,6 +69,40 @@ pass silently.
    definition, but a role that simply never writes an `obeyed-check` line leaves the session
    blocked, not judged — the block is real, the judgment is not automatic.
 
+## Two cold passes, and what the second one found
+
+This session was reviewed twice, by two independent dispatches, and the second pass is why several
+things above exist at all.
+
+- **Pass 1** (`sessions/session-132-review-pass1.md`, ACCEPT, 2/9 SHIPPED at the time): named the
+  reviewer-cooperation defect in verify check 6, the missing `--check-fidelity-handoff` trace, the
+  unasserted bypass probes, a REAL ordering bug (`all_handoffs` sorted by filename, so
+  `session-99-…` sorted after `session-131-…`), the missing closeout wiring, and the two limits the
+  summary was hiding. Eight recommendations; seven obeyed, one refused with evidence.
+- **Pass 2** (`sessions/session-132-review.md`, ACCEPT, 7/9 SHIPPED): judged pass 1's seven
+  `obeyed:` commits one by one against what pass 1 actually asked for, re-judged the S127 specimen
+  from its own inputs, named this session's fakest green (`check_obeyed_judgments` greening when it
+  could not evaluate), and found the structural problem below.
+
+**The structural finding (pass 2's rec 9), and why it did not get waived.** `obeyed::admit` rule 1
+refuses a judgment whose judging ROLE equals the graded advisor's role. `fidelity-reviewer` is the
+one role every session is guaranteed to hear from — so it can never grade its own recommendations,
+however many separate dispatches run. This session's own seven dispositions hit exactly that and
+the gate refused them, correctly. Resolution taken, recorded in the prompt's `## Design` Q5: a
+DIFFERENT registered role (`implementation-advisor`) was dispatched as the independent judge over
+the same inputs. `VAJRA_SKIP_OBEYED_GATE=1` and a closeout waiver were both explicitly refused —
+skipping this gate on the session that built it would be the S127 pattern with a newer label.
+Narrowing rule 1 from ROLE identity to DISPATCH identity is a real design question and is recorded
+OPEN at `.ai/ROADMAP.md` F2a, not decided under closeout pressure.
+
+**Where a superseded pass's advice lives (pass 2's rec 13).** `vajra next --role … --from`
+overwrites a role's handoff, so pass 2's brief replaced pass 1's on disk. Pass 1's eight numbered
+recommendations — the ones the prompt's `## Advice` answers — are preserved verbatim in
+`sessions/session-132-review-pass1.md`, which is their canonical home; the landed handoff was NOT
+edited to carry them forward, because editing an independent brief is precisely the weakness both
+passes named. The visible cost: `--check-advice 132` now reports `fidelity-reviewer rec 1..8` as
+orphan dispositions (a warning, by design) because the handoff that recorded them was replaced.
+
 ## The fakest green
 
 The cold review named it and this session fixed it, which is worth recording because it was
