@@ -15,6 +15,7 @@ use crate::dogfood;
 use crate::fidelity;
 use crate::fleet;
 use crate::gate_run;
+use crate::mandate;
 use crate::maturity::{read_maturity, MaturityLevel};
 use crate::obeyed;
 use crate::planner;
@@ -57,6 +58,15 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--check-design") {
         return run_check_design(args.get(i + 1));
+    }
+    // The Mandate gate (S133) rides `vajra next` — no 8th command. Deliberately NOT folded into
+    // `--check-design`: that flag binds on the session being advanced INTO and asks whether the
+    // prompt's `## Design` rationale is substantive; this one binds on the session being CLOSED
+    // and asks whether a real `design-advisor` was consulted at all. Folding them would also make
+    // `design-significant: no` silently exempt a mandatory role, because `architect::parse_design`
+    // never blocks on that value (DECISION-007 S133 addendum).
+    if let Some(i) = args.iter().position(|a| a == "--check-design-handoff") {
+        return run_check_design_handoff(args.get(i + 1));
     }
     // The Coder stage (S68) also rides `vajra next` — no 8th command.
     if let Some(i) = args.iter().position(|a| a == "--exec") {
@@ -481,6 +491,12 @@ fn run_check_design(nn: Option<&String>) -> Result<()> {
         "prompt: {}",
         verdict.prompt_path.as_deref().unwrap_or("(none)")
     );
+    // The one-place-to-look property this gate would have had if S133's Mandate gate had been
+    // folded into it, recovered by cross-reference rather than by shared logic (S133 `## Design`).
+    println!(
+        "note:   whether a real design-advisor was consulted is a DIFFERENT question — \
+         `vajra next --check-design-handoff {session:02}`."
+    );
     if verdict.blocked() {
         println!("verdict: NOT READY");
         for r in &verdict.reasons {
@@ -492,6 +508,52 @@ fn run_check_design(nn: Option<&String>) -> Result<()> {
     for w in &verdict.warnings {
         println!("  ⚠ {w}");
     }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --check-design-handoff NN` — the Mandate GATE (S133): was a real `design-advisor`
+/// consulted for session NN, or is there a RECORDED, substantive reason why this session did not
+/// need one? Exit 1 on silence at/after the threshold, on a marker that records no usable reason,
+/// and on a handoff that is malformed or whose provenance does not independently re-verify.
+///
+/// There is no `VAJRA_SKIP_DESIGN_ADVISOR_GATE`: the recorded reason IS this gate's override, and
+/// unlike an environment variable it leaves a trace a reader can find months later.
+fn run_check_design_handoff(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-design-handoff")?;
+    let root = repo_root()?;
+
+    let verdict = mandate::design_advisor_gate(&root, session);
+    println!("=== mandate: design-advisor for session {session:02} ===");
+    println!(
+        "prompt:  {}",
+        verdict.prompt_path.as_deref().unwrap_or("(none)")
+    );
+    println!(
+        "handoff: {}",
+        verdict.handoff_path.as_deref().unwrap_or("(none)")
+    );
+    if let Some(agent) = &verdict.agent_field {
+        println!("agent:   {agent}");
+    }
+    // Acceptance 2: a skipped design review is VISIBLE, never a clean green.
+    if let Some(line) = verdict.skip_line() {
+        println!("  ⚠ {line}");
+    }
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    println!("note: {}.", mandate::MANDATE_FLOOR);
     if verdict.blocked() {
         std::process::exit(1);
     }
@@ -1255,6 +1317,46 @@ fn run_advance() -> Result<()> {
                  handoff (Fidelity gate). Dispatch the cold review and run `vajra next --role \
                  fidelity-reviewer --from <findings>`, or set VAJRA_SKIP_FIDELITY_GATE=1 to \
                  override."
+            );
+        }
+    }
+
+    // Mandate gate (S133): the pipeline's CONSULTED bookend. Binds on the session being CLOSED,
+    // like every other fleet gate — `current` cannot close without either a real `design-advisor`
+    // handoff whose provenance independently re-verifies, or a RECORDED, substantive reason for
+    // skipping it. Founder-locked at the S132 closeout: the advisors that could change what gets
+    // BUILT were all optional, and optional loses to time pressure every session.
+    //
+    // The one gate here with NO `VAJRA_SKIP_*` escape, on purpose. Its whole novelty is that the
+    // escape hatch leaves a trace: the reason lives in the session's own prompt, where a reader
+    // finds it months later and `Review-Inputs-SHA` already hashes it. Two limits, recorded rather
+    // than implied — L1 still advises (uniform with every other gate), and `VAJRA_CLOSEOUT_WAIVER`
+    // still waives the closeout check, because a founder-held, session-scoped marker the AGENT
+    // cannot set is a different animal from an agent-settable skip flag.
+    let mandate_verdict = mandate::design_advisor_gate(&root, current);
+    if let Some(line) = mandate_verdict.skip_line() {
+        eprintln!("  ⚠ [vajra mandate] {line}");
+    }
+    for w in &mandate_verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if mandate_verdict.blocked() {
+        eprintln!(
+            "[vajra mandate] session {current:02} cannot close — no design-advisor was consulted \
+             and no reason for skipping is on the record:"
+        );
+        for r in &mandate_verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {current:02} has neither a provable design-advisor \
+                 handoff nor a recorded reason for skipping one (Mandate gate). Dispatch the role \
+                 and run `vajra next --role design-advisor --from <findings>`, or record \
+                 `design-advisor: skipped — <reason>` in the session's prompt. There is no \
+                 environment variable for this one — a skip must leave a trace."
             );
         }
     }
