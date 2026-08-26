@@ -42,6 +42,12 @@ done < <(tail -n +2 "$REAL_MANIFEST")
 # chitra-side evidence is sandboxed, so a RED here can only come from the manifest checks.
 mkdir -p "$SANDBOX/sessions"
 cp "$REAL_CHITRA/sessions/mudra-chart-review-2026-08-26.md" "$SANDBOX/sessions/" 2>/dev/null || true
+# The judge (implementation-advisor, S134) found this hole: without chitra's README in the sandbox,
+# `c_manifest_matches_rederived` failed on EVERY run, so verify exited non-zero no matter what was
+# planted and the `[ "$ec" -ne 0 ]` half of each defect assertion proved nothing. The per-check
+# greps still bound, so the fixture was not lying — but half of each assertion was decorative.
+mkdir -p "$SANDBOX/packages/core"
+cp "$REAL_CHITRA/packages/core/README.md" "$SANDBOX/packages/core/" 2>/dev/null || true
 
 # ANSI must be stripped before grepping: the label is preceded by a colour reset, so a pattern
 # like `✗ the check` never matches the raw bytes. (Found by this fixture's own positive control —
@@ -56,11 +62,11 @@ run_verify() {
 # ── positive control ─────────────────────────────────────────────────────────
 head_ "positive control — the UNMODIFIED manifest must reach the manifest checks GREEN"
 cp "$WORK/manifest.orig" "$MANIFEST"
-run_verify >/dev/null
-if grep -q '✓ every evidence file exists and its sha256 recomputes equal' "$WORK/out.txt"; then
-  ok "control: the sha256 check passes on the untouched manifest (so a later RED means the defect)"
+CTRL_EC=$(run_verify)
+if [ "$CTRL_EC" -eq 0 ] && grep -q '✓ every evidence file exists and its sha256 recomputes equal' "$WORK/out.txt"; then
+  ok "control: verify exits 0 on the untouched manifest (so a later non-zero exit really is the defect)"
 else
-  bad "control FAILED — the harness is broken, every RED below is meaningless"
+  bad "control FAILED (exit $CTRL_EC) — the harness is broken, every RED below is meaningless"
   printf "${DIM}%s${RESET}\n" "$(grep '✗' "$WORK/out.txt" | head -5)"
 fi
 
