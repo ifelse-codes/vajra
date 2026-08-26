@@ -25,12 +25,26 @@
   messages, `K of 8` pinned to its baseline and unchanged.
 - Reports: `sessions/session-133-summary.md`, `sessions/session-133-review.md`.
 
-**Next: Session 134.** Prompt: `prompts/134-task-implementation-advisor-mandatory.md`. Give
-`implementation-advisor` the same treatment **as a CALL SITE on `mandate`** — a second `*_gate`
-wrapper and a table entry, never a third copy of the ladder. Also probe the `maturity: L1` escape
-live (ROADMAP F2g) and either close F2e (fold `fidelity_gate` into `mandate`) or record why not.
-**The risk to hold in view:** two mandatory advisors do not make the fleet USED. The
-fresh-scaffold paid dogfood is deferred again and is still the oldest un-run item on the roadmap.
+**Next: Session 134 — the PAID DOGFOOD, re-picked by the founder after the S133 close.** Prompt:
+`prompts/134-task-dogfood-chitra-mudra-review.md`. One real paid session runs in
+`/Users/suman/playground/chitra` through `vajra claude`, reviewing every chart chitra has locked to
+the mudra reference language — **seen, not just read** — and reporting two things: the design
+verdict the founder asked for (impressive or not; if not what to fix; if yes why and what was made
+good) and what Vajra's governance actually did during a real piece of outside work.
+
+**Why this and not the third mandatory role:** nine sessions since the last paid run (S124,
+`$3.2985`, 2026-08-20), and S133 just shipped a gate that blocks a brand-new project's first
+session — tested only by fixtures this repo wrote. **`implementation-advisor` mandatory is
+deferred, not dropped**; its full brief survives in the new prompt's Non-goals.
+
+**Then S135, LOCKED by the founder in the same conversation:** `implementation-advisor` becomes the
+fleet's third mandatory role, as a CALL SITE on `mandate` — never a third copy of the ladder. It
+also decides ROADMAP **F2e** and probes **F2g** live. S134 owes it one input: what S133's mandate
+actually did on real outside work.
+
+**The guardrail that matters:** chitra is mid-session-16 with uncommitted work. S134 must not
+disturb it — baseline `git status --short` before, diff after, and obey chitra's own constitution
+inside chitra.
 
 **New chat.**
 
