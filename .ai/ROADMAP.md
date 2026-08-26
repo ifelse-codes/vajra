@@ -621,6 +621,12 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
     built at S133 (a second story, and "which commit is code" is a judgement the binary should not
     guess). Until it exists, the observable is manual and named in
     `sessions/session-133-summary.md`.
+  - **F2g (NEW, open — S133's cold fidelity review, rec 7, DEFERRED): the `maturity: L1` escape is
+    prose-only.** S133's Mandate gate reads no environment variable on any path, but `--advance`
+    still downgrades EVERY gate to advice at `maturity: L1`, and `.ai/CONSTRAINTS.yaml` is
+    agent-writable and tracked. That is the last agent-reachable way to make this gate advisory,
+    it is disclosed in the module header and in `DECISION-007` §3, and nothing probes it live.
+    S134's suite should drive it once.
   Full evidence and the lens that found this: `sessions/session-130-ground-truth.md`.
 - **F3 — first-contact bugs** — **[x] MOSTLY DONE at S128** (the founder UNPARKED this slice at the
   S127 closeout; the rest of this backlog stays parked). Fixed and proven live in an empty
