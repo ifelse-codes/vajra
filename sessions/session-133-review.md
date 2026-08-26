@@ -113,8 +113,11 @@ cold reviewer actually graded. That is the delivery this ACCEPT covers.
 
 **Recomputed after a post-merge closeout AMENDMENT.** The founder picked option C over the locked
 default A after the close, so S134's brief was swapped (`implementation-advisor` mandatory → the
-paid dogfood on chitra) and the pointers were re-aimed. That changes the canonical input hash, so
-the value below was recomputed and re-embedded.
+paid dogfood on chitra), the pointers were re-aimed, and in a follow-up the founder LOCKED S135 as
+the implementation-advisor session. That changes the canonical input hash, so the value below was
+recomputed and re-embedded. It was recomputed again after the S135 lock landed and came back
+UNCHANGED (`a686e6a4…`), which is itself informative: the canonical snapshot did not move for that
+second batch of edits. Recorded as observed rather than assumed either way.
 
 **What the amendment touched, so a reader can judge for themselves whether the ACCEPT still holds:**
 `prompts/134-*` (the NEXT session's brief), `.ai/TASK.md`, `.ai/SESSION-BOOT.md`, `.ai/ROADMAP.md`
