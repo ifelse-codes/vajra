@@ -203,3 +203,22 @@ session and this session was not run under `vajra claude`.
 - **Key risk:** it costs real money and produces no new mechanism, and it will very likely surface
   a pile of first-contact defects that turn into their own sessions. It is also the one item that
   can tell us whether any of the last nine sessions are worth anything to a user.
+
+---
+
+## Founder's pick, recorded after the close
+
+**C — the fresh paid dogfood — with A deferred, not dropped.** The founder took the recommendation
+over the locked default. The reasoning that carried it: S133 shipped a gate that blocks a brand-new
+project's FIRST session, and it has only ever been exercised against fixtures this repo wrote; nine
+sessions have passed since the last paid run; and option A would have been the tenth consecutive
+session with nothing a user could see.
+
+The founder also chose the payload, in their own words: run it on **chitra**, and *"take all the new
+charts implemented in mudra design and review them and see them, and then tell me if it is
+impressive or not — or if not, what can be fixed; if yes, why and what we made good."*
+
+So S134 has two audiences and owes both a real answer: the design verdict for the founder, and the
+dogfood measurement for Vajra. Brief:
+`prompts/134-task-dogfood-chitra-mudra-review.md`. Option **A**'s brief was not discarded — it
+survives in full inside that prompt's Non-goals, so restoring it costs nothing.
