@@ -262,9 +262,34 @@ was formed: looked at a fresh render, looked at an existing screenshot, or read 
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-(Filled during S134. `vajra next --check-advice 134` BLOCKS the close until every recorded
-recommendation is answered, and `vajra next --check-obeyed 134` BLOCKS until every `obeyed:` claim
-carries an independent judgment from a role that is not the one that gave the advice.)
+(`vajra next --check-advice 134` BLOCKS the close until every recorded recommendation is answered,
+and `vajra next --check-obeyed 134` BLOCKS until every `obeyed:` claim carries an independent
+judgment from a role that is not the one that gave the advice.)
+
+**design-advisor — 22 recommendations, dispatched FIRST, before any other work.**
+
+- design-advisor rec 1 — obeyed: dca0a85
+- design-advisor rec 2 — obeyed: dca0a85
+- design-advisor rec 3 — obeyed: dca0a85
+- design-advisor rec 4 — obeyed: dca0a85
+- design-advisor rec 5 — obeyed: dca0a85
+- design-advisor rec 6 — obeyed: dca0a85
+- design-advisor rec 7 — obeyed: dca0a85
+- design-advisor rec 8 — obeyed: dca0a85
+- design-advisor rec 9 — obeyed: dca0a85
+- design-advisor rec 10 — obeyed: 9833b31
+- design-advisor rec 11 — obeyed: dca0a85
+- design-advisor rec 12 — obeyed: 9833b31
+- design-advisor rec 13 — obeyed: 9833b31
+- design-advisor rec 14 — obeyed: a9e3aaf
+- design-advisor rec 15 — obeyed: a9e3aaf
+- design-advisor rec 16 — obeyed: dca0a85
+- design-advisor rec 17 — obeyed: dca0a85
+- design-advisor rec 18 — obeyed: a9e3aaf
+- design-advisor rec 19 — obeyed: a9e3aaf
+- design-advisor rec 20 — obeyed: 9833b31
+- design-advisor rec 21 — obeyed: dca0a85
+- design-advisor rec 22 — obeyed: 9833b31
 
 ## Design
 
