@@ -1,82 +1,90 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 133 — COMPLETE
-- **Type:** CODE, re-picked by the founder in chat at the S132 closeout (fleet part 3).
-- **Goal:** a session cannot reach its close without either a real `design-advisor` handoff or a
-  RECORDED, substantive reason why it did not need one.
-- **Verdict: goal achieved.** `src/mandate/mod.rs` — named for the MECHANISM, generic over a
-  `fleet::Role`, six rungs decided in the module header with rung 1 beating rung 3 on purpose (a
-  forged claim is not cured by a sentence). The reasoned skip is `<role-name>: skipped — <reason>`
-  in the session's own prompt: line-anchored, fence-skipping (both kinds), gated by
-  `advice::substantive_reason` verbatim, keyed on the ROLE NAME so S134 inherits it with no new
-  parser. `vajra next --check-design-handoff NN` binds at `--advance` AND at
-  `scripts/verify-closeout.sh`. Reports: `sessions/session-133-summary.md` +
-  `sessions/session-133-review.md`.
-- **The one gate with NO `VAJRA_SKIP_*` escape, on purpose.** Twelve env vars driven live, one at a
-  time and all together — it blocks every time; the module contains zero `env::var` calls. Two
-  limits recorded rather than implied: `VAJRA_CLOSEOUT_WAIVER` still waives the closeout check
-  (founder-held, un-forgeable BY THE AGENT), and `maturity: L1` still advises.
-- **Threshold 133 governs SILENCE only**, and because a session-NUMBER threshold would exempt
-  sessions 1–132 of a brand-new repo, `analyst::PROMPT_TEMPLATE` now carries the marker as a
-  placeholder — which lands on rung 4 and blocks a scaffolded session 1.
-- **THREE independent dispatches.** `design-advisor` FIRST, before any code (15 recs — 14 obeyed,
-  1 deferred); a cold `fidelity-reviewer` pass (**ACCEPT**, 14/18 SHIPPED, 10 recs — 8 obeyed, 2
-  deferred); `implementation-advisor` as the JUDGE, grading all 22 `obeyed:` claims `implemented:`
-  and naming in writing where it came closest to a mismatch.
-- **The fakest green, named plainly:** "the design-advisor was consulted" means a contract-valid
-  file exists whose dispatch cross-checks — never that its advice reached the design. And the
-  reasoned skip is self-granted: a session types one line into a file it owns. The dodge is not
-  closed; it is made visible, greppable and countable.
-- **Live gotchas recorded (`.ai/KNOWLEDGE.md`):** a wrapped prose line that BEGINS with a code
-  fence silently hides every `rec N` after it (it happened to this session's own cold-review
-  handoff) · `advice::skip_fenced` did not know markdown's 4-space code block · `grep -F` with a
-  multi-line pattern is an alternation of its LINES, not one literal · a session-NUMBER migration
-  threshold is perverse in a fresh project · a rename control is meaningless unless the unit tests
-  bind to VALUES.
-- **Evidence, live this session:** `verify-session-133.sh` **15/15 GREEN**, `demo-session-133.sh`
-  **9/9 GREEN**, 428 lib tests, clippy clean, fmt clean. Fixture RED on **7 bypasses**, GREEN on
-  renaming all 11 messages. `K of 8` PINNED to its recorded baseline (8 of 8 at S132) and
-  unchanged; the 7-command floor unchanged.
+- **Number:** 134 — COMPLETE
+- **Type:** PAID DOGFOOD, re-picked by the founder in chat at the S133 closeout (this REPLACED the
+  `implementation-advisor` brief, which moved to S135 — LOCKED, not dropped).
+- **Goal:** one real paid session runs in `/Users/suman/playground/chitra` through `vajra claude`,
+  reviewing every chart chitra has locked to its mudra reference design language — **seen, not just
+  read** — and reports two things to two audiences: the founder's design verdict, and what Vajra's
+  governance actually did during real outside work.
+- **Verdict: goal achieved, both deliverables landed.** **`$1.6103385` AUTHORITATIVE** (25 turns,
+  329s) — the first real dollar figure from the S77/S78 receipt path. **Plus 421,739 unmetered
+  subagent tokens** across three dispatches. Reports: `sessions/session-134-summary.md` +
+  `sessions/session-134-review.md`.
+- **Said without spin:** the design-advisor pre-committed that the run must be interactive and that
+  S77's honest null was therefore likely. The prediction was **sidestepped, not falsified** — the run
+  was made headless `-p --output-format stream-json`, the only mode that emits an authoritative cost.
+  That is a run-mode decision with consequences, not a free upgrade.
+- **THE HEADLINE FINDING — the BROWNFIELD THRESHOLD HOLE, the first evidence about S133's mandate
+  this repo did not manufacture.** chitra's session 16 is actively locking two chart families to a
+  design language — the exact session the mandate exists for — and
+  `vajra next --check-design-handoff 16` returns `verdict: READY`, `handoff: (none)`, because 16
+  sits below the migration threshold of 133. S133 disclosed and closed the FRESH-project case; it
+  never reasoned about an ALREADY-GOVERNED project below the line whose prompts predate the marker.
+  For Vajra the threshold is a closing window; for a brownfield adopter it is a **permanent
+  exemption**. **The threshold counts the wrong units.** → **DECISION-007 S134 addendum**, three
+  candidate fixes named, **none picked** (n=1 does not earn a mechanism).
+- **AND WORSE: `vajra next --stations 16` reads `0 of 8`** at `maturity: L3`. Every surfacing gate
+  WARNs; `--check-plan 16` reports no `## Plan` section at all. **The governance is installed and
+  unused.** An adoption finding, not a chitra finding.
+- **The mandate also PAID FOR ITSELF on the Vajra side — the first recorded instance.** Dispatched
+  FIRST (`captured 14:23:27Z`, first commit `14:26:31Z`), it returned 22 recommendations that found
+  the session brief **factually wrong in seven places** before a paid minute was spent: a whole
+  locked chart family omitted (`area` — chitra's README locks it, chitra's own STATE.md does not), a
+  "how to see them" section describing scripts that do not exist, and an acceptance criterion
+  impossible to satisfy as written.
+- **Design verdict for the founder: IMPRESSIVE**, two cheap blemishes. Verified at raw-RGB level —
+  one accent hue spent exactly once, the literal documented grey ramp everywhere else, holding
+  across four unrelated geometries. **Weakest: `area`. Top fix: un-crush the bar x-axis**
+  (`JaFeMaApMaJuJuA`). Ten charts rendered fresh, incl. one deliberate negative control.
+- **chitra undisturbed, proved FOUR ways** — `HEAD`, index hash, stash list, branch all identical;
+  exactly one new untracked path, declared by name in advance. (`git status --short` alone would
+  have missed a pre-existing stash.)
+- **Three dispatches, three DIFFERENT roles.** design-advisor (22 recs) → cold fidelity-reviewer
+  (**ACCEPT**; named a fakest green the builder missed — `c_binary_recorded` was a grep for a
+  hardcoded literal in a hand-typed file) → implementation-advisor as JUDGE of all **34** `obeyed:`
+  claims (**32 implemented, 2 mismatch**, plus a fixture bug the cold pass missed). All fixed.
+- **Recorded as a standing weakness, not a footnote: THREE consecutive judges have had no shell.**
+  Every "verify N/N" claim in S133 and S134 was executed **only by the builder**.
+- **Evidence, live this session:** `verify-session-134.sh` **29/29**, `demo-session-134.sh`
+  all-pass, `fixture-session-134.sh` **10/10** (4 planted defects + 2 controls).
 
-**🟢 The founder's locked S131–S134 sequence continues on schedule.**
+**🟢 The founder's locked S131–S135 sequence continues on schedule.**
 
 ## Repo State Snapshot
-- `.ai/SESSION` = 133.
-- Last paid dogfood: **S124, `$3.2985`, 2026-08-20 — 9 sessions and 6 calendar days stale**
-  (live `vajra next --dogfood-age` at this closeout — never STATE.md).
+- `.ai/SESSION` = 134.
+- Last paid dogfood: **S134, `$1.6103385`, 2026-08-26 — RUN THIS SESSION.** The staleness item is
+  closed for now (it stood at S124 / 9 sessions / 6 days at the S133 close). **But only D1 is
+  satisfied — D2, the fresh-scaffold first-contact paid run driven to a CLOSE, is still outstanding
+  and owns its own session.**
 - Adoption: not re-queried live this session (last live query: S130's GT — 0 stars · 0 forks ·
   0 issues · 19 downloads).
 
 ## Next Session
-- **Read prompt:** `prompts/134-task-dogfood-chitra-mudra-review.md`
-- **Session 134 is a PAID DOGFOOD**, re-picked by the founder in chat after the S133 close (this
-  REPLACES the `implementation-advisor` brief written at that closeout — **deferred, not dropped**;
-  its full contents survive in the new prompt's Non-goals).
-- **What it does:** one real paid session runs in `/Users/suman/playground/chitra` through
-  `vajra claude`, reviewing every chart chitra has locked to the **mudra** reference language —
-  **seen, not merely read** — and reports TWO things to TWO audiences: the design verdict the
-  founder asked for (impressive or not; if not what to fix; if yes why and what was made good), and
-  what Vajra's governance actually did while it happened.
-- **Why this beats a third mandatory role:** nine sessions since the last paid run (**S124,
-  `$3.2985`, 2026-08-20**); every instrument in this repo measures Vajra governing itself; and S133
-  just shipped a gate that BLOCKS a brand-new project's first session, tested only against fixtures
-  this repo wrote. S134 is the first evidence about that mandate the repo did not manufacture.
-- **The scope, verified live while the brief was written:** chitra's mudra-LOCKED families are
-  circular (S09), line (S10) and bar (S12), **merged**, plus `sparkline` + `histogram` **in flight**
-  on chitra's own `session-16` branch. chitra already carries the means to LOOK at all of them — a
-  Vite docs app with a `/chart/:id` route per chart, and per-chart Playwright PNGs under
-  `.ai/verify/session-15/`. The brief says to re-derive the list rather than trust it.
-- **The guardrail that matters most:** chitra is mid-session-16 **with uncommitted work**. S134 must
-  not disturb it — baseline `git status --short` before, diff after — and must obey chitra's own
-  constitution inside chitra, never import Vajra's.
-- **The sequence after it is LOCKED, not open:** **S135 = `implementation-advisor` mandatory**, as a
-  CALL SITE on `mandate` — founder's call in the same conversation that picked the dogfood. S134
-  owes it one input: what S133's mandate actually did on real outside work.
-- **Not this session:** `implementation-advisor` mandatory (**that is S135, locked**; its brief is
-  preserved verbatim in S134's Non-goals), F2f (the
-  rubber-stamp detector, still the highest-value open governance item), fixing chitra (this session
-  REVIEWS; proposing is not doing), the other seven roles, compression, F2/F2a/F2b/F2c, the fourth
-  fork.
+- **Read prompt:** `prompts/135-task-implementation-advisor-mandatory.md`
+- **Session 135 = `implementation-advisor` becomes the fleet's THIRD mandatory role**, as a **CALL
+  SITE** on `mandate` (ROADMAP F2e) — never a third copy of the ladder. Locked by the founder at the
+  S133 closeout and unchanged by this dogfood.
+- **It is the falsification test for S133's genericity claim:** if S135 finds itself editing
+  `mandate_gate`, `parse_skip_marker` or `classify_marker_value`, the genericity was decoration —
+  and that is the session's most interesting finding.
+- **What S134 hands it that it did not have before: the BROWNFIELD THRESHOLD HOLE.** S135 inherits
+  the same `_MANDATE_FROM_SESSION` threshold for a second role. It must **either fix the units or
+  record in writing** why it ships a second mandatory role with a known permanent exemption for
+  every brownfield adopter. It must also decide **F2e** and probe the `maturity: L1` escape
+  (**F2g**) live.
+- **The second thing S134 hands it, harder to act on:** `--stations 16` reads `0 of 8` in the one
+  real outside project. A third unskippable role does not move that number. If S135 believes it
+  does, it should say how.
+- **The judge rule still binds (S132/S133/S134):** the judge of any `obeyed:` disposition may not be
+  the role that made the recommendation. S134 used design-advisor → fidelity-reviewer →
+  implementation-advisor. With `implementation-advisor` itself being made mandatory at S135, **its**
+  advice needs a judge that is neither it nor the reviewer.
+- **Not this session:** F2f (the rubber-stamp detector — still the highest-value open governance
+  item, and S134 did its comparison by hand and found it genuinely informative), D2 (the
+  fresh-scaffold first-contact paid dogfood, now explicitly outstanding), fixing chitra (S134
+  REVIEWED; the ranked proposals are chitra's own next session's work), the other six roles,
+  compression, F2/F2a/F2b/F2c, the fourth fork.
 
 **New chat.**
