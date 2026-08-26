@@ -183,6 +183,17 @@ From `.ai/handoffs/session-133-fidelity-reviewer.md` — the independent cold pa
 - fidelity-reviewer rec 9 — obeyed: 593e479
 - fidelity-reviewer rec 10 — obeyed: 3bc6759
 
+**The judge's own concern, recorded rather than left in its handoff** (`.ai/handoffs/session-133-
+implementation-advisor.md`): four of the twenty-two `obeyed:` shas point at a commit carrying PART
+of a multi-clause recommendation. Three of the four have their other half at a sha this section
+already records. The exception is **`6a67ef0`** — it fixed `apply_bypass`'s presence check, without
+which `fidelity-reviewer rec 5`'s second bypass probe could not report an honest red, and it
+appears in no `## Execution` step and against no disposition. It is named here so a reader who
+resolves rec 5 to `3bc6759` and stops there does not conclude the probe never worked. The judge
+also notes, fairly, that several `design-advisor` recs bundle two or three independent asks into
+one `rec N` line, which is what forces a single sha to stand for split substance — an advisor-side
+habit, carried into S134's intake.
+
 rec 14 is the one DEFERRAL, and the reason is recorded rather than left implicit: comparing the
 handoff's `captured:` timestamp against the session's first code commit is a SECOND story (max 1
 story), and "which commit counts as code" is a judgement the binary should not guess. Filed as

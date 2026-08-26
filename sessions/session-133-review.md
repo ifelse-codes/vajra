@@ -81,3 +81,26 @@ comfort was itself giving a false red.
 **could not** verify the 3-files-per-commit cap, the no-main-commits rule, or the un-forgeable
 commit marker, because those live in commit objects its read-only toolset cannot open. Stated as
 unverified rather than clean.
+
+## The independent judgment on the `obeyed:` claims
+
+The 22 `obeyed:` dispositions this session records were graded by a THIRD dispatch —
+`implementation-advisor`, which is neither of the roles being graded, so it is admissible under
+S132's no-self-grading rule. Handoff: `.ai/handoffs/session-133-implementation-advisor.md`,
+provenance `verified: toolu_01G9SF9B1Uw7dJ1wQCDcCgzc`. `vajra next --check-obeyed 133` → READY.
+
+**All 22 graded `implemented:`, and the judge stated in writing where it came closest to a
+mismatch:** `fidelity-reviewer rec 5 — 3bc6759`. That rec asked not merely for two bypass probes to
+be written but for each to be PROVEN red. At the recorded sha both probes exist, but the second
+one's two-line target tripped a bug in the suite's own `apply_bypass` presence check, so it would
+have reported "the substitution did not land" and proved nothing. The proof arrived one commit
+later at `6a67ef0`. The judge called it `implemented:` because the substance the rec named is in
+the recorded commit and `6a67ef0` fixed a SHARED helper — and said the split out loud rather than
+smoothing it. `6a67ef0` is now named in the prompt's `## Advice` so it is not invisible.
+
+**The judge's own method limit, in its words:** it had no shell in that dispatch, so it could not
+run `git show`. It resolved all 22 shas against `.git/logs/HEAD`, read the content at the tip, and
+inferred attribution from commit messages and ordering. It states that its evidence is "consistent"
+rather than "verified", and that a session wanting the stronger claim should re-run the 22 against
+real diffs with a Bash-enabled judge. That limit is the S132 ceiling one notch lower than usual and
+is recorded here rather than in a footnote.
