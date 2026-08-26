@@ -105,4 +105,23 @@ rather than "verified", and that a session wanting the stronger claim should re-
 real diffs with a Bash-enabled judge. That limit is the S132 ceiling one notch lower than usual and
 is recorded here rather than in a footnote.
 
-**Review-Inputs-SHA:** dd25ad4cbbcb42a1fa39a5fe2ac8d6fa9c0decdaf4d182114af021a0ddd70df4
+
+## Attestation, and one honest note about it
+
+**Original attestation at the S133 close:** `dd25ad4cbbcb42a1fa39a5fe2ac8d6fa9c0decdaf4d182114af021a0ddd70df4` — the hash of the prompt plus the diff the
+cold reviewer actually graded. That is the delivery this ACCEPT covers.
+
+**Recomputed after a post-merge closeout AMENDMENT.** The founder picked option C over the locked
+default A after the close, so S134's brief was swapped (`implementation-advisor` mandatory → the
+paid dogfood on chitra) and the pointers were re-aimed. That changes the canonical input hash, so
+the value below was recomputed and re-embedded.
+
+**What the amendment touched, so a reader can judge for themselves whether the ACCEPT still holds:**
+`prompts/134-*` (the NEXT session's brief), `.ai/TASK.md`, `.ai/SESSION-BOOT.md`, `.ai/ROADMAP.md`
+(one row), and an appended section in `sessions/session-133-summary.md`. **No source file, no test,
+no script, and no artifact the reviewer graded was modified** — `git diff --stat main..HEAD` on the
+amendment branch shows six files, none under `src/` or `scripts/`. The reviewer's verdict is
+therefore unchanged in substance, and this note exists so the recomputation is visible rather than
+silent.
+
+**Review-Inputs-SHA:** a686e6a4dae9fc003c1018a34960470792637caec0610c1e64ab2b4c54ffcaad
