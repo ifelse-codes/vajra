@@ -1151,3 +1151,42 @@ cannot make becomes a RECORDED MARKER a machine can existence-check — Delta (S
 `design-significant:` (S67), `step N — done: <sha>` (S68), `demo:<element>` (S71), the disposition
 (S127), and now `obeyed-check` (S132). Each one enforces that someone TYPED something real; none of
 them proves the typist thought. Say the limit out loud every time.
+
+## S133 — the design-advisor mandate: permanent facts
+
+**A wrapped prose line that BEGINS with a code fence silently hides every `rec N` after it.**
+`advice::skip_fenced` toggles on any line whose first non-space characters are ``` or `~~~`, and it
+does not care that the line is the second half of a wrapped sentence. S133's own cold-review
+handoff wrapped as `  ``` and \`~~~\`, so a 4-space-indented…` — one accidental fence opener, and
+the Advice gate reported all ten recommendations as ORPHAN answers instead of parsing them. The
+gate was right and the file was wrong; the ten `⚠ answers rec N, which no handoff records` warnings
+are what a swallowed section looks like from the outside. **When a brief discusses fence syntax,
+never let a line start with the fence characters.**
+
+**`skip_fenced` knows only ``` and `~~~` — not markdown's OTHER code block.** Four leading spaces
+(or one tab) also opens a code block, and until S133 a marker inside one read as a real record.
+`mandate::is_indented_code` applies markdown's own rule; a once-nested list item (`  - `) is still
+a real marker, and both directions are tested.
+
+**`grep -F` with a MULTI-LINE pattern is an alternation of its LINES, not one literal.** A
+falsifiability probe that greps for a two-line bypass target to confirm the substitution landed
+will report a false "did not land" the moment either line survives. Use perl's `index($_, $target)`
+on a slurped file instead. Found by the S133 suite giving itself a false red.
+
+**A session-NUMBER migration threshold is perverse in a freshly `vajra init`ed project** — sessions
+1..132 all sit below it, so a "mandatory" gate does nothing for 132 sessions. S132's constant has
+the same defect. S133's fix costs nothing: the scaffolded prompt carries the marker as a template
+placeholder, which is a marker that EXISTS and therefore blocks at any session number. Number-based
+exemption for legacy prompts; marker-based enforcement for everything scaffolded.
+
+**A falsifiability rename control is only meaningful if the unit tests bind to VALUES.** S133's
+first draft asserted `reasons[0].contains("template placeholder")`, so renaming a message went red
+for the wrong reason and S122's second direction could not be tested at all. The fix: discriminant
+enums (`SkipDefect`, `MandateCause`) for the tests, and the user-facing WORDING contract asserted
+live against the real binary in the shell suite. Two different jobs, two different places.
+
+**The house pattern, eighth instance:** `<role-name>: skipped — <reason>` joins Delta (S61),
+`covers:` (S64), `design-significant:` (S67), `step N — done: <sha>` (S68), `demo:<element>` (S71),
+the disposition (S127) and `obeyed-check` (S132). It enforces that someone TYPED a sentence; it
+never judges the sentence. What is new is only that the ESCAPE now leaves a trace where an
+environment variable did not.

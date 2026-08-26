@@ -374,6 +374,76 @@ check_obeyed_judgments() {
   fi
 }
 
+# --- Design-advisor mandate (S133) -------------------------------------------
+# The Mandate gate (src/mandate/mod.rs) blocks a running session at `--advance`, but ONLY if the
+# closing `--advance` is invoked — the S129 "registered != run" hole. This file is the artifact
+# CLAUDE.md declares the close depends on, so the gate binds here too, exactly as S132 wired the
+# Obeyed gate one function above.
+#
+# Runs the REAL binary read-only: `vajra next --check-design-handoff N`. Absence of BOTH a
+# provenance-verified `design-advisor` handoff AND a recorded, substantive reason exits 1 and
+# BLOCKS here. A recorded reason PASSES, and its own words are copied into this log — so a
+# skipped design review leaves a trace in the closeout artifacts, not just in the prompt.
+#
+# There is no `VAJRA_SKIP_*` for this gate. `VAJRA_CLOSEOUT_WAIVER` still applies here, like every
+# other check in this file, and that is a deliberate and recorded difference: the waiver is
+# founder-held, session-scoped and un-forgeable BY THE AGENT (S56/S93), which is a different
+# animal from a flag the agent can set on its own command line.
+check_design_advisor_mandate() {
+  local NAME="design-advisor-mandate"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+  local BIN="target/release/vajra"
+  if [ ! -x "$BIN" ]; then
+    echo "BLOCK: $BIN not built — this check cannot evaluate the Mandate gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: run \`cargo build --release\` so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  local out code
+  out="$("$BIN" next --check-design-handoff "$N" 2>&1)"; code=$?
+  echo "$out" >> "$LOG"
+  echo "exit=$code" >> "$LOG"
+  # An UNRECOGNISED `vajra next` flag falls through to `run_dump()` and exits 0 (S132), so a build
+  # without this gate would green the check while reporting nothing. Require the gate's own header.
+  if ! grep -q "=== mandate: design-advisor for session" <<<"$out"; then
+    echo "BLOCK: the binary produced no Mandate-gate output — this build does not carry the gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: \`$BIN next --check-design-handoff $N\` did not run the gate (an unknown flag exits 0 via run_dump)." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  if [ "$code" -eq 0 ]; then
+    # Three DIFFERENT ways to pass, and the log must not describe one as another — the first
+    # draft of this branch reported "carries a provenance-verified handoff" for a session that
+    # carried nothing at all and was merely below the threshold.
+    if grep -q "review SKIPPED" <<<"$out"; then
+      # Visible at the closeout too, not only in the gate's own output (S133 acceptance 2).
+      echo "OK (SKIPPED): $(grep -m1 "review SKIPPED" <<<"$out" | sed 's/^ *⚠ *//')" >> "$LOG"
+    elif grep -q "predates the design-advisor mandate" <<<"$out"; then
+      echo "OK (PRE-MANDATE): session $N predates the threshold, so SILENCE is exempt — nothing here says a design-advisor was consulted." >> "$LOG"
+    elif grep -qE "^agent: *claude-code-subagent \(verified: " <<<"$out"; then
+      echo "OK: session $N carries a provenance-verified design-advisor handoff." >> "$LOG"
+    else
+      echo "OK: the Mandate gate passed session $N, in the words above." >> "$LOG"
+    fi
+    ok "$NAME"; return
+  fi
+  echo "BLOCK: session $N has neither a provable design-advisor handoff nor a recorded reason for skipping one." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: dispatch the role and run \`vajra next --role design-advisor --from <findings>\`," >> "$LOG"
+    echo "      or record \`design-advisor: skipped — <reason>\` in the session's prompt." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
 # --- Verdict-authorship attestation (S58 — DECISION-003) --------------------
 # check_fidelity_review proves the review's SHAPE + the WAIVER's authorship, but not
 # the VERDICT's authorship: a builder can hand-write its own `**Verdict:** ACCEPT`.
@@ -648,6 +718,7 @@ check_execution_shas
 check_verify_demo_scripts
 check_fidelity_review
 check_obeyed_judgments
+check_design_advisor_mandate
 check_review_attestation
 
 ( cd ".ai/verify/closeout" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true

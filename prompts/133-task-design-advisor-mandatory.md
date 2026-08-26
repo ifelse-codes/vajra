@@ -137,22 +137,71 @@ no longer possible; a reasoned skip always is.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
-- step 7 — done: <sha>
-- step 8 — done: <sha>
-- step 9 — done: <sha>
-- step 10 — done: <sha>
+- step 1 — done: 4c2f29f
+- step 2 — done: 526e44a
+- step 3 — done: 0fd93f4
+- step 4 — done: 1a36817
+- step 5 — done: 56cba81
+- step 6 — done: 73267da
+- step 7 — done: 59b72a7
+- step 8 — done: 7325456
+- step 9 — done: 741d2f0
+- step 10 — done: 593e479
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-(Filled during S133. `vajra next --check-advice 133` BLOCKS the close until every recorded
-recommendation is answered, and `vajra next --check-obeyed 133` BLOCKS until every `obeyed:` claim
-carries an independent judgment from a role that is not the one that gave the advice.)
+From `.ai/handoffs/session-133-design-advisor.md` — a real dispatch, provenance
+`verified: toolu_01FgiKkQM1U1AD6eRXth3fFv`, landed BEFORE any code (Plan step 1).
+
+- design-advisor rec 1 — obeyed: 0fd93f4
+- design-advisor rec 2 — obeyed: 1a36817
+- design-advisor rec 3 — obeyed: 1a36817
+- design-advisor rec 4 — obeyed: 1a36817
+- design-advisor rec 5 — obeyed: f85b5ad
+- design-advisor rec 6 — obeyed: 56cba81
+- design-advisor rec 7 — obeyed: 0fd93f4
+- design-advisor rec 8 — obeyed: 1a36817
+- design-advisor rec 9 — obeyed: 1a36817
+- design-advisor rec 10 — obeyed: 1a36817
+- design-advisor rec 11 — obeyed: cab4563
+- design-advisor rec 12 — obeyed: 526e44a
+- design-advisor rec 13 — obeyed: cab4563
+- design-advisor rec 14 — deferred: .ai/ROADMAP.md
+- design-advisor rec 15 — obeyed: f85b5ad
+
+From `.ai/handoffs/session-133-fidelity-reviewer.md` — the independent cold pass, provenance
+`verified: toolu_01Snmu6n4gJuTU13Ewb74oSh`, ACCEPT with 10 recommendations.
+
+- fidelity-reviewer rec 1 — obeyed: 593e479
+- fidelity-reviewer rec 2 — obeyed: 2169c13
+- fidelity-reviewer rec 3 — obeyed: 3bc6759
+- fidelity-reviewer rec 4 — obeyed: 3bc6759
+- fidelity-reviewer rec 5 — obeyed: 3bc6759
+- fidelity-reviewer rec 6 — obeyed: a2c94a1
+- fidelity-reviewer rec 7 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 8 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 9 — obeyed: 593e479
+- fidelity-reviewer rec 10 — obeyed: 3bc6759
+
+**The judge's own concern, recorded rather than left in its handoff** (`.ai/handoffs/session-133-
+implementation-advisor.md`): four of the twenty-two `obeyed:` shas point at a commit carrying PART
+of a multi-clause recommendation. Three of the four have their other half at a sha this section
+already records. The exception is **`6a67ef0`** — it fixed `apply_bypass`'s presence check, without
+which `fidelity-reviewer rec 5`'s second bypass probe could not report an honest red, and it
+appears in no `## Execution` step and against no disposition. It is named here so a reader who
+resolves rec 5 to `3bc6759` and stops there does not conclude the probe never worked. The judge
+also notes, fairly, that several `design-advisor` recs bundle two or three independent asks into
+one `rec N` line, which is what forces a single sha to stand for split substance — an advisor-side
+habit, carried into S134's intake.
+
+rec 14 is the one DEFERRAL, and the reason is recorded rather than left implicit: comparing the
+handoff's `captured:` timestamp against the session's first code commit is a SECOND story (max 1
+story), and "which commit counts as code" is a judgement the binary should not guess. Filed as
+`.ai/ROADMAP.md` F2f, named in the summary as this design's honest residual, and carried into
+S134's intake rather than dropped. The cold review's rec 7 (probe the `maturity: L1` escape live)
+and rec 8 (S134 must land as a CALL SITE on `mandate`, and close or record F2e) are deferred the
+same way — both are S134's work by construction, and both are recorded at `.ai/ROADMAP.md` (F2g,
+F2e) rather than carried in prose.
 
 ## Design
 
@@ -162,14 +211,64 @@ carries an independent judgment from a role that is not the one that gave the ad
 - Spine record to cite: `DECISION-007` (the agent fleet) and its S131 addendum (mandatory roles,
   provenance) — verify both exist before citing them. `DECISION-002` for why an advisor informs and
   never certifies its own work.
-- **Open design question for S133 to resolve and record here (and to put to the design-advisor
-  itself, per Plan step 1):** does the gate ride `--check-design` (the Architect station already
-  asks the design question, so a reader has one place to look) or take its own command (S131's
-  reasoning: two gates checking genuinely different things should not share a command)? Decide, and
-  record the loser's reason.
-- **Second open question:** where exactly does the skip reason live — a line in `## Design`, a
-  dedicated marker, or somewhere else? It must be greppable, human-readable months later, and
-  impossible to set from the environment.
+- **DECIDED — its own sub-flag, not a ride on `--check-design`.** The gate is
+  `vajra next --check-design-handoff NN` (still on `vajra next`; the 7-command floor is untouched
+  either way, so it argues for neither side). Three reasons, the third decisive: `--check-design`
+  binds on the session being ADVANCED INTO while every mandatory-handoff gate binds on the session
+  being CLOSED, so one flag would mean two session numbers; a perfect `## Design` with no dispatch
+  and a real dispatch with a placeholder `## Design` are different failures that should not share
+  one exit code (S131's own argument, `src/fidelity/mod.rs:18`); and `architect::parse_design`
+  returns `NotSignificant` — never blocking — whenever the marker is `no`, so folding the handoff
+  requirement into it would make `design-significant: no` silently exempt a mandatory role. **The
+  loser's real cost:** a reader loses the one-place-to-look property. Recovered by cross-reference,
+  not by shared logic — `--check-design` now prints a pointer line to the handoff gate.
+- **DECIDED — the skip reason is a marker line in the session's own prompt**, grammar
+  `design-advisor: skipped — <reason>`, line-anchored after decoration-stripping, fenced blocks
+  skipped, the reason gated by `advice::substantive_reason` verbatim. `prompts/` IS this repo's
+  memory (the S53 rule), and the prompt is what `Review-Inputs-SHA` already hashes, so a reason
+  recorded here is inside the tamper-evident record. **Rejected:** a separate file
+  (a new store, and outside the attestation); `## Advice` (that section disposes of recommendations
+  that EXIST — a skip means none were given); a git trailer or commit message (binds to one commit,
+  invisible to a reader of the prompt). The key is the ROLE NAME, not a design-specific literal, so
+  S134 inherits the grammar with no new parser.
+- **DECIDED — `design-significant: no` does NOT excuse the handoff.** An author's own "this is not
+  design-significant" is exactly the judgement a second brain exists to check; treating it as an
+  exemption would be the cheapest possible instance of the S68/S71 self-granted-jurisdiction class.
+  A pure fix skips in one sentence like everything else.
+- **DECIDED — no `VAJRA_SKIP_DESIGN_ADVISOR_GATE`.** Every other gate in `--advance` has one, and
+  that symmetry is the pull; it is refused because this gate's entire novelty is that its escape
+  hatch leaves a trace. Two limits recorded rather than implied: `VAJRA_CLOSEOUT_WAIVER=NN` still
+  waives the closeout check (founder-held, session-scoped, un-forgeable by the agent — a different
+  animal from an agent-settable flag), and L1 maturity still advises rather than blocks.
+- **DECIDED — the gate binds at CLOSE**, not at commit time: `--advance` on the closing session plus
+  `scripts/verify-closeout.sh`. A `.githooks/pre-commit` binding would fire on the very commit that
+  records the skip reason, would make every commit in this repo depend on a fresh
+  `target/release/vajra` plus local Claude Code history (the documented reason `commit_guard` is off
+  here), and is skipped by `--no-verify` anyway. **What that costs, stated plainly:** "before code"
+  is a WORKFLOW property (Plan step 1, the boot packet), not a mechanism — the gate can stop a
+  session CLOSING, never stop code being written before advice was taken.
+- **DECIDED — migration threshold 133, governing SILENCE only** (the S132 precedent): a marker that
+  EXISTS but is unusable BLOCKS at any session number, and a handoff that exists but does not
+  re-verify BLOCKS at any session number; only the absence of BOTH is exempt below 133, and the
+  exemption is named out loud in a WARN. One `design-advisor` handoff exists across 132 sessions,
+  so retro-blocking would make history un-closeable. **The hole a number-threshold leaves, and the
+  fix:** in a freshly-`vajra init`ed project sessions 1..132 would all sit below the threshold, so a
+  "mandatory" gate would do nothing for 132 sessions. The scaffolded prompt therefore emits the
+  marker as a template placeholder, which BLOCKS — number-based exemption for legacy prompts,
+  marker-based enforcement for everything scaffolded.
+- **DECIDED — a new module named for the MECHANISM (`src/mandate/mod.rs`), generic over a
+  `fleet::Role` plus its marker key**, so S134 is a call site and not a copy. `src/fidelity/mod.rs`
+  is deliberately NOT refactored to delegate to it: acceptance 7 requires S131's gate unchanged, and
+  re-reading "unchanged" as "behaviourally unchanged" would spend an assumption on re-interpreting
+  this session's own acceptance criteria. The duplication is real and is filed as named debt
+  (`.ai/ROADMAP.md` F2e) rather than left to be discovered.
+- **DEVIATION, declared — the Architect gate structurally cannot catch this one.** The DECISION-007
+  S131 addendum closes with the condition that the mandatory-role pattern is "to be repeated only
+  after this one is proven in use." S133 IS that repetition, on n=2 enforced sessions (S131, S132),
+  under the founder's direct instruction at the S132 closeout. Citing `DECISION-007` passes
+  `--check-design` while moving a line that record locked, so the relaxation is written down here
+  and recorded as a DECISION-007 S133 addendum — not as a new DECISION-008, which would split the
+  mandatory-role rule across two records.
 
 ## Non-goals (not built this session)
 

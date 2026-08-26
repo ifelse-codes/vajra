@@ -61,6 +61,7 @@ pub const PROMPT_TEMPLATE: &str = r#"# Session {{NN}} — {{SLUG}}: <one-line go
 ## Design (the Architect gate — record the decision, cite the ADR/DECISION it rests on)
 - design-significant: <yes — new/changed interface, new module, or an ADR deviation | no — pure fix>
 - <rationale — why this shape and not the alternative, citing the ADR/DECISION ids it rests on; the Architect gate BLOCKS a design-significant prompt until this is substantive>
+- design-advisor: <skipped — why this session needs no design review | DELETE this line and dispatch the role instead>
 
 ## Plan (ordered steps — cite the acceptance criteria each step covers, e.g. `covers: 1, 3`)
 1. <first ordered step — replace me; annotate which acceptance criteria it satisfies>
