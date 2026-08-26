@@ -49,21 +49,30 @@
   0 issues · 19 downloads).
 
 ## Next Session
-- **Read prompt:** `prompts/134-task-implementation-advisor-mandatory.md`
-- **Session 134 is CODE** — the founder's locked default, presented and confirmed as option A of
-  three at the S133 closeout: give `implementation-advisor` the same treatment, **as a CALL SITE on
-  `mandate`** (a second `*_gate` wrapper and a table entry, never a third copy of the ladder). It
-  must also probe the `maturity: L1` escape live (ROADMAP F2g) and either close F2e — folding
-  `fidelity_gate` into `mandate` — or record why not.
-- **Why this role:** it is the second of the two build-shaping advisors the founder named, and it
-  is the session that proves S133's grammar is genuinely generic rather than generic only in the
-  comments.
-- **The risk to hold in view, named in S133's own summary:** S134 is nearly free, which is exactly
-  what makes it look like progress. Two mandatory advisors do not make the fleet USED; they make
-  two roles unskippable. If S134 ships without touching F2f, the repo will have two gates that
-  prove a dispatch happened and still nothing that observes whether any advice changed the work.
-- **Not this session:** F2f (the rubber-stamp detector), the other seven roles, compression, F2/
-  F2a/F2b/F2c, the fourth fork, and the fresh-scaffold paid dogfood — **deferred again, and still
-  the oldest un-run item on the roadmap** (last paid dogfood S124).
+- **Read prompt:** `prompts/134-task-dogfood-chitra-mudra-review.md`
+- **Session 134 is a PAID DOGFOOD**, re-picked by the founder in chat after the S133 close (this
+  REPLACES the `implementation-advisor` brief written at that closeout — **deferred, not dropped**;
+  its full contents survive in the new prompt's Non-goals).
+- **What it does:** one real paid session runs in `/Users/suman/playground/chitra` through
+  `vajra claude`, reviewing every chart chitra has locked to the **mudra** reference language —
+  **seen, not merely read** — and reports TWO things to TWO audiences: the design verdict the
+  founder asked for (impressive or not; if not what to fix; if yes why and what was made good), and
+  what Vajra's governance actually did while it happened.
+- **Why this beats a third mandatory role:** nine sessions since the last paid run (**S124,
+  `$3.2985`, 2026-08-20**); every instrument in this repo measures Vajra governing itself; and S133
+  just shipped a gate that BLOCKS a brand-new project's first session, tested only against fixtures
+  this repo wrote. S134 is the first evidence about that mandate the repo did not manufacture.
+- **The scope, verified live while the brief was written:** chitra's mudra-LOCKED families are
+  circular (S09), line (S10) and bar (S12), **merged**, plus `sparkline` + `histogram` **in flight**
+  on chitra's own `session-16` branch. chitra already carries the means to LOOK at all of them — a
+  Vite docs app with a `/chart/:id` route per chart, and per-chart Playwright PNGs under
+  `.ai/verify/session-15/`. The brief says to re-derive the list rather than trust it.
+- **The guardrail that matters most:** chitra is mid-session-16 **with uncommitted work**. S134 must
+  not disturb it — baseline `git status --short` before, diff after — and must obey chitra's own
+  constitution inside chitra, never import Vajra's.
+- **Not this session:** `implementation-advisor` mandatory (its brief is preserved), F2f (the
+  rubber-stamp detector, still the highest-value open governance item), fixing chitra (this session
+  REVIEWS; proposing is not doing), the other seven roles, compression, F2/F2a/F2b/F2c, the fourth
+  fork.
 
 **New chat.**
