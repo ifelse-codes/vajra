@@ -419,11 +419,15 @@ mandate_green() { ( cd "$1" && cargo test -q --lib mandate::tests:: 2>&1 | grep 
 # A bypass probe that silently no-ops reports false comfort (S127), and a bypass that fails to
 # COMPILE is not a falsification either (S122). Each probe asserts (a) the exact source it means to
 # patch was present and is gone afterwards, and (b) the red it produces is a TEST FAILURE.
+# `grep -F` with a MULTI-LINE pattern is an alternation of its lines, not one literal — so the
+# presence checks use perl's own substring search instead. Found the hard way: bypass G's two-line
+# target reported "did not land" because its second line was (correctly) still there.
+contains_literal() { FROM="$2" perl -0ne 'exit(index($_, $ENV{FROM}) >= 0 ? 0 : 1)' "$1"; }
 apply_bypass() {   # file, fixed-string-to-replace, replacement
   local F="$1" FROM="$2" TO="$3"
-  grep -qF "$FROM" "$F" || { echo "PROBE FAIL: the bypass target is not present: $FROM"; return 1; }
+  contains_literal "$F" "$FROM" || { echo "PROBE FAIL: the bypass target is not present: $FROM"; return 1; }
   FROM="$FROM" TO="$TO" perl -0pi -e 'BEGIN{$f=$ENV{FROM};$r=$ENV{TO}} s/\Q$f\E/$r/' "$F"
-  grep -qF "$FROM" "$F" && { echo "PROBE FAIL: the substitution did not land (still present, likely more than one occurrence): $FROM"; return 1; }
+  contains_literal "$F" "$FROM" && { echo "PROBE FAIL: the substitution did not land (target still present — more than one occurrence?): $FROM"; return 1; }
   return 0
 }
 expect_test_red() { # worktree, test name
