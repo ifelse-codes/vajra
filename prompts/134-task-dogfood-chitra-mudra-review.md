@@ -56,6 +56,12 @@ actually found):
 
 - **LOCKED families, merged:** circular (`pie`, `donut`) — chitra S09 · line (`line`) — S10 ·
   bar (`bar`, `horizontalBar`) — S12.
+- **⚠ CORRECTION, from the design-advisor (rec 16): the line above is WRONG, and chitra's own two
+  sources disagree with each other.** `packages/core/README.md` declares **four** LOCKED sections —
+  circular (S09), **`area` (S09)**, line (S10), bar (S12) — while `chitra/.ai/STATE.md` names only
+  three and omits `area`. The README's bar section never mentions `horizontalBar`. So the merged set
+  may be **5 charts** (pie, donut, area, line, bar) + 2 in flight = **7**, not 6. Re-derive it, and
+  **record the README-vs-STATE.md disagreement as a finding for chitra** — criterion 2 covers it.
 - **In flight, uncommitted on chitra's `session-16-sparkline-histogram-lock` branch:** `sparkline`
   and `histogram`, which chitra's own S16 brief describes as taking the count to "6 of 20 charts
   speak the reference dialect".
@@ -71,9 +77,14 @@ work as shipped.
 
 chitra already carries everything needed; nothing new should be built to look at a chart:
 
-- **Terminal output:** the charts render ANSI. `scripts/` in chitra has per-chart demo scripts.
-- **Browser:** `artifacts/chitra-docs` is a Vite app with a `/chart/:id` route for every chart, and
-  `pnpm check:catalog` executes all catalog examples.
+- **Terminal output:** the charts render ANSI. **⚠ CORRECTION (rec 17): chitra has NO per-chart demo
+  scripts.** `chitra/scripts/` holds per-SESSION scripts (`demo-session-01..15.sh`,
+  `verify-session-01..15.sh`) plus `qa-catalog.mjs`, `post-merge.sh`, `ring-polish-handoff.mjs`,
+  `verify-closeout.sh`. Render the charts directly from `packages/core` instead.
+- **Browser:** `artifacts/chitra-docs` is a Vite app with a `/chart/:id` route for every chart
+  (`pnpm --filter @workspace/chitra-docs run dev`). **`check:catalog` is a DOCS-PACKAGE script**
+  (`artifacts/chitra-docs/package.json`), **not** a root script — the root only has `build`,
+  `typecheck`, `typecheck:libs`.
 - **Screenshots already on disk:** `.ai/verify/session-15/<ts>/chart-*.png` — one PNG per chart from
   chitra's Playwright QA run. These are the fastest way to look at all of them at once, but they
   are **from S15 and may predate the in-flight work** — check the timestamp before trusting a PNG,
@@ -93,19 +104,38 @@ was formed: looked at a fresh render, looked at an existing screenshot, or read 
   - **If yes — say WHY, and name what was made good**, specifically, per chart family. Which
     decisions paid off, and what they cost.
   - **If no — say what can be FIXED**, ranked, with the cheapest high-impact fix first.
-  - Either way: name the **weakest chart of the six** and the **single change** that would most
+  - Either way: name the **weakest chart of the set you re-derived** (never a pre-baked count — rec 16) and the **single change** that would most
     improve the set. A review with no ranked opinion is a description.
 - **Presented visually, not as a wall of text** — an interactive HTML deck or artifact the founder
   can look at with the charts IN it (memory: `feedback-demo-presentation`). Terminal output shown as
   terminal output.
-- Landed in chitra as `sessions/session-<NN>-mudra-chart-review.md` (or chitra's own convention —
-  read chitra's `.ai/CONSTRAINTS.yaml`, do not impose Vajra's).
+- Landed in chitra at **`sessions/mudra-chart-review-<UTC-date>.md` — date-keyed, NOT session-keyed**
+  (rec 7), with a header saying "produced by Vajra session 134; this is not a chitra session;
+  chitra's `.ai/SESSION` is unchanged at 15". chitra's `.ai/CONSTRAINTS.yaml` has **no**
+  `session_summary_in` / `session_prompt_in` keys at all, so there is no recorded convention to
+  obey — only an observed filename pattern. Say that plainly rather than claiming chitra's
+  convention was followed. A date-keyed name also matches neither of chitra's `verify-closeout.sh`
+  globs (`sessions/session-*-summary.md`, `^sessions/session-N-review\.md$`), so it can never be
+  mistaken for a chitra fidelity verdict or pollute chitra's derived ledger.
+- **Raw captures** (terminal `.txt`, browser PNGs) go under
+  `chitra/.ai/verify/mudra-review-<UTC>/` — the one writable space in chitra that `chitra/.gitignore`
+  already ignores, so it cannot move `git status` (rec 8, and the founder's S126 rule: raw captures
+  stay local, git gets the review).
 
 ### For Vajra — the dogfood measurement
 
 - **A real, authoritative dollar figure.** The run goes through `vajra claude` so the receipt is
   real. If the cost comes back unknown, that is a FINDING about S77–S79's receipt work, not a
   footnote — record it either way.
+- **Pre-committed BEFORE the run, so an unknown cost cannot quietly become a footnote (rec 20):**
+  `vajra meter` reads the on-disk Claude Code transcript, and `total_cost_usd` rides only the
+  headless `-p` result stream (the S77/S78 root cause). This run must be **interactive** — charts
+  cannot be looked at headlessly. **So the S77 honest-null is the LIKELY outcome here, not the
+  exception**, and predicting it in advance is what stops it being spun either way afterwards.
+- **Report the unmetered subagent token count BESIDE whatever dollar figure appears.** S132 recorded
+  ~367k and S133 ~550k unmetered subagent tokens against "$0 metered for build". A dogfood headline
+  of "$X" that omits the Vajra-side dispatches understates reality exactly as the last two sessions
+  did — and this number is the one the pitch rests on.
 - **Which Vajra gates actually fired, and what each one did to the work.** Name every one that
   blocked, warned, or was silent, and say whether the block was RIGHT.
 - **S133's brand-new mandate, tested by its first non-self use.** This session is governed by it in
@@ -136,34 +166,83 @@ was formed: looked at a fresh render, looked at an existing screenshot, or read 
    unmerged is presented as shipped.
 6. **chitra's own in-flight state is not disturbed.** No commit, no stash, no branch switch, and no
    edit to chitra's uncommitted `session-16` files without the founder saying so in chat. Verify
-   this by recording `git status --short` in chitra before AND after, and diffing the two.
+   this with **four** recordings before AND after, all of which must match (rec 19 — `git status
+   --short` alone misses a moved branch head, a new stash, and a staged/unstaged shuffle):
+   `git rev-parse HEAD` · `git ls-files -s | shasum -a 256` · `git stash list` ·
+   `git status --porcelain --untracked-files=all`.
+   **The ONE permitted delta, declared here in advance:** exactly one new untracked path, the
+   review artifact named in the Deliverables. Every other difference FAILS. (Without this the
+   criterion contradicts the Deliverables by construction.)
 7. The receipt reports a real cost, or the session records plainly that it could not — with the
    reason, as a finding.
 8. Every Vajra gate that fired during the run is recorded with what it did and whether it was right.
-9. S133's design-advisor mandate is exercised in this session and the outcome is recorded — whether
-   satisfied by a real dispatch or by a recorded reasoned skip, and whether it helped.
+9. **The mandate is exercised FOR REAL in Vajra, and its behaviour in chitra is MEASURED and
+   recorded, including any exemption.** (rec 11 — the original wording, "governed by it in BOTH
+   repos", is FALSE and unachievable: chitra has no `design-advisor.md` in `.claude/agents/`, so the
+   subagent type cannot resolve there, and chitra's session 16 sits below
+   `DESIGN_ADVISOR_MANDATE_FROM_SESSION = 133`, so silence gets a WARN and never a block. Certifying
+   the old wording green would be a self-granted-jurisdiction green.) Do **not** hand-write a skip
+   marker into chitra's tracked prompt to manufacture a pass; run the gate, capture its literal
+   output, and report the WARN as the finding.
+   **"Did it help?" must be falsifiable, not an adjective (rec 13) — three artefacts:**
+   (a) the F2f timestamp comparison done BY HAND (this session does not build F2f): the handoff's
+   `captured:` frontmatter printed beside the timestamp of S134's first substantive commit;
+   (b) at least ONE named thing in the delivered work that is different because of a recorded rec,
+   pointed at a commit or an artifact; (c) at least ONE rec that changed nothing, named as such.
+   An honest null — "the mandate produced a handoff and changed nothing" — is a valid, S135-actionable
+   result and must be published if that is what happened.
 10. `verify-session-134.sh` and `demo-session-134.sh` both exit 0 with a printed check-class tally,
     and their checks bind to this session's real artifacts.
 11. Independent cold `fidelity-reviewer` verdict ACCEPT, attested. The judge of any `obeyed:`
     disposition may not be the role that made the recommendation.
 12. The summary states plainly what is still NOT fixed, and answers one question directly: **after
     nine sessions of governance machinery, did any of it make this real piece of work better?**
+13. **Both open design questions are DECIDED in `## Design`, each with the loser's reason on the
+    record** — (Q1) whether the chitra review takes a chitra session number, and (Q2) what the
+    roadmap's dogfood item now means. (rec 21: without this criterion the brief's most-emphasised
+    deliverable is ungated — steps 1 and 2 both cite criterion 9, which is about the mandate's
+    outcome, not about resolving Q1/Q2. The Architect gate will not catch it either: it checks only
+    that a non-placeholder `## Design` cites a record that exists, never that the design answers the
+    questions the prompt posed.)
+14. **Criterion 3 is machine-checkable, not self-asserted (recs 14, 15).**
+    `sessions/session-134-artifacts/seen-manifest.tsv` carries one row per chart
+    (`family, chart, method, evidence_path, sha256, captured_utc, source_mtime_utc`); `method` comes
+    from the closed vocabulary `fresh-render-terminal | fresh-render-browser | screenshot-existing |
+    code-only` and any other word FAILS; every `evidence_path` must exist (absent → FAIL, never
+    skip) and its `sha256` must recompute equal; the row count must equal the live re-derived family
+    list and be non-zero. **The stale-screenshot tooth:** a `screenshot-existing` row whose
+    `captured_utc` is older than its `source_mtime_utc` is INVALID — every chitra S15 PNG is stamped
+    `20260822T…` and the in-flight sparkline/histogram work post-dates all of them, so for exactly
+    the two families the founder most wants judged, an S15 screenshot is code-only evidence wearing
+    a picture. `scripts/fixture-session-134.sh` plants four defects (mutated sha · stale-screenshot
+    row · unknown `method` word · empty manifest), each asserting its own substitution landed, and
+    the suite goes RED on each.
+15. **Every Vajra gate invocation's raw stdout AND exit code is captured to
+    `sessions/session-134-artifacts/gate-log/`**, one file per invocation named for the flag, exit
+    code on the first line — and `verify-session-134.sh` binds criterion 8 to those files rather
+    than to the agent's own account of them (rec 18).
 
 ## Plan (ordered — cite the acceptance criteria each step covers)
 
 1. Put this session's own design question to a real `design-advisor` dispatch and land its handoff
    FIRST — the S133 mandate, met by real use. covers: 9
-2. Record the choice and the rejected alternative in `## Design`. covers: 9
-3. Capture chitra's `git status --short` BEFORE anything, as the baseline for criterion 6. covers: 6
+2. Record BOTH resolved design questions and each loser's reason in `## Design`, and correct the
+   brief where the advisor showed it to be factually wrong. covers: 13
+3. Capture chitra's four-way state fingerprint BEFORE anything, as the baseline for criterion 6.
+   covers: 6
 4. Re-derive the mudra-locked chart list live from chitra. covers: 2
 5. Run the paid session in chitra through `vajra claude`; review every chart, looking at each one.
    covers: 1, 3, 5
 6. Write the design verdict — position, reasons, weakest chart, highest-impact change — and present
    it visually. covers: 4
-7. Capture chitra's `git status --short` AFTER; diff against the baseline. covers: 6
-8. Record the receipt, the gates that fired, and the mandate's outcome. covers: 7, 8, 9
-9. `scripts/verify-session-134.sh` + `scripts/demo-session-134.sh`, binding to real artifacts.
-   covers: 10
+7. Capture chitra's four-way fingerprint AFTER; diff against the baseline, allowing exactly the one
+   declared path. covers: 6
+8. Record the receipt (with the unmetered subagent tokens beside it), every gate invocation's raw
+   stdout + exit code to the gate-log, and the mandate's outcome with its three falsifiable
+   artefacts. covers: 7, 8, 9, 15
+9. Write `seen-manifest.tsv` and `scripts/fixture-session-134.sh`; `scripts/verify-session-134.sh` +
+   `scripts/demo-session-134.sh` bind to those real artifacts and go RED on each planted defect.
+   covers: 10, 14
 10. Cold `fidelity-reviewer` pass, then a separate judging dispatch for the dispositions. covers: 11
 11. Say in the summary what is still not fixed, and answer the did-it-help question. covers: 12
 
@@ -189,21 +268,55 @@ carries an independent judgment from a role that is not the one that gave the ad
 
 ## Design
 
-- design-significant: yes — this session decides how Vajra is measured on real outside work, and
-  the shape of that measurement will be copied by every future dogfood. It also touches a second
-  repo, which no prior session's mechanism has had to reason about.
-- Spine record to cite: `DECISION-005` (the autopilot trust layer — the pitch this dogfood tests)
-  and `DECISION-007` with its **S133 addendum** (the mandate this session is the first outside test
-  of). Verify both exist before citing them.
-- **Open design question for S134 to resolve and record here:** does the chitra review take a chitra
-  SESSION NUMBER (a real chitra session, advancing its `.ai/SESSION`), or run as a read-only pass
-  that lands only an artifact? chitra is **mid-session-16 with uncommitted work**, so advancing its
-  counter would collide. Decide, record the loser's reason, and remember criterion 6: chitra's
-  in-flight state is not this session's to disturb.
-- **Second open question:** this is NOT the fresh-scaffold dogfood the roadmap has been carrying —
-  chitra is already Vajra-governed, so this measures Vajra on REAL WORK in a governed project, not
-  first contact for a stranger. Say which of the two the roadmap item should now mean, and whether
-  the other still needs its own session.
+- design-significant: yes — **not because it is a dogfood** (S63, S118, S124 and S126 were all
+  dogfoods and none needed a design record), but because it defines the **first evidence contract
+  for a Vajra gate binding to artifacts produced in a SECOND repository**, a shape every future
+  dogfood will copy, and because it re-reads a locked roadmap item. Interface + deviation, not fix.
+  (design-advisor rec 1.)
+- **Spine records, both verified to exist on disk before citing:**
+  - `DECISION-007` — specifically its **S133 addendum, section 6** ("migration threshold 133,
+    governing SILENCE only"), the exact clause this run is the first outside test of.
+  - `DECISION-005` — **SUPERSEDED 2026-07-27 by the S103 founder pivot.** What is RETIRED is its
+    machinery-freeze rule and ladder-as-paid-sessions plan. What is LIVE, and the reason this
+    dogfood runs in chitra and not somewhere else, is its Rung-2 row naming **chitra** as the
+    ladder repo. Cited with the status said out loud, because the Architect gate checks existence
+    only and cannot see a SUPERSEDED banner (the disclosed S67 form floor). (rec 3.)
+- **Deviation from `DECISION-005`, declared rather than implied (rec 4):** (i) this is an attended,
+  ~2h, single-task run — it is **not** a Rung-2 ladder run and must never be reported as one;
+  (ii) `DECISION-005`'s "guards ON for every ladder run" holds **inside chitra** (`maturity: L3`,
+  no `publish_guard`/`commit_guard` keys → armed) and does **not** hold in the Vajra repo
+  (both `off`). Say which side of the run had teeth.
+- **Q1 — RESOLVED: a READ-ONLY pass. The review takes NO chitra session number** and is numbered
+  against Vajra's S134 only. chitra's `.ai/SESSION` says `15`, its `TASK.md` and `STATE.md` still
+  describe session 15, yet `HEAD` is on `session-16-sparkline-histogram-lock` with an in-flight
+  prompt 16. Advancing to 16 would claim this review IS chitra's S16; advancing to 17 would orphan
+  an unclosed 16 and leave three of chitra's `.ai/` files permanently wrong. And chitra is **L3** —
+  a real session number drags in its own `verify-closeout.sh` (a review, an attested verdict, a
+  summary, a verify/demo pair, an `.ai/` sync, a PR), every one of which needs **commits on a
+  branch already holding someone else's uncommitted work**, which criterion 6 forbids outright.
+  - **The loser, and its reason, honestly:** taking chitra session 17 would have bought a real
+    `K of 8` station reading and a chitra ledger entry. It loses **only because the counter is
+    occupied**, not because it was a bad idea. Most of that evidence is recoverable for free:
+    `--stations`, `--check-design`, `--check-design-handoff`, `--check-plan`, `--check-advice`,
+    `--check-obeyed` and `--dogfood-age` are all read-only derivations. Run them inside chitra and
+    capture stdout + exit code. (recs 5, 6.)
+- **Q2 — RESOLVED: the roadmap's dogfood item SPLITS in two.**
+  - **D1 — governed-real-work dogfood: SATISFIED by S134.** Vajra measured on real work inside an
+    already-governed project.
+  - **D2 — fresh-scaffold first-contact dogfood: STILL OUTSTANDING, owns its own session.** chitra
+    is the opposite of a fresh scaffold: it runs the **old 55-line constitution** (no fidelity gate,
+    no mandate, no marker rules), 4 of 9 roles in `.claude/agents/`, 7 required audits against
+    Vajra's 12. D2 measures a different thing — whether a brand-new project can reach a **close**
+    under two mandatory roles. `stranger-check.sh` and `scaffold-drift.sh` already cover D2's free
+    half; what remains is a **paid run to a close**.
+  - **Rejected:** declaring the single item satisfied here. That would retire the only instrument
+    aimed at strangers on the strength of a run that structurally *cannot* exercise the mandate
+    (threshold 133 > chitra's 16). (rec 9.)
+- **New record owed by this session:** an **S134 addendum to `DECISION-007`** recording the
+  **brownfield threshold hole** — the S133 addendum disclosed the fresh-project case and closed it
+  with a scaffolded placeholder marker, but never the case of an *already-governed* project sitting
+  below 133 whose old prompts carry no marker at all: silence → WARN forever. chitra is the live
+  specimen. An addendum, not a `DECISION-008`, on n=1. S135 inherits the same threshold. (rec 12.)
 
 ## Non-goals (not built this session)
 
@@ -247,6 +360,14 @@ carries an independent judgment from a role that is not the one that gave the ad
 - A check that cannot evaluate FAILS (S69). A probe must assert its own pattern matched (S127),
   including positive controls (S132).
 - **Report the losses.** A dogfood whose findings are all favourable has not been run honestly.
+- **Two honesty floors on the verdict itself, so "impressive" is falsifiable (rec 22):**
+  (a) **a zero must be a SEARCHED-FOR zero** — if the review finds no chart violating its family's
+  locked rules, it must quote which specific README rules it checked against which render (the
+  README states them literally: accent spent once · no rainbow · dashed frame · `+` tick rows ·
+  empty cells are spaces · per-series MIN/MAX/AVG/LAST);
+  (b) **the Non-goal holds even when a fix looks like one line** — every fix is a ranked PROPOSAL in
+  the review artifact, and nothing under `chitra/packages/` is touched. The risk is precisely that a
+  reviewer who can see the defect reaches for it.
 - When a brief quotes fence syntax, never let a line START with the fence characters — it silently
   hides every `rec N` after it (S133, learned live).
 - Attest LAST (S69/S131): recompute `--inputs-sha 134` after every edit to this prompt; two
