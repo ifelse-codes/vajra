@@ -885,9 +885,15 @@ by a cold reader after the code was already written.
    `<role-name>: skipped — <reason>`, recorded in the session's own prompt, line-anchored,
    fence-skipping, and substantiveness-gated by `advice::substantive_reason`. It is keyed on the
    ROLE NAME, not on a design-specific literal, so a second mandatory advisor inherits it whole.
-3. **No environment variable satisfies or bypasses this gate.** `VAJRA_SKIP_*_GATE=1` is the
-   pattern every other gate uses and it is refused here: an env var leaves no trace a reader can
-   find months later, and the whole novelty of this gate is that its escape hatch does.
+3. **No environment variable BYPASSES this gate**, and the SATISFY path carries S131's inherited
+   limit — stated rather than rounded off (the cold review's rec 2 caught the absolute phrasing).
+   `VAJRA_SKIP_*_GATE=1` is the pattern every other gate uses and it is refused here: an env var
+   leaves no trace a reader can find months later, and the whole novelty of this gate is that its
+   escape hatch does. What is NOT claimed: `VAJRA_CLAUDE_PROJECTS_DIR` redirects where the
+   provenance evidence is READ FROM (`src/dispatch/mod.rs`), so a handoff can be satisfied from
+   evidence a caller controls — that is the unsigned, machine-local evidence limit S131 already
+   disclosed, inherited whole and not introduced here. It cannot release a session that recorded
+   nothing, and S133's own verify suite asserts exactly that boundary.
    `VAJRA_CLOSEOUT_WAIVER` still applies at `verify-closeout.sh`, and that difference is
    deliberate — a founder-held, session-scoped marker the AGENT cannot set (S56/S93) is a
    different animal from a flag the agent writes on its own command line. L1 maturity still

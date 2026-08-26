@@ -7,7 +7,9 @@
 #
 # The claim under demonstration: a session can no longer reach its close without either a REAL
 # design-advisor dispatch or a reason a human can read months later — and no environment variable
-# can make either one go away.
+# makes the BLOCK go away. What is NOT claimed (cold review rec 2): the evidence a handoff is
+# judged against is unsigned and machine-local, and `VAJRA_CLAUDE_PROJECTS_DIR` redirects where it
+# is read from — S131's disclosed limit, inherited whole. Case 5 below uses exactly that.
 
 set -uo pipefail
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
@@ -202,7 +204,7 @@ printf '%-48s %-30s %s\n' "never asked a design-advisor anything"    "closed, si
 printf '%-48s %-30s %s\n' "skipped for a good reason"                "indistinguishable from above" "PASSES, and PRINTS the reason"
 printf '%-48s %-30s %s\n' "wrote \`skipped\` with no reason"           "n/a"                          "BLOCKED — a skip costs a sentence"
 printf '%-48s %-30s %s\n' "hand-typed the handoff"                   "n/a"                          "BLOCKED — provenance re-verified"
-printf '%-48s %-30s %s\n' "wants out via an env var"                 "VAJRA_SKIP_*_GATE=1, no trace" "no such variable exists"
+printf '%-48s %-30s %s\n' "wants out via an env var"                 "VAJRA_SKIP_*_GATE=1, no trace" "no skip flag exists (see note)"
 printf '%-48s %-30s %s\n' "is session 1 of a brand-new repo"         "n/a"                          "BLOCKED — the scaffold carries it"
 
 # --- demo:summary_table --------------------------------------------------------------------------
@@ -222,7 +224,10 @@ echo "     handoff — every case above still goes green (.ai/ROADMAP.md F2f)."
 echo "  3. Whether the reasoned skip becomes the default dodge. Nothing counts it yet; the"
 echo "     counting rule is written down in sessions/session-133-summary.md and run by hand."
 echo "  4. Anything off this machine: the provenance chain is local-machine-only and UNSIGNED"
-echo "     (S131's disclosed limit, inherited whole, not improved here)."
+echo "     (S131's disclosed limit, inherited whole, not improved here). Concretely — and this is"
+echo "     the cold review's rec 2 — VAJRA_CLAUDE_PROJECTS_DIR redirects where that evidence is"
+echo "     READ FROM, which is how case 5 above builds a passing dispatch out of three printfs."
+echo "     No env var BYPASSES the block; the evidence a handoff is judged against is not signed."
 echo "  A green demo is not a passing delivery — the fidelity verdict lives in"
 echo "  sessions/session-133-review.md."
 echo ""
