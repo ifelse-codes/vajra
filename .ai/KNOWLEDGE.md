@@ -1190,3 +1190,36 @@ live against the real binary in the shell suite. Two different jobs, two differe
 the disposition (S127) and `obeyed-check` (S132). It enforces that someone TYPED a sentence; it
 never judges the sentence. What is new is only that the ESCAPE now leaves a trace where an
 environment variable did not.
+
+## Session 134 — the paid dogfood in chitra (permanent facts)
+
+- **`vajra claude -p ... --output-format stream-json` yields a real `total_cost_usd`; an interactive
+  run does not.** The S77/S78 root cause holds: the on-disk Claude Code transcript carries no cost;
+  `total_cost_usd` rides only the headless `-p` result stream's terminal `type:"result"` line. If a
+  session needs an authoritative dollar figure, it must run headless — that is a run-mode decision
+  with consequences (no approval channel, so it needs a permission flag), not a free upgrade.
+- **A headless `-p` run with no permission flag has every Write/Edit/Bash silently denied.** Vajra
+  warns about exactly this (`should_warn_readonly_headless`); S76 burned a paid call on the wall.
+- **`git status --short` is not a repo fingerprint.** It misses a moved branch head, a stash, and a
+  staged-then-unstaged shuffle. The four-way fingerprint is `git rev-parse HEAD` ·
+  `git ls-files -s | shasum -a 256` · `git stash list` · `git status --porcelain -uall`. S134's
+  BEFORE capture found a pre-existing stash in chitra that `--short` never showed.
+- **chitra renders charts via `./packages/core/node_modules/.bin/tsx` on a `.mts` file importing
+  from `packages/core/src/charts/<name>.ts`.** There are NO per-chart demo scripts — `chitra/scripts/`
+  holds per-SESSION scripts only. `check:catalog` is a docs-package script
+  (`artifacts/chitra-docs/package.json`), not a root script.
+- **Write temp render scripts into a gitignored dir, never the repo root.** chitra's own demo
+  scripts write temp `.mts` files to the root and delete them; a review must not, because a crash
+  mid-run leaves the tree dirty. `chitra/.gitignore` ignores all of `.ai/verify/`.
+- **A cross-repo evidence check is machine-local and must FAIL on absent, never skip.** The renders
+  and fingerprints live outside git by design (the founder's S126 rule). Machine-local +
+  fail-on-absent is honest; machine-local + skip-on-absent is a fake green.
+- **A fixture that mutates a TRACKED file in place is a hazard when the demo script invokes it** —
+  an interrupted demo leaves damaged evidence. Drive the verify script through an env-var path
+  override onto a sandbox copy, and make the final control assert the tracked file was *never
+  written*, not merely restored.
+- **A fixture sandbox must contain every file the verify script reads**, or the whole suite fails on
+  every run and the exit-code half of each defect assertion silently proves nothing.
+- **ANSI escapes break `grep` for a marked label.** `printf "${RED}✗${RESET} %s"` puts a colour
+  reset between the mark and the text, so a pattern like `'✗ the check'` never matches. Strip ANSI
+  (`sed 's/\x1b\[[0-9;]*m//g'`) before grepping a script's own output.
