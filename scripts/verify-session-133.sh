@@ -279,6 +279,24 @@ no_env_var_bypasses() {
   else
     echo "OK: no VAJRA_SKIP_* for this gate is read anywhere in src/"
   fi
+  # rec 2 (cold review) — the ONE environment variable that really does move this gate's verdict,
+  # named here rather than left out of the list: VAJRA_CLAUDE_PROJECTS_DIR redirects where the
+  # provenance evidence is READ FROM (src/dispatch/mod.rs), and this suite's own positive control
+  # (check 5) and demo case 5 use it to build synthetic dispatch evidence. It is S131's disclosed
+  # limit — the on-disk evidence is unsigned and machine-local — inherited whole, not introduced
+  # here. What it CANNOT do is release a session that recorded nothing: with no handoff and no
+  # reason, pointing it anywhere still blocks. Asserted, not asserted-about.
+  local OUT_R code_r
+  OUT_R="$( cd "$TMP" && env VAJRA_CLAUDE_PROJECTS_DIR="$TMP/nonexistent" "$VAJRA" $GATE 133 2>&1 )"; code_r=$?
+  printf '%s\n' "$OUT_R" | grep -E 'verdict:' | sed 's/^/    /'
+  if [ "$code_r" -eq 1 ]; then
+    echo "OK: VAJRA_CLAUDE_PROJECTS_DIR cannot release a session that recorded NOTHING"
+  else
+    echo "FAIL: VAJRA_CLAUDE_PROJECTS_DIR released a session with no handoff and no reason"; rc=1
+  fi
+  echo "DISCLOSED: VAJRA_CLAUDE_PROJECTS_DIR DOES redirect the provenance source, so a handoff can"
+  echo "           be SATISFIED from evidence a caller controls (S131's unsigned-evidence limit,"
+  echo "           inherited). This gate closes the traceless SKIP; it does not sign the evidence."
   # And the mandate block in --advance reads no env var at all — unlike every other gate there.
   if perl -0ne 'exit(($_ =~ /Mandate gate \(S133\).*?\n\n/s and $& =~ /env::var/) ? 1 : 0)' src/cli/next.rs; then
     echo "OK: the --advance mandate block reads no environment variable"
@@ -309,7 +327,11 @@ advance_binds_the_close_path() {
     || { echo "FAIL: the refusal did not come from the Mandate gate"; rc=1; }
   grep -q "neither a provable design-advisor handoff nor a recorded reason" <<<"$OUT" \
     || { echo "FAIL: --advance's refusal message is not the Mandate gate's"; rc=1; }
-  grep -q "There is no \\\\?environment variable for this one\|no \\\\?$" <<<"$OUT" >/dev/null 2>&1 || true
+  # Cold review rec 3: the first draft of this line ended in `|| true` — an assertion that cannot
+  # fail, inside the suite whose whole job is to police exactly that. Made real: --advance's own
+  # refusal must state the no-env-var rule, because that is where a hurried reader looks for one.
+  grep -q "There is no" <<<"$OUT" && grep -q "environment variable for this one" <<<"$OUT" \
+    || { echo "FAIL: --advance's refusal does not state that no env var exists for this gate"; rc=1; }
   # The positive control (S132): the SAME advance, with a recorded reason, gets past THIS gate —
   # so the block above is the mandate's and not a permanent brick.
   printf -- '- design-advisor: skipped — a fixture reason, recorded in the repo\n' \
@@ -478,6 +500,31 @@ fixture_fails_for_the_right_reason() {
   fi
   git -C "$WT" checkout -q -- src/mandate/mod.rs
 
+  # Bypass F — rung 6: make the migration exemption block instead of warn. Bypass A proves rung 5
+  # is load-bearing in one direction only (block -> pass); without this probe a mutation in the
+  # OTHER direction (a legacy session suddenly blocked) would ship green (cold review rec 5).
+  if apply_bypass "$D" "if session >= from_session {" "if true {" \
+     && expect_test_red "$WT" mandate::tests::silence_below_the_threshold_warns_and_names_the_exemption; then
+    echo "OK: making the migration exemption block -> RED (as a test failure)"
+  else
+    echo "FAIL: rung 6 is not load-bearing"; rc=1
+  fi
+  git -C "$WT" checkout -q -- src/mandate/mod.rs
+
+  # Bypass G — rung 1's Malformed arm: read an unreadable handoff as ABSENT, which would let a
+  # recorded reason rescue it. The S69 fail-closed rule, probed rather than asserted (rec 5).
+  if apply_bypass "$D" \
+        "            v.blocked = true;
+            v.cause = Some(MandateCause::HandoffMalformed);" \
+        "            v.blocked = false;
+            v.cause = Some(MandateCause::HandoffMalformed);" \
+     && expect_test_red "$WT" mandate::tests::a_malformed_handoff_fails_closed_not_silently_absent; then
+    echo "OK: reading a malformed handoff as absent -> RED (as a test failure)"
+  else
+    echo "FAIL: the fail-closed rule on a malformed handoff is not load-bearing"; rc=1
+  fi
+  git -C "$WT" checkout -q -- src/mandate/mod.rs
+
   # The other direction (S122): renaming every message string must NOT turn it red — and the
   # control itself must assert its substitutions landed, or a reworded message silently makes it
   # pass for the wrong reason.
@@ -535,14 +582,19 @@ run_check "s131-and-s132-gates-unchanged" exec prior_gates_unchanged
 # --- 11b. nothing else moved: K of 8 at a non-degenerate baseline, not a 9th station ----------------
 # `vajra next --stations` costs ~30s here and >10 minutes inside a worktree (S132, measured), so
 # this reads the LIVE repo and never a clean room.
+# The K recorded at S132's closeout, BEFORE this session existed. Pinned, so "unchanged" means the
+# NUMBER and not merely the shape (cold review rec 4).
+K_BASELINE="8 of 8 stations passed"
 k_of_8_unchanged_and_not_a_ninth_station() {
   local rc=0 SOUT K
   SOUT="$( "$VAJRA" next --stations 132 2>&1 )"
   K="$( grep -oE '[0-9]+ of 8 stations passed' <<<"$SOUT" )"
   echo "session 132: $K"
-  case "$K" in
-    "0 of 8 stations passed"|"") echo "FAIL: DEGENERATE baseline — this check would prove nothing"; rc=1 ;;
-  esac
+  # Cold review rec 4: the first draft accepted any K in 1..8, so "unchanged" covered the
+  # denominator and not the number. Pinned to the value recorded BEFORE this session touched
+  # anything (S132's closeout). A move in EITHER direction fails here now.
+  [ "$K" = "$K_BASELINE" ] \
+    || { echo "FAIL: K moved — baseline was '$K_BASELINE', now '$K'"; rc=1; }
   grep -qE '[0-9]+ of 8 stations passed' <<<"$SOUT" || { echo "FAIL: the counter is no longer K of 8"; rc=1; }
   if grep -ciE '(\[PASSED\]|\[ABSENT\]|\[LEGACY\]) *(mandate|design-advisor)' <<<"$SOUT" | grep -qv '^0$'; then
     echo "FAIL: the mandate appears as a station row"; rc=1
@@ -570,7 +622,21 @@ dogfooded_on_its_own_session() {
 run_check "s133-passes-its-own-gate-by-real-use" exec dogfooded_on_its_own_session
 
 # --- 13. the whole library is green, including the new module --------------------------------------
-run_check "lib-tests-green" exec cargo test -q --lib
+# rec 10 (cold review): `cargo test -q` writes progress dots, and the artifact stopped mid-line —
+# the only evidence of N green tests was an exit code the log did not show. The log now carries
+# cargo's own `test result: ok. N passed` line, and the check FAILS when that line is absent (a
+# run that executes zero tests must not read as green).
+lib_tests_green_and_says_how_many() {
+  local OUT code LINE
+  OUT="$(cargo test --lib 2>&1)"; code=$?
+  printf '%s\n' "$OUT" | grep -E "^running [0-9]+ tests|^test result:" || true
+  [ "$code" -eq 0 ] || { echo "FAIL: cargo test --lib exited $code"; return 1; }
+  LINE="$(printf '%s\n' "$OUT" | grep -m1 -E '^test result: ok\. [0-9]+ passed')"
+  [ -n "$LINE" ] || { echo "FAIL: no 'test result: ok. N passed' line in the output"; return 1; }
+  echo "OK: $LINE"
+  return 0
+}
+run_check "lib-tests-green" exec lib_tests_green_and_says_how_many
 
 # --- 14. still seven top-level commands -------------------------------------------------------------
 # BEHAVIORAL, and labelled so — the same hardcoded-banner grep named since S69.
