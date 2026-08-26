@@ -5,8 +5,18 @@
 **rendering and looking at each one**, and produced both deliverables: the founder's design verdict
 and a measured account of what Vajra's governance actually did.
 
-**Cost: `$1.6103385`, authoritative.** 25 turns, 329s. The S77/S78 receipt arc paid off — a real
-figure from the `-p` result stream, not the honest null the design-advisor predicted was likely.
+**Cost: `$1.6103385`, authoritative.** 25 turns, 329s.
+
+**Said plainly, because the cold reviewer caught me spinning it:** the design-advisor pre-committed
+(rec 20) that this run *must be interactive* and that S77's honest null was therefore the LIKELY
+outcome. **The prediction was not falsified — it was sidestepped.** I changed the run mode to
+headless `-p --output-format stream-json`, which is the only mode that emits an authoritative cost
+at all. The S77/S78 arc does work, and that is real; but the reason a dollar figure exists here is
+a decision I made after the pre-commitment, and reporting it as a prediction that simply did not
+come true is exactly the spin the guardrails forbid. It also quietly changed what "SEEN" means:
+text renders piped into a headless agent's context, rather than a human-visible terminal. That is
+defensible — the renders are the same bytes either way — but it was a decision, and it is declared
+here rather than left implicit.
 
 ---
 
@@ -31,6 +41,23 @@ already-governed project sitting below 133, whose prompts were all written befor
 existed. For Vajra the threshold is a closing window — we are at 134 and every future session is
 above the line. For a project that adopts Vajra at its session 40, it is a **permanent exemption**
 with nothing in the mechanism that ever ends it.
+
+**And it is worse than the mandate alone.** After the cold review, the five chitra read-only
+derivations the design-advisor asked for (rec 6) were finally run and captured. Every one of them
+WARNs, and the station counter is the headline:
+
+    === session 16 — the pipeline team ===
+      — Analyst · Architect · Planner · Coder · QA · Demo-er · Releaser · Reviewer
+      0 of 8
+
+`--check-design 16`: no design significance recorded. `--check-plan 16`: **no `## Plan` section at
+all.** `--check-advice`/`--check-obeyed`: vacuously READY, nothing to check. chitra is set to
+`maturity: L3` — the **strictest** level — and passes **zero of eight stations** while actively
+doing design work. (The surfacing calls exit 0 by design; they bind at `--advance` and at
+`verify-closeout.sh`. That is the intended shape, not a defect — but it means a project can be
+fully governed on paper and running at zero stations, and nothing surfaces that fact unless someone
+goes and asks.) **The governance is installed and unused.** That is a finding about adoption, not
+about chitra: Vajra has one real outside project and it is not being driven by the pipeline.
 
 **The threshold counts the wrong units.** It counts the governed project's session numbers, when
 what it means is "prompts written before this rule existed."
@@ -80,10 +107,22 @@ as obeyed because it *is* what happened, not because the advice caused it.
 
 **And one rec obeyed with a deviation, stated rather than buried.** **rec 14** asked for the manifest
 at `sessions/session-134-artifacts/seen-manifest.tsv`. That exact path is **gitignored**
-(`sessions/session-*-artifacts/*`), so it could never be the *committed* file the rec required. It
-landed one directory up at `sessions/session-134-seen-manifest.tsv` — committed, small, derived,
-which is what the founder's S126 rule actually allows. The advisor was right about the mechanism and
-wrong about the path.
+(`sessions/session-*-artifacts/*`). It landed one directory up at
+`sessions/session-134-seen-manifest.tsv` — committed, small, derived, which is what the founder's
+S126 rule allows. **Correction, from the cold review:** the summary first said that path *"could
+never"* be committed. That was wrong — `.gitignore` lines 41–42 document an explicit un-ignore
+escape and S76 used it four times. The chosen location is still the right one; the reasoning was
+overstated.
+
+**And two `obeyed:` records that were factually wrong when first written**, both caught by the cold
+review and both now corrected rather than argued with:
+- **rec 6** asked for SEVEN read-only chitra derivations. Two had been captured. All seven have now
+  been run and captured — and the missing five turned out to carry the session's second-biggest
+  finding (`0 of 8`, above). An `obeyed:` that quietly covered 2-of-7 would have buried it.
+- **rec 9** asked for a specific `.ai/ROADMAP.md` rename at two named lines. The D1/D2 split had been
+  recorded only in the prompt's `## Design`, while ROADMAP still asserted *"S134's fresh-scaffold
+  dogfood gets the product ready for a real ask"* — a sentence this session's own Q2 declares false.
+  Both lines are now edited.
 
 ---
 
@@ -116,7 +155,8 @@ A dogfood whose findings are all favourable has not been run honestly.
 | | |
 |---|---|
 | **Metered, authoritative (the paid chitra run)** | **`$1.6103385`** |
-| Unmetered Vajra-side subagent tokens | design-advisor **133,297** · fidelity-reviewer + judge (see review) |
+| Unmetered Vajra-side subagent tokens | **421,739** — design-advisor 133,297 · fidelity-reviewer 128,655 · implementation-advisor (judge) 159,787 |
+| **True session total, both kinds named** | `$1.6103385` metered **+ 421,739 unmetered subagent tokens** across 3 dispatches |
 | Vajra-side build cost | interactive, `$0` metered |
 
 S132 recorded ~367k and S133 ~550k unmetered subagent tokens against "$0 metered for build". A
@@ -188,11 +228,59 @@ honest mitigation is that the review quotes each render inline and reasons about
 (`JaFeMaApMaJuJuA`, the zig-zag `│`), which I independently confirmed against the renders myself —
 but that is a human reading a document, not a gate.
 
-**Second-fakest:** `K of 8` was **not** re-derived for chitra, because the read-only station
-derivation for a repo mid-session with an occupied counter would report on someone else's work. The
-station reading Q1's rejected option would have bought is genuinely **not** recovered.
+**Third: the reference language was never opened.** Criterion 4 says the verdict must be tied to
+chitra's `design-reference/`. The paid run judged against the **README's restatement** of the design
+language and never opened `design-reference/mudra-chart.html` or `mudra-dashboard.html` — it only
+ever saw the string `design-reference/` quoted inside README prose. The verdict is good and its
+specific claims check out, but it is a verdict against the documentation of the target, not the
+target. Found by the cold review; disclosed here rather than quietly re-labelled.
+
+**Fourth: a required deliverable was dropped in silence.** The Deliverables asked for the review
+*"presented visually — an interactive HTML deck the founder can look at with the charts IN it"*,
+citing the founder's own recorded preference. The paid run produced a markdown file with fenced
+renders and nothing gated the HTML, so the green survived intact. **Now built** as
+`sessions/session-134-artifacts/mudra-review-deck.html` — but it was built *after* a cold reviewer
+noticed, which is the exact shape the fidelity gate exists to catch, and pretending otherwise would
+waste the catch.
+
+**On `K of 8`:** an earlier draft of this summary said the station reading Q1's rejected option
+would have bought was *"genuinely not recovered"*. That is now **false and corrected** — it was
+recovered, for free, exactly as design-advisor rec 6 said it would be: `vajra next --stations 16`
+reads **0 of 8**. The rejected option cost even less than the `## Design` claimed.
 
 ---
+
+## What the independent judge found (a third role — neither advisor graded itself)
+
+`implementation-advisor` graded all **34** `obeyed:` claims against the diff and the on-disk
+evidence. **32 implemented, 2 mismatch** — and it found a bug in this session's own fixture that the
+fidelity pass had missed.
+
+- **`fidelity-reviewer rec 7` — mismatch.** `.ai/STATE.md` was still wrong in three named ways.
+  Fixed at closeout.
+- **`fidelity-reviewer rec 12` — mismatch.** The token counts were a **circular pointer**: the
+  summary said "see review", the review said "see summary", and the judge's number existed nowhere.
+  Exactly what the rec forbade. Fixed above with real numbers.
+- **The fixture bug, which no rec covered and the cold review did not catch:** inside the fixture's
+  sandbox, `c_manifest_matches_rederived` failed on *every* run because chitra's README was never
+  copied there — so verify exited non-zero regardless of what was planted, and the
+  `[ "$ec" -ne 0 ]` half of each defect assertion **was doing no work**. The per-check greps still
+  bound, so the fixture was not lying, but half of each assertion was decorative. Fixed: the README
+  is now copied in, and the positive control asserts a **clean exit 0** so a later non-zero really
+  is the defect.
+- **A trace inaccuracy the judge volunteered, unprompted:** `## Execution` recorded step 3 against
+  `dca0a85`, but the BEFORE fingerprint is stamped `14:27:39Z` and that commit landed at `14:26:31Z`
+  — the artifact did not exist when the commit was made. Corrected.
+
+**Where the judge said it came closest to a mismatch**, in its own words: `design-advisor rec 13`'s
+sha is "the weakest of the 22 design-advisor citations" (two of its three artefacts live in a file
+that first landed a commit later), and `rec 14`'s changed manifest path is one a stricter judge
+could have called a mismatch outright.
+
+**Three judges in a row have now had no shell** (S133's judge, S134's fidelity-reviewer, S134's
+judge). Every "verify 29/29 · demo all-pass · fixture 10/10" claim in this session was executed only
+by the builder. That is a standing weakness in this repo's review mechanism, not a footnote about
+this session.
 
 ## Three ranked next candidates
 

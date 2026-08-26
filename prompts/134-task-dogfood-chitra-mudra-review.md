@@ -248,17 +248,17 @@ was formed: looked at a fresh render, looked at an existing screenshot, or read 
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
-- step 7 — done: <sha>
-- step 8 — done: <sha>
-- step 9 — done: <sha>
-- step 10 — done: <sha>
-- step 11 — done: <sha>
+- step 1 — done: dca0a85
+- step 2 — done: dca0a85
+- step 3 — done: 9833b31
+- step 4 — done: 9833b31
+- step 5 — done: 9833b31
+- step 6 — done: 9a27c59
+- step 7 — done: 9833b31
+- step 8 — done: 9833b31
+- step 9 — done: a9e3aaf
+- step 10 — done: 9a27c59
+- step 11 — done: 87d54e2
 
 ## Advice (every recommendation from this session's advisors, answered)
 
@@ -273,10 +273,10 @@ judgment from a role that is not the one that gave the advice.)
 - design-advisor rec 3 — obeyed: dca0a85
 - design-advisor rec 4 — obeyed: dca0a85
 - design-advisor rec 5 — obeyed: dca0a85
-- design-advisor rec 6 — obeyed: dca0a85
+- design-advisor rec 6 — obeyed: 9a27c59
 - design-advisor rec 7 — obeyed: dca0a85
 - design-advisor rec 8 — obeyed: dca0a85
-- design-advisor rec 9 — obeyed: dca0a85
+- design-advisor rec 9 — obeyed: 9a27c59
 - design-advisor rec 10 — obeyed: 9833b31
 - design-advisor rec 11 — obeyed: dca0a85
 - design-advisor rec 12 — obeyed: 9833b31
@@ -290,6 +290,21 @@ judgment from a role that is not the one that gave the advice.)
 - design-advisor rec 20 — obeyed: 9833b31
 - design-advisor rec 21 — obeyed: dca0a85
 - design-advisor rec 22 — obeyed: 9833b31
+
+**fidelity-reviewer — 12 recommendations from the cold pass (ACCEPT, 8-of-15 SHIPPED).**
+
+- fidelity-reviewer rec 1 — obeyed: 9a27c59
+- fidelity-reviewer rec 2 — obeyed: 9a27c59
+- fidelity-reviewer rec 3 — obeyed: 9a27c59
+- fidelity-reviewer rec 4 — obeyed: 9a27c59
+- fidelity-reviewer rec 5 — obeyed: 9a27c59
+- fidelity-reviewer rec 6 — obeyed: 9a27c59
+- fidelity-reviewer rec 7 — obeyed: 9a27c59
+- fidelity-reviewer rec 8 — obeyed: 9a27c59
+- fidelity-reviewer rec 9 — obeyed: 9a27c59
+- fidelity-reviewer rec 10 — obeyed: 9a27c59
+- fidelity-reviewer rec 11 — obeyed: 9a27c59
+- fidelity-reviewer rec 12 — obeyed: 9a27c59
 
 ## Design
 
