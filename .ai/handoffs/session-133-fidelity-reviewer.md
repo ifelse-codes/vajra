@@ -2,8 +2,8 @@
 role: fidelity-reviewer
 session: 133
 agent: claude-code-subagent (verified: toolu_01Snmu6n4gJuTU13Ewb74oSh)
-source-sha: 872687f912ad6f54d6c6c057d9bd6377c18139cfed783db0a1db98d46565320f
-captured: 2026-08-26T06:03:22Z
+source-sha: 22d214de7d4ca28f6858fff0cceb32ddee6b2f9950c4b7d53f30f213e776547a
+captured: 2026-08-26T06:11:04Z
 cost_usd: null
 ---
 
@@ -73,8 +73,8 @@ it owns and passes. That is disclosed in `MANDATE_FLOOR`, in `DECISION-007`, and
 
 - **Marker grammar composition**: I found no way to slip a SILENT pass through. Blockquotes, HTML
   comments and backticked examples all fail closed. One undisclosed hole: `skip_fenced` only knows
-  ``` and `~~~`, so a 4-space-indented markdown code block containing the marker counts as a real
-  record.
+  triple-backtick and tilde fences, so a 4-space-indented markdown code block containing the
+  marker counts as a real record.
 - **Ladder vs. implementation**: the six rungs in the module header agree with `mandate_gate` rung
   for rung, including the decided rung-1-over-rung-3 precedence.
 - **Rebinding to `SkipDefect`/`MandateCause`**: this did NOT remove the tests' teeth. The variants
@@ -128,5 +128,5 @@ rec 9 — Write the default-dodge counting rule as a runnable command in the sum
 rec 10 — Make the `lib-tests-green` artifact carry cargo's own `test result: ok. N passed` line; today the log stops mid-progress and the only evidence for 427 green tests is an exit code the artifact does not show.
 
 ## Handoff Delta
-- `+` new: first fidelity-reviewer handoff for this session (11873 bytes of findings)
-- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
+- `~` re-run: fidelity-reviewer handoff replaced (11892 bytes now vs 11598 bytes prior)
+- prior stage: this session's earlier fidelity-reviewer handoff

@@ -145,8 +145,8 @@ no longer possible; a reasoned skip always is.
 - step 6 — done: 73267da
 - step 7 — done: 59b72a7
 - step 8 — done: 7325456
-- step 9 — done: <sha>
-- step 10 — done: <sha>
+- step 9 — done: 741d2f0
+- step 10 — done: 593e479
 
 ## Advice (every recommendation from this session's advisors, answered)
 
@@ -169,11 +169,28 @@ From `.ai/handoffs/session-133-design-advisor.md` — a real dispatch, provenanc
 - design-advisor rec 14 — deferred: .ai/ROADMAP.md
 - design-advisor rec 15 — obeyed: f85b5ad
 
+From `.ai/handoffs/session-133-fidelity-reviewer.md` — the independent cold pass, provenance
+`verified: toolu_01Snmu6n4gJuTU13Ewb74oSh`, ACCEPT with 10 recommendations.
+
+- fidelity-reviewer rec 1 — obeyed: 593e479
+- fidelity-reviewer rec 2 — obeyed: 2169c13
+- fidelity-reviewer rec 3 — obeyed: 3bc6759
+- fidelity-reviewer rec 4 — obeyed: 3bc6759
+- fidelity-reviewer rec 5 — obeyed: 3bc6759
+- fidelity-reviewer rec 6 — obeyed: a2c94a1
+- fidelity-reviewer rec 7 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 8 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 9 — obeyed: 593e479
+- fidelity-reviewer rec 10 — obeyed: 3bc6759
+
 rec 14 is the one DEFERRAL, and the reason is recorded rather than left implicit: comparing the
 handoff's `captured:` timestamp against the session's first code commit is a SECOND story (max 1
 story), and "which commit counts as code" is a judgement the binary should not guess. Filed as
 `.ai/ROADMAP.md` F2f, named in the summary as this design's honest residual, and carried into
-S134's intake rather than dropped.
+S134's intake rather than dropped. The cold review's rec 7 (probe the `maturity: L1` escape live)
+and rec 8 (S134 must land as a CALL SITE on `mandate`, and close or record F2e) are deferred the
+same way — both are S134's work by construction, and both are recorded at `.ai/ROADMAP.md` (F2g,
+F2e) rather than carried in prose.
 
 ## Design
 
