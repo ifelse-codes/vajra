@@ -1,8 +1,9 @@
 # Session 134 — PAID DOGFOOD: a real governed session in chitra, reviewing the mudra charts
 
 > **Status:** APPROVED — founder, in chat at the S133 closeout. This REPLACES the previously-written
-> S134 (`implementation-advisor` mandatory), which is **deferred, not dropped**: it is an hour's
-> work, it will keep, and its brief survives in this file's Non-goals.
+> S134 (`implementation-advisor` mandatory), which is **deferred to S135 — LOCKED by the founder in
+> the same conversation, not merely "not dropped"**: it is an hour's work, it will keep, and its
+> brief survives in this file's Non-goals ready to be restored.
 >
 > **The founder's own framing:** run it on **chitra**, and the task inside chitra is *"take all the
 > new charts implemented in mudra design and review them and see them, and then tell me if it is
@@ -115,7 +116,11 @@ was formed: looked at a fresh render, looked at an existing screenshot, or read 
 - `scripts/verify-session-134.sh` + `scripts/demo-session-134.sh` in **Vajra**, both exit 0, printed
   check-class tally, asserting on the REAL evidence this session produced (the receipt, the review
   artifact, the recorded gate outcomes) — not on fixtures.
-- `sessions/session-134-summary.md` + exactly 3 ranked next candidates.
+- `sessions/session-134-summary.md` + exactly 3 ranked next candidates. **S135 is already LOCKED by
+  the founder** — `implementation-advisor` mandatory, the brief in this file's Non-goals. Present
+  three anyway, and say plainly whether anything this dogfood found should outrank it. A locked
+  next session is a default, not a gag order: if the run surfaces something that matters more,
+  the summary's job is to say so and let the founder decide.
 
 ## Acceptance (testable, EARS-style)
 
@@ -202,11 +207,19 @@ carries an independent judgment from a role that is not the one that gave the ad
 
 ## Non-goals (not built this session)
 
-- **Not `implementation-advisor` mandatory** — deferred from this slot, not dropped. Its brief was
-  written at the S133 closeout and should be restored when the founder wants it: make it the fleet's
-  third mandatory role **as a CALL SITE on `mandate`** (a second `*_gate` wrapper and a table entry,
-  never a third copy of the ladder — it is the falsification test for S133's genericity claim),
-  decide `.ai/ROADMAP.md` **F2e**, and probe the `maturity: L1` escape (**F2g**) live.
+- **Not `implementation-advisor` mandatory — that is S135, LOCKED by the founder**, immediately
+  after this dogfood. Its brief was written at the S133 closeout and is preserved here verbatim so
+  restoring it costs nothing: make it the fleet's third mandatory role **as a CALL SITE on
+  `mandate`** (a second `*_gate` wrapper and a table entry, never a third copy of the ladder — it
+  is the falsification test for S133's claim that the ladder is generic; if S135 finds itself
+  editing `mandate_gate`, `parse_skip_marker` or `classify_marker_value`, the genericity was
+  decoration and that is the session's most interesting finding). It must also decide
+  `.ai/ROADMAP.md` **F2e** — one ladder for all three mandatory roles, or two, with a reason on the
+  record — and probe the `maturity: L1` escape (**F2g**) live, since that is the last
+  agent-reachable way to make these gates advisory.
+  **What this session owes S135:** if the dogfood shows the mandate helping, getting in the way, or
+  sitting inert on real outside work, S135's design has to answer for it. Write that finding down
+  in terms S135 can act on, not as a general impression.
 - **Not F2f** (the rubber-stamp detector). Still the highest-value open governance item.
 - **Not fixing chitra.** This session REVIEWS chitra's charts. Any fix it proposes is chitra's own
   next session's work, and proposing is not doing. If a fix is irresistible, write it down and stop.
