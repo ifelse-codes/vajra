@@ -247,6 +247,14 @@ fn classify_marker_value(role: &str, value: &str) -> SkipMarker {
 /// at line-start, outside a fence, would satisfy the gate.
 pub fn parse_skip_marker(prompt: &str, role: &str) -> SkipMarker {
     for line in skip_fenced(prompt) {
+        // Cold review rec 6: `advice::skip_fenced` only knows ``` and ~~~ fences, so a marker
+        // inside a 4-space-INDENTED markdown code block would otherwise read as a real record.
+        // Markdown's own rule (4 spaces or one tab opens a code block) is reused rather than
+        // invented, and it costs nothing legitimate: a real marker is a top-level or once-nested
+        // list item, never indented four spaces.
+        if is_indented_code(line) {
+            continue;
+        }
         let s = strip_decoration(line);
         let lower = s.to_ascii_lowercase();
         let Some(rest) = lower.strip_prefix(role) else {
@@ -260,6 +268,12 @@ pub fn parse_skip_marker(prompt: &str, role: &str) -> SkipMarker {
         return classify_marker_value(role, value);
     }
     SkipMarker::Absent
+}
+
+/// Markdown's indented-code-block rule: four leading spaces, or one leading tab, opens a code
+/// block. A line inside one is an EXAMPLE, never a record.
+fn is_indented_code(line: &str) -> bool {
+    line.starts_with("    ") || line.starts_with('\t')
 }
 
 /// The Mandate gate (S133), generic over the role it makes mandatory. Walks the ladder in the
@@ -510,6 +524,31 @@ mod tests {
             parse_skip_marker(prompt, "design-advisor"),
             SkipMarker::Absent
         );
+    }
+
+    #[test]
+    fn an_indented_code_block_is_not_a_record() {
+        // Cold review rec 6. `skip_fenced` only knows ``` and ~~~; markdown's OTHER code block is
+        // four spaces, and a marker inside one is an example.
+        for prompt in [
+            "## Design\n\n    design-advisor: skipped — this is only an EXAMPLE\n",
+            "## Design\n\n\tdesign-advisor: skipped — tab-indented EXAMPLE\n",
+            "## Design\n\n    - design-advisor: skipped — an indented list-shaped EXAMPLE\n",
+        ] {
+            assert_eq!(
+                parse_skip_marker(prompt, "design-advisor"),
+                SkipMarker::Absent,
+                "{prompt:?} was read as a record"
+            );
+        }
+        // A once-nested list item is NOT indented code and still counts.
+        assert!(matches!(
+            parse_skip_marker(
+                "  - design-advisor: skipped — nested but real\n",
+                "design-advisor"
+            ),
+            SkipMarker::Recorded(_)
+        ));
     }
 
     #[test]
