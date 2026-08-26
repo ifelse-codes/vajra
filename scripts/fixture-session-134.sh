@@ -17,14 +17,19 @@ bad() { printf "${RED}✗${RESET} %s\n" "$1"; FAIL=$((FAIL+1)); }
 head_(){ printf "\n${BOLD}══ %s ══${RESET}\n" "$1"; }
 
 REAL_CHITRA="${VAJRA_S134_CHITRA_ROOT:-/Users/suman/playground/chitra}"
-MANIFEST="sessions/session-134-seen-manifest.tsv"
+REAL_MANIFEST="sessions/session-134-seen-manifest.tsv"
+# Every mutation below happens to a SANDBOX COPY. The tracked manifest is opened read-only, once.
+MANIFEST=""  # set to the sandbox copy after $WORK exists
 
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/vajra-s134-fixture-XXXXXX")
-cleanup() { cp "$WORK/manifest.orig" "$MANIFEST" 2>/dev/null || true; rm -rf "$WORK"; }
+cleanup() { rm -rf "$WORK"; }
 trap cleanup EXIT
 
-[ -s "$MANIFEST" ] || { echo "no manifest to falsify — cannot evaluate, FAIL (S69)"; exit 1; }
-cp "$MANIFEST" "$WORK/manifest.orig"
+[ -s "$REAL_MANIFEST" ] || { echo "no manifest to falsify — cannot evaluate, FAIL (S69)"; exit 1; }
+REAL_SHA=$(shasum -a 256 "$REAL_MANIFEST" | cut -d' ' -f1)
+cp "$REAL_MANIFEST" "$WORK/manifest.orig"
+MANIFEST="$WORK/manifest.live"
+cp "$WORK/manifest.orig" "$MANIFEST"
 
 # A sandbox chitra: real evidence files copied out, so a mutation cannot touch the real repo.
 SANDBOX="$WORK/chitra"
@@ -32,7 +37,7 @@ while IFS=$'\t' read -r fam chart method path sha cap src; do
   [ -n "${path:-}" ] || continue
   mkdir -p "$SANDBOX/$(dirname "$path")"
   cp "$REAL_CHITRA/$path" "$SANDBOX/$path" 2>/dev/null || true
-done < <(tail -n +2 "$MANIFEST")
+done < <(tail -n +2 "$REAL_MANIFEST")
 # The fingerprints/gate-log live in the repo and are untouched by these fixtures; only the
 # chitra-side evidence is sandboxed, so a RED here can only come from the manifest checks.
 mkdir -p "$SANDBOX/sessions"
@@ -42,7 +47,7 @@ cp "$REAL_CHITRA/sessions/mudra-chart-review-2026-08-26.md" "$SANDBOX/sessions/"
 # like `✗ the check` never matches the raw bytes. (Found by this fixture's own positive control —
 # it reported a broken harness rather than a silent all-green, which is the point of having one.)
 run_verify() {
-  VAJRA_S134_CHITRA_ROOT="$SANDBOX" bash scripts/verify-session-134.sh 2>&1 \
+  VAJRA_S134_CHITRA_ROOT="$SANDBOX" VAJRA_S134_MANIFEST="$MANIFEST" bash scripts/verify-session-134.sh 2>&1 \
     | sed 's/\x1b\[[0-9;]*m//g' >"$WORK/out.txt"
   local ec=${PIPESTATUS[0]}
   echo "$ec"
@@ -151,11 +156,11 @@ fi
 cp "$WORK/manifest.orig" "$MANIFEST"
 
 # ── restoration control ──────────────────────────────────────────────────────
-head_ "restoration control — the manifest is byte-identical to where we started"
-if cmp -s "$MANIFEST" "$WORK/manifest.orig"; then
-  ok "the real manifest was restored exactly (the fixture left no residue)"
+head_ "untouched control — the TRACKED manifest was never written at all"
+if [ "$(shasum -a 256 "$REAL_MANIFEST" | cut -d' ' -f1)" = "$REAL_SHA" ]; then
+  ok "the tracked manifest still hashes to its pre-fixture value (never mutated, not merely restored)"
 else
-  bad "the manifest was NOT restored — this fixture damaged real evidence"
+  bad "the TRACKED manifest changed — this fixture damaged real evidence"
 fi
 
 printf "\n${BOLD}%d passed, %d failed${RESET}\n" "$PASS" "$FAIL"

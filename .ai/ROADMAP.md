@@ -202,7 +202,14 @@ proven + shipped." Deadline: **≈ 2027-01** (6-month founder proof window).
 **Rung 3, explicit founder call at the S130 closeout: PUSHED BACK past S134.** Not code-closeable —
 it's a literal multi-day elapsed-time run the founder owns (S103 pivot: "the founder runs the long
 test himself"), not a ~2h session deliverable. S131–S134 get the product ready for it (fleet made
-real, compression decided, a fresh-scaffold dogfood run); the ladder run itself is not scheduled.
+real, compression decided, a dogfood run); the ladder run itself is not scheduled.
+  **S134 SPLIT the dogfood item in two** (its `## Design` Q2, decided with the loser's reason):
+  **D1 — governed-real-work dogfood: SATISFIED at S134** (`$1.6103385`, a real paid run in chitra,
+  an already-Vajra-governed project). **D2 — fresh-scaffold first-contact dogfood: STILL
+  OUTSTANDING and owns its own session** — chitra runs the OLD 55-line constitution with 4 of 9
+  roles and 7 of 12 audits, so it structurally cannot exercise the S133 mandate (threshold 133 >
+  chitra's 16). `stranger-check.sh` and `scaffold-drift.sh` cover D2's free half; what remains is a
+  paid run driven to a CLOSE under two mandatory roles.
 
 - **Guards ON for every ladder run** (`publish_guard`/`commit_guard` armed) — autopilot-trust demos
   need the real teeth; this also retires the audit's "teeth off in own house" finding.
@@ -657,8 +664,10 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
 - **A1 — one outside user** *(no code, has lead time)* — **PUSHED BACK past S134, explicit founder
   call at the S130 closeout.** Not code-closeable: no session can make a stranger star, fork, or
   file an issue. 0 stars / 0 issues / 19 downloads after 57+ days public, unchanged by S128/S129,
-  which both fixed the front door and moved nothing. S134's fresh-scaffold dogfood gets the product
-  ready for a real ask; the ask itself, and the number moving, is not an S131–S134 deliverable.
+  which both fixed the front door and moved nothing. **CORRECTED at S134:** S134 was **D1**
+  (governed real work), not the fresh-scaffold run — **D2 is still outstanding**, so the product is
+  NOT yet demonstrated ready for a real ask by a paid run to a close. The ask itself, and the
+  number moving, remains outside the S131–S134 deliverables.
 
 **🧊 Frozen machinery — pull ONLY when a ladder run breaks it:**
 - **Coder-marker fix** (S97 — likeliest first pull; Rung 2 will demand it): *agents write the

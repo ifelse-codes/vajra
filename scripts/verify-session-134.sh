@@ -14,7 +14,10 @@ cd "$ROOT"
 
 CHITRA="${VAJRA_S134_CHITRA_ROOT:-/Users/suman/playground/chitra}"
 ART="sessions/session-134-artifacts"
-MANIFEST="sessions/session-134-seen-manifest.tsv"
+# The fixture points this at a sandbox copy so it NEVER mutates the tracked manifest in place
+# (cold review rec 11: demo-session-134.sh invokes the fixture, so an interrupted demo used to be
+# able to leave damaged tracked evidence behind).
+MANIFEST="${VAJRA_S134_MANIFEST:-sessions/session-134-seen-manifest.tsv}"
 GL="$ART/gate-log"
 
 GREEN="\033[32m"; RED="\033[31m"; DIM="\033[2m"; BOLD="\033[1m"; RESET="\033[0m"
@@ -56,8 +59,22 @@ PY
 }
 chk exec "the receipt carries a REAL authoritative total_cost_usd > 0 (not S77's honest null)" c_cost_real
 
-c_binary_recorded() { grep -q 'f622648d8ed6dab8' "$ART/binary-provenance.txt" 2>/dev/null; }
-chk bytes "the vajra binary used is recorded by sha256 (installed release == repo build)" c_binary_recorded
+# The cold fidelity reviewer named the previous version of this check as S134's FAKEST GREEN, and
+# it was right: it grepped a hardcoded literal in a file the agent had typed by hand (the file even
+# carried an unexpanded `$(which vajra)`). Delete the whole paid run, type one file, green. This
+# version RECOMPUTES the hash of the binary on PATH right now and compares it to the recorded value
+# — no literal appears in this script at all.
+c_binary_recorded() {
+  local f="$ART/binary-provenance.txt" rec_i rec_r live
+  [ -s "$f" ] || return 1
+  grep -q '\$(' "$f" && { echo "    unexpanded shell substitution in $f — hand-typed, not captured" >&2; return 1; }
+  rec_i=$(awk -F': ' '/^sha256_installed:/{print $2}' "$f")
+  rec_r=$(awk -F': ' '/^sha256_repo_build:/{print $2}' "$f")
+  [ -n "$rec_i" ] && [ "$rec_i" = "$rec_r" ] || return 1
+  live=$(shasum -a 256 "$(command -v vajra)" 2>/dev/null | cut -d' ' -f1)
+  [ -n "$live" ] && [ "$live" = "$rec_i" ]
+}
+chk exec "the vajra binary on PATH re-hashes to the recorded sha (recomputed live, no literal)" c_binary_recorded
 
 # ─────────────────────────────────────────────────────────────────────────────
 head_ "criterion 6 — chitra's in-flight state was NOT disturbed"
@@ -100,6 +117,19 @@ chk bytes "seen-manifest.tsv exists and is non-empty" c_manifest_exists
 c_manifest_floor() { [ "$(tail -n +2 "$MANIFEST" | grep -c .)" -ge 7 ]; }
 chk exec "manifest carries at least 7 rows (5 merged locked charts + 2 in flight)" c_manifest_floor
 
+# Criterion 14 asks for EQUALITY against the live re-derived list, not merely a floor (cold review
+# rec 3). Re-derive the locked family count from chitra's README right now and bind to it.
+c_manifest_matches_rederived() {
+  local readme="$CHITRA/packages/core/README.md" derived rows
+  [ -f "$readme" ] || return 1
+  derived=$(grep -c '^### LOCKED:' "$readme")
+  [ "$derived" -gt 0 ] || return 1
+  rows=$(awk -F'\t' 'NR>1 && $1!="in-flight" && $1!="unlocked-control" && NF>0 {print $1}' "$MANIFEST" | sort -u | grep -c .)
+  printf "    ${DIM}(README declares %d LOCKED families; manifest covers %d)${RESET}\n" "$derived" "$rows"
+  [ "$rows" -eq "$derived" ]
+}
+chk exec "manifest's locked-family count EQUALS the count re-derived live from chitra's README" c_manifest_matches_rederived
+
 # `method` comes from a CLOSED vocabulary. Any other word FAILS — it does not warn.
 c_method_vocab() {
   local bad_rows
@@ -125,14 +155,23 @@ c_evidence_bytes() {
 chk bytes "every evidence file exists and its sha256 recomputes equal" c_evidence_bytes
 
 # The stale-screenshot tooth (rec 15): evidence must not PREDATE the code it claims to show.
+# DORMANT-TOOTH DISCLOSURE (cold review rec 2): on THIS session's manifest every row is
+# `fresh-render-terminal`, so the stale-screenshot branch evaluates ZERO rows and would be green
+# even if deleted. That is stated here rather than hidden, and the check reports how many rows it
+# actually examined so a reader can see the difference between "no violations" and "nothing tested".
+# The fixture's synthetic row is what genuinely exercises it.
 c_no_stale_evidence() {
-  local rc=0
+  local rc=0 seen=0
   while IFS=$'\t' read -r fam chart method path sha cap src; do
     [ -n "${cap:-}" ] || continue
-    if [ "$method" = "screenshot-existing" ] && [[ "$cap" < "$src" ]]; then
+    [ "$method" = "screenshot-existing" ] || continue
+    seen=$((seen+1))
+    if [[ "$cap" < "$src" ]]; then
       echo "    STALE: $chart captured $cap but source changed $src" >&2; rc=1
     fi
   done < <(tail -n +2 "$MANIFEST")
+  printf "    ${DIM}(stale-screenshot rows evaluated: %d — every render this session is fresh, so the\n" "$seen"
+  printf "     tooth is DORMANT here and is exercised only by fixture-session-134.sh defect 2)${RESET}\n"
   return $rc
 }
 chk exec "no screenshot-existing row is older than the source it claims to show" c_no_stale_evidence
