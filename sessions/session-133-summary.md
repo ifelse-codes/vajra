@@ -222,3 +222,9 @@ So S134 has two audiences and owes both a real answer: the design verdict for th
 dogfood measurement for Vajra. Brief:
 `prompts/134-task-dogfood-chitra-mudra-review.md`. Option **A**'s brief was not discarded — it
 survives in full inside that prompt's Non-goals, so restoring it costs nothing.
+
+**And the founder locked the slot after it: S135 = `implementation-advisor` mandatory.** That is
+worth writing down rather than leaving as "deferred", because deferred is how items quietly become
+never — the paid dogfood this session hands to S134 had been deferred for nine sessions. The
+sequence is now **S134 dogfood → S135 implementation-advisor**, and S134's brief records what it
+owes S135: the first evidence about S133's mandate that this repo did not manufacture.

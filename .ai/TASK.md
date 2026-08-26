@@ -37,6 +37,11 @@ good) and what Vajra's governance actually did during a real piece of outside wo
 session — tested only by fixtures this repo wrote. **`implementation-advisor` mandatory is
 deferred, not dropped**; its full brief survives in the new prompt's Non-goals.
 
+**Then S135, LOCKED by the founder in the same conversation:** `implementation-advisor` becomes the
+fleet's third mandatory role, as a CALL SITE on `mandate` — never a third copy of the ladder. It
+also decides ROADMAP **F2e** and probes **F2g** live. S134 owes it one input: what S133's mandate
+actually did on real outside work.
+
 **The guardrail that matters:** chitra is mid-session-16 with uncommitted work. S134 must not
 disturb it — baseline `git status --short` before, diff after, and obey chitra's own constitution
 inside chitra.

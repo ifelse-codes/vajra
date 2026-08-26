@@ -70,7 +70,11 @@
 - **The guardrail that matters most:** chitra is mid-session-16 **with uncommitted work**. S134 must
   not disturb it — baseline `git status --short` before, diff after — and must obey chitra's own
   constitution inside chitra, never import Vajra's.
-- **Not this session:** `implementation-advisor` mandatory (its brief is preserved), F2f (the
+- **The sequence after it is LOCKED, not open:** **S135 = `implementation-advisor` mandatory**, as a
+  CALL SITE on `mandate` — founder's call in the same conversation that picked the dogfood. S134
+  owes it one input: what S133's mandate actually did on real outside work.
+- **Not this session:** `implementation-advisor` mandatory (**that is S135, locked**; its brief is
+  preserved verbatim in S134's Non-goals), F2f (the
   rubber-stamp detector, still the highest-value open governance item), fixing chitra (this session
   REVIEWS; proposing is not doing), the other seven roles, compression, F2/F2a/F2b/F2c, the fourth
   fork.
