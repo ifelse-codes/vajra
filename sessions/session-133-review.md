@@ -104,3 +104,5 @@ inferred attribution from commit messages and ordering. It states that its evide
 rather than "verified", and that a session wanting the stronger claim should re-run the 22 against
 real diffs with a Bash-enabled judge. That limit is the S132 ceiling one notch lower than usual and
 is recorded here rather than in a footnote.
+
+**Review-Inputs-SHA:** dd25ad4cbbcb42a1fa39a5fe2ac8d6fa9c0decdaf4d182114af021a0ddd70df4
