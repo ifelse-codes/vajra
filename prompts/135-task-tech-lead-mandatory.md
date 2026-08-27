@@ -14,7 +14,33 @@
 
 ## Type
 
-CODE. Max 2 assumptions, 2 retries, 1 story, ~2h, new chat. One story: **a role that no session can
+**CODE — by explicit founder override of the Ground Truth rule, decided in chat at the S134
+closeout.** `135 % 5 == 0`, so the constitution makes this a mandatory NO-CODE Ground Truth session
+and the hooks enforce it. The founder converted it to a CODE session, and **decided that this
+cycle's Ground Truth is SKIPPED entirely rather than deferred — the next GT is S140.**
+
+**This is the first skipped Ground Truth in the project's history.** It is recorded here as a
+DECISION, not left to look like drift, so no future audit has to guess. The founder's reason:
+**S134 already did most of a review session's work** — it audited the fleet, counted every dispatch
+in the repo's history, found two structural holes, and corrected a 45× cost error, which is more
+direction-checking than a typical GT produces.
+
+**The concern was raised and overruled, and both halves belong on the record:** GT is the only
+instrument that asks *are we building the right thing* rather than *did we follow our own rules*,
+and S140 is five sessions away. If S135–S139 drift, nothing is scheduled to catch it.
+
+**To run this session you MUST launch with the founder waiver:**
+
+    VAJRA_GT_WAIVER=135 vajra claude
+
+Without it the pre-write hook refuses every edit under `src/` and the pre-bash hook refuses every
+commit. The waiver is founder-held — set in the LAUNCH environment, which the agent cannot set for
+itself mid-session — and is scoped to this one session number, so a blanket `=1` or a stale number
+does nothing. It shipped in S134's closeout **deliberately**, rather than as S135's own first act:
+a Ground Truth session that disables its own Ground Truth enforcement is precisely the self-granted
+jurisdiction this repo keeps writing findings about.
+
+Max 2 assumptions, 2 retries, 1 story, ~2h, new chat. One story: **a role that no session can
 start without, which decides which of the crew this task needs and what each of them may spend.**
 
 ## Why this session — the evidence that forced it
@@ -245,6 +271,9 @@ carries an independent judgment from a role that is not the one that gave the ad
 
 ## Guardrails
 
+- **Launch with `VAJRA_GT_WAIVER=135`** or every code edit and every commit is blocked. See `## Type`.
+- **The GT skip is a one-cycle founder decision, not a new default.** The every-5th cadence resumes
+  at **S140**. A session that reads this file must not treat the skip as precedent.
 - Un-forgeable commit marker on every commit, session number 135. Max 3 files per atomic commit.
 - **chitra has its own constitution and its own hooks** — read `chitra/.ai/` and obey chitra's rules
   inside chitra. Do not import Vajra's. Do not disturb its in-flight work.
