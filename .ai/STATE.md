@@ -105,9 +105,10 @@ role has a real handoff).
 - **S120: $0 (NO-CODE GT). S124: $3.2984944 authoritative. S126: $4.4482 authoritative.**
 - **S128–S133: $0 metered for build** (interactive). **S134: $1.6103385 AUTHORITATIVE** (chitra
   dogfood) + ~19.2M raw subagent tokens across 3 dispatches.
-- **S135: $0 metered for build** (interactive) — **2,540,174 RAW subagent tokens** across 4 dispatches
+- **S135: $0 metered for build** (interactive) — **4,183,839 RAW subagent tokens** across 5 dispatches
   (design-advisor 155,319 · tech-lead 13,194 · implementation-advisor 367,795 · fidelity-reviewer
-  pass 1 2,003,866; pass 2 adds more — the closing `--crew-cost 135` is authoritative). The
-  named-files discipline held per-session dispatch cost ~8× below S134. **Phase 1b (all-nine)
-  estimated ~4–5M raw/session** — roughly 4 all-nine sessions/month under the $20 plan's ~19M cap.
+  pass 1 2,003,866 · pass 2 1,643,665) — the authoritative closing `--crew-cost 135`. The named-files
+  discipline held per-session cost ~4.6× below S134 DESPITE running more dispatches. **Phase 1b
+  (all-nine) estimated ~4–5M raw/session** — roughly 4 all-nine sessions/month under the $20 plan's
+  ~19M cap.
 - Cumulative: **~$92.8 + S76 (unknown, ≤ ~$26.6) + S111–S135 subagents (unknown, growing).**

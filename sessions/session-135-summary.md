@@ -53,7 +53,8 @@ From `vajra next --crew-cost 135`, read off the on-disk transcripts (the files `
 | `tech-lead` | 13,194 | (no self-budget) |
 | `implementation-advisor` | 367,795 | 123% of 300K — mild overrun |
 | `fidelity-reviewer` (pass 1) | 2,003,866 | 501% of 400K — big overrun |
-| **TOTAL (4 dispatches)** | **2,540,174** | |
+| `fidelity-reviewer` (pass 2) | 1,643,665 | 411% of 400K — big overrun |
+| **TOTAL (5 dispatches)** | **4,183,839** | authoritative closing `--crew-cost 135` |
 
 **The overruns are FINDINGS, not offences** (the budget is an instruction, not a fence): the
 fidelity-reviewer's 400K budget was simply wrong — a cold review that reads ~10 named files and
@@ -65,8 +66,9 @@ is the instrument S134 lacked. (Pass 2 adds more; the closing `--crew-cost` is t
 figure.)
 
 **The headline comparison:** S134 = 19,192,697 raw across 3 broad "read the whole repo" dispatches
-(and hit the monthly cap). S135 = ~2.5M raw across 4 named-files dispatches — an **~8× per-session
-reduction** from tight briefs alone. This is the lever that makes phase 1b affordable.
+(and hit the monthly cap). S135 = **4,183,839 raw across 5 named-files dispatches** (two of them full
+cold-review passes) — a **~4.6× per-session reduction** despite running MORE dispatches, from tight
+briefs alone. This is the lever that makes phase 1b affordable.
 
 ## Q3 — what phase 1b (the all-nine observation) would cost
 
