@@ -142,11 +142,18 @@ fn parse_crew_row(line: &str) -> Option<Result<CrewDecision, (String, CrewRowDef
     let rest = s[s.len() - rest.len()..].trim();
 
     let parts: Vec<&str> = rest.splitn(4, ['—', '–']).map(str::trim).collect();
-    // No field separator at all → this is not a crew RECORD, it is prose or a heading that merely
-    // begins with the word `crew` (e.g. a `## Crew decision` heading, decoration-stripped). A real
-    // record always carries the `—`-separated fields, so absence of any separator means "not a row",
-    // never a malformed row that would falsely block.
-    if parts.len() < 2 {
+    let role = parts[0].to_string();
+    let is_specialist = specialist_roles().contains(&role.as_str());
+    // A line is only a crew RECORD when its first field names a real specialist. A heading or prose
+    // that merely begins with the word `crew` — `## Crew decision — session 135`, decoration- and
+    // prefix-stripped to `decision — session 135` — names no specialist and is NOT a record, never a
+    // malformed row that would falsely block. But a FULL four-field line naming a NON-specialist
+    // (`crew architect …`, `crew tech-lead …` — a station name or a typo) IS a real attempt at a
+    // role line, and is flagged as UnknownRole rather than ignored.
+    if !is_specialist {
+        if parts.len() == 4 && !role.is_empty() {
+            return Some(Err((role.clone(), CrewRowDefect::UnknownRole(role))));
+        }
         return None;
     }
     if parts.len() < 4 {
@@ -154,13 +161,6 @@ fn parse_crew_row(line: &str) -> Option<Result<CrewDecision, (String, CrewRowDef
             rest.chars().take(40).collect(),
             CrewRowDefect::Malformed,
         )));
-    }
-    let role = parts[0].to_string();
-    if role.is_empty() {
-        return Some(Err((rest.to_string(), CrewRowDefect::Malformed)));
-    }
-    if !specialist_roles().contains(&role.as_str()) {
-        return Some(Err((role.clone(), CrewRowDefect::UnknownRole(role))));
     }
     // Verdict FIRST (before budget/reason): an inadmissible verdict is the phase-1 refusal, and it
     // must report as `UnknownVerdict` even when the row is also otherwise malformed.
