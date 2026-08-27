@@ -155,8 +155,38 @@ A dogfood whose findings are all favourable has not been run honestly.
 | | |
 |---|---|
 | **Metered, authoritative (the paid chitra run)** | **`$1.6103385`** |
-| Unmetered Vajra-side subagent tokens | **421,739** — design-advisor 133,297 · fidelity-reviewer 128,655 · implementation-advisor (judge) 159,787 |
-| **True session total, both kinds named** | `$1.6103385` metered **+ 421,739 unmetered subagent tokens** across 3 dispatches |
+| Unmetered subagent tokens — **as first reported** | 421,739 (new tokens only: 133,297 · 128,655 · 159,787) |
+| Unmetered subagent tokens — **RAW, corrected** | **19,192,697** across 3 dispatches |
+| **True session total, both kinds named** | `$1.6103385` metered **+ ~19.2M raw subagent tokens** |
+
+**CORRECTION, made after the close — the first figure was wrong by ~45×.** It counted only *new*
+tokens. Reading the subagent transcripts Claude Code writes to disk
+(`~/.claude/projects/*/*/subagents/agent-<id>.jsonl`, the same files `vajra meter` already folds in)
+gives the raw truth:
+
+| Dispatch | in | out | cache write | cache read | **raw total** |
+|---|---|---|---|---|---|
+| design-advisor | 122 | 30,613 | 289,080 | 4,608,221 | **4,928,036** |
+| fidelity-reviewer | 164 | 35,049 | 350,246 | 5,767,212 | **6,152,671** |
+| implementation-advisor (judge) | 158 | 33,197 | 895,934 | 7,182,701 | **8,111,990** |
+| | | | | | **19,192,697** |
+
+Evidence: `sessions/session-134-artifacts/subagent-raw-tokens.txt`, regenerable from the transcripts.
+
+**Nearly all of it is cache reads — 17.5M of them.** Cheap per token, not free, and that is why this
+session hit the account's monthly spend limit (which is what killed the judge's re-grade). **This is
+the same class of understatement the dogfood existed to expose, committed by the dogfood itself**:
+the headline named a real number that was real and much too small, exactly as rec 20 warned S132 and
+S133 had done. The difference is that this one was caught and corrected on the record.
+
+**The load-bearing consequence for S135:** nine dispatches per session is not ~1.2M tokens, it is
+plausibly **50–60M raw**. Any plan that turns on all nine roles needs a per-role budget to be
+affordable at all.
+
+**And the good news the same check delivered:** Vajra CAN read per-subagent usage from disk, so a
+budget is buildable, not theatre. What it cannot do is hard-stop a dispatch mid-run — the dispatch
+takes no budget parameter — so a budget means allocate, measure, and block on overrun **after** the
+fact, never during.
 | Vajra-side build cost | interactive, `$0` metered |
 
 S132 recorded ~367k and S133 ~550k unmetered subagent tokens against "$0 metered for build". A

@@ -100,6 +100,12 @@ ways (`HEAD`, index hash, stash list, branch all identical; exactly one pre-decl
   reads **`0 of 8`** at `maturity: L3`. Every surfacing gate WARNs; `--check-plan 16` reports no
   `## Plan` section at all. Vajra has one real outside project and it is not being driven by the
   pipeline. This is an adoption finding, not a chitra finding.
+- **🔴 THE SUBAGENT COST HEADLINE WAS WRONG BY ~45× (NEW, S134, self-caught after the close).**
+  Reported 421,739 tokens; the raw on-disk truth is **19,192,697**. The first figure counted NEW
+  tokens and silently dropped 17.5M cache reads. **This is the exact understatement the dogfood
+  existed to expose, committed by the dogfood itself.** No instrument in this repo would have caught
+  it — it was found by hand while designing S135's budget. **`vajra meter` folds the subagent
+  transcripts but nothing surfaces a per-dispatch raw total at closeout.**
 - **🔴 THREE CONSECUTIVE JUDGES HAVE HAD NO SHELL** (S133's judge, S134's fidelity-reviewer, S134's
   judge). Every "verify N/N · demo all-pass · fixture N/N" claim in those sessions was executed
   **only by the builder**. The independent pass reads scripts; it does not run them.
@@ -161,8 +167,15 @@ ways (`HEAD`, index hash, stash list, branch all identical; exactly one pre-decl
 - **S128–S131: $0 metered.** **S132: $0 metered for build** — ~367k unmetered subagent tokens.
 - **S134: `$1.6103385` AUTHORITATIVE** — the paid chitra dogfood, the first real figure from the
   S77/S78 receipt path (headless `-p` result stream; an interactive run still returns S77's honest
-  null). **Plus 421,739 unmetered subagent tokens** — design-advisor 133,297 · fidelity-reviewer
-  128,655 · implementation-advisor judge 159,787.
+  null). **Plus ~19.2M RAW unmetered subagent tokens** across 3 dispatches (4,928,036 +
+  6,152,671 + 8,111,990). **CORRECTED after the close: first reported as 421,739, wrong by ~45×** —
+  that figure counted NEW tokens only. The raw truth is read from the on-disk subagent transcripts
+  (`~/.claude/projects/*/*/subagents/`, the files `vajra meter` already folds), evidence in
+  `sessions/session-134-artifacts/subagent-raw-tokens.txt`. **17.5M of the 19.2M are cache reads** —
+  cheap per token, not free, and the reason this session hit the account monthly spend limit.
+  Two consequences: nine dispatches per session is plausibly 50-60M raw, so the S135 fleet plan
+  needs a per-role budget to be affordable; and **Vajra CAN read per-subagent usage from disk**, so
+  such a budget is buildable (allocate + measure + block on overrun; it cannot hard-stop mid-run).
 - **S133: $0 metered for build** (interactive) — **~550k unmetered subagent tokens** across three
   real dispatches (design-advisor ~139k, fidelity-reviewer ~150k, implementation-advisor ~126k)
   plus ~135k on a first fidelity pass that died mid-response to an API error and returned nothing.
