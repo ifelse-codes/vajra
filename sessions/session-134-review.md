@@ -104,4 +104,10 @@ paid run, ten real fresh renders, an RGB-level design verdict whose specific pix
 re-checked and found true, an untouched chitra proved four ways, and a brownfield-threshold finding
 that this repo demonstrably could not have manufactured."*
 
+**Review-Inputs-SHA:** 8991f9b0f5555569779ec19dec950be4a4c68b64eea43dd93e387a3fae1b5dce
+
+*(Computed LAST, after every edit to the prompt and the delivery, per S69/S131. Two consecutive
+runs agree. The disclosed limit stands unchanged from S58: the same agent can run `--inputs-sha`
+and paste the result, so this is bar-raising, not tamper-proof.)*
+
 **Verdict:** ACCEPT
