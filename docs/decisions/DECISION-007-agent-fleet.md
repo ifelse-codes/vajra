@@ -1003,3 +1003,54 @@ seven places — including a chart family the brief omitted, a "how to see them"
 scripts that do not exist, and an acceptance criterion that was impossible to satisfy as written.
 Those corrections landed before a paid minute was spent. This is the first recorded instance of the
 mandate paying for itself rather than merely being satisfied.
+
+## S135 addendum — the `tech-lead`, the tenth role, and the threshold question ANSWERED
+
+**Status:** extends `DECISION-007`, and RESOLVES the open clause the S134 addendum deferred
+("Deliberately NOT decided here", L986). This is the first fleet role that is not a specialist and
+the first cost control in the product. Written back into the spine because a decision that closes a
+locked record's open question belongs in the record, not only in a session prompt (the same house
+pattern S134 named).
+
+**What ships.** `tech-lead`, registered as the tenth `fleet::Role` (a table entry — no new ladder).
+It is the FIRST and MANDATORY dispatch of every session: it records, for each of the nine
+specialist roles, whether this task needs it, why, and a numeric token budget. Its verdict BINDS via
+a new call site — `vajra next --check-crew NN` — which blocks the close unless (a) a real,
+provenance-verified `tech-lead` handoff exists and (b) every role it marked `required` has its own
+real governed handoff. `--check-crew` is a call site on `src/mandate`'s generic `mandate_gate`, not
+an edit to it.
+
+**Phase 1 (this session) has NO off switch, by decision.** The only two admissible verdicts are
+`required` and `deferred-budget`, on deliberately different axes:
+- `required` — this task needs this role;
+- `deferred-budget` — **a money fact, not a judgement of usefulness**, carrying the arithmetic that
+  justifies it (the founder is on a $20/mo plan; S134's three dispatches cost 19.2M raw tokens and
+  hit the cap, so nine would wall a session).
+
+Anything else — `not-needed`, a bare skip, an empty reason — is REFUSED, and the refusal names
+phase 1b (the all-nine observation) as the condition for earning discretion. The lead may not yet say
+"this role isn't worth it": six of nine roles have been dispatched twice or fewer in 134 sessions, and
+you cannot tune what you have never observed. Phase 2 (the off switch) comes only after 1b's evidence.
+
+**The budget is an INSTRUCTION, not a fence.** A dispatch takes no budget parameter, so Vajra cannot
+hard-stop a subagent mid-run and does not pretend to. The `tech-lead` tells each role its allowance;
+`vajra next --crew-cost NN` reads the on-disk subagent transcripts and reports actual-against-allowance
+to LEARN. An overrun is a finding (usually the budget was wrong), never an offence and never a block —
+the adversary this product guards against is drift and self-certification, never the crew.
+
+**The threshold question, ANSWERED — and it is the S134 fix.** The `tech-lead` gets **NO migration
+threshold**: `--check-crew` calls `mandate_gate` with `from_session: 0`, so silence about the
+`tech-lead` blocks at every session, in every project, from session one. A brand-new role has zero
+legacy prompts to exempt, so a threshold has no work to do — and this is exactly the units-fix the
+S134 addendum said was needed but could not justify on n=1. **A role introduced with no threshold has
+no brownfield hole.** The S134 addendum's three candidate unit-fixes (adoption marker / git-birth-date
+/ drop-the-threshold) remain unbuilt for the two EXISTING thresholded roles (`design-advisor`, and
+`implementation-advisor` when it lands); this addendum does not fix those. It establishes the pattern
+that any FUTURE mandatory role ships threshold-free, so the hole does not grow.
+
+**What this session does NOT do (recorded so it does not look finished).** It does not run the
+all-nine observation (phase 1b, deferred until the budget allows). It does not build the off switch
+(phase 2). And it does not upgrade chitra's scaffold to the full roster — chitra carries 4 of 9 role
+files, so until its scaffold upgrade (deferred by the founder to just before the next dogfood) the
+`tech-lead` remains a Vajra-only feature. S135 narrows the "true here, decorative there" gap in the
+product; it does not close it in the one project that would prove it.

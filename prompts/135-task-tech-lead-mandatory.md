@@ -275,19 +275,46 @@ carries an independent judgment from a role that is not the one that gave the ad
 - design-significant: yes — a tenth role, a new gate, a new binding relationship between roles
   (one role's output makes another role mandatory), and the first cost control in the product.
   New interface and new module, not a fix.
-- Spine records to cite (verify both exist first): `DECISION-007` with its **S133 addendum** (the
-  ladder and the reasoned skip this builds on) and its **S134 addendum** (the brownfield hole).
-- **Open design question 1:** does the `tech-lead`'s decision live in its handoff only, or is it
-  also mirrored into the session prompt? The handoff is provenance-verified and un-typed by the
-  builder, which is the whole point — mirroring it into a builder-owned file would re-open the
-  self-granted dodge S133 disclosed. Decide, and record the loser's reason.
-- **Open design question 2:** what happens when a required role's dispatch FAILS — as S134's
-  re-grade did, on a spend limit? A blocked close is correct but unhelpful if the account is out of
-  budget. Decide whether that is a distinct recorded outcome or simply a block, and say why.
-- **Open design question 3:** the brownfield threshold from S134's addendum. `tech-lead` is brand
-  new, so it has no legacy sessions to exempt — does it get a threshold at all? Arguably not, and
-  arguably that is the fix to the whole threshold problem: **a role introduced with no threshold
-  has no brownfield hole.** Decide and record.
+- Spine records cited (both verified to exist): `DECISION-007` with its **S133 addendum** (L862,
+  the ladder and the reasoned skip this builds on) and its **S134 addendum** (L947, the brownfield
+  hole). A NEW **S135 addendum** is written into `DECISION-007` this session — the design-advisor
+  (rec 2) flagged that S135 does not merely extend the record, it RESOLVES the open threshold
+  question the S134 addendum explicitly deferred (L986–997), and a decision that closes a locked
+  record's open clause must be written back into the spine, not left living only in a prompt.
+
+**The three design questions — DECIDED (design-advisor dispatched first; handoff
+`.ai/handoffs/session-135-design-advisor.md`, provenance re-verified):**
+
+- **Decision 1 (Q1) — HANDOFF-ONLY.** The `tech-lead`'s crew decision lives ONLY in its
+  provenance-verified handoff, never mirrored into a builder-owned prompt section. *Loser: a
+  `## Crew` block in the prompt* — rejected because it re-opens the "jurisdiction is self-granted"
+  dodge S133 disclosed (the builder can type its own record) and creates a second source that
+  drifts. Disclosed cost: a reader of the prompt alone cannot see the crew decision;
+  `vajra next --check-crew NN` surfaces it on demand, which is the acceptable price of un-forgeability.
+- **Decision 2 (Q2) — a spend-limit death is a DISTINCT recorded outcome, not a bare block.** When a
+  `required` role's dispatch dies mid-flight (as S134's judge did), the session may NOT manufacture a
+  handoff and may NOT upgrade the item to a pass. It re-runs the `tech-lead` decision to move that
+  role to `deferred-budget` **carrying the arithmetic that killed it**. The close then passes on a
+  recorded money fact, not on confidence. *Loser A: a plain block with no recorded outcome* —
+  unhelpful when genuinely out of budget and it tempts a self-certified pass. *Loser B: auto-downgrade
+  `required`→`deferred-budget` inside the gate on any missing handoff* — rejected hard: that is a
+  silent escape from every required role and guts the gate. The downgrade is an explicit,
+  arithmetic-carrying re-decision, never automatic.
+- **Decision 3 (Q3) — NO migration threshold. The crew gate enforces from session one, always
+  (`from_session: 0` at the call site).** This is the fix to the S134 brownfield hole, not a repeat
+  of it: a brand-new role has zero legacy prompts to exempt, so silence about the `tech-lead` blocks
+  in every project at every session, forever — exactly what the S134 addendum said a threshold
+  *should* mean but its session-number units do not. *Loser A: reuse threshold 133* — meaningless for
+  a role that did not exist at S133 and would silently exempt S1–S134 of any brownfield adopter,
+  importing the exact hole. *Loser B: build a real units-fix now (git-birth-date / adoption marker)* —
+  over-engineering on n=1; the S134 addendum itself says n=1 does not earn a mechanism. Reasoned in
+  writing in the DECISION-007 S135 addendum so no future audit mistakes it for the S134 defect.
+- **The call-site claim (design-advisor rec 6, the falsification test):** the crew gate is built as a
+  CALL SITE on `src/mandate`'s generic `mandate_gate` — `from_session: 0` for the tech-lead's own
+  presence, then crew-gate-specific code parses the verified handoff and calls the EXISTING per-role
+  handoff verification once per `required` role. Prediction on record: **0 lines added to
+  `mandate_gate` / `parse_skip_marker` / `classify_marker_value`.** If the ladder had to change, that
+  is the session's headline finding (acceptance 5), reported as a number.
 
 ## Non-goals (not built this session)
 
