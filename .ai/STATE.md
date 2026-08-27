@@ -72,6 +72,15 @@ role has a real handoff).
 - Enforcement floor, ledger (S100), first contact (S128), one source for a stranger's rulebook
   (S129): unchanged, not re-verified live this session.
 
+## What Is In Progress
+- **Nothing is mid-flight.** S135 is complete; the S136 prompt
+  (`prompts/136-task-chitra-fleet-scaffold-upgrade.md`) is written at this closeout for the DEFAULT
+  pick (chitra scaffold upgrade), **founder to confirm at the S136 start** (the other two candidates —
+  phase 1b, and closing criterion 7 — are recorded in the summary and `.ai/SESSION-BOOT.md`).
+- **The `tech-lead` remains a Vajra-only feature** until chitra's 4-of-9 scaffold is upgraded — the
+  S135 disclosed gap, and the reason candidate 1 is the default. **Criterion 7's PARTIAL** (budget
+  reported, not carried into a dispatch brief) is the smallest disclosed debt (candidate 3).
+
 ## Active PRs
 - **S135 — PR opens at closeout, after `.ai/` sync.**
 - S133 [#155](https://github.com/ifelse-codes/vajra/pull/155) MERGED · S132
