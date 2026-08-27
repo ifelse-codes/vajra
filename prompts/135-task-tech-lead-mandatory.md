@@ -72,20 +72,60 @@ mandatory** dispatch of every session. It records, per role, whether this task n
 plus a token budget for each. **Its verdict BINDS:** a role it marks required must produce a real
 governed handoff or the session cannot close.
 
-## The two-phase decision, recorded so a later session cannot quietly skip phase 1
+## The phases, and the BUDGET REALITY that reshaped them — founder decisions, S134 closeout
 
-**PHASE 1 — THIS SESSION. The `tech-lead` has NO off switch.** Its only admissible answer for every
-role is `required`. The ability to mark a role `not-needed` is **deliberately NOT built**, and this
-brief is the record of why: six of the nine roles have been dispatched twice or fewer in 134
-sessions, so **nobody knows how they behave.** You cannot tune what you have never observed, and a
-lead granted discretion on day one would simply relocate the self-granted skip one level up.
+**The constraint, stated first because it drives everything below: the founder is on a `$20`/month
+Claude Code plan.** S134 used **three** dispatches costing **19,192,697 raw tokens** and **hit the
+monthly limit mid-session** — that is what killed its judge's re-grade. Nine dispatches of that size
+is roughly 58M and would wall a session partway through.
 
-**PHASE 2 — A LATER SESSION, after a few sessions of running all nine.** Once each role's real
-behaviour is on record — does it find real things, does it grade honestly, does its advice change
-the work — the `tech-lead` earns the power to switch roles off.
+**PHASE 1 — THIS SESSION. Build the mechanism; do NOT run all nine.** Founder's call, taken over the
+alternatives (tight budgets with all nine in one session; three roles per session, rotating). S135
+ships the `tech-lead`, the binding gate and the cost reporting, and proves them with **2–3 real
+dispatches**, not nine.
 
-**A session that adds the off switch before that evidence exists is violating this record, not
-extending it.** Say so in the code comment that guards it.
+**PHASE 1b — THE ALL-NINE OBSERVATION, DEFERRED until the budget allows it.** This is where the
+learning actually happens and it is NOT happening this session.
+
+**PHASE 2 — the off switch**, only after 1b. Once each role's real behaviour is on record — does it
+find real things, does it grade honestly, does its advice change the work — the `tech-lead` earns
+the power to mark a role not-needed. **Six of the nine have been dispatched twice or fewer in 134
+sessions; you cannot tune what you have never observed.** A session that adds the off switch before
+1b's evidence exists is violating this record, not extending it. Say so in the code comment guarding
+it.
+
+### The risk this ordering creates, raised and OVERRULED — record it, then guard against it
+
+Deferring the observation means **S135 ships a mechanism nobody runs**, which is this repo's own
+most-repeated failure: *"a role no gate consumes is decoration"* (S125), *"a registered gate nobody
+executes is not a gate"* (S129). The founder chose this path with that stated. **So S135 must not
+close having merely built the thing** — the gate has to bind on this very session, and the summary
+must say how many roles actually ran and what each did.
+
+### The two verdicts, and why they are on DIFFERENT axes
+
+A `tech-lead` that marks all nine `required` while the account can afford three would **block every
+session.** So phase 1 admits exactly two values, and the distinction is load-bearing:
+
+- **`required`** — this task needs this role.
+- **`deferred-budget`** — **a money fact, not a judgement about usefulness.** It must carry the
+  budget arithmetic that justifies it.
+
+This preserves precisely what the founder withheld: the lead may **not** say *"this role isn't worth
+it"* (an unobserved judgement — that is phase 2). It may say *"we cannot afford it this session"*,
+because that is a checkable fact about a `$20` plan.
+
+**Anything else — a bare skip, a `not-needed`, an empty reason — is REFUSED by the gate**, and the
+refusal message names phase 1b as the condition for earning more.
+
+### The lever that makes all-nine affordable later, and should be built into the budgets NOW
+
+Of S134's 19.2M raw tokens, **17.5M were cache reads** — the cost of each subagent re-reading a large
+context. Those dispatches were deliberately huge (*read the whole repo, grade 34 items*). **A role
+given a narrow brief and three named files costs a fraction of that.** So the `tech-lead`'s budget is
+not bookkeeping bolted on; it is the mechanism that makes phase 1b possible. Budgets set here should
+be tight on purpose, and the summary should report actual-against-allowance so phase 1b can be
+planned with real numbers rather than hope.
 
 ## The budget — and the honest limit, verified live at S134's close
 
@@ -122,17 +162,16 @@ never make it block. Measurement here serves the founder's understanding, not en
 was still wrong by an order of magnitude.)* The same machine-local disclosure as `--dogfood-age`
 (S91) applies: a fresh CI runner has no `~/.claude/projects` history.
 
-## chitra must be upgraded, or this is a Vajra-only feature again
+## chitra is NOT upgraded this session — founder decision, S134 closeout
 
-chitra has **4 of 9** role files. The `tech-lead` there could only ever call on four, and phase 1's
-"all nine" is literally impossible. **Re-install / upgrade Vajra's scaffold in chitra as part of
-this session** so all ten role files exist there. That is the founder's explicit instruction and it
-is the difference between building this for a user and building it for us.
+chitra has **4 of 9** role files, so the `tech-lead` there could only ever call on four. That is a
+real gap and it is **deferred to just before the next dogfooding session**, by the founder's explicit
+call. It is not dropped, and it is not this session's work.
 
-**Guardrail:** chitra may still be mid-session with uncommitted work. Use S134's four-way
-fingerprint (`git rev-parse HEAD` · `git ls-files -s | shasum -a 256` · `git stash list` ·
-`git status --porcelain -uall`) before and after, declare the permitted delta in advance, and stop
-and ask if anything else moved.
+**Say so plainly in the summary rather than letting it look finished:** until chitra carries the
+full roster, the `tech-lead` remains a Vajra-only feature — which is the exact thing the founder
+called out (*"we are building it for the user, not for us"*). S135 narrows that gap in the product;
+it does not close it in the one project that would prove it.
 
 ## Deliverables
 
@@ -150,18 +189,19 @@ and ask if anything else moved.
 - **`vajra next --crew-cost NN`** — reads the on-disk subagent transcripts and prints each
   dispatch's raw token total beside the budget the `tech-lead` recorded. It **reports**; it does not
   block and does not scold. An overrun is surfaced as information for setting better budgets.
-- **The chitra scaffold upgrade**, with all ten role files present and the before/after fingerprint.
 - `scripts/verify-session-135.sh` + `scripts/demo-session-135.sh` + a falsifiability fixture, all
   exit 0 with a printed check-class tally. `sessions/session-135-summary.md` + 3 ranked candidates.
 
 ## Acceptance (testable, EARS-style)
 
 1. A `tech-lead` handoff is required before the close, and the gate names it as the FIRST role.
-2. The handoff records all **nine** specialist roles, each with `required`, a substantive reason
-   (gated by `advice::substantive_reason`, the S133 function, verbatim — no new parser), and a
-   numeric token budget.
-3. **Phase 1 has no off switch:** any value other than `required` is REFUSED by the gate, and the
-   refusal message names this brief's phase-2 condition. A test binds to that behaviour by VALUE.
+2. The handoff records all **nine** specialist roles, each with a verdict of `required` or
+   `deferred-budget`, a substantive reason (gated by `advice::substantive_reason`, the S133
+   function, verbatim — no new parser), and a numeric token budget. A `deferred-budget` verdict must
+   carry the budget arithmetic that justifies it.
+3. **Phase 1 has no off switch:** any value other than those two — `not-needed`, a bare skip, an
+   empty reason — is REFUSED by the gate, and the refusal message names phase 1b as the condition
+   for earning more. A test binds to that behaviour by VALUE, not by message text (S133).
 4. `vajra next --check-crew NN` blocks the close when the `tech-lead` handoff is missing, forged, or
    when any role it marked `required` has no real governed handoff. The 7-command floor is unchanged.
 5. **The genericity claim is tested and reported as a NUMBER** — lines added to `src/mandate`'s
@@ -174,9 +214,10 @@ and ask if anything else moved.
 7. **The budget is carried INTO each role's brief**, so the role knows its allowance and can work to
    it. `--crew-cost` reports actual against allowance and **never blocks**; the code, the help text
    and the summary all describe it as an instruction the role is trusted to honour, not a cap.
-8. **chitra carries all ten role files** after this session, installed by the real scaffold path
-   rather than hand-copied, and chitra's in-flight state is undisturbed — proved by the four-way
-   fingerprint before and after, with the permitted delta declared in advance.
+8. **The gate BINDS ON THIS SESSION, not merely on future ones** — S135 dispatches 2–3 real roles
+   through its own `tech-lead` decision and cannot close without their handoffs. This is the guard
+   against shipping decoration (S125/S129), and it is the acceptance criterion the founder's
+   "build now, observe later" choice makes load-bearing.
 9. No `VAJRA_SKIP_*` escape for the crew gate, matching S133. Twelve-plus environment variables
    driven live, singly and together; it blocks every time.
 10. `verify-session-135.sh` and `demo-session-135.sh` exit 0 with a printed check-class tally, and a
@@ -185,10 +226,11 @@ and ask if anything else moved.
     exit-code half of every assertion meaningless).
 11. Independent cold `fidelity-reviewer` verdict ACCEPT, attested. The judge of any `obeyed:`
     disposition may not be the role that made the recommendation.
-12. The summary answers two questions directly: **what did each of the nine roles actually do when
-    forced to run** — the observation phase 2 depends on — and **what did the whole session cost in
-    raw subagent tokens**, reported as a raw figure, never a new-tokens-only figure (S134 got this
-    wrong by ~45× and caught it only by hand).
+12. The summary answers three questions directly: **how many roles actually ran and what each one
+    did** (the guard against shipping decoration); **what the session cost in RAW subagent tokens**,
+    never a new-tokens-only figure (S134 got this wrong by ~45× and caught it only by hand); and
+    **what phase 1b would cost**, estimated from this session's actual-against-allowance numbers, so
+    the founder can decide when a `$20` plan can afford the all-nine observation.
 
 ## Plan (ordered — cite the acceptance criteria each step covers)
 
@@ -201,7 +243,8 @@ and ask if anything else moved.
 5. Enforce phase 1's no-off-switch rule with a value-bound test. covers: 3
 6. Build `--crew-cost` against the real transcripts and reconcile with S134's figures. covers: 6
 7. Drive twelve-plus environment variables live against the crew gate. covers: 9
-8. Upgrade chitra's scaffold to all ten roles, fingerprinted before and after. covers: 8
+8. Dispatch 2–3 real roles through this session's own `tech-lead` decision, so the gate binds here.
+   covers: 8
 9. `verify-session-135.sh` + `demo-session-135.sh` + the fixture with a clean-exit control.
    covers: 10
 10. Cold `fidelity-reviewer` pass, then a separate judging dispatch by a third role. covers: 11
@@ -253,6 +296,10 @@ carries an independent judgment from a role that is not the one that gave the ad
 - **Not a hard mid-run token cap, and not a punishment for overrun.** The cap does not exist in the
   dispatch interface, and building distrust in its place is a founder-refused direction: the role is
   told its budget and trusted to respect it. An overrun is data for phase 2, never an offence.
+- **NOT the all-nine observation (phase 1b).** Deferred until the budget allows. This is where the
+  learning happens, and deferring it is the acknowledged cost of the founder's "build now" choice.
+- **NOT chitra's scaffold upgrade.** Founder's call: it happens just before the next dogfooding
+  session, not here. Until then the `tech-lead` is a Vajra-only feature and the summary must say so.
 - **Not F2f** (the rubber-stamp detector) — though note this session makes it more valuable, since
   a `tech-lead` that requires nine roles and never reads their output is exactly a rubber stamp.
 - **Not D2** (the fresh-scaffold first-contact paid dogfood) — still outstanding from S134's Q2.
@@ -272,6 +319,10 @@ carries an independent judgment from a role that is not the one that gave the ad
 ## Guardrails
 
 - **Launch with `VAJRA_GT_WAIVER=135`** or every code edit and every commit is blocked. See `## Type`.
+- **The founder is on a `$20`/month plan and S134 hit the limit with THREE dispatches.** Budget every
+  dispatch tightly: a narrow brief and named files, never "read the repo". If a dispatch dies
+  mid-flight on a spend limit — as S134's judge did — record the result as INCOMPLETE. Never upgrade
+  an unjudged item to a pass because the builder is confident.
 - **The GT skip is a one-cycle founder decision, not a new default.** The every-5th cadence resumes
   at **S140**. A session that reads this file must not treat the skip as precedent.
 - Un-forgeable commit marker on every commit, session number 135. Max 3 files per atomic commit.
