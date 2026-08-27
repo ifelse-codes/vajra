@@ -380,6 +380,65 @@ are founder-gated decisions on this team; raise them as a question, never as a c
 Your output is a PROPOSAL, never the release of record: git is the only record of what shipped, \
 and every push, merge, and prune stays a human act.";
 
+/// The Tech Lead's contract (S135). The TENTH role, and the first that is not a specialist: it does
+/// no research, no review, no code. Its ONE job is to decide, at the START of a session, which of
+/// the nine specialists this task needs and what each of them may spend — and its decision BINDS
+/// (`vajra next --check-crew NN`): a role it marks `required` must produce a real governed handoff
+/// or the session cannot close.
+///
+/// **Phase 1 (DECISION-007 S135 addendum) has NO off switch.** The only two verdicts it may record
+/// are `required` and `deferred-budget`, and they sit on deliberately different axes — `required` is
+/// a need, `deferred-budget` is a MONEY FACT (the $20/mo plan cannot afford this dispatch this
+/// session), never a judgement that a role is not worth it. That judgement is phase 2, unlocked only
+/// after the all-nine observation, because six of nine roles have been dispatched twice or fewer in
+/// 134 sessions and you cannot tune what you have never observed.
+///
+/// **The budget is an INSTRUCTION, not a fence.** A dispatch takes no budget parameter; Vajra cannot
+/// hard-stop a subagent mid-run and does not pretend to. The Tech Lead states each role's allowance
+/// and trusts it; `vajra next --crew-cost NN` reports actual-against-allowance to LEARN. An overrun
+/// is a finding (usually the budget was wrong), never an offence — the adversary is drift, never the
+/// crew (`DECISION-001`).
+const TECH_LEAD_SYSTEM_PROMPT: &str = "You are the Tech Lead on a governed software team. You are \
+the FIRST role dispatched in every session, and the only one that is not a specialist. Your ONE job \
+is to decide which of the nine specialist roles this task needs, and what each may spend.\n\
+You do not research, review, plan, or write code. You read the session's prompt and its spine, and \
+you propose a crew.\n\
+Rules:\n\
+- Do NOT write, edit, or run code. You have no Write, Edit, or Bash tool, by design. You propose a \
+crew; Vajra records your handoff and enforces it.\n\
+- Record ONE line for EACH of the nine specialist roles — researcher, requirements-analyst, \
+design-advisor, plan-advisor, implementation-advisor, qa-specialist, demo-producer, \
+fidelity-reviewer, release-coordinator — in EXACTLY this shape (Vajra parses these):\n\
+\n\
+```\n\
+crew <role-name> — required — budget: <N> tokens — <why this task needs it>\n\
+crew <role-name> — deferred-budget — budget: <N> tokens — <the money arithmetic, not a usefulness call>\n\
+```\n\
+\n\
+- There are ONLY TWO admissible verdicts in this phase (phase 1):\n\
+  - `required` — this task genuinely needs this role's work this session.\n\
+  - `deferred-budget` — a MONEY fact: the role would help, but the account cannot afford the \
+dispatch this session. Carry the arithmetic (e.g. 'S134 measured ~6M raw tokens/dispatch; three \
+required already the budget; a $20/mo plan hit the cap at 19.2M'). This is NOT a judgement that the \
+role is unworthy — that judgement is phase 2, and this phase does not grant it.\n\
+- Any other value — `not-needed`, a bare skip, an empty reason, a missing role — is REFUSED by the \
+gate, which will name the all-nine observation (phase 1b) as the condition for earning more \
+discretion. Do not reach for `not-needed`; you have not yet observed these roles enough to judge \
+worth, and neither has anyone.\n\
+- Give EVERY role a numeric token budget, even a deferred one (the allowance it WOULD get). Budget \
+TIGHT: a role given a narrow brief and three named files costs a fraction of one told to read the \
+whole repo. S134's three broad dispatches cost 19.2M raw tokens (17.5M of it cache reads) and hit \
+the monthly limit. A tight brief is what makes a fleet affordable.\n\
+- The budget is an INSTRUCTION you are trusting the role to honour, never a cap Vajra can enforce \
+mid-run. Say so; do not describe it as a hard limit.\n\
+- Mark `required` only what THIS task needs. A session that requires all nine while the account can \
+afford three blocks every session — that helps no one. Prefer a small required crew and honest \
+`deferred-budget` lines with the arithmetic.\n\
+Your output is a PROPOSAL that BINDS once recorded: the governed handoff Vajra writes from your \
+brief is the only crew decision of record — it is provenance-verified and the session author cannot \
+retype it, which is the whole point. You never author another role's handoff, and you never grade \
+advice.";
+
 /// The registered roles. Slice 1 (DECISION-007) shipped exactly ONE — the Researcher. S114 added the
 /// SECOND (the Fidelity Reviewer, chosen from evidence at S113). S116 added the THIRD: the Plan
 /// Advisor (founder pick at the S115 closeout). S121 adds the FOURTH: the QA Specialist (founder
@@ -508,6 +567,17 @@ pub const ROLES: &[Role] = &[
         // deleting branches, so it is the single role where an execution grant would put
         // irreversible git acts one tool call away. Its prompt states the consequence plainly —
         // it cannot run git, so it must never report git state as observed.
+        tools: "Read, Grep, Glob",
+    },
+    Role {
+        name: "tech-lead",
+        description: "Decide which of the nine specialist roles a session needs and what each may \
+                      spend, as the FIRST and mandatory dispatch. Verdict binds: a role it marks \
+                      required must produce a real handoff or the session cannot close. Read-only.",
+        system_prompt: TECH_LEAD_SYSTEM_PROMPT,
+        // Read-only, same shape as every advisory role: the crew decision is read off this repo's
+        // own prompt and spine, not the internet, and it runs nothing. It is NOT a station and does
+        // NOT collide with `K of 8` — it is a FLEET gate, like the Mandate gate (S133).
         tools: "Read, Grep, Glob",
     },
 ];
@@ -1068,7 +1138,7 @@ mod tests {
     /// hollowed out to a stub prompt.
     #[test]
     fn fidelity_reviewer_is_registered_with_a_non_colliding_key() {
-        assert_eq!(ROLES.len(), 9, "the fleet ships exactly nine roles at S126");
+        assert_eq!(ROLES.len(), 10, "the fleet ships ten roles at S135 (nine specialists + tech-lead)");
         let r = resolve_role("fidelity-reviewer").expect("the second role is registered");
         // The collision resolution, asserted: the key is NOT the bare station word.
         assert!(resolve_role("reviewer").is_none());
@@ -1202,6 +1272,9 @@ mod tests {
             ("implementation-advisor", "Read, Grep, Glob"),
             ("demo-producer", "Read, Grep, Glob"),
             ("release-coordinator", "Read, Grep, Glob"),
+            // S135 — the tenth role, the tech-lead. Read-only: the roster grew by one and the
+            // execution allowlist still did not grow.
+            ("tech-lead", "Read, Grep, Glob"),
         ];
         assert_eq!(
             EXPECTED_GRANTS.len(),
@@ -1341,11 +1414,11 @@ mod tests {
         }
         // The roster is complete AND the execution allowlist did not grow with it: five roles
         // added, zero new grants of Bash. This is the whole S126 governance claim in one line.
-        assert_eq!(ROLES.len(), 9);
+        assert_eq!(ROLES.len(), 10);
         assert_eq!(
             ROLES.iter().filter(|r| r.tools.contains("Bash")).count(),
             1,
-            "S126 added five roles; exactly one role in the fleet may still execute"
+            "S135 added the tech-lead read-only; exactly one role in the fleet may still execute"
         );
     }
 
@@ -1528,6 +1601,13 @@ mod tests {
                 &[
                     "You are the Release Coordinator on a governed software team.",
                     "never report ancestry, sync, or branch state as if you had observed it",
+                ],
+            ),
+            (
+                "tech-lead",
+                &[
+                    "You are the Tech Lead on a governed software team.",
+                    "There are ONLY TWO admissible verdicts in this phase",
                 ],
             ),
         ];

@@ -9,6 +9,7 @@ use crate::advice;
 use crate::analyst;
 use crate::architect;
 use crate::coder;
+use crate::crew;
 use crate::demoer;
 use crate::dispatch;
 use crate::dogfood;
@@ -67,6 +68,20 @@ pub fn run(args: &[String]) -> Result<()> {
     // never blocks on that value (DECISION-007 S133 addendum).
     if let Some(i) = args.iter().position(|a| a == "--check-design-handoff") {
         return run_check_design_handoff(args.get(i + 1));
+    }
+    // The Crew gate (S135) rides `vajra next` — no 8th command. Binds on the session being CLOSED:
+    // a real, provenance-verified `tech-lead` handoff must exist, and every role it marked
+    // `required` must have produced its own real governed handoff. Built as a CALL SITE on
+    // `src/mandate` (DECISION-007 S135 addendum) — no edit to the shared ladder.
+    if let Some(i) = args.iter().position(|a| a == "--check-crew") {
+        return run_check_crew(args.get(i + 1));
+    }
+    // The crew COST report (S135) rides `vajra next` — no 8th command. Read-only: prints each
+    // subagent dispatch's RAW on-disk token total beside the budget the tech-lead recorded. It
+    // REPORTS to LEARN; it does not block and does not scold (the budget is an instruction, not a
+    // fence). Always exits 0.
+    if let Some(i) = args.iter().position(|a| a == "--crew-cost") {
+        return run_crew_cost(args.get(i + 1));
     }
     // The Coder stage (S68) also rides `vajra next` — no 8th command.
     if let Some(i) = args.iter().position(|a| a == "--exec") {
@@ -557,6 +572,147 @@ fn run_check_design_handoff(nn: Option<&String>) -> Result<()> {
     if verdict.blocked() {
         std::process::exit(1);
     }
+    Ok(())
+}
+
+/// `vajra next --check-crew NN` — the Crew GATE (S135): the tech-lead's decision, made binding.
+/// Exit 1 unless (a) a real, provenance-verified `tech-lead` handoff exists (and is not a recorded
+/// skip — the one role phase 1 forbids skipping), (b) it records an admissible verdict + substantive
+/// reason + numeric budget for all nine specialists, and (c) every role it marked `required`
+/// produced its own real governed handoff. Built as a CALL SITE on `src/mandate` — no ladder edit.
+///
+/// There is NO `VAJRA_SKIP_*` for this gate, matching the Mandate gate (S133): a fleet whose crew is
+/// decided by an un-forgeable, provenance-verified handoff cannot have an agent-settable escape.
+fn run_check_crew(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--check-crew")?;
+    let root = repo_root()?;
+
+    let verdict = crew::crew_gate(&root, session);
+    println!("=== crew: tech-lead for session {session:02} ===");
+    println!(
+        "tech-lead handoff: {}",
+        verdict.handoff_path.as_deref().unwrap_or("(none)")
+    );
+    // The crew decision lives ONLY in the provenance-verified handoff (Q1, handoff-only) — surface
+    // it here so a reader of the prompt alone can still see it on demand.
+    for d in &verdict.decisions {
+        println!(
+            "  · {role} — {verdict} — budget: {budget} tokens — {reason}",
+            role = d.role,
+            verdict = d.kind.word(),
+            budget = d.budget_tokens,
+            reason = d.reason,
+        );
+    }
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        let required = verdict.required_roles();
+        println!(
+            "verdict: READY — {} required, {} deferred-budget; every required role has a real handoff",
+            required.len(),
+            verdict.decisions.len() - required.len(),
+        );
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    println!("note: {}.", crew::CREW_FLOOR);
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --crew-cost NN` — the crew COST report (S135): for session NN, read each dispatched
+/// subagent's on-disk transcript and print its RAW token total (input + output + cache reads + cache
+/// writes) beside the budget the tech-lead recorded. It REPORTS to LEARN; it never blocks and never
+/// scolds — the budget is an instruction, not a fence (DECISION-007 S135 addendum). Machine-local
+/// like `--dogfood-age` (S91): a fresh CI runner has no `~/.claude/projects` history, disclosed and
+/// exit 0. Always exits 0.
+fn run_crew_cost(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--crew-cost")?;
+    let root = repo_root()?;
+
+    // The tech-lead's recorded budgets, when the crew handoff parsed — so each dispatch's actual can
+    // be shown against its allowance. An unparsed/absent handoff still lets costs print (the report
+    // does not depend on the gate passing).
+    let verdict = crew::crew_gate(&root, session);
+    let budget_for = |role: &str| -> Option<u64> {
+        verdict
+            .decisions
+            .iter()
+            .find(|d| d.role == role)
+            .map(|d| d.budget_tokens)
+    };
+
+    println!("=== crew cost: session {session:02} (RAW subagent tokens, on-disk) ===");
+    let Some(project_dir) = dispatch::project_dir_for(&root) else {
+        println!(
+            "  no ~/.claude/projects history on this machine — nothing to read (a fresh CI runner \
+             has no dispatch transcripts). This is a report, not a gate: exit 0."
+        );
+        return Ok(());
+    };
+
+    let all = dispatch::subagent_dispatches_in(&project_dir);
+    // Scope to THIS session: a dispatch's transcript records the branch it ran under, and this
+    // session's branch names the session (`session-NN-<slug>`). A dispatch with no recorded branch
+    // is included rather than dropped — an honest over-count beats a silent under-count.
+    let want = format!("session-{session:02}");
+    let dispatches: Vec<_> = all
+        .iter()
+        .filter(|d| {
+            d.git_branch
+                .as_deref()
+                .map(|b| b.contains(&want))
+                .unwrap_or(true)
+        })
+        .collect();
+    if dispatches.is_empty() {
+        println!(
+            "  no subagent dispatches recorded for session {session:02} under {}",
+            project_dir.display()
+        );
+        println!("note: the budget is an INSTRUCTION the role is trusted to honour — this report never blocks.");
+        return Ok(());
+    }
+
+    let mut grand_total: u64 = 0;
+    for d in &dispatches {
+        match crew::read_dispatch_raw_tokens(&d.jsonl) {
+            Ok(raw) => {
+                grand_total += raw;
+                let budget_note = match budget_for(&d.agent_type) {
+                    Some(b) => {
+                        let pct = if b > 0 { (raw as f64 / b as f64) * 100.0 } else { 0.0 };
+                        format!("budget {b} tokens — actual {:.0}% of allowance", pct)
+                    }
+                    None => "no recorded tech-lead budget for this role".to_string(),
+                };
+                println!(
+                    "  {role:<22} {raw:>12} raw tokens  ({budget_note})",
+                    role = d.agent_type
+                );
+            }
+            // S69: a transcript that should exist and does not is reported, never silently skipped.
+            Err(why) => println!(
+                "  {role:<22} {:>12}  ⚠ UNREADABLE — cannot evaluate: {why}",
+                "?",
+                role = d.agent_type
+            ),
+        }
+    }
+    println!("  {:-<22} {:->12}", "", "");
+    println!("  {:<22} {grand_total:>12} raw tokens TOTAL (never a new-tokens-only figure)", "all dispatches");
+    println!(
+        "note: the budget is an INSTRUCTION the role is trusted to honour, never a cap Vajra can \
+         enforce mid-run. An overrun is a finding for setting better budgets, not an offence — this \
+         report never blocks."
+    );
     Ok(())
 }
 
@@ -1357,6 +1513,37 @@ fn run_advance() -> Result<()> {
                  and run `vajra next --role design-advisor --from <findings>`, or record \
                  `design-advisor: skipped — <reason>` in the session's prompt. There is no \
                  environment variable for this one — a skip must leave a trace."
+            );
+        }
+    }
+
+    // Crew gate (S135): the tech-lead's decision, made binding. Like every fleet gate it binds on
+    // the session being CLOSED — `current` cannot close without a real, provenance-verified
+    // tech-lead handoff, AND every role it marked `required` producing its own real governed
+    // handoff. Built as a CALL SITE on `src/mandate` (DECISION-007 S135 addendum). Like the Mandate
+    // gate, it has NO `VAJRA_SKIP_*` escape, on purpose: a crew decided by an un-forgeable handoff
+    // cannot carry an agent-settable bypass. L1 still advises (uniform with every other gate).
+    let crew_verdict = crew::crew_gate(&root, current);
+    for w in &crew_verdict.warnings {
+        eprintln!("  ⚠ {w}");
+    }
+    if crew_verdict.blocked() {
+        eprintln!(
+            "[vajra crew] session {current:02} cannot close — the tech-lead's crew decision is \
+             missing, forged, or unsatisfied:"
+        );
+        for r in &crew_verdict.reasons {
+            eprintln!("    ✗ {r}");
+        }
+        if maturity == MaturityLevel::L1 {
+            eprintln!("  (L1 advise — advancing anyway.)");
+        } else {
+            bail!(
+                "refusing to advance: session {current:02} has no binding tech-lead crew decision, \
+                 or a role it marked `required` produced no real governed handoff (Crew gate). \
+                 Dispatch the tech-lead and run `vajra next --role tech-lead --from <crew>`, then \
+                 dispatch every role it marked `required`. There is no environment variable for \
+                 this one — the crew decision is provenance-verified, not agent-settable."
             );
         }
     }

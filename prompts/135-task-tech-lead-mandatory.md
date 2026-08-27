@@ -252,42 +252,133 @@ it does not close it in the one project that would prove it.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
-- step 7 — done: <sha>
-- step 8 — done: <sha>
-- step 9 — done: <sha>
-- step 10 — done: <sha>
-- step 11 — done: <sha>
+- step 1 — done: dda4117
+- step 2 — done: 99709c6
+- step 3 — done: 1ee85f1
+- step 4 — done: d72c0dd
+- step 5 — done: d72c0dd
+- step 6 — done: 1c5255a
+- step 7 — done: c03aa6a
+- step 8 — done: 6971a1e
+- step 9 — done: c03aa6a
+- step 10 — done: d8694ad
+- step 11 — done: eb4e63d
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-(Filled during S135. `vajra next --check-advice 135` BLOCKS the close until every recorded
-recommendation is answered, and `vajra next --check-obeyed 135` BLOCKS until every `obeyed:` claim
-carries an independent judgment from a role that is not the one that gave the advice.)
+(`vajra next --check-advice 135` BLOCKS the close until every recorded recommendation is answered,
+and `vajra next --check-obeyed 135` BLOCKS until every `obeyed:` claim carries an independent
+judgment from a role that is not the one that gave the advice.)
+
+**design-advisor — 6 recommendations, dispatched FIRST (the S133 mandate, met by real use).**
+
+- design-advisor rec 1 — obeyed: 99709c6
+- design-advisor rec 2 — obeyed: 99709c6
+- design-advisor rec 3 — obeyed: 99709c6
+- design-advisor rec 4 — obeyed: 99709c6
+- design-advisor rec 5 — obeyed: d72c0dd
+- design-advisor rec 6 — obeyed: d72c0dd
+
+*(rec 1–4 landed in the `## Design` commit `99709c6`: marker kept `yes`, DECISION-007 S135 addendum
+written, Q1 handoff-only and Q2 distinct `deferred-budget` outcome recorded. rec 5 (`from_session: 0`,
+no threshold) and rec 6 (the crew gate built as a CALL SITE, 0 shared-ladder lines) landed in the
+crew module commit `d72c0dd`. An independent role — NOT the design-advisor — judges these via
+`--check-obeyed` at close.)*
+
+**tech-lead — 3 recommendations (the crew decision itself; the FIRST-and-mandatory dispatch,
+achieved live this session after a mid-session registry refresh — Decision 4).**
+
+- tech-lead rec 1 — deferred: sessions/session-135-summary.md
+- tech-lead rec 2 — deferred: sessions/session-135-summary.md
+- tech-lead rec 3 — deferred: sessions/session-135-summary.md
+
+*(All three are process recommendations, addressed in the summary's dispatch accounting: rec 1 —
+exactly three specialist dispatches ran (design-advisor · fidelity-reviewer · implementation-advisor)
+plus the tech-lead itself; rec 2 — every brief was named-files-only, so the raw totals stayed in the
+hundreds of thousands, not millions; rec 3 — all six deferred-budget lines are answered as
+`deferred:` with their arithmetic, not `refused:`.)*
+
+**fidelity-reviewer — 2 recommendations (pass 2, ACCEPT; pass 1's REJECT findings were all fixed
+in-session — see the summary).**
+
+- fidelity-reviewer rec 1 — deferred: sessions/session-135-review.md
+- fidelity-reviewer rec 2 — deferred: sessions/session-135-summary.md
+
+*(rec 1 — record criterion 7 as PARTIAL: DONE, the review of record grades it PARTIAL and the summary
+discloses it as the session's honest limit. rec 2 — build the budget-into-brief injection: DEFERRED
+to a follow-up, which the reviewer itself scoped as a follow-up; it is candidate work in the summary.)*
+
+**implementation-advisor** produced `obeyed-check` judgments (not `rec` lines): 6/6 of the
+design-advisor's dispositions `implemented:`, 0 mismatch. `vajra next --check-obeyed 135` reads them.
 
 ## Design
 
 - design-significant: yes — a tenth role, a new gate, a new binding relationship between roles
   (one role's output makes another role mandatory), and the first cost control in the product.
   New interface and new module, not a fix.
-- Spine records to cite (verify both exist first): `DECISION-007` with its **S133 addendum** (the
-  ladder and the reasoned skip this builds on) and its **S134 addendum** (the brownfield hole).
-- **Open design question 1:** does the `tech-lead`'s decision live in its handoff only, or is it
-  also mirrored into the session prompt? The handoff is provenance-verified and un-typed by the
-  builder, which is the whole point — mirroring it into a builder-owned file would re-open the
-  self-granted dodge S133 disclosed. Decide, and record the loser's reason.
-- **Open design question 2:** what happens when a required role's dispatch FAILS — as S134's
-  re-grade did, on a spend limit? A blocked close is correct but unhelpful if the account is out of
-  budget. Decide whether that is a distinct recorded outcome or simply a block, and say why.
-- **Open design question 3:** the brownfield threshold from S134's addendum. `tech-lead` is brand
-  new, so it has no legacy sessions to exempt — does it get a threshold at all? Arguably not, and
-  arguably that is the fix to the whole threshold problem: **a role introduced with no threshold
-  has no brownfield hole.** Decide and record.
+- Spine records cited (both verified to exist): `DECISION-007` with its **S133 addendum** (L862,
+  the ladder and the reasoned skip this builds on) and its **S134 addendum** (L947, the brownfield
+  hole). A NEW **S135 addendum** is written into `DECISION-007` this session — the design-advisor
+  (rec 2) flagged that S135 does not merely extend the record, it RESOLVES the open threshold
+  question the S134 addendum explicitly deferred (L986–997), and a decision that closes a locked
+  record's open clause must be written back into the spine, not left living only in a prompt.
+
+**The three design questions — DECIDED (design-advisor dispatched first; handoff
+`.ai/handoffs/session-135-design-advisor.md`, provenance re-verified):**
+
+- **Decision 1 (Q1) — HANDOFF-ONLY.** The `tech-lead`'s crew decision lives ONLY in its
+  provenance-verified handoff, never mirrored into a builder-owned prompt section. *Loser: a
+  `## Crew` block in the prompt* — rejected because it re-opens the "jurisdiction is self-granted"
+  dodge S133 disclosed (the builder can type its own record) and creates a second source that
+  drifts. Disclosed cost: a reader of the prompt alone cannot see the crew decision;
+  `vajra next --check-crew NN` surfaces it on demand, which is the acceptable price of un-forgeability.
+- **Decision 2 (Q2) — a spend-limit death is a DISTINCT recorded outcome, not a bare block.** When a
+  `required` role's dispatch dies mid-flight (as S134's judge did), the session may NOT manufacture a
+  handoff and may NOT upgrade the item to a pass. It re-runs the `tech-lead` decision to move that
+  role to `deferred-budget` **carrying the arithmetic that killed it**. The close then passes on a
+  recorded money fact, not on confidence. *Loser A: a plain block with no recorded outcome* —
+  unhelpful when genuinely out of budget and it tempts a self-certified pass. *Loser B: auto-downgrade
+  `required`→`deferred-budget` inside the gate on any missing handoff* — rejected hard: that is a
+  silent escape from every required role and guts the gate. The downgrade is an explicit,
+  arithmetic-carrying re-decision, never automatic.
+- **Decision 3 (Q3) — NO migration threshold. The crew gate enforces from session one, always
+  (`from_session: 0` at the call site).** This is the fix to the S134 brownfield hole, not a repeat
+  of it: a brand-new role has zero legacy prompts to exempt, so silence about the `tech-lead` blocks
+  in every project at every session, forever — exactly what the S134 addendum said a threshold
+  *should* mean but its session-number units do not. *Loser A: reuse threshold 133* — meaningless for
+  a role that did not exist at S133 and would silently exempt S1–S134 of any brownfield adopter,
+  importing the exact hole. *Loser B: build a real units-fix now (git-birth-date / adoption marker)* —
+  over-engineering on n=1; the S134 addendum itself says n=1 does not earn a mechanism. Reasoned in
+  writing in the DECISION-007 S135 addendum so no future audit mistakes it for the S134 defect.
+- **Decision 4 (the bootstrapping wall — found live, and the mid-session refresh that beat it) —
+  S135's HEADLINE OPERATIONAL FINDING.** A brand-new NATIVE-SUBAGENT role is normally NOT dispatchable
+  in the session that creates it: Claude Code snapshots `.claude/agents/` at session START, so
+  `tech-lead.md` (written this session) was absent from S135's initial dispatch registry — the first
+  attempt to dispatch `subagent_type: tech-lead` was refused with "agent type not found". This is the
+  SAME wall that made `design-advisor` (created S126) first dispatchable at S133. **The founder, asked
+  in chat while the wall was up, chose Option A (ship + let the gate BLOCK S135's own `--advance`
+  live).** Then the harness RE-SCANNED `.claude/agents/` mid-session and `tech-lead` became
+  dispatchable — so S135 does one BETTER than Option A: it dispatches a real, provenance-verified
+  `tech-lead` whose crew decision the gate reads, and the gate then BINDS honestly through the close.
+  **The binding is a sequence, not an instant, and the cold review caught the difference (pass 1,
+  REJECT).** The tech-lead marks three roles `required` (design-advisor, implementation-advisor,
+  fidelity-reviewer); `vajra next --check-crew 135` correctly BLOCKS until all three handoffs are on
+  disk, and PASSES only once they are — which is the final act of the close, after the fidelity and
+  judge dispatches land. The mid-flight block IS the gate biting its own session; the pass is earned
+  at the end, not asserted early. **The wall is still real and recorded:** a mid-session
+  refresh is not guaranteed, so the reliable rule remains "a native-subagent role first binds the
+  session AFTER it is created" — and verify's sandbox fixtures (a real tech-lead handoff built by the
+  binary) prove the PASS path independently of whether any given harness refreshes. *Rejected: a
+  founder-gated bootstrap waiver, and silently re-scoping acceptance 8 to S136* — both are unnecessary
+  now that a real tech-lead dispatch is possible; a gate satisfied by real work beats both a waved-through
+  green and a deferral. S135 still closes via `verify-closeout.sh` (which does not run the crew gate);
+  `--advance` is the surface the crew gate binds.
+- **The call-site claim (design-advisor rec 6, the falsification test):** the crew gate is built as a
+  CALL SITE on `src/mandate`'s generic `mandate_gate` — `from_session: 0` for the tech-lead's own
+  presence, then crew-gate-specific code parses the verified handoff and calls the EXISTING per-role
+  handoff verification once per `required` role. Prediction on record: **0 lines added to
+  `mandate_gate` / `parse_skip_marker` / `classify_marker_value`.** If the ladder had to change, that
+  is the session's headline finding (acceptance 5), reported as a number.
 
 ## Non-goals (not built this session)
 
