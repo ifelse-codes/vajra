@@ -46,3 +46,5 @@ rec 1 — Record criterion 7 as PARTIAL in the review of record, not SHIPPED: th
 rec 2 — In a follow-up, close the loop: make `vajra next --role <name>` (or a small read surface) echo "recorded allowance: N tokens (an instruction, not a cap)" pulled from the parsed tech-lead handoff, so the role genuinely knows its budget at dispatch. A small call-site addition on the existing `crew_gate` parse, keeping the S133 no-ladder-edit posture.
 
 **Verdict:** ACCEPT
+
+**Review-Inputs-SHA:** d538f522d7ec2c17579ccbed4bda87e97f374f1f8795f5cf66b208bc27009154
