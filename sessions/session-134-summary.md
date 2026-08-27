@@ -272,6 +272,16 @@ fidelity pass had missed.
   `dca0a85`, but the BEFORE fingerprint is stamped `14:27:39Z` and that commit landed at `14:26:31Z`
   — the artifact did not exist when the commit was made. Corrected.
 
+**The re-grade that did NOT happen, recorded rather than quietly dropped.** All four items above
+were fixed, and the same judge was re-dispatched to grade only those four. **That re-grade died
+mid-flight on an account monthly spend limit and returned nothing.** So the two `mismatch:` verdicts
+**stand as the last independent judgment on record**, and they were NOT overwritten with
+self-certified `implemented:` lines by the person who made the fixes. Both dispositions were changed
+to `deferred:` instead, each naming the fix commit and saying plainly that the fix is **unjudged**.
+A fix the builder verified is not a fix an independent role confirmed, and this session ends with
+that distinction intact rather than blurred. It is also the third distinct way this session's review
+mechanism came up short — after two judges with no shell.
+
 **Where the judge said it came closest to a mismatch**, in its own words: `design-advisor rec 13`'s
 sha is "the weakest of the 22 design-advisor citations" (two of its three artefacts live in a file
 that first landed a commit later), and `rec 14`'s changed manifest path is one a stricter judge

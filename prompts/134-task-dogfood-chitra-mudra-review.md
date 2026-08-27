@@ -299,12 +299,18 @@ judgment from a role that is not the one that gave the advice.)
 - fidelity-reviewer rec 4 — obeyed: 9a27c59
 - fidelity-reviewer rec 5 — obeyed: 9a27c59
 - fidelity-reviewer rec 6 — obeyed: 9a27c59
-- fidelity-reviewer rec 7 — obeyed: 9a27c59
+- fidelity-reviewer rec 7 — deferred: sessions/session-134-summary.md
+  (the judge graded this `mismatch:` — STATE.md was still wrong at `9a27c59`. The fix landed
+  afterwards in `e4bcc6c` + `1cc0568`, and the re-grade dispatch died on an account spend limit, so
+  the fix is UNJUDGED. Not upgraded to `obeyed:` by the builder who made it.)
 - fidelity-reviewer rec 8 — obeyed: 9a27c59
 - fidelity-reviewer rec 9 — obeyed: 9a27c59
 - fidelity-reviewer rec 10 — obeyed: 9a27c59
 - fidelity-reviewer rec 11 — obeyed: 9a27c59
-- fidelity-reviewer rec 12 — obeyed: 9a27c59
+- fidelity-reviewer rec 12 — deferred: sessions/session-134-summary.md
+  (the judge graded this `mismatch:` — the token counts were still a circular pointer at `9a27c59`.
+  Real numbers landed afterwards in `0437a12`; the re-grade that would have confirmed it died on an
+  account spend limit, so the fix is UNJUDGED.)
 
 ## Design
 
