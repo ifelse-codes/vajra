@@ -1252,3 +1252,65 @@ environment variable did not.
   a finding about the budget, not an offence by the role.
 - **A subagent dispatch can die mid-response on an account monthly spend limit** and return nothing
   at all. Plan for a partial fleet, and record what did not complete as incomplete.
+
+---
+
+## Session 135 — the `tech-lead`, the tenth role, and the binding `--check-crew` gate (CODE, ACCEPT 11/12)
+
+**What shipped.** `tech-lead` — the tenth `fleet::Role`, the first that is not a specialist. It
+decides, for each of the nine specialists, whether a task needs it (`required`) or cannot afford it
+(`deferred-budget`), with a numeric token budget; its verdict BINDS via `vajra next --check-crew NN`.
+`src/crew/mod.rs` is the gate; `--crew-cost NN` reports each dispatch's RAW on-disk token total
+against the recorded budget. Cold `fidelity-reviewer` ACCEPT (two passes), attested `d538f522…`.
+
+**The S133 genericity falsification test HELD — reported as a NUMBER.** The crew gate is a CALL SITE
+on `src/mandate`: it calls the UNCHANGED `mandate_gate` twice (tech-lead presence + per-required-role
+verification) and adds only handoff-parsing that the S133 ladder never had. `git diff main --
+src/mandate/mod.rs` is empty — **0 lines added to `mandate_gate` / `parse_skip_marker` /
+`classify_marker_value`**. S133's "a second mandatory role is a table entry, not a third copy" was
+real, not decoration. This is the house pattern for the fleet now.
+
+**The crew gate has NO migration threshold (`from_session: 0`) — the S134 brownfield fix, for NEW
+roles.** A brand-new role has zero legacy prompts to exempt, so silence about it blocks from session
+1 in every project. This did NOT retrofit the two existing thresholded roles; it establishes that
+future mandatory roles ship threshold-free, so the hole does not grow (DECISION-007 S135 addendum).
+
+**Phase 1 has NO off switch, by decision.** Only `required` and `deferred-budget` are admitted;
+`not-needed` / a bare skip / an empty reason are REFUSED and the refusal names phase 1b (the all-nine
+observation). `deferred-budget` is a MONEY fact carrying arithmetic, never a usefulness judgement —
+that judgement is phase 2, unlocked only after 1b. Tests bind to the DEFECT VALUE, not message text.
+
+**The budget is an INSTRUCTION, not a fence.** A dispatch takes no budget parameter; Vajra cannot
+hard-stop a subagent mid-run and does not pretend to. `--crew-cost` reports actual-against-allowance
+to LEARN; an overrun is a finding (usually the budget was wrong), never an offence, never a block.
+
+**THE BOOTSTRAPPING WALL (found live, the headline operational finding).** A brand-new
+native-subagent role is normally NOT dispatchable in the session that creates it — Claude Code
+snapshots `.claude/agents/` at session START, so `tech-lead.md` written this session was absent from
+the initial dispatch registry (the first `subagent_type: tech-lead` was refused). Same wall that made
+`design-advisor` (created S126) first dispatchable at S133. The founder chose Option A (ship + let the
+gate BLOCK its own `--advance` live) while the wall was up; a mid-session registry REFRESH then let
+S135 do one better — a real, provenance-verified `tech-lead` dispatched, `--check-crew 135` PASSES.
+**The reliable rule stands: a native-subagent role first binds the session AFTER it is created; a
+mid-session refresh is not guaranteed.**
+
+**`--crew-cost` caught the S134 45× trap live.** The Agent tool reported the fidelity pass-1 dispatch
+as 98,758 tokens (NEW only); the RAW on-disk truth is 2,003,866 — a ~20× understatement. Reading
+`input + output + cache_read + cache_creation` per turn from `~/.claude/projects/*/*/subagents/
+agent-<id>.jsonl` is the instrument S134 lacked. Session total: 2,540,174 raw across 4 dispatches vs
+S134's 19,192,697 across 3 — tight named-files briefs cut ~8×. **Phase 1b (all-nine) ≈ 4–5M raw/
+session**, ~4 all-nine sessions/month under the $20 plan's ~19M cap.
+
+**Fakest greens, named.** Pass 1 (REJECT) caught a PROSE overclaim — the prompt asserted "GENUINE
+self-binding … PASSING" while the disk showed the gate BLOCKING (mid-flight); rewritten to the honest
+closing SEQUENCE (blocks until the required handoffs land, then passes). It also caught the demo
+hard-coding "verify 10/10 / fixture 7/7" as `printf` literals + faking a gate's output — fixed to run
+the real test and compute the real count. Pass 2 (ACCEPT) independently graded **criterion 7 PARTIAL**:
+the budget is REPORTED by `--crew-cost` but NOT carried into a dispatch brief (`run_role_handoff`
+never reads `budget_tokens`); the reporting half is built, the injection half is not — a follow-up.
+
+**A crew-row parser lesson.** A line is only a crew RECORD when its first field names a real
+specialist. A handoff heading like `## Crew decision — session 135` decoration-strips to
+`crew decision — …` which carries an em-dash; the first parser mis-read it as a malformed row and
+blocked. Fix: non-specialist first field → not a record (prose), unless it is a full four-field line
+(then UnknownRole). The same class as S133's line-anchoring lesson, one field deeper.
