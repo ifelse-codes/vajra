@@ -2,6 +2,28 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
+## Session 135 — the `tech-lead` + the binding `--check-crew` gate — COMPLETE
+
+- **ACCEPT** (cold `fidelity-reviewer`, two passes; pass 2 **11/12 SHIPPED · 1 PARTIAL**), attested
+  `d538f522…`. The tenth role decides which of the nine specialists a task needs (`required` /
+  `deferred-budget`, no off switch in phase 1) and its verdict BINDS. **Genuine self-binding:** a real
+  provenance-verified `tech-lead` dispatched, `vajra next --check-crew 135` PASSES (3 required · 6
+  deferred-budget).
+- **The S133 genericity falsification test HELD** — the crew gate is a CALL SITE, **0 lines added to
+  `mandate_gate`/`parse_skip_marker`/`classify_marker_value`**. Crew gate has **NO threshold**
+  (`from_session: 0`) — the S134 brownfield fix for new roles.
+- **Headline finding: the bootstrapping wall** (a new native-subagent role is normally not
+  dispatchable in the session that creates it; a mid-session registry refresh let S135 bind anyway).
+- **`--crew-cost` reads REAL bytes:** 2.54M raw / 4 dispatches vs S134's 19.2M / 3; the 98,758-new
+  vs 2,003,866-raw gap on the fidelity pass-1 is the S134 45× trap live.
+- **Disclosed PARTIAL:** criterion 7 (budget reported, not carried into a dispatch brief) — S136
+  candidate 3. `tech-lead` is Vajra-only until chitra's 4-of-9 scaffold is upgraded — S136 candidate 1.
+- Reports: `sessions/session-135-summary.md`, `sessions/session-135-review.md`.
+
+**Next: Session 136 — founder confirms the pick at S136 start.** Prompt written for candidate 1
+(chitra scaffold upgrade) as the default; candidates 2 (phase 1b) and 3 (close criterion 7) recorded
+in `.ai/SESSION-BOOT.md` and the S135 summary. **Next GT: S140.**
+
 ## Session 134 — PAID DOGFOOD (the mudra chart review in chitra) — COMPLETE
 
 - **Goal achieved.** One real paid session ran in `/Users/suman/playground/chitra` through

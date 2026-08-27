@@ -1,9 +1,28 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 135 — IN PROGRESS (the `tech-lead`; prompt `prompts/135-task-tech-lead-mandatory.md`).
-  Launched `VAJRA_GT_WAIVER=135 vajra claude`. CODE by founder override of the `135 % 5` GT rule;
-  next GT is S140. Prior session (S134) summary preserved below until the S135 closeout rewrites it.
+- **Number:** 135 — COMPLETE (the `tech-lead` + the binding `--check-crew` gate).
+- **Type:** CODE by founder override of the `135 % 5` GT rule (next GT = S140). Launched
+  `VAJRA_GT_WAIVER=135 vajra claude`.
+- **Verdict: ACCEPT** (cold `fidelity-reviewer`, two passes; pass 1 REJECT of a mid-flight state
+  fixed in-session, pass 2 **11/12 SHIPPED · 1 PARTIAL**), attested `d538f522…`. Genuine self-binding
+  achieved: a real provenance-verified `tech-lead` dispatched, `vajra next --check-crew 135` PASSES.
+- **Falsification test HELD:** the crew gate is a CALL SITE — **0 lines added to the `src/mandate`
+  shared ladder**. **Headline finding:** the bootstrapping wall (a new native-subagent role is
+  normally not dispatchable in the session that creates it; a mid-session registry refresh let S135
+  bind anyway). Reports: `sessions/session-135-summary.md` + `sessions/session-135-review.md`.
+
+## Next Session
+- **Read prompt:** `prompts/136-task-<slug>.md` (written at this closeout — see below).
+- **S136 candidates (3, ranked), founder to confirm at the S136 start:**
+  1. **chitra scaffold upgrade to the full ten-role roster** (then a paid dogfood) — make the
+     tech-lead real in the ONE outside project; closes the "Vajra-only feature" gap the founder
+     called out. *Prompt written for THIS pick as the default.*
+  2. **Phase 1b — the all-nine observation**, budgeted from S135's real numbers (~4–5M raw/session).
+  3. **Close criterion 7** — carry the recorded budget INTO each role's dispatch brief (a small read
+     surface, no ladder edit; turns 11/12 into 12/12).
+- **Next GT: S140** (this cycle's GT was skipped by founder decision at the S134 close — the first
+  skipped GT in the project's history; the every-5th cadence resumes at S140, NOT a new default).
 
 ## Prior Session (S134 — COMPLETE)
 - **Number:** 134 — COMPLETE
