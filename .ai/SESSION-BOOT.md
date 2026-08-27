@@ -63,6 +63,12 @@
 
 ## Next Session
 - **Read prompt:** `prompts/135-task-tech-lead-mandatory.md`
+- **⚠ LAUNCH IT AS `VAJRA_GT_WAIVER=135 vajra claude`.** `135 % 5 == 0` makes it a mandatory NO-CODE
+  Ground Truth session and both hooks enforce that; the founder converted it to CODE at the S134
+  closeout and **skipped this cycle's GT entirely — next GT is S140** (first skip in the project's
+  history, recorded as a decision, with the overruled concern recorded beside it). Without the
+  waiver every `src/` edit and every commit is blocked. The waiver is founder-held, scoped to one
+  session number, and is NOT a new default.
 - **Session 135 = the `tech-lead`** — the tenth role, the first that is not a specialist, and the
   FIRST and MANDATORY dispatch of every session. **REPLACES the previously locked S135**
   (`implementation-advisor` mandatory), by founder decision in chat at this closeout.

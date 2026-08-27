@@ -144,6 +144,16 @@ ways (`HEAD`, index hash, stash list, branch all identical; exactly one pre-decl
   session.**
 
 ## What Is In Progress
+- **⚠ S135 IS A GROUND-TRUTH SESSION CONVERTED TO CODE BY FOUNDER OVERRIDE (S134 closeout).**
+  `135 % 5 == 0`, so the constitution makes it mandatory NO-CODE. The founder converted it and
+  **decided this cycle's GT is SKIPPED ENTIRELY — the next GT is S140.** First skipped Ground Truth
+  in the project's history; recorded as a DECISION, not drift. Reason: S134 already did most of a
+  review session's work. **Concern raised and overruled, recorded beside it:** GT is the only
+  instrument that asks whether we are building the RIGHT THING rather than whether we followed our
+  own rules, and if S135–S139 drift nothing is scheduled to catch it.
+  **S135 must be launched as `VAJRA_GT_WAIVER=135 vajra claude`** — founder-held, read from the
+  launch environment, scoped to one session number (a blanket `=1` or a stale number does nothing),
+  loud on stderr, proved live on four cases. **The skip is a one-cycle decision, not a new default.**
 - **Nothing is mid-flight.** S134 is complete; `prompts/135-task-implementation-advisor-mandatory.md`
   is written at closeout.
 - **S135 = `implementation-advisor` becomes the fleet's THIRD mandatory role**, on S133's mechanism,
