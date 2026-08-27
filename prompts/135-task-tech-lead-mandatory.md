@@ -259,10 +259,10 @@ it does not close it in the one project that would prove it.
 - step 5 — done: d72c0dd
 - step 6 — done: 1c5255a
 - step 7 — done: c03aa6a
-- step 8 — done: PENDING_STEP8
+- step 8 — done: 6971a1e
 - step 9 — done: c03aa6a
-- step 10 — done: PENDING_STEP10
-- step 11 — done: PENDING_STEP11
+- step 10 — done: d8694ad
+- step 11 — done: eb4e63d
 
 ## Advice (every recommendation from this session's advisors, answered)
 
