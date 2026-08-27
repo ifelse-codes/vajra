@@ -5,6 +5,7 @@ pub mod architect;
 pub mod budget;
 pub mod cli;
 pub mod coder;
+pub mod crew;
 pub mod demoer;
 pub mod dispatch;
 pub mod dogfood;
