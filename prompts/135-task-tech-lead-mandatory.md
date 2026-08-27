@@ -298,7 +298,18 @@ plus the tech-lead itself; rec 2 — every brief was named-files-only, so the ra
 hundreds of thousands, not millions; rec 3 — all six deferred-budget lines are answered as
 `deferred:` with their arithmetic, not `refused:`.)*
 
-**fidelity-reviewer / implementation-advisor dispositions are appended when those roles land (step 10).**
+**fidelity-reviewer — 2 recommendations (pass 2, ACCEPT; pass 1's REJECT findings were all fixed
+in-session — see the summary).**
+
+- fidelity-reviewer rec 1 — deferred: sessions/session-135-review.md
+- fidelity-reviewer rec 2 — deferred: sessions/session-135-summary.md
+
+*(rec 1 — record criterion 7 as PARTIAL: DONE, the review of record grades it PARTIAL and the summary
+discloses it as the session's honest limit. rec 2 — build the budget-into-brief injection: DEFERRED
+to a follow-up, which the reviewer itself scoped as a follow-up; it is candidate work in the summary.)*
+
+**implementation-advisor** produced `obeyed-check` judgments (not `rec` lines): 6/6 of the
+design-advisor's dispositions `implemented:`, 0 mismatch. `vajra next --check-obeyed 135` reads them.
 
 ## Design
 

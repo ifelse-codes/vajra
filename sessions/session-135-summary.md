@@ -94,6 +94,14 @@ demo now runs the real value-bound test for CASE 2 and prints the real crew-suit
 literals; this summary was written; the `PENDING_*` shas were resolved. **Pass 2 = ACCEPT.** The
 pass-1 REJECT is disclosed here, not buried — it is the two-pass pattern working (S67).
 
+**Pass 2 also found a gap pass 1 missed — recorded, not paved over: criterion 7 is PARTIAL.** The
+budget is RECORDED by the tech-lead, DISPLAYED by `--check-crew`, and REPORTED against actual by
+`--crew-cost` — but nothing in the dispatch path reads `budget_tokens` to CARRY the allowance INTO a
+role's brief (`run_role_handoff` never reads it). The reporting half is fully built; the injection
+half is not. Graded PARTIAL in the review of record; the fix (a small read surface echoing the
+recorded allowance at dispatch) is a follow-up (candidate 3 below). **11 of 12 SHIPPED, 1 PARTIAL,
+0 NOT-BUILT.**
+
 ## Honest limits (recorded, not hidden)
 
 - **The bootstrapping wall (Decision 4).** A brand-new native-subagent role is normally not
@@ -130,9 +138,11 @@ pass-1 REJECT is disclosed here, not buried — it is the two-pass pattern worki
    cannot be earned without this evidence, and S135 now has the ~4–5M-raw budget to plan it.
    *Key risk:* even tight, all-nine approaches a meaningful fraction of the monthly cap; a sprawling
    brief blows it (S134).
-3. **F2f — the rubber-stamp detector (a tech-lead that requires nine roles and never reads them).**
-   *Goal:* detect a dispatch that happened but whose findings never reached the work.
-   *Why pick this:* S135 makes F2f MORE valuable — a binding crew gate is exactly the thing a
-   rubber-stamp would satisfy hollowly.
-   *Key risk:* "advice reached the work" is hard to measure without re-introducing a judgement the
-   gate is not allowed to make.
+3. **Close criterion 7 — carry the recorded budget INTO each role's dispatch brief.**
+   *Goal:* the small read surface the pass-2 review asked for — `vajra next` echoes a required role's
+   recorded allowance at dispatch ("recorded allowance: N tokens, an instruction not a cap"), so the
+   role knows its budget, not just the report afterward.
+   *Why pick this:* it is the one disclosed PARTIAL from S135 and a genuinely small call-site addition
+   on the existing `crew_gate` parse (no ladder edit); it turns 11/12 into 12/12.
+   *Key risk:* Vajra does not write the brief, so "carry into the brief" is really "surface for the
+   orchestrator to include" — the wording must claim only what the surface delivers.
