@@ -107,7 +107,13 @@ that this repo demonstrably could not have manufactured."*
 **Review-Inputs-SHA:** 8991f9b0f5555569779ec19dec950be4a4c68b64eea43dd93e387a3fae1b5dce
 
 *(Computed LAST, after every edit to the prompt and the delivery, per S69/S131. Two consecutive
-runs agree. The disclosed limit stands unchanged from S58: the same agent can run `--inputs-sha`
+runs agree. **Re-checked after the closeout amendments** (the ~45× subagent-token correction and the
+S135 re-pick) and the value is **UNCHANGED** — correctly so, and worth stating rather than implying
+otherwise: the canonical preimage is `<this session's prompt as committed> \0 <delivery diff>`, and
+that diff **excludes** `sessions/`, `prompts/` and the closeout-synced `.ai/*` files precisely so
+the hash stays stable between emit-time and closeout-time. Every amendment made after the first
+attestation landed in exactly those excluded paths. So the re-check confirms stability; it is not
+evidence that the amendments were hashed. The disclosed limit stands unchanged from S58: the same agent can run `--inputs-sha`
 and paste the result, so this is bar-raising, not tamper-proof.)*
 
 **Verdict:** ACCEPT
