@@ -95,8 +95,20 @@
   `--crew-cost` reports actual against allowance to LEARN. An overrun is a finding, not an offence.
   Designing against a cheating subagent is the wrong posture — the adversary is drift and
   self-certification, never the crew.
-- **chitra's scaffold gets upgraded to all ten roles in the same session**, or this is a Vajra-only
-  feature again.
+- **BUDGET REALITY, decided at the S134 closeout: the founder is on a `$20`/month plan.** S134's
+  THREE dispatches cost 19.2M raw tokens and hit the limit mid-session. So **S135 BUILDS the
+  mechanism and proves it with 2–3 dispatches — it does NOT run all nine.** The all-nine observation
+  (**phase 1b**) is DEFERRED until the budget allows; phase 2's off switch comes only after that.
+- **Two verdicts in phase 1, on deliberately different axes:** `required` (this task needs it) and
+  `deferred-budget` (**a money fact, not a judgement about usefulness**, carrying its arithmetic).
+  The lead still may NOT say "this role isn't worth it" — that is unobserved judgement, and phase 2.
+- **The risk, raised and OVERRULED, so S135 must guard against it:** building a mechanism nobody runs
+  is this repo's most-repeated failure (S125 "a role no gate consumes is decoration"; S129 "a
+  registered gate nobody executes is not a gate"). **Acceptance 8 therefore requires the gate to BIND
+  ON S135 ITSELF**, not merely on future sessions.
+- **chitra's scaffold upgrade is DEFERRED to just before the next dogfooding session** — founder's
+  call, not dropped. Until then the `tech-lead` is a Vajra-only feature, and S135's summary must say
+  so rather than let it look finished.
 - **Still the falsification test for S133's genericity claim:** if S135 edits `mandate_gate`,
   `parse_skip_marker` or `classify_marker_value`, the genericity was decoration — report it as a
   NUMBER (shared-ladder lines vs call-site lines) and as the headline finding.
