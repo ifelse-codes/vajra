@@ -41,10 +41,10 @@ echo "    exit=$( cd "$TMP" && "$VAJRA" next --check-crew 5 >/dev/null 2>&1; ech
 rm -rf "$TMP"
 
 head_ "CASE 2 — an inadmissible verdict is REFUSED, and the refusal names phase 1b (no off switch)"
-label "the tech-lead tries 'crew researcher — not-needed — …'"
+label "the value-bound test that owns it (real output, not a printed claim):"
 printf "    ${DIM}phase 1 admits ONLY 'required' or 'deferred-budget'. 'not-needed' is a judgement of\n"
 printf "    worth — phase 2, earned only after the all-nine observation (phase 1b).${RESET}\n"
-printf "    -> gate output: ${BOLD}phase 1 admits ONLY required or deferred-budget ... phase 1b ...${RESET}\n"
+cargo test --release --lib crew::tests::an_inadmissible_verdict_is_refused_by_value 2>&1 | grep -E "test result|an_inadmissible" | sed 's/^/    /'
 
 head_ "CASE 3 — the budget is an INSTRUCTION: --crew-cost reads REAL on-disk bytes, never blocks"
 label "vajra next --crew-cost 135   (this very session's real dispatches)"
@@ -65,8 +65,10 @@ printf "    %-52s ${GREEN}%s${RESET}\n" "--crew-cost — real bytes, reports to 
 printf "    %-52s ${GREEN}%s${RESET}\n" "phase-1 no off switch (required|deferred-budget)" "ENFORCED"
 printf "    %-52s ${GREEN}%s${RESET}\n" "crew gate has NO threshold (the S134 fix)" "FROM S1"
 printf "    %-52s ${GREEN}%s${RESET}\n" "built as a CALL SITE — shared ladder lines added" "0"
-printf "    %-52s ${GREEN}%s${RESET}\n" "verify-session-135.sh" "10/10"
-printf "    %-52s ${GREEN}%s${RESET}\n" "fixture-session-135.sh (falsifiability)" "7/7"
+# The crew unit suite result — REAL output, computed here, never a printed literal (fidelity rec 3).
+CREW_RESULT="$(cargo test --release --lib crew:: 2>&1 | grep -oE '[0-9]+ passed; [0-9]+ failed' | head -1)"
+printf "    %-52s ${GREEN}%s${RESET}\n" "crew unit suite (cargo test crew::)" "${CREW_RESULT:-see cargo test}"
+printf "    %-52s ${DIM}%s${RESET}\n" "verify-session-135.sh / fixture-session-135.sh" "run LIVE by the QA + Demo-er gates at close"
 
 echo "demo:before_after"
 head_ "BEFORE vs AFTER"
