@@ -941,3 +941,65 @@ documented — so the relaxation is written here rather than left to a citation 
   (`implementation-advisor`) is S134, on this mechanism.
 - **Nothing improves on S131's disclosed limit:** the on-disk dispatch evidence is UNSIGNED and
   hand-fabricable by anyone with shell access to this machine. Inherited whole.
+
+---
+
+## S134 addendum — the BROWNFIELD threshold hole, found by the first outside test
+
+**Status:** correction to the S133 addendum, section 6 (migration threshold 133). Not a new
+DECISION record: this is n=1, and the house pattern for new information about a locked clause is an
+addendum (S122 did the same to its own record).
+
+**How it was found.** S134 was a paid dogfood: one real governed run inside
+`/Users/suman/playground/chitra`, an already-Vajra-governed project, reviewing its mudra-locked
+charts. It is the first evidence about the S133 mandate that this repo did not manufacture — every
+prior exercise was a fixture this repo wrote.
+
+**What the S133 addendum disclosed, and what it missed.** It disclosed the FRESH-PROJECT case: a
+session-NUMBER threshold would exempt sessions 1..132 of a brand-new repo, and it closed that by
+making `analyst::PROMPT_TEMPLATE` carry the marker as a placeholder, so a scaffolded session 1 lands
+on rung 4 and blocks. It never reasoned about the BROWNFIELD case — **an already-governed project
+sitting below 133 whose existing prompts were written before the marker existed.** Those prompts
+carry no marker at all. Silence below the threshold is exempt. The gate WARNs, forever.
+
+**The live specimen, captured verbatim** (`sessions/session-134-artifacts/gate-log/`,
+`chitra-check-design-handoff-16.txt`, exit 0):
+
+    === mandate: design-advisor for session 16 ===
+    prompt:  prompts/16-task-sparkline-histogram-lock.md
+    handoff: (none)
+    verdict: READY
+      ⚠ session 16 predates the design-advisor mandate (threshold 133) — silence is exempt
+        below it, and only below it.
+
+chitra's session 16 is **actively doing design work** — it is locking two more chart families to a
+reference design language. It is the exact session the mandate exists for. It gets READY.
+
+**Why this is worse than it looks.** The threshold's stated purpose is migration: do not retroactively
+block sessions written before the rule. For THIS repo that is a finite, closing window — Vajra is at
+134 and every future session is above the line. For a brownfield adopter it is not a window at all.
+A project that adopts Vajra at its session 40 gets a permanently advisory mandate on every prompt it
+already has, and there is nothing in the mechanism that ever ends the exemption. **The migration
+threshold is measured in the wrong units: it counts the GOVERNED PROJECT's sessions, when what it
+means is "prompts written before this rule existed."**
+
+**Deliberately NOT decided here.** The fix is not obvious and n=1 does not earn a mechanism:
+- a per-project adoption marker in `.ai/` (honest, but agent-writable, so it is a self-granted
+  exemption of exactly the S133 "jurisdiction is self-granted" class);
+- comparing the prompt file's git birth date against the rule's landing date (un-forgeable-ish, but
+  costs a git call per gate and dies in a shallow clone);
+- dropping the threshold entirely and letting `vajra init`-era projects fail loudly until they
+  record a reasoned skip (simplest, most honest, worst first-run experience).
+
+**What S135 inherits.** `implementation-advisor` becomes mandatory on this same mechanism and will
+carry this same hole from birth. S135 must either fix the units or record, in writing, why it is
+shipping a second mandatory role with a known permanent exemption for every brownfield adopter.
+Naming it is this addendum's whole job.
+
+**Also recorded, from the same run:** the mandate on the Vajra side worked, and worked WELL. The
+`design-advisor` dispatch for S134 landed before any other work (`captured: 14:23:27Z`, first commit
+`14:26:31Z`) and returned 22 recommendations that found the session brief itself factually wrong in
+seven places — including a chart family the brief omitted, a "how to see them" section describing
+scripts that do not exist, and an acceptance criterion that was impossible to satisfy as written.
+Those corrections landed before a paid minute was spent. This is the first recorded instance of the
+mandate paying for itself rather than merely being satisfied.

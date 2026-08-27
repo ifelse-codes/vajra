@@ -2,53 +2,85 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 133 — CODE (the design-advisor becomes mandatory) — COMPLETE
+## Session 134 — PAID DOGFOOD (the mudra chart review in chitra) — COMPLETE
 
-- **Goal achieved.** A session cannot reach its close without either a real `design-advisor`
-  governed handoff or a RECORDED, substantive, VISIBLE reason why it did not need one.
-  `src/mandate/mod.rs` holds a six-rung ladder, generic over a `fleet::Role`;
-  `vajra next --check-design-handoff NN` binds at the closing advance AND at
-  `scripts/verify-closeout.sh`.
-- **The reasoned skip:** `<role-name>: skipped — <reason>` in the session's own prompt —
-  line-anchored, fence-skipping (both kinds), gated by `advice::substantive_reason` verbatim, and
-  keyed on the ROLE NAME so S134 inherits the grammar with no new parser. **No
-  `VAJRA_SKIP_DESIGN_ADVISOR_GATE`**, and twelve environment variables are driven live to prove it.
-- **Rung 1 beats rung 3, decided not discovered:** a recorded reason does not launder a forged or
-  malformed handoff.
-- **Threshold 133 governs SILENCE only**, and the scaffold carries the marker so a fresh project
-  blocks at session 1 rather than being exempt for 132 sessions.
-- **Three independent dispatches:** `design-advisor` FIRST before any code, a cold
-  `fidelity-reviewer` pass (**ACCEPT**), and `implementation-advisor` as the JUDGE of all 22
-  `obeyed:` claims.
-- **Live evidence:** `verify-session-133.sh` **15/15 GREEN**, `demo-session-133.sh` **9/9 GREEN**,
-  428 lib tests, clippy + fmt clean, fixture RED on 7 bypasses and GREEN on renaming all 11
-  messages, `K of 8` pinned to its baseline and unchanged.
-- Reports: `sessions/session-133-summary.md`, `sessions/session-133-review.md`.
+- **Goal achieved.** One real paid session ran in `/Users/suman/playground/chitra` through
+  `vajra claude` — **`$1.6103385` authoritative**, 25 turns — reviewing every mudra-locked chart by
+  **rendering and looking at each one**, and reported both verdicts the founder was owed.
+- **Design verdict: IMPRESSIVE**, with two cheap blemishes. Verified at raw-RGB level: one accent
+  hue spent exactly once, the literal documented grey ramp everywhere else, across four unrelated
+  geometries. Weakest chart `area`; highest-impact fix = un-crush the bar x-axis (`JaFeMaApMaJuJuA`).
+  Full deck + review in chitra at `sessions/mudra-chart-review-2026-08-26.md`.
+- **The finding this repo could not manufacture — the BROWNFIELD THRESHOLD HOLE.** chitra's session
+  16 is actively locking chart families to a design language and the S133 mandate returns
+  `verdict: READY`, `handoff: (none)` — it sits below the migration threshold of 133. The threshold
+  counts the wrong units. **DECISION-007 S134 addendum**, three fixes named, none picked (n=1).
+- **Worse: `--stations 16` reads `0 of 8`** at `maturity: L3`. The governance is installed and unused.
+- **The mandate also paid for itself.** Dispatched FIRST; 22 recs; found the brief factually wrong in
+  **seven** places (including a locked chart family the brief omitted) before a paid minute was spent.
+- **chitra undisturbed, proved four ways** — HEAD, index hash, stash list, branch identical; exactly
+  one pre-declared new path.
+- **Evidence:** verify **29/29**, demo all-pass, fixture **10/10**. Three dispatches, three different
+  roles: design-advisor → fidelity-reviewer (**ACCEPT**) → implementation-advisor as JUDGE of all 34
+  `obeyed:` claims (32 implemented, 2 mismatch, plus a fixture bug the cold pass missed — all fixed).
+- Reports: `sessions/session-134-summary.md`, `sessions/session-134-review.md`.
 
-**Next: Session 134 — the PAID DOGFOOD, re-picked by the founder after the S133 close.** Prompt:
-`prompts/134-task-dogfood-chitra-mudra-review.md`. One real paid session runs in
-`/Users/suman/playground/chitra` through `vajra claude`, reviewing every chart chitra has locked to
-the mudra reference language — **seen, not just read** — and reporting two things: the design
-verdict the founder asked for (impressive or not; if not what to fix; if yes why and what was made
-good) and what Vajra's governance actually did during a real piece of outside work.
+**Next: Session 135 — the `tech-lead`.** Prompt: `prompts/135-task-tech-lead-mandatory.md`.
+**REPLACES the previously locked S135** (`implementation-advisor` mandatory) — founder's decision in
+chat at this closeout, after S134 showed the harness is real here and decorative everywhere else.
 
-**Why this and not the third mandatory role:** nine sessions since the last paid run (S124,
-`$3.2985`, 2026-08-20), and S133 just shipped a gate that blocks a brand-new project's first
-session — tested only by fixtures this repo wrote. **`implementation-advisor` mandatory is
-deferred, not dropped**; its full brief survives in the new prompt's Non-goals.
+**The evidence that forced it.** S134 counted every dispatch in 134 sessions: the three GATED roles
+account for 15, the six ungated ones for **9 between them, ever**. A role is used exactly as often
+as a gate forces it. And chitra — the one real outside project — has 0 dispatches, 4 of 9 role
+files, 0 of 8 stations.
 
-**Then S135, LOCKED by the founder in the same conversation:** `implementation-advisor` becomes the
-fleet's third mandatory role, as a CALL SITE on `mandate` — never a third copy of the ladder. It
-also decides ROADMAP **F2e** and probes **F2g** live. S134 owes it one input: what S133's mandate
-actually did on real outside work.
+**What S135 builds:** `tech-lead`, the tenth role and the first that is not a specialist. It is the
+FIRST and MANDATORY dispatch of every session; it records for each of the nine specialists whether
+this task needs it, why, and what it may spend; **and its verdict BINDS** — a role it marks required
+must produce a real governed handoff or the session cannot close. `implementation-advisor` therefore
+becomes mandatory automatically, which is why the old S135 is replaced rather than delayed.
 
-**The guardrail that matters:** chitra is mid-session-16 with uncommitted work. S134 must not
-disturb it — baseline `git status --short` before, diff after, and obey chitra's own constitution
-inside chitra.
+**Phase 1 has NO off switch, deliberately.** Every role is `required`, always. Six of the nine have
+been dispatched twice or fewer in 134 sessions — nobody knows how they behave, and you cannot tune
+what you have never observed. Phase 2 grants the discretion, only after the observation sessions.
+
+**The budget is an INSTRUCTION, not a fence** (founder, same conversation). Vajra cannot hard-stop a
+dispatch and will not pretend to: the role is told its allowance and trusted to work within it, and
+`--crew-cost` reports actual against allowance to LEARN, never to block. An overrun is a finding,
+usually meaning the budget was wrong.
+
+**chitra gets Vajra's scaffold upgraded to all ten roles in the same session** — otherwise this is a
+Vajra-only feature again, which is the exact thing the founder called out.
 
 **New chat.**
 
 ## Always-True Reminders
+
+- **A dogfood's most valuable finding is the one the repo could not have written itself (S134).**
+  Nine sessions of machinery, all exercised against fixtures this repo wrote. The first time the
+  S133 mandate met a real outside project it returned READY on the exact session it exists for.
+- **A migration threshold measured in the governed project's session numbers is wrong for every
+  brownfield adopter (S134).** For this repo it is a closing window; for a project that adopts at
+  its session 40 it is a permanent exemption with nothing to end it.
+- **A gate suite can be fully installed and score `0 of 8` (S134).** chitra runs at `maturity: L3`
+  and passes zero stations. Installed ≠ used; surfacing calls exit 0 by design and bind only at
+  `--advance` and `verify-closeout.sh`, so nobody sees the zero unless they go and ask.
+- **A check that greps a literal the agent typed, in a file the agent wrote, is not attestation
+  (S134).** `c_binary_recorded` was the fakest green of the session and the builder did not spot it.
+  An unexpanded `$(...)` in a "captured" artifact is the tell that it was hand-written.
+- **A check that evaluates zero rows is indistinguishable from a deleted check (S134).** Print the
+  row count, or declare the tooth dormant in the comment.
+- **A fixture's positive control must assert a clean exit 0, not just one green line (S134).**
+  S134's sandbox omitted a file the verify script needed, so verify failed on every fixture run and
+  the `exit != 0` half of each defect assertion proved nothing. The judge caught it; the cold
+  fidelity pass did not.
+- **A forward reference is not a number (S134).** The summary said "see review", the review said
+  "see summary", and the third figure existed nowhere.
+- **Three consecutive judges have had no shell (S133, S134 ×2).** Every "verify N/N" claim in those
+  sessions was executed only by the builder. The independent pass reads scripts; it does not run them.
+- **When a pre-commitment looks like it came true, check whether it was sidestepped (S134).** The
+  advisor predicted an honest-null receipt for an interactive run; the run was made headless, and
+  reporting the real cost as the prediction failing would have been spin.
 
 - Load order: `.ai/AGENTS.md` + `.ai/CONSTRAINTS.yaml#load_order`.
 - Branch: `session-NN-<slug>`. Never work on `main`.

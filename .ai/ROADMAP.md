@@ -173,7 +173,7 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 |---|---|
 | Today | 2026-08-24 |
 | Current phase | **FINISHING A SHIPPABLE MVP** (S103 pivot). The governance engine is complete + PROVEN (8-station spine S72; attested/chained ledger; authoritative receipts). **B (installable) COMPLETE, confirmed stranger-shippable live at S110 GT.** **A (fleet) — nine roles built (S109–S126); one (`fidelity-reviewer`) now MANDATORY and provable (Session 131), the other eight still optional.** **S130 locked the sequence: Session 131 → S132 → S133 → S134 — Rung 3 and outside adoption explicitly pushed back past S134, not code-closeable.** Receipt authoritative (S92 $0.2713 · S97 $1.2758 · S102 $0.4644 · S103 $0.6797 · S118 $4.0912 · S124 $3.2985 · S126 $4.4482). |
-| Last closed session | Session 133 — **CODE: the `design-advisor` made MANDATORY, with a RECORDED reasoned skip — ACCEPT** (cold review, 14/18 SHIPPED). `src/mandate/mod.rs` holds a six-rung ladder generic over a `fleet::Role`; `vajra next --check-design-handoff NN` blocks the closing advance AND `verify-closeout.sh` on a session with neither a provenance-verified handoff nor a substantive `<role-name>: skipped — <reason>` line in its own prompt. **No `VAJRA_SKIP_*` escape, on purpose** — twelve env vars driven live, all still blocked. Threshold 133 governs SILENCE only, and the scaffold carries the marker so a FRESH project blocks at session 1. Three independent dispatches: `design-advisor` before any code, a cold `fidelity-reviewer` (ACCEPT), and `implementation-advisor` judging all 22 `obeyed:` claims. Fakest green named: a dispatch that happened is not advice that reached the design (F2f). `verify-session-133.sh` 15/15 + `demo-session-133.sh` 9/9, both live; fixture RED on 7 bypasses, GREEN on renaming all 11 messages. Reports: `sessions/session-133-summary.md`, `sessions/session-133-review.md`. |
+| Last closed session | Session 134 — **PAID DOGFOOD: a real governed session in chitra, reviewing the mudra charts — ACCEPT** (cold `fidelity-reviewer`, attested `8991f9b0…`). **`$1.6103385` AUTHORITATIVE** (25 turns, 329s) — the first real dollar figure from the S77/S78 receipt path — **plus 421,739 unmetered subagent tokens** across three dispatches. Ten charts rendered fresh from source and looked at, incl. one deliberate un-migrated negative control; design verdict **IMPRESSIVE** with two cheap blemishes (weakest `area`; top fix = un-crush the bar x-axis). chitra proved undisturbed FOUR ways (`HEAD`, index hash, stash list, branch identical; exactly one pre-declared new path). **The finding this repo could not have manufactured: the BROWNFIELD THRESHOLD HOLE** — chitra's session 16 is actively locking chart families to a design language and the S133 mandate returns `verdict: READY`, `handoff: (none)`, because 16 sits below threshold 133. The threshold counts the wrong units; for a brownfield adopter the exemption is permanent. → **DECISION-007 S134 addendum**, three candidate fixes named, none picked (n=1). **And worse: `vajra next --stations 16` reads `0 of 8` at `maturity: L3` — the governance is installed and unused.** The mandate also PAID FOR ITSELF on the Vajra side, the first recorded instance: dispatched FIRST, it found the session brief factually wrong in **seven** places before a paid minute was spent. Q1/Q2 both resolved with the loser's reason; the dogfood item **SPLITS** into **D1 (SATISFIED here)** and **D2 (fresh-scaffold first contact, STILL OUTSTANDING)**. `verify-session-134.sh` 29/29, `demo-session-134.sh` all-pass, `fixture-session-134.sh` 10/10. **Three shortfalls in the review mechanism recorded, not buried:** two judges with no shell, and a re-grade that died on an account spend limit — so two `mismatch:` verdicts stand UNJUDGED rather than being self-certified. Reports: `sessions/session-134-summary.md`, `sessions/session-134-review.md`. |
 | Prior session | Session 130 — **NO-CODE MANDATORY GT — PARTIAL PASS.** Both product-facing audits (`stranger_check`, `scaffold_drift_check`) ran LIVE for the first time (21/21, 17/17, both GREEN). Fleet handoffs falling every session (5→3→1→0) — roster, not fleet. **Founder locked S131–S134 at this closeout.** Report: `sessions/session-130-ground-truth.md`. |
 | Previous | Session 129 — **CODE: one source for what a stranger gets — ACCEPT on TWO cold passes** (14 SHIPPED · 2 PARTIAL · 0 NOT-BUILT). `build.rs` derives 13/13 binding rules, 10/12 audits, 7/7 drift axes at build time; the DEFAULT is CARRIED. |
 | Session 125 (prior) | Session 125 — **NO-CODE GT + FULL-STACK REVIEW — PARTIAL PASS.** The loop is closed: 16 sessions with no user-reachable change; 0 stars after 55 days public. Findings PARKED by founder call — **S128 unparked the first-contact slice (F3/F5) and the rest stays parked.** |
@@ -202,7 +202,14 @@ proven + shipped." Deadline: **≈ 2027-01** (6-month founder proof window).
 **Rung 3, explicit founder call at the S130 closeout: PUSHED BACK past S134.** Not code-closeable —
 it's a literal multi-day elapsed-time run the founder owns (S103 pivot: "the founder runs the long
 test himself"), not a ~2h session deliverable. S131–S134 get the product ready for it (fleet made
-real, compression decided, a fresh-scaffold dogfood run); the ladder run itself is not scheduled.
+real, compression decided, a dogfood run); the ladder run itself is not scheduled.
+  **S134 SPLIT the dogfood item in two** (its `## Design` Q2, decided with the loser's reason):
+  **D1 — governed-real-work dogfood: SATISFIED at S134** (`$1.6103385`, a real paid run in chitra,
+  an already-Vajra-governed project). **D2 — fresh-scaffold first-contact dogfood: STILL
+  OUTSTANDING and owns its own session** — chitra runs the OLD 55-line constitution with 4 of 9
+  roles and 7 of 12 audits, so it structurally cannot exercise the S133 mandate (threshold 133 >
+  chitra's 16). `stranger-check.sh` and `scaffold-drift.sh` cover D2's free half; what remains is a
+  paid run driven to a CLOSE under two mandatory roles.
 
 - **Guards ON for every ladder run** (`publish_guard`/`commit_guard` armed) — autopilot-trust demos
   need the real teeth; this also retires the audit's "teeth off in own house" finding.
@@ -657,8 +664,10 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
 - **A1 — one outside user** *(no code, has lead time)* — **PUSHED BACK past S134, explicit founder
   call at the S130 closeout.** Not code-closeable: no session can make a stranger star, fork, or
   file an issue. 0 stars / 0 issues / 19 downloads after 57+ days public, unchanged by S128/S129,
-  which both fixed the front door and moved nothing. S134's fresh-scaffold dogfood gets the product
-  ready for a real ask; the ask itself, and the number moving, is not an S131–S134 deliverable.
+  which both fixed the front door and moved nothing. **CORRECTED at S134:** S134 was **D1**
+  (governed real work), not the fresh-scaffold run — **D2 is still outstanding**, so the product is
+  NOT yet demonstrated ready for a real ask by a paid run to a close. The ask itself, and the
+  number moving, remains outside the S131–S134 deliverables.
 
 **🧊 Frozen machinery — pull ONLY when a ladder run breaks it:**
 - **Coder-marker fix** (S97 — likeliest first pull; Rung 2 will demand it): *agents write the

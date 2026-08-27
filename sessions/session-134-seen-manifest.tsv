@@ -1,0 +1,11 @@
+family	chart	method	evidence_path	sha256	captured_utc	source_mtime_utc
+circular	pie	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/pie.plain.txt	7eb20b447a381b39ba8ecbff7d6f1af2f60ed4836b5e8b55794b613cb0aea1ec	2026-08-26T14:31:13Z	2026-08-03T04:17:06Z
+circular	donut	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/donut.plain.txt	a85e4e02a151074e2194aad07aa151d7973452c0c3766450a64922f7ea92eba8	2026-08-26T14:31:13Z	2026-08-03T03:47:35Z
+area	area	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/area.plain.txt	d2cfbf8f9e7ad715bfa67633dad65dce4d40121a8113dce9de7ba52f02f3c318	2026-08-26T14:31:13Z	2026-08-03T04:17:06Z
+line	line	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/line.plain.txt	0df8347332e8b4255e97e70b9ddf2bc982cb6978263959d76f801b5ac86fb157	2026-08-26T14:31:13Z	2026-08-14T16:48:04Z
+line	line-multi	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/line-multi.plain.txt	205004aae4dfc370ad4ed6ed5a333ae79d6d3b755b8555eaddad8842479e8159	2026-08-26T14:31:13Z	2026-08-14T16:48:04Z
+bar	bar	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/bar.plain.txt	60f35032ee529c1221782e145051073b121eb218fde0d86cf6494804a206d08c	2026-08-26T14:31:13Z	2026-08-24T12:14:55Z
+bar	bar-multi	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/bar-multi.plain.txt	2783ffc8fb993aa45b87795b9b29019c2b91e616ce55400ac40b039bdd2946c4	2026-08-26T14:31:13Z	2026-08-24T12:14:55Z
+in-flight	sparkline	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/sparkline.plain.txt	f3fccf7cc6123cdca02bdbd8826bca45410078bc2ea0208fc75793047c2fd4d8	2026-08-26T14:31:13Z	2026-08-24T12:19:58Z
+in-flight	histogram	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/histogram.plain.txt	8a1227a97ebd3ba33f55d744e61ed945a2d0a958eca9ca26e010e7603ea74bcc	2026-08-26T14:31:13Z	2026-08-24T12:23:08Z
+unlocked-control	horizontalBar	fresh-render-terminal	.ai/verify/mudra-review-20260826T142803Z/hbar.plain.txt	31e261ddfdf12bf6060b0a4f0bfbddc34fa22283004f53337290fbed6d95717f	2026-08-26T14:31:13Z	2026-07-02T16:33:19Z

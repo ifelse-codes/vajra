@@ -37,6 +37,17 @@ case "$BRANCH" in
   ;;
 esac
 
+# S134 founder waiver: a Ground Truth session may be converted to a CODE session, but ONLY by the
+# founder, and ONLY for one named session number. `VAJRA_GT_WAIVER` is set in the LAUNCH
+# environment (`VAJRA_GT_WAIVER=NN vajra claude`) — the agent cannot set its own launch env
+# mid-session, which is the same un-forgeable-BY-THE-AGENT property `VAJRA_CLOSEOUT_WAIVER` relies
+# on. It must equal THIS session's number: a blanket `=1` or a stale number does nothing, so a
+# waiver cannot silently outlive the session it was granted for. It is loud on purpose.
+if [ "$GT_PW" -eq 1 ] && [ "${VAJRA_GT_WAIVER:-}" = "$SESSION_NUM" ]; then
+  echo "[HOOK] Ground Truth Session $SESSION_NUM WAIVED by founder (VAJRA_GT_WAIVER=$SESSION_NUM) — code edits allowed" >&2
+  GT_PW=0
+fi
+
 if [ "$GT_PW" -eq 1 ]; then
   case "$FILE" in
     */sessions/session-*-ground-truth.md|*/sessions/session-*-review.md|*/reviewer/*|*/.ai/*|*/scripts/*) : ;;

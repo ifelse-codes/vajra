@@ -44,6 +44,14 @@ case "$BRANCH" in
   ;;
 esac
 
+# S134 founder waiver — see the matching block in hook-pre-write.sh for the full rationale.
+# Founder-held, set in the LAUNCH environment, and scoped to ONE session number so it cannot
+# outlive the session it was granted for. Loud on purpose.
+if [ "$GT" -eq 1 ] && [ "${VAJRA_GT_WAIVER:-}" = "$GT_NUM" ]; then
+  echo "[HOOK] Ground Truth Session $GT_NUM WAIVED by founder (VAJRA_GT_WAIVER=$GT_NUM) — commits allowed" >&2
+  GT=0
+fi
+
 # Block commits/pushes/PRs during Ground Truth
 if [ "$GT" -eq 1 ]; then
   gt_block() {
