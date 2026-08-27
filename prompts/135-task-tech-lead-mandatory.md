@@ -347,9 +347,14 @@ hundreds of thousands, not millions; rec 3 — all six deferred-budget lines are
   SAME wall that made `design-advisor` (created S126) first dispatchable at S133. **The founder, asked
   in chat while the wall was up, chose Option A (ship + let the gate BLOCK S135's own `--advance`
   live).** Then the harness RE-SCANNED `.claude/agents/` mid-session and `tech-lead` became
-  dispatchable — so S135 does one BETTER than Option A: it achieves GENUINE self-binding, dispatching
-  a real, provenance-verified `tech-lead` whose handoff the crew gate accepts, with `vajra next
-  --check-crew 135` PASSING on real evidence. **The wall is still real and recorded:** a mid-session
+  dispatchable — so S135 does one BETTER than Option A: it dispatches a real, provenance-verified
+  `tech-lead` whose crew decision the gate reads, and the gate then BINDS honestly through the close.
+  **The binding is a sequence, not an instant, and the cold review caught the difference (pass 1,
+  REJECT).** The tech-lead marks three roles `required` (design-advisor, implementation-advisor,
+  fidelity-reviewer); `vajra next --check-crew 135` correctly BLOCKS until all three handoffs are on
+  disk, and PASSES only once they are — which is the final act of the close, after the fidelity and
+  judge dispatches land. The mid-flight block IS the gate biting its own session; the pass is earned
+  at the end, not asserted early. **The wall is still real and recorded:** a mid-session
   refresh is not guaranteed, so the reliable rule remains "a native-subagent role first binds the
   session AFTER it is created" — and verify's sandbox fixtures (a real tech-lead handoff built by the
   binary) prove the PASS path independently of whether any given harness refreshes. *Rejected: a
