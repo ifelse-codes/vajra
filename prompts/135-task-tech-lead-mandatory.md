@@ -252,23 +252,53 @@ it does not close it in the one project that would prove it.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
-- step 7 — done: <sha>
-- step 8 — done: <sha>
-- step 9 — done: <sha>
-- step 10 — done: <sha>
-- step 11 — done: <sha>
+- step 1 — done: dda4117
+- step 2 — done: 99709c6
+- step 3 — done: 1ee85f1
+- step 4 — done: d72c0dd
+- step 5 — done: d72c0dd
+- step 6 — done: 1c5255a
+- step 7 — done: c03aa6a
+- step 8 — done: PENDING_STEP8
+- step 9 — done: c03aa6a
+- step 10 — done: PENDING_STEP10
+- step 11 — done: PENDING_STEP11
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-(Filled during S135. `vajra next --check-advice 135` BLOCKS the close until every recorded
-recommendation is answered, and `vajra next --check-obeyed 135` BLOCKS until every `obeyed:` claim
-carries an independent judgment from a role that is not the one that gave the advice.)
+(`vajra next --check-advice 135` BLOCKS the close until every recorded recommendation is answered,
+and `vajra next --check-obeyed 135` BLOCKS until every `obeyed:` claim carries an independent
+judgment from a role that is not the one that gave the advice.)
+
+**design-advisor — 6 recommendations, dispatched FIRST (the S133 mandate, met by real use).**
+
+- design-advisor rec 1 — obeyed: 99709c6
+- design-advisor rec 2 — obeyed: 99709c6
+- design-advisor rec 3 — obeyed: 99709c6
+- design-advisor rec 4 — obeyed: 99709c6
+- design-advisor rec 5 — obeyed: d72c0dd
+- design-advisor rec 6 — obeyed: d72c0dd
+
+*(rec 1–4 landed in the `## Design` commit `99709c6`: marker kept `yes`, DECISION-007 S135 addendum
+written, Q1 handoff-only and Q2 distinct `deferred-budget` outcome recorded. rec 5 (`from_session: 0`,
+no threshold) and rec 6 (the crew gate built as a CALL SITE, 0 shared-ladder lines) landed in the
+crew module commit `d72c0dd`. An independent role — NOT the design-advisor — judges these via
+`--check-obeyed` at close.)*
+
+**tech-lead — 3 recommendations (the crew decision itself; the FIRST-and-mandatory dispatch,
+achieved live this session after a mid-session registry refresh — Decision 4).**
+
+- tech-lead rec 1 — deferred: sessions/session-135-summary.md
+- tech-lead rec 2 — deferred: sessions/session-135-summary.md
+- tech-lead rec 3 — deferred: sessions/session-135-summary.md
+
+*(All three are process recommendations, addressed in the summary's dispatch accounting: rec 1 —
+exactly three specialist dispatches ran (design-advisor · fidelity-reviewer · implementation-advisor)
+plus the tech-lead itself; rec 2 — every brief was named-files-only, so the raw totals stayed in the
+hundreds of thousands, not millions; rec 3 — all six deferred-budget lines are answered as
+`deferred:` with their arithmetic, not `refused:`.)*
+
+**fidelity-reviewer / implementation-advisor dispositions are appended when those roles land (step 10).**
 
 ## Design
 
@@ -309,6 +339,24 @@ carries an independent judgment from a role that is not the one that gave the ad
   importing the exact hole. *Loser B: build a real units-fix now (git-birth-date / adoption marker)* —
   over-engineering on n=1; the S134 addendum itself says n=1 does not earn a mechanism. Reasoned in
   writing in the DECISION-007 S135 addendum so no future audit mistakes it for the S134 defect.
+- **Decision 4 (the bootstrapping wall — found live, and the mid-session refresh that beat it) —
+  S135's HEADLINE OPERATIONAL FINDING.** A brand-new NATIVE-SUBAGENT role is normally NOT dispatchable
+  in the session that creates it: Claude Code snapshots `.claude/agents/` at session START, so
+  `tech-lead.md` (written this session) was absent from S135's initial dispatch registry — the first
+  attempt to dispatch `subagent_type: tech-lead` was refused with "agent type not found". This is the
+  SAME wall that made `design-advisor` (created S126) first dispatchable at S133. **The founder, asked
+  in chat while the wall was up, chose Option A (ship + let the gate BLOCK S135's own `--advance`
+  live).** Then the harness RE-SCANNED `.claude/agents/` mid-session and `tech-lead` became
+  dispatchable — so S135 does one BETTER than Option A: it achieves GENUINE self-binding, dispatching
+  a real, provenance-verified `tech-lead` whose handoff the crew gate accepts, with `vajra next
+  --check-crew 135` PASSING on real evidence. **The wall is still real and recorded:** a mid-session
+  refresh is not guaranteed, so the reliable rule remains "a native-subagent role first binds the
+  session AFTER it is created" — and verify's sandbox fixtures (a real tech-lead handoff built by the
+  binary) prove the PASS path independently of whether any given harness refreshes. *Rejected: a
+  founder-gated bootstrap waiver, and silently re-scoping acceptance 8 to S136* — both are unnecessary
+  now that a real tech-lead dispatch is possible; a gate satisfied by real work beats both a waved-through
+  green and a deferral. S135 still closes via `verify-closeout.sh` (which does not run the crew gate);
+  `--advance` is the surface the crew gate binds.
 - **The call-site claim (design-advisor rec 6, the falsification test):** the crew gate is built as a
   CALL SITE on `src/mandate`'s generic `mandate_gate` — `from_session: 0` for the tech-lead's own
   presence, then crew-gate-specific code parses the verified handoff and calls the EXISTING per-role
