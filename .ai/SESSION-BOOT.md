@@ -62,29 +62,39 @@
   0 issues · 19 downloads).
 
 ## Next Session
-- **Read prompt:** `prompts/135-task-implementation-advisor-mandatory.md`
-- **Session 135 = `implementation-advisor` becomes the fleet's THIRD mandatory role**, as a **CALL
-  SITE** on `mandate` (ROADMAP F2e) — never a third copy of the ladder. Locked by the founder at the
-  S133 closeout and unchanged by this dogfood.
-- **It is the falsification test for S133's genericity claim:** if S135 finds itself editing
-  `mandate_gate`, `parse_skip_marker` or `classify_marker_value`, the genericity was decoration —
-  and that is the session's most interesting finding.
-- **What S134 hands it that it did not have before: the BROWNFIELD THRESHOLD HOLE.** S135 inherits
-  the same `_MANDATE_FROM_SESSION` threshold for a second role. It must **either fix the units or
-  record in writing** why it ships a second mandatory role with a known permanent exemption for
-  every brownfield adopter. It must also decide **F2e** and probe the `maturity: L1` escape
-  (**F2g**) live.
-- **The second thing S134 hands it, harder to act on:** `--stations 16` reads `0 of 8` in the one
-  real outside project. A third unskippable role does not move that number. If S135 believes it
-  does, it should say how.
-- **The judge rule still binds (S132/S133/S134):** the judge of any `obeyed:` disposition may not be
-  the role that made the recommendation. S134 used design-advisor → fidelity-reviewer →
-  implementation-advisor. With `implementation-advisor` itself being made mandatory at S135, **its**
-  advice needs a judge that is neither it nor the reviewer.
-- **Not this session:** F2f (the rubber-stamp detector — still the highest-value open governance
-  item, and S134 did its comparison by hand and found it genuinely informative), D2 (the
-  fresh-scaffold first-contact paid dogfood, now explicitly outstanding), fixing chitra (S134
-  REVIEWED; the ranked proposals are chitra's own next session's work), the other six roles,
-  compression, F2/F2a/F2b/F2c, the fourth fork.
+- **Read prompt:** `prompts/135-task-tech-lead-mandatory.md`
+- **Session 135 = the `tech-lead`** — the tenth role, the first that is not a specialist, and the
+  FIRST and MANDATORY dispatch of every session. **REPLACES the previously locked S135**
+  (`implementation-advisor` mandatory), by founder decision in chat at this closeout.
+- **Why it replaces it:** S134 counted every dispatch in the repo's history — the three GATED roles
+  account for 15, the six ungated ones for **9 between them, ever**. A role is used exactly as often
+  as a gate forces it. Making a fourth role mandatory one at a time does not fix that, and it fixes
+  nothing at all for a user: chitra has 0 dispatches, 4 of 9 role files, 0 of 8 stations. The
+  founder's words: *"'agentic SDLC harness' is true inside the repo that builds it, and not true
+  anywhere else — we are building it for the user, not for us."*
+- **How it works:** the `tech-lead` records, for each of the nine specialists, whether this task
+  needs it, why, and what it may spend. **Its verdict BINDS** — a required role must produce a real
+  governed handoff or the session cannot close. `implementation-advisor` becomes mandatory
+  automatically, which is why the old S135 is replaced rather than delayed.
+- **It also closes a hole S133 disclosed and never fixed:** today a session can skip the
+  design-advisor by typing one sentence into a file it owns ("jurisdiction is self-granted"). Under
+  the `tech-lead` the decision comes from an independently dispatched, provenance-verified role
+  instead of from the agent doing the work.
+- **PHASE 1 HAS NO OFF SWITCH, on purpose.** Every role is `required`, always. Six of the nine have
+  been dispatched twice or fewer in 134 sessions — nobody knows how they behave, and you cannot tune
+  what you have never observed. **Phase 2 (a later session) grants the discretion**, after the
+  observation sessions. A session that adds the off switch earlier is violating that record.
+- **The budget is an INSTRUCTION, not a fence** (founder, same conversation). Vajra cannot hard-stop
+  a dispatch and must not pretend to. The role is told its allowance and trusted to respect it;
+  `--crew-cost` reports actual against allowance to LEARN. An overrun is a finding, not an offence.
+  Designing against a cheating subagent is the wrong posture — the adversary is drift and
+  self-certification, never the crew.
+- **chitra's scaffold gets upgraded to all ten roles in the same session**, or this is a Vajra-only
+  feature again.
+- **Still the falsification test for S133's genericity claim:** if S135 edits `mandate_gate`,
+  `parse_skip_marker` or `classify_marker_value`, the genericity was decoration — report it as a
+  NUMBER (shared-ladder lines vs call-site lines) and as the headline finding.
+- **Not this session:** the off switch (phase 2), a hard mid-run token cap (it does not exist), F2f,
+  D2 (the fresh-scaffold first-contact dogfood, outstanding from S134's Q2), fixing chitra's charts.
 
 **New chat.**

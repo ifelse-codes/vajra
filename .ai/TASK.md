@@ -25,17 +25,32 @@
   `obeyed:` claims (32 implemented, 2 mismatch, plus a fixture bug the cold pass missed — all fixed).
 - Reports: `sessions/session-134-summary.md`, `sessions/session-134-review.md`.
 
-**Next: Session 135 — `implementation-advisor` becomes the fleet's THIRD mandatory role**, as a
-**CALL SITE** on `mandate` (ROADMAP F2e), never a third copy of the ladder. Locked by the founder at
-the S133 closeout. Prompt: `prompts/135-task-implementation-advisor-mandatory.md`.
+**Next: Session 135 — the `tech-lead`.** Prompt: `prompts/135-task-tech-lead-mandatory.md`.
+**REPLACES the previously locked S135** (`implementation-advisor` mandatory) — founder's decision in
+chat at this closeout, after S134 showed the harness is real here and decorative everywhere else.
 
-**What S134 hands it, that it did not have before:** the brownfield threshold hole. S135 inherits
-the same `_MANDATE_FROM_SESSION` threshold for a second role and must **either fix the units or
-record in writing** why it ships a second mandatory role with a known permanent exemption for every
-brownfield adopter. It must also decide **F2e** and probe **F2g** live. And it is the falsification
-test for S133's genericity claim: if S135 edits `mandate_gate`, `parse_skip_marker` or
-`classify_marker_value`, the genericity was decoration — and that is the session's most interesting
-finding.
+**The evidence that forced it.** S134 counted every dispatch in 134 sessions: the three GATED roles
+account for 15, the six ungated ones for **9 between them, ever**. A role is used exactly as often
+as a gate forces it. And chitra — the one real outside project — has 0 dispatches, 4 of 9 role
+files, 0 of 8 stations.
+
+**What S135 builds:** `tech-lead`, the tenth role and the first that is not a specialist. It is the
+FIRST and MANDATORY dispatch of every session; it records for each of the nine specialists whether
+this task needs it, why, and what it may spend; **and its verdict BINDS** — a role it marks required
+must produce a real governed handoff or the session cannot close. `implementation-advisor` therefore
+becomes mandatory automatically, which is why the old S135 is replaced rather than delayed.
+
+**Phase 1 has NO off switch, deliberately.** Every role is `required`, always. Six of the nine have
+been dispatched twice or fewer in 134 sessions — nobody knows how they behave, and you cannot tune
+what you have never observed. Phase 2 grants the discretion, only after the observation sessions.
+
+**The budget is an INSTRUCTION, not a fence** (founder, same conversation). Vajra cannot hard-stop a
+dispatch and will not pretend to: the role is told its allowance and trusted to work within it, and
+`--crew-cost` reports actual against allowance to LEARN, never to block. An overrun is a finding,
+usually meaning the budget was wrong.
+
+**chitra gets Vajra's scaffold upgraded to all ten roles in the same session** — otherwise this is a
+Vajra-only feature again, which is the exact thing the founder called out.
 
 **New chat.**
 
