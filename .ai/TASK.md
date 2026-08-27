@@ -56,6 +56,26 @@ Vajra-only feature again, which is the exact thing the founder called out.
 
 ## Always-True Reminders
 
+- **A session that BUILDS a gate must make that gate BIND ON ITSELF before it closes (S134).**
+  Not on future sessions — on this one. This repo's oldest and most-repeated failure is shipping
+  machinery nobody runs: *"a role no gate consumes is decoration"* (S125), *"a registered gate
+  nobody executes is not a gate"* (S129). If the only proof a gate works is a test, it is not yet
+  in use. Make the closing session pass through its own new gate.
+- **Budget every subagent dispatch TIGHT: a narrow brief and NAMED FILES, never "read the repo"
+  (S134).** Of S134's 19,192,697 raw subagent tokens, **17.5M were CACHE READS** — the cost of a
+  subagent re-reading a large accumulated context. Three broad dispatches hit the account's monthly
+  limit. A role given one question and three named files costs a fraction of one told to read
+  everything. This is the difference between a fleet that is affordable and one that is not.
+- **If a dispatch DIES mid-flight — a spend limit, an API error — record the result as INCOMPLETE
+  (S134, live).** Never let the builder's confidence upgrade an unjudged item to a pass. S134's
+  judge died on a monthly spend limit while re-grading two `mismatch:` verdicts that had since been
+  fixed; those verdicts were left standing as `deferred:` and explicitly marked UNJUDGED rather than
+  self-certified. **A fix the builder verified is not a fix an independent role confirmed.**
+- **Report subagent cost as the RAW token total, never a new-tokens-only figure (S134).** S134
+  published `421,739` when the truth was `19,192,697` — wrong by ~45×, because the first figure
+  silently dropped cache reads. **No instrument in this repo caught it**; it surfaced by hand.
+  Derive it from `~/.claude/projects/*/*/subagents/agent-<id>.jsonl`, the files `vajra meter`
+  already folds.
 - **A dogfood's most valuable finding is the one the repo could not have written itself (S134).**
   Nine sessions of machinery, all exercised against fixtures this repo wrote. The first time the
   S133 mandate met a real outside project it returned READY on the exact session it exists for.
