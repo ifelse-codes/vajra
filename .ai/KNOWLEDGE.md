@@ -1223,3 +1223,32 @@ environment variable did not.
 - **ANSI escapes break `grep` for a marked label.** `printf "${RED}✗${RESET} %s"` puts a colour
   reset between the mark and the text, so a pattern like `'✗ the check'` never matches. Strip ANSI
   (`sed 's/\x1b\[[0-9;]*m//g'`) before grepping a script's own output.
+
+## Session 134 — subagent cost, the permanent numbers
+
+- **A broad subagent dispatch costs millions of tokens, nearly all of it CACHE READS.** Measured,
+  S134, three dispatches on this repo:
+
+  | dispatch | in | out | cache write | cache read | raw total |
+  |---|---|---|---|---|---|
+  | design-advisor | 122 | 30,613 | 289,080 | 4,608,221 | 4,928,036 |
+  | fidelity-reviewer | 164 | 35,049 | 350,246 | 5,767,212 | 6,152,671 |
+  | implementation-advisor | 158 | 33,197 | 895,934 | 7,182,701 | 8,111,990 |
+
+  **17.5M of the 19.2M are cache reads.** All three were told, in effect, to read the repo. The
+  output tokens — the actual thinking — total under 100k. **Context breadth, not output length, is
+  what a dispatch costs.**
+- **The per-dispatch raw total is readable from disk:**
+  `~/.claude/projects/<project>/<session-uuid>/subagents/agent-<agentId>.jsonl`, summing each
+  record's `message.usage` (or `usage`) across `input_tokens`, `output_tokens`,
+  `cache_creation_input_tokens`, `cache_read_input_tokens`. `src/meter/mod.rs` already folds that
+  directory via `subagent_dir`. Machine-local, like `--dogfood-age` (S91): a fresh CI runner has no
+  `~/.claude/projects` history.
+- **The `Agent` tool's own reported `subagent_tokens` is NOT the raw total** — it counts new tokens
+  only and understated S134 by ~45×. Never publish that figure as the session's subagent cost.
+- **A dispatch takes NO budget parameter, so a budget cannot be enforced mid-run.** A budget is an
+  instruction the role is told and trusted to respect (founder, S134: *"the model is not a cheater,
+  we need to trust it and don't build untrusting it"*). Measure afterwards to LEARN; an overrun is
+  a finding about the budget, not an offence by the role.
+- **A subagent dispatch can die mid-response on an account monthly spend limit** and return nothing
+  at all. Plan for a partial fleet, and record what did not complete as incomplete.

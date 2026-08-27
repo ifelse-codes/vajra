@@ -115,4 +115,18 @@
 - **Not this session:** the off switch (phase 2), a hard mid-run token cap (it does not exist), F2f,
   D2 (the fresh-scaffold first-contact dogfood, outstanding from S134's Q2), fixing chitra's charts.
 
+### ⚠ THREE THINGS S135 MUST NOT LOSE (founder, at the S134 close)
+
+1. **The gate must BIND ON S135 ITSELF**, not merely on future sessions — acceptance 8. Building a
+   mechanism nobody runs is this repo's oldest failure (S125, S129).
+2. **Budget every dispatch TIGHT — narrow brief, NAMED FILES, never "read the repo."** 17.5M of
+   S134's 19.2M raw tokens were cache reads, from three dispatches told to read everything.
+3. **If a dispatch dies on a spend limit, record the result as INCOMPLETE.** Never let the builder's
+   confidence upgrade an unjudged item to a pass. S134's judge died mid-re-grade; those two verdicts
+   were left standing as UNJUDGED rather than self-certified.
+
+*(All three are also in `.ai/TASK.md`'s Always-True Reminders, which the boot hook prints every
+session, and the cost numbers behind 2 are in `.ai/KNOWLEDGE.md`. They are recorded in three places
+on purpose: chat memory does not survive a new chat, and these were nearly lost to one.)*
+
 **New chat.**
