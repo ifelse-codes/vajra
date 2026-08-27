@@ -245,6 +245,69 @@ fn scan_role_candidates(
     out
 }
 
+/// One recorded subagent dispatch, for the crew COST report (S135): its role (`agentType`), its
+/// dispatch id, its on-disk transcript path, and the branch it ran under. `raw_tokens` reads the
+/// transcript; this only locates it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubagentDispatch {
+    pub agent_type: String,
+    pub tool_use_id: String,
+    /// The `agent-<id>.jsonl` transcript — may not exist (a dispatch that produced only a sidecar);
+    /// the caller reads it and reports honestly if it cannot (S69).
+    pub jsonl: PathBuf,
+    pub git_branch: Option<String>,
+}
+
+/// Every recorded subagent dispatch under `project_dir`, any role, newest first (mtime). The
+/// role-agnostic sibling of `scan_role_candidates` — the crew cost report needs ALL dispatches, not
+/// one role's. Fail-closed by omission: a malformed sidecar is skipped, never crashes.
+pub fn subagent_dispatches_in(project_dir: &Path) -> Vec<SubagentDispatch> {
+    let mut out: Vec<(SubagentDispatch, SystemTime)> = Vec::new();
+    let Ok(sessions) = fs::read_dir(project_dir) else {
+        return vec![];
+    };
+    for session_entry in sessions.flatten() {
+        let subagents_dir = session_entry.path().join("subagents");
+        let Ok(files) = fs::read_dir(&subagents_dir) else {
+            continue;
+        };
+        for f in files.flatten() {
+            let path = f.path();
+            let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+                continue;
+            };
+            if !name.ends_with(".meta.json") {
+                continue;
+            }
+            let Ok(text) = fs::read_to_string(&path) else {
+                continue;
+            };
+            let Some((agent_type, tool_use_id)) = parse_meta_json(&text) else {
+                continue;
+            };
+            let Some(jsonl) = sibling_transcript(&path) else {
+                continue;
+            };
+            let git_branch = read_first_line_git_branch(&jsonl);
+            let mtime = f
+                .metadata()
+                .and_then(|m| m.modified())
+                .unwrap_or(SystemTime::UNIX_EPOCH);
+            out.push((
+                SubagentDispatch {
+                    agent_type,
+                    tool_use_id,
+                    jsonl,
+                    git_branch,
+                },
+                mtime,
+            ));
+        }
+    }
+    out.sort_by_key(|b| std::cmp::Reverse(b.1));
+    out.into_iter().map(|(d, _)| d).collect()
+}
+
 /// Parse the `tool_use` Agent-dispatch calls out of a parent transcript's raw JSONL text. Matches
 /// on `input.subagent_type` being present (the meaningful, forger-independent field) rather than
 /// the tool name — every real dispatch in this repo's evidence trail has been named `"Agent"`, but
