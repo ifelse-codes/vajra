@@ -104,16 +104,22 @@ paid run, ten real fresh renders, an RGB-level design verdict whose specific pix
 re-checked and found true, an untouched chitra proved four ways, and a brownfield-threshold finding
 that this repo demonstrably could not have manufactured."*
 
-**Review-Inputs-SHA:** 8991f9b0f5555569779ec19dec950be4a4c68b64eea43dd93e387a3fae1b5dce
+**Review-Inputs-SHA:** 51e9fb40d34c4ab28994b62b886c0c466283c161495cc8d84ea8447d95e6ecef
 
 *(Computed LAST, after every edit to the prompt and the delivery, per S69/S131. Two consecutive
-runs agree. **Re-checked after the closeout amendments** (the ~45× subagent-token correction and the
-S135 re-pick) and the value is **UNCHANGED** — correctly so, and worth stating rather than implying
-otherwise: the canonical preimage is `<this session's prompt as committed> \0 <delivery diff>`, and
-that diff **excludes** `sessions/`, `prompts/` and the closeout-synced `.ai/*` files precisely so
-the hash stays stable between emit-time and closeout-time. Every amendment made after the first
-attestation landed in exactly those excluded paths. So the re-check confirms stability; it is not
-evidence that the amendments were hashed. The disclosed limit stands unchanged from S58: the same agent can run `--inputs-sha`
+runs agree. **Re-attested twice during the closeout, and the two behaved differently — which is the rule
+working, not a wobble.** The canonical preimage is `<this session's prompt as committed> \0
+<delivery diff>`, and that diff **excludes** `sessions/`, `prompts/` and the closeout-synced `.ai/*`
+files so the hash stays stable from emit-time to closeout-time.
+
+- **First re-check — value UNCHANGED** (`8991f9b0…`). The ~45× subagent-token correction and the
+  S135 re-pick landed entirely in those excluded paths. That re-check confirmed *stability*; it was
+  never evidence the amendments had been hashed, and an earlier draft of this line wrongly implied
+  it was.
+- **Second re-attestation — value CHANGED to `51e9fb40…`.** The founder's Ground Truth waiver
+  touched `scripts/hook-pre-write.sh` and `scripts/hook-pre-bash.sh`, which are **not** excluded, so
+  the delivery diff genuinely moved and the prior hash went stale. This is exactly what "attest
+  LAST" (S69/S131) exists to catch, and it caught it. The disclosed limit stands unchanged from S58: the same agent can run `--inputs-sha`
 and paste the result, so this is bar-raising, not tamper-proof.)*
 
 **Verdict:** ACCEPT
