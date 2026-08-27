@@ -1,6 +1,11 @@
 # Session Boot
 
 ## Current Session
+- **Number:** 135 — IN PROGRESS (the `tech-lead`; prompt `prompts/135-task-tech-lead-mandatory.md`).
+  Launched `VAJRA_GT_WAIVER=135 vajra claude`. CODE by founder override of the `135 % 5` GT rule;
+  next GT is S140. Prior session (S134) summary preserved below until the S135 closeout rewrites it.
+
+## Prior Session (S134 — COMPLETE)
 - **Number:** 134 — COMPLETE
 - **Type:** PAID DOGFOOD, re-picked by the founder in chat at the S133 closeout (this REPLACED the
   `implementation-advisor` brief, which moved to S135 — LOCKED, not dropped).
