@@ -1,31 +1,57 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 135 — COMPLETE (the `tech-lead` + the binding `--check-crew` gate).
-- **Type:** CODE by founder override of the `135 % 5` GT rule (next GT = S140). Launched
-  `VAJRA_GT_WAIVER=135 vajra claude`.
-- **Verdict: ACCEPT** (cold `fidelity-reviewer`, two passes; pass 1 REJECT of a mid-flight state
-  fixed in-session, pass 2 **11/12 SHIPPED · 1 PARTIAL**), attested `d538f522…`. Genuine self-binding
-  achieved: a real provenance-verified `tech-lead` dispatched, `vajra next --check-crew 135` PASSES.
-- **Falsification test HELD:** the crew gate is a CALL SITE — **0 lines added to the `src/mandate`
-  shared ladder**. **Headline finding:** the bootstrapping wall (a new native-subagent role is
-  normally not dispatchable in the session that creates it; a mid-session registry refresh let S135
-  bind anyway). Reports: `sessions/session-135-summary.md` + `sessions/session-135-review.md`.
+- **Number:** 136 — COMPLETE (`vajra init --sync-fleet`, and the fleet made REAL in chitra).
+- **Type:** CODE. **Verdict: ACCEPT** (cold `fidelity-reviewer`, **6 of 9 SHIPPED · 3 PARTIAL ·
+  0 NOT-BUILT**). Reports: `sessions/session-136-summary.md` + `sessions/session-136-review.md`.
+- **Headline finding, and NOT the one the prompt predicted.** The prompt expected "Vajra has no
+  upgrade command" — true but shallow. chitra's FOUR *present* role files were **stale renders**,
+  each missing the whole appended protocol block that teaches a role to emit the `rec N —` lines the
+  Advice and Obedience gates parse. **chitra's installed roles could not have produced parseable
+  advice**, and `--check-advice` there would have read nothing and reported nothing wrong. The cause
+  is structural: **`skip-if-present` CAN ADD; it can never UPDATE.**
+- **Shipped:** `vajra init --sync-fleet [--dry-run] [--overwrite-drifted]` — a FLAG, so the
+  7-command ceiling holds. Missing → create · UpToDate → no-op · **Drifted → report and REFUSE**
+  (exit 1, naming the resolving flag). `--dry-run` returns the code the real run would.
+- **The limit shipped AS the answer:** Vajra CANNOT tell a stale render from a user's own edit —
+  nothing on disk records which Vajra wrote a file. Three variants because only three are derivable;
+  a git-blame/timestamp classifier was rejected as invented provenance.
+- **chitra, live:** 10 of 10 byte-identical · `vajra next --check-crew 16` **exits 1** naming the
+  tech-lead (the S135 no-threshold rule in a real brownfield project, **117 sessions below** the old
+  threshold) · undisturbed four ways outside ten pre-declared paths · **nothing committed there.**
 
-## Next Session — a founder-approved TWO-SESSION arc (brainstormed at the S135 close)
-- **S136 — APPROVED:** `prompts/136-task-chitra-fleet-upgrade.md`. Make Vajra's full 10-role fleet
-  REAL in chitra: install the 6 missing agents + the `tech-lead` from Vajra's one source, make
-  `--check-crew` actually BIND there, and resolve the upgrade path a real adopter needs. **Headline
-  gap found live:** chitra carries 4 of 10 agents AND Vajra has NO `vajra upgrade` command (only
-  skip-if-present `init`) — how a brownfield adopter pulls a new version is unsolved. Launch in a
-  FRESH chat: `vajra claude`.
-- **S137 — DRAFT:** `prompts/137-task-chitra-scatter-lock-dogfood.md`. The PAID dogfood — lock
-  chitra's `scatter` chart (next unlocked in catalog order) to the reference design language, with
-  the FULL crew now able to run there, founder signs off on the rendered chart (seen, not read).
-- **Deferred, not dropped:** phase 1b (all-nine observation, ~4–5M raw/session) · close criterion 7
-  (carry the budget into each dispatch brief).
-- **Next GT: S140** (this cycle's GT was skipped by founder decision at the S134 close — the first
-  skipped GT in the project's history; the every-5th cadence resumes at S140, NOT a new default).
+## ⚠ ONE THING WAITING ON THE FOUNDER
+chitra's ten role files sit as **UNCOMMITTED working-tree changes** on its `session-16` branch. Four
+of them (`researcher` · `plan-advisor` · `qa-specialist` · `fidelity-reviewer`) were REFRESHED,
+overriding the prompt's own "do NOT disturb the 4 existing role files" guardrail. The cold review
+called that **self-granted scope, dressed in good process**. Undo, if the founder wants it:
+`git -C /Users/suman/playground/chitra checkout -- .claude/agents`.
+
+## Next Session
+- **S137 — DRAFT, and now UNBLOCKED:** `prompts/137-task-chitra-scatter-lock-dogfood.md`. The PAID
+  dogfood — lock chitra's `scatter` chart to the reference design language with the FULL crew now
+  able to run there, founder signs off on the rendered chart (seen, not read).
+- **Candidate 2:** close S135's criterion 7 — carry the recorded budget INTO the dispatch brief.
+  S136's 114% implementation-advisor overrun is the argument: the allowance exists, is reported, and
+  reaches nobody who could honour it. Would also give the `tech-lead` a budget for itself, which it
+  currently lacks.
+- **Candidate 3:** stamp each rendered role file with its own content hash, so `--sync-fleet` can
+  finally tell a stale render from a user's edit. Changes the render format and every installation.
+- **Also found, NOT fixed:** `cargo fmt --check` FAILS on main for three files S135 left unformatted.
+  A **recurrence** — S96 was a whole session fixing exactly this. Spun off as its own task.
+- **Next GT: S140.**
+
+### What the independent roles did this session (both blocks were correct)
+- The **tech-lead** ran FIRST and required exactly three roles; six deferred-budget with arithmetic.
+- The **implementation-advisor** BLOCKED the close **twice**: three `obeyed:` dispositions cited shas
+  for claims about how a subagent was *briefed* (decorative — corrected to `deferred:`), and the
+  command-ceiling "fix" merely parsed `main.rs`'s own hardcoded banner (**the hole MOVED**, closed by
+  check 12 reading the real dispatch table).
+- The **cold fidelity-reviewer** named a fakest green ahead of the builder's own: `canonical_roles()`
+  derived the roster from the product's own output, so a typo'd or swapped role NAME would have been
+  re-checked against itself. Closed by `CRITERION_ROLES`.
+
+**New chat.**
 
 ## Prior Session (S134 — COMPLETE)
 - **Number:** 134 — COMPLETE
