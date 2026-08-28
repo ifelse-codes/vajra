@@ -12,15 +12,18 @@
   normally not dispatchable in the session that creates it; a mid-session registry refresh let S135
   bind anyway). Reports: `sessions/session-135-summary.md` + `sessions/session-135-review.md`.
 
-## Next Session
-- **Read prompt:** `prompts/136-task-<slug>.md` (written at this closeout — see below).
-- **S136 candidates (3, ranked), founder to confirm at the S136 start:**
-  1. **chitra scaffold upgrade to the full ten-role roster** (then a paid dogfood) — make the
-     tech-lead real in the ONE outside project; closes the "Vajra-only feature" gap the founder
-     called out. *Prompt written for THIS pick as the default.*
-  2. **Phase 1b — the all-nine observation**, budgeted from S135's real numbers (~4–5M raw/session).
-  3. **Close criterion 7** — carry the recorded budget INTO each role's dispatch brief (a small read
-     surface, no ladder edit; turns 11/12 into 12/12).
+## Next Session — a founder-approved TWO-SESSION arc (brainstormed at the S135 close)
+- **S136 — APPROVED:** `prompts/136-task-chitra-fleet-upgrade.md`. Make Vajra's full 10-role fleet
+  REAL in chitra: install the 6 missing agents + the `tech-lead` from Vajra's one source, make
+  `--check-crew` actually BIND there, and resolve the upgrade path a real adopter needs. **Headline
+  gap found live:** chitra carries 4 of 10 agents AND Vajra has NO `vajra upgrade` command (only
+  skip-if-present `init`) — how a brownfield adopter pulls a new version is unsolved. Launch in a
+  FRESH chat: `vajra claude`.
+- **S137 — DRAFT:** `prompts/137-task-chitra-scatter-lock-dogfood.md`. The PAID dogfood — lock
+  chitra's `scatter` chart (next unlocked in catalog order) to the reference design language, with
+  the FULL crew now able to run there, founder signs off on the rendered chart (seen, not read).
+- **Deferred, not dropped:** phase 1b (all-nine observation, ~4–5M raw/session) · close criterion 7
+  (carry the budget into each dispatch brief).
 - **Next GT: S140** (this cycle's GT was skipped by founder decision at the S134 close — the first
   skipped GT in the project's history; the every-5th cadence resumes at S140, NOT a new default).
 
