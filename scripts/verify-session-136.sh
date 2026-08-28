@@ -66,8 +66,16 @@ run_check() {
 
 real_tmpdir() { ( cd "$(mktemp -d)" && pwd -P ); }
 
-# The canonical roster, read from the BINARY rather than typed here. A hand-typed list of ten role
-# names in this file would be exactly the drift the whole session exists to close.
+# The ten names acceptance criterion 1 ITSELF spells out. Hand-typed ON PURPOSE, and the cold
+# fidelity review is why: deriving the roster only from the binary's own output makes the roster's
+# IDENTITY untestable — a typo'd, duplicated or swapped role name would be faithfully re-derived and
+# re-checked against itself, and every roster check would stay green. The count alone does not catch
+# that. So this list is the independent side of the comparison; `canonical_roles` is the product's
+# side; check 11 asserts they are equal. If the roster legitimately changes, this line changes with
+# it — deliberately, as a decision, which is the opposite of drift.
+CRITERION_ROLES="demo-producer design-advisor fidelity-reviewer implementation-advisor plan-advisor qa-specialist release-coordinator requirements-analyst researcher tech-lead"
+
+# The roster as the BINARY reports it.
 canonical_roles() {
   ( cd "$(real_tmpdir)" && "$VAJRA" init --sync-fleet --dry-run 2>&1 ) \
     | sed -n 's#.*\.claude/agents/\(.*\)\.md.*#\1#p' | sort
@@ -180,6 +188,15 @@ chitra_carries_the_canonical_roster() {
   local rc=0
   [ -d "$CHITRA/.claude/agents" ] \
     || { echo "FAIL: chitra not found at $CHITRA — this check FAILS on absence, it never skips (S69)"; return 1; }
+  # The cold review's rec 4: comparing chitra to THIS repo's `.claude/agents/*.md` is one hop from
+  # the acceptance criterion, which names `render_subagent_definition`. The hop is only sound while
+  # this repo's own files ARE the current render — an assumption nothing checked. So check it: a
+  # sync over this repo reporting every role already current is exactly that proof, from the product.
+  local SELF; SELF="$( cd "$ROOT" && "$VAJRA" init --sync-fleet --dry-run 2>&1 )"
+  echo "$SELF" | grep -q "0 to create, 0 to refresh" \
+    || { echo "FAIL: this repo's own .claude/agents are NOT the current render — the comparison basis is unsound"; rc=1; }
+  echo "$SELF" | grep -q "0 drifted" \
+    || { echo "FAIL: this repo's own .claude/agents are drifted — cannot serve as the canonical basis"; rc=1; }
   local role N=0
   for role in $(canonical_roles); do
     if cmp -s "$ROOT/.claude/agents/$role.md" "$CHITRA/.claude/agents/$role.md"; then
@@ -275,14 +292,27 @@ run_check "sync-fleet-unit-suite" exec cargo test --release --lib cli::init::tes
 # ── 11 · nothing else moved ─────────────────────────────────────────────────────────────────────
 nothing_else_moved() {
   local rc=0
-  # Still SEVEN top-level commands — --sync-fleet is a FLAG on init, not an eighth command.
-  local CMDS; CMDS="$("$VAJRA" --help 2>&1 | grep -cE '^\s{2,}(claude|next|init|check|meter|estimate|hook)\b')"
-  echo "top-level commands matched: $CMDS"
+  # Still SEVEN top-level commands. STRUCTURAL, not an allow-list: the cold review found that
+  # grepping for the seven KNOWN names counts 7 even when an eighth command exists under a new name.
+  # Read the front door's own usage line, which enumerates the commands it dispatches.
+  local USAGE; USAGE="$("$VAJRA" --help 2>&1 | grep -oE 'vajra <[a-z|]+>' | head -1)"
+  echo "front-door usage: $USAGE"
+  [ -n "$USAGE" ] || { echo "FAIL: could not read the front door's usage line"; rc=1; }
+  local CMDS; CMDS="$(echo "$USAGE" | sed 's/vajra <//; s/>//' | tr '|' '\n' | grep -c .)"
+  echo "top-level commands enumerated: $CMDS"
   [ "$CMDS" -eq 7 ] || { echo "FAIL: the seven-command ceiling moved (got $CMDS)"; rc=1; }
-  # The roster is still ten roles, read from the binary.
+  # The roster is still ten roles AND still the ten roles the acceptance criterion NAMES. The count
+  # alone cannot catch a typo'd or swapped name — the cold review's rec 2.
   local N; N="$(canonical_roles | wc -l | tr -d ' ')"
   echo "canonical roles: $N"
   [ "$N" -eq 10 ] || { echo "FAIL: the fleet is no longer ten roles (got $N)"; rc=1; }
+  local DERIVED EXPECTED
+  DERIVED="$(canonical_roles | tr '\n' ' ' | sed 's/ *$//')"
+  EXPECTED="$(echo "$CRITERION_ROLES" | tr ' ' '\n' | sort | tr '\n' ' ' | sed 's/ *$//')"
+  echo "derived : $DERIVED"
+  echo "criterion: $EXPECTED"
+  [ "$DERIVED" = "$EXPECTED" ] \
+    || { echo "FAIL: the roster's NAMES differ from the ten the acceptance criterion spells out"; rc=1; }
   # K of 8 is unchanged — sync-fleet is a scaffold action, not a ninth station.
   "$VAJRA" next --stations 136 2>&1 | grep -q "of 8" || { echo "FAIL: K of 8 shape changed"; rc=1; }
   return $rc
