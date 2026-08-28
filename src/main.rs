@@ -56,7 +56,11 @@ fn main() -> std::process::ExitCode {
         }
         Subcommand::Estimate => run_subcommand(cli::estimate::run),
         Subcommand::Hook => run_subcommand(cli::hook::run),
-        Subcommand::Init => run_subcommand(cli::init::run),
+        Subcommand::Init => {
+            // S136: `init` takes args now — `--sync-fleet` is the brownfield UPGRADE path.
+            let init_args: Vec<String> = args.into_iter().skip(2).collect();
+            run_args_subcommand(cli::init::run, &init_args)
+        }
         Subcommand::Claude => {
             let claude_args: Vec<String> = args.into_iter().skip(2).collect();
             run_claude_subcommand(&claude_args)
@@ -120,6 +124,10 @@ fn run_claude_subcommand(args: &[String]) -> u8 {
 fn print_usage() {
     eprintln!("vajra <init|claude|check|next|estimate|hook|meter>");
     eprintln!("  init              Scaffold .ai/ workflow in the current repo");
+    eprintln!("    --sync-fleet    Upgrade an ALREADY-governed repo to the current role roster");
+    eprintln!(
+        "                    (--dry-run previews; --overwrite-drifted rewrites changed files)"
+    );
     eprintln!("  claude [args...]  Launch Claude Code with Vajra hook injection");
     eprintln!(
         "  check [--render]   Drift detection + readiness score; --render regenerates vajra.varta"
