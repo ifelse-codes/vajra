@@ -688,7 +688,11 @@ fn run_crew_cost(nn: Option<&String>) -> Result<()> {
                 grand_total += raw;
                 let budget_note = match budget_for(&d.agent_type) {
                     Some(b) => {
-                        let pct = if b > 0 { (raw as f64 / b as f64) * 100.0 } else { 0.0 };
+                        let pct = if b > 0 {
+                            (raw as f64 / b as f64) * 100.0
+                        } else {
+                            0.0
+                        };
                         format!("budget {b} tokens — actual {:.0}% of allowance", pct)
                     }
                     None => "no recorded tech-lead budget for this role".to_string(),
@@ -707,7 +711,10 @@ fn run_crew_cost(nn: Option<&String>) -> Result<()> {
         }
     }
     println!("  {:-<22} {:->12}", "", "");
-    println!("  {:<22} {grand_total:>12} raw tokens TOTAL (never a new-tokens-only figure)", "all dispatches");
+    println!(
+        "  {:<22} {grand_total:>12} raw tokens TOTAL (never a new-tokens-only figure)",
+        "all dispatches"
+    );
     println!(
         "note: the budget is an INSTRUCTION the role is trusted to honour, never a cap Vajra can \
          enforce mid-run. An overrun is a finding for setting better budgets, not an offence — this \

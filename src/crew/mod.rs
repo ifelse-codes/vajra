@@ -374,7 +374,8 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
         let role = fleet::resolve_role(name)
             .expect("a parsed crew role is a registered specialist by construction");
         let sub = mandate::mandate_gate(root, role, session, 0);
-        let has_real_handoff = !sub.blocked() && sub.skipped.is_none() && sub.handoff_path.is_some();
+        let has_real_handoff =
+            !sub.blocked() && sub.skipped.is_none() && sub.handoff_path.is_some();
         if !has_real_handoff {
             missing_required.push(name.to_string());
         }
@@ -471,8 +472,7 @@ pub fn raw_tokens(jsonl_text: &str) -> u64 {
 /// transcript that should exist and does not FAILS rather than silently counting zero (S69). The
 /// caller reports the Err as an unreadable line, never dropping it from the tally.
 pub fn read_dispatch_raw_tokens(path: &Path) -> Result<u64, String> {
-    let text = std::fs::read_to_string(path)
-        .map_err(|e| format!("{}: {e}", path.display()))?;
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
     Ok(raw_tokens(&text))
 }
 
@@ -489,7 +489,8 @@ mod tests {
     }
 
     fn tmp_root() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("vajra-crew-test-{}-{}", std::process::id(), uniq()));
+        let dir =
+            std::env::temp_dir().join(format!("vajra-crew-test-{}-{}", std::process::id(), uniq()));
         fs::create_dir_all(dir.join(".ai/handoffs")).unwrap();
         fs::create_dir_all(dir.join("prompts")).unwrap();
         dir
@@ -518,7 +519,8 @@ mod tests {
 
     #[test]
     fn a_valid_row_parses_both_verdicts() {
-        let r = parse_crew_row("crew researcher — required — budget: 500000 tokens — needs prior art");
+        let r =
+            parse_crew_row("crew researcher — required — budget: 500000 tokens — needs prior art");
         assert_eq!(
             r,
             Some(Ok(CrewDecision {
@@ -618,7 +620,10 @@ mod tests {
         // Missing everything.
         assert!(matches!(parse_crew("no crew here"), CrewParse::MissingRoles(m) if m.len() == 9));
         // A full valid body parses.
-        assert!(matches!(parse_crew(&full_crew_body(&["researcher"])), CrewParse::Ok(_)));
+        assert!(matches!(
+            parse_crew(&full_crew_body(&["researcher"])),
+            CrewParse::Ok(_)
+        ));
         // A duplicate blocks.
         let dup = format!(
             "{}crew researcher — required — budget: 1 tokens — twice\n",
@@ -638,7 +643,11 @@ mod tests {
     // --- the gate ------------------------------------------------------------------------------
 
     fn write_prompt(root: &Path, session: u32, body: &str) {
-        fs::write(root.join(format!("prompts/{session:02}-task-fixture.md")), body).unwrap();
+        fs::write(
+            root.join(format!("prompts/{session:02}-task-fixture.md")),
+            body,
+        )
+        .unwrap();
     }
 
     /// Write a handoff for `role` with a given provenance label and body. Real re-verification needs
@@ -677,7 +686,10 @@ mod tests {
             let root = tmp_root();
             write_prompt(&root, session, "# fixture\n");
             let v = crew_gate(&root, session);
-            assert!(v.blocked(), "session {session} must block — the crew gate has no threshold");
+            assert!(
+                v.blocked(),
+                "session {session} must block — the crew gate has no threshold"
+            );
             assert_eq!(v.cause, Some(CrewCause::TechLeadMissing));
         }
     }
@@ -688,7 +700,13 @@ mod tests {
     fn a_hand_typed_tech_lead_handoff_blocks() {
         let root = tmp_root();
         write_prompt(&root, 135, "# fixture\n");
-        write_handoff(&root, "tech-lead", 135, "claude-code-subagent", &full_crew_body(&[]));
+        write_handoff(
+            &root,
+            "tech-lead",
+            135,
+            "claude-code-subagent",
+            &full_crew_body(&[]),
+        );
         let v = crew_gate(&root, 135);
         assert!(v.blocked(), "unverifiable provenance must block");
         assert_eq!(v.cause, Some(CrewCause::TechLeadMissing));
@@ -738,11 +756,7 @@ mod tests {
         .join("\n");
         assert_eq!(raw_tokens(&fr), 6_152_671);
         // implementation-advisor: 8,111,990
-        let ia = [
-            turn(4_000_000, 0, 4_100_000, 0),
-            turn(11_990, 0, 0, 0),
-        ]
-        .join("\n");
+        let ia = [turn(4_000_000, 0, 4_100_000, 0), turn(11_990, 0, 0, 0)].join("\n");
         assert_eq!(raw_tokens(&ia), 8_111_990);
         // And the three together are S134's headline raw total, never the 421,739 new-tokens figure.
         assert_eq!(
