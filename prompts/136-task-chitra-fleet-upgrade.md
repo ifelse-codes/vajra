@@ -195,6 +195,27 @@ tech-lead: dispatched FIRST — `.ai/handoffs/session-136-tech-lead.md`
   the module, and `src/main.rs` was unavoidable because `init` took no arguments at all before this
   session. Same count, different third file.
 
+**fidelity-reviewer** (`.ai/handoffs/session-136-fidelity-reviewer.md` — ACCEPT, 6 SHIPPED · 3 PARTIAL)
+
+- fidelity-reviewer rec 1 — deferred: sessions/session-136-summary.md
+  This one is not mine to close. The reviewer is right that refreshing chitra's four role files
+  overrode an explicit guardrail on the founder's own argument, with only the FORM of the citation
+  gate-checked. Surfaced to the founder at close, with the exact undo (`git checkout -- .claude/agents`
+  inside chitra) and the fact that NOTHING was committed there. The founder decides.
+- fidelity-reviewer rec 2 — obeyed: 0a51ba3 — `CRITERION_ROLES` now spells out the ten names the
+  acceptance criterion itself lists, hand-typed on purpose, and check 11 asserts the derived roster
+  equals it. Probe E (a mutated name) turns check 11 RED.
+- fidelity-reviewer rec 3 — obeyed: PENDING — the FIRST attempt (0a51ba3) was judged a MISMATCH and
+  the judge was right: parsing `--help`'s `vajra <a|b|c>` line only reads ANOTHER hand-typed string,
+  `main.rs`'s own `eprintln!` banner. An eighth command added to the dispatch logic without editing
+  that banner would still have counted 7. The hole MOVED; it did not close. Closed properly by a new
+  check 12 that reads the real `match subcommand` dispatch table in `src/main.rs` and requires the
+  banner to AGREE with it, so neither can drift from the other silently. Probe G (an eighth arm
+  planted in the table) turns it RED.
+- fidelity-reviewer rec 4 — obeyed: 0a51ba3 — check 7 no longer ASSUMES this repo's own agent files
+  are the current render; it proves it first by requiring a dry-run sync over this repo to report
+  `0 to create, 0 to refresh` and `0 drifted`. Probe F (a drifted agent file here) turns it RED.
+
 **The judge's weakest-green finding, carried forward rather than buried.** The independent
 implementation-advisor named verify **check 9** the most likely false green: its two CONTENT-level
 baselines were captured AFTER the ten declared writes, so the check would still pass the exact defect
