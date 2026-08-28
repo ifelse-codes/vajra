@@ -3,99 +3,95 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S135 complete, S136 not yet started).**
+**None — between sessions (S136 complete, S137 not yet started).**
 
-S135 shipped the **`tech-lead`** — the tenth fleet role, the first that is not a specialist — and
-the binding **`vajra next --check-crew`** gate. The tech-lead decides, for each of the nine
-specialists, whether a task needs it (`required`) or cannot afford it (`deferred-budget`), with a
-token budget; its verdict BINDS (a `required` role must produce a real governed handoff or the
-session cannot close). **Cold `fidelity-reviewer` ACCEPT** (two passes; pass 1 REJECT of a mid-flight
-state fixed in-session, pass 2 **11/12 SHIPPED · 1 PARTIAL**), attested `d538f522…`.
-
-**Genuine self-binding achieved on S135 itself:** a real, provenance-verified `tech-lead` was
-dispatched and `vajra next --check-crew 135` PASSES (3 required · 6 deferred-budget; every required
-role has a real handoff).
+S136 shipped **`vajra init --sync-fleet [--dry-run] [--overwrite-drifted]`** — the UPGRADE path a
+brownfield adopter needs — and made the ten-role fleet real in chitra, the one governed project
+outside this repo. **Cold `fidelity-reviewer` ACCEPT** (6 of 9 SHIPPED · 3 PARTIAL · 0 NOT-BUILT).
 
 ## What was proven this session
-- **The S133 genericity falsification test HELD.** The crew gate is a CALL SITE on `src/mandate` —
-  **0 lines added to `mandate_gate` / `parse_skip_marker` / `classify_marker_value`**
-  (`git diff main -- src/mandate/mod.rs` is empty). S133's "second mandatory role is a table entry,
-  not a third copy" was real, not decoration.
-- **The crew gate has NO migration threshold** (`from_session: 0`) — the fix to the S134 brownfield
-  hole: a brand-new role has no legacy prompts to exempt, so silence about it blocks from session 1
-  in every project (DECISION-007 S135 addendum). The two EXISTING thresholded roles are unchanged;
-  this establishes the pattern that future mandatory roles ship threshold-free.
-- **Phase 1 has NO off switch:** only `required` and `deferred-budget` are admitted; `not-needed` /
-  a bare skip / an empty reason are REFUSED, and the refusal names phase 1b. Value-bound tests.
-- **`--crew-cost` reads REAL on-disk bytes:** 2,540,174 raw tokens across 4 dispatches this session
-  vs S134's 19,192,697 across 3 — tight named-files briefs cut ~8×. The Agent tool reported the
-  fidelity pass-1 dispatch as 98,758 (NEW only); the raw truth is 2,003,866 — the S134 45× trap
-  caught live by the new instrument.
+- **The headline finding was not the one the prompt predicted.** The prompt expected *"Vajra has no
+  upgrade command"* — true, but shallow. chitra's FOUR *present* role files were **stale renders**
+  (1221 / 2191 / 3002 / 2712 B against 3270 / 4240 / 5051 / 4761 canonical), each missing the whole
+  appended protocol block that teaches a role to emit the `rec N —` lines the Advice and Obedience
+  gates parse. **chitra's installed roles could not have produced parseable advice**, and
+  `--check-advice` there would have read nothing and reported nothing wrong. A silently degraded
+  role is worse than an absent one: an absent role is visibly absent.
+- **The structural cause: `skip-if-present` CAN ADD; it can never UPDATE.** Right for a file the
+  user owns, wrong for a file Vajra renders. The fleet grew from four roles to ten across eleven
+  sessions and no adopter had any supported way to receive that growth.
+- **The gate BINDS in chitra, live.** `vajra next --check-crew 16` inside chitra exits **1**, names
+  the tech-lead as the first-and-mandatory dispatch, and resolves chitra's *own*
+  `.ai/handoffs/session-16-tech-lead.md` path — the S135 no-threshold rule holding in a real
+  brownfield project **117 sessions below** the old 133 threshold, not against a fixture.
+- **Ten of ten byte-identical**, idempotent on re-run, and chitra undisturbed four ways outside ten
+  pre-declared paths. **Nothing was committed inside chitra.**
+- **The independent judge BLOCKED the close twice, and was right both times** — see below.
 
 ## What Is Broken / Weak / Disclosed
-- **🟡 Criterion 7 is PARTIAL (disclosed, the pass-2 review's independent catch).** The budget is
-  RECORDED by the tech-lead, DISPLAYED by `--check-crew`, and REPORTED against actual by
-  `--crew-cost` — but nothing in the dispatch path reads `budget_tokens` to CARRY the allowance INTO
-  a role's brief (`run_role_handoff` never reads it). The reporting half is built; the injection half
-  is not. **S136 candidate 3** closes it (a small read surface, no ladder edit).
-- **🔴 THE BOOTSTRAPPING WALL (NEW, S135, found live).** A brand-new native-subagent role is normally
-  NOT dispatchable in the session that creates it — Claude Code snapshots `.claude/agents/` at
-  startup. The founder chose "ship + let the gate block" while the wall was up; a mid-session
-  registry refresh then let S135 achieve real self-binding. The reliable rule stands: a
-  native-subagent role first binds the session AFTER it is created.
-- **🔴 `tech-lead` is a Vajra-only feature until chitra's scaffold is upgraded.** chitra carries 4 of
-  9 role files; its upgrade to the full ten-role roster is deferred (founder's call) to just before
-  the next dogfood. **S136 candidate 1.** Until then S135 narrows the "true here, decorative there"
-  gap without closing it in the one project that would prove it.
-- **🔴 THE BROWNFIELD THRESHOLD HOLE (S134, carried).** The two EXISTING thresholded roles
-  (`design-advisor`, and `implementation-advisor` when it lands) still carry the session-number
-  threshold. S135 fixed it only for NEW roles (threshold-free), and did not retrofit the old two.
-- **🔴 THREE CONSECUTIVE JUDGES HAVE HAD NO SHELL** (S133, S134, and S135's fidelity + impl-advisor).
-  Every "verify 10/10" claim was executed only by the builder; the independent passes read scripts.
-- **🔴 A dispatch that happened ≠ advice that reached the work** — ROADMAP F2f (rubber-stamp
-  detector). S135 makes it MORE valuable: a binding crew gate is exactly what a rubber-stamp would
-  satisfy hollowly. **S136 candidate (F2f, dropped from the top 3 in favour of the crit-7 close).**
-- **🟡 Carried, not re-verified live this session:** F2e (now n=3: three mandatory roles, still one
-  shared ladder — the duplication is with `src/fidelity`, untouched), F2g (`L1` escape prose-only),
-  `parse_delta()` landmine, VISION.md / `.ai/AGENTS.md:118` staleness, KNOWLEDGE.md growth (F4).
-- **Dogfood: last paid run S134 ($1.6103385, 2026-08-26).** S135 built no dogfood; D2 (fresh-scaffold
-  first-contact paid run) still OUTSTANDING.
+- **🟠 chitra's ten role files are UNCOMMITTED and await the founder.** Four were REFRESHED,
+  overriding the prompt's own *"do NOT disturb the 4 existing role files"* guardrail. The cold review
+  called that **self-granted scope, dressed in good process** — mitigated by pre-declaration by path,
+  by the files being tracked-and-clean, and by nothing being committed there. Undo:
+  `git -C /Users/suman/playground/chitra checkout -- .claude/agents`.
+- **🔴 `--sync-fleet` CANNOT distinguish a stale render from a user's own edit.** Both are bytes that
+  differ from the current render, and nothing on disk records which Vajra wrote a file. Shipped as
+  the honest floor (report `Drifted`, refuse, name the flag) rather than a guessed classifier. The
+  fix — stamp each render with its own content hash — changes the render format and every existing
+  installation, and earns its own session.
+- **🟡 Verify check 12 NARROWS the command-ceiling hole; it does not close it** (the judge's recorded
+  caveat). An eighth command added as a multi-word alternation arm, a multi-line arm, a guard-clause
+  match, or a dispatch outside the `match subcommand` block would still go uncounted.
+- **🟡 Verify check 9's CONTENT-level baselines were captured AFTER the ten writes**, so it would
+  still pass the exact defect falsifiability probe C planted. The path-level and four-way baselines
+  ARE true pre-write ones. Disclosed in three places.
+- **🔴 `cargo fmt --check` FAILS on main** for three files S135 left unformatted (`src/cli/next.rs`,
+  `src/crew/mod.rs`, `src/fleet/mod.rs`). **A RECURRENCE — S96 was an entire session fixing exactly
+  this.** It came back because nothing gates it every session. Spun off, not fixed here (one story).
+- **🟡 The `tech-lead` records a budget for all nine specialists and NONE for itself**, so
+  `--crew-cost` can never report it against an allowance.
+- **🔴 S135's criterion 7 is still open:** nothing carries the recorded budget INTO a dispatch brief.
+  S136's 114% implementation-advisor overrun was only visible after the fact.
+- **🔴 THE BROWNFIELD THRESHOLD HOLE (S134, carried).** The two EXISTING thresholded roles still
+  carry the session-number threshold; only NEW roles ship threshold-free.
+- **🔴 EVERY JUDGE THIS SESSION HAD NO SHELL** (now four sessions running: S133, S134, S135, S136).
+  Every "12/12" figure was executed only by the builder; the independent passes read scripts.
+- **🟡 Carried, not re-verified live:** F2e, F2f, F2g, `parse_delta()` landmine, VISION.md /
+  `.ai/AGENTS.md:118` staleness, KNOWLEDGE.md growth (F4).
+- **Dogfood: last paid run S134 ($1.6103385, 2026-08-26).** S136 built no dogfood; **S137 is the
+  paid run and it is now unblocked.** D2 (fresh-scaffold first-contact paid run) still OUTSTANDING.
 
 ## What Currently Works
 - **The 8 stations** riding `vajra next` (+ gates at `--advance`): Analyst · Architect · Planner ·
-  Coder · QA · Demo-er · Releaser · Reviewer. `K of 8` unchanged — the crew gate is a FLEET gate,
-  not a ninth station.
-- **The fleet is now TEN roles, THREE mandatory:** `fidelity-reviewer` (S131, grades finished work),
-  `design-advisor` (S133, consulted-or-a-recorded-skip), and now the `tech-lead` (S135, the first and
-  mandatory dispatch whose crew decision binds). The execution allowlist is still exactly one role
-  (`qa-specialist`).
+  Coder · QA · Demo-er · Releaser · Reviewer. `K of 8` unchanged — `--sync-fleet` is a scaffold
+  action, not a ninth station.
+- **The fleet is TEN roles, THREE mandatory** (`fidelity-reviewer`, `design-advisor`, `tech-lead`) —
+  and as of this session it is **real in chitra too**, not a Vajra-only feature.
+- **`vajra init --sync-fleet`** — the first upgrade path Vajra has ever had. Seven top-level
+  commands, unchanged: it is a flag.
 - Enforcement floor, ledger (S100), first contact (S128), one source for a stranger's rulebook
   (S129): unchanged, not re-verified live this session.
 
 ## What Is In Progress
-- **Nothing is mid-flight.** S135 is complete; the S136 prompt
-  (`prompts/136-task-chitra-fleet-scaffold-upgrade.md`) is written at this closeout for the DEFAULT
-  pick (chitra scaffold upgrade), **founder to confirm at the S136 start** (the other two candidates —
-  phase 1b, and closing criterion 7 — are recorded in the summary and `.ai/SESSION-BOOT.md`).
-- **The `tech-lead` remains a Vajra-only feature** until chitra's 4-of-9 scaffold is upgraded — the
-  S135 disclosed gap, and the reason candidate 1 is the default. **Criterion 7's PARTIAL** (budget
-  reported, not carried into a dispatch brief) is the smallest disclosed debt (candidate 3).
+- **Nothing is mid-flight in Vajra.** The one open item is **outside** this repo: chitra's ten role
+  files are uncommitted working-tree changes awaiting the founder's call on the four-file refresh.
+- **S137 is drafted and unblocked** (`prompts/137-task-chitra-scatter-lock-dogfood.md`) — the paid
+  scatter dogfood, which was the whole point of this two-session arc.
 
 ## Active PRs
-- **S135 — PR opens at closeout, after `.ai/` sync.**
-- S133 [#155](https://github.com/ifelse-codes/vajra/pull/155) MERGED · S132
-  [#153](https://github.com/ifelse-codes/vajra/pull/153) MERGED · S131
-  [#150](https://github.com/ifelse-codes/vajra/pull/150) MERGED + hotfix
-  [#151](https://github.com/ifelse-codes/vajra/pull/151).
+- **S136 — PR opens at closeout, after `.ai/` sync.**
+- S135 [#159](https://github.com/ifelse-codes/vajra/pull/159) MERGED · S134
+  [#156](https://github.com/ifelse-codes/vajra/pull/156) MERGED · S133
+  [#155](https://github.com/ifelse-codes/vajra/pull/155) MERGED.
 
 ## Direction (governance is the product — shaped as a shippable MVP)
 - **Product = provable agent governance** (`DECISION-001`), the autopilot trust layer. Fleet = real
   named agents behind the gates (`DECISION-007`). **Current direction, locked S130: MAKE THE FLEET
   REAL.** S131 made one role mandatory + provable; S132 made advice consequential; S133 made the
-  first build-shaping advisor mandatory; S135 made the ROLE THAT DECIDES THE CREW mandatory and its
-  decision binding — with the first cost control in the product.
-- **Next-GT: S140** (this cycle's GT was skipped by founder decision at the S134 close; S135 was a
-  CODE session under `VAJRA_GT_WAIVER=135`, the first skipped GT in the project's history).
+  first build-shaping advisor mandatory; S135 made the role that DECIDES the crew mandatory and its
+  decision binding; **S136 made the whole thing real in a project this repo does not own** — the
+  first session that closed the "true here, decorative there" gap rather than narrowing it.
+- **Next-GT: S140.**
 
 ## Cost Tracking
 - Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S51: ~$1.52 · S52: ~$4.95 · S63: ~$1.27.
@@ -105,10 +101,11 @@ role has a real handoff).
 - **S120: $0 (NO-CODE GT). S124: $3.2984944 authoritative. S126: $4.4482 authoritative.**
 - **S128–S133: $0 metered for build** (interactive). **S134: $1.6103385 AUTHORITATIVE** (chitra
   dogfood) + ~19.2M raw subagent tokens across 3 dispatches.
-- **S135: $0 metered for build** (interactive) — **4,183,839 RAW subagent tokens** across 5 dispatches
-  (design-advisor 155,319 · tech-lead 13,194 · implementation-advisor 367,795 · fidelity-reviewer
-  pass 1 2,003,866 · pass 2 1,643,665) — the authoritative closing `--crew-cost 135`. The named-files
-  discipline held per-session cost ~4.6× below S134 DESPITE running more dispatches. **Phase 1b
-  (all-nine) estimated ~4–5M raw/session** — roughly 4 all-nine sessions/month under the $20 plan's
-  ~19M cap.
-- Cumulative: **~$92.8 + S76 (unknown, ≤ ~$26.6) + S111–S135 subagents (unknown, growing).**
+- **S135: $0 metered for build** (interactive) — **4,183,839 RAW subagent tokens** across 5 dispatches.
+- **S136: $0 metered for build** (interactive) — **731,943 RAW subagent tokens** across 3 dispatches
+  (implementation-advisor 397,833 = **114% of its 350,000 allowance, recorded as a finding, not an
+  offence** · design-advisor 198,175 = 79% of 250,000 · tech-lead 135,935, no self-budget), the
+  authoritative closing `--crew-cost 136`. **5.7× cheaper than S135 for the same three required
+  roles** — the named-files discipline held across five separate dispatch turns, including three
+  re-grading passes on a resumed judge.
+- Cumulative: **~$92.8 + S76 (unknown, ≤ ~$26.6) + S111–S136 subagents (unknown, growing).**

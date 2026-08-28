@@ -1054,3 +1054,92 @@ all-nine observation (phase 1b, deferred until the budget allows). It does not b
 files, so until its scaffold upgrade (deferred by the founder to just before the next dogfood) the
 `tech-lead` remains a Vajra-only feature. S135 narrows the "true here, decorative there" gap in the
 product; it does not close it in the one project that would prove it.
+
+---
+
+## S136 addendum — the UPGRADE path, and the drift `skip-if-present` could never have fixed
+
+**Status:** ACCEPTED (session 136). Extends the scaffold contract this record already locks
+(`fleet::ROLES` → `render_subagent_definition` → `.claude/agents/<name>.md`, skip-if-present via
+`vajra init`). It does not fork it, so this is an addendum and not a DECISION-008 — the same shape
+as S111 through S135. A general drift/upgrade mechanism for ALL scaffold types is explicitly out of
+scope; this is fleet-only.
+
+### The measurement that forced it
+
+S135 closed with the `tech-lead` real in Vajra and absent everywhere else. chitra — the one governed
+project outside this repo — was measured at the S136 open:
+
+| chitra `.claude/agents/` | on disk | canonical render | state |
+|---|---|---|---|
+| `researcher.md` | 1221 B | 3270 B | drifted |
+| `plan-advisor.md` | 2191 B | 4240 B | drifted |
+| `qa-specialist.md` | 3002 B | 5051 B | drifted |
+| `fidelity-reviewer.md` | 2712 B | 4761 B | drifted |
+| the other six roles | absent | — | missing |
+
+The four "present" files were not merely old. Every one was missing the whole appended protocol
+block — `## Numbered recommendations (Vajra parses these)` and `## Judging an obeyed: disposition` —
+that teaches a role to emit the `rec N —` lines the Advice and Obedience gates parse. **chitra's four
+installed roles could not have produced parseable advice**, so `--check-advice` there would have read
+nothing and reported nothing wrong. A silently degraded role is worse than an absent one: an absent
+role is visibly absent.
+
+### The structural finding
+
+**`skip-if-present` CAN ADD; it can never UPDATE.** That convention (S44, and every scaffold entry
+except `.claude/settings.json`) is correct for a file a user owns and wrong for a file Vajra renders.
+For eleven sessions the fleet grew from four roles to ten and no adopter had any supported way to
+receive that growth. There was no `vajra upgrade` in any form. This is the S128/S134 "true here,
+decorative there" gap in its most concrete shape yet.
+
+### The decision
+
+`vajra init --sync-fleet [--dry-run] [--overwrite-drifted]` — a FLAG on an existing command, not an
+eighth top-level command (the S128 non-goal holds). It re-enters the same
+`for role in fleet::ROLES` loop `files()` already uses, scoped to the role definitions and nothing
+else: a project at session 16 that asks for the new roster must not also receive a
+`prompts/01-task-kickoff.md`. Behaviour, by state:
+
+| state | meaning | what the command does |
+|---|---|---|
+| `Missing` | not on disk | create from the canonical render, always |
+| `UpToDate` | byte-identical to the render | nothing — a no-op write still churns mtime and git status |
+| `Drifted` | present, bytes differ | **report and refuse**; rewrite only under `--overwrite-drifted` |
+
+Exit **0** when every role file is present and canonical; exit **1**, naming each file and the flag
+that resolves it, when any file is left drifted. `--dry-run` computes the identical plan, writes
+nothing, and returns the code the real run would — a preview that exits 0 where the real run exits 1
+is a preview of a different command.
+
+### The one thing this cannot do, disclosed rather than dressed up
+
+**Vajra cannot distinguish a STALE RENDER from a USER'S OWN EDIT.** Both present as the same single
+observable — bytes that differ from the current render — and nothing on disk records which version of
+Vajra wrote a given file: no version stamp, no manifest, no generated-by marker. So the command does
+not guess. It reports `Drifted` and refuses to write, and a human decides.
+
+A classifier built on git blame, commit-message sniffing or timestamps was considered and REJECTED:
+it would invent provenance that was never recorded, which is the class of speculative machinery the
+S122 and S123 addenda already reject in favour of a disclosed floor. The honest limit ships; the
+detection that sounds better does not. `--overwrite-drifted` is therefore not a convenience flag —
+it is the place where a human takes responsibility for a judgement the machine cannot make.
+
+*(The obvious future fix, scoped and NOT built here: stamp each rendered file with the render's own
+content hash so a later run can tell "an old render of mine" from "a file someone edited". That is a
+change to the render format itself and to every existing installation, and it earns its own session.)*
+
+### The deviation this session recorded, rather than let the gate infer
+
+Session 136's own prompt carried an inherited guardrail — *"do NOT disturb chitra's 4 existing role
+files"* (S134's undisturbed rule) — and an acceptance criterion requiring all ten files to match the
+canonical render **byte-for-byte**, "a drifted copy FAILS, never a silent skip". Given the measured
+drift the two cannot both hold.
+
+**The acceptance criterion governs.** This record defines every `.claude/agents/*.md` as a pure
+render that is never hand-typed (the S104/S99 no-drift rule); refreshing the four closes a drift
+condition this record already forbids rather than introducing one. The refresh was executed as a
+PRE-DECLARED, named action — all ten paths listed by name before a byte was written — and the four
+files were tracked and clean in chitra's git, making every refresh reversible by one `git checkout`.
+That reasoning is recorded here because it is a human's call about someone else's repository, and
+the gate checks the FORM of a citation, never whether the design obeys it.

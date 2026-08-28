@@ -1,0 +1,44 @@
+# chitra four-way baseline — captured at the S136 open, BEFORE any write
+# (/Users/suman/playground/chitra, mid-flight session 16)
+HEAD=12531f1fc4c1ac38f3f277843c76120af027424e
+BRANCH=session-16-sparkline-histogram-lock
+INDEX=1ed655a7a548dfdd0d2844f323fa4eefaba6554d
+STASH_COUNT=1
+# sha256 of `git status --porcelain` with every .claude/agents/ line removed.
+# The declared paths below are the ONLY paths S136 was permitted to touch, so this
+# hash must be byte-identical before and after. It is the exact proof of criterion 4.
+STATUS_MINUS_DECLARED_SHA=03cd7d7738dc71c238d7729d0c9e103813c2aa18bc2fe10658da07358de632c2
+
+# Declared paths — listed by name BEFORE a byte was written (S134 rule, tech-lead rec 6)
+DECLARE .claude/agents/requirements-analyst.md CREATE
+DECLARE .claude/agents/design-advisor.md CREATE
+DECLARE .claude/agents/implementation-advisor.md CREATE
+DECLARE .claude/agents/demo-producer.md CREATE
+DECLARE .claude/agents/release-coordinator.md CREATE
+DECLARE .claude/agents/tech-lead.md CREATE
+DECLARE .claude/agents/researcher.md REFRESH
+DECLARE .claude/agents/fidelity-reviewer.md REFRESH
+DECLARE .claude/agents/plan-advisor.md REFRESH
+DECLARE .claude/agents/qa-specialist.md REFRESH
+
+# Pre-refresh byte sizes of the four stale renders, vs the canonical render.
+# Each was missing the whole appended protocol block the Advice/Obedience gates parse.
+STALE researcher.md 1221 canonical 3270
+STALE plan-advisor.md 2191 canonical 4240
+STALE qa-specialist.md 3002 canonical 5051
+STALE fidelity-reviewer.md 2712 canonical 4761
+
+# CONTENT-level baselines, added after falsifiability PROBE C exposed a hole in the
+# path-level check above: `git status --porcelain` records PATHS and status letters, so
+# appending to a file chitra had ALREADY modified leaves the status hash unchanged. These
+# two hash the CONTENT of everything outside the declared paths.
+#
+# HONEST LIMIT, disclosed rather than buried: these two were captured AFTER the ten declared
+# writes, not before — chitra's session-16 work is uncommitted, so there is no way to
+# reconstruct a pre-write content hash now. They therefore FREEZE chitra's content from this
+# point on and corroborate the four-way check; for content changes to an already-dirty file
+# they do not independently PROVE the write window was clean. The path-level STATUS hash
+# above IS a true pre-write baseline, and it proves no path appeared, vanished, or changed
+# status. The four ways (HEAD, index tree, stash, branch) are true pre-write baselines too.
+TRACKED_DIFF_SHA=cc246c04032551689edddb20e25cfd16f56aeb4c07d0b1219c6108cac7e5fcf6
+UNTRACKED_SHA=637353b2ab5a887bb4413bf6d4ace48f83443735a7434ace0c415c8a0f2fa477

@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write as _};
 use std::path::{Path, PathBuf};
@@ -8,7 +8,23 @@ use std::{fmt, fs};
 /// The one file `init` merges into rather than skips when it already exists (S44).
 const CLAUDE_SETTINGS_PATH: &str = ".claude/settings.json";
 
-pub fn run() -> Result<()> {
+pub fn run(args: &[String]) -> Result<()> {
+    // S136 (DECISION-007 S136 addendum): the UPGRADE path a brownfield adopter needs. `init`
+    // scaffolds ~40 entries and prompts for a project name, a first-session goal and a maturity
+    // level — all wrong for a project that adopted Vajra ten sessions ago and only wants the
+    // fleet roster its installed version predates. `--sync-fleet` re-enters THE SAME
+    // `fleet::ROLES` loop `files()` already uses, scoped to the role definitions and nothing
+    // else. A flag on an existing command, never an 8th top-level command.
+    if args.iter().any(|a| a == "--sync-fleet") {
+        return sync_fleet(
+            &find_project_root()?,
+            SyncOpts {
+                dry_run: args.iter().any(|a| a == "--dry-run"),
+                overwrite_drifted: args.iter().any(|a| a == "--overwrite-drifted"),
+            },
+            &mut io::stderr(),
+        );
+    }
     let root = find_project_root()?;
 
     eprintln!("vajra init — scaffolding .ai/ workflow");
@@ -31,6 +47,186 @@ pub fn run() -> Result<()> {
 
     scaffold(&root, &project_name, &goal, maturity)?;
     first_run_aha(&root);
+    Ok(())
+}
+
+/// What `--sync-fleet` may do to a file that is already on disk.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SyncOpts {
+    /// Report the plan, write nothing. The exit code still reflects what a real run would leave
+    /// behind, so a preview is a true preview and not a separate, kinder verdict.
+    pub dry_run: bool,
+    /// Rewrite a file whose bytes differ from the canonical render. Off by default, on purpose:
+    /// see `FleetFileState::Drifted`.
+    pub overwrite_drifted: bool,
+}
+
+/// The three states a role's `.claude/agents/<name>.md` can be in, relative to the ONE canonical
+/// render (`fleet::render_subagent_definition`).
+///
+/// There are only three because there can only be three. A fourth — "stale render" as distinct
+/// from "the user edited it" — is NOT DERIVABLE (S136): both present as the same observable, on-disk
+/// bytes that differ from the current render, and nothing anywhere stores which Vajra version
+/// produced a given file. No version stamp, no manifest, no generated-by marker. So the command
+/// does not guess. It reports `Drifted` and refuses to write, and a human decides. Building a
+/// classifier out of git blame or timestamps would be inventing provenance that was never recorded
+/// — the disclosed floor is the honest answer, not the detection that sounds better.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FleetFileState {
+    /// Not on disk. This is the case an older install leaves behind when the roster grows —
+    /// safe to create, because creating a file that does not exist destroys nothing.
+    Missing,
+    /// Byte-for-byte identical to the canonical render. Never rewritten: a no-op write would
+    /// churn the user's mtime and their git status for nothing.
+    UpToDate,
+    /// Present, but its bytes differ from the canonical render. Could be an old render; could be
+    /// the user's deliberate customisation. Indistinguishable — so it is never silently clobbered.
+    Drifted,
+}
+
+/// Classify one role file from what is actually on disk against the canonical render.
+///
+/// Takes the read content rather than the path so the decision is a pure function the tests can
+/// drive without a filesystem — the classification is the part that has to be right.
+pub fn classify_fleet_file(on_disk: Option<&str>, canonical: &str) -> FleetFileState {
+    match on_disk {
+        None => FleetFileState::Missing,
+        Some(body) if body == canonical => FleetFileState::UpToDate,
+        Some(_) => FleetFileState::Drifted,
+    }
+}
+
+/// One role's line in the sync plan.
+#[derive(Debug, Clone)]
+pub struct FleetSyncItem {
+    pub role: &'static str,
+    pub rel: String,
+    pub state: FleetFileState,
+}
+
+/// Build the plan WITHOUT writing anything. `--sync-fleet` and `--sync-fleet --dry-run` compute
+/// the identical plan; only the apply step differs, which is what makes the dry run trustworthy.
+pub fn plan_fleet_sync(root: &Path) -> Vec<FleetSyncItem> {
+    crate::fleet::ROLES
+        .iter()
+        .map(|role| {
+            let rel = role.subagent_rel();
+            let canonical = crate::fleet::render_subagent_definition(role);
+            // An unreadable file is NOT treated as absent — that would let a permissions error
+            // silently become a create. It reads as `Drifted`: present, and not provably canonical.
+            let on_disk = match fs::read_to_string(root.join(&rel)) {
+                Ok(body) => Some(body),
+                Err(e) if e.kind() == io::ErrorKind::NotFound => None,
+                Err(_) => Some(String::new()),
+            };
+            let state = classify_fleet_file(on_disk.as_deref(), &canonical);
+            FleetSyncItem {
+                role: role.name,
+                rel,
+                state,
+            }
+        })
+        .collect()
+}
+
+/// `vajra init --sync-fleet [--dry-run] [--overwrite-drifted]` — bring an ALREADY-GOVERNED project
+/// up to the current fleet roster.
+///
+/// Idempotent by construction: a second run finds every file `UpToDate` and writes nothing. The
+/// exit code is the whole point of the command being usable in a check —
+/// **0** when every role file is present and canonical, **1** when any file is left `Drifted`,
+/// naming the flag that would resolve it. A dry run returns the code the real run would.
+pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Result<()> {
+    let plan = plan_fleet_sync(root);
+    let mut created = 0u32;
+    let mut refreshed = 0u32;
+    let mut up_to_date = 0u32;
+    let mut unresolved: Vec<String> = Vec::new();
+
+    writeln!(out, "=== vajra: fleet sync ({} roles) ===", plan.len())?;
+    if opts.dry_run {
+        writeln!(out, "  DRY RUN — nothing is written.")?;
+    }
+
+    for item in &plan {
+        match item.state {
+            FleetFileState::UpToDate => {
+                up_to_date += 1;
+                writeln!(out, "  ok      {} (up to date)", item.rel)?;
+            }
+            FleetFileState::Missing => {
+                if opts.dry_run {
+                    writeln!(out, "  would   create {}", item.rel)?;
+                } else {
+                    write_role_file(root, item)?;
+                    writeln!(out, "  create  {}", item.rel)?;
+                }
+                created += 1;
+            }
+            FleetFileState::Drifted if opts.overwrite_drifted => {
+                if opts.dry_run {
+                    writeln!(out, "  would   refresh {} (drifted)", item.rel)?;
+                } else {
+                    write_role_file(root, item)?;
+                    writeln!(out, "  refresh {} (drifted → canonical)", item.rel)?;
+                }
+                refreshed += 1;
+            }
+            FleetFileState::Drifted => {
+                writeln!(
+                    out,
+                    "  DRIFT   {} differs from the canonical render — NOT touched",
+                    item.rel
+                )?;
+                unresolved.push(item.rel.clone());
+            }
+        }
+    }
+
+    writeln!(out)?;
+    // A dry run must not report work it did not do. Same numbers, honest verb.
+    let (verb_c, verb_r) = if opts.dry_run {
+        ("to create", "to refresh")
+    } else {
+        ("created", "refreshed")
+    };
+    writeln!(
+        out,
+        "{created} {verb_c}, {refreshed} {verb_r}, {up_to_date} already current, {} drifted.",
+        unresolved.len()
+    )?;
+
+    if !unresolved.is_empty() {
+        writeln!(out)?;
+        writeln!(
+            out,
+            "Vajra cannot tell an OLD RENDER from YOUR OWN EDIT — both are just bytes that differ,\n\
+             and nothing on disk records which Vajra wrote the file. So it refused to write.\n\
+             Read the diff; if these are stale renders and not your edits, re-run with:\n\
+             \n\
+             \x20   vajra init --sync-fleet --overwrite-drifted\n"
+        )?;
+        bail!(
+            "{} role file(s) drifted and were left untouched: {}",
+            unresolved.len(),
+            unresolved.join(", ")
+        );
+    }
+    Ok(())
+}
+
+/// Write one role file from the canonical render. The content is re-rendered here rather than
+/// carried in the plan so there is exactly one source for the bytes — a plan that carried a stale
+/// copy of the render would be the very drift this command exists to close.
+fn write_role_file(root: &Path, item: &FleetSyncItem) -> Result<()> {
+    let role = crate::fleet::resolve_role(item.role)
+        .ok_or_else(|| anyhow::anyhow!("unknown role {:?} in sync plan", item.role))?;
+    let full = root.join(&item.rel);
+    if let Some(parent) = full.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("mkdir {}", parent.display()))?;
+    }
+    fs::write(&full, crate::fleet::render_subagent_definition(role))
+        .with_context(|| format!("failed to write {}", item.rel))?;
     Ok(())
 }
 
@@ -1943,5 +2139,282 @@ mod tests {
             1,
             "re-run duplicated Vajra hooks"
         );
+    }
+
+    // ── S136: `--sync-fleet`, the brownfield UPGRADE path ────────────────────────────────────
+    //
+    // The bug these bind against is not hypothetical. chitra — the one project outside this repo —
+    // was scaffolded by an older Vajra and carried FOUR of ten role files, every one of them a
+    // stale render missing the whole `rec N —` / `obeyed:` protocol block. `init`'s skip-if-present
+    // convention could never have fixed that: it CAN ADD, it can never UPDATE.
+
+    /// The three states are the three states. A fourth — "stale render" vs "the user edited it" —
+    /// is deliberately absent, because it is not derivable from bytes (see `FleetFileState`).
+    #[test]
+    fn classify_fleet_file_names_the_three_derivable_states() {
+        let canonical = "---\nname: researcher\n---\nbody\n";
+        assert_eq!(
+            classify_fleet_file(None, canonical),
+            FleetFileState::Missing
+        );
+        assert_eq!(
+            classify_fleet_file(Some(canonical), canonical),
+            FleetFileState::UpToDate
+        );
+        assert_eq!(
+            classify_fleet_file(Some("---\nname: researcher\n---\nOLD\n"), canonical),
+            FleetFileState::Drifted
+        );
+        // The exact chitra shape: an older render is a PREFIX of the current one (a protocol block
+        // was appended). A prefix is not a match — a `starts_with` check here would have passed
+        // every one of chitra's four stale files as up to date.
+        assert_eq!(
+            classify_fleet_file(Some("---\nname: researcher\n---\n"), canonical),
+            FleetFileState::Drifted
+        );
+        // Whitespace is not "close enough" — the file is a byte-exact render or it is drifted.
+        assert_eq!(
+            classify_fleet_file(Some(&format!("{canonical}\n")), canonical),
+            FleetFileState::Drifted
+        );
+    }
+
+    #[test]
+    fn plan_fleet_sync_reports_every_registered_role_and_finds_an_empty_repo_all_missing() {
+        let dir = tempfile::tempdir().unwrap();
+        let plan = plan_fleet_sync(dir.path());
+        assert_eq!(
+            plan.len(),
+            crate::fleet::ROLES.len(),
+            "the plan must cover every role in the canonical roster, not a hand-typed subset"
+        );
+        assert!(
+            plan.iter().all(|i| i.state == FleetFileState::Missing),
+            "an empty repo has no role files"
+        );
+    }
+
+    /// The chitra case end to end: some roles missing, some present-but-stale.
+    #[test]
+    fn sync_fleet_creates_missing_but_refuses_to_touch_drifted_by_default() {
+        let dir = tempfile::tempdir().unwrap();
+        let stale = &crate::fleet::ROLES[0];
+        let stale_rel = stale.subagent_rel();
+        fs::create_dir_all(dir.path().join(".claude/agents")).unwrap();
+        fs::write(dir.path().join(&stale_rel), "an older render\n").unwrap();
+
+        let mut out = Vec::new();
+        let err = sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        )
+        .unwrap_err();
+
+        // Fails CLOSED on unresolved drift — a silent exit 0 would let a stale roster look synced.
+        assert!(
+            err.to_string().contains(&stale_rel),
+            "the error must NAME the drifted file, got: {err}"
+        );
+        // The drifted file is byte-identical to what it was: refusing means refusing.
+        assert_eq!(
+            fs::read_to_string(dir.path().join(&stale_rel)).unwrap(),
+            "an older render\n",
+            "a default run must never rewrite a file whose bytes it cannot account for"
+        );
+        // ...and every OTHER role was still created. A refusal on one file is not an abort.
+        for role in crate::fleet::ROLES.iter().skip(1) {
+            let full = dir.path().join(role.subagent_rel());
+            assert!(full.exists(), "{} was not created", role.name);
+            assert_eq!(
+                fs::read_to_string(&full).unwrap(),
+                crate::fleet::render_subagent_definition(role),
+                "{} was not written from the canonical render",
+                role.name
+            );
+        }
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("DRIFT"),
+            "the drift must be reported, got: {text}"
+        );
+        assert!(
+            text.contains("--overwrite-drifted"),
+            "the message must name the flag that resolves it, got: {text}"
+        );
+    }
+
+    #[test]
+    fn sync_fleet_refreshes_drifted_only_when_explicitly_told_to() {
+        let dir = tempfile::tempdir().unwrap();
+        let stale = &crate::fleet::ROLES[0];
+        fs::create_dir_all(dir.path().join(".claude/agents")).unwrap();
+        fs::write(dir.path().join(stale.subagent_rel()), "an older render\n").unwrap();
+
+        let mut out = Vec::new();
+        sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: true,
+            },
+            &mut out,
+        )
+        .unwrap();
+        assert_eq!(
+            fs::read_to_string(dir.path().join(stale.subagent_rel())).unwrap(),
+            crate::fleet::render_subagent_definition(stale)
+        );
+    }
+
+    /// Idempotence is the whole contract of an upgrade command: run it twice, the second run is a
+    /// no-op that writes nothing and exits 0.
+    #[test]
+    fn sync_fleet_is_idempotent_and_the_second_run_writes_nothing() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut out = Vec::new();
+        sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        )
+        .unwrap();
+
+        let role = &crate::fleet::ROLES[0];
+        let full = dir.path().join(role.subagent_rel());
+        let before = fs::metadata(&full).unwrap().modified().unwrap();
+
+        let mut out2 = Vec::new();
+        sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out2,
+        )
+        .unwrap();
+        let text = String::from_utf8(out2).unwrap();
+        assert!(
+            text.contains(&format!("{} already current", crate::fleet::ROLES.len())),
+            "second run must report every role current, got: {text}"
+        );
+        assert_eq!(
+            before,
+            fs::metadata(&full).unwrap().modified().unwrap(),
+            "an up-to-date file must not be rewritten — a no-op write still churns mtime and git status"
+        );
+    }
+
+    /// A dry run must be a TRUE preview: same plan, same exit code, zero writes. A preview that
+    /// exits 0 where the real run exits 1 is a preview of a different command.
+    #[test]
+    fn sync_fleet_dry_run_writes_nothing_and_returns_the_real_runs_verdict() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut out = Vec::new();
+        sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: true,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        )
+        .unwrap();
+        for role in crate::fleet::ROLES {
+            assert!(
+                !dir.path().join(role.subagent_rel()).exists(),
+                "{} was written during a DRY RUN",
+                role.name
+            );
+        }
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("DRY RUN"),
+            "the dry run must say so, got: {text}"
+        );
+        assert!(
+            text.contains("to create") && !text.contains(" created,"),
+            "a dry run must not claim work it did not do, got: {text}"
+        );
+
+        // Drift + dry-run must still fail, exactly as the real run would.
+        let stale = &crate::fleet::ROLES[0];
+        fs::create_dir_all(dir.path().join(".claude/agents")).unwrap();
+        fs::write(dir.path().join(stale.subagent_rel()), "an older render\n").unwrap();
+        let mut out2 = Vec::new();
+        assert!(
+            sync_fleet(
+                dir.path(),
+                SyncOpts {
+                    dry_run: true,
+                    overwrite_drifted: false
+                },
+                &mut out2
+            )
+            .is_err(),
+            "a dry run over drift must return the same verdict the real run would"
+        );
+    }
+
+    /// `--sync-fleet` must not drag in the other ~40 scaffold entries. A project at session 16 that
+    /// asked for the new roster and got a `prompts/01-task-kickoff.md` was handed a bug.
+    #[test]
+    fn sync_fleet_touches_only_claude_agents_and_nothing_else() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut out = Vec::new();
+        sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        )
+        .unwrap();
+
+        let top: Vec<String> = fs::read_dir(dir.path())
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(
+            top,
+            vec![".claude".to_string()],
+            "sync-fleet wrote outside .claude/ — it must never run the full init scaffold"
+        );
+        for unwanted in [".ai", "scripts", "prompts", "sessions", ".githooks"] {
+            assert!(
+                !dir.path().join(unwanted).exists(),
+                "{unwanted}/ was scaffolded by --sync-fleet"
+            );
+        }
+    }
+
+    /// An unreadable file must not be mistaken for an absent one — that would turn a permissions
+    /// error into a silent overwrite.
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_role_file_reads_as_drifted_never_as_missing() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let role = &crate::fleet::ROLES[0];
+        let full = dir.path().join(role.subagent_rel());
+        fs::create_dir_all(full.parent().unwrap()).unwrap();
+        fs::write(&full, "secret\n").unwrap();
+        fs::set_permissions(&full, fs::Permissions::from_mode(0o000)).unwrap();
+
+        let plan = plan_fleet_sync(dir.path());
+        let item = plan.iter().find(|i| i.role == role.name).unwrap();
+        // Root can read anything; skip the assertion rather than assert a falsehood about the env.
+        if fs::read_to_string(&full).is_err() {
+            assert_eq!(item.state, FleetFileState::Drifted);
+        }
+        fs::set_permissions(&full, fs::Permissions::from_mode(0o644)).unwrap();
     }
 }
