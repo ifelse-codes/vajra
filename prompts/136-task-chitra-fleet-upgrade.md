@@ -123,17 +123,86 @@ tech-lead: dispatched FIRST — `.ai/handoffs/session-136-tech-lead.md`
 3. Prove the crew gate BINDS live inside chitra from a below-133 session. covers: 2
 4. Prove chitra undisturbed outside the declared paths; write verify + summary. covers: 4
 
-## Execution (the Coder gate — record each plan step's landing commit as work lands)
+## Execution (the Coder gate — each plan step's landing commit)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: 8a57411
+- step 2 — done: 8ede7f5
+- step 3 — done: ac69462
+- step 4 — done: ac69462
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-(Filled during S136. `--check-advice 136` blocks until every rec is answered; `--check-obeyed 136`
-blocks until each `obeyed:` carries an independent judgment from a role that is not the advisor.)
+**tech-lead** (the first and mandatory dispatch — `.ai/handoffs/session-136-tech-lead.md`)
+
+- tech-lead rec 1 — obeyed: 095aa96 — the design-advisor was dispatched FIRST, on a named-files-only
+  brief (prompt 136, STATE's disclosed gaps, two line ranges of `init.rs`, DECISION-007). It read 5
+  files and cost 59,595 reported tokens.
+- tech-lead rec 2 — obeyed: 8ede7f5 — `sync_fleet` re-enters the same `for role in fleet::ROLES` /
+  `render_subagent_definition` loop `files()` already uses. There is no second scaffolding path; the
+  bytes are re-rendered at write time from the one source, never carried in the plan.
+- tech-lead rec 3 — deferred: .ai/handoffs/session-136-implementation-advisor.md
+  The recommendation WAS followed (the judge's brief was two named files: the prompt's `## Advice` and
+  the closing diff, 71,973 reported tokens), but the independent judge ruled the original
+  `obeyed: 8ede7f5` a MISMATCH and it was right: how a subagent was briefed is dispatch metadata, and
+  no Rust commit can carry it. Recorded as `deferred:` to the artifact where the dispatch actually
+  lives — a provenance-verified handoff — rather than dressed as a `git cat-file`-checkable fact.
+- tech-lead rec 4 — deferred: .ai/handoffs/session-136-tech-lead.md
+  Same correction, same reason. The 2,000,000-token allowance and the tightest-possible-brief instruction are recorded in the
+  tech-lead's own handoff, which is where a budget instruction belongs; the original
+  `obeyed: ac69462` cited a shell script that contains no such thing, and the judge called it
+  decorative. It was.
+- tech-lead rec 5 — obeyed: 095aa96 — all six `deferred-budget` verdicts stand as deferred, each
+  carrying its arithmetic, and none was re-labelled a worth judgement. The arithmetic, restated:
+  researcher 200K · requirements-analyst 200K · plan-advisor 200K · qa-specialist 150K ·
+  demo-producer 150K · release-coordinator 150K = 1.05M raw that was NOT spent, against a ~19.2M
+  monthly cap S134 exhausted with three broad dispatches. Phase 2's off switch is not granted here.
+- tech-lead rec 6 — obeyed: ac69462 — all ten chitra paths were listed by name before a byte was
+  written, and the list is the tracked record `sessions/session-136-chitra-baseline.txt` that
+  verify check 9 reads. A path that changed without a `DECLARE` line FAILS the check.
+
+**design-advisor** (`.ai/handoffs/session-136-design-advisor.md`)
+
+- design-advisor rec 1 — obeyed: 8ede7f5 — `design-significant: yes`; the `## Design` cites
+  `docs/decisions/DECISION-007-agent-fleet.md`, which gains an **S136 addendum** in the file's own
+  established shape (S111 → S135). No DECISION-008 was opened.
+- design-advisor rec 2 — obeyed: 8ede7f5 — BUILD, not document-only. The verdict was testable and it
+  held: the mechanism landed inside the session cap because the loop it needed already existed.
+- design-advisor rec 3 — obeyed: 8ede7f5 — `vajra init --sync-fleet`, a flag on an existing command.
+  Verify check 11 asserts the top-level command count is still exactly 7.
+- design-advisor rec 4 — obeyed: 8ede7f5 — `Missing` creates unconditionally from the canonical
+  render. Verify check 1 proves an empty repo reaches the full roster byte-for-byte.
+- design-advisor rec 5 — obeyed: 8ede7f5 — `UpToDate` is a no-op. The unit test asserts the file's
+  mtime is unchanged, because a no-op write still churns the user's git status.
+- design-advisor rec 6 — obeyed: 8ede7f5 — `Drifted` reports and refuses by default, exits 1 naming
+  `--overwrite-drifted`, and leaves the file byte-identical. `--dry-run` writes nothing and returns
+  the code the real run would. Verify checks 3, 4 and 5.
+- design-advisor rec 7 — obeyed: 8ede7f5 — corrected sha. The judge found the original
+  `obeyed: ac69462` cited a file containing only DECLARE lines and hashes, while the reasoning it
+  claimed ("criterion 1 governs… reversible with one `git checkout`") is word-for-word in the
+  DECISION-007 S136 addendum, which is 8ede7f5. The ACTION the rec asked for — a pre-declared, named
+  refresh — is split across both: the reasoning in 8ede7f5, the ten-path DECLARE list and the check
+  that enforces it in ac69462.
+- design-advisor rec 8 — obeyed: 8a57411 — the deviation is written into `## Design` in plain words
+  above, and again into the DECISION-007 S136 addendum. The gate checks the FORM of a citation, so
+  the reasoning had to be stated rather than left for it to infer.
+- design-advisor rec 9 — obeyed: 8ede7f5 — no classifier was built. `FleetFileState` has three
+  variants because only three are derivable, and the doc comment says so. The undecidability is the
+  shipped answer, not a gap in it.
+- design-advisor rec 10 — obeyed: 8ede7f5 — the Vajra-side diff is exactly three files
+  (`src/cli/init.rs` carrying its own `#[cfg(test)]` tests, `src/main.rs`, and the DECISION-007
+  addendum), and `--sync-fleet` is wired into NO close-path gate. **Recorded deviation from the
+  advisor's guess at which three:** it expected a separate test file; this crate keeps unit tests in
+  the module, and `src/main.rs` was unavoidable because `init` took no arguments at all before this
+  session. Same count, different third file.
+
+**The judge's weakest-green finding, carried forward rather than buried.** The independent
+implementation-advisor named verify **check 9** the most likely false green: its two CONTENT-level
+baselines were captured AFTER the ten declared writes, so the check would still pass the exact defect
+falsifiability probe C planted — an append to a tracked file chitra had already modified before S136
+touched anything. The path-level and four-way baselines ARE true pre-write ones and prove no path
+appeared, vanished or changed status; the content guarantee is frozen from mid-session onward rather
+than closed. Stated here, in the baseline record, and in the summary — three places, because a
+disclosure that lives only in a handoff is one nobody reads.
 
 ## Guardrails
 
