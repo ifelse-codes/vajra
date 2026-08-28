@@ -2,8 +2,8 @@
 role: implementation-advisor
 session: 136
 agent: claude-code-subagent (verified: toolu_01R1MkifuSxqswM4nG7sfJPT)
-source-sha: d8a52025b8875caa5de6a3e6c701dba904d43ea783ca58669199ffe31b3f8aca
-captured: 2026-08-28T08:53:53Z
+source-sha: 34cc7edd43ece236de68a9d495de218b730938f2f74c74c1046395b3381e8fda
+captured: 2026-08-28T09:05:51Z
 cost_usd: null
 ---
 
@@ -83,6 +83,14 @@ to say the content guarantee is "frozen from mid-session onward rather than clos
 the hole is fixed, only that it is now written down in three places instead of silently absorbed into
 a green tally. That is the honest version of the finding, stated at the same strength I found it.
 
+## Pass 3 — judging the cold review's recommendations (a role that is not the fidelity-reviewer)
+
+obeyed-check fidelity-reviewer rec 2 — implemented: 0a51ba3 — adds a hand-typed `CRITERION_ROLES` (the ten literal names) as the independent side of a new equality assertion in check 11, so a typo'd/swapped role name in the binary's own output no longer re-validates against itself. On the drift question: a different hazard class than the one the original comment warned against — that was about hand-typing RENDERED agent-file content, which silently goes stale; `CRITERION_ROLES` is a 10-name oracle whose only failure mode is a loud, immediate red (a legitimate roster change requires a deliberate edit, and forgetting to make it FAILS the check rather than passing silently). It does not reintroduce the silent-drift risk; it trades a different, fail-closed maintenance burden for it.
+
+obeyed-check fidelity-reviewer rec 3 — implemented: 15defef — new check 12 sed-extracts the `let sub = match subcommand { ... };` block from `src/main.rs`, counts the `"word" => Subcommand::` arms (minus `help`), asserts exactly 7, then separately asserts the `--help` banner's word set equals that extracted set — reading the REAL dispatch table rather than a second hand-typed proxy. Probe G confirms it goes red when an eighth arm is planted in the expected shape. CAVEAT, recorded rather than waived: the extraction is pattern-fragile, not fully general — an eighth command added as a multi-word alternation arm, a multi-line arm, a guard-clause match, or any dispatch outside the sed-delimited block would go uncounted with the check staying green. This NARROWS the hole to an unusual-shape escape rather than closing it completely. The `struct` label is honest, and the banner-vs-table equality is genuinely non-circular: it compares two independently-derived values, not two views of one source. (The FIRST attempt, 0a51ba3, was graded a MISMATCH — it parsed `main.rs`'s own hardcoded `eprintln!` banner, so an eighth command added without editing that banner would still have counted 7. The hole had moved into main.rs, not closed.)
+
+obeyed-check fidelity-reviewer rec 4 — implemented: 0a51ba3 — before trusting this repo's `.claude/agents/*.md` as the comparison basis, check 7 now runs a dry-run sync over the repo and requires `0 to create, 0 to refresh` and `0 drifted`. Not a direct call to `render_subagent_definition`, but a SOUND closure rather than a weaker substitute: per `classify_fleet_file`, the command can only report zero-drift/zero-create when every on-disk file's bytes are literally equal to the canonical render, so the precondition is logically equivalent to a byte-for-byte proof. It is "weaker" only in being asserted by string-matching a stdout summary line, which is brittle to a wording change in that message.
+
 ## Handoff Delta
-- `~` re-run: implementation-advisor handoff replaced (9546 bytes now vs 8076 bytes prior)
+- `~` re-run: implementation-advisor handoff replaced (12404 bytes now vs 9332 bytes prior)
 - prior stage: this session's earlier implementation-advisor handoff

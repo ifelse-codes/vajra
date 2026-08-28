@@ -205,13 +205,16 @@ tech-lead: dispatched FIRST — `.ai/handoffs/session-136-tech-lead.md`
 - fidelity-reviewer rec 2 — obeyed: 0a51ba3 — `CRITERION_ROLES` now spells out the ten names the
   acceptance criterion itself lists, hand-typed on purpose, and check 11 asserts the derived roster
   equals it. Probe E (a mutated name) turns check 11 RED.
-- fidelity-reviewer rec 3 — obeyed: PENDING — the FIRST attempt (0a51ba3) was judged a MISMATCH and
+- fidelity-reviewer rec 3 — obeyed: 15defef — the FIRST attempt (0a51ba3) was judged a MISMATCH and
   the judge was right: parsing `--help`'s `vajra <a|b|c>` line only reads ANOTHER hand-typed string,
   `main.rs`'s own `eprintln!` banner. An eighth command added to the dispatch logic without editing
   that banner would still have counted 7. The hole MOVED; it did not close. Closed properly by a new
   check 12 that reads the real `match subcommand` dispatch table in `src/main.rs` and requires the
   banner to AGREE with it, so neither can drift from the other silently. Probe G (an eighth arm
-  planted in the table) turns it RED.
+  planted in the table) turns it RED. **The judge's caveat, recorded rather than waived:** the
+  extraction is pattern-fragile — an eighth command added as a multi-word alternation arm, a
+  multi-line arm, a guard-clause match, or a dispatch outside that block would still go uncounted.
+  This NARROWS the hole to an unusual-shape escape; it does not close it completely.
 - fidelity-reviewer rec 4 — obeyed: 0a51ba3 — check 7 no longer ASSUMES this repo's own agent files
   are the current render; it proves it first by requiring a dry-run sync over this repo to report
   `0 to create, 0 to refresh` and `0 drifted`. Probe F (a drifted agent file here) turns it RED.
