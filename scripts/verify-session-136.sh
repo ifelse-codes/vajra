@@ -14,8 +14,10 @@
 #   8. the crew gate really BINDS inside chitra at session 16 — exit 1, naming the tech-lead, from a
 #      session number far below the 133 threshold (the S135 no-threshold rule, in a real brownfield
 #      project, not a fixture);
-#   9. chitra is UNDISTURBED the four ways outside the pre-declared paths, against the baseline
-#      recorded BEFORE any write;
+#   9. chitra is UNDISTURBED outside the pre-declared paths, against the baseline recorded BEFORE
+#      any write — branch and stash identical, and HEAD either identical or advanced ONLY by
+#      commits whose every touched path was declared (the founder committed the roster after S136
+#      closed; "HEAD is identical" was never the point, "nothing else moved" was);
 #  10. nothing else moved — the fleet is 10 roles (by NAME, not just count), K of 8 unchanged;
 #  11. the seven-command ceiling holds against the REAL dispatch table in src/main.rs — not
 #      against another hand-typed string, which is where the first attempt at this failed.
@@ -256,10 +258,31 @@ chitra_undisturbed_four_ways() {
   printf '  %-14s %s\n' "INDEX"  "$N_INDEX"
   printf '  %-14s %s\n' "STASH"  "$N_STASH"
   printf '  %-14s %s\n' "STATUS" "$N_STATUS"
-  [ "$N_HEAD"   = "$B_HEAD"   ] || { echo "FAIL: chitra HEAD moved"; rc=1; }
   [ "$N_BRANCH" = "$B_BRANCH" ] || { echo "FAIL: chitra branch changed"; rc=1; }
-  [ "$N_INDEX"  = "$B_INDEX"  ] || { echo "FAIL: chitra index tree changed"; rc=1; }
   [ "$N_STASH"  = "$B_STASH"  ] || { echo "FAIL: chitra stash list changed"; rc=1; }
+  # HEAD. The original form of this check demanded HEAD be IDENTICAL, which was right while S136
+  # left the ten role files uncommitted — and became wrong the moment the founder had them
+  # committed. What the check actually means is "nothing OUTSIDE the declared paths was
+  # disturbed", so that is what it now asserts: HEAD may only advance, only as a descendant of
+  # the pre-write baseline, and only by commits whose every touched path carries a DECLARE line.
+  # A commit touching anything else is RED, exactly as before.
+  if [ "$N_HEAD" = "$B_HEAD" ]; then
+    [ "$N_INDEX" = "$B_INDEX" ] || { echo "FAIL: chitra index tree changed with HEAD unmoved"; rc=1; }
+  else
+    echo "  note: chitra HEAD advanced $B_HEAD -> $N_HEAD; auditing every path it moved"
+    git -C "$CHITRA" merge-base --is-ancestor "$B_HEAD" "$N_HEAD" 2>/dev/null \
+      || { echo "FAIL: chitra HEAD is not a descendant of the pre-write baseline — history was rewritten"; rc=1; }
+    local moved p
+    moved="$( git -C "$CHITRA" diff --name-only "$B_HEAD" "$N_HEAD" 2>/dev/null )"
+    [ -n "$moved" ] || { echo "FAIL: HEAD moved but no paths differ — cannot evaluate"; rc=1; }
+    for p in $moved; do
+      if grep -q "^DECLARE $p " "$BASELINE"; then
+        echo "  committed (declared): $p"
+      else
+        echo "FAIL: chitra committed $p, which S136 never declared"; rc=1
+      fi
+    done
+  fi
   # The exact criterion-4 proof: everything outside the pre-declared paths hashes the same.
   [ "$N_STATUS" = "$B_STATUS" ] \
     || { echo "FAIL: something outside the declared .claude/agents/ paths changed in chitra"; rc=1; }
