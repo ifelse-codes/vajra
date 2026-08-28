@@ -124,9 +124,20 @@ blocks until each `obeyed:` carries an independent judgment from a role that is 
   — derive it from `vajra next --crew-cost` / `~/.claude/projects/*/*/subagents/`.
 - **If a dispatch dies mid-flight on a spend limit, record the result as INCOMPLETE** — never upgrade
   an unjudged item to a pass because the builder is confident (S134).
-- **The fleet is only 4 of 9 roles in chitra** — the tech-lead/crew gate cannot fully run there; the
-  chitra scaffold upgrade is a SEPARATE deferred session, NOT this one's work. Say so plainly rather
-  than letting the dogfood look like it exercised the full fleet.
+- **The fleet is now all TEN roles in chitra, committed — this guardrail INVERTED at S136.** The
+  draft of this prompt said "only 4 of 9 roles; the crew gate cannot fully run there; the scaffold
+  upgrade is a SEPARATE deferred session." That session happened: S136 shipped
+  `vajra init --sync-fleet` and chitra now carries all ten role files byte-identical to
+  `fleet::render_subagent_definition`, committed on its own branch, with
+  `vajra next --check-crew 16` blocking (exit 1) there. **So this dogfood MUST exercise the real
+  crew** — dispatch the tech-lead FIRST inside chitra and let its verdict bind, which is the whole
+  reason the S136 → S137 arc was ordered this way.
+- **What is still NOT proven, and must not be claimed:** chitra reads `0 of 8` stations (S134) — the
+  governance is installed there and unused. Ten role FILES present is not ten roles USED. Report what
+  the crew actually did, not what the roster makes possible.
+- **Watch for the S135 bootstrapping wall.** chitra's ten agent files were written after any
+  currently-running Claude Code session snapshotted `.claude/agents/`. Starting S137 in a FRESH chat
+  is what makes them dispatchable; if a role is not found, that is the wall, not a missing file.
 - Un-forgeable commit marker on every Vajra-side commit; obey chitra's commit rules on the chitra side.
 - Attest LAST (S69/S131): recompute `--inputs-sha 137` after every edit to this prompt; run the full
   `verify-closeout.sh` on the branch BEFORE merging (S83). Next GT: S140.
@@ -135,5 +146,7 @@ blocks until each `obeyed:` carries an independent judgment from a role that is 
 
 - `+` chitra's `scatter()` joins the locked reference language (8 of ~17 charts) — real outside BUILD
   work, and the first paid dogfood of a Vajra-governed BUILD (S134 was read-only review).
+- `+` the FIRST paid dogfood run with the full ten-role crew real in the governed project — S136 made
+  the roster real there; this session is the first evidence about whether it is USED.
 - `~` the dogfood evidence extends from "governance on a review" to "governance on a real code change".
 - `-` nothing retired.
