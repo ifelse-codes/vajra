@@ -1138,7 +1138,11 @@ mod tests {
     /// hollowed out to a stub prompt.
     #[test]
     fn fidelity_reviewer_is_registered_with_a_non_colliding_key() {
-        assert_eq!(ROLES.len(), 10, "the fleet ships ten roles at S135 (nine specialists + tech-lead)");
+        assert_eq!(
+            ROLES.len(),
+            10,
+            "the fleet ships ten roles at S135 (nine specialists + tech-lead)"
+        );
         let r = resolve_role("fidelity-reviewer").expect("the second role is registered");
         // The collision resolution, asserted: the key is NOT the bare station word.
         assert!(resolve_role("reviewer").is_none());
