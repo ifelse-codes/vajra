@@ -1,6 +1,9 @@
 # Session 137 — PAID DOGFOOD: lock chitra's `scatter` chart to the reference design language
 
-> **Status:** DRAFT — flip to `APPROVED` (an approval token recorded here) before the session runs.
+> **Status: APPROVED** — founder, in chat at the S136 close: *"should be fine … are we good to start
+> 137?"* and then *"ima starting new 137 now"*. Recorded here as the approval token this prompt
+> required. Launch it in a FRESH chat from the Vajra repo with `vajra claude`; the agent creates the
+> `session-137-<slug>` branch itself as its first step (the founder does not hand-type git).
 > Founder pick, in chat at the S135 close: *"next will be a real dogfooding at chitra… take the next
 > available candidate chart and we will upgrade it together to the mudra design we locked in chitra."*
 >
