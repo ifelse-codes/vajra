@@ -22,7 +22,7 @@ absent, green when present. A real falsifiable check, not a typed marker.
 **Count (at delivery):** 4 of 5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT — **criterion 2's PARTIAL was
 then CLOSED in-session** (see below), landing at **5 of 5 SHIPPED**.
 
-**Review-Inputs-SHA:** 6a1824d0ee436b5b6586eec6463fb2ad402c24177fc8472b833c12e38c3ca29e
+**Review-Inputs-SHA:** f10d2db5f27789535013fed77beb95ebafccd402f418a6ccb55b4eab72719fde
 
 ## The fakest green — named by the reviewer, and closed
 
@@ -39,6 +39,15 @@ which runs the committed `scatter.test.ts` against a `session-17-scatter-lock` w
 own vitest (node_modules symlinked; core renders zero-dep). Live result: **14/14**, and the full
 suite is now **10 of 10 green** (6 EXEC · 3 STRUCT · 1 BEHAV). Criterion 2 is therefore SHIPPED, not
 partial.
+
+## Post-review refinement (recorded for honesty)
+
+After this ACCEPT, the founder saw scatter on 609 real Olympic athletes and refined the design:
+**multi-series now spends the accent on the whole primary group** (not one dot), and the y-axis
+gained range-aware decimals. Landed on chitra `38e5593`; chitra tests 14/14, `verify-session-137.sh`
+updated to test the group rule (still 10/10). The `obeyed:` judgments below remain accurate for the
+commit they name (`bc760f1`, the original single-accent lock); the refinement is a later, founder-
+driven commit — the dogfood doing its job.
 
 ## Judgment on the `obeyed:` code claims (the independent judge)
 
