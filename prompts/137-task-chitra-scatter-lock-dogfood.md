@@ -119,55 +119,59 @@ cite real Vajra shas.
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-Independent judge of every `obeyed:` code claim = **fidelity-reviewer** (`sessions/session-137-review.md`),
-a role that is NOT any of the six advisors below (S132).
+Independent judge of every `obeyed:` code claim = **fidelity-reviewer**, whose provenance-verified
+governed handoff `.ai/handoffs/session-137-fidelity-reviewer.md` records each `obeyed-check … —
+implemented: bc760f1` (judged from the LOCKED source + the live verify EXEC logs). It is NOT any of
+the six advisors (S132). Only real code claims carry an `obeyed: <sha>`; every process/evidence
+recommendation is a `deferred:` to where the action actually lives (a git sha cannot carry "a role
+was dispatched", the S136 lesson).
 
 **tech-lead** (first & mandatory dispatch — 6 required, 3 reasoned-skip; bound the crew)
 
-- tech-lead rec 1 — obeyed: the design-advisor was dispatched FIRST on a named-files-only brief. [judge: review]
-- tech-lead rec 2 — obeyed: `d7d4e52` — verify check 2 asserts accent-once at raw-RGB on both paths, FAIL-on-absent (S69). [judge: review]
-- tech-lead rec 3 — obeyed: the fidelity-reviewer was bound to the receipt (RAW tokens + authoritative-$). [judge: review]
-- tech-lead rec 4 — obeyed: the implementation-advisor got a two-file (`scatter.ts`+`bar.ts`/`line.ts`) named brief. [judge: review]
-- tech-lead rec 5 — obeyed: `d7d4e52` — demo-session-137.sh renders the locked scatter for the seen-not-read sign-off. [judge: review]
-- tech-lead rec 6 — obeyed: researcher / requirements-analyst / plan-advisor reasoned-skipped (pattern in-repo, EARS acceptance, criterion-mapped plan already written).
+- tech-lead rec 1 — deferred: `.ai/handoffs/session-137-tech-lead.md` — the design-advisor was dispatched FIRST on a named-files-only brief; a dispatch is metadata, not a commit.
+- tech-lead rec 2 — deferred: `scripts/verify-session-137.sh` — check `accent-spent-exactly-once-both-paths` asserts accent-once at raw-RGB on both paths, FAIL-on-absent (S69).
+- tech-lead rec 3 — deferred: `.ai/handoffs/session-137-fidelity-reviewer.md` — the fidelity-reviewer was bound to the receipt (RAW tokens + authoritative-$).
+- tech-lead rec 4 — deferred: `.ai/handoffs/session-137-implementation-advisor.md` — the implementation-advisor got a two-file (`scatter.ts`+`bar.ts`/`line.ts`) named brief.
+- tech-lead rec 5 — deferred: `scripts/demo-session-137.sh` — renders the locked scatter for the seen-not-read sign-off.
+- tech-lead rec 6 — deferred: `sessions/session-137-summary.md` — researcher / requirements-analyst / plan-advisor reasoned-skipped (pattern in-repo, EARS acceptance, criterion-mapped plan already written).
 
-**design-advisor** (proposed the design; founder locked it)
+**design-advisor** (proposed the design; founder locked it) — code claims, judged in the handoff
 
-- design-advisor rec 1 — obeyed: `bc760f1` — accent = the primary series' max-y point, spent once; braille lights that point's own cell. [judge: review]
-- design-advisor rec 2 — obeyed: `bc760f1` — footer `n · x-range · y-range · peak`, **no** Pearson r (rejected as dishonest for arbitrary clouds). [judge: review]
+- design-advisor rec 1 — obeyed: bc760f1 — accent = the primary series' max-y point, spent once; braille lights that point's own cell.
+- design-advisor rec 2 — obeyed: bc760f1 — footer `n · x-range · y-range · peak`, no Pearson r (rejected as dishonest for arbitrary clouds).
 
-**implementation-advisor** (flagged the build footguns before the write)
+**implementation-advisor** (flagged the build footguns before the write) — code claims, judged in the handoff
 
-- implementation-advisor rec 1 — obeyed: `bc760f1` — accent = ONE cell `(floor(dotX/2), floor(dotY/4))` from series[0]'s max-y, not line's 3-wide cap. [judge: review]
-- implementation-advisor rec 2 — obeyed: `bc760f1` — braille loop colours grey-ramp per topmost series, accent only on the peak cell — no `theme.colors` rainbow. [judge: review]
-- implementation-advisor rec 3 — obeyed: `bc760f1` — grid path spends the accent once and paints the peak LAST so an overlap can't stomp it. [judge: review]
-- implementation-advisor rec 4 — obeyed: `bc760f1` — empty/`plotRows-1` guards; no `Infinity`/`NaN` (verify check 4 asserts). [judge: review]
-- implementation-advisor rec 5 — obeyed: `bc760f1` — frame-first width (`innerWidth = width-4`, `plotCols` from inner); no overflow. [judge: review]
+- implementation-advisor rec 1 — obeyed: bc760f1 — accent = ONE cell (floor(dotX/2), floor(dotY/4)) from series[0]'s max-y, not line's 3-wide cap.
+- implementation-advisor rec 2 — obeyed: bc760f1 — braille loop colours grey-ramp per topmost series, accent only on the peak cell, no theme.colors rainbow.
+- implementation-advisor rec 3 — obeyed: bc760f1 — grid path spends the accent once and paints the peak LAST so an overlap can't stomp it.
+- implementation-advisor rec 4 — obeyed: bc760f1 — empty/plotRows-1 guards; no Infinity/NaN (verify edge-cases check asserts).
+- implementation-advisor rec 5 — obeyed: bc760f1 — frame-first width (innerWidth = width-4, plotCols from inner); no overflow.
 
 **qa-specialist** (ran verify live, classified every check)
 
-- qa rec 1 — deferred: `sessions/session-137-review.md` — check 9 (receipt) is a self-grep of the literal `486,695`; recompute-and-compare needs the local-only transcripts (S126), so it is DISCLOSED as the session's fakest green rather than faked green.
-- qa rec 2 — deferred: next-candidate — no check exercises the governance runtime; recorded in the summary as a real gap in this proof.
-- qa rec 3 — obeyed: `d7d4e52` — check 8 now FAILS if chitra is not on session-16 at run time, so the "four ways" cannot silently degrade to three. [judge: review]
-- qa rec 4 — noted: PASS ≠ releasable (unmerged branch, null cost) — stated in the summary/review.
+- qa rec 1 — deferred: `sessions/session-137-review.md` — check 9 (receipt) is a self-grep of the literal `486,695`; recompute needs the local-only transcripts (S126), so it is DISCLOSED as the session's fakest-green class rather than faked green.
+- qa rec 2 — deferred: `sessions/session-137-summary.md` — no check exercises the governance runtime; recorded as a real gap in this proof and a next-candidate.
+- qa rec 3 — deferred: `scripts/verify-session-137.sh` — check 8 now FAILS if chitra is not on session-16 at run time, so the "four ways" cannot silently degrade to three.
+- qa rec 4 — deferred: `sessions/session-137-summary.md` — PASS ≠ releasable (unmerged branch, null cost), stated plainly.
 
 **demo-producer** (specified the sign-off render)
 
-- demo-producer rec 1 — obeyed: `d7d4e52` — demo case 2 renders a multi-series scatter where the accent tracks series-0's max-y `(2,5)`, NOT the global max `(9,20)`; verify check 4 machine-proves the same. [judge: review]
-- demo-producer rec 2 — obeyed: the sign-off render WAS generated from the real locked `scatter.ts` via tsx (the advisor assumed hand-authored HTML; it was tool output). [judge: review]
-- demo-producer rec 3 — obeyed: `bc760f1` — the README `LOCKED: scatter` block exists (the advisor read session-16, where it is absent; it is on session-17).
-- demo-producer rec 4 — obeyed(partial): `d7d4e52` — demo includes the multi-series case; the noColor plain case is covered by the empty/single renders, full noColor legend deferred.
-- demo-producer rec 5 — noted: the sign-off is design approval of a render that IS real tool output, scoped honestly in the summary.
+- demo-producer rec 1 — deferred: `scripts/demo-session-137.sh` — demo case 2 renders a multi-series scatter where the accent tracks series-0's max-y `(2,5)`, NOT the global max `(9,20)`; verify edge-cases machine-proves the same.
+- demo-producer rec 2 — deferred: `sessions/session-137-summary.md` — the sign-off render WAS generated from the real locked `scatter.ts` via tsx (the advisor assumed hand-authored HTML; it was tool output).
+- demo-producer rec 3 — deferred: `packages/core/README.md`@session-17 — the README `LOCKED: scatter` block exists on the locked branch (the advisor read session-16, where it is absent).
+- demo-producer rec 4 — deferred: `scripts/demo-session-137.sh` — demo includes the multi-series case; the noColor plain path is covered by the empty/single renders; full noColor legend deferred.
+- demo-producer rec 5 — deferred: `sessions/session-137-summary.md` — the sign-off is design approval of a render that IS real tool output, scoped honestly.
 
 **release-coordinator** (ordered the two-repo close)
 
-- release rec 1 — obeyed: the close follows the ordered sequence (land → cold review → attest LAST → verify-closeout on branch → PR → human merge).
-- release rec 2 — obeyed: the `## Execution` trace annotates the chitra shas cross-repo and cites the real Vajra evidence sha.
-- release rec 3 — obeyed: no bare coder-gate skip — `--advance` is not run; verify-closeout has no coder gate.
-- release rec 4 — obeyed: `d7d4e52` — a real `demo-session-137.sh` was written, so no founder-held demo waiver is needed.
-- release rec 5 — obeyed: `target/release/vajra` is built before `verify-closeout.sh`.
-- release rec 6 — obeyed: chitra's session-16/session-17 branches are untouched by this session's merge (Vajra-side only).
-- release rec 7 — noted: the gate's blind spot (`git cat-file -e` proves local existence, not a real chitra commit) is disclosed in the review.
+- release rec 1 — deferred: `sessions/session-137-review.md` — the close follows the ordered sequence (land → cold review → attest LAST → verify-closeout on branch → PR → human merge).
+- release rec 2 — deferred: prompt `## Execution` — the trace annotates the chitra shas cross-repo and cites the real Vajra evidence sha.
+- release rec 3 — deferred: `scripts/verify-closeout.sh` — no bare coder-gate skip; `--advance` is not run and verify-closeout has no coder gate.
+- release rec 4 — deferred: `scripts/demo-session-137.sh` — a real demo script was written, so no founder-held demo waiver is needed.
+- release rec 5 — deferred: `sessions/session-137-summary.md` — `target/release/vajra` is built before `verify-closeout.sh`.
+- release rec 6 — deferred: `sessions/session-137-summary.md` — chitra's session-16/session-17 branches are untouched by this session's Vajra-side merge.
+- release rec 7 — deferred: `sessions/session-137-review.md` — the gate's blind spot (`git cat-file -e` proves local existence, not a real chitra commit) is disclosed.
 
 ## Guardrails
 
