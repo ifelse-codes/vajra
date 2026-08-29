@@ -1,0 +1,9 @@
+# chitra baseline for S137 — captured BEFORE any write (session-16 in-flight, dirty),
+# and re-proven byte-identical AFTER the scatter build + stash restore (tracked-diff sha
+# and all per-file blob hashes matched exactly). See session-137-summary.md.
+SESSION16_BRANCH="session-16-sparkline-histogram-lock"
+SESSION16_HEAD="462a27b4362ecf7e5f8077f2a26dc8befcf19d90"
+SESSION16_TREE_SHA="25c82ddb8b0f583203a135d1fff8faf90a71fa63"
+OLDER_STASH_MARKER="kilo WIP: sparkline+histogram reference-locked restyle"
+SCATTER_BRANCH="session-17-scatter-lock"
+MAIN_HEAD="12531f1fc4c1ac38f3f277843c76120af027424e"
