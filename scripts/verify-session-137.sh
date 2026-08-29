@@ -168,17 +168,19 @@ contract_edge_cases() {
 import { scatter } from "./src/index.ts";
 const P=(o:any)=>scatter(o).toPlain();
 let bad=false; const must=(c:boolean,m:string)=>{ if(!c){console.error("FAIL:",m);bad=true;} };
-// accent follows PRIMARY series max-y (2,5), not the global max (9,20) in series 1
+// MULTI-series: the whole PRIMARY GROUP is the accent (not one dot), and the footer names that
+// group — series 1 has a higher point (9,20) but series 0 (labelled Alpha) is the hero.
 const multi=[[{x:1,y:1},{x:2,y:5}],[{x:9,y:20},{x:8,y:3}]];
-must(/peak \(2, 5\)/.test(P({data:multi})),"accent must follow primary-series max-y, not global max");
-// highlight override picks index 0 = (1,2)
+const m=P({data:multi,seriesLabels:["Alpha","Beta"]});
+must(/· ● Alpha/.test(m) && !/peak \(/.test(m),"multi-series footer must name the accent GROUP, not a peak point");
+// SINGLE series still spends the accent on the peak point, named in the footer.
 const d=[{x:1,y:2},{x:2,y:4},{x:10,y:12}];
-must(/peak \(1, 2\)/.test(P({data:d,highlight:0})),"highlight override ignored");
+must(/peak \(1, 2\)/.test(P({data:d,highlight:0})),"single-series highlight override ignored");
 // empty renders n 0, no Infinity/NaN
 const e=P({data:[]}); must(/n 0/.test(e)&&!/Infinity|NaN/.test(e),"empty data not safe");
 // single point honest, no NaN
 const s=P({data:[{x:3,y:5}]}); must(/n 1 · x 3\.\.3 · y 5\.\.5 · peak \(3, 5\)/.test(s)&&!/NaN/.test(s),"single point not honest");
-if(bad)process.exit(1); else console.log("PASS: locked contract holds on all edge cases");
+if(bad)process.exit(1); else console.log("PASS: locked contract holds — group accent for multi, peak for single");
 EOF
 }
 
@@ -201,15 +203,16 @@ previews_current() {
     || { echo "FAIL: gen:charts --check not clean — a preview was hand-edited or stale"; return 1; }
 }
 
-# ── 7 · scatter branch = exactly the 3 S17 commits, scatter files only ───────────────────────
+# ── 7 · scatter branch = the 4 S17 commits, scatter files only ───────────────────────────────
+#   (the 4th is the founder's group-accent + decimal-y-axis refinement, landed after the review.)
 scatter_branch_commits() {
   local n; n=$(git -C "$CHITRA" log --oneline "$SCATTER_BRANCH" | grep -c ' S17:')
-  [ "$n" -eq 3 ] || { echo "FAIL: expected 3 S17 commits, found $n"; return 1; }
+  [ "$n" -eq 4 ] || { echo "FAIL: expected 4 S17 commits, found $n"; return 1; }
   local files; files=$(git -C "$CHITRA" diff --name-only "${SESSION16_HEAD}..${SCATTER_BRANCH}")
   echo "$files"
   echo "$files" | grep -qvE 'scatter\.ts|scatter\.test\.ts|types\.ts|README\.md|ansi-charts\.json|charts\.ts' \
     && { echo "FAIL: a non-scatter file changed on the scatter branch"; return 1; }
-  echo "PASS: 3 S17 commits, scatter files only"; return 0
+  echo "PASS: 4 S17 commits, scatter files only"; return 0
 }
 
 # ── 8 · chitra UNDISTURBED (S134 four ways, against the recorded baseline) ────────────────────

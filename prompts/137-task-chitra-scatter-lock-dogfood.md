@@ -94,6 +94,12 @@ session start** (the other candidates: horizontalBar · heatmap · gauge · boxp
   Pearson r), citing chitra's README locked blocks (pie/donut:110, area:132, line:151, bar:188 — all
   verified present; no `LOCKED: scatter` block existed yet). The founder locked it on the render.
 - design-advisor: `.ai/handoffs/session-137-design-advisor.md` — governed handoff, provenance-verified.
+- **Post-review refinement (chitra `38e5593`, decided WITH the founder after seeing scatter on 609
+  real Olympic athletes):** for a SINGLE series the accent is still the one peak point; for MULTIPLE
+  series, spending it on one dot is meaningless, so **the whole primary group (series 0) becomes the
+  accent hero** (all its points in accent, on top; others grey), and the footer names that group.
+  Also: y-axis labels use range-aware decimals so fractional data (heights `1.33..2.10`) no longer
+  collapse to integers. chitra tests + README + previews updated; the Vajra verify tests the new rule.
 
 ## Plan (ordered — cite the acceptance criteria each step covers)
 

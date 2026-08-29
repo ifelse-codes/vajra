@@ -28,6 +28,15 @@ charts (pie · donut · area · line · bar · sparkline*/histogram* in flight).
 
 **Founder signed off** on the rendered chart (color HTML + terminal), matching the locked language.
 
+**Post-review refinement (chitra `38e5593`, with the founder, after seeing scatter on 609 real
+Olympic athletes across 3 sports):** the founder judged that a single accent DOT is meaningless
+once there are multiple series, so the rule became two-mode — **single series → the peak point;
+multiple series → the whole primary GROUP is the accent hero** (all its points in accent, on top,
+others grey; the footer names the group). A y-axis decimal fix rode along (fractional data like
+heights `1.33..2.10` was collapsing to `2 2 1 1` — a real bug the dense-data test surfaced). chitra
+tests (14/14) + README + previews updated; `verify-session-137.sh` now tests the group rule
+(still 10/10). This is the dogfood working exactly as intended: real data drove a real design fix.
+
 ## What the governance actually did (the point of the dogfood)
 
 - **The full ten-role crew is real in chitra, and this session USED it** — the first evidence, not
