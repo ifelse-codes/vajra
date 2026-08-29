@@ -29,11 +29,15 @@ outside this repo. **Cold `fidelity-reviewer` ACCEPT** (6 of 9 SHIPPED · 3 PART
 - **The independent judge BLOCKED the close twice, and was right both times** — see below.
 
 ## What Is Broken / Weak / Disclosed
-- **🟠 chitra's ten role files are UNCOMMITTED and await the founder.** Four were REFRESHED,
-  overriding the prompt's own *"do NOT disturb the 4 existing role files"* guardrail. The cold review
-  called that **self-granted scope, dressed in good process** — mitigated by pre-declaration by path,
-  by the files being tracked-and-clean, and by nothing being committed there. Undo:
-  `git -C /Users/suman/playground/chitra checkout -- .claude/agents`.
+- **🟢 RESOLVED after the S136 close: chitra's ten role files are COMMITTED** (four commits on its
+  `session-16` branch, obeying chitra's own 3-file cap and hooks), on the founder's instruction. Four
+  of them were REFRESHED, overriding the prompt's own *"do NOT disturb the 4 existing role files"*
+  guardrail; the cold review called that **self-granted scope, dressed in good process**, and the
+  founder accepted it. chitra's in-flight session-16 working tree hashes byte-for-byte identical to
+  the pre-S136 baseline (`03cd7d77…`) — nothing of theirs moved. Verify check 9 was corrected in the
+  same follow-up: it had demanded chitra's HEAD be IDENTICAL, which was only true while the files sat
+  uncommitted; it now asserts what it means — HEAD may advance, as a descendant, only by commits
+  whose every path was DECLARED (probes H and I go red otherwise).
 - **🔴 `--sync-fleet` CANNOT distinguish a stale render from a user's own edit.** Both are bytes that
   differ from the current render, and nothing on disk records which Vajra wrote a file. Shipped as
   the honest floor (report `Drifted`, refuse, name the flag) rather than a guessed classifier. The
@@ -45,9 +49,18 @@ outside this repo. **Cold `fidelity-reviewer` ACCEPT** (6 of 9 SHIPPED · 3 PART
 - **🟡 Verify check 9's CONTENT-level baselines were captured AFTER the ten writes**, so it would
   still pass the exact defect falsifiability probe C planted. The path-level and four-way baselines
   ARE true pre-write ones. Disclosed in three places.
-- **🔴 `cargo fmt --check` FAILS on main** for three files S135 left unformatted (`src/cli/next.rs`,
-  `src/crew/mod.rs`, `src/fleet/mod.rs`). **A RECURRENCE — S96 was an entire session fixing exactly
-  this.** It came back because nothing gates it every session. Spun off, not fixed here (one story).
+- **🟢 FIXED after the S136 close (PR #161): `cargo fmt --check` passes on main again.** It had been
+  red since the S135 merge across `src/cli/next.rs`, `src/crew/mod.rs`, `src/fleet/mod.rs` — **a
+  RECURRENCE, since S96 was an entire session fixing exactly this.** Zero logic change.
+  **🔴 The recurrence itself is NOT fixed:** nothing runs `cargo fmt --check` every session. The
+  obvious home, `verify-closeout.sh`, is the WRONG one — that script is shipped verbatim to every
+  adopter by `vajra init` (`include_str!`), so a cargo-specific check there would block the close of
+  every non-Rust project. The real fix needs a language-aware hook and earns its own decision.
+- **🔴 NO VAJRA COMMAND STARTS A SESSION.** The seven commands are `init · claude · check · next ·
+  estimate · hook · meter`; creating the `session-NN-<slug>` branch is a raw `git checkout -b` the
+  agent performs from `.ai/AGENTS.md`. The founder hit this directly at the S136 close — *"i should
+  not do git checkout, vajra or claude should do it"* — and they are right. It is the same shape as
+  the S136 upgrade-path finding: the product governs the session but cannot open one. A candidate.
 - **🟡 The `tech-lead` records a budget for all nine specialists and NONE for itself**, so
   `--crew-cost` can never report it against an allowance.
 - **🔴 S135's criterion 7 is still open:** nothing carries the recorded budget INTO a dispatch brief.
