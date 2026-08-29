@@ -11,6 +11,9 @@
 #   4. the locked CONTRACT holds on cases the default render can't show — accent follows the
 #      PRIMARY series' max-y (not the global max), `highlight` overrides it, and empty/single
 #      data render honestly with no Infinity/NaN (EXEC — re-derives the test assertions);
+#   4b. chitra's OWN committed 14 scatter tests RUN LIVE against the locked branch worktree — the
+#      prompt's "asserted by chitra's OWN tests" is EXECUTED at close, not stood in for (S129
+#      registered-not-run; added after the S137 fidelity-reviewer named the dropped check);
 #   5. chitra's README carries a real `LOCKED: scatter chart — session 17` contract (STRUCT);
 #   6. the previews are DERIVED and CURRENT — `gen:charts --check` is clean, so no hand-edit (EXEC);
 #   7. the scatter branch carries exactly the three S17 commits, touching only scatter files (STRUCT);
@@ -65,7 +68,11 @@ setup_worktree_once() {
   git -C "$CHITRA" rev-parse --verify "$SCATTER_BRANCH" >/dev/null 2>&1 || return 0
   git -C "$CHITRA" worktree prune 2>/dev/null || true
   WT="$(mktemp -d)/s17"
-  git -C "$CHITRA" worktree add -q "$WT" "$SCATTER_BRANCH" 2>/dev/null || WT=""
+  git -C "$CHITRA" worktree add -q "$WT" "$SCATTER_BRANCH" 2>/dev/null || { WT=""; return 0; }
+  # Symlink the workspace node_modules so vitest resolves in the worktree (core is zero-dep for
+  # rendering, but vitest itself is a devDep). Rendering via tsx needs neither.
+  ln -s "$CHITRA/node_modules" "$WT/node_modules" 2>/dev/null || true
+  ln -s "$CHITRA/packages/core/node_modules" "$WT/packages/core/node_modules" 2>/dev/null || true
 }
 
 # Run a TS snippet (on stdin) against the LOCKED scatter in the worktree. Emits its stdout.
@@ -140,6 +147,19 @@ EOF
   echo "$out" | tr 'A-Z' 'a-z' | grep -qE '\br *= *-?[0-9.]|pearson|coefficient' \
     && { echo "FAIL: a correlation coefficient leaked into the footer"; return 1; }
   echo "PASS: no Pearson r in the default footer"; return 0
+}
+
+# ── 4b · chitra's OWN committed scatter tests RUN LIVE against the locked branch (S129/S137
+#         fidelity-reviewer: a gate that names 14 tests but never runs them is registered-not-run) ─
+chitra_scatter_tests_live() {
+  [ -n "$WT" ] || { echo "FAIL: scatter-branch worktree unavailable"; return 1; }
+  local vitest=""
+  for c in "$CHITRA/packages/core/node_modules/.bin/vitest" "$CHITRA/node_modules/.pnpm/node_modules/.bin/vitest"; do
+    [ -x "$c" ] && { vitest="$c"; break; }
+  done
+  [ -n "$vitest" ] || { echo "FAIL: vitest binary not found"; return 1; }
+  [ -f "$WT/packages/core/tests/scatter.test.ts" ] || { echo "FAIL: scatter.test.ts absent on the locked branch"; return 1; }
+  ( cd "$WT/packages/core" && "$vitest" run tests/scatter.test.ts 2>&1 ) | grep -E 'Tests +[0-9]+ passed'
 }
 
 # ── 4 · the locked contract holds on cases the default render can't show ─────────────────────
@@ -231,6 +251,7 @@ run_check "scatter-renders-panel-language"        exec   scatter_panel_language
 run_check "accent-spent-exactly-once-both-paths"  exec   accent_spent_once
 run_check "footer-has-no-pearson-r"               exec   no_pearson_r
 run_check "locked-contract-holds-edge-cases"      exec   contract_edge_cases
+run_check "chitra-own-scatter-tests-run-live"     exec   chitra_scatter_tests_live
 run_check "readme-locked-scatter-contract"        struct readme_locked_block
 run_check "previews-derived-and-current"          exec   previews_current
 run_check "scatter-branch-3-commits-scatter-only" struct scatter_branch_commits

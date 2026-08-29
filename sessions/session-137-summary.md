@@ -69,9 +69,13 @@ Captured BEFORE any write, re-proven byte-identical AFTER the build + stash rest
 
 ## Verify
 
-`scripts/verify-session-137.sh` — 9 checks (6 EXEC · 2 STRUCT · 1 BEHAV), all FAIL-on-absent (S69),
-run live at close. Renders chitra's real scatter, runs chitra's vitest, and asserts the
-undisturbed baseline. Result recorded in the review.
+`scripts/verify-session-137.sh` — **10 checks (6 EXEC · 3 STRUCT · 1 BEHAV), all FAIL-on-absent
+(S69), 10/10 green, run live at close.** Renders chitra's real locked scatter from a throwaway
+`session-17` worktree (zero-dep, via tsx), **runs chitra's own 14 committed scatter tests live**
+against that worktree, and asserts the undisturbed baseline. The cold `fidelity-reviewer` returned
+**ACCEPT**; its fakest-green catch (the live-vitest check had been dropped, not fixed — the S129
+registered-not-run pattern) was **closed in-session** by the live-test check, moving criterion 2
+from PARTIAL to SHIPPED (5 of 5). See `sessions/session-137-review.md`.
 
 ## The finding this repo could not have written itself
 
