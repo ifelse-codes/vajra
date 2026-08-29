@@ -85,13 +85,15 @@ session start** (the other candidates: horizontalBar · heatmap · gauge · boxp
 
 ## Design (the Architect gate — dispatch the design-advisor FIRST, the S133 mandate)
 
-- design-significant: <decide with the design-advisor — likely `no` for the Vajra side (a dogfood,
-  no new Vajra interface) but the CHART design in chitra is a real design decision made with the
-  founder; record which repo the significance lives in>
-- <dispatch the design-advisor FIRST to propose the scatter summary-footer + accent-point choice and
-  to check the existing locked charts for the exact rules to carry; cite chitra's README locked-chart
-  contracts and chitra session 09/12 design records — verify they exist before citing>
-- design-advisor: <DELETE this line and dispatch the role, or record a substantive skip reason>
+- design-significant: yes — the significance lives in **chitra**: this authors a NEW locked contract
+  (`### LOCKED: scatter chart — session 17 design` in chitra's README) and deviates from the current
+  `scatter.ts` (rainbow → accent-once + grey ramp; bare axis → dashed panel + eyebrow + guides +
+  footer). On the Vajra side it is a dogfood with no new interface.
+- The design-advisor was dispatched FIRST (the S133 mandate) and proposed the accent-point rule
+  (primary series' max-y, spent once) and the summary footer (`n · x-range · y-range · peak`, no
+  Pearson r), citing chitra's README locked blocks (pie/donut:110, area:132, line:151, bar:188 — all
+  verified present; no `LOCKED: scatter` block existed yet). The founder locked it on the render.
+- design-advisor: `.ai/handoffs/session-137-design-advisor.md` — governed handoff, provenance-verified.
 
 ## Plan (ordered — cite the acceptance criteria each step covers)
 
