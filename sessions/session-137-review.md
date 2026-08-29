@@ -22,7 +22,7 @@ absent, green when present. A real falsifiable check, not a typed marker.
 **Count (at delivery):** 4 of 5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT — **criterion 2's PARTIAL was
 then CLOSED in-session** (see below), landing at **5 of 5 SHIPPED**.
 
-**Review-Inputs-SHA:** aa3e34765f7e27d3fb5832723e2a8a5f82b42ec0d130566c248923f3cc0a01d3
+**Review-Inputs-SHA:** 6a1824d0ee436b5b6586eec6463fb2ad402c24177fc8472b833c12e38c3ca29e
 
 ## The fakest green — named by the reviewer, and closed
 
