@@ -3,11 +3,40 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S136 complete, S137 not yet started).**
+**`session-137-scatter-lock-dogfood` (Vajra) — complete, closing. Next GT: S140.**
 
+S137 was a **PAID DOGFOOD**: chitra's `scatter` chart locked to the reference panel language via a
+real governed `vajra claude` run — **the first time Vajra governed a real BUILD in an outside
+project** (S134 was read-only review). The code landed in chitra on branch `session-17-scatter-lock`
+(3 commits off the roster commit); this Vajra session is the wrapper (no `src/` change here).
+**Cold `fidelity-reviewer` ACCEPT** — 4 of 5 SHIPPED + 1 PARTIAL at delivery, the partial **closed
+in-session** to 5 of 5.
+
+## What was proven this session
+- **`scatter()` joins the locked family** — dashed frame · eyebrow · `+`/`│` guide · grey ramp
+  `#ECECEF→#C6C6CE→#A4A4AE→#6A6A75` with the ONE accent spent once on the **primary series' max-y
+  point** (a single braille cell, surviving a shared 2×4 cell) · footer `n · x-range · y-range ·
+  peak` with the peak in accent · **no Pearson r** (rejected as dishonest for arbitrary clouds).
+  Verified at raw-RGB: **accent=1, other=0** on BOTH render paths. Founder signed off (seen, not read).
+- **The governance was USED, not just installed (first evidence).** The tech-lead was dispatched
+  FIRST and bound the crew (6 required / 3 reasoned-skip); the advice **CHANGED the work** — the
+  S133 open question (a mandate proves a dispatch, not influence) got its first data. Vajra's own
+  co-pilot hook blocked the first commit until STATE was loaded.
+- **Receipt (S134 discipline):** authoritative $ = **honest NULL** (interactive run carries no
+  `total_cost_usd`; S77 root cause), RAW subagent tokens **486,695** across 3 dispatches (the
+  tool's 112,301 new-tokens figure understated by ~4.3×).
+- **chitra UNDISTURBED four ways** — session-16's in-flight sparkline/histogram work was
+  stash-parked (`VAJRA-S137-PARK`) and restored byte-identical (tree sha `25c82ddb`), main unmoved,
+  older stash intact, only the intended `session-17` branch added. `verify-session-137.sh` **10/10**.
+- **The finding the repo could not write itself:** Vajra's Coder/Execution gate is **single-repo**
+  (resolves shas with `git cat-file -e` in the Vajra repo); a dogfood builds in chitra, so the build
+  shas don't resolve. Disclosed; `verify-closeout.sh` carries no coder gate, so the ship gate is
+  unaffected. **Top next candidate = make the Coder gate repo-aware (per-step `repo:`).**
+
+## S136 (prior) — `vajra init --sync-fleet`, the fleet made REAL in chitra — COMPLETE
 S136 shipped **`vajra init --sync-fleet [--dry-run] [--overwrite-drifted]`** — the UPGRADE path a
-brownfield adopter needs — and made the ten-role fleet real in chitra, the one governed project
-outside this repo. **Cold `fidelity-reviewer` ACCEPT** (6 of 9 SHIPPED · 3 PARTIAL · 0 NOT-BUILT).
+brownfield adopter needs — and made the ten-role fleet real in chitra. **ACCEPT** (6 of 9 SHIPPED ·
+3 PARTIAL · 0 NOT-BUILT).
 
 ## What was proven this session
 - **The headline finding was not the one the prompt predicted.** The prompt expected *"Vajra has no
