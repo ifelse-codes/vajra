@@ -2,6 +2,22 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
+## Session 137 — PAID DOGFOOD: chitra's `scatter` locked to the reference language — COMPLETE
+
+- **ACCEPT** (cold `fidelity-reviewer`, **5 of 5 SHIPPED** after the in-session partial-close). The
+  first time Vajra governed a real BUILD in an outside project (S134 was read-only). Code landed in
+  chitra on `session-17-scatter-lock` (3 commits); this Vajra session is the wrapper.
+- `scatter()` joins the locked family: dashed frame · eyebrow · `+`/`│` guide · grey ramp · ONE
+  accent on the primary series' max-y point (single braille cell) · `n·x-range·y-range·peak` footer,
+  no Pearson r. Raw-RGB verified accent=1/other=0 both paths. Founder signed off (seen, not read).
+- **Governance USED (first evidence):** tech-lead bound the crew (6 required/3 skip); advice CHANGED
+  the work (S133 open question, first data). Receipt: authoritative $ = honest NULL (S77 interactive),
+  RAW subagent tokens 486,695 (new-tokens figure understated ~4.3×). chitra undisturbed four ways.
+- **Finding:** the Coder/Execution gate is single-repo; a dogfood builds elsewhere so build shas
+  don't resolve in the Vajra repo. Disclosed; verify-closeout has no coder gate. **Top S138 candidate.**
+- `verify-session-137.sh` **10/10** (6 EXEC · 3 STRUCT · 1 BEHAV), runs chitra's own 14 tests LIVE.
+  Reports: `sessions/session-137-summary.md` + `sessions/session-137-review.md`. **Next GT: S140.**
+
 ## Session 136 — `vajra init --sync-fleet`, and the fleet made REAL in chitra — COMPLETE
 
 - **ACCEPT** (cold `fidelity-reviewer`, **6 of 9 SHIPPED · 3 PARTIAL · 0 NOT-BUILT**). Ships the

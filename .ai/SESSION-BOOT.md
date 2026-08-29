@@ -1,9 +1,31 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 136 — COMPLETE (`vajra init --sync-fleet`, and the fleet made REAL in chitra).
-- **Type:** CODE. **Verdict: ACCEPT** (cold `fidelity-reviewer`, **6 of 9 SHIPPED · 3 PARTIAL ·
-  0 NOT-BUILT**). Reports: `sessions/session-136-summary.md` + `sessions/session-136-review.md`.
+- **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference
+  panel language — the FIRST time Vajra governed a real BUILD in an outside project; S134 was review).
+- **Type:** CODE / paid dogfood. **Verdict: ACCEPT** (cold `fidelity-reviewer`, **5 of 5 SHIPPED**
+  after the in-session partial-close). Reports: `sessions/session-137-summary.md` +
+  `sessions/session-137-review.md`. **Next GT: S140.**
+- **Shipped in chitra** (branch `session-17-scatter-lock`, 3 commits off the roster commit): `scatter()`
+  now carries the family language — dashed frame · eyebrow · `+`/`│` guide · grey ramp with the ONE
+  accent spent once on the primary series' **max-y point** (a single braille cell) · footer
+  `n · x-range · y-range · peak` (no Pearson r). Founder signed off on the render (seen, not read).
+- **Governance, first real evidence it was USED (not just installed):** tech-lead dispatched FIRST
+  and bound the crew (6 required / 3 reasoned-skip); the advice **CHANGED the work** (S133's open
+  question got its first data). RAW subagent tokens **486,695** (the new-tokens figure understated
+  ~4.3×); authoritative $ = **honest NULL** (interactive run, S77).
+- **chitra proven UNDISTURBED four ways** — session-16's in-flight work stash-parked and restored
+  byte-identical (tree sha `25c82ddb`), main unmoved, only the intended branch added.
+- **The finding the repo could not write itself:** Vajra's Coder/Execution gate is **single-repo**
+  (`git cat-file -e` in the Vajra repo); a dogfood builds in chitra, so the build shas don't resolve.
+  Disclosed; `verify-closeout.sh` has no coder gate so the ship gate is unaffected. **Top next candidate.**
+- **Fakest green (named by the reviewer, then CLOSED):** the live-vitest check had been dropped (it
+  read session-16, went red, was removed) — the S129 registered-not-run pattern. Now the suite runs
+  chitra's 14 committed scatter tests LIVE against the locked-branch worktree. **verify 10/10.**
+
+### Session 136 — `vajra init --sync-fleet`, the fleet made REAL in chitra — COMPLETE
+- **ACCEPT** (cold `fidelity-reviewer`, **6 of 9 SHIPPED · 3 PARTIAL · 0 NOT-BUILT**). Reports:
+  `sessions/session-136-summary.md` + `sessions/session-136-review.md`.
 - **Headline finding, and NOT the one the prompt predicted.** The prompt expected "Vajra has no
   upgrade command" — true but shallow. chitra's FOUR *present* role files were **stale renders**,
   each missing the whole appended protocol block that teaches a role to emit the `rec N —` lines the
