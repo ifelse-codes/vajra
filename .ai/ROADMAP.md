@@ -1,15 +1,20 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-29 · **Session 137 — PAID DOGFOOD: chitra's `scatter` chart locked to the
-reference panel language — ACCEPT (5 of 5 SHIPPED after the in-session partial-close).** The FIRST
-time Vajra governed a real BUILD in an outside project (S134 was read-only review). Code landed in
-chitra on `session-17-scatter-lock`; the tech-lead bound the crew and the advice CHANGED the work
-(S133's open question got its first data). Receipt: authoritative $ = honest NULL (S77 interactive),
-RAW subagent tokens 486,695 (new-tokens figure understated ~4.3×). chitra proven undisturbed four
-ways. `verify-session-137.sh` 10/10 (runs chitra's own 14 tests live). **Finding: the Coder/Execution
-gate is single-repo — a dogfood builds elsewhere so build shas don't resolve in the Vajra repo;
-verify-closeout has no coder gate, so unaffected. Top S138 candidate = make the Coder gate repo-aware.**
-Next GT: S140.
+**Updated:** 2026-08-30 · **Session 137 — chitra's `scatter` chart locked to the reference panel
+language — ACCEPT (5 of 5 SHIPPED after the in-session partial-close).** A real AI-built feature
+landed in chitra (`session-17-scatter-lock`, merged to chitra main via PR #19); the crew was
+consulted and the advice CHANGED the work (S133's open question got its first data), and the founder's
+dense-data review drove two real fixes (integer-axis bug + one-dot→group accent). Receipt:
+authoritative $ = honest NULL (S77 interactive), RAW subagent tokens 486,695 (new-tokens figure
+understated ~4.3×). `verify-session-137.sh` 10/10. **CORRECTED (founder, post-close): this was NOT the
+real dogfood.** It ran INSIDE the Vajra repo and reached into chitra from the outside, instead of
+running `vajra claude` INSIDE chitra as a native chitra session (chitra's own hooks never fired; the
+dispatched fleet was Vajra's). **The cross-repo "Coder-gate blind spot" is an ARTIFACT of that wrong
+setup, NOT a Vajra failure** — run properly, the gate looks in chitra and passes. Vajra did not fail;
+the dogfood method was wrong, and no real user would run it this way. **Top S138 candidate = RUN THE
+REAL DOGFOOD: `vajra claude` INSIDE chitra, govern a chitra build from the inside, and find out whether
+Vajra works as the resident manager of a project that isn't its own.** ("Make the Coder gate
+repo-aware" dropped — only looks needed because of the wrong setup.) Next GT: S140.
 
 **Prior — Updated:** 2026-08-20 · **Session 121 — CODE: the QA Specialist, fleet role 4 — ACCEPT (5 of 6
 SHIPPED, 1 PARTIAL).** `qa-specialist` registered in `src/fleet/mod.rs` as the fleet's FIRST

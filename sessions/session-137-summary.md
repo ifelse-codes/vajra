@@ -86,25 +86,41 @@ against that worktree, and asserts the undisturbed baseline. The cold `fidelity-
 registered-not-run pattern) was **closed in-session** by the live-test check, moving criterion 2
 from PARTIAL to SHIPPED (5 of 5). See `sessions/session-137-review.md`.
 
-## The finding this repo could not have written itself
+## The finding this repo could not have written itself — CORRECTED (founder, post-close)
 
-**The Coder/Execution gate is single-repo; a dogfood builds in another repo.** Vajra's
-`## Execution — step N — done: <sha>` gate (`--check-coder`) resolves each sha with
-`git cat-file -e` **in the Vajra repo**. This session's build shas (`bc760f1` …) are **chitra**
-commits — unresolvable in Vajra. The gate assumes the code lands where the prompt lives; a governed
-dogfood breaks that assumption. Handled honestly (Execution step 2 annotated `(chitra)`, the coder
-gate skipped for the closing branch with a recorded reason), and named as the top next candidate.
+**Original framing (now retracted):** "the Coder/Execution gate is single-repo; a dogfood builds in
+another repo — a product gap." That was overstated.
 
-## Next — 3 ranked candidates
+**The honest finding: the true dogfood was never actually performed — this session was run in the
+WRONG PLACE.** Vajra is meant to be run *inside* the project it governs (`cd chitra && vajra claude`),
+so the whole session is a chitra session: chitra's hooks fire, chitra's fleet is dispatched, and
+every check looks at chitra's evidence because chitra is the project it runs in. **That is not what
+happened.** This session ran **inside the Vajra repo** and reached into chitra from the outside with
+plain `git`/file commands — a Vajra session that poked chitra across the fence, not a chitra session
+governed by Vajra. So chitra's own commit guard never fired (flagged at the time), the dispatched
+fleet was Vajra's (byte-identical, but Vajra's), and the Coder gate looked in the Vajra repo because
+that is where the session lived. **The cross-repo "blind spot" is an ARTIFACT of that wrong setup,
+not a Vajra failure.** Run the proper way — `vajra claude` inside chitra — the Coder gate would look
+in chitra, find the commits sitting right there, and pass. Analogy: I didn't find that the inspector
+can't check another city's office; I sent the inspector to the wrong building, so of course his
+drawer was empty. **Vajra did not fail. The dogfood method was wrong, and no real user would run it
+this way.**
 
-1. **Make the Coder/Execution gate repo-aware.** Accept a per-step `repo:` annotation so a dogfood's
-   landing shas verify against the repo they landed in, not always the Vajra repo. Surfaced LIVE
-   this session — a real product gap in lived use, not a fixture. (highest)
-2. **Measure advice INFLUENCE, not just dispatch (S133's open F2f).** This session is the first with
+## Next — 3 ranked candidates (re-ordered after the correction)
+
+1. **Run the dogfood FOR REAL: `vajra claude` INSIDE chitra.** Launch Vajra as the resident, native
+   session of chitra and have it govern a chitra build from the inside — one repo, chitra's own hooks
+   and fleet and gates, all evidence in chitra. Find out whether Vajra actually works as the resident
+   manager of a project that isn't its own, or whether something breaks. This is the test S137 was
+   supposed to be and wasn't. (highest — the honest next step)
+2. **Measure advice INFLUENCE, not just dispatch (S133's open F2f).** S137 was the first session with
    data that a mandated role's advice changed the work. Build the light check that records, per rec,
    whether the `obeyed:` sha's diff actually reflects the advice — turning "was consulted" into
    "changed the result."
 3. **Continue the chitra chart-lock ladder OR close the `--sync-fleet` stale-vs-edit hole (S136 🔴).**
    Either lock the next unlocked chart (more governed-build miles) or stamp each rendered role file
-   with a content hash so a stale render is distinguishable from a user edit. Pick by whether the
-   next session should earn dogfood miles or close a known governance gap.
+   with a content hash so a stale render is distinguishable from a user edit.
+
+**Note on "make the Coder gate repo-aware":** DROPPED as a standalone candidate. It only looks needed
+because of the wrong setup; if #1 is run properly the gate is fine. Revisit ONLY if running inside
+chitra actually surfaces it for real.
