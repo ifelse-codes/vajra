@@ -13,8 +13,10 @@
 - **Governance USED (first evidence):** tech-lead bound the crew (6 required/3 skip); advice CHANGED
   the work (S133 open question, first data). Receipt: authoritative $ = honest NULL (S77 interactive),
   RAW subagent tokens 486,695 (new-tokens figure understated ~4.3×). chitra undisturbed four ways.
-- **Finding:** the Coder/Execution gate is single-repo; a dogfood builds elsewhere so build shas
-  don't resolve in the Vajra repo. Disclosed; verify-closeout has no coder gate. **Top S138 candidate.**
+- **CORRECTED (founder, post-close):** this was NOT the real dogfood — it ran INSIDE the Vajra repo
+  and reached into chitra from the outside, instead of `vajra claude` INSIDE chitra. The cross-repo
+  "blind spot" is an ARTIFACT of the wrong setup, NOT a Vajra failure. **S138 = RUN THE REAL DOGFOOD:
+  `vajra claude` inside chitra.**
 - `verify-session-137.sh` **10/10** (6 EXEC · 3 STRUCT · 1 BEHAV), runs chitra's own 14 tests LIVE.
   Reports: `sessions/session-137-summary.md` + `sessions/session-137-review.md`. **Next GT: S140.**
 
