@@ -16,9 +16,11 @@
   ~4.3×); authoritative $ = **honest NULL** (interactive run, S77).
 - **chitra proven UNDISTURBED four ways** — session-16's in-flight work stash-parked and restored
   byte-identical (tree sha `25c82ddb`), main unmoved, only the intended branch added.
-- **The finding the repo could not write itself:** Vajra's Coder/Execution gate is **single-repo**
-  (`git cat-file -e` in the Vajra repo); a dogfood builds in chitra, so the build shas don't resolve.
-  Disclosed; `verify-closeout.sh` has no coder gate so the ship gate is unaffected. **Top next candidate.**
+- **CORRECTED (founder, post-close): the real dogfood was never performed.** This session ran INSIDE
+  the Vajra repo and reached into chitra from the outside, instead of running `vajra claude` INSIDE
+  chitra. The cross-repo "Coder-gate blind spot" is an **ARTIFACT of that wrong setup, NOT a Vajra
+  failure** (run inside chitra, the gate finds the commits and passes). **S138 = RUN THE REAL DOGFOOD:
+  `vajra claude` inside chitra**, governing a chitra build from the inside.
 - **Fakest green (named by the reviewer, then CLOSED):** the live-vitest check had been dropped (it
   read session-16, went red, was removed) — the S129 registered-not-run pattern. Now the suite runs
   chitra's 14 committed scatter tests LIVE against the locked-branch worktree. **verify 10/10.**

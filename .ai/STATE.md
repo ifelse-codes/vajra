@@ -28,10 +28,14 @@ in-session** to 5 of 5.
 - **chitra UNDISTURBED four ways** — session-16's in-flight sparkline/histogram work was
   stash-parked (`VAJRA-S137-PARK`) and restored byte-identical (tree sha `25c82ddb`), main unmoved,
   older stash intact, only the intended `session-17` branch added. `verify-session-137.sh` **10/10**.
-- **The finding the repo could not write itself:** Vajra's Coder/Execution gate is **single-repo**
-  (resolves shas with `git cat-file -e` in the Vajra repo); a dogfood builds in chitra, so the build
-  shas don't resolve. Disclosed; `verify-closeout.sh` carries no coder gate, so the ship gate is
-  unaffected. **Top next candidate = make the Coder gate repo-aware (per-step `repo:`).**
+- **CORRECTED (founder, post-close): the real dogfood was never performed.** This session ran INSIDE
+  the Vajra repo and reached into chitra from the outside (plain `git`/file commands), instead of
+  running `vajra claude` INSIDE chitra as a native chitra session — so chitra's own hooks never fired,
+  the dispatched fleet was Vajra's, and the Coder gate looked in the Vajra repo because that is where
+  the session lived. **The cross-repo "blind spot" is an ARTIFACT of that wrong setup, NOT a Vajra
+  failure** — run properly (inside chitra) the gate finds the commits and passes. Vajra did not fail;
+  the method was wrong. **S138 = RUN THE REAL DOGFOOD: `vajra claude` inside chitra**, governing a
+  chitra build from the inside. ("Make the Coder gate repo-aware" dropped as a symptom-fix.)
 
 ## S136 (prior) — `vajra init --sync-fleet`, the fleet made REAL in chitra — COMPLETE
 S136 shipped **`vajra init --sync-fleet [--dry-run] [--overwrite-drifted]`** — the UPGRADE path a
