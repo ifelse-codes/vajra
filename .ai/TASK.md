@@ -2,6 +2,24 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
+## Session 138 — THE REAL DOGFOOD: `vajra claude` run from INSIDE chitra — COMPLETE
+
+- Brief: `prompts/138-task-real-dogfood-inside-chitra.md`. **ACCEPT** (cold `fidelity-reviewer`,
+  **4 of 5 SHIPPED · 1 PARTIAL**), attested `840e64d9…`. The S137 correction shipped: the heatmap lock
+  was a **native chitra session** governed from the inside, not a Vajra chat reaching across the fence.
+- **Vajra works as chitra's resident manager, run from inside** — a monitored headless `vajra claude -p`
+  with cwd=chitra fired chitra's SessionStart boot, dispatched chitra's **tech-lead FIRST**
+  (unprompted), **blocked the first commit (copilot-loader, exit 2)** until STATE was surfaced, gated
+  commits on the launch marker, and dispatched a fidelity-reviewer. `heatmap()` locked (rainbow →
+  grey ramp + one accent `#8B7CF6` once on the peak cell + footer echo); founder signed off on the
+  render. **$2.988 authoritative** + 237,584 RAW subagent tokens. chitra undisturbed four ways
+  (session-16 restored byte-identical, tree `1c276700`). `verify-session-138.sh` **10/10**.
+- **The one PARTIAL + fakest green:** criterion 4 said run it *interactively* — it ran headless with
+  permissions bypassed (founder redirect), so the **hook gates** are proven, not the interactive
+  approval flow; and **chitra's design-advisor never ran** (only tech-lead + fidelity-reviewer), so
+  the design was authored by the agent + founder sign-off, not governed by the design role. Both
+  disclosed. Reports: `sessions/session-138-summary.md` + `sessions/session-138-review.md`. **Next GT: S140.**
+
 ## Session 137 — PAID DOGFOOD: chitra's `scatter` locked to the reference language — COMPLETE
 
 - **ACCEPT** (cold `fidelity-reviewer`, **5 of 5 SHIPPED** after the in-session partial-close). The

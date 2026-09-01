@@ -1,6 +1,24 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-08-30 · **Session 137 — chitra's `scatter` chart locked to the reference panel
+**Updated:** 2026-09-01 · **Session 138 — THE REAL DOGFOOD: `vajra claude` run from INSIDE chitra —
+ACCEPT (4 of 5 SHIPPED · 1 PARTIAL), attested `840e64d9…`.** The S137 correction shipped: chitra's
+`heatmap` chart was locked to the family design language by a **native chitra session governed from
+the inside** (a monitored headless `vajra claude -p` with cwd=chitra), NOT a Vajra chat reaching
+across the fence. **The honest answer to "does Vajra work as the resident manager of a repo it doesn't
+own?" is YES** — chitra's SessionStart boot fired, its **tech-lead mandate dispatched the tech-lead
+FIRST unprompted**, its **copilot-loader hook BLOCKED the first commit (exit 2)** until STATE was
+surfaced, its commit-guard gated on the launch marker, and a fidelity-reviewer ran. `heatmap()`
+rainbow → grey ramp + one accent `#8B7CF6` (once on the peak cell + footer echo); founder signed off
+on the render. **$2.988433749999999 authoritative** (real `total_cost_usd`) + **237,584 RAW subagent
+tokens**. chitra UNDISTURBED four ways (session-16 restored byte-identical, tree `1c276700`).
+`verify-session-138.sh` 10/10. **The one PARTIAL + fakest green:** criterion 4 said *interactively* —
+it ran headless with permissions bypassed (founder redirect), proving the **hook gates** not the
+interactive approval flow; and chitra's **design-advisor never ran** (only tech-lead + fidelity-reviewer),
+so the design was agent-authored + founder-signed, not governed by the design role. Both disclosed.
+S139 candidates: (A) the interactive human-driven run · (B) `vajra` opens the session · (C) cross-repo
+QA live-gate. **Next GT: S140.**
+
+**Prior — Updated:** 2026-08-30 · **Session 137 — chitra's `scatter` chart locked to the reference panel
 language — ACCEPT (5 of 5 SHIPPED after the in-session partial-close).** A real AI-built feature
 landed in chitra (`session-17-scatter-lock`, merged to chitra main via PR #19); the crew was
 consulted and the advice CHANGED the work (S133's open question got its first data), and the founder's
