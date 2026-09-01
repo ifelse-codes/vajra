@@ -17,6 +17,19 @@
   approval flow; and chitra's **design-advisor never ran** (only tech-lead + fidelity-reviewer), so
   the heatmap design was agent-authored + founder-signed, not governed by the design role. Both
   disclosed (prompt skip line, review rec 2, summary). Candidate A closes the interactive gap.
+- **CORRECTED post-close (S138B, founder-watched): the real finding is the CREW, not the design-advisor**
+  (the tech-lead correctly deferred design-advisor). The tech-lead marked **4 roles required**; the main
+  session ran **1**, did the rest itself + self-certified. Running it **end to end** proved the gap is
+  ARCHITECTURAL — it closed 12/12 green + merged to chitra main (PR #20) with NOTHING checking the crew
+  (the binding lives only in `--advance`, never in `verify-closeout.sh`). Close cost $5.41 (dogfood total
+  ~$8.39). See `[[vajra-required-not-required]]` + ROADMAP "🔧 COMMITTED FUTURE FIX".
+
+## Next Session
+- **S139 — PICKED (founder):** `prompts/139-task-required-crew-at-close.md`. **CODE.** Wire a
+  `check_required_crew` into `scripts/verify-closeout.sh` that runs `vajra next --check-crew N` and
+  BINDS — so a session cannot close green with a tech-lead-`required` role's handoff missing. Mirror
+  `check_obeyed_judgments`; bind on S139 itself; propagate via `include_str!`. **Start in a FRESH chat.
+  Next GT: S140.**
 
 ### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference
