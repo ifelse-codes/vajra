@@ -2,6 +2,35 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
+## Session 138 — THE REAL DOGFOOD: `vajra claude` run from INSIDE chitra — COMPLETE
+
+- Brief: `prompts/138-task-real-dogfood-inside-chitra.md`. **ACCEPT** (cold `fidelity-reviewer`,
+  **4 of 5 SHIPPED · 1 PARTIAL**), attested `840e64d9…`. The S137 correction shipped: the heatmap lock
+  was a **native chitra session** governed from the inside, not a Vajra chat reaching across the fence.
+- **Vajra works as chitra's resident manager, run from inside** — a monitored headless `vajra claude -p`
+  with cwd=chitra fired chitra's SessionStart boot, dispatched chitra's **tech-lead FIRST**
+  (unprompted), **blocked the first commit (copilot-loader, exit 2)** until STATE was surfaced, gated
+  commits on the launch marker, and dispatched a fidelity-reviewer. `heatmap()` locked (rainbow →
+  grey ramp + one accent `#8B7CF6` once on the peak cell + footer echo); founder signed off on the
+  render. **$2.988 authoritative** + 237,584 RAW subagent tokens. chitra undisturbed four ways
+  (session-16 restored byte-identical, tree `1c276700`). `verify-session-138.sh` **10/10**.
+- **The one PARTIAL + the REAL finding (corrected post-close, S138B):** criterion 4 ran headless not
+  interactive (founder redirect → hook gates proven, not the approval flow). And — found when the
+  founder pushed — the tech-lead marked **4 roles required**; the main session ran **1**, did the rest
+  itself, and self-certified. Running it **end to end** proved the gap is ARCHITECTURAL: it closed
+  12/12 green + merged to chitra main (PR #20) with **nothing** checking the crew (the binding lives
+  only in `--advance`, never in the close). (My first write-up wrongly blamed the design-advisor, which
+  the tech-lead correctly deferred.) Reports: `sessions/session-138-summary.md` +
+  `sessions/session-138-review.md`. **Next GT: S140.**
+
+## NEXT: Session 139 — make "required" bind at CLOSE (founder pick at the S138 close)
+
+- **Read prompt:** `prompts/139-task-required-crew-at-close.md`. **CODE.** Start in a FRESH chat.
+- Wire a `check_required_crew` into `scripts/verify-closeout.sh` that runs `vajra next --check-crew N`
+  and BINDS — so a session cannot close green with a tech-lead-`required` role's handoff missing (the
+  exact gap S138B proved live). Mirror `check_obeyed_judgments`; make it bind on S139 itself; propagate
+  via `include_str!`. **Next GT: S140.**
+
 ## Session 137 — PAID DOGFOOD: chitra's `scatter` locked to the reference language — COMPLETE
 
 - **ACCEPT** (cold `fidelity-reviewer`, **5 of 5 SHIPPED** after the in-session partial-close). The

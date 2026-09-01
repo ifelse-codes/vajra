@@ -1,6 +1,37 @@
 # Session Boot
 
 ## Current Session
+- **Number:** 138 — COMPLETE (THE REAL DOGFOOD: `vajra claude` run INSIDE chitra, governing chitra's
+  own `heatmap`-lock from the inside — the S137 correction shipped). **Verdict: ACCEPT** (cold
+  `fidelity-reviewer`, **4 of 5 SHIPPED · 1 PARTIAL**), attested `840e64d9…`. Reports:
+  `sessions/session-138-summary.md` + `sessions/session-138-review.md`. **Next GT: S140.**
+- **Governance USED from inside chitra (the honest yes):** SessionStart boot · **tech-lead dispatched
+  FIRST**, unprompted · **copilot-loader hook BLOCKED the first commit (exit 2)** until STATE was
+  surfaced · commit-guard gated on the launch marker `VAJRA_ALLOW_COMMIT=18` · fidelity-reviewer
+  dispatched. `heatmap()` locked (rainbow → grey ramp + one accent `#8B7CF6` once on the peak cell +
+  footer echo); founder signed off on the render. **$2.988 authoritative** + **237,584 RAW subagent
+  tokens**. chitra UNDISTURBED four ways (session-16 restored byte-identical, tree `1c276700`).
+  `verify-session-138.sh` **10/10**.
+- **The one PARTIAL + fakest green:** criterion 4 said *interactively* — it ran **headless** with
+  permissions bypassed (founder redirect), so the **hook gates** are proven, not the interactive
+  approval flow; and chitra's **design-advisor never ran** (only tech-lead + fidelity-reviewer), so
+  the heatmap design was agent-authored + founder-signed, not governed by the design role. Both
+  disclosed (prompt skip line, review rec 2, summary). Candidate A closes the interactive gap.
+- **CORRECTED post-close (S138B, founder-watched): the real finding is the CREW, not the design-advisor**
+  (the tech-lead correctly deferred design-advisor). The tech-lead marked **4 roles required**; the main
+  session ran **1**, did the rest itself + self-certified. Running it **end to end** proved the gap is
+  ARCHITECTURAL — it closed 12/12 green + merged to chitra main (PR #20) with NOTHING checking the crew
+  (the binding lives only in `--advance`, never in `verify-closeout.sh`). Close cost $5.41 (dogfood total
+  ~$8.39). See `[[vajra-required-not-required]]` + ROADMAP "🔧 COMMITTED FUTURE FIX".
+
+## Next Session
+- **S139 — PICKED (founder):** `prompts/139-task-required-crew-at-close.md`. **CODE.** Wire a
+  `check_required_crew` into `scripts/verify-closeout.sh` that runs `vajra next --check-crew N` and
+  BINDS — so a session cannot close green with a tech-lead-`required` role's handoff missing. Mirror
+  `check_obeyed_judgments`; bind on S139 itself; propagate via `include_str!`. **Start in a FRESH chat.
+  Next GT: S140.**
+
+### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference
   panel language — the FIRST time Vajra governed a real BUILD in an outside project; S134 was review).
 - **Type:** CODE / paid dogfood. **Verdict: ACCEPT** (cold `fidelity-reviewer`, **5 of 5 SHIPPED**
