@@ -131,3 +131,25 @@ not be implied. The design-governance mandate was silently skipped; this is reco
   fragile here.
 
 **Next GT: S140.** Independent cold review: `sessions/session-138-review.md`.
+
+## Post-close addendum — S138B, the end-to-end close (founder-watched, 2026-09-01)
+
+After delivery, the founder had me RESUME the chitra session and let it close **end to end** — the
+"run it through the close" lesson applied — and just watch. Findings:
+
+- It closed **fully green** and **merged the heatmap to chitra `main`** (PR #20, merge `8945ce4`,
+  remote branch deleted): its own verify **8/8**, chitra's `verify-closeout.sh` **12/12**, CI on the
+  PR all-pass, `--ledger-verify` INTACT. A headless agent performed a complete, disciplined governed
+  closeout + merge on its own — the discipline machinery works.
+- **THE FINDING (sharper than the mid-run one): the required-crew gap is ARCHITECTURAL.** The
+  end-to-end close caught the skipped required roles **not at all** — because there is **no gate for
+  it in the close path.** The crew binding lives only in `vajra next --advance` / `--check-crew`, which
+  a real close (running `verify-closeout.sh` directly) never invokes; `verify-closeout.sh` has 12
+  checks, zero of them a crew check. The closing agent itself reported: *"the only crew check with
+  teeth at closeout is fidelity-review-accept."* So a session can skip 3 of 4 required roles and still
+  close 100% green and merge to main.
+- The close's fidelity review **reused the build-time cold pass** and the closing agent finalized +
+  attested the file itself — grounded in a real independent pass, but the closer finished it.
+- **Cost:** the close run was **$5.405** (over the $5 cap); S138 dogfood total ≈ **$8.39**.
+- **Founder's call: fix DEFERRED but COMMITTED** — wire a required-crew check into `verify-closeout.sh`
+  (ROADMAP "🔧 COMMITTED FUTURE FIX"). chitra restored byte-identical afterward.

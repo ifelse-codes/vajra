@@ -51,6 +51,16 @@ evidence + reports); it never edited or committed inside chitra. **The S137 fenc
   for free mid-run under budget pressure (partly my own "$20/mo, keep dispatches tight" brief). Founder:
   fix DEFERRED (budget OK this time), WATCH the next dogfood for recurrence. See
   `sessions/session-138-summary.md` "Post-close correction".
+- **🔴 S138B (end-to-end close, founder-watched) — the gap is ARCHITECTURAL, not timing.** The founder
+  had me RESUME the chitra session and let it close end-to-end. It closed **fully green** (verify 8/8,
+  `verify-closeout.sh` 12/12, CI pass, ledger intact) and **merged the heatmap to chitra `main` (PR
+  #20, `8945ce4`)** — and **NOTHING checked whether the tech-lead's required crew ran.** The crew
+  binding lives only in `vajra next --advance` / `--check-crew`, which a real close never invokes;
+  `verify-closeout.sh` has 12 checks and zero crew check. The closing agent said it itself: *"the only
+  crew check with teeth at closeout is fidelity-review-accept."* **COMMITTED FUTURE FIX (founder): wire
+  a required-crew check INTO `verify-closeout.sh`** so a session cannot close green with a required role
+  skipped — see ROADMAP "🔧 COMMITTED FUTURE FIX". chitra restored byte-identical afterward (tree
+  `1c276700`).
 - **🟡 Criterion 4 is PARTIAL, not SHIPPED.** The prompt said run it *interactively*; it ran headless
   with permissions bypassed and commits pre-authorized via env marker, wrapper-driven. This proves
   the **hook gates**, NOT Claude Code's interactive permission-approval flow. "The way a user runs
@@ -79,9 +89,9 @@ evidence + reports); it never edited or committed inside chitra. **The S137 fenc
 - Enforcement floor, ledger (S100), receipts (authoritative on headless stream-json): unchanged.
 
 ## What Is In Progress
-- **Nothing mid-flight in Vajra.** The heatmap work lives on chitra `session-18-heatmap-lock`,
-  **unmerged** — chitra's own concern to merge (or discard) later. chitra is restored to
-  `session-16-sparkline-histogram-lock` with its WIP byte-identical.
+- **Nothing mid-flight in Vajra.** The heatmap work is **MERGED into chitra `main`** (PR #20, `8945ce4`,
+  via the S138B end-to-end close run). chitra is restored to `session-16-sparkline-histogram-lock` with
+  its WIP byte-identical (tree `1c276700`); the kilo stash is intact.
 - **S139 not yet chosen** — three candidates presented at this closeout, awaiting the founder's pick.
 
 ## Active PRs
@@ -106,6 +116,8 @@ evidence + reports); it never edited or committed inside chitra. **The S137 fenc
 - **S128–S133: $0 metered** (interactive). **S134: $1.6103385** (chitra dogfood) + ~19.2M raw subagent tokens.
 - **S135/S136: $0 metered** (interactive) — 4.18M / 731,943 RAW subagent tokens.
 - **S137: $0 authoritative (honest null, interactive)** — 486,695 RAW subagent tokens.
-- **S138: `$2.988433749999999` AUTHORITATIVE** (headless `-p` inside chitra) + **237,584 RAW subagent
-  tokens** across 2 dispatches. The first authoritative dollar from a real outside BUILD dogfood.
-- Cumulative: **~$95.8 + S76 (unknown, ≤ ~$26.6) + S111–S137 subagents (unknown, growing).**
+- **S138: `$2.988433749999999` AUTHORITATIVE** (headless `-p` build inside chitra) + **237,584 RAW
+  subagent tokens** across 2 dispatches. The first authoritative dollar from a real outside BUILD dogfood.
+- **S138B (the end-to-end close run): `$5.4050889999999985` AUTHORITATIVE** (resumed chitra session,
+  closed + merged to chitra main). **S138 dogfood total ≈ $8.39** (the close alone breached the $5 cap).
+- Cumulative: **~$104.2 + S76 (unknown, ≤ ~$26.6) + S111–S137 subagents (unknown, growing).**

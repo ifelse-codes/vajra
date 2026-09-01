@@ -18,6 +18,28 @@ so the design was agent-authored + founder-signed, not governed by the design ro
 S139 candidates: (A) the interactive human-driven run · (B) `vajra` opens the session · (C) cross-repo
 QA live-gate. **Next GT: S140.**
 
+**S138B — the end-to-end close, run + watched (founder's call, 2026-09-01).** After the build, the
+founder had me RESUME the chitra session and let it close end-to-end, then watch. It closed **fully
+green** (verify-session 8/8, `verify-closeout.sh` **12/12**, CI passed, ledger intact) and **merged the
+heatmap to chitra `main` (PR #20, `8945ce4`)** — and **NOTHING checked whether the tech-lead's required
+crew actually ran.** Earlier framing ("the run stopped before close") was too kind: the real problem is
+**architectural** — the crew binding lives ONLY in `vajra next --advance` / `--check-crew`, which a real
+close (running `verify-closeout.sh` directly) never invokes, and `verify-closeout.sh` has 12 checks with
+**zero** crew check. So a session can skip 3 of its 4 required roles and still close 100% green and merge
+to main. The closing agent even said it: *"the only crew check with teeth at closeout is
+fidelity-review-accept."* Close run cost **$5.41** (build $2.99 + close $5.41 = ~$8.39; the close alone
+breached the $5 cap). **FOUNDER: fix DEFERRED but COMMITTED — see the roadmap item below.**
+
+### 🔧 COMMITTED FUTURE FIX (founder, 2026-09-01) — "required" must bind at CLOSE
+**Wire the required-crew check INTO the close path.** Today `verify-closeout.sh` (14 checks in Vajra, 12
+in chitra's older scaffold) has NO gate that asks "did every role the tech-lead marked `required`
+actually run?" — that check exists only in `vajra next --advance` / `--check-crew`, which a real
+closeout does not call. Add a `check_required_crew` (or equivalent) to `verify-closeout.sh` so a session
+**cannot close green with a tech-lead-required role skipped**, and stop the agent self-certifying that N
+dispatches discharge M required roles. This is the S54 fidelity-over-discipline / S129 registered-not-run
+failure, proven LIVE on a real merge to main (S138B). Watch on the next dogfood whether the same
+skip/combine recurs. Detail: `[[vajra-required-not-required]]`, `[[feedback-dogfood-method]]`.
+
 **Prior — Updated:** 2026-08-30 · **Session 137 — chitra's `scatter` chart locked to the reference panel
 language — ACCEPT (5 of 5 SHIPPED after the in-session partial-close).** A real AI-built feature
 landed in chitra (`session-17-scatter-lock`, merged to chitra main via PR #19); the crew was
