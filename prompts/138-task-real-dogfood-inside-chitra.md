@@ -111,9 +111,15 @@ render:
   (`### LOCKED: heatmap chart` in chitra's README) and deviates from the current `heatmap.ts`
   (any rainbow/ad-hoc intensity → accent-once-on-peak + documented grey ramp; bare grid → dashed
   panel + eyebrow + guides + footer). On the Vajra side it is a dogfood with no new interface.
-- The design-advisor is dispatched FIRST **inside chitra** (chitra's fleet, the S133 mandate) to
-  propose the accent-cell rule + the summary footer against chitra's locked blocks; the founder locks
-  it on the render. This Vajra wrapper records the outcome; it does not dispatch chitra's advisor.
+- **design-advisor: skipped — the Vajra wrapper introduces NO design-significant Vajra change (no new
+  Vajra interface); the design significance lived entirely in chitra, and chitra's OWN design-advisor
+  should have proposed the accent-cell rule + footer under its Architect mandate. It did NOT run —
+  only chitra's tech-lead + fidelity-reviewer were dispatched inside the build. That gap is this
+  session's fakest green, disclosed in `sessions/session-138-review.md` (rec 2) and the summary, not
+  silenced. The heatmap design was authored by the headless build agent and locked by the founder's
+  seen-not-read sign-off; correctness was verified independently at raw-RGB (verify #9), but it was
+  NOT governed by the design role. The next session (candidate A) runs the interactive path where this
+  mandate can be observed live.**
 - design record cited: this prompt + chitra's README locked blocks (line/bar/area/scatter, all present
   on chitra `main`). Vajra-side there is no new ADR — the dogfood introduces no Vajra interface.
 
@@ -138,10 +144,10 @@ lives only in `vajra next --advance` (not in `verify-closeout.sh`), and this dog
 `--advance` to close, so the Vajra ship gate is unaffected. Vajra-side evidence steps cite real Vajra
 shas; chitra build steps cite real chitra shas, annotated as chitra.
 
-- step 1 — done: <sha> (Vajra: prompt + handoff). covers: 5
-- step 2 — done: <chitra shas> (chitra, native session). covers: 1, 2, 4
-- step 3 — done: render + founder sign-off (no code commit). covers: 3
-- step 4 — done: <sha> (Vajra: verify + receipt + undisturbed proof + reports). covers: 4, 5
+- step 1 — done: d7c1cae (Vajra: prompt + handoff). covers: 5
+- step 2 — done: e538751, 1ad9c6c, 22b34f9, e2b6bb9 (chitra, native `session-18-heatmap-lock`). covers: 1, 2, 4
+- step 3 — done: render `sessions/session-138-heatmap-render.html`; founder signed off in chat ("looks good and impressive") — no code commit. covers: 3
+- step 4 — done: eee1db1 (Vajra: verify + demo + render) and the closeout bundle that follows (reports + receipt + undisturbed proof + `.ai/` sync). covers: 4, 5
 
 ## Guardrails
 
