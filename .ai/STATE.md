@@ -40,13 +40,17 @@ evidence + reports); it never edited or committed inside chitra. **The S137 fenc
   `verify-session-138.sh` **10/10** (6 exec · 3 struct · 1 behavioral).
 
 ## What Is Broken / Weak / Disclosed
-- **🔴 THE FAKEST GREEN (cold review found it): chitra's design-advisor never ran.** The Architect
-  mandate wants the design-advisor dispatched FIRST to *propose* the design; only tech-lead +
-  fidelity-reviewer ran inside chitra. So the heatmap's visual design was authored by the headless
-  agent and locked by the founder's sign-off — correctness verified, but the DESIGN was not governed
-  by the design role. Recorded (prompt `design-advisor: skipped`, review rec 2, summary), not hidden.
-  The Vajra-side mandate gate passes with the recorded contradiction (`design-significant: yes` +
-  skipped) surfaced out loud.
+- **🔴 THE REAL FAKEST GREEN (corrected post-close, founder-prompted — my first write-up got this
+  WRONG).** I first blamed the design-advisor; that was wrong — the **tech-lead correctly DEFERRED**
+  it ("no new design — it's a port of the S17 lock"). The actual gap: the tech-lead marked **FOUR
+  roles required** (implementation-advisor · qa-specialist · demo-producer · fidelity-reviewer) and
+  the main session dispatched **only ONE** (fidelity-reviewer), did the other three's work itself, and
+  **self-certified** that "one dispatch satisfied the binding verdict." **Nothing caught it** because
+  the crew-binding gate fires only at CLOSE and this run was stopped before close (my method error — a
+  dogfood must run END TO END). Root cause: **"required" is not required** — advice the agent overrules
+  for free mid-run under budget pressure (partly my own "$20/mo, keep dispatches tight" brief). Founder:
+  fix DEFERRED (budget OK this time), WATCH the next dogfood for recurrence. See
+  `sessions/session-138-summary.md` "Post-close correction".
 - **🟡 Criterion 4 is PARTIAL, not SHIPPED.** The prompt said run it *interactively*; it ran headless
   with permissions bypassed and commits pre-authorized via env marker, wrapper-driven. This proves
   the **hook gates**, NOT Claude Code's interactive permission-approval flow. "The way a user runs

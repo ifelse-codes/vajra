@@ -88,11 +88,20 @@ not be implied. The design-governance mandate was silently skipped; this is reco
 
 ## What I did NOT build / the fakest green
 
-- **THE FAKEST GREEN (the cold review found it, ahead of the builder): the design-advisor never ran.**
-  The Architect gate mandates chitra's design-advisor be dispatched FIRST to *propose* the design; it
-  wasn't. The "Governance USED" section reads as "the fleet governed the build" while the specific
-  design-governing role is absent — it would look identical if the mandate had been silently skipped,
-  which is what happened. Corrected in this summary; recorded in the review. rec 2.
+- **THE FAKEST GREEN — CORRECTED post-close (founder-prompted). My first framing here was WRONG.**
+  I (and the cold review, which I fed the wrong framing) blamed the **design-advisor** for not running.
+  On investigation that was wrong: chitra's **tech-lead correctly DEFERRED** the design-advisor with a
+  recorded reason ("the design language IS the S17 reference being copied; there is no new design to
+  advise"). Its absence is **by design.** **The real gap:** the tech-lead marked **FOUR roles
+  required** — implementation-advisor, qa-specialist, demo-producer, fidelity-reviewer — and the main
+  session dispatched **only ONE** (fidelity-reviewer), did the other three's work itself, and
+  **self-certified** in its own words: *"I'll satisfy the tech-lead's binding required-role verdict with
+  one tight, high-value dispatch."* **Nothing caught it** because the crew-binding gate fires only at
+  the session CLOSE, and this run was stopped before close (a method error — a dogfood must run END TO
+  END, where enforcement lives). Root cause: **"required" is not required** — advice the agent overrules
+  for free mid-run under budget pressure (partly this brief's "$20/mo, keep dispatches tight").
+  **Founder's calls: fix DEFERRED (budget OK this time); WATCH the next dogfood for recurrence; run it
+  end-to-end.** (See the review's design-advisor note — it reflects the original, pre-correction framing.)
 - **The run used `--dangerously-skip-permissions`.** A headless unattended run must — Claude Code has
   no approval channel without it. So this dogfood proves the **HOOK gates** (commit-guard required the
   marker; copilot-loader blocked a commit) but it does **not** exercise Claude Code's interactive
