@@ -1,6 +1,22 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-01 · **Session 138 — THE REAL DOGFOOD: `vajra claude` run from INSIDE chitra —
+**Updated:** 2026-09-02 · **Session 139 — "required" now binds at CLOSE — ACCEPT (5 of 5 SHIPPED),
+attested `5631e7a1…`.** The S138B committed future fix shipped: a `check_required_crew` gate is wired
+into `scripts/verify-closeout.sh` and runs the real `vajra next --check-crew N`, so a session **cannot
+close green** when the tech-lead is missing a handoff or a role it marked `required` produced none — the
+S138 hole (12/12 green + merged with 3 of 4 required roles skipped) is closed for the close path. Header
+guard against a `run_dump` exit-0 false green; fails closed on a missing binary; `VAJRA_CLOSEOUT_WAIVER`
+honored; propagates to every adopter via `include_str!`. **Binds on S139 itself** — the tech-lead
+dispatched FIRST marked three roles required (design-advisor · implementation-advisor · fidelity-reviewer),
+all three produced real provenance-verified handoffs, and S139's own `verify-closeout.sh` passes the new
+gate. One correctness fix beyond the mirror: all three binary-backed close checks are now `set -e`-safe
+(the bare capture aborted the script on a blocking verdict — this gate was the first to exercise that
+path). Fakest green (fixture P2/P3 needle) named by the cold review and **fixed in-session** (`3a9852e`).
+`verify-session-139.sh` 7/7 · `fixture-session-139.sh` 8/8 (deterministic). ~350K RAW subagent tokens
+across 4 roles / 5 dispatches. **Disclosed remainder — reviewer-independence self-certification (S138B)
+stays OPEN, ranked candidate 1.** **Next GT: S140 (mandatory NO-CODE).**
+
+**Prior — Updated:** 2026-09-01 · **Session 138 — THE REAL DOGFOOD: `vajra claude` run from INSIDE chitra —
 ACCEPT (4 of 5 SHIPPED · 1 PARTIAL), attested `840e64d9…`.** The S137 correction shipped: chitra's
 `heatmap` chart was locked to the family design language by a **native chitra session governed from
 the inside** (a monitored headless `vajra claude -p` with cwd=chitra), NOT a Vajra chat reaching
@@ -30,15 +46,22 @@ to main. The closing agent even said it: *"the only crew check with teeth at clo
 fidelity-review-accept."* Close run cost **$5.41** (build $2.99 + close $5.41 = ~$8.39; the close alone
 breached the $5 cap). **FOUNDER: fix DEFERRED but COMMITTED — see the roadmap item below.**
 
-### 🔧 COMMITTED FUTURE FIX (founder, 2026-09-01) — "required" must bind at CLOSE
-**Wire the required-crew check INTO the close path.** Today `verify-closeout.sh` (14 checks in Vajra, 12
-in chitra's older scaffold) has NO gate that asks "did every role the tech-lead marked `required`
-actually run?" — that check exists only in `vajra next --advance` / `--check-crew`, which a real
-closeout does not call. Add a `check_required_crew` (or equivalent) to `verify-closeout.sh` so a session
-**cannot close green with a tech-lead-required role skipped**, and stop the agent self-certifying that N
-dispatches discharge M required roles. This is the S54 fidelity-over-discipline / S129 registered-not-run
-failure, proven LIVE on a real merge to main (S138B). Watch on the next dogfood whether the same
-skip/combine recurs. Detail: `[[vajra-required-not-required]]`, `[[feedback-dogfood-method]]`.
+### ✅ DONE (S139) — "required" now binds at CLOSE
+**SHIPPED.** `check_required_crew` is wired into `scripts/verify-closeout.sh` (now 15 checks) and runs
+the real `vajra next --check-crew N`: a session **cannot close green** with the tech-lead's handoff
+missing or a `required` role's handoff absent. Header-guarded, fails-closed on a missing binary,
+`VAJRA_CLOSEOUT_WAIVER`-honoring, `include_str!`-propagated. Bound on S139 itself (the self-bind test).
+The S138B live merge-to-main-with-a-skipped-role failure is closed for the close path.
+**Still watch the next dogfood** for the skip/combine pattern from the run side. Detail:
+`[[vajra-required-not-required]]`, `[[feedback-dogfood-method]]`.
+
+### 🔭 NEXT-AFTER (named by the S139 cold review + summary) — reviewer independence at close
+The last self-certification in the close path: `check_fidelity_review` passes any well-formed review
+file regardless of author (S138B showed a closing agent can finalize + attest its own review). Bind it
+to a provenance-verified `fidelity-reviewer` handoff whose dispatch author is not the closing session's.
+**Ranked candidate 1 for the next CODE session (S141; S140 is the mandatory NO-CODE GT).** Smaller
+carried candidates: carry the recorded budget INTO the dispatch brief (S135 crit 7, still PARTIAL);
+`cargo fmt --check` as a per-session gate (S96/S136 recurrence).
 
 **Prior — Updated:** 2026-08-30 · **Session 137 — chitra's `scatter` chart locked to the reference panel
 language — ACCEPT (5 of 5 SHIPPED after the in-session partial-close).** A real AI-built feature
