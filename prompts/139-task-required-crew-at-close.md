@@ -39,7 +39,26 @@ every adopter verbatim by `vajra init` (`include_str!`), the one edit propagates
 - design-significant: yes — this changes WHERE the crew binding is enforced (adds it to the close path,
   the artifact `CLAUDE.md` declares the close depends on), closing a hole the S138 dogfood proved live.
   It is a mechanical extension of the S132/S133 house pattern (a close gate that calls a `vajra next
-  --check-*` binary gate), not a new mechanism. Cite the S135 crew gate + DECISION-007.
+  --check-*` binary gate), not a new mechanism. Cite the S135 crew gate + DECISION-007
+  (`docs/decisions/DECISION-007-agent-fleet.md`, the S135 addendum — verified to exist).
+- **Rejected alternatives (design-advisor rec 2 — a rationale with no rejected option is not a
+  decision):**
+  - *Re-implement the crew logic in shell* vs. *shell out to the real `vajra next --check-crew`
+    binary.* REJECTED the re-impl: a second copy of the `crew_gate` contract in bash would drift from
+    `src/crew`, the exact single-source discipline the Obeyed/Mandate close checks already keep.
+  - *Fix the hole by making every close run `--advance`* vs. *add an independent close check.*
+    REJECTED `--advance`: a real close never invokes it — that IS the S138 hole. The binding has to
+    live where the close actually runs (`verify-closeout.sh`).
+  - *A new top-level command* vs. *ride `verify-closeout.sh` + the existing `vajra next --check-crew`.*
+    REJECTED the new command (the max-7 ceiling).
+- **The founder waiver vs. the binary's "no environment variable can bypass" (design-advisor rec 3).**
+  `src/crew/mod.rs` prints "(No environment variable can satisfy or bypass this gate.)" and this check
+  greens on `VAJRA_CLOSEOUT_WAIVER=N`. This is NOT a contradiction: that sentence forbids a
+  crew-specific `VAJRA_SKIP_*` an AGENT can set on its own command line (and none exists — the crew
+  decision is provenance-verified). `VAJRA_CLOSEOUT_WAIVER` is the ONE universal, founder-held,
+  session-scoped, un-forgeable-by-the-agent closeout escape that every check in `verify-closeout.sh`
+  already honors (S56/S93); keeping this check consistent with its siblings is the correct call, and
+  dropping the waiver here would make one close check uniquely un-waivable for no stated reason.
 - The tech-lead is the FIRST and MANDATORY dispatch; it decides which specialists S139 needs and its
   verdict BINDS on this session (record its handoff). Let the design-advisor / implementation-advisor /
   qa-specialist / fidelity-reviewer be dispatched or reasoned-skipped **as the tech-lead decides** —
