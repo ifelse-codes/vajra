@@ -49,13 +49,13 @@ TL="$HDIR/session-${N}-tech-lead.md"
 DA="$HDIR/session-${N}-design-advisor.md"
 IA="$HDIR/session-${N}-implementation-advisor.md"
 STRAY="$HDIR/session-${N}-researcher.md"   # a DEFERRED role — no handoff should exist for it
+BIN="target/release/vajra"
 
-# Run the close-gate; echo "GREEN"/"RED" and capture its output for reason-matching.
-GATE_OUT=""
-run_gate() {
-  GATE_OUT="$("${GATE[@]}" 2>&1)"; local code=$?
-  [ "$code" -eq 0 ] && echo GREEN || echo RED
-}
+# Run the close-gate, capturing its output + exit code into GLOBALS (never a command-substitution
+# subshell, which would swallow the assignment). `gate_color` reads the globals afterwards.
+GATE_OUT=""; GATE_RC=0
+run_gate() { GATE_OUT="$("${GATE[@]}" 2>&1)"; GATE_RC=$?; }
+gate_color() { [ "$GATE_RC" -eq 0 ] && echo GREEN || echo RED; }
 
 # A required handoff must be present to begin. Backup dir + trap restore in place.
 for f in "$TL" "$DA" "$IA"; do
@@ -79,7 +79,8 @@ echo "=== fixture-139 — does check_required_crew actually bite? ==="
 echo ""
 
 # Baseline: fully crewed => GREEN (so a later RED is the plant, not a pre-existing gap).
-if [ "$(run_gate)" = GREEN ]; then
+run_gate
+if [ "$(gate_color)" = GREEN ]; then
   pass "baseline: fully-crewed session $N passes the close-gate (GREEN)"
 else
   fail "baseline: session $N is NOT green before any plant" "record the tech-lead + 3 required handoffs first"
@@ -95,7 +96,7 @@ plant_hides_role() {
     fail "$NAME" "plant did not land — $FILE still present (a silent no-op)"
     mv "$FILE.hidden" "$FILE"; return 0
   fi
-  local verdict; verdict="$(run_gate)"
+  run_gate; local verdict; verdict="$(gate_color)"
   if [ "$verdict" != RED ]; then
     fail "$NAME" "close-gate stayed $verdict with $FILE hidden — the gate does not bite"
   elif ! grep -qF "$NEEDLE" <<<"$GATE_OUT"; then
@@ -109,37 +110,43 @@ plant_hides_role() {
 # --- P1: the tech-lead itself is missing -------------------------------------------------------
 plant_hides_role "P1 tech-lead handoff hidden -> RED naming the tech-lead" "$TL" "no real tech-lead handoff"
 
-# --- P2: a required specialist is missing (named, not a canned string) --------------------------
-plant_hides_role "P2 design-advisor handoff hidden -> RED naming design-advisor" "$DA" "design-advisor"
+# --- P2: a required specialist is missing -------------------------------------------------------
+# The needle is the full BLOCK-CAUSE phrase, not the bare role name: `run_check_crew` always echoes
+# every parsed crew decision (so "design-advisor" appears whether or not it is the one that blocked),
+# and the S122 bar is "red for the RIGHT reason". Grepping "no real governed handoff: design-advisor"
+# binds to the missing-required CAUSE, and would NOT survive a mis-attribution to another role
+# (fidelity-reviewer rec 1).
+plant_hides_role "P2 design-advisor handoff hidden -> RED naming the missing role" "$DA" "no real governed handoff: design-advisor"
 
-# --- P3: a DIFFERENT required specialist -> the gate names THAT role, proving it is value-bound --
-plant_hides_role "P3 implementation-advisor hidden -> RED naming implementation-advisor" "$IA" "implementation-advisor"
+# --- P3: a DIFFERENT required specialist -> the block-cause names THAT role, proving it is value-bound --
+plant_hides_role "P3 implementation-advisor hidden -> RED naming the missing role" "$IA" "no real governed handoff: implementation-advisor"
 
 # --- P4: a gate-less binary must NOT green the check — the run_dump exit-0 header guard ----------
 # An unknown `vajra next` flag falls through to run_dump() and exits 0 (S132). A build WITHOUT this
 # gate would exit 0 and print no crew header; check_required_crew must BLOCK on the absent header,
-# never trust the zero exit. Simulate with a stub binary that exits 0 and prints a dump missing the
-# header. Back up + restore the real release binary so nothing is left broken.
-BIN="target/release/vajra"
-if [ -x "$BIN" ]; then
-  cp "$BIN" "$BACKUP/vajra.real"
-  printf '#!/usr/bin/env bash\necho "vajra next: unknown flag — dumping packet"\nexit 0\n' > "$BIN"
-  chmod +x "$BIN"
-  verdict="$(run_gate)"
-  if [ "$verdict" != RED ]; then
-    fail "P4 gate-less binary (no header) -> RED" "gate greened on a run_dump exit-0 with no crew header"
-  elif ! grep -qF "does not carry the gate" <<<"$GATE_OUT"; then
-    fail "P4 gate-less binary (no header) -> RED" "went RED but not via the header guard (S122 wrong reason)"
-  else
-    pass "P4 gate-less binary (run_dump exit 0) -> RED via the header guard"
-  fi
-  cp "$BACKUP/vajra.real" "$BIN"; chmod +x "$BIN"
+# never trust the zero exit. Rather than swap the LIVE binary (overwriting/renaming a running
+# executable races an immediately-following exec), point the REAL verify-closeout.sh at an ISOLATED
+# root (CLAUDE_PROJECT_DIR) whose `target/release/vajra` is a stub that exits 0 with no header. The
+# shipped gate is exercised verbatim; the real binary is never touched.
+STUBROOT="$BACKUP/stubroot"
+mkdir -p "$STUBROOT/target/release" "$STUBROOT/.ai"
+echo 139 > "$STUBROOT/.ai/SESSION"
+printf '#!/usr/bin/env bash\necho "vajra next: unknown flag — dumping packet"\nexit 0\n' > "$STUBROOT/target/release/vajra"
+chmod +x "$STUBROOT/target/release/vajra"
+P4_OUT="$(CLAUDE_PROJECT_DIR="$STUBROOT" bash scripts/verify-closeout.sh --crew-only 139 2>&1)"; P4_RC=$?
+if [ "$P4_RC" -eq 0 ]; then
+  fail "P4 gate-less binary (no header) -> RED" "gate greened on a run_dump exit-0 with no crew header"
+elif ! grep -qF "does not carry the gate" <<<"$P4_OUT"; then
+  fail "P4 gate-less binary (no header) -> RED" "went RED but not via the header guard (S122 wrong reason)"
 else
-  fail "P4 gate-less binary control" "no $BIN to swap — cannot exercise the header guard"
+  pass "P4 gate-less binary (run_dump exit 0) -> RED via the header guard"
 fi
 
 # --- HDR: the real binary emits the EXACT header the guard greps (a CLI wording drift is caught) --
-if "$BIN" next --check-crew "$N" 2>&1 | grep -qF "=== crew: tech-lead for session"; then
+# Capture the whole output THEN grep — never `binary | grep -q`: under `pipefail`, grep -q closes the
+# pipe on first match, the binary takes SIGPIPE (exit 141), and the pipeline fails intermittently.
+HDR_OUT="$("$BIN" next --check-crew "$N" 2>&1)" || true
+if grep -qF "=== crew: tech-lead for session" <<<"$HDR_OUT"; then
   pass "HDR real binary emits the exact header the guard requires"
 else
   fail "HDR real binary header drift" "the CLI no longer prints '=== crew: tech-lead for session' — the guard would false-block"
@@ -151,7 +158,8 @@ cp "$BACKUP/da.md" "$STRAY"
 if [ ! -f "$STRAY" ]; then
   fail "IGN control plant landed" "could not create $STRAY — the control proves nothing"
 else
-  if [ "$(run_gate)" = GREEN ]; then
+  run_gate
+  if [ "$(gate_color)" = GREEN ]; then
     pass "IGN control: a stray DEFERRED-role handoff keeps the gate GREEN (no over-fire)"
   else
     fail "IGN control: a deferred-role handoff turned the gate RED" "the gate binds more than the required set"
