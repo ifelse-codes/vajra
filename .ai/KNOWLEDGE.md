@@ -1314,3 +1314,18 @@ specialist. A handoff heading like `## Crew decision — session 135` decoration
 `crew decision — …` which carries an em-dash; the first parser mis-read it as a malformed row and
 blocked. Fix: non-specialist first field → not a record (prose), unless it is a full four-field line
 (then UnknownRole). The same class as S133's line-anchoring lesson, one field deeper.
+
+---
+
+## S140 (NO-CODE GT) — the dogfood-staleness instrument is blind to in-target-repo dogfoods
+
+`vajra next --dogfood-age` derives "when did we last really use Vajra?" from receipt files in
+**THIS repo's git**. But the product's dogfood method moved (S137→S138 correction) to running
+`vajra claude` **INSIDE the target repo** (chitra), whose receipts land in chitra's tree — never in
+Vajra's git. So `--dogfood-age` has read **S124** since 2026-08-20 and will read it **forever**, no
+matter how many real dogfoods run (S134/137/138 all ran and are invisible to it). It measures the OLD
+"reach across the fence" shape. **Class:** an instrument that stopped tracking the thing as the thing
+moved (same species as the S134 subagent-token under-report). **Founder call (S140): LOW priority,
+"fix someday"** — it makes an audit lie, not the product worse. Fix = teach `--dogfood-age`/`dogfood_check`
+to see receipts in a governed target repo, or record each dogfood's cost in Vajra's own git. See
+`[[vajra-s140-completeness-priorities]]`.
