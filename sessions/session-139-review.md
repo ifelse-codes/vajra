@@ -56,3 +56,5 @@ all fixed in the same commit — the suite is now deterministic 6/6.
   candidate).
 
 **Verdict:** ACCEPT
+
+**Review-Inputs-SHA:** 5631e7a1a063f21ae727c92a6e68044ed9707cb88dc871c31c60130dab245184
