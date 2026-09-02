@@ -161,7 +161,19 @@ rec 3 — all six deferred-budget lines answered as `deferred-budget` with arith
 call; rec 4 — the implementation-advisor, not the design-advisor, judged the `obeyed:` dispositions;
 rec 5 — the gate binds on S139 itself and the fixture fails for the right reason.)*
 
-**fidelity-reviewer — recommendations answered after the cold review (see below).**
+**fidelity-reviewer — 3 recommendations (cold review, ACCEPT, 5 of 5 SHIPPED).**
+
+- fidelity-reviewer rec 1 — obeyed: 3a9852e
+- fidelity-reviewer rec 2 — deferred: sessions/session-139-summary.md
+- fidelity-reviewer rec 3 — deferred: sessions/session-139-summary.md
+
+- obeyed-check fidelity-reviewer rec 1 — implemented: 3a9852e — P2/P3 now grep the block-cause phrase `no real governed handoff: <role>`, not the bare role token the always-printed crew echo also matches; the judge is the implementation-advisor (not the fidelity-reviewer that gave the rec).
+
+*(rec 1 (tighten the P2/P3 fixture needles to the block cause) landed in-session in `3a9852e`, judged
+by the implementation-advisor above — a different role from the fidelity-reviewer, so admissible. rec 2
+(make reviewer-independence the immediate next CODE session) and rec 3 (record the two soft edges of the
+header-grep house pattern) are addressed in the summary: reviewer-independence is ranked candidate 1,
+and both header-grep soft edges are named in "What is disclosed / weak".)*
 
 ## Guardrails
 

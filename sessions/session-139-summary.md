@@ -70,8 +70,11 @@ design recs. rec 3 — the judgments are admissible (implementation-advisor grad
 
 ## Cost / dispatch accounting (RAW subagent tokens, not new-only — S134)
 
-- tech-lead **~46,937** · design-advisor **~93,921** · implementation-advisor **~52,028** ·
-  fidelity-reviewer **(recorded at close)**. Four dispatches, all named-files-only briefs.
+- tech-lead **~46,937** · design-advisor **~93,921** · implementation-advisor **~52,028** (+ **~55,525**
+  for the one follow-up judgment of the fidelity rec) · fidelity-reviewer **~98,195**. Four roles, five
+  dispatches (the implementation-advisor was resumed once to judge the fidelity rec 1 fix), all
+  named-files-only briefs — a total well under **~350K** RAW subagent tokens, the S135 affordable
+  envelope, not the millions a repo-read costs (S134).
 - Interactive session ⇒ authoritative `$` is an honest null (S77). The RAW figures above are the honest
   cost signal.
 
@@ -84,9 +87,18 @@ design recs. rec 3 — the judgments are admissible (implementation-advisor grad
 - **Every judge this session had no shell** (the standing S133–S138 limit): the implementation-advisor
   and fidelity-reviewer read scripts; the live figures (verify, fixture, `--crew-only`) were executed by
   the builder + the close gates.
-- **The header-guard shares a residual with its siblings:** if `run_dump` can echo agent-authored file
-  content, the header string could be planted to force exit-0-plus-header — a narrow false-green vector
-  inherent to the house "grep the output for a header" pattern (design-advisor rec 6, disclosed).
+- **The "grep the binary's output for a header" house pattern now has TWO named soft edges**
+  (fidelity-reviewer rec 3): (a) if `run_dump` can echo agent-authored file content, the header string
+  could be planted to force exit-0-plus-header — a narrow false-green vector shared with the two sibling
+  gates (design-advisor rec 6); and (b) the fixture's P2/P3 "names the missing role" assertion originally
+  matched the always-printed crew echo rather than the block cause — **fixed in-session** (`3a9852e`,
+  P2/P3 now grep `no real governed handoff: <role>`). If a future session moves these gates to a
+  structured/exit-code-plus-fingerprint contract, close both at once rather than patching each fixture.
+- **The cold fidelity review named the P2/P3 needle as this session's fakest green; it was fixed in the
+  same session** and re-confirmed by the implementation-advisor. Running the fixture also surfaced three
+  flakiness bugs (a command-sub subshell that swallowed `GATE_OUT`, a live-binary-swap exec race in P4
+  replaced by an isolated `CLAUDE_PROJECT_DIR` stub, and an HDR `| grep -q` SIGPIPE under `pipefail`) —
+  all fixed; the suite is now deterministic 6/6.
 
 ## Three ranked next candidates
 
