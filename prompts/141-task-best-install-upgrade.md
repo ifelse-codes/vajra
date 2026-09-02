@@ -57,6 +57,17 @@ smooth by construction.
   the provenance at write time. A stamp Vajra itself wrote is ground truth about "these bytes are exactly
   what Vajra last rendered"; re-hashing the on-disk body and comparing to the embedded stamp is a pure,
   deterministic check, no guessing. This is the honest version of the same goal, not a walk-back.
+- **Supersedes an S136 lock — recorded, not inferred.** This session DEVIATES FROM / SUPERSEDES the
+  S136 *"not derivable"* floor and the `FleetFileState` *"only three because there can only be three"*
+  doc comment. The Architect gate checks only that `DECISION-007` resolves to a file, never that the
+  design obeys it (the S127 lesson) — so the reversal is legitimate ONLY because the S141 addendum lands
+  and says so in its own words. Record the deviation here, where a reader finds it.
+- **Honest limit — a content hash, not a keyed signature.** Re-hashing body-minus-stamp proves the
+  bytes are a *fixed point of Vajra's own render+hash function* — which any identical render reproduces
+  and which a user could in principle forge by hand (there is no secret key). The honest claim is
+  **auto-upgrade-safe for the untouched-render case**, NOT "cryptographic provenance": tamper-EVIDENT,
+  not tamper-PROOF — the same posture as the DECISION-004 verdict ledger. State it, or a reviewer reads
+  "provenance" as stronger than it is.
 - **Rejected alternatives (a rationale with no rejected option is not a decision):**
   - *A sidecar manifest* (`.vajra/fleet.lock` listing each file's hash) vs. *an in-file stamp.* REJECTED
     the sidecar for v1: a manifest can desync from the file it describes (delete/copy/rename), and the
@@ -71,6 +82,16 @@ smooth by construction.
   - *Retire `--overwrite-drifted`* vs. *keep it for the legacy/edited case.* KEEP it: an unstamped file
     (every pre-S141 install, incl. chitra) and a genuinely user-edited file both still need the human's
     explicit override — see the honest backward-compat note in Guardrails.
+  - *A version/session LABEL* (`vajra-render: 0.x` / `rendered-by-S141`) vs. *a content HASH.* REJECTED
+    the label — the most natural thing to reach for, and the S136 future-fix note's own wording. A label
+    records a *claim* about the bytes that a hand-edit does not invalidate (edit the body, the label
+    still says `S141`), so it cannot tell an untouched render from an edited one — the whole job. The
+    hash verifies the actual bytes; the label verifies nothing.
+  - *Stamp in a BODY COMMENT* (`<!-- vajra-render-sha: … -->`) vs. *a FRONTMATTER KEY.* REJECTED the
+    body comment: it is inert to dispatch, but Claude Code strips frontmatter and feeds the body to the
+    model as system-prompt text — so a body comment becomes prompt tokens that could perturb the role,
+    while an unknown frontmatter key is ignored by the loader AND never reaches the model. Place the
+    stamp as the LAST frontmatter line (after `tools:`, before the closing `---`).
 - The tech-lead is the FIRST and MANDATORY dispatch; it decides which specialists S141 needs and its
   verdict BINDS on this session (record its handoff). design-advisor + fidelity-reviewer are mandatory;
   let the rest be dispatched or reasoned-skipped **as the tech-lead decides**, and record every required
@@ -125,17 +146,77 @@ smooth by construction.
 
 ## Execution (the Coder gate — fill each step's landing sha as work lands)
 
-- step 1 — done: <sha>. covers: 6
-- step 2 — done: <sha>. covers: 1
-- step 3 — done: <sha>. covers: 2, 5
-- step 4 — done: <sha>. covers: 3
-- step 5 — done: <sha>. covers: 3, 4, 5, 6
+- step 1 — done: 712e2e6. covers: 6
+- step 2 — done: 32d90e9. covers: 1
+- step 3 — done: ff80d7e. covers: 2, 5
+- step 4 — done: ff80d7e. covers: 3
+- step 5 — done: 7865c34. covers: 3, 4, 5, 6
 
 ## Advice (every recommendation from this session's advisors, answered)
 
 (`vajra next --check-advice 141` BLOCKS the close until every recorded recommendation is answered, and
 `vajra next --check-obeyed 141` BLOCKS until every `obeyed:` claim carries an independent judgment from a
-role that is not the one that gave the advice. Fill this section in-session as the advisors report.)
+role that is not the one that gave the advice. The independent judge here is the **fidelity-reviewer**,
+grading the **design-advisor** — a different role, so admissible (the S131 designed pattern: the obeyed
+judgments ride the already-mandatory fidelity-reviewer handoff).)
+
+**design-advisor — 6 recommendations (dispatched by the tech-lead's `required` verdict).**
+
+- design-advisor rec 1 — deferred: sessions/session-141-summary.md
+- design-advisor rec 2 — obeyed: f02ddd3
+- design-advisor rec 3 — deferred: prompts/141-task-best-install-upgrade.md
+- design-advisor rec 4 — obeyed: 32d90e9
+- design-advisor rec 5 — obeyed: f02ddd3
+- design-advisor rec 6 — deferred: prompts/141-task-best-install-upgrade.md
+
+*(rec 1 affirmed `design-significant: yes` — kept, no change. rec 2 added the content-hash-not-keyed-
+signature / tamper-EVIDENT disclosure to `## Design` and the DECISION-007 S141 addendum (f02ddd3). rec 3
+added the two rejected alternatives — version-label-vs-hash and body-comment-vs-frontmatter-key — to the
+prompt's `## Design`. rec 4 placed the stamp as a frontmatter key so Claude Code ignores it (32d90e9;
+asserted by the per-role placement test + verify #live-stamp-in-frontmatter). rec 5 landed the addendum
+text (f02ddd3). rec 6 recorded the deviation/supersede line in `## Design`. rec 2/4/5 judged below.)*
+
+**tech-lead — 3 recommendations (the crew decision + how the session should run).**
+
+- tech-lead rec 1 — deferred: sessions/session-141-summary.md
+- tech-lead rec 2 — deferred: sessions/session-141-summary.md
+- tech-lead rec 3 — deferred: sessions/session-141-summary.md
+
+*(rec 1 — design-advisor dispatched BEFORE any code, on the tight named-files brief; its handoff carries
+the recorded-vs-inferred addendum wording. rec 2 — qa-specialist dispatched at verification against the
+four-case fixture. rec 3 — fidelity-reviewer dispatched cold at close, fed prompt + diff. All in the
+summary's dispatch accounting.)*
+
+**qa-specialist — 3 recommendations (verification: verify 10/10, fixture 8/8, live falsification RED).**
+
+- qa-specialist rec 1 — deferred: sessions/session-141-review.md
+- qa-specialist rec 2 — deferred: sessions/session-141-summary.md
+- qa-specialist rec 3 — deferred: sessions/session-141-summary.md
+
+*(rec 1 — the no-live-agent-dispatch limit is disclosed in the review + summary (the fakest green). rec 2
+— accepted as an honest limit: the qa break reddens the STA plant; RRS/EDT stay refused under it, so
+their own-direction falsification is by the unit test `..._verification_is_falsifiable`, noted in the
+summary — not re-worked (1 story). rec 3 — the per-role round-trip/inertness is unit-tested for ALL ten
+roles; the live layer spot-checks researcher. Rotating the live role is a cheap future nicety, deferred.)*
+
+**fidelity-reviewer — 3 recommendations + the independent `obeyed:` judgments (cold ACCEPT, 5/6→6/6).**
+
+The independent `obeyed:` judgments of the design-advisor's dispositions live in the fidelity-reviewer's
+handoff (`.ai/handoffs/session-141-fidelity-reviewer.md`) and `sessions/session-141-review.md`:
+`obeyed-check design-advisor rec 2 — implemented: f02ddd3`, `rec 4 — implemented: 32d90e9`,
+`rec 5 — implemented: f02ddd3`. Judge = fidelity-reviewer, advisor = design-advisor — different roles.
+
+- fidelity-reviewer rec 1 — deferred: sessions/session-141-summary.md
+- fidelity-reviewer rec 2 — deferred: sessions/session-141-summary.md
+- fidelity-reviewer rec 3 — deferred: scripts/demo-session-141.sh
+
+*(rec 1 — the summary is landed with the full fidelity map + 3 ranked candidates, so criterion 6's
+artifact is present at close (the reviewer graded it PARTIAL only because the summary post-dates the
+review dispatch). rec 2 — APPLIED as disclosure: the summary's fakest-green section states plainly that
+"Claude Code ignores an unknown frontmatter key" is an untested ASSUMPTION / known risk, not a proven
+fact. rec 3 — APPLIED: `demo-session-141.sh`'s acceptance table now COMPUTES each mark from the live
+case signals (stamp present · four states seen · C2==0 && C3!=0 · idempotent re-sync · addendum present)
+— the hardcoded ✔ removed.)*
 
 ## Guardrails
 
