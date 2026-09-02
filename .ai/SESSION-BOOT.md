@@ -1,58 +1,48 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 140 — COMPLETE (the mandatory NO-CODE Ground Truth, `140 % 5 == 0`). **Lead-lens verdict:
-  🟡 PARTIAL PASS.** All 12 required audits run live. Report: `sessions/session-140-ground-truth.md`.
-  **NO CODE, NO PR** — closeout rides `session-140-closeout`. **Next: S141 (CODE). Next GT: S145.**
-- **Discipline 🟢:** `stranger-check.sh` 21/21 · `scaffold-drift.sh` 17/17 · `cargo fmt --check` clean
-  (S96/S136 debt gone) · `--stations` **S137 4/8 → S138 6/8 → S139 8/8** (first full 8/8).
-- **Direction 🟡 inward:** adoption flat — **0 stars · 0 forks · 0 issues · 19 downloads** (unchanged
-  since the S130 GT). The S135→S139 arc deepened governance-of-governance while nobody outside can be
-  shown to have run it (S125 "loop is closed", one cycle older).
-- **HEADLINE META-FINDING (audit 10):** `vajra next --dogfood-age` reports last dogfood **S124** while
-  the real ones (S134/137/138) all ran INSIDE chitra — their receipts never enter Vajra's git, which is
-  all `--dogfood-age` reads. The instrument was left measuring the OLD dogfood shape and now reads stale
-  forever. **Founder: LOW priority, fix someday** — it makes an audit lie, not the product worse.
-- **The truths the founder acted on:** (1) fresh-user / upgrade experience must be smoothed first →
-  **S141 LOCKED**; (2) prove the loop works even expensively, THEN cut cost (cost = big, after S145);
-  (3) the 5 quiet fleet roles are unproven — a bound dispatch ≠ good advice; (4) Rung 3 runs only once
-  building is done. See `[[vajra-s140-completeness-priorities]]`.
+- **Number:** 141 — COMPLETE (CODE: best install + upgrade-in-place). **Verdict: ACCEPT** (cold
+  `fidelity-reviewer`, 5 of 6 SHIPPED at review → 6/6 at close; criterion 6 PARTIAL only because the
+  summary post-dates the review dispatch), attested `69f94543…`. Reports:
+  `sessions/session-141-summary.md` + `sessions/session-141-review.md`. **Next: S142. Next GT: S145.**
+- **What shipped:** every scaffolded fleet role file now carries a recorded `vajra-render-sha:` stamp
+  (sha256 of the render minus the stamp line, written at render time). `FleetFileState` gains a fourth,
+  now-DERIVABLE state `StaleRender`; `vajra init --sync-fleet` **auto-upgrades an untouched old render
+  with NO `--overwrite-drifted`** (reported by name, old→new) and still **refuses a user edit / unstamped
+  file**. Closes the S136 "stale-vs-edited not derivable" floor by RECORDING the provenance (DECISION-007
+  S141 addendum), not inferring it. `verify-session-141.sh` **10/10** · `fixture-141` **8/8** · 457 lib
+  tests · fmt+clippy clean.
+- **Governance USED:** tech-lead dispatched FIRST, bound the crew (required: design-advisor ·
+  qa-specialist · fidelity-reviewer; six deferred-budget). design-advisor confirmed `design-significant:
+  yes` + the recorded-vs-inferred distinction (before any code). qa-specialist ran the suite + a LIVE
+  falsification (broke the StaleRender guard → fixture RED → restored, tree clean). fidelity-reviewer
+  judged the 3 design-advisor `obeyed:` dispositions independently (all `implemented:`). Close passes
+  `check_required_crew`.
+- **Honest limits (disclosed):** legacy UNSTAMPED files (chitra) stay `Drifted` on first contact — their
+  FIRST upgrade still needs one `--overwrite-drifted`; smoothness is going-forward, not retroactive. The
+  stamp is a content hash, not a keyed signature (tamper-EVIDENT, not tamper-PROOF). "Claude Code ignores
+  an unknown frontmatter key" is proven by PLACEMENT, not a live dispatch — an untested assumption.
+  Non-fleet scaffold files still add-only.
 
 ## Prior Session
-- **Number:** 138 — COMPLETE (THE REAL DOGFOOD: `vajra claude` run INSIDE chitra, governing chitra's
-  own `heatmap`-lock from the inside — the S137 correction shipped). **Verdict: ACCEPT** (cold
-  `fidelity-reviewer`, **4 of 5 SHIPPED · 1 PARTIAL**), attested `840e64d9…`. Reports:
-  `sessions/session-138-summary.md` + `sessions/session-138-review.md`.
-- **Governance USED from inside chitra (the honest yes):** SessionStart boot · **tech-lead dispatched
-  FIRST**, unprompted · **copilot-loader hook BLOCKED the first commit (exit 2)** until STATE was
-  surfaced · commit-guard gated on the launch marker `VAJRA_ALLOW_COMMIT=18` · fidelity-reviewer
-  dispatched. `heatmap()` locked (rainbow → grey ramp + one accent `#8B7CF6` once on the peak cell +
-  footer echo); founder signed off on the render. **$2.988 authoritative** + **237,584 RAW subagent
-  tokens**. chitra UNDISTURBED four ways (session-16 restored byte-identical, tree `1c276700`).
-  `verify-session-138.sh` **10/10**.
-- **The one PARTIAL + fakest green:** criterion 4 said *interactively* — it ran **headless** with
-  permissions bypassed (founder redirect), so the **hook gates** are proven, not the interactive
-  approval flow; and chitra's **design-advisor never ran** (only tech-lead + fidelity-reviewer), so
-  the heatmap design was agent-authored + founder-signed, not governed by the design role. Both
-  disclosed (prompt skip line, review rec 2, summary). Candidate A closes the interactive gap.
-- **CORRECTED post-close (S138B, founder-watched): the real finding is the CREW, not the design-advisor**
-  (the tech-lead correctly deferred design-advisor). The tech-lead marked **4 roles required**; the main
-  session ran **1**, did the rest itself + self-certified. Running it **end to end** proved the gap is
-  ARCHITECTURAL — it closed 12/12 green + merged to chitra main (PR #20) with NOTHING checking the crew
-  (the binding lives only in `--advance`, never in `verify-closeout.sh`). Close cost $5.41 (dogfood total
-  ~$8.39). See `[[vajra-required-not-required]]` + ROADMAP "🔧 COMMITTED FUTURE FIX".
+- **Number:** 140 — COMPLETE (the mandatory NO-CODE Ground Truth, `140 % 5 == 0`). **Lead-lens verdict:
+  🟡 PARTIAL PASS.** All 12 required audits run live. Report: `sessions/session-140-ground-truth.md`.
+  NO CODE, NO PR — closeout rode `session-140-closeout`.
+- **Discipline 🟢** (stranger 21/21 · scaffold-drift 17/17 · fmt clean · `--stations` 8/8). **Direction
+  🟡 inward** — 0 stars / 19 downloads flat / 0 issues; the machinery deepens while nobody outside runs
+  it. **Headline meta-finding (audit 10):** `--dogfood-age` is blind to dogfoods run INSIDE the target
+  repo, so it reports S124 forever — LOW priority per founder. **Founder completeness order:**
+  fresh-user/upgrade first (S141, DONE) → chitra dogfoods → prove-then-cut-cost (after S145) → gauge
+  someday. See `[[vajra-s140-completeness-priorities]]`.
 
 ## Next Session
-- **S141 — CODE: best install + upgrade-in-place** (founder pick at the S140 GT close, completeness
-  priority #1). Prompt: `prompts/141-task-best-install-upgrade.md`. Give the fleet render a recorded
-  `vajra-render-sha` provenance stamp (written at render time) so `vajra init --sync-fleet` gains a
-  fourth, now-DERIVABLE `FleetFileState::StaleRender` and can **auto-upgrade an untouched old Vajra
-  render to the latest** while still **refusing to clobber a user edit** — closing the exact S136 floor
-  ("stale-vs-edited is not derivable"). Honest edge baked in: legacy UNSTAMPED files (chitra) still need
-  one `--overwrite-drifted` on first contact; smoothness is going-forward. tech-lead dispatched FIRST +
-  design-advisor + fidelity-reviewer mandatory; the close runs `check_required_crew`. **Start in a FRESH
-  chat**; the agent creates `session-141-<slug>`. **After S141:** one or two chitra dogfoods (founder
-  plan). **Next GT: S145.**
+- **S142 — pending founder pick.** S141 closed the fresh-install/upgrade floor; the founder's stated
+  order (S140) puts a **chitra dogfood** next (completeness priority #2). Three candidates in
+  `sessions/session-141-summary.md`: **A (recommended) — chitra dogfood: exercise S141's upgrade path on
+  the real brownfield repo** (chitra's 4 unstamped stale renders → one `--overwrite-drifted` writes the
+  first stamps → prove the next `--sync-fleet` is smooth); **B — extend the render stamp to non-fleet
+  scaffold files**; **C — reviewer-independence self-certification at close (S138B, carried)**. **Start
+  in a FRESH chat** once picked; the agent creates `session-142-<slug>`. **Next GT: S145.**
 
 ### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference

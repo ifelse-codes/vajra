@@ -52,14 +52,30 @@
   worse"). **Founder completeness order:** fresh-user/upgrade first (S141) → chitra dogfoods → prove-then-
   cut-cost (after S145) → gauge someday. See `[[vajra-s140-completeness-priorities]]`.
 
-## NEXT: Session 141 — CODE: best install + upgrade-in-place
+## Session 141 — CODE: best install + upgrade-in-place — COMPLETE
 
-- Brief: `prompts/141-task-best-install-upgrade.md`. Give the fleet render a recorded `vajra-render-sha`
-  provenance stamp so `vajra init --sync-fleet` can auto-upgrade an untouched old render to the latest
-  while never clobbering a user edit — the fourth, now-DERIVABLE `FleetFileState::StaleRender`, closing
-  the S136 floor. Honest edge: legacy unstamped files (chitra) still need one `--overwrite-drifted` on
-  first contact. tech-lead FIRST + design-advisor + fidelity-reviewer mandatory; close runs
-  `check_required_crew`. **Start in a FRESH chat.** **Next GT: S145.**
+- Brief: `prompts/141-task-best-install-upgrade.md`. **ACCEPT** (cold `fidelity-reviewer`, 5 of 6 SHIPPED
+  at review → 6/6 at close), attested `69f94543…`. Reports: `sessions/session-141-summary.md` +
+  `sessions/session-141-review.md`.
+- **Shipped:** every fleet role render carries a recorded `vajra-render-sha:` stamp (sha256 of the render
+  minus the stamp line, written at render time); `FleetFileState` gains the fourth, now-DERIVABLE state
+  `StaleRender`; `vajra init --sync-fleet` auto-upgrades an untouched old render WITHOUT
+  `--overwrite-drifted` (reported by name, old→new) and still refuses a user edit / unstamped file.
+  Closes the S136 "stale-vs-edited not derivable" floor by RECORDING the provenance (DECISION-007 S141
+  addendum), not inferring it. `verify-session-141.sh` 10/10 · `fixture-141` 8/8 · 457 lib tests.
+- **Governance:** tech-lead FIRST bound the crew (design-advisor · qa-specialist · fidelity-reviewer
+  required; six deferred-budget); all three required handoffs recorded; 3 design-advisor `obeyed:`
+  dispositions judged `implemented:` by the fidelity-reviewer. Close passes `check_required_crew`.
+- **Disclosed:** legacy unstamped files stay `Drifted` on first contact (first upgrade needs one
+  `--overwrite-drifted`; smoothness is going-forward); content hash not a keyed signature; "CC ignores an
+  unknown frontmatter key" proven by placement, not a live dispatch; non-fleet scaffold files add-only.
+
+## NEXT: Session 142 — pending founder pick (recommended: chitra dogfood)
+
+- Three candidates in `sessions/session-141-summary.md`: **A (recommended)** exercise S141's upgrade path
+  on chitra (the founder's stated #2 priority); **B** extend the stamp to non-fleet scaffold files; **C**
+  reviewer-independence self-certification at close (S138B). **Start in a FRESH chat** once picked.
+  **Next GT: S145.**
 
 ## Session 137 — PAID DOGFOOD: chitra's `scatter` locked to the reference language — COMPLETE
 
