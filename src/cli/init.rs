@@ -61,16 +61,18 @@ pub struct SyncOpts {
     pub overwrite_drifted: bool,
 }
 
-/// The three states a role's `.claude/agents/<name>.md` can be in, relative to the ONE canonical
+/// The FOUR states a role's `.claude/agents/<name>.md` can be in, relative to the ONE canonical
 /// render (`fleet::render_subagent_definition`).
 ///
-/// There are only three because there can only be three. A fourth — "stale render" as distinct
-/// from "the user edited it" — is NOT DERIVABLE (S136): both present as the same observable, on-disk
-/// bytes that differ from the current render, and nothing anywhere stores which Vajra version
-/// produced a given file. No version stamp, no manifest, no generated-by marker. So the command
-/// does not guess. It reports `Drifted` and refuses to write, and a human decides. Building a
-/// classifier out of git blame or timestamps would be inventing provenance that was never recorded
-/// — the disclosed floor is the honest answer, not the detection that sounds better.
+/// **S136 said there were only three** — a fourth, "stale render" as distinct from "the user edited
+/// it", was NOT DERIVABLE, because nothing on disk recorded which Vajra version produced a file.
+/// **S141 makes it derivable by RECORDING the provenance** (DECISION-007 S141 addendum): every render
+/// now carries a `vajra-render-sha:` stamp = sha256 of its own body-minus-stamp, so an untouched
+/// older render re-hashes to its own embedded stamp and a hand-edit does not. This is not the git
+/// blame / timestamp classifier S136 rejected as *inventing* provenance — it is a dedicated signal
+/// written at render time and read back as a pure function of the bytes. The stamp is a content hash,
+/// not a keyed signature: tamper-EVIDENT, not tamper-PROOF (a user could forge it by hand) — enough
+/// to auto-upgrade the untouched-render case safely, which is the whole job.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FleetFileState {
     /// Not on disk. This is the case an older install leaves behind when the roster grows —
@@ -79,19 +81,27 @@ pub enum FleetFileState {
     /// Byte-for-byte identical to the canonical render. Never rewritten: a no-op write would
     /// churn the user's mtime and their git status for nothing.
     UpToDate,
-    /// Present, but its bytes differ from the canonical render. Could be an old render; could be
-    /// the user's deliberate customisation. Indistinguishable — so it is never silently clobbered.
+    /// Present, bytes differ from the current render, BUT its body-minus-stamp re-hashes to its own
+    /// embedded `vajra-render-sha:` stamp — provably an untouched Vajra render of an OLDER version.
+    /// Safe to auto-upgrade to the current render with no human override (S141).
+    StaleRender,
+    /// Present, and NOT a verifiable older render: no stamp (every pre-S141 install), or a stamp that
+    /// does not verify (a hand-edit, or a foreign file). Could be the user's deliberate
+    /// customisation, so it is never silently clobbered — refused unless `--overwrite-drifted`.
     Drifted,
 }
 
 /// Classify one role file from what is actually on disk against the canonical render.
 ///
 /// Takes the read content rather than the path so the decision is a pure function the tests can
-/// drive without a filesystem — the classification is the part that has to be right.
+/// drive without a filesystem — the classification is the part that has to be right. The
+/// `StaleRender` arm calls `fleet::render_stamp_verifies`, which shells out for sha256 but is
+/// deterministic and touches no filesystem, so this stays a pure function of its inputs (S141).
 pub fn classify_fleet_file(on_disk: Option<&str>, canonical: &str) -> FleetFileState {
     match on_disk {
         None => FleetFileState::Missing,
         Some(body) if body == canonical => FleetFileState::UpToDate,
+        Some(body) if crate::fleet::render_stamp_verifies(body) => FleetFileState::StaleRender,
         Some(_) => FleetFileState::Drifted,
     }
 }
@@ -139,6 +149,7 @@ pub fn plan_fleet_sync(root: &Path) -> Vec<FleetSyncItem> {
 pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Result<()> {
     let plan = plan_fleet_sync(root);
     let mut created = 0u32;
+    let mut upgraded = 0u32;
     let mut refreshed = 0u32;
     let mut up_to_date = 0u32;
     let mut unresolved: Vec<String> = Vec::new();
@@ -163,6 +174,23 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                 }
                 created += 1;
             }
+            // S141: a provably-untouched OLDER render. Auto-upgraded to the current render with NO
+            // `--overwrite-drifted` — this is the whole point of the stamp — but reported by name
+            // and old→new stamp, so a smooth upgrade is never an invisible one.
+            FleetFileState::StaleRender => {
+                let (old8, new8) = stale_upgrade_hashes(root, item);
+                if opts.dry_run {
+                    writeln!(
+                        out,
+                        "  would   upgrade {} (stale render {old8} → {new8})",
+                        item.rel
+                    )?;
+                } else {
+                    write_role_file(root, item)?;
+                    writeln!(out, "  upgrade {} (stale render {old8} → {new8})", item.rel)?;
+                }
+                upgraded += 1;
+            }
             FleetFileState::Drifted if opts.overwrite_drifted => {
                 if opts.dry_run {
                     writeln!(out, "  would   refresh {} (drifted)", item.rel)?;
@@ -185,14 +213,15 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
 
     writeln!(out)?;
     // A dry run must not report work it did not do. Same numbers, honest verb.
-    let (verb_c, verb_r) = if opts.dry_run {
-        ("to create", "to refresh")
+    let (verb_c, verb_u, verb_r) = if opts.dry_run {
+        ("to create", "to upgrade", "to refresh")
     } else {
-        ("created", "refreshed")
+        ("created", "upgraded", "refreshed")
     };
     writeln!(
         out,
-        "{created} {verb_c}, {refreshed} {verb_r}, {up_to_date} already current, {} drifted.",
+        "{created} {verb_c}, {upgraded} {verb_u}, {refreshed} {verb_r}, \
+         {up_to_date} already current, {} drifted.",
         unresolved.len()
     )?;
 
@@ -213,6 +242,24 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
         );
     }
     Ok(())
+}
+
+/// Short old→new stamps for a `StaleRender` upgrade report line — old = the file's own embedded
+/// stamp, new = the current render's. Best-effort display only (`?` when a stamp cannot be read);
+/// the decision to upgrade was already made by `classify_fleet_file`, not by this.
+fn stale_upgrade_hashes(root: &Path, item: &FleetSyncItem) -> (String, String) {
+    let short = |h: &str| h.chars().take(8).collect::<String>();
+    let old = fs::read_to_string(root.join(&item.rel))
+        .ok()
+        .and_then(|c| crate::fleet::extract_render_stamp(&c))
+        .map(|h| short(&h))
+        .unwrap_or_else(|| "?".to_string());
+    let new = crate::fleet::resolve_role(item.role)
+        .map(crate::fleet::render_subagent_definition)
+        .and_then(|def| crate::fleet::extract_render_stamp(&def))
+        .map(|h| short(&h))
+        .unwrap_or_else(|| "?".to_string());
+    (old, new)
 }
 
 /// Write one role file from the canonical render. The content is re-rendered here rather than
@@ -2148,10 +2195,11 @@ mod tests {
     // stale render missing the whole `rec N —` / `obeyed:` protocol block. `init`'s skip-if-present
     // convention could never have fixed that: it CAN ADD, it can never UPDATE.
 
-    /// The three states are the three states. A fourth — "stale render" vs "the user edited it" —
-    /// is deliberately absent, because it is not derivable from bytes (see `FleetFileState`).
+    /// S141: FOUR states now — the fourth, `StaleRender`, is derivable because the provenance is
+    /// RECORDED (the `vajra-render-sha:` stamp), not inferred. A stamped older render re-hashes to
+    /// its own stamp (→ `StaleRender`); an unstamped or hand-edited file does not (→ `Drifted`).
     #[test]
-    fn classify_fleet_file_names_the_three_derivable_states() {
+    fn classify_fleet_file_names_the_four_states() {
         let canonical = "---\nname: researcher\n---\nbody\n";
         assert_eq!(
             classify_fleet_file(None, canonical),
@@ -2161,20 +2209,38 @@ mod tests {
             classify_fleet_file(Some(canonical), canonical),
             FleetFileState::UpToDate
         );
+        // An UNSTAMPED file that differs (every pre-S141 install, incl. chitra) → Drifted, NOT
+        // StaleRender: Vajra genuinely cannot prove provenance it never wrote.
         assert_eq!(
             classify_fleet_file(Some("---\nname: researcher\n---\nOLD\n"), canonical),
             FleetFileState::Drifted
         );
         // The exact chitra shape: an older render is a PREFIX of the current one (a protocol block
-        // was appended). A prefix is not a match — a `starts_with` check here would have passed
-        // every one of chitra's four stale files as up to date.
+        // was appended). Unstamped → still Drifted.
         assert_eq!(
             classify_fleet_file(Some("---\nname: researcher\n---\n"), canonical),
             FleetFileState::Drifted
         );
-        // Whitespace is not "close enough" — the file is a byte-exact render or it is drifted.
+        // Whitespace is not "close enough": an unstamped file is a byte-exact render or drifted.
         assert_eq!(
             classify_fleet_file(Some(&format!("{canonical}\n")), canonical),
+            FleetFileState::Drifted
+        );
+        // A STAMPED older render — built the SAME way the real renderer stamps — differs from the
+        // current canonical yet re-hashes to its own embedded stamp → StaleRender (auto-upgradable).
+        let stale = crate::fleet::stamp_render(
+            "---\nname: researcher\ndescription: old\ntools: Read, Grep, Glob\n---\n\nOLD BODY\n",
+        );
+        assert_ne!(stale, canonical);
+        assert_eq!(
+            classify_fleet_file(Some(&stale), canonical),
+            FleetFileState::StaleRender
+        );
+        // ...but a hand-edit of that stamped render breaks the round-trip → back to Drifted. This is
+        // the load-bearing distinction: a stamp is not a free pass, it must actually VERIFY.
+        let edited = format!("{stale}\na user's own added line\n");
+        assert_eq!(
+            classify_fleet_file(Some(&edited), canonical),
             FleetFileState::Drifted
         );
     }
@@ -2267,6 +2333,52 @@ mod tests {
         assert_eq!(
             fs::read_to_string(dir.path().join(stale.subagent_rel())).unwrap(),
             crate::fleet::render_subagent_definition(stale)
+        );
+    }
+
+    /// S141: a provably-untouched OLDER render auto-upgrades with NO `--overwrite-drifted` and the
+    /// run exits 0 — the whole point of the stamp. A `Drifted` file in the same run still blocks.
+    #[test]
+    fn sync_fleet_auto_upgrades_a_stale_render_without_overwrite_and_exits_zero() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".claude/agents")).unwrap();
+
+        // A genuine older render of ROLES[0]: the current render's body, changed, then re-stamped
+        // the SAME way the renderer stamps — so it differs from the current canonical yet verifies.
+        let role = &crate::fleet::ROLES[0];
+        let older_unstamped = format!(
+            "{}\nAN OLDER RENDER'S EXTRA PARAGRAPH\n",
+            crate::fleet::strip_render_stamp(&crate::fleet::render_subagent_definition(role))
+        );
+        let stale = crate::fleet::stamp_render(&older_unstamped);
+        fs::write(dir.path().join(role.subagent_rel()), &stale).unwrap();
+
+        let mut out = Vec::new();
+        // No --overwrite-drifted, yet this must succeed (exit 0) because the stamp proves provenance.
+        sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        )
+        .expect("a stale render must auto-upgrade without --overwrite-drifted");
+
+        // The stale file was rewritten to the CURRENT canonical render.
+        assert_eq!(
+            fs::read_to_string(dir.path().join(role.subagent_rel())).unwrap(),
+            crate::fleet::render_subagent_definition(role),
+            "the stale render was not upgraded to the current render"
+        );
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("upgrade") && text.contains(&role.subagent_rel()),
+            "the upgrade must be reported by name, got: {text}"
+        );
+        assert!(
+            !text.contains("--overwrite-drifted"),
+            "a stale render must NOT prompt for --overwrite-drifted, got: {text}"
         );
     }
 

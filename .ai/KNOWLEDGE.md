@@ -1329,3 +1329,33 @@ moved (same species as the S134 subagent-token under-report). **Founder call (S1
 "fix someday"** — it makes an audit lie, not the product worse. Fix = teach `--dogfood-age`/`dogfood_check`
 to see receipts in a governed target repo, or record each dogfood's cost in Vajra's own git. See
 `[[vajra-s140-completeness-priorities]]`.
+
+---
+
+## S141 — recorded provenance lifts the S136 "not derivable" floor (the honest way)
+
+**The pattern, reusable:** to tell "a stale render of mine" from "a file someone edited" you do NOT need
+to INFER provenance from git blame / timestamps (S136 rejected that as *inventing* provenance). You
+RECORD it: `fleet::render_subagent_definition` writes a `vajra-render-sha: <hex>` stamp as the LAST
+frontmatter line, where `hex = sha256` of the render with that one stamp line removed. Then
+`strip_render_stamp(stamp_render(x)) == x` exactly (split/join on `\n`, drop the first stamp line), so
+`render_stamp_verifies` re-hashes the on-disk body-minus-stamp and compares to the embedded stamp — a
+pure, deterministic function of the bytes, no clock, no history. An untouched older render verifies
+(→ `FleetFileState::StaleRender`, auto-upgraded); an edit or unstamped file does not (→ `Drifted`,
+refused). This is recorded-at-source vs inferred-after-the-fact — a real distinction, not a walk-back.
+
+**Placement is load-bearing, twice.** The stamp goes in the YAML frontmatter as an UNKNOWN key: Claude
+Code's subagent loader reads only `name`/`description`/`tools`/`model` and STRIPS the frontmatter before
+handing the body to the model. So the stamp is inert both ways — the loader ignores it (dispatch-by-name
+rides `name:`, untouched) and it never becomes a prompt token. A body comment was REJECTED for exactly
+this: CC feeds the body to the model, so a comment would perturb the role. **But inertness is proven by
+PLACEMENT, not a live dispatch — "CC ignores an unknown frontmatter key" stays an untested assumption**
+(fidelity rec 2), a known risk if a future CC surfaces unknown keys.
+
+**Two honest limits, disclosed not dressed up (DECISION-007 S141 addendum):** (1) every pre-S141 install
+(chitra's 4 stale renders) is UNSTAMPED → `Drifted` on first contact → its FIRST upgrade still needs one
+`--overwrite-drifted` (which writes the first stamp); smoothness is **going-forward, not retroactive**.
+(2) The stamp is a content HASH, not a keyed SIGNATURE — a fixed point of Vajra's own render+hash that
+any identical render reproduces and a user could forge by hand: tamper-EVIDENT, not tamper-PROOF (same
+posture as the DECISION-004 ledger). Enough to auto-upgrade the untouched-render case safely, which is
+the whole job. See `[[vajra-skip-if-present-cannot-update]]` (the S136 limit this closes).

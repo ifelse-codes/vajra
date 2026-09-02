@@ -1,20 +1,28 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-02 · **Session 140 — mandatory NO-CODE Ground Truth (`140 % 5 == 0`) — 🟡 PARTIAL
-PASS.** All 12 required audits run live. **Discipline 🟢** — `stranger-check.sh` 21/21 · `scaffold-drift.sh`
-17/17 · `cargo fmt --check` clean (the S96/S136 recurring debt is gone) · `--stations` **S137 4/8 → S138
-6/8 → S139 8/8** (first full 8/8 this window). **Direction 🟡 inward** — adoption flat: **0 stars · 0
-forks · 0 issues · 19 downloads** (unchanged since the S130 GT); the S135→S139 arc deepened
-governance-of-governance while nobody outside can be shown to have run it (the S125 "loop is closed"
-finding, one cycle older). **Headline meta-finding (audit 10):** `vajra next --dogfood-age` reports last
-dogfood **S124** while the real ones (S134/137/138) all ran INSIDE chitra — their receipts never enter
-Vajra's git, which is all `--dogfood-age` reads; the instrument was left measuring the OLD dogfood shape
-and now reads stale forever. **Founder: LOW priority, fix someday.** **Founder completeness order (S140
-brainstorm):** (1) fresh-user / upgrade-in-place experience — SOONEST → **S141 LOCKED**; (2) one or two
-chitra dogfoods; (3) prove the loop works even expensively, THEN cut cost (cost = big, after S145); (4)
-dogfood-age gauge = someday. Rung 3 (the multi-day trust run) runs only once building is done. Report:
-`sessions/session-140-ground-truth.md`. See `[[vajra-s140-completeness-priorities]]`. **Next: S141 (CODE).
-Next GT: S145.**
+**Updated:** 2026-09-02 · **Session 141 — CODE: best install + upgrade-in-place — ACCEPT (5 of 6 SHIPPED
+at review → 6/6 at close), attested `69f94543…`.** [x] Every scaffolded fleet role render now carries a
+recorded `vajra-render-sha:` stamp (sha256 of the render minus the stamp line, written at render time);
+`FleetFileState` gains a fourth, now-DERIVABLE state **`StaleRender`**; `vajra init --sync-fleet`
+**auto-upgrades an untouched old render with NO `--overwrite-drifted`** (reported by name + old→new) and
+still **refuses a user edit / unstamped file** unless the human overrides. Closes the S136 "stale-vs-edited
+not derivable" floor by RECORDING the provenance (DECISION-007 S141 addendum), NOT the git-blame/timestamp
+inference S136 rejected. `verify-session-141.sh` **10/10** · `fixture-141` **8/8** (four states vs the real
+binary; RRS/EDT prove the stamp is load-bearing) · 457 lib tests · fmt+clippy clean. Crew: tech-lead FIRST
+bound design-advisor · qa-specialist · fidelity-reviewer required; qa ran a LIVE falsification; the cold
+review judged 3 design-advisor `obeyed:` dispositions `implemented:`. **Honest limits (disclosed):** legacy
+unstamped files (chitra) stay `Drifted` on first contact — first upgrade needs one `--overwrite-drifted`,
+smoothness is going-forward; content hash not a keyed signature (tamper-evident, not tamper-proof); "CC
+ignores an unknown frontmatter key" proven by placement, not a live dispatch; non-fleet scaffold files
+still add-only. Reports: `sessions/session-141-summary.md` + `sessions/session-141-review.md`. **Next: S142
+(pending founder pick — recommended A: chitra dogfood). Next GT: S145.**
+
+**Prior — Updated:** 2026-09-02 · **Session 140 — mandatory NO-CODE Ground Truth — 🟡 PARTIAL PASS.** All
+12 required audits run live (Discipline 🟢: stranger 21/21 · scaffold-drift 17/17 · fmt clean · `--stations`
+8/8). Direction 🟡 inward (0 stars / 19 downloads flat). Headline meta-finding: `--dogfood-age` blind to
+in-chitra dogfoods (LOW, fix someday). Founder completeness order: fresh-user/upgrade first (→ S141, DONE)
+→ chitra dogfoods → prove-then-cut-cost (after S145) → gauge someday. Report:
+`sessions/session-140-ground-truth.md`. See `[[vajra-s140-completeness-priorities]]`.
 
 **Prior — Updated:** 2026-09-02 · **Session 139 — "required" now binds at CLOSE — ACCEPT (5 of 5 SHIPPED),
 attested `5631e7a1…`.** The S138B committed future fix shipped: a `check_required_crew` gate is wired

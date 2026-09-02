@@ -1143,3 +1143,43 @@ PRE-DECLARED, named action — all ten paths listed by name before a byte was wr
 files were tracked and clean in chitra's git, making every refresh reversible by one `git checkout`.
 That reasoning is recorded here because it is a human's call about someone else's repository, and
 the gate checks the FORM of a citation, never whether the design obeys it.
+
+## S141 addendum — the render stamp, and the S136 "not derivable" floor is LIFTED
+
+**Status: ACCEPTED (session 141).** This is an addendum, not a DECISION-008 — it extends the scaffold
+contract this record already locks (`fleet::ROLES` → `render_subagent_definition` →
+`.claude/agents/<name>.md` → `--sync-fleet`), the same shape as S111 through S136. It cashes in the
+fix the S136 addendum pre-declared and scoped to its own session: *"stamp each rendered file with the
+render's own content hash."* Fleet role files only; other scaffold types (the constitution,
+`CONSTRAINTS.yaml`, hooks, the kickoff prompt) stay out of scope — the same stamp pattern can extend
+to them in a later session.
+
+**What reverses.** The S136 addendum's *"Vajra cannot distinguish a STALE RENDER from a USER'S OWN
+EDIT"* floor, and the `FleetFileState` doc comment's *"only three because there can only be three,"*
+are both superseded — not by a better guess, but because the provenance is now RECORDED.
+`render_subagent_definition` emits a `vajra-render-sha: <hex>` line as the LAST frontmatter key, where
+`hex = sha256` of the rendered file with that one stamp line removed. It lives in frontmatter as an
+unknown key so Claude Code's subagent loader ignores it and it never enters the role's system prompt:
+the stamp changes provenance, never behavior (dispatch-by-name rides `name:`, unaffected — asserted by
+test). A body comment was rejected precisely because Claude Code strips frontmatter and feeds the body
+to the model, so a comment would become prompt tokens; an unknown frontmatter key does not.
+
+**The fourth state.** `classify_fleet_file` gains `StaleRender`: the on-disk bytes differ from the
+current render, BUT the on-disk body-minus-stamp re-hashes to its own embedded stamp — proving it is an
+untouched Vajra render of an older version. `vajra init --sync-fleet` auto-upgrades `StaleRender` to
+the current render with NO `--overwrite-drifted` (reporting each upgraded file by name). `Drifted` — no
+stamp, or an embedded stamp that does not verify — keeps the S136 refuse / `--overwrite-drifted` path
+unchanged. The classification stays a pure function of the bytes (unit-tested without a filesystem).
+
+**Why this does NOT reopen the rejected classifier.** S136 rejected INFERRING provenance from git
+blame, commit-message sniffing or timestamps — signals written for other purposes that only correlate
+with "Vajra rendered this." S141 does the opposite: it WRITES a dedicated signal at render time and
+reads it back as a pure, deterministic function of the bytes on disk. No clock, no git history, no
+heuristic. Two limits keep the claim honest and are disclosed here rather than dressed up: (1) every
+pre-S141 install (chitra included) is UNSTAMPED, classifies as `Drifted` on first contact, and still
+needs the human's one `--overwrite-drifted` to receive its first stamp — S141 makes upgrades smooth
+going forward, never retroactively. (2) The stamp is a content hash, not a keyed signature: it proves
+the bytes are a fixed point of Vajra's own render+hash function, which any identical render reproduces
+and which a user could in principle forge by hand. The honest claim is auto-upgrade-safety for the
+untouched-render case — provenance by construction, tamper-EVIDENT not tamper-PROOF, the same posture
+as the DECISION-004 ledger.
