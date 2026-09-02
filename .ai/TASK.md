@@ -41,12 +41,25 @@
 - **Disclosed remainder:** reviewer-independence self-certification (S138B) stays OPEN — ranked
   candidate 1 for S141.
 
-## NEXT: Session 140 — mandatory NO-CODE Ground Truth (`140 % 5 == 0`)
+## Session 140 — mandatory NO-CODE Ground Truth (`140 % 5 == 0`) — COMPLETE
 
-- **GT session.** No code, no commits on its own branch (closeout rides `session-140-closeout`). Run
-  all 12 required audits incl. `stranger_check`, `scaffold_drift_check`, `pipeline_advance_check`,
-  `dogfood_staleness`. Then the founder picks the next CODE session — **candidate 1 = reviewer
-  independence at close** (see ROADMAP "🔭 NEXT-AFTER").
+- **GT session.** All 12 required audits run live. **Lead-lens verdict: 🟡 PARTIAL PASS.** Report:
+  `sessions/session-140-ground-truth.md`. NO CODE, NO PR — closeout on `session-140-closeout`.
+- **Discipline 🟢** (stranger 21/21 · scaffold-drift 17/17 · fmt clean · stations 4→6→8/8). **Direction
+  🟡 inward** — 0 stars / 19 downloads flat / 0 issues; the machinery deepens while nobody outside runs
+  it. **Headline meta-finding (audit 10):** `--dogfood-age` is blind to dogfoods run INSIDE the target
+  repo, so it reports S124 forever — LOW priority per founder ("makes an audit lie, not the product
+  worse"). **Founder completeness order:** fresh-user/upgrade first (S141) → chitra dogfoods → prove-then-
+  cut-cost (after S145) → gauge someday. See `[[vajra-s140-completeness-priorities]]`.
+
+## NEXT: Session 141 — CODE: best install + upgrade-in-place
+
+- Brief: `prompts/141-task-best-install-upgrade.md`. Give the fleet render a recorded `vajra-render-sha`
+  provenance stamp so `vajra init --sync-fleet` can auto-upgrade an untouched old render to the latest
+  while never clobbering a user edit — the fourth, now-DERIVABLE `FleetFileState::StaleRender`, closing
+  the S136 floor. Honest edge: legacy unstamped files (chitra) still need one `--overwrite-drifted` on
+  first contact. tech-lead FIRST + design-advisor + fidelity-reviewer mandatory; close runs
+  `check_required_crew`. **Start in a FRESH chat.** **Next GT: S145.**
 
 ## Session 137 — PAID DOGFOOD: chitra's `scatter` locked to the reference language — COMPLETE
 

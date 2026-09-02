@@ -1,25 +1,22 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 139 — COMPLETE (make "required" bind at CLOSE — the S138B committed future fix).
-  **Verdict: ACCEPT** (cold `fidelity-reviewer`, **5 of 5 SHIPPED**), attested `5631e7a1…`. Reports:
-  `sessions/session-139-summary.md` + `sessions/session-139-review.md`. **Next GT: S140.**
-- **Shipped:** `check_required_crew` in `scripts/verify-closeout.sh` runs the real
-  `vajra next --check-crew N` and BINDS at close — a session cannot close green with the tech-lead's
-  handoff missing or a `required` role's handoff absent (the exact S138B hole: 12/12 green + merged with
-  3 of 4 required roles skipped). Header-guarded, fails-closed on a missing binary,
-  `VAJRA_CLOSEOUT_WAIVER`-honoring, `include_str!`-propagated. All three binary-backed close checks made
-  `set -e`-safe (the bare capture aborted the run on a blocking verdict — this gate is the first whose
-  blocking path is exercised in practice).
-- **Bound on S139 itself:** tech-lead dispatched FIRST marked 3 roles required (design-advisor ·
-  implementation-advisor · fidelity-reviewer); all three produced provenance-verified handoffs; S139's
-  own `verify-closeout.sh` passes `check_required_crew`. `verify-session-139.sh` 7/7 ·
-  `fixture-session-139.sh` 8/8 (deterministic). Cold review named the fixture P2/P3 needle as the
-  fakest green — **fixed in-session** (`3a9852e`, judged by the implementation-advisor). ~350K RAW
-  subagent tokens across 4 roles / 5 dispatches (all named-files briefs).
-- **Disclosed remainder:** reviewer-independence self-certification (S138B) stays OPEN — a well-formed
-  review file passes `check_fidelity_review` regardless of author. Ranked candidate 1 for the next CODE
-  session (S141).
+- **Number:** 140 — COMPLETE (the mandatory NO-CODE Ground Truth, `140 % 5 == 0`). **Lead-lens verdict:
+  🟡 PARTIAL PASS.** All 12 required audits run live. Report: `sessions/session-140-ground-truth.md`.
+  **NO CODE, NO PR** — closeout rides `session-140-closeout`. **Next: S141 (CODE). Next GT: S145.**
+- **Discipline 🟢:** `stranger-check.sh` 21/21 · `scaffold-drift.sh` 17/17 · `cargo fmt --check` clean
+  (S96/S136 debt gone) · `--stations` **S137 4/8 → S138 6/8 → S139 8/8** (first full 8/8).
+- **Direction 🟡 inward:** adoption flat — **0 stars · 0 forks · 0 issues · 19 downloads** (unchanged
+  since the S130 GT). The S135→S139 arc deepened governance-of-governance while nobody outside can be
+  shown to have run it (S125 "loop is closed", one cycle older).
+- **HEADLINE META-FINDING (audit 10):** `vajra next --dogfood-age` reports last dogfood **S124** while
+  the real ones (S134/137/138) all ran INSIDE chitra — their receipts never enter Vajra's git, which is
+  all `--dogfood-age` reads. The instrument was left measuring the OLD dogfood shape and now reads stale
+  forever. **Founder: LOW priority, fix someday** — it makes an audit lie, not the product worse.
+- **The truths the founder acted on:** (1) fresh-user / upgrade experience must be smoothed first →
+  **S141 LOCKED**; (2) prove the loop works even expensively, THEN cut cost (cost = big, after S145);
+  (3) the 5 quiet fleet roles are unproven — a bound dispatch ≠ good advice; (4) Rung 3 runs only once
+  building is done. See `[[vajra-s140-completeness-priorities]]`.
 
 ## Prior Session
 - **Number:** 138 — COMPLETE (THE REAL DOGFOOD: `vajra claude` run INSIDE chitra, governing chitra's
@@ -46,13 +43,16 @@
   ~$8.39). See `[[vajra-required-not-required]]` + ROADMAP "🔧 COMMITTED FUTURE FIX".
 
 ## Next Session
-- **S140 — the mandatory NO-CODE Ground Truth** (`140 % 5 == 0`). **⚠ LAUNCH conventions:** a GT session
-  cannot commit on its own branch — closeout rides `session-140-closeout`. No `src/` edits, no PRs. Run
-  all 12 required audits (incl. `stranger_check`, `scaffold_drift_check`, `pipeline_advance_check`,
-  `dogfood_staleness`, `dogfood_check`) and write `sessions/session-140-ground-truth.md`. Then the
-  founder picks the next CODE session — **candidate 1 = reviewer independence at close** (ROADMAP
-  "🔭 NEXT-AFTER"): bind `check_fidelity_review` to a provenance-verified reviewer handoff whose author
-  is not the closing session's, closing the last self-certification S138B named. **Start in a FRESH chat.**
+- **S141 — CODE: best install + upgrade-in-place** (founder pick at the S140 GT close, completeness
+  priority #1). Prompt: `prompts/141-task-best-install-upgrade.md`. Give the fleet render a recorded
+  `vajra-render-sha` provenance stamp (written at render time) so `vajra init --sync-fleet` gains a
+  fourth, now-DERIVABLE `FleetFileState::StaleRender` and can **auto-upgrade an untouched old Vajra
+  render to the latest** while still **refusing to clobber a user edit** — closing the exact S136 floor
+  ("stale-vs-edited is not derivable"). Honest edge baked in: legacy UNSTAMPED files (chitra) still need
+  one `--overwrite-drifted` on first contact; smoothness is going-forward. tech-lead dispatched FIRST +
+  design-advisor + fidelity-reviewer mandatory; the close runs `check_required_crew`. **Start in a FRESH
+  chat**; the agent creates `session-141-<slug>`. **After S141:** one or two chitra dogfoods (founder
+  plan). **Next GT: S145.**
 
 ### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference

@@ -1,6 +1,22 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-02 · **Session 139 — "required" now binds at CLOSE — ACCEPT (5 of 5 SHIPPED),
+**Updated:** 2026-09-02 · **Session 140 — mandatory NO-CODE Ground Truth (`140 % 5 == 0`) — 🟡 PARTIAL
+PASS.** All 12 required audits run live. **Discipline 🟢** — `stranger-check.sh` 21/21 · `scaffold-drift.sh`
+17/17 · `cargo fmt --check` clean (the S96/S136 recurring debt is gone) · `--stations` **S137 4/8 → S138
+6/8 → S139 8/8** (first full 8/8 this window). **Direction 🟡 inward** — adoption flat: **0 stars · 0
+forks · 0 issues · 19 downloads** (unchanged since the S130 GT); the S135→S139 arc deepened
+governance-of-governance while nobody outside can be shown to have run it (the S125 "loop is closed"
+finding, one cycle older). **Headline meta-finding (audit 10):** `vajra next --dogfood-age` reports last
+dogfood **S124** while the real ones (S134/137/138) all ran INSIDE chitra — their receipts never enter
+Vajra's git, which is all `--dogfood-age` reads; the instrument was left measuring the OLD dogfood shape
+and now reads stale forever. **Founder: LOW priority, fix someday.** **Founder completeness order (S140
+brainstorm):** (1) fresh-user / upgrade-in-place experience — SOONEST → **S141 LOCKED**; (2) one or two
+chitra dogfoods; (3) prove the loop works even expensively, THEN cut cost (cost = big, after S145); (4)
+dogfood-age gauge = someday. Rung 3 (the multi-day trust run) runs only once building is done. Report:
+`sessions/session-140-ground-truth.md`. See `[[vajra-s140-completeness-priorities]]`. **Next: S141 (CODE).
+Next GT: S145.**
+
+**Prior — Updated:** 2026-09-02 · **Session 139 — "required" now binds at CLOSE — ACCEPT (5 of 5 SHIPPED),
 attested `5631e7a1…`.** The S138B committed future fix shipped: a `check_required_crew` gate is wired
 into `scripts/verify-closeout.sh` and runs the real `vajra next --check-crew N`, so a session **cannot
 close green** when the tech-lead is missing a handoff or a role it marked `required` produced none — the
