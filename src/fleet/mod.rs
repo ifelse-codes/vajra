@@ -653,12 +653,33 @@ You may never grade a recommendation YOU made — Vajra refuses a judgment whose
 advisor role being graded, and it re-verifies that your handoff came from a real dispatch before\n\
 accepting any judgment in it.\n";
 
+/// The frontmatter key that carries the render provenance stamp (S141, DECISION-007 S141 addendum).
+/// An UNKNOWN Claude Code frontmatter key on purpose: the subagent loader reads only
+/// `name`/`description`/`tools`/`model` and strips the whole frontmatter block before handing the
+/// body to the model — so the stamp is inert twice over (ignored by the loader, never a prompt
+/// token). Dispatch-by-name rides `name:`, which the stamp does not touch. A body comment was
+/// rejected precisely because it WOULD reach the model as system-prompt text.
+pub const RENDER_STAMP_KEY: &str = "vajra-render-sha:";
+
 /// Render a role as a native Claude Code subagent definition (`.claude/agents/<name>.md`): YAML
-/// frontmatter (`name`, `description`, read-only `tools`) + the system prompt + a short note that
-/// its findings become a Vajra-governed handoff (so the subagent returns a brief, and does NOT try
-/// to author the handoff frontmatter — Vajra owns that). Rendered from the SAME `Role` the handoff
-/// uses — one canonical source, no drift.
+/// frontmatter (`name`, `description`, read-only `tools`, and the S141 provenance stamp) + the
+/// system prompt + a short note that its findings become a Vajra-governed handoff (so the subagent
+/// returns a brief, and does NOT try to author the handoff frontmatter — Vajra owns that). Rendered
+/// from the SAME `Role` the handoff uses — one canonical source, no drift.
+///
+/// S141: the output carries a `vajra-render-sha: <hex>` stamp as its LAST frontmatter line, where
+/// `hex = sha256` of the render with that stamp line removed. `strip_render_stamp` is the exact
+/// inverse of the insertion, which is what makes `FleetFileState::StaleRender` a pure function of the
+/// bytes on disk (DECISION-007 S141 addendum). Shelling out for the hash (via `sha256_hex`) is why
+/// this is no longer a pure `format!` — the same tool-fallback the rest of this module already uses.
 pub fn render_subagent_definition(role: &Role) -> String {
+    stamp_render(&render_subagent_body(role))
+}
+
+/// The UNSTAMPED render — the exact bytes the pre-S141 renderer produced. Kept as its own function
+/// because it is the PREIMAGE the stamp hashes: `stamp_render` inserts the stamp so that removing
+/// the stamp line reproduces THIS string byte-for-byte.
+fn render_subagent_body(role: &Role) -> String {
     format!(
         "---\n\
          name: {name}\n\
@@ -684,6 +705,76 @@ pub fn render_subagent_definition(role: &Role) -> String {
         rule = RECOMMENDATION_NUMBERING_RULE,
         judgment_rule = OBEYED_JUDGMENT_RULE,
     )
+}
+
+/// Insert the `vajra-render-sha:` stamp as the LAST frontmatter line of an unstamped render, where
+/// the hash is sha256 of the whole `unstamped` string. The key invariant, relied on by
+/// `classify_fleet_file`: `strip_render_stamp(stamp_render(x)) == x` for any well-formed render — the
+/// stamp is inserted just before the closing frontmatter fence and nothing else moves. `pub` so tests
+/// can build a stamped older-version fixture the same way the real renderer does (no retyped copy).
+///
+/// If no sha tool is on the machine, `sha256_hex` returns `None`; the stamp becomes `unavailable`,
+/// which never re-verifies — so such a file falls to `Drifted` (refuse) rather than being wrongly
+/// auto-upgraded. The conservative fail-safe, not a silent pass.
+pub fn stamp_render(unstamped: &str) -> String {
+    let hex = sha256_hex(unstamped.as_bytes()).unwrap_or_else(|| "unavailable".to_string());
+    match unstamped.split_once("\n---\n") {
+        // Reinsert the stamp just before the CLOSING frontmatter fence (the first `\n---\n`, which
+        // sits after the `tools:` line) so it lands last in the frontmatter and never in the body.
+        Some((frontmatter, rest)) => {
+            format!("{frontmatter}\n{RENDER_STAMP_KEY} {hex}\n---\n{rest}")
+        }
+        // No frontmatter fence at all — keep the function total; such a render is never scaffolded.
+        None => format!("{unstamped}\n{RENDER_STAMP_KEY} {hex}\n"),
+    }
+}
+
+/// Remove the `vajra-render-sha:` stamp line, returning the preimage the stamp was computed over —
+/// the exact inverse of the insertion in `stamp_render`. Drops the FIRST line whose trimmed start is
+/// `RENDER_STAMP_KEY` (the stamp lives in the frontmatter, which comes first) and nothing else;
+/// `split('\n')`/`join('\n')` preserves the original line structure including a trailing newline. A
+/// file with no stamp line is returned unchanged.
+pub fn strip_render_stamp(content: &str) -> String {
+    let mut removed = false;
+    content
+        .split('\n')
+        .filter(|line| {
+            if !removed && line.trim_start().starts_with(RENDER_STAMP_KEY) {
+                removed = true;
+                false
+            } else {
+                true
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// The hex value of the embedded `vajra-render-sha:` stamp, if present. Only the FRONTMATTER block is
+/// searched (the text before the closing `---` fence), so a body line that merely starts with the key
+/// cannot impersonate the stamp.
+pub fn extract_render_stamp(content: &str) -> Option<String> {
+    let after_fm = content.strip_prefix("---\n")?;
+    let close = after_fm.find("\n---\n")?;
+    after_fm[..close]
+        .lines()
+        .find_map(|l| l.trim_start().strip_prefix(RENDER_STAMP_KEY))
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
+}
+
+/// True iff `content` carries a `vajra-render-sha:` stamp AND its body-minus-stamp re-hashes to that
+/// stamp — i.e. these bytes are an UNTOUCHED Vajra render (of some version), not a hand-edit. The
+/// pure core of `FleetFileState::StaleRender`. It shells out for sha256 (same tool-fallback as
+/// `sha256_hex`), but given a fixed input it is deterministic and touches no filesystem, so
+/// `classify_fleet_file` stays a pure function the tests drive without a tempdir (as before S141).
+pub fn render_stamp_verifies(content: &str) -> bool {
+    let embedded = match extract_render_stamp(content) {
+        Some(h) => h,
+        None => return false,
+    };
+    let preimage = strip_render_stamp(content);
+    matches!(sha256_hex(preimage.as_bytes()), Some(h) if h == embedded)
 }
 
 /// The `## Handoff Delta` body: what this handoff adds relative to the PRIOR stage. A first handoff
@@ -1530,6 +1621,94 @@ mod tests {
             assert!(def.contains(&format!(".ai/handoffs/session-<NN>-{}.md", role.name)));
             assert!(def.contains(&format!("vajra next --role {} --from", role.name)));
         }
+    }
+
+    /// S141 criterion 1, PER ROLE: every rendered definition carries a `vajra-render-sha:` stamp
+    /// that round-trips (the embedded hash = sha256 of the render minus the stamp line), and the
+    /// stamp is PLACED where Claude Code ignores it — inside the frontmatter block, never in the
+    /// model-visible body. Asserts placement, not mere presence (the acceptance bar), and that
+    /// dispatch-by-name is untouched.
+    #[test]
+    fn render_stamp_round_trips_and_is_inert_for_every_role() {
+        for role in ROLES {
+            let def = render_subagent_definition(role);
+
+            // Round-trip: the embedded stamp re-derives from the body with the stamp line removed.
+            let embedded = extract_render_stamp(&def).unwrap_or_else(|| {
+                panic!("{}: no vajra-render-sha stamp on a fresh render", role.name)
+            });
+            let rehashed = sha256_hex(strip_render_stamp(&def).as_bytes())
+                .expect("sha256 tool must exist to run these tests");
+            assert_eq!(
+                embedded, rehashed,
+                "{}: embedded stamp does not equal sha256(body-minus-stamp)",
+                role.name
+            );
+            assert!(
+                render_stamp_verifies(&def),
+                "{}: render_stamp_verifies is false on a fresh render",
+                role.name
+            );
+
+            // Placement, not presence: the stamp sits INSIDE the frontmatter block; the body Claude
+            // Code hands the model (everything after the closing fence) does NOT carry it.
+            let after_open = def
+                .strip_prefix("---\n")
+                .expect("render starts with frontmatter");
+            let close = after_open
+                .find("\n---\n")
+                .expect("render has a closing frontmatter fence");
+            let frontmatter = &after_open[..close];
+            let body = &after_open[close + 5..];
+            assert!(
+                frontmatter.contains(RENDER_STAMP_KEY),
+                "{}: stamp is not in the frontmatter block",
+                role.name
+            );
+            assert!(
+                !body.contains(RENDER_STAMP_KEY),
+                "{}: stamp leaked into the model-visible body — it could perturb the role",
+                role.name
+            );
+            // Dispatch-by-name is unaffected: `name:` still resolves in the frontmatter.
+            assert!(
+                frontmatter.contains(&format!("name: {}", role.name)),
+                "{}: name: missing from frontmatter — dispatch-by-name would break",
+                role.name
+            );
+        }
+    }
+
+    /// The stamp helpers are exact inverses, and verification is falsifiable: a hand-edit or an
+    /// unstamped file must NOT verify. This is the load-bearing property behind `StaleRender` — a
+    /// stamp is not a free pass, it must actually re-hash.
+    #[test]
+    fn strip_render_stamp_is_the_exact_inverse_and_verification_is_falsifiable() {
+        let unstamped = "---\nname: x\ndescription: d\ntools: Read, Grep, Glob\n---\n\nbody line\n";
+        let stamped = stamp_render(unstamped);
+
+        assert_ne!(stamped, unstamped, "stamping must change the bytes");
+        assert!(
+            stamped.contains(RENDER_STAMP_KEY),
+            "the stamp line must be present"
+        );
+        assert_eq!(
+            strip_render_stamp(&stamped),
+            unstamped,
+            "strip_render_stamp must reproduce the unstamped preimage exactly"
+        );
+
+        // A fresh stamp verifies; a hand-edit of the body breaks it; an unstamped file never verifies.
+        assert!(render_stamp_verifies(&stamped));
+        let edited = stamped.replace("body line", "the user edited this");
+        assert!(
+            !render_stamp_verifies(&edited),
+            "a hand-edit must break verification — else StaleRender would swallow user edits"
+        );
+        assert!(
+            !render_stamp_verifies(unstamped),
+            "an unstamped file must not verify (every pre-S141 install)"
+        );
     }
 
     /// S122 fix 3, the CONTENT half. Each registered role must render a phrase unique to its own
