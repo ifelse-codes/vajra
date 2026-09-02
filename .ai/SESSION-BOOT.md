@@ -1,10 +1,31 @@
 # Session Boot
 
 ## Current Session
+- **Number:** 139 — COMPLETE (make "required" bind at CLOSE — the S138B committed future fix).
+  **Verdict: ACCEPT** (cold `fidelity-reviewer`, **5 of 5 SHIPPED**), attested `5631e7a1…`. Reports:
+  `sessions/session-139-summary.md` + `sessions/session-139-review.md`. **Next GT: S140.**
+- **Shipped:** `check_required_crew` in `scripts/verify-closeout.sh` runs the real
+  `vajra next --check-crew N` and BINDS at close — a session cannot close green with the tech-lead's
+  handoff missing or a `required` role's handoff absent (the exact S138B hole: 12/12 green + merged with
+  3 of 4 required roles skipped). Header-guarded, fails-closed on a missing binary,
+  `VAJRA_CLOSEOUT_WAIVER`-honoring, `include_str!`-propagated. All three binary-backed close checks made
+  `set -e`-safe (the bare capture aborted the run on a blocking verdict — this gate is the first whose
+  blocking path is exercised in practice).
+- **Bound on S139 itself:** tech-lead dispatched FIRST marked 3 roles required (design-advisor ·
+  implementation-advisor · fidelity-reviewer); all three produced provenance-verified handoffs; S139's
+  own `verify-closeout.sh` passes `check_required_crew`. `verify-session-139.sh` 7/7 ·
+  `fixture-session-139.sh` 8/8 (deterministic). Cold review named the fixture P2/P3 needle as the
+  fakest green — **fixed in-session** (`3a9852e`, judged by the implementation-advisor). ~350K RAW
+  subagent tokens across 4 roles / 5 dispatches (all named-files briefs).
+- **Disclosed remainder:** reviewer-independence self-certification (S138B) stays OPEN — a well-formed
+  review file passes `check_fidelity_review` regardless of author. Ranked candidate 1 for the next CODE
+  session (S141).
+
+## Prior Session
 - **Number:** 138 — COMPLETE (THE REAL DOGFOOD: `vajra claude` run INSIDE chitra, governing chitra's
   own `heatmap`-lock from the inside — the S137 correction shipped). **Verdict: ACCEPT** (cold
   `fidelity-reviewer`, **4 of 5 SHIPPED · 1 PARTIAL**), attested `840e64d9…`. Reports:
-  `sessions/session-138-summary.md` + `sessions/session-138-review.md`. **Next GT: S140.**
+  `sessions/session-138-summary.md` + `sessions/session-138-review.md`.
 - **Governance USED from inside chitra (the honest yes):** SessionStart boot · **tech-lead dispatched
   FIRST**, unprompted · **copilot-loader hook BLOCKED the first commit (exit 2)** until STATE was
   surfaced · commit-guard gated on the launch marker `VAJRA_ALLOW_COMMIT=18` · fidelity-reviewer
@@ -25,11 +46,13 @@
   ~$8.39). See `[[vajra-required-not-required]]` + ROADMAP "🔧 COMMITTED FUTURE FIX".
 
 ## Next Session
-- **S139 — PICKED (founder):** `prompts/139-task-required-crew-at-close.md`. **CODE.** Wire a
-  `check_required_crew` into `scripts/verify-closeout.sh` that runs `vajra next --check-crew N` and
-  BINDS — so a session cannot close green with a tech-lead-`required` role's handoff missing. Mirror
-  `check_obeyed_judgments`; bind on S139 itself; propagate via `include_str!`. **Start in a FRESH chat.
-  Next GT: S140.**
+- **S140 — the mandatory NO-CODE Ground Truth** (`140 % 5 == 0`). **⚠ LAUNCH conventions:** a GT session
+  cannot commit on its own branch — closeout rides `session-140-closeout`. No `src/` edits, no PRs. Run
+  all 12 required audits (incl. `stranger_check`, `scaffold_drift_check`, `pipeline_advance_check`,
+  `dogfood_staleness`, `dogfood_check`) and write `sessions/session-140-ground-truth.md`. Then the
+  founder picks the next CODE session — **candidate 1 = reviewer independence at close** (ROADMAP
+  "🔭 NEXT-AFTER"): bind `check_fidelity_review` to a provenance-verified reviewer handoff whose author
+  is not the closing session's, closing the last self-certification S138B named. **Start in a FRESH chat.**
 
 ### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference

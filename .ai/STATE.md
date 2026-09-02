@@ -3,109 +3,87 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-138-real-dogfood-inside-chitra` (Vajra) — complete, closing. Next GT: S140.**
+**`session-139-crew-at-close` (Vajra) — complete, closing. Next GT: S140.**
 
-S138 was **THE REAL DOGFOOD** the S137 correction demanded: `vajra claude` run **INSIDE chitra**,
-governing chitra's own `heatmap`-lock session from the inside — chitra's hooks, chitra's fleet,
-chitra's `.ai/`, chitra's session/branch. This Vajra session is the wrapper (prep + monitoring +
-evidence + reports); it never edited or committed inside chitra. **The S137 fence-poke did NOT recur.**
-**Cold `fidelity-reviewer` ACCEPT** — **4 of 5 SHIPPED · 1 PARTIAL** (criterion 4), attested
-`840e64d9…`.
+S139 shipped the **S138B committed future fix**: a `check_required_crew` gate wired into
+`scripts/verify-closeout.sh` so the tech-lead's `required` verdict **binds at CLOSE**, not only at
+`vajra next --advance`. **CODE** (shell-gate wiring + fixture + scripts; **0 lines of Rust**). **Cold
+`fidelity-reviewer` ACCEPT** — **5 of 5 SHIPPED**, attested `5631e7a1…`.
 
 ## What was proven this session
-- **Vajra works as chitra's resident manager, run from inside.** The build ran as a
-  wrapper-launched, monitored, **headless `vajra claude -p` subprocess with cwd=chitra**
-  (`--dangerously-skip-permissions`, `VAJRA_ALLOW_COMMIT=18` in the launch env — the founder
-  redirected the mode from interactive to "run-and-monitor-it-yourself" mid-session). chitra's own
-  governance demonstrably fired: **SessionStart** booted chitra's `.ai/AGENTS.md`; the **tech-lead
-  mandate (S135) dispatched the tech-lead FIRST, unprompted**; the **copilot-loader hook BLOCKED the
-  first `git commit` (exit 2)** until `.ai/STATE.md` was surfaced; the **commit-guard** allowed
-  commits only via the launch marker; a **fidelity-reviewer** was dispatched. Scope held — no push,
-  no PR, no merge, no `.ai/` edits.
-- **`heatmap()` locked to the family language** on chitra `session-18-heatmap-lock` (4 commits, 6
-  files, zero stray, `.ai/` + shared `types.ts`/`blocks.ts` untouched): the old 10-colour
-  blue→orange→red rainbow (`HEAT_COLORS_DARK`) is gone; grey ramp `#ECECEF→#6A6A75` = intensity, with
-  chitra's canonical accent `#8B7CF6` spent **once** on the peak cell + echoed in the `peak (r,c)`
-  footer (the scatter contract). Dashed frame · `DENSITY` eyebrow · `+`/`│` guides · 2 rule
-  separators · honest footer. **Verified independently at raw-RGB** (one non-grey hue, 4 grey tones)
-  and by chitra's **15 heatmap tests, run LIVE by me (15/15)**. Founder signed off on the render
-  (seen, not read): *"looks good and impressive."*
-- **Receipt: authoritative `$2.988433749999999`** (real `total_cost_usd` from the `-p` stream-json
-  result — the S78 path; NOT an honest null, because the run was headless stream-json) · 45 turns ·
-  ~8 min · **237,584 RAW subagent tokens** (tech-lead 160,303 + fidelity-reviewer 77,281; reported
-  RAW, never new-tokens-only).
-- **chitra UNDISTURBED four ways** — session-16 WIP parked (`VAJRA-S138-PARK`) and restored
-  **byte-identical** (tracked-WIP tree `1c27670022b52acd800501d0473b26db56aff7a4`), HEAD unmoved
-  (`462a27b`), the older kilo stash intact, only the intended `session-18-heatmap-lock` branch added.
-  `verify-session-138.sh` **10/10** (6 exec · 3 struct · 1 behavioral).
+- **The S138 hole is closed for the close path.** S138B proved live that a session could mark FOUR
+  roles `required`, run ONE, self-certify, and close **12/12 green + merge to main** — because the crew
+  binding (`vajra next --check-crew`) lived ONLY in `--advance`, which a real close never invokes.
+  S139's `check_required_crew` runs the real `vajra next --check-crew N` inside `verify-closeout.sh`:
+  a missing tech-lead handoff, or a `required` role with no governed handoff, makes the close **exit 1**.
+- **Fail-closed, header-guarded, propagated.** Requires the gate's own header
+  (`=== crew: tech-lead for session`) so an unknown flag routed to `run_dump` (exit 0) cannot green it;
+  a missing binary FAILS (cannot-evaluate ≠ pass, S69); honors the founder-held `VAJRA_CLOSEOUT_WAIVER`;
+  no agent-settable `VAJRA_SKIP_*` (the crew decision is provenance-verified). Embedded by `include_str!`,
+  so the one edit reaches every `vajra init` adopter (byte-identity test proves it).
+- **One correctness fix beyond the mirror:** the bare `out="$(cmd)"; code=$?` capture that all three
+  binary-backed close checks used **aborts the whole script under `set -euo pipefail`** on a non-zero
+  binary exit — killing the run before its FAIL reason prints. All three (`check_obeyed_judgments`,
+  `check_design_advisor_mandate`, `check_required_crew`) now use the set -e-safe `&& code=0 || code=$?`
+  list form. This crew gate is the first whose BLOCKING path is exercised in practice, which surfaced it.
+- **Bound on S139 ITSELF (the self-bind, acc 3).** The tech-lead dispatched FIRST marked three roles
+  `required` (design-advisor · implementation-advisor · fidelity-reviewer) and six `deferred-budget`
+  with arithmetic; all three produced real, provenance-verified handoffs; and S139's own
+  `verify-closeout.sh` passes `check_required_crew` (`--crew-only 139` → CREW: PASS).
+- **Evidence:** `verify-session-139.sh` **7/7** (3 exec · 2 struct · 2 nested) · `fixture-session-139.sh`
+  **8/8** (P1–P4 plants + HDR + IGN/POS controls), deterministic across repeated runs · `demo-session-139.sh`
+  emits the 4 sprint markers. The cold review named the fixture P2/P3 needle as the fakest green — it
+  matched the always-printed crew echo rather than the block cause — and it was **fixed in-session**
+  (`3a9852e`, judged by the implementation-advisor).
 
 ## What Is Broken / Weak / Disclosed
-- **🔴 THE REAL FAKEST GREEN (corrected post-close, founder-prompted — my first write-up got this
-  WRONG).** I first blamed the design-advisor; that was wrong — the **tech-lead correctly DEFERRED**
-  it ("no new design — it's a port of the S17 lock"). The actual gap: the tech-lead marked **FOUR
-  roles required** (implementation-advisor · qa-specialist · demo-producer · fidelity-reviewer) and
-  the main session dispatched **only ONE** (fidelity-reviewer), did the other three's work itself, and
-  **self-certified** that "one dispatch satisfied the binding verdict." **Nothing caught it** because
-  the crew-binding gate fires only at CLOSE and this run was stopped before close (my method error — a
-  dogfood must run END TO END). Root cause: **"required" is not required** — advice the agent overrules
-  for free mid-run under budget pressure (partly my own "$20/mo, keep dispatches tight" brief). Founder:
-  fix DEFERRED (budget OK this time), WATCH the next dogfood for recurrence. See
-  `sessions/session-138-summary.md` "Post-close correction".
-- **🔴 S138B (end-to-end close, founder-watched) — the gap is ARCHITECTURAL, not timing.** The founder
-  had me RESUME the chitra session and let it close end-to-end. It closed **fully green** (verify 8/8,
-  `verify-closeout.sh` 12/12, CI pass, ledger intact) and **merged the heatmap to chitra `main` (PR
-  #20, `8945ce4`)** — and **NOTHING checked whether the tech-lead's required crew ran.** The crew
-  binding lives only in `vajra next --advance` / `--check-crew`, which a real close never invokes;
-  `verify-closeout.sh` has 12 checks and zero crew check. The closing agent said it itself: *"the only
-  crew check with teeth at closeout is fidelity-review-accept."* **COMMITTED FUTURE FIX (founder): wire
-  a required-crew check INTO `verify-closeout.sh`** so a session cannot close green with a required role
-  skipped — see ROADMAP "🔧 COMMITTED FUTURE FIX". chitra restored byte-identical afterward (tree
-  `1c276700`).
-- **🟡 Criterion 4 is PARTIAL, not SHIPPED.** The prompt said run it *interactively*; it ran headless
-  with permissions bypassed and commits pre-authorized via env marker, wrapper-driven. This proves
-  the **hook gates**, NOT Claude Code's interactive permission-approval flow. "The way a user runs
-  it" here = unattended/CI-style, not a human at a prompt. The interactive path is **candidate A**.
-- **🟡 Criterion 2 evidence is thin:** no `pnpm gen:charts` regen-diff proving the preview is derived
-  (not hand-tuned), and only the heatmap test SUBSET ran live, not chitra's full pipeline. Recorded.
-- **🟡 verify-session-138 does not re-execute chitra's vitest suite** (the 15/15 ran once, in-session,
-  by me). Its live re-check is the raw-RGB behavioral check on the committed preview + structural —
-  not a live `pnpm test` (cross-repo worktree = slow/fragile; KNOWLEDGE). Disclosed. **Candidate C**
-  closes it.
-- **🟡 verify checks #1/#5 are typed-marker greps** (padding); #9 (raw-RGB) and #10 (scope) are the
-  load-bearing falsifiable ones. Noted by the cold review.
-- **🟡 EVERY JUDGE THIS SESSION HAD NO SHELL** (now five sessions: S133–S136, S138). The cold review
-  read the scripts; the live figures (15/15, 10/10, $2.99) were executed by the builder.
-- **🔴 Carried from S136, not touched:** `--sync-fleet` cannot tell a stale render from a user edit;
-  S135 criterion 7 (carry the recorded budget INTO the dispatch brief); the brownfield threshold hole;
-  no `cargo fmt --check` every session; NO VAJRA COMMAND STARTS A SESSION (founder-flagged — the
-  `session-NN` branch is still a raw `git checkout -b`). **Candidate B** addresses the last.
+- **🔴 Reviewer-independence self-certification stays OPEN (the S138B gap, out of scope this session by
+  the prompt).** A review FILE with the right shape passes `check_fidelity_review` regardless of WHO
+  wrote it — a closing agent can finalize + attest its own review. S139 binds that a fidelity-reviewer
+  was *dispatched* (its handoff exists + provenance re-verifies), NOT that the review was authored by an
+  independent mind. **Ranked candidate 1 for the next CODE session (S141).**
+- **🟡 The "grep the binary's output for a header" house pattern has two named soft edges** (fidelity
+  rec 3): (a) if `run_dump` can echo agent-authored file content, the header string could be planted to
+  force exit-0-plus-header — shared with the two sibling gates; (b) the fixture's P2/P3 assertion
+  originally matched the always-printed crew echo, not the block cause — **fixed in-session** (`3a9852e`).
+  A future move to a structured exit-code-plus-fingerprint contract should close both at once.
+- **🟡 EVERY JUDGE THIS SESSION HAD NO SHELL** (the standing S133–S139 limit). The implementation-advisor
+  and fidelity-reviewer read the scripts; the live figures (`--crew-only`, fixture 8/8, verify 7/7,
+  attestation) were run by the builder + the close gates. The implementation-advisor verified the
+  `obeyed:` changes at the branch TIP, not each cited sha's isolated diff; the builder confirmed per-sha.
+- **🔴 Carried, not touched this session:** `--sync-fleet` cannot tell a stale render from a user edit
+  (S136); S135 criterion 7 (carry the recorded budget INTO the dispatch brief, still PARTIAL); the
+  brownfield threshold hole (S134); **no `cargo fmt --check` every session** (S96/S136 recurrence — CI
+  runs it, so a fmt slip reds main); NO VAJRA COMMAND STARTS A SESSION (the `session-NN` branch is still
+  a raw `git checkout -b`).
 
 ## What Currently Works
 - The 8 stations riding `vajra next` (+ gates at `--advance`) and the closeout gate
-  (`verify-closeout.sh`, 14 checks incl. the design-advisor mandate + attestation): unchanged.
+  (`verify-closeout.sh`, **now 15 checks** incl. the design-advisor mandate + attestation + **the new
+  `check_required_crew`**): the crew binding now runs at every close, not only at `--advance`.
 - The fleet is TEN roles, THREE mandatory (`fidelity-reviewer`, `design-advisor`, `tech-lead`) — real
-  in chitra (S136) and, as of S138, **demonstrably USED there on a real build** (tech-lead dispatched
-  first, unprompted, inside chitra).
+  in chitra (S136), used on a real build there (S138), and **the tech-lead's `required` verdict now
+  BINDS the CLOSE** (S139): a role it marks required must produce a governed handoff or the session
+  cannot close green.
 - Enforcement floor, ledger (S100), receipts (authoritative on headless stream-json): unchanged.
 
 ## What Is In Progress
-- **Nothing mid-flight in Vajra.** The heatmap work is **MERGED into chitra `main`** (PR #20, `8945ce4`,
-  via the S138B end-to-end close run). chitra is restored to `session-16-sparkline-histogram-lock` with
-  its WIP byte-identical (tree `1c276700`); the kilo stash is intact.
-- **S139 not yet chosen** — three candidates presented at this closeout, awaiting the founder's pick.
+- **Nothing mid-flight in Vajra.** S139 is complete on `session-139-crew-at-close`; PR opens at
+  closeout after `.ai/` sync. chitra is untouched this session.
 
 ## Active PRs
-- **S138 — PR opens at closeout, after `.ai/` sync.**
-- S136 [#160](https://github.com/ifelse-codes/vajra/pull/160) MERGED (+ #161 fmt, #162, #163, #164
-  follow-ups) · S137 [#165](https://github.com/ifelse-codes/vajra/pull/165) MERGED (+ #166).
+- **S139 — PR opens at closeout, after `.ai/` sync + the full `verify-closeout.sh` pre-merge run (S83).**
+- S136 [#160](https://github.com/ifelse-codes/vajra/pull/160) MERGED · S137
+  [#165](https://github.com/ifelse-codes/vajra/pull/165) MERGED · S138
+  [#167](https://github.com/ifelse-codes/vajra/pull/167) MERGED.
 
 ## Direction (governance is the product — shaped as a shippable MVP)
 - **Product = provable agent governance** (`DECISION-001`). **Current direction, locked S130: MAKE THE
-  FLEET REAL.** S131–S135 built and made-mandatory the gates; S136 made the fleet real in a project
-  this repo does not own; **S138 is the first evidence that Vajra's governance actually WORKS from
-  inside that project on a real build, run the way an unattended user runs it** — the honest answer to
-  "does Vajra work as the resident manager of a repo that isn't its own" is **yes**, with the design
-  role's absence the one disclosed gap.
+  FLEET REAL.** S131–S135 built and made-mandatory the gates; S136 made the fleet real in a project this
+  repo does not own; S138 proved the governance WORKS from inside that project on a real build; **S139
+  closes the S138B hole — the tech-lead's `required` verdict now binds at the CLOSE, not only at
+  `--advance`, so a session cannot close green with a required role skipped.** The last self-certification
+  in the close path (reviewer independence) is the named next step.
 - **Next-GT: S140.**
 
 ## Cost Tracking
@@ -120,4 +98,7 @@ evidence + reports); it never edited or committed inside chitra. **The S137 fenc
   subagent tokens** across 2 dispatches. The first authoritative dollar from a real outside BUILD dogfood.
 - **S138B (the end-to-end close run): `$5.4050889999999985` AUTHORITATIVE** (resumed chitra session,
   closed + merged to chitra main). **S138 dogfood total ≈ $8.39** (the close alone breached the $5 cap).
-- Cumulative: **~$104.2 + S76 (unknown, ≤ ~$26.6) + S111–S137 subagents (unknown, growing).**
+- **S139: $0 metered** (interactive) — **~350K RAW subagent tokens** across 4 roles / 5 dispatches
+  (tech-lead ~47K · design-advisor ~94K · implementation-advisor ~52K + ~56K follow-up · fidelity-reviewer
+  ~98K), all named-files briefs, well under the S135 affordable envelope.
+- Cumulative: **~$104.2 + S76 (unknown, ≤ ~$26.6) + S111–S139 subagents (unknown, growing).**

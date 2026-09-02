@@ -23,13 +23,30 @@
   the tech-lead correctly deferred.) Reports: `sessions/session-138-summary.md` +
   `sessions/session-138-review.md`. **Next GT: S140.**
 
-## NEXT: Session 139 — make "required" bind at CLOSE (founder pick at the S138 close)
+## Session 139 — make "required" bind at CLOSE — COMPLETE
 
-- **Read prompt:** `prompts/139-task-required-crew-at-close.md`. **CODE.** Start in a FRESH chat.
-- Wire a `check_required_crew` into `scripts/verify-closeout.sh` that runs `vajra next --check-crew N`
-  and BINDS — so a session cannot close green with a tech-lead-`required` role's handoff missing (the
-  exact gap S138B proved live). Mirror `check_obeyed_judgments`; make it bind on S139 itself; propagate
-  via `include_str!`. **Next GT: S140.**
+- Brief: `prompts/139-task-required-crew-at-close.md`. **ACCEPT** (cold `fidelity-reviewer`, **5 of 5
+  SHIPPED**), attested `5631e7a1…`. Reports: `sessions/session-139-summary.md` +
+  `sessions/session-139-review.md`. **CODE** (shell-gate wiring + fixture + scripts, 0 Rust).
+- **Shipped:** `check_required_crew` in `scripts/verify-closeout.sh` runs the real
+  `vajra next --check-crew N` and BINDS — a session cannot close green with the tech-lead's handoff
+  missing or a `required` role's handoff absent (the S138B hole, closed for the close path). Header
+  guard against a `run_dump` exit-0 false green; fails closed on a missing binary; honors
+  `VAJRA_CLOSEOUT_WAIVER`; propagates to adopters via `include_str!`. All three binary-backed close
+  checks made `set -e`-safe (a blocking verdict aborted the run before printing its FAIL reason).
+- **Bound on S139 itself:** tech-lead dispatched FIRST marked 3 roles `required` (design-advisor ·
+  implementation-advisor · fidelity-reviewer); all produced provenance-verified handoffs; S139's own
+  `verify-closeout.sh` passes the new gate. Fixture 8/8 (deterministic), verify 7/7. Cold review named
+  the P2/P3 needle as the fakest green — **fixed in-session** (`3a9852e`).
+- **Disclosed remainder:** reviewer-independence self-certification (S138B) stays OPEN — ranked
+  candidate 1 for S141.
+
+## NEXT: Session 140 — mandatory NO-CODE Ground Truth (`140 % 5 == 0`)
+
+- **GT session.** No code, no commits on its own branch (closeout rides `session-140-closeout`). Run
+  all 12 required audits incl. `stranger_check`, `scaffold_drift_check`, `pipeline_advance_check`,
+  `dogfood_staleness`. Then the founder picks the next CODE session — **candidate 1 = reviewer
+  independence at close** (see ROADMAP "🔭 NEXT-AFTER").
 
 ## Session 137 — PAID DOGFOOD: chitra's `scatter` locked to the reference language — COMPLETE
 

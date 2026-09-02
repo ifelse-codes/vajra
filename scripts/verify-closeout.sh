@@ -345,7 +345,11 @@ check_obeyed_judgments() {
     return
   fi
   local out code
-  out="$("$BIN" next --check-obeyed "$N" 2>&1)"; code=$?
+  # set -e-safe capture (S139): a bare `out="$(cmd)"; code=$?` ABORTS the script under `set -e` the
+  # instant the binary exits non-zero (a command-substitution assignment is a simple command) — which
+  # on this gate's own BLOCKING path would kill the run before the FAIL reason and summary print. The
+  # `&& code=0 || code=$?` list suppresses `set -e` for this one line while binding the real status.
+  out="$("$BIN" next --check-obeyed "$N" 2>&1)" && code=0 || code=$?
   echo "$out" >> "$LOG"
   echo "exit=$code" >> "$LOG"
   # rec 10, second half: an UNRECOGNISED flag falls through to `run_dump()` and exits 0, so a
@@ -404,7 +408,10 @@ check_design_advisor_mandate() {
     return
   fi
   local out code
-  out="$("$BIN" next --check-design-handoff "$N" 2>&1)"; code=$?
+  # set -e-safe capture (S139): see check_obeyed_judgments — the bare form aborts the script on a
+  # non-zero binary exit (this gate's blocking path) before the FAIL reason prints. The list form
+  # binds the real status without tripping `set -e`.
+  out="$("$BIN" next --check-design-handoff "$N" 2>&1)" && code=0 || code=$?
   echo "$out" >> "$LOG"
   echo "exit=$code" >> "$LOG"
   # An UNRECOGNISED `vajra next` flag falls through to `run_dump()` and exits 0 (S132), so a build
@@ -440,6 +447,74 @@ check_design_advisor_mandate() {
   else
     echo "FAIL: dispatch the role and run \`vajra next --role design-advisor --from <findings>\`," >> "$LOG"
     echo "      or record \`design-advisor: skipped — <reason>\` in the session's prompt." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
+# --- Required-crew gate (S139 — the S138 dogfood proved this hole live) ------
+# The Crew gate (src/crew/mod.rs, S135) makes the tech-lead's `required` verdict BIND: a real,
+# provenance-verified tech-lead handoff must exist, and every role it marked `required` must have
+# produced its own real governed handoff. But — exactly like the Obeyed gate above — that binding
+# lived ONLY in `vajra next --advance`, which a real close never invokes. The S138 dogfood ran end
+# to end: its tech-lead marked FOUR roles required, the session ran ONE, self-certified the rest, and
+# closed fully green (verify-closeout 12/12) + MERGED to main, because `verify-closeout.sh` had no
+# crew check at all. That is the S129 "registered != run" hole, on the crew binding. This file is the
+# artifact CLAUDE.md declares the close depends on, so the gate binds here too — the SAME wiring S132
+# gave the Obeyed gate and S133 gave the Mandate gate, one call site each.
+#
+# Runs the REAL binary read-only: `vajra next --check-crew N`. A missing tech-lead handoff, a skipped
+# tech-lead, an unparseable crew decision, or a `required` role with no handoff exits 1 and BLOCKS
+# here. No binary (a stranger's checkout, or before `cargo build`) FAILS — a check that cannot
+# evaluate is not a pass (S69) — behind the same founder waiver as every other check in this file.
+# There is deliberately no `VAJRA_SKIP_*`: the crew decision is provenance-verified, never
+# agent-settable (the src/crew/mod.rs contract), so its close gate cannot carry an agent-set escape.
+check_required_crew() {
+  local NAME="required-crew"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+  local BIN="target/release/vajra"
+  if [ ! -x "$BIN" ]; then
+    echo "BLOCK: $BIN not built — this check cannot evaluate the Crew gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: run \`cargo build --release\` so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  local out code
+  # set -e-safe capture: a bare `out="$(cmd)"; code=$?` ABORTS the whole script the instant the
+  # binary exits non-zero (a command-substitution assignment is a simple command under `set -e`), so
+  # a BLOCKING crew verdict would kill the run before this function could print its FAIL reason — and
+  # the S122 fixture must SEE that reason. The `&& code=0 || code=$?` list suppresses `set -e` for
+  # this one line while binding `code` to the real exit status either way. This gate is the first
+  # whose blocking path is exercised in practice, which is how the latent bug surfaced; the two
+  # sibling binary-backed checks (check_obeyed_judgments / check_design_advisor_mandate) were hardened
+  # the same way in this session so their own blocking paths report cleanly too.
+  out="$("$BIN" next --check-crew "$N" 2>&1)" && code=0 || code=$?
+  echo "$out" >> "$LOG"
+  echo "exit=$code" >> "$LOG"
+  # An UNRECOGNISED `vajra next` flag falls through to `run_dump()` and exits 0 (S132), so a build
+  # without this gate would green the check while reporting nothing. Require the gate's own header.
+  if ! grep -q "=== crew: tech-lead for session" <<<"$out"; then
+    echo "BLOCK: the binary produced no Crew-gate output — this build does not carry the gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: \`$BIN next --check-crew $N\` did not run the gate (an unknown flag exits 0 via run_dump)." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  if [ "$code" -eq 0 ]; then
+    echo "OK: session $N has a real tech-lead handoff and every role it marked \`required\` produced a governed handoff." >> "$LOG"
+    ok "$NAME"; return
+  fi
+  echo "BLOCK: session $N is missing its tech-lead handoff, or a role the tech-lead marked \`required\` produced no governed handoff." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: dispatch the tech-lead and each \`required\` role and run \`vajra next --role <name> --from <findings>\`," >> "$LOG"
+    echo "      re-run the tech-lead to move an unaffordable role to \`deferred-budget\` with the arithmetic, or record a founder waiver." >> "$LOG"
     bad "$NAME"
   fi
 }
@@ -664,6 +739,17 @@ if [ "${1:-}" = "--attest-only" ]; then
   if [ "$FAIL" -eq 0 ]; then echo "ATTEST: PASS"; exit 0; else echo "ATTEST: FAIL"; exit 1; fi
 fi
 
+# Focused entry point: run ONLY the required-crew check (S139). `--crew-only [N]`.
+if [ "${1:-}" = "--crew-only" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
+  check_required_crew
+  echo ""
+  echo "=== Required-crew check (N=${N:-?}) ==="
+  for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
+  cat "$ARTIFACTS/required-crew.log" 2>/dev/null || true
+  if [ "$FAIL" -eq 0 ]; then echo "CREW: PASS"; exit 0; else echo "CREW: FAIL"; exit 1; fi
+fi
+
 # Build + print the ledger as a glanceable table (derived view). `--ledger`.
 if [ "${1:-}" = "--ledger" ]; then
   list="$(_ledger_worktree_sessions)"
@@ -719,6 +805,7 @@ check_verify_demo_scripts
 check_fidelity_review
 check_obeyed_judgments
 check_design_advisor_mandate
+check_required_crew
 check_review_attestation
 
 ( cd ".ai/verify/closeout" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true

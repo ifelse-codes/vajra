@@ -39,7 +39,26 @@ every adopter verbatim by `vajra init` (`include_str!`), the one edit propagates
 - design-significant: yes — this changes WHERE the crew binding is enforced (adds it to the close path,
   the artifact `CLAUDE.md` declares the close depends on), closing a hole the S138 dogfood proved live.
   It is a mechanical extension of the S132/S133 house pattern (a close gate that calls a `vajra next
-  --check-*` binary gate), not a new mechanism. Cite the S135 crew gate + DECISION-007.
+  --check-*` binary gate), not a new mechanism. Cite the S135 crew gate + DECISION-007
+  (`docs/decisions/DECISION-007-agent-fleet.md`, the S135 addendum — verified to exist).
+- **Rejected alternatives (design-advisor rec 2 — a rationale with no rejected option is not a
+  decision):**
+  - *Re-implement the crew logic in shell* vs. *shell out to the real `vajra next --check-crew`
+    binary.* REJECTED the re-impl: a second copy of the `crew_gate` contract in bash would drift from
+    `src/crew`, the exact single-source discipline the Obeyed/Mandate close checks already keep.
+  - *Fix the hole by making every close run `--advance`* vs. *add an independent close check.*
+    REJECTED `--advance`: a real close never invokes it — that IS the S138 hole. The binding has to
+    live where the close actually runs (`verify-closeout.sh`).
+  - *A new top-level command* vs. *ride `verify-closeout.sh` + the existing `vajra next --check-crew`.*
+    REJECTED the new command (the max-7 ceiling).
+- **The founder waiver vs. the binary's "no environment variable can bypass" (design-advisor rec 3).**
+  `src/crew/mod.rs` prints "(No environment variable can satisfy or bypass this gate.)" and this check
+  greens on `VAJRA_CLOSEOUT_WAIVER=N`. This is NOT a contradiction: that sentence forbids a
+  crew-specific `VAJRA_SKIP_*` an AGENT can set on its own command line (and none exists — the crew
+  decision is provenance-verified). `VAJRA_CLOSEOUT_WAIVER` is the ONE universal, founder-held,
+  session-scoped, un-forgeable-by-the-agent closeout escape that every check in `verify-closeout.sh`
+  already honors (S56/S93); keeping this check consistent with its siblings is the correct call, and
+  dropping the waiver here would make one close check uniquely un-waivable for no stated reason.
 - The tech-lead is the FIRST and MANDATORY dispatch; it decides which specialists S139 needs and its
   verdict BINDS on this session (record its handoff). Let the design-advisor / implementation-advisor /
   qa-specialist / fidelity-reviewer be dispatched or reasoned-skipped **as the tech-lead decides** —
@@ -80,10 +99,81 @@ every adopter verbatim by `vajra init` (`include_str!`), the one edit propagates
 
 ## Execution (the Coder gate — fill each step's landing sha as work lands)
 
-- step 1 — done: <sha>. covers: 3
-- step 2 — done: <sha>. covers: 1, 4
-- step 3 — done: <sha>. covers: 2
-- step 4 — done: <sha>. covers: 3, 5
+- step 1 — done: 5f648e0. covers: 3
+- step 2 — done: c7c6337. covers: 1, 4
+- step 3 — done: d2e0c2a. covers: 2
+- step 4 — done: d2548c8. covers: 3, 5
+
+## Advice (every recommendation from this session's advisors, answered)
+
+(`vajra next --check-advice 139` BLOCKS the close until every recorded recommendation is answered, and
+`vajra next --check-obeyed 139` BLOCKS until every `obeyed:` claim carries an independent judgment from
+a role that is not the one that gave the advice. The independent judge here is the
+implementation-advisor, grading the design-advisor — a different role, so admissible.)
+
+**design-advisor — 7 recommendations (dispatched by the tech-lead's `required` verdict).**
+
+- design-advisor rec 1 — deferred: sessions/session-139-summary.md
+- design-advisor rec 2 — obeyed: 9df330d
+- design-advisor rec 3 — obeyed: 9df330d
+- design-advisor rec 4 — obeyed: c7c6337
+- design-advisor rec 5 — deferred: sessions/session-139-summary.md
+- design-advisor rec 6 — obeyed: d2e0c2a
+- design-advisor rec 7 — deferred: sessions/session-139-summary.md
+
+*(rec 1 affirmed `design-significant: yes` + the DECISION-007/S135 citation — both kept, no change. rec
+5 (placement) accepted as-is: the checks are independent, so order is cosmetic — kept between the
+design-mandate and attestation checks, noted in the summary. rec 7 verified: CI runs only
+fmt/clippy/test, never `verify-closeout.sh`, so the binary-backed close checks — including this one —
+regress no CI path; they run locally pre-merge (S83). rec 2/3/4/6 landed in real commits, judged below.)*
+
+**implementation-advisor — independent judgments of the design-advisor's `obeyed:` dispositions.**
+
+- obeyed-check design-advisor rec 2 — implemented: 9df330d — the `## Design` "Rejected alternatives" block names all three forks with the rejected option + reason for each.
+- obeyed-check design-advisor rec 3 — implemented: 9df330d — `## Design` draws the categorical distinction between VAJRA_CLOSEOUT_WAIVER (universal founder-held closeout escape) and the agent-settable crew-specific VAJRA_SKIP_* src/crew forbids.
+- obeyed-check design-advisor rec 4 — implemented: c7c6337 — check_required_crew AND both siblings use the set -e-safe `&& code=0 || code=$?` capture; no bare `; code=$?` form remains.
+- obeyed-check design-advisor rec 6 — implemented: d2e0c2a — fixture P4 plants a gate-less exit-0/no-header stub and asserts RED via the "does not carry the gate" header guard; HDR asserts the real binary emits the exact header.
+
+**implementation-advisor — 3 recommendations (its own observations).**
+
+- implementation-advisor rec 1 — deferred: sessions/session-139-summary.md
+- implementation-advisor rec 2 — deferred: sessions/session-139-summary.md
+- implementation-advisor rec 3 — deferred: sessions/session-139-summary.md
+
+*(rec 1 — build clean, no missed case, acknowledged. rec 2 — the judge (no Bash) verified the four
+changes at the branch TIP, not each cited sha's isolated diff; the builder confirmed per-sha with
+`git show <sha>` (each sha introduces its own change) and records it in the summary — an honest
+independent-judge limit, disclosed, not a self-grade of the design recs. rec 3 — the judgments are
+admissible (implementation-advisor grading design-advisor, different role).)*
+
+**tech-lead — 5 recommendations (the crew decision + how the session should run).**
+
+- tech-lead rec 1 — deferred: sessions/session-139-summary.md
+- tech-lead rec 2 — deferred: sessions/session-139-summary.md
+- tech-lead rec 3 — deferred: sessions/session-139-summary.md
+- tech-lead rec 4 — deferred: sessions/session-139-summary.md
+- tech-lead rec 5 — deferred: sessions/session-139-summary.md
+
+*(All five are process recommendations, addressed in the summary's dispatch accounting: rec 1 — exactly
+three specialist dispatches ran (design-advisor · implementation-advisor · fidelity-reviewer) plus the
+tech-lead; rec 2 — every brief was named-files-only (raw totals in the tens of thousands, not millions);
+rec 3 — all six deferred-budget lines answered as `deferred-budget` with arithmetic, none as a worth
+call; rec 4 — the implementation-advisor, not the design-advisor, judged the `obeyed:` dispositions;
+rec 5 — the gate binds on S139 itself and the fixture fails for the right reason.)*
+
+**fidelity-reviewer — 3 recommendations (cold review, ACCEPT, 5 of 5 SHIPPED).**
+
+- fidelity-reviewer rec 1 — obeyed: 3a9852e
+- fidelity-reviewer rec 2 — deferred: sessions/session-139-summary.md
+- fidelity-reviewer rec 3 — deferred: sessions/session-139-summary.md
+
+- obeyed-check fidelity-reviewer rec 1 — implemented: 3a9852e — P2/P3 now grep the block-cause phrase `no real governed handoff: <role>`, not the bare role token the always-printed crew echo also matches; the judge is the implementation-advisor (not the fidelity-reviewer that gave the rec).
+
+*(rec 1 (tighten the P2/P3 fixture needles to the block cause) landed in-session in `3a9852e`, judged
+by the implementation-advisor above — a different role from the fidelity-reviewer, so admissible. rec 2
+(make reviewer-independence the immediate next CODE session) and rec 3 (record the two soft edges of the
+header-grep house pattern) are addressed in the summary: reviewer-independence is ranked candidate 1,
+and both header-grep soft edges are named in "What is disclosed / weak".)*
 
 ## Guardrails
 
