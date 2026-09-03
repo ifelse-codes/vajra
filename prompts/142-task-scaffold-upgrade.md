@@ -66,25 +66,106 @@ limit — see Guardrails).
 - tech-lead FIRST + design-advisor + fidelity-reviewer mandatory; record every required role's handoff
   (the close runs `check_required_crew`, S139).
 
-## Acceptance (testable, EARS-style — the session refines these)
+## Acceptance (testable, EARS-style)
 
-1. WHEN a hook (`hook-*.sh`) and the constitution (`.ai/AGENTS.md`) are rendered, THEN each carries a
-   `vajra-render-sha:` stamp in that file's comment syntax; re-deriving the hash from the body-minus-stamp
-   reproduces the stamp (pure round-trip, unit-tested per file type), AND the stamp is inert to the file's
-   consumer (a stamped hook still runs; the stamped constitution still reads).
-2. WHEN a non-fleet pure-render file is on disk, THEN classification returns the four states
-   (Missing · UpToDate · StaleRender · Drifted) as a pure function, same shape as S141.
-3. WHEN the sync command runs, THEN a `StaleRender` hook/constitution auto-upgrades WITHOUT
-   `--overwrite-drifted` (reported by name), a `Drifted`/unstamped one is refused (exit 1) unless
-   `--overwrite-drifted`, and `CONSTRAINTS.yaml` is NEVER auto-upgraded (it stays user-owned). Proven by a
-   four-case falsifiability fixture that goes RED for the right reason + a clean-exit-0 positive control.
+> **Scope settled S142 (founder-confirmed "hooks now, constitution S143"):** the deliverable is the
+> generalised stamp + the **hooks** joining the smooth upgrade. `.ai/AGENTS.md` is DEFERRED to S143
+> (a filled per-install template `sync_fleet` cannot reproduce; the fill-split is its own story). The
+> `MarkdownComment` syntax is built + unit-tested so S143 is a small step, not a rebuild. Criteria
+> below read on the delivered scope; the constitution deferral is disclosed in the summary.
+
+1. WHEN a hook (`hook-*.sh`) is rendered, THEN it carries a `vajra-render-sha:` stamp in shell-comment
+   syntax; re-deriving the hash from the body-minus-stamp reproduces the stamp (pure round-trip,
+   unit-tested per file type — frontmatter/shell/markdown, frontmatter byte-identical to S141), AND the
+   stamp is inert to the consumer (a stamped hook still parses + runs; shebang stays line 1).
+2. WHEN a non-fleet pure-render file (a hook) is on disk, THEN classification returns the four states
+   (Missing · UpToDate · StaleRender · Drifted) as a syntax-aware pure function, same shape as S141.
+3. WHEN the sync command runs, THEN a `StaleRender` hook auto-upgrades WITHOUT `--overwrite-drifted`
+   (reported by name), a `Drifted`/unstamped one is refused (exit 1) unless `--overwrite-drifted`, and
+   `CONSTRAINTS.yaml`/`.ai/AGENTS.md` are NEVER auto-upgraded. Proven by a four-case falsifiability
+   fixture that goes RED for the right reason + a clean-exit-0 positive control.
 4. WHEN a fresh `vajra init` scaffolds a project and the sync runs immediately after, THEN every
-   pure-render file is `UpToDate` and nothing is rewritten (idempotent, no churn) — proven LIVE in a real
+   role + hook is `UpToDate` and nothing is rewritten (idempotent, no churn) — proven LIVE in a real
    empty dir with the real release binary.
 5. `## Design` + a DECISION-007 S142 addendum record the generalised stamp, the in-scope file set, and
    why `CONSTRAINTS.yaml` is deliberately excluded.
 6. `scripts/verify-session-142.sh` (exit 0, class tally) + `demo-session-142.sh` (4 sprint markers) +
    `sessions/session-142-summary.md` (full fidelity map + 3 ranked candidates). Cold `fidelity-reviewer` ACCEPT.
+
+## Design decision (settled S142, founder-confirmed)
+
+**design-significant: yes.** The stamp generalises to a comment-syntax abstraction (`StampSyntax`:
+Frontmatter | ShellComment | MarkdownComment), one code path, and widens the domain `--sync-fleet`
+governs. Cites `docs/decisions/DECISION-007-agent-fleet.md` + its **S141 addendum**; recorded as the
+**S142 addendum**. **Fork resolved (design-advisor rec 7, founder-confirmed "hooks now, constitution
+S143"):** the shell hooks are in scope (no fill placeholders → byte-identical → clean fit); the
+constitution `.ai/AGENTS.md` is DEFERRED (a filled per-install template `sync_fleet` cannot reproduce)
+— the named S143 follow-up is to split its governed body from its user-owned fill; `CONSTRAINTS.yaml`
+stays user-owned permanently. Rejected alternatives (un-fill / scavenge values / naive rewrite / a
+second command / sidecar) are named in the addendum.
+
+## Plan (ordered — cite the acceptance criteria each step covers)
+
+1. Dispatch the tech-lead FIRST; let it bind the crew (design-advisor · qa-specialist · fidelity-reviewer
+   required). covers: 6
+2. Add `StampSyntax` and parameterise the four S141 helpers on ONE code path; keep the frontmatter
+   variant byte-identical (golden test); exact round-trip per file type incl. the trailing-newline
+   edge. covers: 1
+3. Make `classify_fleet_file` syntax-aware; model `sync_targets()` over roles + hooks; scaffold the
+   hooks already stamped so a fresh init is UpToDate (no churn). covers: 2, 4
+4. Widen `--sync-fleet` (report line, no 8th command): a stale hook auto-upgrades, a drifted/unstamped
+   one is refused unless `--overwrite-drifted`; `CONSTRAINTS.yaml`/constitution never touched. Prove
+   with the four-case hook fixture (RED for the right reason + clean exit-0 control). covers: 3
+5. Record the DECISION-007 S142 addendum (generalised stamp · hooks-in · constitution-deferred ·
+   constraints-out · rejected alternatives · honest limits). covers: 5
+6. `verify-session-142.sh` + `fixture-session-142.sh` + `demo-session-142.sh` + the summary; cold
+   `fidelity-reviewer` ACCEPT. covers: 1, 6
+
+## Execution (the Coder gate — landing sha per step)
+
+- step 1 — done: d4c471b. covers: 6
+- step 2 — done: 90105ca. covers: 1
+- step 3 — done: 90105ca. covers: 2, 4
+- step 4 — done: 90105ca. covers: 3
+- step 5 — done: 58b1033. covers: 5
+- step 6 — done: 97a40ef. covers: 1, 6
+
+## Advice (every recommendation from this session's advisors, answered)
+
+Each `obeyed:`/`refused:`/`deferred:` answers one numbered rec. `vajra next --check-advice 142` blocks
+the close until every rec is answered; the design-advisor's `obeyed:` dispositions are judged
+independently by the fidelity-reviewer (a different role — the S131 pattern), recorded in
+`sessions/session-142-review.md`.
+
+**tech-lead — 5 recommendations (crew bound FIRST; required = design-advisor · qa-specialist ·
+fidelity-reviewer; six deferred-budget).**
+
+- tech-lead rec 1 — deferred: sessions/session-142-summary.md
+- tech-lead rec 2 — deferred: sessions/session-142-summary.md
+- tech-lead rec 3 — deferred: .ai/handoffs/session-142-design-advisor.md
+- tech-lead rec 4 — deferred: sessions/session-142-summary.md
+- tech-lead rec 5 — obeyed: 90105ca
+
+**design-advisor — 10 recommendations (settled both forks; the constitution deferral is founder-confirmed).**
+
+- design-advisor rec 1 — obeyed: 90105ca
+- design-advisor rec 2 — obeyed: 90105ca
+- design-advisor rec 3 — obeyed: 90105ca
+- design-advisor rec 4 — obeyed: 90105ca
+- design-advisor rec 5 — obeyed: 90105ca
+- design-advisor rec 6 — obeyed: 90105ca
+- design-advisor rec 7 — obeyed: 58b1033
+- design-advisor rec 8 — deferred: sessions/session-142-summary.md
+- design-advisor rec 9 — refused: keep `--sync-fleet`; no rename and no `--sync` alias this session (the report line now reads "roles + hooks"; a rename/alias is cosmetic and churns help/tests/chitra references — deferred to a future polish, not shipped)
+- design-advisor rec 10 — obeyed: 58b1033
+
+**qa-specialist — recommendations (added after the independent QA dispatch).**
+
+_(pending qa-specialist dispatch)_
+
+**fidelity-reviewer — recommendations (added after the cold review).**
+
+_(pending fidelity-reviewer dispatch)_
 
 ## Guardrails
 
