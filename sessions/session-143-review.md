@@ -2,7 +2,7 @@
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** 2b425ea70ec9a527f673be893aee1a14550943470219fa9fed204a9579f08aa2
+**Review-Inputs-SHA:** 173da680944db19ed4fa925d8ff8c0aaeda33046451dd430262867463101d8a6
 
 Independent adversarial cold review by the `fidelity-reviewer` role (a different role from the graded
 design-advisor / tech-lead — the S131/S132 pattern), fed the prompt + the diff. Judged 5 of 6 SHIPPED at
