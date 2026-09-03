@@ -170,7 +170,7 @@ fidelity-reviewer; six deferred-budget).**
 The independent `obeyed:` judgments of the design-advisor's + tech-lead's dispositions live in
 `sessions/session-142-review.md` (read by `vajra next --check-obeyed 142`).
 
-- fidelity-reviewer rec 1 — deferred: sessions/session-142-review.md (closed in-session: `classify_names_the_four_states_for_a_shell_hook` drives a hook through all four states; recorded DONE in the review)
+- fidelity-reviewer rec 1 — deferred: sessions/session-142-review.md
 - fidelity-reviewer rec 2 — deferred: sessions/session-142-summary.md
 - fidelity-reviewer rec 3 — deferred: sessions/session-142-summary.md
 - fidelity-reviewer rec 4 — refused: the drifted branch already prints the `--overwrite-drifted` guidance for any drifted file (hooks included); a dedicated hook-drift stdout line is cosmetic, and the retroactive-limit disclosure is in the addendum + demo before_after
