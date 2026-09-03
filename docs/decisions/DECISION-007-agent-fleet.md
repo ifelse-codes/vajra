@@ -1183,3 +1183,77 @@ the bytes are a fixed point of Vajra's own render+hash function, which any ident
 and which a user could in principle forge by hand. The honest claim is auto-upgrade-safety for the
 untouched-render case — provenance by construction, tamper-EVIDENT not tamper-PROOF, the same posture
 as the DECISION-004 ledger.
+
+## S142 addendum — the render stamp generalises to shell hooks; the hooks join the smooth upgrade, the constitution is deferred
+
+**Status: ACCEPTED (session 142).** An addendum, not a DECISION-008 — it cashes the extension the
+S141 addendum pre-declared (*"other scaffold types (the constitution, `CONSTRAINTS.yaml`, hooks, the
+kickoff prompt) stay out of scope — the same stamp pattern can extend to them in a later session"*).
+Same scaffold contract (`render → stamp → classify → --sync-fleet`), one new file type.
+
+**The founder directive that shaped it (S141 close): ONE update command upgrades everything.** A user
+runs a single invocation and the pure renders upgrade smoothly — NOT a second `--sync-scaffold`
+sibling, NOT per-file-type commands, NOT an 8th top-level command. So the EXISTING
+`vajra init --sync-fleet` widens its scope; nothing new is added to the seven-command surface.
+
+**The stamp is now comment-syntax-aware.** `stamp_render` / `strip_render_stamp` /
+`extract_render_stamp` / `render_stamp_verifies` take a `StampSyntax` describing how the
+`vajra-render-sha:` key is wrapped and where it sits — ONE code path, three styles, never a forked
+second copy (a duplicate stamp/strip pair is exactly the drift `--sync-fleet` exists to close):
+
+- `Frontmatter` — a bare `vajra-render-sha: <hex>` line inserted as the last frontmatter line, before
+  the closing `---` fence. **Byte-for-byte the S141 behaviour** (pinned by a golden unit assertion), so
+  no already-stamped role file re-classifies `StaleRender` and churns.
+- `ShellComment` — a `# vajra-render-sha: <hex>` comment appended as the trailing line. Inert to
+  `bash` (a comment), and it never disturbs the shebang, which must stay line 1. **Hooks use this.**
+- `MarkdownComment` — a `<!-- vajra-render-sha: <hex> -->` HTML comment appended as the trailing line,
+  inert to a markdown reader. **Defined and unit-tested, but not yet wired to a scaffold file** — it is
+  ready for the S143 constitution upgrade.
+
+The round-trip invariant is now `strip(stamp(x, s), s) == x` per syntax, tested including the
+already-ends-in-newline edge (the append path adds exactly one newline + the stamp line and strip
+removes exactly that, so a hook that already ends in `\n` never gains a stray blank line). Each
+stamped file is asserted still inert to its consumer: a stamped hook still parses and runs.
+
+**In scope: the shell hooks. Deferred: the constitution. Out permanently: `CONSTRAINTS.yaml`.**
+
+- **Hooks** (`.ai/hooks/hook-*.sh`) carry NO fill placeholders — asserted by a unit test — so their
+  stamped render is byte-identical across every install, the same clean fit as a fleet role. They are
+  scaffolded already stamped (fill runs first, a no-op; then `render_stamped_hook`, the ONE source
+  `sync_targets` also uses), so a fresh `init` + immediate `--sync-fleet` reports them `UpToDate`. They
+  now classify into the same four states and auto-upgrade exactly like role files.
+- **The constitution** (`.ai/AGENTS.md`) is a per-install FILLED template (`{PROJECT_NAME}`×5,
+  `{GOAL}`, `{MATURITY}`, `{FIRST_*}`), so its on-disk bytes are project-specific and `sync_fleet(root)`
+  cannot reproduce the current template WITH this project's values. `StaleRender` *detection* would
+  still work (the stamp self-verifies without the canonical), but the *upgrade rewrite* has no sound
+  one-session path. Deferred to **S143**: split `TPL_AGENTS` into a user-owned filled header and a
+  byte-identical governed body, and stamp/auto-upgrade only the body — the "map to Vajra's own
+  mechanism" move, a template restructuring + migration that is its own story. The founder confirmed
+  this scope in chat at the S142 open ("hooks now, constitution S143").
+- **`CONSTRAINTS.yaml`** stays user-owned permanently (maturity, budget cap, approval tokens — there is
+  no canonical to converge on).
+
+**Alternatives considered and rejected.**
+
+- *Un-fill the on-disk constitution to recover its values before rewriting* — rejected: fill is a lossy
+  forward substitution; inverting it needs the OLD template that produced the on-disk bytes, which
+  Vajra does not carry, and reconstructing values against the NEW template is exactly the
+  infer-intent-from-bytes move S136/S141 refused.
+- *Scavenge the fill values from other `.ai/` files or `CONSTRAINTS.yaml`* — rejected: each value has a
+  different, uncertain home, some absent; it couples the constitution upgrade to files that are
+  themselves user-owned and drift, re-opening the correlated-signal classifier S136 rejected.
+- *Rewrite the constitution to the new template anyway* — rejected: clobbers the project's own identity
+  (chitra's on-disk `AGENTS.md` is both filled and diverged) and would claim a smoothness that is false
+  (the S118 never-soften rule, applied to behaviour).
+- *A second `--sync-scaffold` command / per-file-type commands* — rejected: the founder directive is one
+  command upgrades everything, and DECISION-007 holds the max-seven-commands line.
+- *Stamp `CONSTRAINTS.yaml` too* — rejected: user-tuned, no canonical.
+- *A sidecar manifest recording provenance* — rejected already at S141 (a separate store to drift); the
+  stamp lives in the file.
+
+**Honest limits (disclosed, not dressed up).** Every pre-S142 install (chitra included) has UNSTAMPED
+hooks → `Drifted` on first contact → one `--overwrite-drifted` writes their first stamps; smooth going
+forward, never retroactive (the S141 limit, restated for hooks). The stamp remains a content hash, not
+a keyed signature: tamper-EVIDENT, not tamper-PROOF. And "one command upgrades everything" is honored
+across two sessions — roles + hooks now under one invocation, the constitution the moment the fill-split
+lands with no new command — not faked in one by guessing project values.
