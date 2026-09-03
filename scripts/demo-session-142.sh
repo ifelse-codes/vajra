@@ -63,7 +63,6 @@ echo "$OUT3" | grep -E "DRIFT|overwrite-drifted" | head -2 | sed 's/^/    /'
 
 head_ "CASE 4 — the stamp is INERT: the stamped hook still parses + keeps its shebang"
 label "bash -n \$hook  (and the role-file upgrade path from S141 still works)"
-"$VAJRA" init --sync-fleet --overwrite-drifted >/dev/null 2>&1 </dev/null || true
 ( cd "$W" && "$VAJRA" init --sync-fleet --overwrite-drifted >/dev/null 2>&1 )
 PARSE_OK=1; for hk in "$W"/.ai/hooks/hook-*.sh; do bash -n "$hk" || PARSE_OK=0; done
 SHEBANG="$(head -1 "$H")"
