@@ -323,22 +323,6 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
         writeln!(out, "  DRY RUN — nothing is written.")?;
     }
 
-    // S143: a boundary target (the constitution) whose file is ABSENT cannot be reconstructed by
-    // sync — its filled header (project name, goal, maturity) lives only in `vajra init`, and a
-    // headerless body-only write would be a broken constitution. Refuse before writing anything, so
-    // a deleted-constitution pathology never leaves a half-synced tree. (Real projects always have
-    // one; `classify_fleet_file` routes a present-but-boundaryless file to `NeedsBoundary` instead.)
-    if let Some(item) = plan
-        .iter()
-        .find(|i| i.boundary.is_some() && i.state == FleetFileState::Missing)
-    {
-        bail!(
-            "{} is missing and cannot be reconstructed by --sync-fleet (its filled header needs \
-             your project's values) — run `vajra init` to recreate it",
-            item.rel
-        );
-    }
-
     for item in &plan {
         match item.state {
             FleetFileState::UpToDate => {
@@ -346,6 +330,20 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                 writeln!(out, "  ok      {} (up to date)", item.rel)?;
             }
             FleetFileState::Missing => {
+                // S143: a boundary target (the constitution) that is ABSENT is not sync's to create —
+                // its filled header (project name, goal, maturity) lives only in `vajra init`, and a
+                // headerless body-only write would be a broken constitution. Sync UPGRADES existing
+                // renders; creating the constitution is `init`'s job. Warn and skip, leaving the
+                // exit code to the real upgrade work (a role that is Missing IS created — roster
+                // growth is sync's job). A deleted constitution is a broken repo, surfaced not masked.
+                if item.boundary.is_some() {
+                    writeln!(
+                        out,
+                        "  note    {} is absent — run `vajra init` to create it (sync upgrades, it does not scaffold the constitution)",
+                        item.rel
+                    )?;
+                    continue;
+                }
                 if opts.dry_run {
                     writeln!(out, "  would   create {}", item.rel)?;
                 } else {
