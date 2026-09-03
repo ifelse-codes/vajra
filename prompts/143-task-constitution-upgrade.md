@@ -88,10 +88,29 @@ unless `--overwrite-drifted`. Still ONE command; no 8th top-level command.
    `sessions/session-143-summary.md` (full fidelity map + 3 ranked candidates). Cold `fidelity-reviewer`
    ACCEPT; every `obeyed:` disposition judged `implemented:` by a different role.
 
-## Design decision (settle WITH the design-advisor, then record here)
+## Design decision (settled S143 with the design-advisor)
 
-*To be filled from the design-advisor handoff before code — the boundary sentinel literal, the
-body-scoped classify/rewrite shape, and the legacy-migration disclosure.*
+**design-significant: yes.** Cites `docs/decisions/DECISION-007-agent-fleet.md` + its S141 and S142
+addenda; recorded as the **S143 addendum**. It does NOT deviate from what it cites — S142's addendum
+pre-scoped this exact work ("split `TPL_AGENTS` into a user-owned filled header and a byte-identical
+governed body, and stamp/auto-upgrade only the body").
+
+- **Boundary sentinel:** `<!-- vajra:governed-body - do not edit below this line - vajra owns and
+  upgrades these bytes -->` (`GOVERNED_BODY_SENTINEL`). HTML-legal (single hyphens, no `--`), no fill
+  token, inert to markdown. First line of the governed body; the `<!-- vajra-render-sha: -->` stamp
+  (reused `MarkdownComment` `StampSyntax` — no fourth path) is the last line, and the hash COVERS the
+  sentinel.
+- **Body-scoped classify/rewrite:** a sync target carries `boundary: Option<&'static str>`. Roles/hooks
+  pass `None` (whole-file, byte-identical S141/S142 path). The constitution passes `Some(sentinel)`.
+  `body_region()` slices from the sentinel; classify runs the state machine on that region against a
+  body-only `canonical`; `write_target` keeps the header above the sentinel VERBATIM.
+- **Legacy migration (the fifth state):** a pre-S143 boundaryless constitution is `NeedsBoundary` —
+  refused even under `--overwrite-drifted` (which would destroy the fill), with the exact sentinel
+  printed. One-time fix: paste the sentinel above `## Mandatory Load Order`, then
+  `vajra init --sync-fleet --overwrite-drifted`. A DELETED constitution warns "run `vajra init`".
+- **`CONSTRAINTS.yaml` stays out** (user-tuned, no canonical). Rejected alternatives (whole-file rewrite,
+  un-fill/scavenge, auto-insert the sentinel, force a boundaryless file, a `boundary_aware` bool, a
+  fourth stamp path, a second command, a sidecar) are named in the addendum.
 
 ## Plan (ordered — cite the acceptance criteria each step covers)
 
@@ -109,13 +128,53 @@ body-scoped classify/rewrite shape, and the legacy-migration disclosure.*
 
 ## Execution (the Coder gate — landing sha per step)
 
-*Filled during the build — `step N — done: <sha>` per step.*
+- step 1 — done: 6fdb4eb. covers: 6
+- step 2 — done: 3afd229. covers: 5
+- step 3 — done: 08824c3. covers: 1, 2
+- step 4 — done: d1d9d2c. covers: 3, 4
+- step 5 — done: c4b0a12. covers: 1, 6
 
 ## Advice (every recommendation from this session's advisors, answered)
 
-*Filled as advisors report — each `obeyed:`/`refused:`/`deferred:` answers one numbered rec;
-`vajra next --check-advice 143` blocks the close until every rec is answered; the design-advisor's
-`obeyed:` dispositions are judged independently by the fidelity-reviewer (a different role).*
+Each `obeyed:`/`refused:`/`deferred:` answers one numbered rec. `vajra next --check-advice 143` blocks
+the close until every rec is answered; the design-advisor's `obeyed:` dispositions are judged
+independently by the fidelity-reviewer (a different role — S131), recorded in
+`sessions/session-143-review.md`.
+
+**tech-lead — 7 recommendations (crew bound FIRST; required = design-advisor · qa-specialist ·
+fidelity-reviewer; six deferred-budget).**
+
+- tech-lead rec 1 — obeyed: 3afd229
+- tech-lead rec 2 — obeyed: 08824c3
+- tech-lead rec 3 — obeyed: 08824c3
+- tech-lead rec 4 — obeyed: 08824c3
+- tech-lead rec 5 — deferred: sessions/session-143-summary.md
+- tech-lead rec 6 — obeyed: 08824c3
+- tech-lead rec 7 — deferred: sessions/session-143-summary.md
+
+**design-advisor — 10 recommendations (settled all four forks; the S143 addendum records the design).**
+
+- design-advisor rec 1 — obeyed: 3afd229
+- design-advisor rec 2 — obeyed: 08824c3
+- design-advisor rec 3 — obeyed: 08824c3
+- design-advisor rec 4 — obeyed: 08824c3
+- design-advisor rec 5 — obeyed: 08824c3
+- design-advisor rec 6 — obeyed: 08824c3
+- design-advisor rec 7 — obeyed: 08824c3
+- design-advisor rec 8 — obeyed: 3afd229
+- design-advisor rec 9 — obeyed: 08824c3
+- design-advisor rec 10 — obeyed: 3afd229
+
+**qa-specialist — recommendations (ran verify/fixture/tests LIVE; classified hollow; ran a falsification).**
+
+- qa-specialist rec 1 — deferred: sessions/session-143-summary.md
+
+**fidelity-reviewer — recommendations + the independent `obeyed:` judgments (cold ACCEPT).**
+
+The independent `obeyed:` judgments of the design-advisor's + tech-lead's dispositions live in
+`sessions/session-143-review.md` (read by `vajra next --check-obeyed 143`).
+
+- fidelity-reviewer rec 1 — deferred: sessions/session-143-review.md
 
 ## Guardrails
 
