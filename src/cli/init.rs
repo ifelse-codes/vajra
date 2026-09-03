@@ -116,6 +116,13 @@ pub enum FleetFileState {
     /// does not verify (a hand-edit, or a foreign file). Could be the user's deliberate
     /// customisation, so it is never silently clobbered — refused unless `--overwrite-drifted`.
     Drifted,
+    /// S143: a BOUNDARY target (the constitution) present on disk with NO governed-body sentinel —
+    /// every pre-S143 install, whose `.ai/AGENTS.md` predates the header/body split. There is no sound
+    /// way to know where the user's filled header ends, so a rewrite would destroy the project's
+    /// `{PROJECT_NAME}` fill. Refused even under `--overwrite-drifted` (distinct from `Drifted` on
+    /// purpose — the fix is to paste the sentinel once, not to force-overwrite). Only a `boundary`
+    /// target can reach this state; roles and hooks (whole-file, `boundary: None`) never do.
+    NeedsBoundary,
 }
 
 /// Classify one scaffold file from what is actually on disk against the canonical render.
@@ -128,18 +135,58 @@ pub enum FleetFileState {
 /// S142: `syntax` says which comment style carries the stamp (frontmatter for role files, a shell
 /// comment for hooks), so the same four-state machine covers every pure-render scaffold file, not
 /// only the fleet roles.
+///
+/// S143: `boundary` makes the four states BODY-SCOPED for a filled file (the constitution). A
+/// `boundary: None` target (roles, hooks) compares the WHOLE file, byte-for-byte the S141/S142
+/// behaviour. A `boundary: Some(sentinel)` target compares only the governed BODY region — the file
+/// from the sentinel onward — so the user-owned header above the sentinel is neither compared nor
+/// touched. A boundary target with no sentinel on disk is `NeedsBoundary` (the one-time legacy
+/// migration), never `Missing`/`Drifted`, because there is no safe way to rewrite it without the
+/// sentinel to split on.
 pub fn classify_fleet_file(
     on_disk: Option<&str>,
     canonical: &str,
     syntax: crate::fleet::StampSyntax,
+    boundary: Option<&str>,
 ) -> FleetFileState {
-    match on_disk {
-        None => FleetFileState::Missing,
-        Some(body) if body == canonical => FleetFileState::UpToDate,
-        Some(body) if crate::fleet::render_stamp_verifies(body, syntax) => {
-            FleetFileState::StaleRender
-        }
-        Some(_) => FleetFileState::Drifted,
+    let full = match on_disk {
+        None => return FleetFileState::Missing,
+        Some(f) => f,
+    };
+    // The region the four-state machine reasons about: the whole file (no boundary), or the governed
+    // body alone (from the sentinel onward). A boundary target with no sentinel cannot be split.
+    let region = match body_region(full, boundary) {
+        Some(r) => r,
+        None => return FleetFileState::NeedsBoundary,
+    };
+    if region == canonical {
+        FleetFileState::UpToDate
+    } else if crate::fleet::render_stamp_verifies(region, syntax) {
+        FleetFileState::StaleRender
+    } else {
+        FleetFileState::Drifted
+    }
+}
+
+/// The exact literal that divides the constitution's user-owned filled header (above) from the
+/// governed body Vajra owns and upgrades (below). Inert to a markdown reader (an HTML comment), no
+/// fill token (so it is byte-identical across installs), and self-evidently "do not edit below". No
+/// `--` double-hyphen inside the comment (illegal in strict HTML comments) — single spaced hyphens.
+/// The governed-body region begins at this line; the `<!-- vajra-render-sha: -->` stamp closes it.
+pub const GOVERNED_BODY_SENTINEL: &str =
+    "<!-- vajra:governed-body - do not edit below this line - vajra owns and upgrades these bytes -->";
+
+/// The region a boundary target's four-state machine reasons about, as a pure function of the bytes.
+///
+/// `None` boundary (roles, hooks) → the WHOLE file (today's behaviour, unchanged). `Some(sentinel)`
+/// (the constitution) → the slice from the FIRST occurrence of the sentinel to the end — the governed
+/// body; everything before it is the user-owned header, out of scope. Returns `None` when a sentinel
+/// is expected but absent, which `classify_fleet_file` reads as `NeedsBoundary`: there is no sound
+/// place to split, so no rewrite is safe. Borrows from `on_disk`, so it allocates nothing.
+pub fn body_region<'a>(on_disk: &'a str, boundary: Option<&str>) -> Option<&'a str> {
+    match boundary {
+        None => Some(on_disk),
+        Some(sentinel) => on_disk.find(sentinel).map(|i| &on_disk[i..]),
     }
 }
 
@@ -155,6 +202,10 @@ pub struct FleetSyncItem {
     pub syntax: crate::fleet::StampSyntax,
     pub executable: bool,
     pub canonical: String,
+    /// S143: the governed-body sentinel for a BOUNDARY target (the constitution), or `None` for a
+    /// whole-file target (roles, hooks). When `Some`, `canonical` is the body-only render and the
+    /// upgrade preserves the header above the sentinel verbatim.
+    pub boundary: Option<&'static str>,
     pub state: FleetFileState,
 }
 
@@ -167,13 +218,15 @@ struct SyncTarget {
     syntax: crate::fleet::StampSyntax,
     executable: bool,
     canonical: String,
+    /// S143: the governed-body sentinel for a BOUNDARY target (the constitution), else `None`.
+    boundary: Option<&'static str>,
 }
 
-/// Every pure-render scaffold file `--sync-fleet` governs: the fleet roles (frontmatter stamp) and
-/// the shell hooks (S142, shell-comment stamp). ONE list, so `plan_fleet_sync` and the scaffold agree
-/// on exactly this set — a fresh `init` immediately reports them all `UpToDate`. `.ai/AGENTS.md`
-/// (filled per install) and `CONSTRAINTS.yaml` (user-tuned) are deliberately absent — see the
-/// DECISION-007 S142 addendum.
+/// Every pure-render scaffold file `--sync-fleet` governs: the fleet roles (frontmatter stamp), the
+/// shell hooks (S142, shell-comment stamp), and — S143 — the constitution's governed BODY (markdown
+/// stamp, a boundary target). ONE list, so `plan_fleet_sync` and the scaffold agree on exactly this
+/// set — a fresh `init` immediately reports them all `UpToDate`. `CONSTRAINTS.yaml` (user-tuned, no
+/// canonical) is deliberately absent — see the DECISION-007 S143 addendum.
 fn sync_targets() -> Vec<SyncTarget> {
     let mut targets: Vec<SyncTarget> = crate::fleet::ROLES
         .iter()
@@ -183,6 +236,7 @@ fn sync_targets() -> Vec<SyncTarget> {
             syntax: crate::fleet::StampSyntax::Frontmatter,
             executable: false,
             canonical: crate::fleet::render_subagent_definition(role),
+            boundary: None,
         })
         .collect();
     for (rel, tpl) in SYNC_HOOKS {
@@ -192,8 +246,20 @@ fn sync_targets() -> Vec<SyncTarget> {
             syntax: crate::fleet::StampSyntax::ShellComment,
             executable: true,
             canonical: render_stamped_hook(tpl),
+            boundary: None,
         });
     }
+    // S143: the constitution's governed body is a BOUNDARY target — `canonical` is the body-only
+    // render (sentinel + governed content + markdown stamp), and the sync preserves the user-owned
+    // filled header above the sentinel verbatim. This is the last pure-ish render Vajra owns.
+    targets.push(SyncTarget {
+        label: "constitution (.ai/AGENTS.md body)".to_string(),
+        rel: ".ai/AGENTS.md".to_string(),
+        syntax: crate::fleet::StampSyntax::MarkdownComment,
+        executable: false,
+        canonical: governed_body_canonical(),
+        boundary: Some(GOVERNED_BODY_SENTINEL),
+    });
     targets
 }
 
@@ -210,13 +276,14 @@ pub fn plan_fleet_sync(root: &Path) -> Vec<FleetSyncItem> {
                 Err(e) if e.kind() == io::ErrorKind::NotFound => None,
                 Err(_) => Some(String::new()),
             };
-            let state = classify_fleet_file(on_disk.as_deref(), &t.canonical, t.syntax);
+            let state = classify_fleet_file(on_disk.as_deref(), &t.canonical, t.syntax, t.boundary);
             FleetSyncItem {
                 label: t.label,
                 rel: t.rel,
                 syntax: t.syntax,
                 executable: t.executable,
                 canonical: t.canonical,
+                boundary: t.boundary,
                 state,
             }
         })
@@ -236,16 +303,40 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
     let mut upgraded = 0u32;
     let mut refreshed = 0u32;
     let mut up_to_date = 0u32;
+    // Drifted files (bytes differ, not a verifiable old render) — resolved by `--overwrite-drifted`.
     let mut unresolved: Vec<String> = Vec::new();
+    // S143: boundary targets with no governed-body sentinel — the one-time constitution migration.
+    // A DIFFERENT resolution (paste the sentinel), so tracked and reported separately from `Drifted`.
+    let mut needs_boundary: Vec<String> = Vec::new();
 
     let n_roles = crate::fleet::ROLES.len();
-    let n_hooks = plan.len().saturating_sub(n_roles);
+    let n_boundary = plan.iter().filter(|i| i.boundary.is_some()).count();
+    let n_hooks = plan
+        .len()
+        .saturating_sub(n_roles)
+        .saturating_sub(n_boundary);
     writeln!(
         out,
-        "=== vajra: fleet sync ({n_roles} roles + {n_hooks} hooks) ==="
+        "=== vajra: fleet sync ({n_roles} roles + {n_hooks} hooks + {n_boundary} constitution) ==="
     )?;
     if opts.dry_run {
         writeln!(out, "  DRY RUN — nothing is written.")?;
+    }
+
+    // S143: a boundary target (the constitution) whose file is ABSENT cannot be reconstructed by
+    // sync — its filled header (project name, goal, maturity) lives only in `vajra init`, and a
+    // headerless body-only write would be a broken constitution. Refuse before writing anything, so
+    // a deleted-constitution pathology never leaves a half-synced tree. (Real projects always have
+    // one; `classify_fleet_file` routes a present-but-boundaryless file to `NeedsBoundary` instead.)
+    if let Some(item) = plan
+        .iter()
+        .find(|i| i.boundary.is_some() && i.state == FleetFileState::Missing)
+    {
+        bail!(
+            "{} is missing and cannot be reconstructed by --sync-fleet (its filled header needs \
+             your project's values) — run `vajra init` to recreate it",
+            item.rel
+        );
     }
 
     for item in &plan {
@@ -297,6 +388,18 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                 )?;
                 unresolved.push(item.rel.clone());
             }
+            // S143: a boundary target with no governed-body sentinel — every pre-S143 constitution.
+            // `--overwrite-drifted` does NOT satisfy it: there is no sound place to split the user's
+            // filled header from the governed body, so a rewrite could destroy the project's fill.
+            // The one-time fix is to paste the sentinel; reported separately with that guidance.
+            FleetFileState::NeedsBoundary => {
+                writeln!(
+                    out,
+                    "  BODY    {} has no governed-body boundary — NOT touched (needs one-time migration)",
+                    item.rel
+                )?;
+                needs_boundary.push(item.rel.clone());
+            }
         }
     }
 
@@ -310,9 +413,26 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
     writeln!(
         out,
         "{created} {verb_c}, {upgraded} {verb_u}, {refreshed} {verb_r}, \
-         {up_to_date} already current, {} drifted.",
-        unresolved.len()
+         {up_to_date} already current, {} drifted, {} needs-boundary.",
+        unresolved.len(),
+        needs_boundary.len()
     )?;
+
+    // S143: the constitution migration is a DIFFERENT fix from a drifted render — paste the sentinel,
+    // don't `--overwrite-drifted` (which would refuse anyway, and must, to protect the filled header).
+    // Printed first so a legacy user sees the exact line to copy.
+    if !needs_boundary.is_empty() {
+        writeln!(out)?;
+        writeln!(
+            out,
+            "The constitution has no governed-body boundary yet, so Vajra cannot tell where YOUR\n\
+             filled header ends. It will NOT rewrite it — that would destroy your project's name and\n\
+             fill. One-time migration: paste this EXACT line into `.ai/AGENTS.md`, immediately ABOVE\n\
+             the `## Mandatory Load Order` heading, then re-run `vajra init --sync-fleet`:\n\
+             \n\
+             \x20   {GOVERNED_BODY_SENTINEL}\n"
+        )?;
+    }
 
     if !unresolved.is_empty() {
         writeln!(out)?;
@@ -324,10 +444,17 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
              \n\
              \x20   vajra init --sync-fleet --overwrite-drifted\n"
         )?;
+    }
+
+    if !unresolved.is_empty() || !needs_boundary.is_empty() {
+        let mut left = unresolved.clone();
+        left.extend(needs_boundary.iter().cloned());
         bail!(
-            "{} scaffold file(s) drifted and were left untouched: {}",
+            "{} scaffold file(s) left untouched ({} drifted, {} needs-boundary): {}",
+            left.len(),
             unresolved.len(),
-            unresolved.join(", ")
+            needs_boundary.len(),
+            left.join(", ")
         );
     }
     Ok(())
@@ -353,12 +480,34 @@ fn stale_upgrade_hashes(root: &Path, item: &FleetSyncItem) -> (String, String) {
 /// Write one scaffold file from the canonical bytes computed in the plan (`item.canonical` — the
 /// single source `sync_targets` derived, so nothing re-renders a second, drifting copy), setting the
 /// executable bit for hooks. Covers roles (frontmatter) and hooks (shell) uniformly (S142).
+///
+/// S143: for a BOUNDARY target (the constitution), `item.canonical` is the governed BODY only. The
+/// write re-reads the on-disk file, keeps the user-owned header ABOVE the sentinel byte-for-byte, and
+/// appends the canonical body — so an upgrade never touches the project's `{PROJECT_NAME}` fill. If
+/// the on-disk file somehow lacks the sentinel, it BAILS rather than write a headerless body (that
+/// write is the session's fakest green — it would destroy the fill); `classify_fleet_file` already
+/// routes such a file to `NeedsBoundary` so this is defense in depth, not the normal path.
 fn write_target(root: &Path, item: &FleetSyncItem) -> Result<()> {
     let full = root.join(&item.rel);
     if let Some(parent) = full.parent() {
         fs::create_dir_all(parent).with_context(|| format!("mkdir {}", parent.display()))?;
     }
-    fs::write(&full, &item.canonical).with_context(|| format!("failed to write {}", item.rel))?;
+    let bytes = match item.boundary {
+        None => item.canonical.clone(),
+        Some(sentinel) => {
+            let on_disk = fs::read_to_string(&full)
+                .with_context(|| format!("re-read {} before body-scoped upgrade", item.rel))?;
+            let idx = on_disk.find(sentinel).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "refusing to write {}: no governed-body boundary on disk — a headerless \
+                     rewrite would destroy the user's filled header",
+                    item.rel
+                )
+            })?;
+            format!("{}{}", &on_disk[..idx], item.canonical)
+        }
+    };
+    fs::write(&full, &bytes).with_context(|| format!("failed to write {}", item.rel))?;
     #[cfg(unix)]
     if item.executable {
         use std::os::unix::fs::PermissionsExt;
@@ -880,9 +1029,19 @@ fn files(
         content: render_stamped_hook(&fill(content)),
         executable: true,
     };
+    // S143: the constitution is scaffolded as a user-owned filled HEADER + a byte-identical governed
+    // BODY (sentinel + governed content + markdown stamp). Fill runs on the header only; the body is
+    // `governed_body_canonical()`, the ONE source `sync_targets` also uses — so a fresh `init` +
+    // immediate `--sync-fleet` reports the constitution `UpToDate`, and later upgrades touch only the
+    // body while the filled header is preserved verbatim.
+    let f_constitution = || FileEntry {
+        path: ".ai/AGENTS.md".to_string(),
+        content: format!("{}{}", fill(TPL_AGENTS_HEADER), governed_body_canonical()),
+        executable: false,
+    };
 
     let mut entries = vec![
-        f(".ai/AGENTS.md", TPL_AGENTS),
+        f_constitution(),
         f(".ai/SESSION", TPL_SESSION),
         f(".ai/SESSION-BOOT.md", TPL_SESSION_BOOT),
         f(".ai/TASK.md", TPL_TASK),
@@ -945,8 +1104,17 @@ fn files(
 
 // ── Templates ───────────────────────────────────────────────────────────────
 
-const TPL_AGENTS: &str = concat!(
-    r#"# {PROJECT_NAME} — AI Agent Constitution
+// S143: the constitution `.ai/AGENTS.md` is scaffolded as a user-owned filled HEADER + a
+// byte-identical governed BODY, divided by `GOVERNED_BODY_SENTINEL`. `--sync-fleet` upgrades only
+// the body (a boundary target); the header — the project's own identity — is never rewritten. This
+// is the last pure-ish render Vajra owns joining "one command upgrades everything" (DECISION-007
+// S143 addendum). The two constants are joined by `governed_body_canonical()` at scaffold time and
+// again in `sync_targets()`, from this ONE source, so the scaffold and the sync never drift.
+
+/// The constitution's user-owned FILLED header: the `{PROJECT_NAME}` preamble a project owns and
+/// Vajra never rewrites. `fill` touches ONLY this part of `.ai/AGENTS.md`. Ends with a blank line;
+/// `governed_body_canonical` appends the sentinel + governed body directly after it.
+const TPL_AGENTS_HEADER: &str = r#"# {PROJECT_NAME} — AI Agent Constitution
 
 > Every AI agent MUST read this file and the load order below before executing any task.
 
@@ -970,7 +1138,16 @@ fed only the prompt + the diff, rules every requirement SHIPPED / PARTIAL / NOT-
 `sessions/session-NN-review.md`. `scripts/verify-closeout.sh` **requires** that review and fails
 closeout on a missing / incomplete / REJECT verdict, absent a founder waiver.
 
-## Mandatory Load Order
+"#;
+
+/// The constitution's GOVERNED body: the bytes Vajra owns, stamps, and upgrades. Carries NO fill
+/// placeholders (asserted by `constitution_body_carries_no_fill_placeholders`) — byte-identical
+/// across every install, the same clean fit as a hook. `governed_body_canonical` wraps it with the
+/// sentinel (first) and the markdown stamp (last). The Hard Rules block is DERIVED from this repo's
+/// own constitution at build time (build.rs, S129), so a new rule reaches every future scaffold with
+/// no action taken.
+const TPL_AGENTS_BODY: &str = concat!(
+    r#"## Mandatory Load Order
 
 1. `.ai/AGENTS.md` (this file)
 2. `.ai/SESSION`
@@ -996,9 +1173,6 @@ closeout on a missing / incomplete / REJECT verdict, absent a founder waiver.
 ## Hard Rules
 
 "#,
-    // DERIVED from .ai/AGENTS.md#Hard Rules at build time (build.rs, S129). Not typed here:
-    // a rule added to this repo's constitution reaches every future scaffold with no action
-    // taken, and withholding one requires a declared reason that ships in the file below.
     include_str!(concat!(env!("OUT_DIR"), "/scaffold_hard_rules.md")),
     r#"
 ## Communication Style
@@ -1009,6 +1183,17 @@ closeout on a missing / incomplete / REJECT verdict, absent a founder waiver.
 - Code first, explanation after
 "#
 );
+
+/// The canonical STAMPED governed body of the constitution (S143): the boundary sentinel, the
+/// governed content, and the `<!-- vajra-render-sha: -->` markdown stamp closing it — the body region
+/// `--sync-fleet` owns and upgrades. The stamp COVERS the sentinel (editing the boundary breaks the
+/// stamp → `Drifted`), and it reuses `StampSyntax::MarkdownComment` — no fourth stamp path. The ONE
+/// source both the scaffold (`files()`) and `sync_targets()` derive the constitution body from, so the
+/// two never drift.
+fn governed_body_canonical() -> String {
+    let preimage = format!("{GOVERNED_BODY_SENTINEL}\n\n{TPL_AGENTS_BODY}");
+    crate::fleet::stamp_render(&preimage, crate::fleet::StampSyntax::MarkdownComment)
+}
 
 const TPL_SESSION: &str = "{FIRST_NN}\n";
 
@@ -1477,6 +1662,17 @@ first-pass understanding.
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Test helper (S143): write a canonical scaffolded constitution — the filled header + the
+    /// stamped governed body — so a `--sync-fleet` fixture's boundary target reports `UpToDate` and
+    /// does not interfere with the role/hook assertions (a fixture with no constitution would refuse
+    /// the whole run, which is a different test). Mirrors what `f_constitution()` writes at scaffold.
+    fn seed_constitution(root: &Path) {
+        fs::create_dir_all(root.join(".ai")).unwrap();
+        let header = TPL_AGENTS_HEADER.replace("{PROJECT_NAME}", "test-project");
+        let content = format!("{header}{}", governed_body_canonical());
+        fs::write(root.join(".ai/AGENTS.md"), content).unwrap();
+    }
 
     #[test]
     fn slugify_basic() {
@@ -2352,14 +2548,20 @@ mod tests {
     fn classify_fleet_file_names_the_four_states() {
         let canonical = "---\nname: researcher\n---\nbody\n";
         assert_eq!(
-            classify_fleet_file(None, canonical, crate::fleet::StampSyntax::Frontmatter),
+            classify_fleet_file(
+                None,
+                canonical,
+                crate::fleet::StampSyntax::Frontmatter,
+                None
+            ),
             FleetFileState::Missing
         );
         assert_eq!(
             classify_fleet_file(
                 Some(canonical),
                 canonical,
-                crate::fleet::StampSyntax::Frontmatter
+                crate::fleet::StampSyntax::Frontmatter,
+                None,
             ),
             FleetFileState::UpToDate
         );
@@ -2369,7 +2571,8 @@ mod tests {
             classify_fleet_file(
                 Some("---\nname: researcher\n---\nOLD\n"),
                 canonical,
-                crate::fleet::StampSyntax::Frontmatter
+                crate::fleet::StampSyntax::Frontmatter,
+                None,
             ),
             FleetFileState::Drifted
         );
@@ -2379,7 +2582,8 @@ mod tests {
             classify_fleet_file(
                 Some("---\nname: researcher\n---\n"),
                 canonical,
-                crate::fleet::StampSyntax::Frontmatter
+                crate::fleet::StampSyntax::Frontmatter,
+                None,
             ),
             FleetFileState::Drifted
         );
@@ -2388,7 +2592,8 @@ mod tests {
             classify_fleet_file(
                 Some(&format!("{canonical}\n")),
                 canonical,
-                crate::fleet::StampSyntax::Frontmatter
+                crate::fleet::StampSyntax::Frontmatter,
+                None,
             ),
             FleetFileState::Drifted
         );
@@ -2403,7 +2608,8 @@ mod tests {
             classify_fleet_file(
                 Some(&stale),
                 canonical,
-                crate::fleet::StampSyntax::Frontmatter
+                crate::fleet::StampSyntax::Frontmatter,
+                None,
             ),
             FleetFileState::StaleRender
         );
@@ -2414,7 +2620,8 @@ mod tests {
             classify_fleet_file(
                 Some(&edited),
                 canonical,
-                crate::fleet::StampSyntax::Frontmatter
+                crate::fleet::StampSyntax::Frontmatter,
+                None,
             ),
             FleetFileState::Drifted
         );
@@ -2429,11 +2636,11 @@ mod tests {
         // A canonical stamped hook (shell-comment stamp over a body ending in \n).
         let canonical = crate::fleet::stamp_render("#!/usr/bin/env bash\necho hi\n", ShellComment);
         assert_eq!(
-            classify_fleet_file(None, &canonical, ShellComment),
+            classify_fleet_file(None, &canonical, ShellComment, None),
             FleetFileState::Missing
         );
         assert_eq!(
-            classify_fleet_file(Some(&canonical), &canonical, ShellComment),
+            classify_fleet_file(Some(&canonical), &canonical, ShellComment, None),
             FleetFileState::UpToDate
         );
         // An unstamped hook that differs (every pre-S142 install) → Drifted, never StaleRender.
@@ -2441,7 +2648,8 @@ mod tests {
             classify_fleet_file(
                 Some("#!/usr/bin/env bash\necho OLD\n"),
                 &canonical,
-                ShellComment
+                ShellComment,
+                None,
             ),
             FleetFileState::Drifted
         );
@@ -2451,13 +2659,13 @@ mod tests {
             crate::fleet::stamp_render("#!/usr/bin/env bash\necho OLDER BODY\n", ShellComment);
         assert_ne!(stale, canonical);
         assert_eq!(
-            classify_fleet_file(Some(&stale), &canonical, ShellComment),
+            classify_fleet_file(Some(&stale), &canonical, ShellComment, None),
             FleetFileState::StaleRender
         );
         // A hand-edit of that stamped hook breaks the round-trip → back to Drifted.
         let edited = format!("{stale}\n# the user added this\n");
         assert_eq!(
-            classify_fleet_file(Some(&edited), &canonical, ShellComment),
+            classify_fleet_file(Some(&edited), &canonical, ShellComment, None),
             FleetFileState::Drifted
         );
         // Cross-syntax safety: the SAME stamped shell hook must NOT verify as Frontmatter — a file
@@ -2466,9 +2674,279 @@ mod tests {
             classify_fleet_file(
                 Some(&stale),
                 &canonical,
-                crate::fleet::StampSyntax::Frontmatter
+                crate::fleet::StampSyntax::Frontmatter,
+                None,
             ),
             FleetFileState::Drifted
+        );
+    }
+
+    /// S143: `classify_fleet_file` drives the constitution — a BOUNDARY target — through all FIVE
+    /// states on the governed BODY region alone, with a user-owned header that is neither compared nor
+    /// touched. `NeedsBoundary` is the fifth state, reached only by a boundary target with no sentinel.
+    #[test]
+    fn classify_constitution_names_the_five_states_on_the_body_region() {
+        use crate::fleet::StampSyntax::MarkdownComment;
+        let sentinel = GOVERNED_BODY_SENTINEL;
+        let canonical = governed_body_canonical();
+        // A user-owned header — arbitrary, hand-edited, NEVER part of the comparison.
+        let header = "# ACME — AI Agent Constitution\n\n> our own preamble\n\n";
+
+        // Missing — no file at all.
+        assert_eq!(
+            classify_fleet_file(None, &canonical, MarkdownComment, Some(sentinel)),
+            FleetFileState::Missing
+        );
+        // UpToDate — header + the canonical body; the header differs from the template's but the BODY
+        // region matches, so the file is up to date and the header is out of scope.
+        let up_to_date = format!("{header}{canonical}");
+        assert_eq!(
+            classify_fleet_file(
+                Some(&up_to_date),
+                &canonical,
+                MarkdownComment,
+                Some(sentinel)
+            ),
+            FleetFileState::UpToDate
+        );
+        // StaleRender — a correctly-stamped OLDER body under the same sentinel: differs from canonical
+        // yet re-hashes to its own markdown stamp → auto-upgradable.
+        let stale_body = crate::fleet::stamp_render(
+            &format!("{sentinel}\n\n## Mandatory Load Order\n\nAN OLDER GOVERNED BODY\n"),
+            MarkdownComment,
+        );
+        assert_ne!(stale_body, canonical);
+        let stale = format!("{header}{stale_body}");
+        assert_eq!(
+            classify_fleet_file(Some(&stale), &canonical, MarkdownComment, Some(sentinel)),
+            FleetFileState::StaleRender
+        );
+        // Drifted — the body was hand-edited so its stamp no longer verifies (sentinel still present).
+        let drifted = format!(
+            "{header}{}",
+            canonical.replace("Mandatory Load Order", "Mangled")
+        );
+        assert_eq!(
+            classify_fleet_file(Some(&drifted), &canonical, MarkdownComment, Some(sentinel)),
+            FleetFileState::Drifted
+        );
+        // NeedsBoundary — a present file (every pre-S143 constitution) with NO sentinel: the body
+        // region cannot be located, so no rewrite is safe. NOT Drifted — a different fix.
+        let boundaryless =
+            "# ACME — AI Agent Constitution\n\n## Mandatory Load Order\n\nold text\n";
+        assert_eq!(
+            classify_fleet_file(
+                Some(boundaryless),
+                &canonical,
+                MarkdownComment,
+                Some(sentinel)
+            ),
+            FleetFileState::NeedsBoundary
+        );
+        // Cross-check: with boundary None (a whole-file target), the SAME boundaryless file is just a
+        // Drifted whole-file compare — NeedsBoundary is exclusively a boundary-target state.
+        assert_eq!(
+            classify_fleet_file(Some(boundaryless), &canonical, MarkdownComment, None),
+            FleetFileState::Drifted
+        );
+    }
+
+    /// S143: `body_region` is a pure function — whole file for a `None` boundary, the slice from the
+    /// sentinel for a `Some` boundary, and `None` (→ `NeedsBoundary`) when the sentinel is absent.
+    #[test]
+    fn body_region_extracts_only_the_governed_body() {
+        let sentinel = GOVERNED_BODY_SENTINEL;
+        let file = format!("HEADER above\n\n{sentinel}\ngoverned below\n");
+        // None boundary → the whole file, byte-for-byte (roles/hooks path, unchanged).
+        assert_eq!(body_region(&file, None), Some(file.as_str()));
+        // Some(sentinel) → from the sentinel to the end; the header is excluded.
+        assert_eq!(
+            body_region(&file, Some(sentinel)),
+            Some(format!("{sentinel}\ngoverned below\n").as_str())
+        );
+        // Some(sentinel) but absent → None (the caller reads this as NeedsBoundary).
+        assert_eq!(body_region("no boundary here\n", Some(sentinel)), None);
+    }
+
+    /// S143: the governed body carries NO `fill` placeholders — the same load-bearing invariant the
+    /// hooks have (S142). If it did, sync would compute a different canonical than the scaffold wrote
+    /// (which fills only the header), and the constitution would classify `Drifted` forever. The
+    /// placeholders live ONLY above the sentinel, in the user-owned header.
+    #[test]
+    fn constitution_body_carries_no_fill_placeholders() {
+        let body = governed_body_canonical();
+        for ph in [
+            "{PROJECT_NAME}",
+            "{GOAL}",
+            "{SLUG}",
+            "{DATE}",
+            "{MATURITY}",
+            "{FIRST_NN}",
+            "{FIRST_PROMPT}",
+            "{FIRST_TITLE}",
+            "{FIRST_NOTE}",
+        ] {
+            assert!(
+                !body.contains(ph),
+                "the governed body must carry no fill placeholder, found {ph}"
+            );
+        }
+        // ...and the header is where the fill actually lives (the split is real, not cosmetic).
+        assert!(
+            TPL_AGENTS_HEADER.contains("{PROJECT_NAME}"),
+            "the user-owned header must carry the fill"
+        );
+    }
+
+    /// S143: the boundary sentinel is HTML-legal (no `--` double-hyphen inside the comment, which is
+    /// illegal in strict HTML comments) and carries no fill token (so it is byte-identical across
+    /// installs and can be located by `find`).
+    #[test]
+    fn governed_body_sentinel_is_html_legal_and_fill_free() {
+        let inner = GOVERNED_BODY_SENTINEL
+            .strip_prefix("<!--")
+            .and_then(|s| s.strip_suffix("-->"))
+            .expect("the sentinel must be an HTML comment");
+        assert!(
+            !inner.contains("--"),
+            "no `--` inside the comment (illegal in strict HTML comments)"
+        );
+        assert!(
+            !GOVERNED_BODY_SENTINEL.contains('{'),
+            "the sentinel must carry no fill token — it is byte-identical across installs"
+        );
+    }
+
+    /// S143: the scaffolded constitution is stamped and immediately `UpToDate` — a fresh `init` +
+    /// immediate `--sync-fleet` never rewrites it (no churn). Proves the scaffold and `sync_targets`
+    /// derive the body from the ONE source, and that `fill` (header only) leaves the body untouched.
+    #[test]
+    fn scaffolded_constitution_is_stamped_and_immediately_up_to_date() {
+        let entries = files(
+            "my-proj",
+            "first goal",
+            "first-goal",
+            "2026-01-01",
+            "L2",
+            false,
+        );
+        let ac = entries
+            .iter()
+            .find(|e| e.path == ".ai/AGENTS.md")
+            .expect("the scaffold must emit the constitution");
+        // The scaffolded file classifies UpToDate against the sync target's body-only canonical.
+        assert_eq!(
+            classify_fleet_file(
+                Some(&ac.content),
+                &governed_body_canonical(),
+                crate::fleet::StampSyntax::MarkdownComment,
+                Some(GOVERNED_BODY_SENTINEL),
+            ),
+            FleetFileState::UpToDate,
+            "a freshly scaffolded constitution must be immediately UpToDate — no churn"
+        );
+        // The header carries the filled project name; the body carries the sentinel + stamp.
+        assert!(ac.content.starts_with("# my-proj — AI Agent Constitution"));
+        assert!(ac.content.contains(GOVERNED_BODY_SENTINEL));
+        assert!(crate::fleet::render_stamp_verifies(
+            body_region(&ac.content, Some(GOVERNED_BODY_SENTINEL)).unwrap(),
+            crate::fleet::StampSyntax::MarkdownComment
+        ));
+    }
+
+    /// S143 — the session's fakest green, guarded: a body-scoped UPGRADE must preserve the user-owned
+    /// header BYTE-FOR-BYTE while replacing the governed body. A stale-body constitution with a custom,
+    /// hand-edited header is upgraded; the header survives verbatim, the body becomes canonical.
+    #[test]
+    fn governed_body_upgrade_preserves_the_user_header_verbatim() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".ai")).unwrap();
+        let custom_header =
+            "# ACME Corp — AI Agent Constitution\n\n> our own hand-edited preamble\n\n";
+        let stale_body = crate::fleet::stamp_render(
+            &format!("{GOVERNED_BODY_SENTINEL}\n\n## Mandatory Load Order\n\nOLD GOVERNED BODY\n"),
+            crate::fleet::StampSyntax::MarkdownComment,
+        );
+        fs::write(
+            dir.path().join(".ai/AGENTS.md"),
+            format!("{custom_header}{stale_body}"),
+        )
+        .unwrap();
+
+        let mut out = Vec::new();
+        sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        )
+        .expect("a stale constitution body must auto-upgrade");
+
+        let after = fs::read_to_string(dir.path().join(".ai/AGENTS.md")).unwrap();
+        let idx = after
+            .find(GOVERNED_BODY_SENTINEL)
+            .expect("the sentinel must still be present after upgrade");
+        assert_eq!(
+            &after[..idx],
+            custom_header,
+            "the user-owned header must survive the upgrade BYTE-FOR-BYTE"
+        );
+        assert_eq!(
+            &after[idx..],
+            governed_body_canonical(),
+            "the governed body must be upgraded to the current canonical"
+        );
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("upgrade") && text.contains(".ai/AGENTS.md"),
+            "the constitution upgrade must be reported by name, got: {text}"
+        );
+    }
+
+    /// S143: a pre-S143 constitution (no sentinel) is `NeedsBoundary` — REFUSED even under
+    /// `--overwrite-drifted` (that flag must never rewrite it, or it would destroy the filled header),
+    /// and the refusal names the exact sentinel to paste. The one-time legacy migration, made safe.
+    #[test]
+    fn boundaryless_constitution_is_refused_even_with_overwrite_drifted() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".ai")).unwrap();
+        let legacy =
+            "# ACME — AI Agent Constitution\n\n## Mandatory Load Order\n\nour real content\n";
+        fs::write(dir.path().join(".ai/AGENTS.md"), legacy).unwrap();
+
+        let mut out = Vec::new();
+        let err = sync_fleet(
+            dir.path(),
+            // Even with the force flag, a boundaryless constitution must NOT be rewritten.
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: true,
+            },
+            &mut out,
+        )
+        .unwrap_err();
+
+        assert!(
+            err.to_string().contains(".ai/AGENTS.md"),
+            "the refusal must name the constitution, got: {err}"
+        );
+        assert!(
+            err.to_string().contains("needs-boundary"),
+            "the constitution must be reported as needs-boundary, got: {err}"
+        );
+        // Its bytes are untouched — refusing means refusing (the filled header is safe).
+        assert_eq!(
+            fs::read_to_string(dir.path().join(".ai/AGENTS.md")).unwrap(),
+            legacy,
+            "a boundaryless constitution must never be rewritten"
+        );
+        // The output prints the EXACT sentinel to paste — the one-time migration instruction.
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains(GOVERNED_BODY_SENTINEL),
+            "the migration message must print the exact sentinel to paste, got: {text}"
         );
     }
 
@@ -2535,8 +3013,8 @@ mod tests {
         // hand-typed subset. A fresh empty repo has none of them.
         assert_eq!(
             plan.len(),
-            crate::fleet::ROLES.len() + SYNC_HOOKS.len(),
-            "the plan must cover every role + every synced hook, not a hand-typed subset"
+            crate::fleet::ROLES.len() + SYNC_HOOKS.len() + 1,
+            "the plan must cover every role + every synced hook + the constitution (S143), not a hand-typed subset"
         );
         assert!(
             plan.iter().any(|i| i.rel.starts_with(".claude/agents/")),
@@ -2545,6 +3023,11 @@ mod tests {
         assert!(
             plan.iter().any(|i| i.rel.starts_with(".ai/hooks/")),
             "the plan must include the shell hooks (S142)"
+        );
+        assert!(
+            plan.iter()
+                .any(|i| i.rel == ".ai/AGENTS.md" && i.boundary.is_some()),
+            "the plan must include the constitution as a boundary target (S143)"
         );
         assert!(
             plan.iter().all(|i| i.state == FleetFileState::Missing),
@@ -2556,6 +3039,7 @@ mod tests {
     #[test]
     fn sync_fleet_creates_missing_but_refuses_to_touch_drifted_by_default() {
         let dir = tempfile::tempdir().unwrap();
+        seed_constitution(dir.path());
         let stale = &crate::fleet::ROLES[0];
         let stale_rel = stale.subagent_rel();
         fs::create_dir_all(dir.path().join(".claude/agents")).unwrap();
@@ -2608,6 +3092,7 @@ mod tests {
     #[test]
     fn sync_fleet_refreshes_drifted_only_when_explicitly_told_to() {
         let dir = tempfile::tempdir().unwrap();
+        seed_constitution(dir.path());
         let stale = &crate::fleet::ROLES[0];
         fs::create_dir_all(dir.path().join(".claude/agents")).unwrap();
         fs::write(dir.path().join(stale.subagent_rel()), "an older render\n").unwrap();
@@ -2633,6 +3118,7 @@ mod tests {
     #[test]
     fn sync_fleet_auto_upgrades_a_stale_render_without_overwrite_and_exits_zero() {
         let dir = tempfile::tempdir().unwrap();
+        seed_constitution(dir.path());
         fs::create_dir_all(dir.path().join(".claude/agents")).unwrap();
 
         // A genuine older render of ROLES[0]: the current render's body, changed, then re-stamped
@@ -2683,6 +3169,7 @@ mod tests {
     #[test]
     fn sync_fleet_is_idempotent_and_the_second_run_writes_nothing() {
         let dir = tempfile::tempdir().unwrap();
+        seed_constitution(dir.path());
         let mut out = Vec::new();
         sync_fleet(
             dir.path(),
@@ -2712,9 +3199,9 @@ mod tests {
         assert!(
             text.contains(&format!(
                 "{} already current",
-                crate::fleet::ROLES.len() + SYNC_HOOKS.len()
+                crate::fleet::ROLES.len() + SYNC_HOOKS.len() + 1
             )),
-            "second run must report every role + hook current, got: {text}"
+            "second run must report every role + hook + constitution current, got: {text}"
         );
         assert_eq!(
             before,
@@ -2728,6 +3215,7 @@ mod tests {
     #[test]
     fn sync_fleet_dry_run_writes_nothing_and_returns_the_real_runs_verdict() {
         let dir = tempfile::tempdir().unwrap();
+        seed_constitution(dir.path());
         let mut out = Vec::new();
         sync_fleet(
             dir.path(),
@@ -2776,11 +3264,15 @@ mod tests {
 
     /// `--sync-fleet` must not drag in the other ~40 scaffold entries. A project at session 16 that
     /// asked for the new roster and got a `prompts/01-task-kickoff.md` was handed a bug. S142 widened
-    /// the scope to the fleet roles (`.claude/agents/`) AND the pure-render hooks (`.ai/hooks/`) — and
-    /// NOTHING else: not the filled constitution, not `CONSTRAINTS.yaml`, not scripts/prompts/sessions.
+    /// the scope to the fleet roles (`.claude/agents/`) AND the pure-render hooks (`.ai/hooks/`); S143
+    /// adds the constitution's governed BODY (`.ai/AGENTS.md`) — and NOTHING else: not `CONSTRAINTS.yaml`
+    /// (user-tuned), not `SESSION`/scripts/prompts/sessions/`.githooks`. And it must never touch the
+    /// constitution's user-owned HEADER: a seeded UpToDate constitution is left byte-identical.
     #[test]
-    fn sync_fleet_touches_only_roles_and_hooks_and_nothing_else() {
+    fn sync_fleet_touches_only_roles_hooks_and_the_constitution() {
         let dir = tempfile::tempdir().unwrap();
+        seed_constitution(dir.path());
+        let constitution_before = fs::read_to_string(dir.path().join(".ai/AGENTS.md")).unwrap();
         let mut out = Vec::new();
         sync_fleet(
             dir.path(),
@@ -2800,20 +3292,26 @@ mod tests {
         assert_eq!(
             top,
             vec![".ai".to_string(), ".claude".to_string()],
-            "sync-fleet wrote outside .claude/ + .ai/hooks/ — it must never run the full init scaffold"
+            "sync-fleet wrote outside .claude/ + .ai/ — it must never run the full init scaffold"
         );
-        // Under .ai/ ONLY hooks/ — never the constitution, CONSTRAINTS.yaml, SESSION, etc.
-        let ai: Vec<String> = fs::read_dir(dir.path().join(".ai"))
+        // Under .ai/ ONLY the constitution + hooks/ — never CONSTRAINTS.yaml, SESSION, etc.
+        let mut ai: Vec<String> = fs::read_dir(dir.path().join(".ai"))
             .unwrap()
             .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
             .collect();
+        ai.sort();
         assert_eq!(
             ai,
-            vec!["hooks".to_string()],
-            "sync-fleet wrote a non-hook .ai/ file — the constitution/constraints are OUT of scope (S142)"
+            vec!["AGENTS.md".to_string(), "hooks".to_string()],
+            "sync-fleet wrote an unexpected .ai/ file — only the constitution + hooks are in scope (S143)"
+        );
+        // The constitution was UpToDate (seeded canonical) → NOT rewritten, byte-for-byte identical.
+        assert_eq!(
+            fs::read_to_string(dir.path().join(".ai/AGENTS.md")).unwrap(),
+            constitution_before,
+            "an up-to-date constitution must never be rewritten (no-churn)"
         );
         for unwanted in [
-            ".ai/AGENTS.md",
             ".ai/CONSTRAINTS.yaml",
             ".ai/SESSION",
             "scripts",

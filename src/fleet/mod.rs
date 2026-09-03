@@ -669,10 +669,10 @@ pub const RENDER_STAMP_KEY: &str = "vajra-render-sha:";
 /// take a `StampSyntax` rather than being forked per type: ONE code path, three comment styles. A
 /// second copy of the helpers would be the exact drift `--sync-fleet` exists to close.
 ///
-/// `MarkdownComment` is defined and unit-tested here but not yet wired to a scaffold file: the one
-/// markdown scaffold render, `.ai/AGENTS.md`, is a per-install *filled* template `sync_fleet` cannot
-/// reproduce, so its auto-upgrade is the named S143 follow-up (split the governed body from the
-/// user-owned fill). The syntax is ready for it; the constitution's fill-split is not this story.
+/// `MarkdownComment` stamps the constitution's governed BODY (S143): `.ai/AGENTS.md` is split into a
+/// user-owned filled header and a byte-identical governed body divided by a boundary sentinel, and
+/// `--sync-fleet` stamps + upgrades only the body (a boundary target — see `init::classify_fleet_file`
+/// / `init::body_region`). This is the fill-split S142 deferred; the syntax it readied is now in use.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StampSyntax {
     /// A bare `vajra-render-sha: <hex>` line, inserted as the LAST frontmatter line (before the
@@ -682,7 +682,7 @@ pub enum StampSyntax {
     /// (a comment) and it never disturbs the shebang, which must stay line 1. Hooks use this.
     ShellComment,
     /// A `<!-- vajra-render-sha: <hex> -->` HTML comment, appended as the trailing line. Inert to a
-    /// markdown reader. Ready for the S143 constitution upgrade; not yet wired to a scaffold file.
+    /// markdown reader. The constitution's governed body uses this (S143).
     MarkdownComment,
 }
 
