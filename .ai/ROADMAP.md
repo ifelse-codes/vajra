@@ -1,6 +1,27 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-02 · **Session 141 — CODE: best install + upgrade-in-place — ACCEPT (5 of 6 SHIPPED
+**Updated:** 2026-09-03 · **Session 142 — CODE: complete the upgrade loop for the pure-render scaffold
+files (hooks) — ACCEPT (6 of 6 SHIPPED at close), attested (see review).** [x] The S141 render stamp now
+generalises beyond YAML frontmatter to a comment-syntax abstraction (`StampSyntax`: Frontmatter |
+ShellComment | MarkdownComment), ONE code path — the frontmatter variant stays byte-identical to S141
+(golden test) so no role file churns. The SINGLE existing `vajra init --sync-fleet` widens to cover the
+shell **hooks** (`.ai/hooks/hook-*.sh`, a trailing `# vajra-render-sha:` comment): they are scaffolded
+already stamped, classify into the same four states, and auto-upgrade an untouched old render / refuse a
+user edit exactly like role files. No 8th command. `verify-session-142.sh` **12/12** · `fixture-142`
+**9/9** (four states on a HOOK vs the real binary; RRS/EDT prove the shell stamp is load-bearing) · 461
+lib tests · fmt+clippy clean. Crew: tech-lead FIRST bound design-advisor · qa-specialist ·
+fidelity-reviewer required; qa ran a LIVE falsification (ShellComment verify→false → fixture RED on STA,
+reverted clean); the cold review judged all 9 `obeyed:` dispositions `implemented:` and named the fakest
+green (classify unit test drove only Frontmatter), **closed in-session** with a hook four-state unit test.
+**Scope settled (founder-confirmed "hooks now, constitution S143"):** `.ai/AGENTS.md` is a filled
+per-install template `sync_fleet` cannot reproduce → DEFERRED to **S143** (split its governed body from
+its user fill; the `MarkdownComment` syntax is already built + unit-tested for that). `CONSTRAINTS.yaml`
+stays user-owned permanently. **Honest limit:** pre-S142 installs have unstamped hooks → `Drifted` on
+first contact, one `--overwrite-drifted`, smooth going-forward not retroactive. Reports:
+`sessions/session-142-summary.md` + `sessions/session-142-review.md`. **Next: S143 (constitution upgrade)
+or B (chitra dogfood). Next GT: S145.**
+
+**Prior — Updated:** 2026-09-02 · **Session 141 — CODE: best install + upgrade-in-place — ACCEPT (5 of 6 SHIPPED
 at review → 6/6 at close), attested `69f94543…`.** [x] Every scaffolded fleet role render now carries a
 recorded `vajra-render-sha:` stamp (sha256 of the render minus the stamp line, written at render time);
 `FleetFileState` gains a fourth, now-DERIVABLE state **`StaleRender`**; `vajra init --sync-fleet`
