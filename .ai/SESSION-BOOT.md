@@ -1,28 +1,34 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 141 — COMPLETE (CODE: best install + upgrade-in-place). **Verdict: ACCEPT** (cold
-  `fidelity-reviewer`, 5 of 6 SHIPPED at review → 6/6 at close; criterion 6 PARTIAL only because the
-  summary post-dates the review dispatch), attested `69f94543…`. Reports:
-  `sessions/session-141-summary.md` + `sessions/session-141-review.md`. **Next: S142. Next GT: S145.**
-- **What shipped:** every scaffolded fleet role file now carries a recorded `vajra-render-sha:` stamp
-  (sha256 of the render minus the stamp line, written at render time). `FleetFileState` gains a fourth,
-  now-DERIVABLE state `StaleRender`; `vajra init --sync-fleet` **auto-upgrades an untouched old render
-  with NO `--overwrite-drifted`** (reported by name, old→new) and still **refuses a user edit / unstamped
-  file**. Closes the S136 "stale-vs-edited not derivable" floor by RECORDING the provenance (DECISION-007
-  S141 addendum), not inferring it. `verify-session-141.sh` **10/10** · `fixture-141` **8/8** · 457 lib
-  tests · fmt+clippy clean.
+- **Number:** 142 — COMPLETE (CODE: complete the upgrade loop for the pure-render scaffold files —
+  hooks). **Verdict: ACCEPT** (cold `fidelity-reviewer`, 5 of 6 SHIPPED at review → 6/6 at close;
+  criterion 6 PARTIAL at review only because the summary post-dated the dispatch), all 9 `obeyed:`
+  dispositions judged `implemented:`. Reports: `sessions/session-142-summary.md` +
+  `sessions/session-142-review.md`. **Next: S143 (constitution upgrade) or B (chitra dogfood). Next GT: S145.**
+- **What shipped:** the S141 render stamp now generalises beyond YAML frontmatter — `StampSyntax`
+  (Frontmatter | ShellComment | MarkdownComment) parameterises the four helpers on ONE code path, the
+  frontmatter variant byte-identical to S141 (golden test) so no role file churns. The SINGLE
+  `vajra init --sync-fleet` widens to the shell **hooks** (`.ai/hooks/hook-*.sh`, a trailing
+  `# vajra-render-sha:` comment): scaffolded already stamped, classified into the same four states,
+  auto-upgrading an untouched old render / refusing a user edit exactly like role files. No 8th command.
+  `verify-session-142.sh` **12/12** · `fixture-142` **9/9** · 461 lib tests · fmt+clippy clean.
 - **Governance USED:** tech-lead dispatched FIRST, bound the crew (required: design-advisor ·
-  qa-specialist · fidelity-reviewer; six deferred-budget). design-advisor confirmed `design-significant:
-  yes` + the recorded-vs-inferred distinction (before any code). qa-specialist ran the suite + a LIVE
-  falsification (broke the StaleRender guard → fixture RED → restored, tree clean). fidelity-reviewer
-  judged the 3 design-advisor `obeyed:` dispositions independently (all `implemented:`). Close passes
-  `check_required_crew`.
-- **Honest limits (disclosed):** legacy UNSTAMPED files (chitra) stay `Drifted` on first contact — their
-  FIRST upgrade still needs one `--overwrite-drifted`; smoothness is going-forward, not retroactive. The
-  stamp is a content hash, not a keyed signature (tamper-EVIDENT, not tamper-PROOF). "Claude Code ignores
-  an unknown frontmatter key" is proven by PLACEMENT, not a live dispatch — an untested assumption.
-  Non-fleet scaffold files still add-only.
+  qa-specialist · fidelity-reviewer; six deferred-budget). design-advisor settled BOTH forks before any
+  code (the comment-syntax abstraction + the constitution-deferral ruling). qa-specialist ran the suites
+  + a LIVE falsification (forced ShellComment verify→false → fixture RED on STA → restored, tree clean).
+  fidelity-reviewer judged all 9 `obeyed:` dispositions independently (all `implemented:`) and named the
+  fakest green (classify unit test drove only Frontmatter) → **closed in-session** with a hook four-state
+  unit test. Close passes `check_required_crew` + `check-advice` + `check-obeyed`.
+- **The founder call (surfaced at the design fork):** the founder had named the constitution as part of
+  "one command upgrades everything," but the design-advisor found `.ai/AGENTS.md` is a filled per-install
+  template with no sound one-story upgrade. Founder chose **"hooks now, constitution S143."** So S142
+  ships the hooks; **S143 = split the constitution's governed body from its user fill** (the
+  `MarkdownComment` syntax is already built + unit-tested for it). `CONSTRAINTS.yaml` stays user-owned.
+- **Honest limits (disclosed):** pre-S142 installs have UNSTAMPED hooks → `Drifted` on first contact
+  (one `--overwrite-drifted`; smooth going-forward, not retroactive). `MarkdownComment` has no
+  falsifiability fixture yet; no live check asserts CONSTRAINTS.yaml/AGENTS.md left untouched (unit +
+  addendum only). Stamp = content hash, not a keyed signature (tamper-EVIDENT, not tamper-PROOF).
 
 ## Prior Session
 - **Number:** 140 — COMPLETE (the mandatory NO-CODE Ground Truth, `140 % 5 == 0`). **Lead-lens verdict:
@@ -36,13 +42,14 @@
   someday. See `[[vajra-s140-completeness-priorities]]`.
 
 ## Next Session
-- **S142 — pending founder pick.** S141 closed the fresh-install/upgrade floor; the founder's stated
-  order (S140) puts a **chitra dogfood** next (completeness priority #2). Three candidates in
-  `sessions/session-141-summary.md`: **A (recommended) — chitra dogfood: exercise S141's upgrade path on
-  the real brownfield repo** (chitra's 4 unstamped stale renders → one `--overwrite-drifted` writes the
-  first stamps → prove the next `--sync-fleet` is smooth); **B — extend the render stamp to non-fleet
-  scaffold files**; **C — reviewer-independence self-certification at close (S138B, carried)**. **Start
-  in a FRESH chat** once picked; the agent creates `session-142-<slug>`. **Next GT: S145.**
+- **S143 — pending founder pick (recommended A: the constitution joins the smooth upgrade).** S142
+  completed the upgrade loop for the hooks and named the constitution as the last piece. Three
+  candidates in `sessions/session-142-summary.md`: **A (recommended) — S143: split `TPL_AGENTS` into a
+  user-owned filled header + a byte-identical governed body; stamp + auto-upgrade only the body** (the
+  `MarkdownComment` syntax is already built, so it's a small step — the promised follow-up); **B — the
+  chitra dogfood full-loop upgrade** (run `vajra claude` inside chitra; exercise S141+S142 on a real
+  brownfield repo — roles AND hooks); **C — prove the 5 quiet fleet roles give GOOD advice (S140 open)**.
+  **Start in a FRESH chat** once picked; the agent creates `session-143-<slug>`. **Next GT: S145.**
 
 ### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference
