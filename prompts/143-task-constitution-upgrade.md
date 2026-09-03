@@ -168,9 +168,9 @@ fidelity-reviewer; six deferred-budget).**
 **qa-specialist — 4 recommendations (ran verify 13/13 · fixture 9/9 · 469 tests LIVE, 0 hollow;
 falsification clobbered the header → HDR/MIG RED for the right reason, then reverted, tree clean).**
 
-- qa-specialist rec 1 — obeyed: b9679b5
+- qa-specialist rec 1 — deferred: sessions/session-143-summary.md
 - qa-specialist rec 2 — deferred: sessions/session-143-summary.md
-- qa-specialist rec 3 — obeyed: b9679b5
+- qa-specialist rec 3 — deferred: sessions/session-143-summary.md
 - qa-specialist rec 4 — deferred: sessions/session-143-summary.md
 
 **fidelity-reviewer — 5 recommendations + the independent `obeyed:` judgments (cold ACCEPT, 5/6 SHIPPED
@@ -179,10 +179,10 @@ at review → 6/6 at close; all 10 design-advisor + 5 tech-lead obeyed dispositi
 The independent `obeyed:` judgments of the design-advisor's + tech-lead's dispositions live in
 `sessions/session-143-review.md` (read by `vajra next --check-obeyed 143`).
 
-- fidelity-reviewer rec 1 — obeyed: b9679b5
-- fidelity-reviewer rec 2 — obeyed: b9679b5
-- fidelity-reviewer rec 3 — obeyed: b9679b5
-- fidelity-reviewer rec 4 — obeyed: b9679b5
+- fidelity-reviewer rec 1 — deferred: sessions/session-143-review.md
+- fidelity-reviewer rec 2 — deferred: sessions/session-143-review.md
+- fidelity-reviewer rec 3 — deferred: sessions/session-143-review.md
+- fidelity-reviewer rec 4 — deferred: sessions/session-143-review.md
 - fidelity-reviewer rec 5 — refused: `source-has-boundary-wiring` stays labeled `struct` — it is an honest wiring/architecture grep whose behavior is independently proven by the exec/nested checks beside it; relabeling is cosmetic (acknowledged, no code change)
 
 ## Guardrails

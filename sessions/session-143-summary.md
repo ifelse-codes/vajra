@@ -83,10 +83,15 @@ proven by the exec/nested checks beside it (reviewer rec 5, refused as cosmetic)
 - **design-advisor** (10 recs): settled all four forks (boundary sentinel · body-scoped classify/rewrite ·
   legacy migration as a fifth state · CONSTRAINTS out) + the S143 addendum. All 10 obeyed; judged
   `implemented:` by the fidelity-reviewer (a different role — S131).
-- **qa-specialist** (4 recs): rec 1 (absent-constitution coverage) + rec 3 (keep struct labels) obeyed
-  in-session (b9679b5); rec 2 (double-sentinel) + rec 4 (atomic write) deferred.
+- **qa-specialist** (4 recs): rec 1 (absent-constitution coverage) + rec 3 (keep struct labels) were
+  addressed in-session (b9679b5 — the missing-constitution test + verify check); rec 2 (double-sentinel) +
+  rec 4 (atomic write) deferred. All four recorded `deferred:` to this summary — a rec's own advisor role
+  cannot independently judge the builder's obedience of it, and no fourth judge was dispatched (budget).
 - **fidelity-reviewer** (5 recs): recs 1–4 (AC4 all-UpToDate · addendum contradiction · first-occurrence
-  disclosure · write summary+review) obeyed in-session; rec 5 (relabel a struct check) refused as cosmetic.
+  disclosure · write summary+review) were done in-session (b9679b5) and recorded `deferred:` to the review
+  (the reviewer cannot self-judge its own recs' obedience); rec 5 (relabel a struct check) refused as
+  cosmetic. The fidelity-reviewer's independent `obeyed-check` judgments cover the design-advisor's + the
+  tech-lead's dispositions (all 15 `implemented:`), which is what `--check-obeyed 143` verifies.
 
 ## Cost
 
