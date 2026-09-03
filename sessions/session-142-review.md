@@ -1,5 +1,8 @@
 # Session 142 — Independent Cold Fidelity Review
 
+**Verdict:** ACCEPT
+**Review-Inputs-SHA:** f900c522dd5f8d12dccd4d27170bd19ef8ecfc5c1aaf1d8d1564b0a228f8aa80
+
 **Reviewer:** cold `fidelity-reviewer` subagent, fed only the session prompt
 (`prompts/142-task-scaffold-upgrade.md`) + the full session diff (`git diff main...HEAD`). It did not
 build the delivery and did not read the builder's summary. Scope judged on the founder-confirmed
