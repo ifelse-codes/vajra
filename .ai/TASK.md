@@ -70,12 +70,24 @@
   `--overwrite-drifted`; smoothness is going-forward); content hash not a keyed signature; "CC ignores an
   unknown frontmatter key" proven by placement, not a live dispatch; non-fleet scaffold files add-only.
 
-## NEXT: Session 142 — pending founder pick (recommended: chitra dogfood)
+## Session 142 — CODE: complete the upgrade loop for the pure-render scaffold files (hooks) — COMPLETE
 
-- Three candidates in `sessions/session-141-summary.md`: **A (recommended)** exercise S141's upgrade path
-  on chitra (the founder's stated #2 priority); **B** extend the stamp to non-fleet scaffold files; **C**
-  reviewer-independence self-certification at close (S138B). **Start in a FRESH chat** once picked.
-  **Next GT: S145.**
+- Brief: `prompts/142-task-scaffold-upgrade.md`. **ACCEPT** (cold `fidelity-reviewer`, 6 of 6 SHIPPED at
+  close), all 9 `obeyed:` dispositions `implemented:`. Reports: `sessions/session-142-summary.md` +
+  `sessions/session-142-review.md`.
+- **Shipped:** the S141 render stamp generalises beyond frontmatter via `StampSyntax` (one code path,
+  frontmatter byte-identical); the SINGLE `vajra init --sync-fleet` widens to the shell hooks
+  (`.ai/hooks/hook-*.sh`, shell-comment stamp) — scaffolded stamped, four-state smooth upgrade, no 8th
+  command. `verify-session-142.sh` 12/12 · `fixture-142` 9/9 · 461 lib tests · fmt+clippy clean.
+- **Founder-confirmed scope:** hooks now; `.ai/AGENTS.md` (a filled template) DEFERRED to S143 (the
+  fill-split); `CONSTRAINTS.yaml` user-owned. **Next GT: S145.**
+
+## NEXT: Session 143 — pending founder pick (recommended A: the constitution joins the smooth upgrade)
+
+- Three candidates in `sessions/session-142-summary.md`: **A (recommended)** split `TPL_AGENTS` into a
+  user-owned header + a governed body; stamp/auto-upgrade only the body (the promised follow-up);
+  **B** the chitra dogfood full-loop upgrade (roles + hooks on a real brownfield repo); **C** prove the
+  5 quiet fleet roles give good advice (S140 open). **Start in a FRESH chat** once picked. **Next GT: S145.**
 
 ## Session 137 — PAID DOGFOOD: chitra's `scatter` locked to the reference language — COMPLETE
 
