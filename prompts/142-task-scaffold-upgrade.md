@@ -159,13 +159,21 @@ fidelity-reviewer; six deferred-budget).**
 - design-advisor rec 9 — refused: keep `--sync-fleet`; no rename and no `--sync` alias this session (the report line now reads "roles + hooks"; a rename/alias is cosmetic and churns help/tests/chitra references — deferred to a future polish, not shipped)
 - design-advisor rec 10 — obeyed: 58b1033
 
-**qa-specialist — recommendations (added after the independent QA dispatch).**
+**qa-specialist — 3 recommendations (ran verify 11/11 · fixture 9/9 · 460 tests LIVE, 0 hollow; falsification bit RED for the right reason then reverted clean).**
 
-_(pending qa-specialist dispatch)_
+- qa-specialist rec 1 — deferred: sessions/session-142-summary.md
+- qa-specialist rec 2 — deferred: sessions/session-142-summary.md
+- qa-specialist rec 3 — deferred: sessions/session-142-summary.md
 
-**fidelity-reviewer — recommendations (added after the cold review).**
+**fidelity-reviewer — 4 recommendations + the independent `obeyed:` judgments (cold ACCEPT, 5/6→6/6, all 9 obeyed-checks `implemented:`).**
 
-_(pending fidelity-reviewer dispatch)_
+The independent `obeyed:` judgments of the design-advisor's + tech-lead's dispositions live in
+`sessions/session-142-review.md` (read by `vajra next --check-obeyed 142`).
+
+- fidelity-reviewer rec 1 — deferred: sessions/session-142-review.md (closed in-session: `classify_names_the_four_states_for_a_shell_hook` drives a hook through all four states; recorded DONE in the review)
+- fidelity-reviewer rec 2 — deferred: sessions/session-142-summary.md
+- fidelity-reviewer rec 3 — deferred: sessions/session-142-summary.md
+- fidelity-reviewer rec 4 — refused: the drifted branch already prints the `--overwrite-drifted` guidance for any drifted file (hooks included); a dedicated hook-drift stdout line is cosmetic, and the retroactive-limit disclosure is in the addendum + demo before_after
 
 ## Guardrails
 
