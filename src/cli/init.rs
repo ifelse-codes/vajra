@@ -8,6 +8,33 @@ use std::{fmt, fs};
 /// The one file `init` merges into rather than skips when it already exists (S44).
 const CLAUDE_SETTINGS_PATH: &str = ".claude/settings.json";
 
+/// The pure-render shell hooks S142 gives the render stamp + four-state smooth upgrade. Each is an
+/// `include_str!` template (defined below) with NO fill placeholders — asserted by the test
+/// `hook_templates_carry_no_fill_placeholders`, which is what makes the stamped render byte-identical
+/// across every install, the same clean fit as a fleet role. ONE list: `files()` scaffolds these
+/// stamped and `sync_targets()` syncs the same set, so a fresh `init` immediately reports them
+/// `UpToDate`.
+const SYNC_HOOKS: &[(&str, &str)] = &[
+    (".ai/hooks/hook-session-start.sh", TPL_HOOK_SESSION_START),
+    (".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
+    (".ai/hooks/hook-copilot-murmur.sh", TPL_HOOK_COPILOT_MURMUR),
+    (".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
+    (".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
+    (".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
+];
+
+/// The canonical STAMPED render of one hook — a shell-comment `vajra-render-sha:` trailing line over
+/// the template. Hooks carry no fill placeholders, so this is the same byte string whether produced
+/// at scaffold time or sync time (no drift). The ONE place a hook's canonical bytes are defined.
+fn render_stamped_hook(template: &str) -> String {
+    crate::fleet::stamp_render(template, crate::fleet::StampSyntax::ShellComment)
+}
+
+/// The report label for a hook — its basename (e.g. `hook-session-guard.sh`).
+fn hook_label(rel: &str) -> String {
+    rel.rsplit('/').next().unwrap_or(rel).to_string()
+}
+
 pub fn run(args: &[String]) -> Result<()> {
     // S136 (DECISION-007 S136 addendum): the UPGRADE path a brownfield adopter needs. `init`
     // scaffolds ~40 entries and prompts for a project name, a first-session goal and a maturity
@@ -91,48 +118,105 @@ pub enum FleetFileState {
     Drifted,
 }
 
-/// Classify one role file from what is actually on disk against the canonical render.
+/// Classify one scaffold file from what is actually on disk against the canonical render.
 ///
 /// Takes the read content rather than the path so the decision is a pure function the tests can
 /// drive without a filesystem — the classification is the part that has to be right. The
 /// `StaleRender` arm calls `fleet::render_stamp_verifies`, which shells out for sha256 but is
 /// deterministic and touches no filesystem, so this stays a pure function of its inputs (S141).
-pub fn classify_fleet_file(on_disk: Option<&str>, canonical: &str) -> FleetFileState {
+///
+/// S142: `syntax` says which comment style carries the stamp (frontmatter for role files, a shell
+/// comment for hooks), so the same four-state machine covers every pure-render scaffold file, not
+/// only the fleet roles.
+pub fn classify_fleet_file(
+    on_disk: Option<&str>,
+    canonical: &str,
+    syntax: crate::fleet::StampSyntax,
+) -> FleetFileState {
     match on_disk {
         None => FleetFileState::Missing,
         Some(body) if body == canonical => FleetFileState::UpToDate,
-        Some(body) if crate::fleet::render_stamp_verifies(body) => FleetFileState::StaleRender,
+        Some(body) if crate::fleet::render_stamp_verifies(body, syntax) => {
+            FleetFileState::StaleRender
+        }
         Some(_) => FleetFileState::Drifted,
     }
 }
 
-/// One role's line in the sync plan.
+/// One scaffold file's line in the sync plan. S142 widened this from role-only to any pure-render
+/// scaffold file, so it carries its own comment `syntax`, whether it is `executable`, and the exact
+/// `canonical` bytes it was classified against — the SINGLE source the apply step writes, so a plan
+/// can never carry a copy that drifts from what it compared.
 #[derive(Debug, Clone)]
 pub struct FleetSyncItem {
-    pub role: &'static str,
+    /// Human label for the report (a role name, or a hook basename).
+    pub label: String,
     pub rel: String,
+    pub syntax: crate::fleet::StampSyntax,
+    pub executable: bool,
+    pub canonical: String,
     pub state: FleetFileState,
+}
+
+/// One pure-render scaffold target, resolved BEFORE the disk is read: its repo-relative path, its
+/// stamp comment syntax, whether it must be executable, and the exact canonical bytes to compare
+/// against and (on apply) write. The SINGLE source both the plan and the scaffold derive from.
+struct SyncTarget {
+    label: String,
+    rel: String,
+    syntax: crate::fleet::StampSyntax,
+    executable: bool,
+    canonical: String,
+}
+
+/// Every pure-render scaffold file `--sync-fleet` governs: the fleet roles (frontmatter stamp) and
+/// the shell hooks (S142, shell-comment stamp). ONE list, so `plan_fleet_sync` and the scaffold agree
+/// on exactly this set — a fresh `init` immediately reports them all `UpToDate`. `.ai/AGENTS.md`
+/// (filled per install) and `CONSTRAINTS.yaml` (user-tuned) are deliberately absent — see the
+/// DECISION-007 S142 addendum.
+fn sync_targets() -> Vec<SyncTarget> {
+    let mut targets: Vec<SyncTarget> = crate::fleet::ROLES
+        .iter()
+        .map(|role| SyncTarget {
+            label: role.name.to_string(),
+            rel: role.subagent_rel(),
+            syntax: crate::fleet::StampSyntax::Frontmatter,
+            executable: false,
+            canonical: crate::fleet::render_subagent_definition(role),
+        })
+        .collect();
+    for (rel, tpl) in SYNC_HOOKS {
+        targets.push(SyncTarget {
+            label: hook_label(rel),
+            rel: rel.to_string(),
+            syntax: crate::fleet::StampSyntax::ShellComment,
+            executable: true,
+            canonical: render_stamped_hook(tpl),
+        });
+    }
+    targets
 }
 
 /// Build the plan WITHOUT writing anything. `--sync-fleet` and `--sync-fleet --dry-run` compute
 /// the identical plan; only the apply step differs, which is what makes the dry run trustworthy.
 pub fn plan_fleet_sync(root: &Path) -> Vec<FleetSyncItem> {
-    crate::fleet::ROLES
-        .iter()
-        .map(|role| {
-            let rel = role.subagent_rel();
-            let canonical = crate::fleet::render_subagent_definition(role);
+    sync_targets()
+        .into_iter()
+        .map(|t| {
             // An unreadable file is NOT treated as absent — that would let a permissions error
             // silently become a create. It reads as `Drifted`: present, and not provably canonical.
-            let on_disk = match fs::read_to_string(root.join(&rel)) {
+            let on_disk = match fs::read_to_string(root.join(&t.rel)) {
                 Ok(body) => Some(body),
                 Err(e) if e.kind() == io::ErrorKind::NotFound => None,
                 Err(_) => Some(String::new()),
             };
-            let state = classify_fleet_file(on_disk.as_deref(), &canonical);
+            let state = classify_fleet_file(on_disk.as_deref(), &t.canonical, t.syntax);
             FleetSyncItem {
-                role: role.name,
-                rel,
+                label: t.label,
+                rel: t.rel,
+                syntax: t.syntax,
+                executable: t.executable,
+                canonical: t.canonical,
                 state,
             }
         })
@@ -154,7 +238,12 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
     let mut up_to_date = 0u32;
     let mut unresolved: Vec<String> = Vec::new();
 
-    writeln!(out, "=== vajra: fleet sync ({} roles) ===", plan.len())?;
+    let n_roles = crate::fleet::ROLES.len();
+    let n_hooks = plan.len().saturating_sub(n_roles);
+    writeln!(
+        out,
+        "=== vajra: fleet sync ({n_roles} roles + {n_hooks} hooks) ==="
+    )?;
     if opts.dry_run {
         writeln!(out, "  DRY RUN — nothing is written.")?;
     }
@@ -169,7 +258,7 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                 if opts.dry_run {
                     writeln!(out, "  would   create {}", item.rel)?;
                 } else {
-                    write_role_file(root, item)?;
+                    write_target(root, item)?;
                     writeln!(out, "  create  {}", item.rel)?;
                 }
                 created += 1;
@@ -186,7 +275,7 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                         item.rel
                     )?;
                 } else {
-                    write_role_file(root, item)?;
+                    write_target(root, item)?;
                     writeln!(out, "  upgrade {} (stale render {old8} → {new8})", item.rel)?;
                 }
                 upgraded += 1;
@@ -195,7 +284,7 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                 if opts.dry_run {
                     writeln!(out, "  would   refresh {} (drifted)", item.rel)?;
                 } else {
-                    write_role_file(root, item)?;
+                    write_target(root, item)?;
                     writeln!(out, "  refresh {} (drifted → canonical)", item.rel)?;
                 }
                 refreshed += 1;
@@ -236,7 +325,7 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
              \x20   vajra init --sync-fleet --overwrite-drifted\n"
         )?;
         bail!(
-            "{} role file(s) drifted and were left untouched: {}",
+            "{} scaffold file(s) drifted and were left untouched: {}",
             unresolved.len(),
             unresolved.join(", ")
         );
@@ -245,35 +334,37 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
 }
 
 /// Short old→new stamps for a `StaleRender` upgrade report line — old = the file's own embedded
-/// stamp, new = the current render's. Best-effort display only (`?` when a stamp cannot be read);
-/// the decision to upgrade was already made by `classify_fleet_file`, not by this.
+/// stamp, new = the canonical render's. Both read in the item's own comment syntax (S142). Best-effort
+/// display only (`?` when a stamp cannot be read); the decision to upgrade was already made by
+/// `classify_fleet_file`, not by this.
 fn stale_upgrade_hashes(root: &Path, item: &FleetSyncItem) -> (String, String) {
     let short = |h: &str| h.chars().take(8).collect::<String>();
     let old = fs::read_to_string(root.join(&item.rel))
         .ok()
-        .and_then(|c| crate::fleet::extract_render_stamp(&c))
+        .and_then(|c| crate::fleet::extract_render_stamp(&c, item.syntax))
         .map(|h| short(&h))
         .unwrap_or_else(|| "?".to_string());
-    let new = crate::fleet::resolve_role(item.role)
-        .map(crate::fleet::render_subagent_definition)
-        .and_then(|def| crate::fleet::extract_render_stamp(&def))
+    let new = crate::fleet::extract_render_stamp(&item.canonical, item.syntax)
         .map(|h| short(&h))
         .unwrap_or_else(|| "?".to_string());
     (old, new)
 }
 
-/// Write one role file from the canonical render. The content is re-rendered here rather than
-/// carried in the plan so there is exactly one source for the bytes — a plan that carried a stale
-/// copy of the render would be the very drift this command exists to close.
-fn write_role_file(root: &Path, item: &FleetSyncItem) -> Result<()> {
-    let role = crate::fleet::resolve_role(item.role)
-        .ok_or_else(|| anyhow::anyhow!("unknown role {:?} in sync plan", item.role))?;
+/// Write one scaffold file from the canonical bytes computed in the plan (`item.canonical` — the
+/// single source `sync_targets` derived, so nothing re-renders a second, drifting copy), setting the
+/// executable bit for hooks. Covers roles (frontmatter) and hooks (shell) uniformly (S142).
+fn write_target(root: &Path, item: &FleetSyncItem) -> Result<()> {
     let full = root.join(&item.rel);
     if let Some(parent) = full.parent() {
         fs::create_dir_all(parent).with_context(|| format!("mkdir {}", parent.display()))?;
     }
-    fs::write(&full, crate::fleet::render_subagent_definition(role))
-        .with_context(|| format!("failed to write {}", item.rel))?;
+    fs::write(&full, &item.canonical).with_context(|| format!("failed to write {}", item.rel))?;
+    #[cfg(unix)]
+    if item.executable {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&full, fs::Permissions::from_mode(0o755))
+            .with_context(|| format!("failed to chmod {}", item.rel))?;
+    }
     Ok(())
 }
 
@@ -780,6 +871,15 @@ fn files(
         content: fill(content),
         executable: true,
     };
+    // S142: the `.ai/hooks/` shell hooks are scaffolded STAMPED (a trailing `# vajra-render-sha:`
+    // comment) so a fresh `init` + immediate `--sync-fleet` reports them `UpToDate` — the same
+    // clean fit as a fleet role. Fill runs first (a no-op for hooks, which carry no placeholders);
+    // `render_stamped_hook` is the one source `sync_targets` also uses, so the two never drift.
+    let fxs = |path: &str, content: &str| FileEntry {
+        path: path.to_string(),
+        content: render_stamped_hook(&fill(content)),
+        executable: true,
+    };
 
     let mut entries = vec![
         f(".ai/AGENTS.md", TPL_AGENTS),
@@ -802,12 +902,12 @@ fn files(
         // Hooks live under .ai/hooks/ (S34): they are Vajra's, not the project's —
         // keeps them out of a brownfield project's own scripts/ package. Per-session
         // verify/demo scripts stay in scripts/ (that contract is unchanged).
-        fx(".ai/hooks/hook-session-start.sh", TPL_HOOK_SESSION_START),
-        fx(".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
-        fx(".ai/hooks/hook-copilot-murmur.sh", TPL_HOOK_COPILOT_MURMUR),
-        fx(".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
-        fx(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
-        fx(".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
+        fxs(".ai/hooks/hook-session-start.sh", TPL_HOOK_SESSION_START),
+        fxs(".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
+        fxs(".ai/hooks/hook-copilot-murmur.sh", TPL_HOOK_COPILOT_MURMUR),
+        fxs(".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
+        fxs(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
+        fxs(".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
         // Git-level belt (S43): tracked pre-commit/pre-push, an independent L2 layer
         // (git-native) beneath the L3 .claude/ hooks. Byte-identical to the vajra repo's
         // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
@@ -1488,11 +1588,21 @@ mod tests {
         assert!(hook.exists(), "hook not scaffolded");
         // The whole point of option (b): the scaffolded copy is byte-identical to the
         // canonical script — one source of truth, no drift.
-        assert_eq!(
-            fs::read_to_string(&hook).unwrap(),
-            TPL_HOOK_COPILOT_LOADER,
-            "scaffolded hook drifted from canonical"
-        );
+        {
+            let __body = fs::read_to_string(&hook).unwrap();
+            assert_eq!(
+                crate::fleet::strip_render_stamp(&__body, crate::fleet::StampSyntax::ShellComment),
+                TPL_HOOK_COPILOT_LOADER,
+                "scaffolded hook, stamp stripped, must equal the canonical template (one source, no drift)"
+            );
+            assert!(
+                crate::fleet::render_stamp_verifies(
+                    &__body,
+                    crate::fleet::StampSyntax::ShellComment
+                ),
+                "scaffolded hook must carry a verifying S142 shell-comment stamp"
+            );
+        }
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -1507,11 +1617,21 @@ mod tests {
         let hook = dir.path().join(".ai/hooks/hook-copilot-murmur.sh");
         assert!(hook.exists(), "murmur hook not scaffolded");
         // Byte-identical to the canonical script — one source of truth, no drift (S22 pattern).
-        assert_eq!(
-            fs::read_to_string(&hook).unwrap(),
-            TPL_HOOK_COPILOT_MURMUR,
-            "scaffolded murmur hook drifted from canonical"
-        );
+        {
+            let __body = fs::read_to_string(&hook).unwrap();
+            assert_eq!(
+                crate::fleet::strip_render_stamp(&__body, crate::fleet::StampSyntax::ShellComment),
+                TPL_HOOK_COPILOT_MURMUR,
+                "scaffolded hook, stamp stripped, must equal the canonical template (one source, no drift)"
+            );
+            assert!(
+                crate::fleet::render_stamp_verifies(
+                    &__body,
+                    crate::fleet::StampSyntax::ShellComment
+                ),
+                "scaffolded hook must carry a verifying S142 shell-comment stamp"
+            );
+        }
         // Direction-B invariant: the murmur guides, it never blocks — no `exit 2` anywhere.
         assert!(
             !TPL_HOOK_COPILOT_MURMUR.contains("exit 2"),
@@ -1663,11 +1783,21 @@ mod tests {
         let hook = dir.path().join(".ai/hooks/hook-session-guard.sh");
         assert!(hook.exists(), "session-guard not scaffolded");
         // Byte-identical to canonical — one source of truth, no drift (S22 pattern).
-        assert_eq!(
-            fs::read_to_string(&hook).unwrap(),
-            TPL_HOOK_SESSION_GUARD,
-            "scaffolded session-guard drifted from canonical hook-session-guard.sh"
-        );
+        {
+            let __body = fs::read_to_string(&hook).unwrap();
+            assert_eq!(
+                crate::fleet::strip_render_stamp(&__body, crate::fleet::StampSyntax::ShellComment),
+                TPL_HOOK_SESSION_GUARD,
+                "scaffolded hook, stamp stripped, must equal the canonical template (one source, no drift)"
+            );
+            assert!(
+                crate::fleet::render_stamp_verifies(
+                    &__body,
+                    crate::fleet::StampSyntax::ShellComment
+                ),
+                "scaffolded hook must carry a verifying S142 shell-comment stamp"
+            );
+        }
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -1720,11 +1850,21 @@ mod tests {
         let hook = dir.path().join(".ai/hooks/hook-publish-guard.sh");
         assert!(hook.exists(), "publish-guard not scaffolded");
         // Byte-identical to canonical — one source of truth, no drift (S22 pattern).
-        assert_eq!(
-            fs::read_to_string(&hook).unwrap(),
-            TPL_HOOK_PUBLISH_GUARD,
-            "scaffolded publish-guard drifted from canonical hook-publish-guard.sh"
-        );
+        {
+            let __body = fs::read_to_string(&hook).unwrap();
+            assert_eq!(
+                crate::fleet::strip_render_stamp(&__body, crate::fleet::StampSyntax::ShellComment),
+                TPL_HOOK_PUBLISH_GUARD,
+                "scaffolded hook, stamp stripped, must equal the canonical template (one source, no drift)"
+            );
+            assert!(
+                crate::fleet::render_stamp_verifies(
+                    &__body,
+                    crate::fleet::StampSyntax::ShellComment
+                ),
+                "scaffolded hook must carry a verifying S142 shell-comment stamp"
+            );
+        }
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -1757,11 +1897,21 @@ mod tests {
         let hook = dir.path().join(".ai/hooks/hook-commit-guard.sh");
         assert!(hook.exists(), "commit-guard not scaffolded");
         // Byte-identical to canonical — one source of truth, no drift (S22 pattern).
-        assert_eq!(
-            fs::read_to_string(&hook).unwrap(),
-            TPL_HOOK_COMMIT_GUARD,
-            "scaffolded commit-guard drifted from canonical hook-commit-guard.sh"
-        );
+        {
+            let __body = fs::read_to_string(&hook).unwrap();
+            assert_eq!(
+                crate::fleet::strip_render_stamp(&__body, crate::fleet::StampSyntax::ShellComment),
+                TPL_HOOK_COMMIT_GUARD,
+                "scaffolded hook, stamp stripped, must equal the canonical template (one source, no drift)"
+            );
+            assert!(
+                crate::fleet::render_stamp_verifies(
+                    &__body,
+                    crate::fleet::StampSyntax::ShellComment
+                ),
+                "scaffolded hook must carry a verifying S142 shell-comment stamp"
+            );
+        }
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -2202,61 +2352,151 @@ mod tests {
     fn classify_fleet_file_names_the_four_states() {
         let canonical = "---\nname: researcher\n---\nbody\n";
         assert_eq!(
-            classify_fleet_file(None, canonical),
+            classify_fleet_file(None, canonical, crate::fleet::StampSyntax::Frontmatter),
             FleetFileState::Missing
         );
         assert_eq!(
-            classify_fleet_file(Some(canonical), canonical),
+            classify_fleet_file(
+                Some(canonical),
+                canonical,
+                crate::fleet::StampSyntax::Frontmatter
+            ),
             FleetFileState::UpToDate
         );
         // An UNSTAMPED file that differs (every pre-S141 install, incl. chitra) → Drifted, NOT
         // StaleRender: Vajra genuinely cannot prove provenance it never wrote.
         assert_eq!(
-            classify_fleet_file(Some("---\nname: researcher\n---\nOLD\n"), canonical),
+            classify_fleet_file(
+                Some("---\nname: researcher\n---\nOLD\n"),
+                canonical,
+                crate::fleet::StampSyntax::Frontmatter
+            ),
             FleetFileState::Drifted
         );
         // The exact chitra shape: an older render is a PREFIX of the current one (a protocol block
         // was appended). Unstamped → still Drifted.
         assert_eq!(
-            classify_fleet_file(Some("---\nname: researcher\n---\n"), canonical),
+            classify_fleet_file(
+                Some("---\nname: researcher\n---\n"),
+                canonical,
+                crate::fleet::StampSyntax::Frontmatter
+            ),
             FleetFileState::Drifted
         );
         // Whitespace is not "close enough": an unstamped file is a byte-exact render or drifted.
         assert_eq!(
-            classify_fleet_file(Some(&format!("{canonical}\n")), canonical),
+            classify_fleet_file(
+                Some(&format!("{canonical}\n")),
+                canonical,
+                crate::fleet::StampSyntax::Frontmatter
+            ),
             FleetFileState::Drifted
         );
         // A STAMPED older render — built the SAME way the real renderer stamps — differs from the
         // current canonical yet re-hashes to its own embedded stamp → StaleRender (auto-upgradable).
         let stale = crate::fleet::stamp_render(
             "---\nname: researcher\ndescription: old\ntools: Read, Grep, Glob\n---\n\nOLD BODY\n",
+            crate::fleet::StampSyntax::Frontmatter,
         );
         assert_ne!(stale, canonical);
         assert_eq!(
-            classify_fleet_file(Some(&stale), canonical),
+            classify_fleet_file(
+                Some(&stale),
+                canonical,
+                crate::fleet::StampSyntax::Frontmatter
+            ),
             FleetFileState::StaleRender
         );
         // ...but a hand-edit of that stamped render breaks the round-trip → back to Drifted. This is
         // the load-bearing distinction: a stamp is not a free pass, it must actually VERIFY.
         let edited = format!("{stale}\na user's own added line\n");
         assert_eq!(
-            classify_fleet_file(Some(&edited), canonical),
+            classify_fleet_file(
+                Some(&edited),
+                canonical,
+                crate::fleet::StampSyntax::Frontmatter
+            ),
             FleetFileState::Drifted
         );
+    }
+
+    /// S142 load-bearing invariant: the synced hooks carry NO `fill` placeholders, so their stamped
+    /// render is byte-identical whether produced at scaffold time (after `fill`) or at sync time (no
+    /// fill). If a future hook gained a `{PLACEHOLDER}`, sync would compute a different canonical than
+    /// the scaffold wrote and the hook would classify `Drifted` forever — this test fails first.
+    #[test]
+    fn hook_templates_carry_no_fill_placeholders() {
+        let placeholders = [
+            "{PROJECT_NAME}",
+            "{GOAL}",
+            "{SLUG}",
+            "{DATE}",
+            "{MATURITY}",
+            "{FIRST_NN}",
+            "{FIRST_PROMPT}",
+            "{FIRST_TITLE}",
+            "{FIRST_NOTE}",
+        ];
+        for (rel, tpl) in SYNC_HOOKS {
+            for ph in placeholders {
+                assert!(
+                    !tpl.contains(ph),
+                    "{rel} contains the fill placeholder {ph}: a synced hook must be fill-free, \
+                     else scaffold and sync compute different canonical bytes and it drifts forever"
+                );
+            }
+        }
+    }
+
+    /// S142: a fresh scaffold writes every hook already STAMPED, so an immediate `--sync-fleet`
+    /// finds them `UpToDate` (idempotent, no churn) — the whole point of stamping at scaffold time.
+    #[test]
+    fn scaffolded_hooks_are_stamped_and_immediately_up_to_date() {
+        let dir = tempfile::tempdir().unwrap();
+        scaffold(dir.path(), "demo", "first goal", "L2").unwrap();
+        for (rel, _tpl) in SYNC_HOOKS {
+            let body = fs::read_to_string(dir.path().join(rel)).unwrap();
+            assert!(
+                crate::fleet::render_stamp_verifies(&body, crate::fleet::StampSyntax::ShellComment),
+                "{rel} was not scaffolded with a verifying shell-comment stamp"
+            );
+            // Inert to bash: the shebang is still line 1, the stamp is the trailing comment.
+            assert!(body.starts_with("#!"), "{rel} lost its shebang");
+        }
+        let plan = plan_fleet_sync(dir.path());
+        for item in plan.iter().filter(|i| i.rel.starts_with(".ai/hooks/")) {
+            assert_eq!(
+                item.state,
+                FleetFileState::UpToDate,
+                "{} should be UpToDate right after scaffold, was {:?}",
+                item.rel,
+                item.state
+            );
+        }
     }
 
     #[test]
     fn plan_fleet_sync_reports_every_registered_role_and_finds_an_empty_repo_all_missing() {
         let dir = tempfile::tempdir().unwrap();
         let plan = plan_fleet_sync(dir.path());
+        // S142: the plan covers every role AND every pure-render hook — the canonical set, not a
+        // hand-typed subset. A fresh empty repo has none of them.
         assert_eq!(
             plan.len(),
-            crate::fleet::ROLES.len(),
-            "the plan must cover every role in the canonical roster, not a hand-typed subset"
+            crate::fleet::ROLES.len() + SYNC_HOOKS.len(),
+            "the plan must cover every role + every synced hook, not a hand-typed subset"
+        );
+        assert!(
+            plan.iter().any(|i| i.rel.starts_with(".claude/agents/")),
+            "the plan must include the role files"
+        );
+        assert!(
+            plan.iter().any(|i| i.rel.starts_with(".ai/hooks/")),
+            "the plan must include the shell hooks (S142)"
         );
         assert!(
             plan.iter().all(|i| i.state == FleetFileState::Missing),
-            "an empty repo has no role files"
+            "an empty repo has no scaffold files"
         );
     }
 
@@ -2348,9 +2588,13 @@ mod tests {
         let role = &crate::fleet::ROLES[0];
         let older_unstamped = format!(
             "{}\nAN OLDER RENDER'S EXTRA PARAGRAPH\n",
-            crate::fleet::strip_render_stamp(&crate::fleet::render_subagent_definition(role))
+            crate::fleet::strip_render_stamp(
+                &crate::fleet::render_subagent_definition(role),
+                crate::fleet::StampSyntax::Frontmatter
+            )
         );
-        let stale = crate::fleet::stamp_render(&older_unstamped);
+        let stale =
+            crate::fleet::stamp_render(&older_unstamped, crate::fleet::StampSyntax::Frontmatter);
         fs::write(dir.path().join(role.subagent_rel()), &stale).unwrap();
 
         let mut out = Vec::new();
@@ -2414,8 +2658,11 @@ mod tests {
         .unwrap();
         let text = String::from_utf8(out2).unwrap();
         assert!(
-            text.contains(&format!("{} already current", crate::fleet::ROLES.len())),
-            "second run must report every role current, got: {text}"
+            text.contains(&format!(
+                "{} already current",
+                crate::fleet::ROLES.len() + SYNC_HOOKS.len()
+            )),
+            "second run must report every role + hook current, got: {text}"
         );
         assert_eq!(
             before,
@@ -2476,9 +2723,11 @@ mod tests {
     }
 
     /// `--sync-fleet` must not drag in the other ~40 scaffold entries. A project at session 16 that
-    /// asked for the new roster and got a `prompts/01-task-kickoff.md` was handed a bug.
+    /// asked for the new roster and got a `prompts/01-task-kickoff.md` was handed a bug. S142 widened
+    /// the scope to the fleet roles (`.claude/agents/`) AND the pure-render hooks (`.ai/hooks/`) — and
+    /// NOTHING else: not the filled constitution, not `CONSTRAINTS.yaml`, not scripts/prompts/sessions.
     #[test]
-    fn sync_fleet_touches_only_claude_agents_and_nothing_else() {
+    fn sync_fleet_touches_only_roles_and_hooks_and_nothing_else() {
         let dir = tempfile::tempdir().unwrap();
         let mut out = Vec::new();
         sync_fleet(
@@ -2491,19 +2740,38 @@ mod tests {
         )
         .unwrap();
 
-        let top: Vec<String> = fs::read_dir(dir.path())
+        let mut top: Vec<String> = fs::read_dir(dir.path())
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        top.sort();
+        assert_eq!(
+            top,
+            vec![".ai".to_string(), ".claude".to_string()],
+            "sync-fleet wrote outside .claude/ + .ai/hooks/ — it must never run the full init scaffold"
+        );
+        // Under .ai/ ONLY hooks/ — never the constitution, CONSTRAINTS.yaml, SESSION, etc.
+        let ai: Vec<String> = fs::read_dir(dir.path().join(".ai"))
             .unwrap()
             .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
             .collect();
         assert_eq!(
-            top,
-            vec![".claude".to_string()],
-            "sync-fleet wrote outside .claude/ — it must never run the full init scaffold"
+            ai,
+            vec!["hooks".to_string()],
+            "sync-fleet wrote a non-hook .ai/ file — the constitution/constraints are OUT of scope (S142)"
         );
-        for unwanted in [".ai", "scripts", "prompts", "sessions", ".githooks"] {
+        for unwanted in [
+            ".ai/AGENTS.md",
+            ".ai/CONSTRAINTS.yaml",
+            ".ai/SESSION",
+            "scripts",
+            "prompts",
+            "sessions",
+            ".githooks",
+        ] {
             assert!(
                 !dir.path().join(unwanted).exists(),
-                "{unwanted}/ was scaffolded by --sync-fleet"
+                "{unwanted} was scaffolded by --sync-fleet"
             );
         }
     }
@@ -2522,7 +2790,7 @@ mod tests {
         fs::set_permissions(&full, fs::Permissions::from_mode(0o000)).unwrap();
 
         let plan = plan_fleet_sync(dir.path());
-        let item = plan.iter().find(|i| i.role == role.name).unwrap();
+        let item = plan.iter().find(|i| i.label == role.name).unwrap();
         // Root can read anything; skip the assertion rather than assert a falsehood about the env.
         if fs::read_to_string(&full).is_err() {
             assert_eq!(item.state, FleetFileState::Drifted);

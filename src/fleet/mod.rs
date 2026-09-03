@@ -653,13 +653,80 @@ You may never grade a recommendation YOU made — Vajra refuses a judgment whose
 advisor role being graded, and it re-verifies that your handoff came from a real dispatch before\n\
 accepting any judgment in it.\n";
 
-/// The frontmatter key that carries the render provenance stamp (S141, DECISION-007 S141 addendum).
-/// An UNKNOWN Claude Code frontmatter key on purpose: the subagent loader reads only
-/// `name`/`description`/`tools`/`model` and strips the whole frontmatter block before handing the
-/// body to the model — so the stamp is inert twice over (ignored by the loader, never a prompt
+/// The key that carries the render provenance stamp (S141, DECISION-007 S141 addendum). In a role
+/// definition it is an UNKNOWN Claude Code frontmatter key on purpose: the subagent loader reads
+/// only `name`/`description`/`tools`/`model` and strips the whole frontmatter block before handing
+/// the body to the model — so the stamp is inert twice over (ignored by the loader, never a prompt
 /// token). Dispatch-by-name rides `name:`, which the stamp does not touch. A body comment was
 /// rejected precisely because it WOULD reach the model as system-prompt text.
 pub const RENDER_STAMP_KEY: &str = "vajra-render-sha:";
+
+/// How the render stamp is wrapped and placed, per file type (S142, DECISION-007 S142 addendum).
+///
+/// S141 stamped ONLY YAML frontmatter (role definitions). S142 generalises the same recorded
+/// provenance to the non-fleet **pure-render** scaffold files — the shell hooks (`.ai/hooks/*.sh`)
+/// — so `--sync-fleet` gives them the same four-state smooth upgrade. The stamp/strip/verify helpers
+/// take a `StampSyntax` rather than being forked per type: ONE code path, three comment styles. A
+/// second copy of the helpers would be the exact drift `--sync-fleet` exists to close.
+///
+/// `MarkdownComment` is defined and unit-tested here but not yet wired to a scaffold file: the one
+/// markdown scaffold render, `.ai/AGENTS.md`, is a per-install *filled* template `sync_fleet` cannot
+/// reproduce, so its auto-upgrade is the named S143 follow-up (split the governed body from the
+/// user-owned fill). The syntax is ready for it; the constitution's fill-split is not this story.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StampSyntax {
+    /// A bare `vajra-render-sha: <hex>` line, inserted as the LAST frontmatter line (before the
+    /// closing `---` fence). The S141 behaviour, byte-for-byte — role definitions use this.
+    Frontmatter,
+    /// A `# vajra-render-sha: <hex>` shell comment, appended as the trailing line. Inert to `bash`
+    /// (a comment) and it never disturbs the shebang, which must stay line 1. Hooks use this.
+    ShellComment,
+    /// A `<!-- vajra-render-sha: <hex> -->` HTML comment, appended as the trailing line. Inert to a
+    /// markdown reader. Ready for the S143 constitution upgrade; not yet wired to a scaffold file.
+    MarkdownComment,
+}
+
+impl StampSyntax {
+    /// The full stamp LINE for a given hex, in this file's comment syntax.
+    fn stamp_line(&self, hex: &str) -> String {
+        match self {
+            StampSyntax::Frontmatter => format!("{RENDER_STAMP_KEY} {hex}"),
+            StampSyntax::ShellComment => format!("# {RENDER_STAMP_KEY} {hex}"),
+            StampSyntax::MarkdownComment => format!("<!-- {RENDER_STAMP_KEY} {hex} -->"),
+        }
+    }
+
+    /// If `line` is a stamp line in THIS syntax, return its hex value (trimmed, non-empty); else
+    /// `None`. The SINGLE predicate `strip_render_stamp` and `extract_render_stamp` both share, so a
+    /// line is recognised as a stamp in exactly one place per syntax — and a frontmatter matcher never
+    /// matches a `#`-prefixed or `<!--`-wrapped line, nor the reverse.
+    fn line_hex(&self, line: &str) -> Option<String> {
+        let v = match self {
+            StampSyntax::Frontmatter => line
+                .trim_start()
+                .strip_prefix(RENDER_STAMP_KEY)?
+                .trim()
+                .to_string(),
+            StampSyntax::ShellComment => line
+                .trim_start()
+                .strip_prefix('#')?
+                .trim_start()
+                .strip_prefix(RENDER_STAMP_KEY)?
+                .trim()
+                .to_string(),
+            StampSyntax::MarkdownComment => {
+                let inner = line
+                    .trim()
+                    .strip_prefix("<!--")?
+                    .trim_start()
+                    .strip_prefix(RENDER_STAMP_KEY)?
+                    .trim();
+                inner.strip_suffix("-->")?.trim().to_string()
+            }
+        };
+        Some(v).filter(|s| !s.is_empty())
+    }
+}
 
 /// Render a role as a native Claude Code subagent definition (`.claude/agents/<name>.md`): YAML
 /// frontmatter (`name`, `description`, read-only `tools`, and the S141 provenance stamp) + the
@@ -673,7 +740,7 @@ pub const RENDER_STAMP_KEY: &str = "vajra-render-sha:";
 /// bytes on disk (DECISION-007 S141 addendum). Shelling out for the hash (via `sha256_hex`) is why
 /// this is no longer a pure `format!` — the same tool-fallback the rest of this module already uses.
 pub fn render_subagent_definition(role: &Role) -> String {
-    stamp_render(&render_subagent_body(role))
+    stamp_render(&render_subagent_body(role), StampSyntax::Frontmatter)
 }
 
 /// The UNSTAMPED render — the exact bytes the pre-S141 renderer produced. Kept as its own function
@@ -707,39 +774,53 @@ fn render_subagent_body(role: &Role) -> String {
     )
 }
 
-/// Insert the `vajra-render-sha:` stamp as the LAST frontmatter line of an unstamped render, where
-/// the hash is sha256 of the whole `unstamped` string. The key invariant, relied on by
-/// `classify_fleet_file`: `strip_render_stamp(stamp_render(x)) == x` for any well-formed render — the
-/// stamp is inserted just before the closing frontmatter fence and nothing else moves. `pub` so tests
-/// can build a stamped older-version fixture the same way the real renderer does (no retyped copy).
+/// Insert the `vajra-render-sha:` stamp into an unstamped render, in the given `syntax`, where the
+/// hash is sha256 of the whole `unstamped` string. The key invariant, relied on by
+/// `classify_fleet_file`: `strip_render_stamp(stamp_render(x, s), s) == x` for any well-formed render.
+/// For `Frontmatter` the stamp is inserted just before the closing fence (the S141 behaviour,
+/// byte-for-byte — role files must not re-stamp); for the comment styles it is appended as the
+/// trailing line, split into two branches so the round-trip stays EXACT across the trailing-newline
+/// edge (rec 4): a preimage already ending in `\n` gets `{line}\n` and never a stray blank line, one
+/// that does not gets `\n{line}`. `pub` so tests can build a stamped older-version fixture the same
+/// way the real renderer does (no retyped copy).
 ///
 /// If no sha tool is on the machine, `sha256_hex` returns `None`; the stamp becomes `unavailable`,
 /// which never re-verifies — so such a file falls to `Drifted` (refuse) rather than being wrongly
 /// auto-upgraded. The conservative fail-safe, not a silent pass.
-pub fn stamp_render(unstamped: &str) -> String {
+pub fn stamp_render(unstamped: &str, syntax: StampSyntax) -> String {
     let hex = sha256_hex(unstamped.as_bytes()).unwrap_or_else(|| "unavailable".to_string());
-    match unstamped.split_once("\n---\n") {
-        // Reinsert the stamp just before the CLOSING frontmatter fence (the first `\n---\n`, which
-        // sits after the `tools:` line) so it lands last in the frontmatter and never in the body.
-        Some((frontmatter, rest)) => {
-            format!("{frontmatter}\n{RENDER_STAMP_KEY} {hex}\n---\n{rest}")
+    let line = syntax.stamp_line(&hex);
+    match syntax {
+        StampSyntax::Frontmatter => match unstamped.split_once("\n---\n") {
+            // Reinsert the stamp just before the CLOSING frontmatter fence (the first `\n---\n`,
+            // which sits after the `tools:` line) so it lands last in the frontmatter, never body.
+            Some((frontmatter, rest)) => format!("{frontmatter}\n{line}\n---\n{rest}"),
+            // No frontmatter fence at all — keep the function total; never scaffolded this way.
+            None => format!("{unstamped}\n{line}\n"),
+        },
+        // Shell / markdown: the file has no frontmatter, so the stamp is the trailing comment line —
+        // inert to `bash` and to a markdown reader, and "last" without touching the shebang (line 1).
+        StampSyntax::ShellComment | StampSyntax::MarkdownComment => {
+            if unstamped.ends_with('\n') {
+                format!("{unstamped}{line}\n")
+            } else {
+                format!("{unstamped}\n{line}")
+            }
         }
-        // No frontmatter fence at all — keep the function total; such a render is never scaffolded.
-        None => format!("{unstamped}\n{RENDER_STAMP_KEY} {hex}\n"),
     }
 }
 
-/// Remove the `vajra-render-sha:` stamp line, returning the preimage the stamp was computed over —
-/// the exact inverse of the insertion in `stamp_render`. Drops the FIRST line whose trimmed start is
-/// `RENDER_STAMP_KEY` (the stamp lives in the frontmatter, which comes first) and nothing else;
-/// `split('\n')`/`join('\n')` preserves the original line structure including a trailing newline. A
-/// file with no stamp line is returned unchanged.
-pub fn strip_render_stamp(content: &str) -> String {
+/// Remove the `vajra-render-sha:` stamp line for `syntax`, returning the preimage the stamp was
+/// computed over — the exact inverse of the insertion in `stamp_render`. Drops the FIRST line that
+/// `syntax.line_hex` recognises as a stamp and nothing else; `split('\n')`/`join('\n')` preserves the
+/// original line structure including a trailing newline. A file with no stamp line is returned
+/// unchanged. A Vajra render never contains the stamp key in its body, so first-match is the stamp.
+pub fn strip_render_stamp(content: &str, syntax: StampSyntax) -> String {
     let mut removed = false;
     content
         .split('\n')
         .filter(|line| {
-            if !removed && line.trim_start().starts_with(RENDER_STAMP_KEY) {
+            if !removed && syntax.line_hex(line).is_some() {
                 removed = true;
                 false
             } else {
@@ -750,30 +831,35 @@ pub fn strip_render_stamp(content: &str) -> String {
         .join("\n")
 }
 
-/// The hex value of the embedded `vajra-render-sha:` stamp, if present. Only the FRONTMATTER block is
-/// searched (the text before the closing `---` fence), so a body line that merely starts with the key
-/// cannot impersonate the stamp.
-pub fn extract_render_stamp(content: &str) -> Option<String> {
-    let after_fm = content.strip_prefix("---\n")?;
-    let close = after_fm.find("\n---\n")?;
-    after_fm[..close]
-        .lines()
-        .find_map(|l| l.trim_start().strip_prefix(RENDER_STAMP_KEY))
-        .map(|v| v.trim().to_string())
-        .filter(|v| !v.is_empty())
+/// The hex value of the embedded `vajra-render-sha:` stamp for `syntax`, if present. For
+/// `Frontmatter` only the block before the closing `---` fence is searched, so a body line that
+/// merely starts with the key cannot impersonate the stamp; for the comment styles (which have no
+/// frontmatter) the LAST matching line is taken, so a key string appearing earlier in the body cannot
+/// impersonate the real trailing stamp.
+pub fn extract_render_stamp(content: &str, syntax: StampSyntax) -> Option<String> {
+    match syntax {
+        StampSyntax::Frontmatter => {
+            let after_fm = content.strip_prefix("---\n")?;
+            let close = after_fm.find("\n---\n")?;
+            after_fm[..close].lines().find_map(|l| syntax.line_hex(l))
+        }
+        StampSyntax::ShellComment | StampSyntax::MarkdownComment => {
+            content.lines().rev().find_map(|l| syntax.line_hex(l))
+        }
+    }
 }
 
-/// True iff `content` carries a `vajra-render-sha:` stamp AND its body-minus-stamp re-hashes to that
-/// stamp — i.e. these bytes are an UNTOUCHED Vajra render (of some version), not a hand-edit. The
-/// pure core of `FleetFileState::StaleRender`. It shells out for sha256 (same tool-fallback as
-/// `sha256_hex`), but given a fixed input it is deterministic and touches no filesystem, so
-/// `classify_fleet_file` stays a pure function the tests drive without a tempdir (as before S141).
-pub fn render_stamp_verifies(content: &str) -> bool {
-    let embedded = match extract_render_stamp(content) {
+/// True iff `content` carries a `vajra-render-sha:` stamp for `syntax` AND its body-minus-stamp
+/// re-hashes to that stamp — i.e. these bytes are an UNTOUCHED Vajra render (of some version), not a
+/// hand-edit. The pure core of `FleetFileState::StaleRender`. It shells out for sha256 (same
+/// tool-fallback as `sha256_hex`), but given a fixed input it is deterministic and touches no
+/// filesystem, so `classify_fleet_file` stays a pure function the tests drive without a tempdir.
+pub fn render_stamp_verifies(content: &str, syntax: StampSyntax) -> bool {
+    let embedded = match extract_render_stamp(content, syntax) {
         Some(h) => h,
         None => return false,
     };
-    let preimage = strip_render_stamp(content);
+    let preimage = strip_render_stamp(content, syntax);
     matches!(sha256_hex(preimage.as_bytes()), Some(h) if h == embedded)
 }
 
@@ -1634,18 +1720,20 @@ mod tests {
             let def = render_subagent_definition(role);
 
             // Round-trip: the embedded stamp re-derives from the body with the stamp line removed.
-            let embedded = extract_render_stamp(&def).unwrap_or_else(|| {
-                panic!("{}: no vajra-render-sha stamp on a fresh render", role.name)
-            });
-            let rehashed = sha256_hex(strip_render_stamp(&def).as_bytes())
-                .expect("sha256 tool must exist to run these tests");
+            let embedded =
+                extract_render_stamp(&def, StampSyntax::Frontmatter).unwrap_or_else(|| {
+                    panic!("{}: no vajra-render-sha stamp on a fresh render", role.name)
+                });
+            let rehashed =
+                sha256_hex(strip_render_stamp(&def, StampSyntax::Frontmatter).as_bytes())
+                    .expect("sha256 tool must exist to run these tests");
             assert_eq!(
                 embedded, rehashed,
                 "{}: embedded stamp does not equal sha256(body-minus-stamp)",
                 role.name
             );
             assert!(
-                render_stamp_verifies(&def),
+                render_stamp_verifies(&def, StampSyntax::Frontmatter),
                 "{}: render_stamp_verifies is false on a fresh render",
                 role.name
             );
@@ -1685,7 +1773,7 @@ mod tests {
     #[test]
     fn strip_render_stamp_is_the_exact_inverse_and_verification_is_falsifiable() {
         let unstamped = "---\nname: x\ndescription: d\ntools: Read, Grep, Glob\n---\n\nbody line\n";
-        let stamped = stamp_render(unstamped);
+        let stamped = stamp_render(unstamped, StampSyntax::Frontmatter);
 
         assert_ne!(stamped, unstamped, "stamping must change the bytes");
         assert!(
@@ -1693,21 +1781,110 @@ mod tests {
             "the stamp line must be present"
         );
         assert_eq!(
-            strip_render_stamp(&stamped),
+            strip_render_stamp(&stamped, StampSyntax::Frontmatter),
             unstamped,
             "strip_render_stamp must reproduce the unstamped preimage exactly"
         );
 
         // A fresh stamp verifies; a hand-edit of the body breaks it; an unstamped file never verifies.
-        assert!(render_stamp_verifies(&stamped));
+        assert!(render_stamp_verifies(&stamped, StampSyntax::Frontmatter));
         let edited = stamped.replace("body line", "the user edited this");
         assert!(
-            !render_stamp_verifies(&edited),
+            !render_stamp_verifies(&edited, StampSyntax::Frontmatter),
             "a hand-edit must break verification — else StaleRender would swallow user edits"
         );
         assert!(
-            !render_stamp_verifies(unstamped),
+            !render_stamp_verifies(unstamped, StampSyntax::Frontmatter),
             "an unstamped file must not verify (every pre-S141 install)"
+        );
+    }
+
+    /// S142 criterion 1: the stamp round-trips per file type. The frontmatter variant stays
+    /// byte-for-byte the S141 behaviour (the golden anchor — rec 3), and the shell/markdown variants
+    /// stamp as an inert trailing comment whose strip is the EXACT inverse across the trailing-newline
+    /// edge (rec 4), and whose stamp is falsifiable exactly like frontmatter.
+    #[test]
+    fn stamp_round_trips_per_file_type_and_frontmatter_is_byte_identical_to_s141() {
+        // Golden anchor: the frontmatter insertion is verbatim what S141 shipped, so no role file
+        // re-stamps after the S142 refactor. This is the exact string S141 produced for this input.
+        let fm_in = "---\nname: x\ntools: Read\n---\n\nbody\n";
+        let fm_hex = sha256_hex(fm_in.as_bytes()).expect("sha256 tool");
+        assert_eq!(
+            stamp_render(fm_in, StampSyntax::Frontmatter),
+            format!("---\nname: x\ntools: Read\n{RENDER_STAMP_KEY} {fm_hex}\n---\n\nbody\n"),
+            "the frontmatter stamp must be byte-identical to S141 — else every role file churns"
+        );
+
+        // Shell + markdown, both the ends-in-newline and no-trailing-newline preimages.
+        for syntax in [StampSyntax::ShellComment, StampSyntax::MarkdownComment] {
+            for preimage in [
+                "#!/usr/bin/env bash\necho hi\n",    // ends in \n (a real hook)
+                "#!/usr/bin/env bash\necho hi",      // no trailing newline (edge)
+                "# A markdown constitution\ntext\n", // ends in \n
+            ] {
+                let stamped = stamp_render(preimage, syntax);
+                assert_ne!(
+                    stamped, preimage,
+                    "{syntax:?}: stamping must change the bytes"
+                );
+                assert!(
+                    stamped.contains(RENDER_STAMP_KEY),
+                    "{syntax:?}: the stamp line must be present"
+                );
+                // Never a stray blank line before the stamp (rec 4): a preimage ending in `\n`
+                // gets the stamp as the immediate next line, not after a blank one.
+                if preimage.ends_with('\n') {
+                    assert!(
+                        stamped.contains(&format!(
+                            "hi\n{}",
+                            syntax.stamp_line(&sha256_hex(preimage.as_bytes()).unwrap())
+                        )) || !preimage.contains("hi"),
+                        "{syntax:?}: stamp must directly follow the last line, no blank gap"
+                    );
+                }
+                assert_eq!(
+                    strip_render_stamp(&stamped, syntax),
+                    preimage,
+                    "{syntax:?}: strip must reproduce the preimage EXACTLY (trailing-newline edge)"
+                );
+                assert!(
+                    render_stamp_verifies(&stamped, syntax),
+                    "{syntax:?}: a fresh stamp must verify"
+                );
+                // The shebang stays line 1 — the stamp never moves to the top for shell.
+                if syntax == StampSyntax::ShellComment {
+                    assert!(
+                        stamped.starts_with("#!") || !preimage.starts_with("#!"),
+                        "shell stamp must not disturb the shebang on line 1"
+                    );
+                }
+                // Falsifiable: a body edit breaks it; the unstamped preimage never verifies.
+                let edited = stamped
+                    .replace("echo hi", "rm -rf /")
+                    .replace("text", "edited");
+                if edited != stamped {
+                    assert!(
+                        !render_stamp_verifies(&edited, syntax),
+                        "{syntax:?}: a hand-edit must break verification"
+                    );
+                }
+                assert!(
+                    !render_stamp_verifies(preimage, syntax),
+                    "{syntax:?}: an unstamped file must never verify"
+                );
+            }
+        }
+
+        // A frontmatter matcher must not recognise a shell/markdown stamp line, nor vice versa, so a
+        // file classified under one syntax cannot be fooled by another's stamp.
+        let shell = stamp_render("echo hi\n", StampSyntax::ShellComment);
+        assert!(
+            extract_render_stamp(&shell, StampSyntax::Frontmatter).is_none(),
+            "a frontmatter reader must not see a shell stamp"
+        );
+        assert!(
+            extract_render_stamp(&shell, StampSyntax::ShellComment).is_some(),
+            "a shell reader must see the shell stamp"
         );
     }
 
