@@ -2420,6 +2420,58 @@ mod tests {
         );
     }
 
+    /// S142 (fidelity-reviewer rec 1): `classify_fleet_file` drives a `ShellComment` HOOK through all
+    /// four states at the pure-unit level — not only `Frontmatter`. Without this the hook classify
+    /// path had no unit guard and rode entirely on the fixture/live layer (the named fakest green).
+    #[test]
+    fn classify_names_the_four_states_for_a_shell_hook() {
+        use crate::fleet::StampSyntax::ShellComment;
+        // A canonical stamped hook (shell-comment stamp over a body ending in \n).
+        let canonical = crate::fleet::stamp_render("#!/usr/bin/env bash\necho hi\n", ShellComment);
+        assert_eq!(
+            classify_fleet_file(None, &canonical, ShellComment),
+            FleetFileState::Missing
+        );
+        assert_eq!(
+            classify_fleet_file(Some(&canonical), &canonical, ShellComment),
+            FleetFileState::UpToDate
+        );
+        // An unstamped hook that differs (every pre-S142 install) → Drifted, never StaleRender.
+        assert_eq!(
+            classify_fleet_file(
+                Some("#!/usr/bin/env bash\necho OLD\n"),
+                &canonical,
+                ShellComment
+            ),
+            FleetFileState::Drifted
+        );
+        // A correctly-stamped OLDER hook render (differs from canonical, yet re-hashes to its own
+        // shell-comment stamp) → StaleRender (auto-upgradable).
+        let stale =
+            crate::fleet::stamp_render("#!/usr/bin/env bash\necho OLDER BODY\n", ShellComment);
+        assert_ne!(stale, canonical);
+        assert_eq!(
+            classify_fleet_file(Some(&stale), &canonical, ShellComment),
+            FleetFileState::StaleRender
+        );
+        // A hand-edit of that stamped hook breaks the round-trip → back to Drifted.
+        let edited = format!("{stale}\n# the user added this\n");
+        assert_eq!(
+            classify_fleet_file(Some(&edited), &canonical, ShellComment),
+            FleetFileState::Drifted
+        );
+        // Cross-syntax safety: the SAME stamped shell hook must NOT verify as Frontmatter — a file
+        // classified under one syntax cannot be auto-upgraded via another's stamp reader.
+        assert_eq!(
+            classify_fleet_file(
+                Some(&stale),
+                &canonical,
+                crate::fleet::StampSyntax::Frontmatter
+            ),
+            FleetFileState::Drifted
+        );
+    }
+
     /// S142 load-bearing invariant: the synced hooks carry NO `fill` placeholders, so their stamped
     /// render is byte-identical whether produced at scaffold time (after `fill`) or at sync time (no
     /// fill). If a future hook gained a `{PLACEHOLDER}`, sync would compute a different canonical than

@@ -67,6 +67,10 @@ run_check "unit-scaffolded-hooks-stamped-uptodate" exec \
   cargo test --release --lib scaffolded_hooks_are_stamped_and_immediately_up_to_date
 run_check "unit-classify-four-states" exec \
   cargo test --release --lib classify_fleet_file_names_the_four_states
+# fidelity-reviewer rec 1: the four states driven through a SHELL HOOK at the pure-unit level,
+# not only frontmatter — closes the named fakest green (hook classify had no unit guard).
+run_check "unit-classify-four-states-hook" exec \
+  cargo test --release --lib classify_names_the_four_states_for_a_shell_hook
 
 # --- 3. the four-case falsifiability fixture on a HOOK (acc 3) ------------------------------------
 run_check "falsifiability-fixture-hook-four-states" nested bash scripts/fixture-session-142.sh
