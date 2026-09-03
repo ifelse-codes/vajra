@@ -1257,3 +1257,88 @@ forward, never retroactive (the S141 limit, restated for hooks). The stamp remai
 a keyed signature: tamper-EVIDENT, not tamper-PROOF. And "one command upgrades everything" is honored
 across two sessions — roles + hooks now under one invocation, the constitution the moment the fill-split
 lands with no new command — not faked in one by guessing project values.
+
+---
+
+## S143 addendum — the constitution joins the smooth upgrade (fill split from governed body)
+
+**Status: shipped S143.** An addendum, not a DECISION-008 — it CASHES the extension S142 pre-declared
+("split `TPL_AGENTS` into a user-owned filled header and a byte-identical governed body, and
+stamp/auto-upgrade only the body"). Same scaffold contract (`render → stamp → classify → --sync-fleet`);
+the constitution is the last pure-ish render Vajra owns joining "one command upgrades everything." No 8th
+command; `--sync-fleet` widens by one target.
+
+**The boundary sentinel.** `.ai/AGENTS.md` splits into a user-owned filled header (the `{PROJECT_NAME}`
+preamble) ABOVE, and a governed body BELOW, divided by the exact line
+
+    <!-- vajra:governed-body - do not edit below this line - vajra owns and upgrades these bytes -->
+
+(`GOVERNED_BODY_SENTINEL`). It is inert to a markdown reader (an HTML comment), carries no fill token (so
+it is byte-identical across installs and can be located by `find`), and uses single spaced hyphens — no
+`--` double-hyphen, which is illegal inside a strict HTML comment. The sentinel is the FIRST line of the
+governed body; the `<!-- vajra-render-sha: <hex> -->` stamp (reusing `StampSyntax::MarkdownComment`,
+already built + tested at S142 — NO fourth stamp path) is the LAST line, and its hash COVERS the sentinel.
+Two distinct edits, two distinct refusals: editing the sentinel LINE itself makes the exact-match `find`
+fail → `NeedsBoundary` (there is no located body to compare); editing the governed body BELOW an intact
+sentinel breaks the stamp → `Drifted`. Both refuse safely; neither ever rewrites the user's header.
+
+**Body-scoped classify + rewrite.** A sync target now carries `boundary: Option<&'static str>` = the
+sentinel literal. Roles and hooks pass `None` and hit the exact S141/S142 whole-file path, byte-for-byte
+(no behaviour change, no churn). The constitution passes `Some(sentinel)`. A pure helper
+`body_region(on_disk, boundary)` returns the whole file for `None`, or the slice from the sentinel onward
+for `Some` (or `None` when the sentinel is absent). `classify_fleet_file` runs the SAME state machine on
+that region against a body-only `canonical` (`governed_body_canonical()` = sentinel + governed content +
+stamp). On UPGRADE, `write_target` re-reads the on-disk file, keeps the bytes ABOVE the sentinel verbatim,
+and writes `header ++ canonical_body` — so the user's `{PROJECT_NAME}` fill is never rewritten. If a
+boundary target is asked to write with no sentinel on disk, it BAILS rather than write a headerless body
+(defense in depth — the session's fakest green, an assertion covers it).
+
+**The legacy migration (the honest limit), handled with a fifth state.** Every pre-S143 constitution has
+NO sentinel and NO stamp → the new `FleetFileState::NeedsBoundary` (a boundary target present with no
+sentinel), distinct from `Drifted` on purpose: `--overwrite-drifted` does NOT satisfy it, because there
+is no sound way to know where the user's filled header ends, so a rewrite could destroy the project's
+name. Sync REFUSES it (exit 1) and prints the exact sentinel + where to paste it. The one-time migration,
+once: paste the sentinel immediately ABOVE the `## Mandatory Load Order` heading, then
+`vajra init --sync-fleet --overwrite-drifted` — which then splits at the now-present sentinel, preserves
+the filled header verbatim, and writes the current governed body + first stamp. Smooth on every run
+thereafter. Vajra NEVER auto-inserts the sentinel by guessing where the header ends — guessing the
+boundary in a diverged file is the infer-intent-from-bytes move refused since S136. Smooth going forward,
+not retroactive (the S141/S142 pattern). A DELETED constitution (`Missing` boundary target) is refused
+before any write with "run `vajra init`" — its filled header cannot be reconstructed by sync.
+
+**Out permanently:** `CONSTRAINTS.yaml` (user-tuned — maturity, budget cap, approval tokens; no canonical
+to converge on). Confirmed, not reopened.
+
+**Alternatives considered and rejected.**
+
+- *Rewrite the whole file including the header* — rejected: destroys the project's identity (its
+  `{PROJECT_NAME}` fill), and claims a smoothness that is false (the S118 never-soften rule, applied to
+  behaviour). This is the fakest green the session exists to avoid.
+- *Un-fill the on-disk constitution to recover its values, or scavenge them from other `.ai/` files* —
+  rejected (carried from S142): fill is a lossy forward substitution; inverting it, or correlating values
+  across user-owned files, is the infer-intent-from-bytes move S136/S141 refused.
+- *Auto-insert the sentinel by heuristic* — rejected: guessing where a diverged header ends (a project may
+  have moved or renamed the load-order heading) is the same infer-intent move; the one-time paste is the
+  honest cost.
+- *Make `--overwrite-drifted` rewrite a boundaryless file* — rejected: it would silently destroy the
+  filled header. `NeedsBoundary` is a distinct state precisely so the force flag cannot reach it.
+- *A `boundary_aware` boolean instead of the sentinel literal on the target* — rejected: the split needs
+  the literal anyway, so a bool would duplicate "which sentinel?" knowledge and invite drift.
+- *A fourth / bespoke stamp path for markdown* — rejected: `MarkdownComment` was built + unit-tested at
+  S142 for exactly this; a duplicate stamp/strip pair is the drift `--sync-fleet` exists to close.
+- *A second `--sync-constitution` command / an 8th top-level command* — rejected: the founder directive is
+  one command upgrades everything, and DECISION-007 holds the max-seven-commands line.
+- *A sidecar manifest recording provenance* — rejected already at S141 (a separate store to drift); the
+  stamp lives in the file.
+
+**Honest limits (disclosed).** The stamp remains a content hash, not a keyed signature: tamper-EVIDENT,
+not tamper-PROOF. The header/body split is located by an EXACT-match `find` of the sentinel — a user who
+mangles the sentinel prose gets `NeedsBoundary` (restore the exact line), not a fuzzy re-match; this is the
+simpler, safer pure function and the message names the exact line. `find` takes the FIRST occurrence, so a
+user header that legitimately QUOTES the exact sentinel line (e.g. documenting it above the boundary) would
+have everything after that quote treated as the governed body and rewritten — pathological, since the
+sentinel says "do not edit below," but real: keep the sentinel out of the header's prose. And "one command
+upgrades everything"
+is now literally true for every pure render Vajra owns — roles + hooks + the constitution's governed body
+under one `vajra init --sync-fleet` — with `CONSTRAINTS.yaml` the only add-only scaffold file left, by
+design.

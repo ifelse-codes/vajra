@@ -1,6 +1,25 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-03 · **Session 142 — CODE: complete the upgrade loop for the pure-render scaffold
+**Updated:** 2026-09-03 · **Session 143 — CODE: the constitution joins the smooth upgrade — ACCEPT
+(6 of 6 SHIPPED at close), attested (see review).** [x] `.ai/AGENTS.md` splits into a user-owned FILLED
+header + a byte-identical GOVERNED body divided by `GOVERNED_BODY_SENTINEL`; the SINGLE
+`vajra init --sync-fleet` upgrades ONLY the body (a boundary target — `boundary: Option<&str>` +
+`body_region`), preserving the header VERBATIM, via the S142 `MarkdownComment` stamp (no fourth path). A
+pre-S143 boundaryless constitution is the fifth `FleetFileState`, **`NeedsBoundary`** — refused even under
+`--overwrite-drifted` (never clobbers the fill), with the exact sentinel printed for a one-time paste. A
+deleted constitution warns "run `vajra init`" (sync upgrades; init scaffolds). **"One command upgrades
+everything" is now literally true for every pure render Vajra owns** — roles (S141) + hooks (S142) + the
+constitution's governed body (S143); `CONSTRAINTS.yaml` the only add-only scaffold file left, by design.
+`verify-session-143.sh` **13/13** · `fixture-143` **9/9** (five states on the CONSTITUTION; HDR proves the
+header survives byte-for-byte, NB proves the boundaryless refusal even forced) · **469 lib tests** ·
+fmt+clippy clean. Crew: tech-lead FIRST bound design-advisor · qa-specialist · fidelity-reviewer required;
+qa ran a LIVE falsification (clobbered the header → fixture RED on HDR/MIG, reverted clean); the cold
+review (ACCEPT) judged all 15 `obeyed:` dispositions `implemented:` and found 3 under-disclosed gaps,
+**all closed in-session** (`b9679b5`). DECISION-007 **S143 addendum**. Reports:
+`sessions/session-143-summary.md` + `sessions/session-143-review.md`. **Next: A (chitra full-loop dogfood)
+or B (prove the 5 quiet roles). Next GT: S145.**
+
+**Prior — Updated:** 2026-09-03 · **Session 142 — CODE: complete the upgrade loop for the pure-render scaffold
 files (hooks) — ACCEPT (6 of 6 SHIPPED at close), attested (see review).** [x] The S141 render stamp now
 generalises beyond YAML frontmatter to a comment-syntax abstraction (`StampSyntax`: Frontmatter |
 ShellComment | MarkdownComment), ONE code path — the frontmatter variant stays byte-identical to S141
