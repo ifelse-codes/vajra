@@ -73,6 +73,8 @@ run_check "unit-header-preserved-on-upgrade" exec \
   cargo test -q --lib governed_body_upgrade_preserves_the_user_header_verbatim -- --exact
 run_check "unit-boundaryless-refused-even-forced" exec \
   cargo test -q --lib boundaryless_constitution_is_refused_even_with_overwrite_drifted -- --exact
+run_check "unit-missing-constitution-warns-skips" exec \
+  cargo test -q --lib a_missing_constitution_warns_and_is_skipped_not_created -- --exact
 
 # --- 4. the five-state falsifiability fixture on the CONSTITUTION (acc 3) --------------------------
 run_check "falsifiability-fixture-constitution-five-states" nested bash scripts/fixture-session-143.sh
@@ -89,6 +91,8 @@ live_constitution_round_trip() {
     m1=$(stat -f %m .ai/AGENTS.md 2>/dev/null || stat -c %Y .ai/AGENTS.md)
     out="$("$VAJRA" init --sync-fleet 2>&1)"; [ $? -eq 0 ] || { echo "FAIL: immediate sync did not exit 0"; exit 1; }
     grep -q ".ai/AGENTS.md (up to date)" <<<"$out" || { echo "FAIL: constitution not reported up to date"; exit 1; }
+    # AC4 end-to-end: EVERYTHING (roles + hooks + constitution) UpToDate — nothing created/upgraded/refreshed.
+    grep -q "0 created, 0 upgraded, 0 refreshed" <<<"$out" || { echo "FAIL: immediate sync was not all-UpToDate (roles+hooks+constitution)"; exit 1; }
     m2=$(stat -f %m .ai/AGENTS.md 2>/dev/null || stat -c %Y .ai/AGENTS.md)
     [ "$m1" = "$m2" ] || { echo "FAIL: UpToDate constitution was rewritten (mtime churn)"; exit 1; }
     # plant a stamped OLDER body under a CUSTOM header; it must auto-upgrade and preserve the header

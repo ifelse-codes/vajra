@@ -2948,6 +2948,42 @@ mod tests {
         );
     }
 
+    /// S143 (qa-specialist rec 1): a MISSING constitution (deleted `.ai/AGENTS.md`) is warned and
+    /// SKIPPED, never written — sync UPGRADES existing renders, but creating the constitution is
+    /// `init`'s job (its filled header can't be reconstructed). The run still succeeds because the
+    /// roles/hooks (Missing → created) are sync's job; a headerless body-only write is refused.
+    #[test]
+    fn a_missing_constitution_warns_and_is_skipped_not_created() {
+        let dir = tempfile::tempdir().unwrap();
+        // No .ai/AGENTS.md on disk. Roles + hooks are also Missing (a fresh dir) and WILL be created.
+        let mut out = Vec::new();
+        sync_fleet(
+            dir.path(),
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        )
+        .expect("a missing constitution must not fail the run — roles/hooks still sync");
+        assert!(
+            !dir.path().join(".ai/AGENTS.md").exists(),
+            "sync must NEVER scaffold a headerless constitution — that would have no project fill"
+        );
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains(".ai/AGENTS.md is absent") && text.contains("vajra init"),
+            "a missing constitution must be reported with a run-`vajra init` note, got: {text}"
+        );
+        // The roles (Missing → created) ARE sync's job, so the run did real work and exited 0.
+        assert!(
+            dir.path()
+                .join(crate::fleet::ROLES[0].subagent_rel())
+                .exists(),
+            "a missing role must still be created — only the constitution is init's to scaffold"
+        );
+    }
+
     /// S142 load-bearing invariant: the synced hooks carry NO `fill` placeholders, so their stamped
     /// render is byte-identical whether produced at scaffold time (after `fill`) or at sync time (no
     /// fill). If a future hook gained a `{PLACEHOLDER}`, sync would compute a different canonical than

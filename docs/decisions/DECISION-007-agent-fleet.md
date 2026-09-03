@@ -1277,8 +1277,10 @@ preamble) ABOVE, and a governed body BELOW, divided by the exact line
 it is byte-identical across installs and can be located by `find`), and uses single spaced hyphens — no
 `--` double-hyphen, which is illegal inside a strict HTML comment. The sentinel is the FIRST line of the
 governed body; the `<!-- vajra-render-sha: <hex> -->` stamp (reusing `StampSyntax::MarkdownComment`,
-already built + tested at S142 — NO fourth stamp path) is the LAST line, and its hash COVERS the sentinel,
-so editing the boundary itself breaks the stamp (→ `Drifted`), tamper-evident on the boundary too.
+already built + tested at S142 — NO fourth stamp path) is the LAST line, and its hash COVERS the sentinel.
+Two distinct edits, two distinct refusals: editing the sentinel LINE itself makes the exact-match `find`
+fail → `NeedsBoundary` (there is no located body to compare); editing the governed body BELOW an intact
+sentinel breaks the stamp → `Drifted`. Both refuse safely; neither ever rewrites the user's header.
 
 **Body-scoped classify + rewrite.** A sync target now carries `boundary: Option<&'static str>` = the
 sentinel literal. Roles and hooks pass `None` and hit the exact S141/S142 whole-file path, byte-for-byte
@@ -1332,7 +1334,11 @@ to converge on). Confirmed, not reopened.
 **Honest limits (disclosed).** The stamp remains a content hash, not a keyed signature: tamper-EVIDENT,
 not tamper-PROOF. The header/body split is located by an EXACT-match `find` of the sentinel — a user who
 mangles the sentinel prose gets `NeedsBoundary` (restore the exact line), not a fuzzy re-match; this is the
-simpler, safer pure function and the message names the exact line. And "one command upgrades everything"
+simpler, safer pure function and the message names the exact line. `find` takes the FIRST occurrence, so a
+user header that legitimately QUOTES the exact sentinel line (e.g. documenting it above the boundary) would
+have everything after that quote treated as the governed body and rewritten — pathological, since the
+sentinel says "do not edit below," but real: keep the sentinel out of the header's prose. And "one command
+upgrades everything"
 is now literally true for every pure render Vajra owns — roles + hooks + the constitution's governed body
 under one `vajra init --sync-fleet` — with `CONSTRAINTS.yaml` the only add-only scaffold file left, by
 design.
