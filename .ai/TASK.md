@@ -82,12 +82,26 @@
 - **Founder-confirmed scope:** hooks now; `.ai/AGENTS.md` (a filled template) DEFERRED to S143 (the
   fill-split); `CONSTRAINTS.yaml` user-owned. **Next GT: S145.**
 
-## NEXT: Session 143 — pending founder pick (recommended A: the constitution joins the smooth upgrade)
+## Session 143 — CODE: the constitution joins the smooth upgrade (split fill from governed body) — COMPLETE
 
-- Three candidates in `sessions/session-142-summary.md`: **A (recommended)** split `TPL_AGENTS` into a
-  user-owned header + a governed body; stamp/auto-upgrade only the body (the promised follow-up);
-  **B** the chitra dogfood full-loop upgrade (roles + hooks on a real brownfield repo); **C** prove the
-  5 quiet fleet roles give good advice (S140 open). **Start in a FRESH chat** once picked. **Next GT: S145.**
+- Brief: `prompts/143-task-constitution-upgrade.md`. **ACCEPT** (cold `fidelity-reviewer`, 6 of 6 SHIPPED at
+  close), all 15 `obeyed:` dispositions `implemented:`, attested `173da680`. Reports:
+  `sessions/session-143-summary.md` + `sessions/session-143-review.md`.
+- **Shipped:** `.ai/AGENTS.md` splits into a user-owned FILLED header + a byte-identical GOVERNED body
+  divided by `GOVERNED_BODY_SENTINEL`; the SINGLE `vajra init --sync-fleet` upgrades ONLY the body (a
+  boundary target — `boundary: Option<&str>` + `body_region`), preserving the header VERBATIM, via the S142
+  `MarkdownComment` stamp (no fourth path). Fifth state `NeedsBoundary` (a pre-S143 boundaryless
+  constitution) refused even under `--overwrite-drifted`. `verify-session-143.sh` 13/13 · `fixture-143` 9/9
+  · 469 lib tests · fmt+clippy clean. DECISION-007 S143 addendum. **The fresh-user/upgrade arc is COMPLETE**
+  (roles S141 · hooks S142 · constitution S143); only `CONSTRAINTS.yaml` stays add-only, by design.
+
+## NEXT: Session 144 — pending founder pick
+
+- Three candidates in `sessions/session-143-summary.md`: **A (recommended)** the chitra FULL-LOOP dogfood
+  (run `vajra claude` inside chitra; exercise S141+S142+S143 end to end on a real brownfield repo — the
+  founder's #2 completeness priority now #1 is done); **B** prove the 5 quiet fleet roles give good advice
+  (S140 open); **C** harden S143 (atomic constitution write + double-sentinel falsification). **Start in a
+  FRESH chat** once picked. **Next GT: S145.**
 
 ## Session 137 — PAID DOGFOOD: chitra's `scatter` locked to the reference language — COMPLETE
 
