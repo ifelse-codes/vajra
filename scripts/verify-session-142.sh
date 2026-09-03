@@ -137,8 +137,9 @@ source_has_shell_stamp_wiring() {
   grep -q "ShellComment" src/fleet/mod.rs || { echo "FAIL: no ShellComment variant"; rc=1; }
   grep -q "SYNC_HOOKS" src/cli/init.rs || { echo "FAIL: hooks not in the sync target set"; rc=1; }
   grep -q "render_stamped_hook" src/cli/init.rs || { echo "FAIL: no single-source hook renderer"; rc=1; }
-  # classify is now syntax-parameterised, not frontmatter-hardwired.
-  grep -q "render_stamp_verifies(body, syntax)" src/cli/init.rs || { echo "FAIL: classify is not syntax-aware"; rc=1; }
+  # classify is now syntax-parameterised, not frontmatter-hardwired. (S143 renamed the classified
+  # slice `body` -> `region` when it became body-scoped; the syntax-aware call is the invariant.)
+  grep -qE "render_stamp_verifies\((body|region), syntax\)" src/cli/init.rs || { echo "FAIL: classify is not syntax-aware"; rc=1; }
   [ "$rc" -eq 0 ] && echo "OK: StampSyntax::ShellComment + SYNC_HOOKS + render_stamped_hook + syntax-aware classify"
   return $rc
 }
