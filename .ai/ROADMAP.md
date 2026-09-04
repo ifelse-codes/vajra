@@ -1,6 +1,23 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-03 · **Session 143 — CODE: the constitution joins the smooth upgrade — ACCEPT
+**Updated:** 2026-09-04 · **Session 144 — PAID DOGFOOD: the chitra FULL-LOOP — ACCEPT (6 of 7 SHIPPED · 1
+PARTIAL · 0 NOT-BUILT), attested (see review).** [x] First real-world test of the complete upgrade loop on a
+brownfield adopter: the installed `vajra 0.1.0` upgraded chitra's 10 stale roles + 6 unstamped hooks + the
+boundaryless constitution (first contact `16 drifted, 1 needs-boundary`; one `--overwrite-drifted` + a
+one-time sentinel paste migrated all 17, chitra's filled header preserved **byte-for-byte** sha `1a318f46…`;
+repeat sync `17 already current, 0 churn`). [x] A real chitra build governed end to end by chitra's OWN
+fleet+hooks (headless `vajra claude -p`): tech-lead FIRST → 4 required, all 4 handoffs → `verify-closeout.sh
+19` ALL GREEN 13/13 incl. `required-crew PASS` (S138 "required ≠ required" held CLOSED live); `horizontalBar`
+locked (accent-once raw-RGB, no phantom fill, 217/217). chitra undisturbed FOUR ways; **`$11.742472`
+authoritative**, RAW subagent **875,548**. [x] `verify-session-144.sh` **9/9** (C1/C5/C6 strengthened to
+falsifiable checks after both wrapper reviewers flagged the self-greps). **🔴 Two structural findings:**
+`--sync-fleet` doesn't propagate `scripts/verify-closeout.sh` (adopter close-gate frozen at adopt-time); the
+canonical gate hardcodes `BIN="target/release/vajra"` (dead in non-Rust adopters) — worked around by a
+disclosed manual patch, **follow-up session spawned**. Founder deferred the `horizontalBar` textured-vs-solid
+aesthetic to its own chitra design session. Reports: `sessions/session-144-summary.md` +
+`sessions/session-144-review.md`. **Next GT: S145 (mandatory NO-CODE).**
+
+**Prior (S143) — Updated:** 2026-09-03 · **Session 143 — CODE: the constitution joins the smooth upgrade — ACCEPT
 (6 of 6 SHIPPED at close), attested (see review).** [x] `.ai/AGENTS.md` splits into a user-owned FILLED
 header + a byte-identical GOVERNED body divided by `GOVERNED_BODY_SENTINEL`; the SINGLE
 `vajra init --sync-fleet` upgrades ONLY the body (a boundary target — `boundary: Option<&str>` +
