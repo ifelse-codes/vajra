@@ -2,6 +2,21 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
+## Session 144 — the chitra FULL-LOOP dogfood (upgrade + govern a build to close) — COMPLETE
+
+- Brief: `prompts/144-task-chitra-fullloop-dogfood.md`. **ACCEPT** (cold `fidelity-reviewer`, **6 of 7
+  SHIPPED · 1 PARTIAL · 0 NOT-BUILT**), attested (see review). Reports: `sessions/session-144-summary.md`
+  + `sessions/session-144-review.md`. **PAID: `$11.742472` authoritative + 875,548 RAW subagent tokens.**
+- **Proven on a REAL brownfield adopter (chitra):** the installed binary upgraded 10 roles + 6 hooks + the
+  boundaryless constitution under one command (first contact `16 drifted, 1 needs-boundary` → one migration
+  → repeat sync `0 churn`), header preserved byte-for-byte. A chitra build (`horizontalBar` lock) governed
+  by chitra's own fleet+hooks to a GREEN `verify-closeout.sh 19` (13/13 incl. `required-crew PASS` — tech-lead
+  FIRST, 4 required, 4 handoffs). chitra undisturbed four ways.
+- **🔴 Two findings for the follow-up:** `--sync-fleet` doesn't propagate `verify-closeout.sh`; the gate
+  hardcodes `BIN="target/release/vajra"`. Worked around by a disclosed manual patch; follow-up spawned.
+- **Founder:** deferred the `horizontalBar` textured-vs-solid aesthetic to its own chitra design session
+  (see memory `chitra-bar-family-textured-fill`). **Next GT: S145 (mandatory NO-CODE).**
+
 ## Session 138 — THE REAL DOGFOOD: `vajra claude` run from INSIDE chitra — COMPLETE
 
 - Brief: `prompts/138-task-real-dogfood-inside-chitra.md`. **ACCEPT** (cold `fidelity-reviewer`,

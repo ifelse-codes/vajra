@@ -1,49 +1,45 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 143 — COMPLETE (CODE: the constitution joins the smooth upgrade — split fill from governed
-  body). **Verdict: ACCEPT** (cold `fidelity-reviewer`, 5 of 6 SHIPPED at review → 6/6 at close; AC6
-  PARTIAL at review only because the summary+review post-dated the dispatch), all 15 `obeyed:` dispositions
-  judged `implemented:`, attested `173da680`. Reports: `sessions/session-143-summary.md` +
-  `sessions/session-143-review.md`. **Next: A (chitra full-loop dogfood) or B (prove the 5 quiet roles). Next GT: S145.**
-- **What shipped:** `.ai/AGENTS.md` splits into a user-owned FILLED header + a byte-identical GOVERNED
-  body divided by `GOVERNED_BODY_SENTINEL`; the SINGLE `vajra init --sync-fleet` upgrades ONLY the body
-  (a boundary target — `boundary: Option<&str>` + `body_region`), preserving the header VERBATIM, via the
-  S142 `MarkdownComment` stamp (no fourth path). A pre-S143 boundaryless constitution is the fifth
-  `FleetFileState`, **`NeedsBoundary`** — refused even under `--overwrite-drifted` (never clobbers the
-  fill), with the exact sentinel printed for a one-time paste. A deleted constitution warns "run
-  `vajra init`". No 8th command. **"One command upgrades everything" is now literally true for every pure
-  render Vajra owns** — roles (S141) + hooks (S142) + the constitution (S143). `verify-session-143.sh`
-  **13/13** · `fixture-143` **9/9** · 469 lib tests · fmt+clippy clean.
-- **Governance USED:** tech-lead dispatched FIRST, bound the crew (required: design-advisor · qa-specialist
-  · fidelity-reviewer; six deferred-budget). design-advisor settled all four forks before code (boundary
-  sentinel · body-scoped classify/rewrite · legacy migration as the fifth state · CONSTRAINTS out).
-  qa-specialist ran the suites + a LIVE falsification (clobbered the header → fixture RED on HDR/MIG →
-  reverted, tree clean, 0 hollow). fidelity-reviewer judged all 15 `obeyed:` dispositions independently
-  (all `implemented:`), named the fakest green, and found 3 under-disclosed gaps → **all closed in-session**
-  (b9679b5). Close passes `check_required_crew` + `check-advice` + `check-obeyed`.
-- **Honest limits (disclosed):** pre-S143 installs have a boundaryless constitution → `NeedsBoundary` on
-  first contact (one manual sentinel paste + `--overwrite-drifted`; smooth going-forward, not retroactive).
-  The sentinel is located by an EXACT-match first-occurrence `find` (a header quoting it is a disclosed
-  hazard). The write is not atomic (qa rec 4, deferred). Stamp = content hash, not a keyed signature.
+- **Number:** 144 — COMPLETE (PAID DOGFOOD: the chitra FULL-LOOP — upgrade chitra's stale `.ai/` with the
+  real installed binary, then govern a real chitra build end to end through a green close). **Verdict:
+  ACCEPT** (cold `fidelity-reviewer`, 6 of 7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT), attested below. Reports:
+  `sessions/session-144-summary.md` + `sessions/session-144-review.md`. **Next GT: S145 (mandatory NO-CODE).**
+- **What was proven (the founder's #1+#2 completeness priorities, on a REAL brownfield adopter):** the
+  SINGLE installed `vajra 0.1.0` upgraded chitra's 10 stale role renders + 6 unstamped hooks + boundaryless
+  constitution — first contact classified `16 drifted, 1 needs-boundary`; one `--overwrite-drifted` (plus a
+  one-time sentinel paste) migrated all 17, preserving chitra's filled constitution header **byte-for-byte**
+  (572 bytes, sha `1a318f46…` before = after); a repeat `--sync-fleet` = `17 already current, 0 churn`.
+- **The build, governed by chitra's OWN fleet + hooks (headless `vajra claude -p`):** chitra's tech-lead
+  dispatched FIRST, marked **4 required**, and all 4 produced real handoffs → `verify-closeout.sh 19` = ALL
+  GREEN 13/13 incl. **`required-crew PASS`** (the S138 "required ≠ required" gap held CLOSED in the wild).
+  `horizontalBar` locked to the reference language (accent-once at raw-RGB, no phantom fill, 217/217 tests).
+  chitra undisturbed FOUR ways (main HEAD `8945ce4…`/tree `fa094276…`, 2 stashes, work isolated on
+  `session-19`). **Authoritative `$11.742472`** · RAW subagent tokens **875,548** (≈22× tighter than S134).
+- **🔴 Two structural findings the repo could NOT have written itself (the dogfood's real prize):**
+  (1) `vajra init --sync-fleet` does NOT propagate `scripts/verify-closeout.sh` — a brownfield adopter's
+  close-gate is frozen at adopt-time (chitra's was pre-S139, missing `check_required_crew`); (2) the
+  canonical gate hardcodes `BIN="target/release/vajra"`, so its binary-backed gates can't run in any
+  non-Rust adopter. Worked around by a DISCLOSED manual patch to chitra's gate; **follow-up Vajra session
+  spawned** to make the close-gate reach adopters via the loop.
+- **Founder call:** SAW the `horizontalBar` render, judged it correct-to-spec but "too solid" — prefers the
+  heatmap's textured/braille look. Accepted S144; the bar-family textured redesign is a captured chitra
+  design session (memory `chitra-bar-family-textured-fill` + spawned task), NOT this session's job.
 
 ## Prior Session
-- **Number:** 142 — COMPLETE (CODE: complete the upgrade loop for the pure-render scaffold files — hooks).
-  **Verdict: ACCEPT** (6 of 6 SHIPPED at close), all 9 `obeyed:` dispositions `implemented:`. The S141
-  render stamp generalised beyond frontmatter via `StampSyntax`; the SINGLE `vajra init --sync-fleet`
-  widened to the shell hooks. `verify-session-142.sh` 12/12 · `fixture-142` 9/9 · 461 lib tests. Reports:
-  `sessions/session-142-summary.md` + `sessions/session-142-review.md`. Founder-confirmed "hooks now,
-  constitution S143" — the S143 follow-up shipped this session.
+- **Number:** 143 — COMPLETE (CODE: the constitution joins the smooth upgrade — split fill from governed
+  body). **Verdict: ACCEPT** (6/6 SHIPPED at close), all 15 `obeyed:` dispositions `implemented:`, attested
+  `173da680`. `.ai/AGENTS.md` split into a FILLED header + a GOVERNED body divided by `GOVERNED_BODY_SENTINEL`;
+  `--sync-fleet` upgrades ONLY the body, preserving the header verbatim; fifth state `NeedsBoundary`. The
+  fresh-user/upgrade arc was declared COMPLETE (roles S141 · hooks S142 · constitution S143) — S144 was its
+  first real-world test. Reports: `sessions/session-143-summary.md` + `sessions/session-143-review.md`.
 
 ## Next Session
-- **S144 — pending founder pick.** The fresh-user / upgrade-in-place arc is COMPLETE (roles S141 · hooks
-  S142 · constitution S143). Three candidates in `sessions/session-143-summary.md`: **A (recommended) —
-  the chitra FULL-LOOP dogfood** (run `vajra claude` inside chitra; exercise S141+S142+S143 end to end —
-  its unstamped roles + hooks + boundaryless constitution all migrate once, then upgrade smoothly; the
-  founder's #2 completeness priority, now that #1 is done); **B — prove the 5 quiet fleet roles give GOOD
-  advice** (all six non-required roles were deferred-budget again; S140 open); **C — harden S143** (atomic
-  constitution write + a double-sentinel falsification; robustness polish, closes-green risk).
-  **Start in a FRESH chat** once picked; the agent creates `session-144-<slug>`. **Next GT: S145.**
+- **S145 — MANDATORY NO-CODE Ground Truth** (`145 % 5 == 0`). Launch as `VAJRA_GT_WAIVER=145 vajra claude`
+  only if converting to CODE (not the default). Run all required audits live. Candidates carried: **B** —
+  prove the 5 quiet fleet roles give GOOD advice (S140 open); **the S144 follow-up** — make `--sync-fleet`
+  propagate the close-gate + resolve `vajra` on PATH (findings 1+2); the chitra bar-family textured redesign
+  (chitra-side). **Start in a FRESH chat.**
 
 ### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference
