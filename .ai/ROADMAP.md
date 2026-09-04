@@ -1,6 +1,13 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-04 · **Session 144 — PAID DOGFOOD: the chitra FULL-LOOP — ACCEPT (6 of 7 SHIPPED · 1
+**Updated:** 2026-09-04 · **Session 145 — mandatory NO-CODE Ground Truth (145 % 5 == 0) — 🟡 PARTIAL PASS.**
+All 12 required audits run live. Discipline 🟢 (stranger 21/21 · scaffold-drift 17/17 · fmt clean · 469 tests ·
+pipeline S141-S143 each 8/8). Direction 🟡 (vision coherent, 0 external adoption). Cost 🔴 ($11.74/session —
+prove phase done, cut phase mandatory next). Dogfood 🟢 (S144 real $11.74 end-to-end). Dogfood-age tool
+blind spot: reads S124 (known, LOW — blind to cross-repo dogfoods). Report: `sessions/session-145-ground-truth.md`.
+**Founder pick: A (S146 — propagate close-gate to adopters). Next GT: S150.**
+
+**Prior — Updated:** 2026-09-04 · **Session 144 — PAID DOGFOOD: the chitra FULL-LOOP — ACCEPT (6 of 7 SHIPPED · 1
 PARTIAL · 0 NOT-BUILT), attested (see review).** [x] First real-world test of the complete upgrade loop on a
 brownfield adopter: the installed `vajra 0.1.0` upgraded chitra's 10 stale roles + 6 unstamped hooks + the
 boundaryless constitution (first contact `16 drifted, 1 needs-boundary`; one `--overwrite-drifted` + a
