@@ -110,6 +110,22 @@
   · 469 lib tests · fmt+clippy clean. DECISION-007 S143 addendum. **The fresh-user/upgrade arc is COMPLETE**
   (roles S141 · hooks S142 · constitution S143); only `CONSTRAINTS.yaml` stays add-only, by design.
 
+## Session 145 — mandatory NO-CODE Ground Truth — COMPLETE
+
+- Brief: GT, no prompt file. **🟡 PARTIAL PASS.** Report: `sessions/session-145-ground-truth.md`.
+  NO CODE · NO PR · closeout on `session-145-closeout`. **Founder pick: A.**
+- **12 audits run live:** stranger 21/21 · scaffold-drift 17/17 · fmt clean · 469 tests ·
+  3×8/8 CODE pipeline (S141-S143) · S144 2/8 expected (dogfood) · 0 stars · 0 forks.
+- **🟢 Discipline.** No constraint violations S141-S144. All three mandatory roles dispatched
+  each CODE session. Closeout gates passed before merge each session.
+- **🟡 Direction.** Vision coherent, founder's order followed. F2f gap (advice-influence)
+  and 0 external adoption remain open.
+- **🔴 Cost.** $11.74/session (S144). Prove phase done; cut phase mandatory next.
+- **Dogfood tool blind spot:** `--dogfood-age` reads S124 (this repo's last local receipt);
+  S144 ran inside chitra. Known since S140, LOW priority.
+- **Next: S146 — A: propagate close-gate to adopters.** Prompt:
+  `prompts/146-task-closeout-propagation.md`. **Start in a FRESH chat.**
+
 ## NEXT: Session 144 — pending founder pick
 
 - Three candidates in `sessions/session-143-summary.md`: **A (recommended)** the chitra FULL-LOOP dogfood
