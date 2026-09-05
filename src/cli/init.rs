@@ -13,7 +13,9 @@ const CLAUDE_SETTINGS_PATH: &str = ".claude/settings.json";
 /// `hook_templates_carry_no_fill_placeholders`, which is what makes the stamped render byte-identical
 /// across every install, the same clean fit as a fleet role. ONE list: `files()` scaffolds these
 /// stamped and `sync_targets()` syncs the same set, so a fresh `init` immediately reports them
-/// `UpToDate`.
+/// `UpToDate`. INVARIANT: every template in this list MUST be fill-transparent (no `{{UPPER}}`
+/// placeholders) — `fxs` calls `fill()` before stamping while `sync_targets` uses the raw
+/// template; any placeholder breaks byte-identity and causes UpToDate-on-init to silently fail.
 const SYNC_HOOKS: &[(&str, &str)] = &[
     (".ai/hooks/hook-session-start.sh", TPL_HOOK_SESSION_START),
     (".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
@@ -1952,6 +1954,31 @@ mod tests {
             use std::os::unix::fs::PermissionsExt;
             let mode = fs::metadata(&gate).unwrap().permissions().mode();
             assert_eq!(mode & 0o111, 0o111, "verify-closeout.sh must be executable");
+        }
+    }
+
+    #[test]
+    fn verify_closeout_scaffold_template_has_no_fill_placeholders() {
+        // DECISION-007 byte-identity invariant: `fxs` runs fill() before stamp, while
+        // `sync_targets` uses the raw template. Both produce UpToDate only if fill is a no-op.
+        // fill() replaces {PROJECT_NAME}, {GOAL}, {SLUG}, {DATE}, {MATURITY}, {FIRST_*}.
+        // This test catches any future edit that adds such a placeholder to the scaffold template.
+        for placeholder in [
+            "{PROJECT_NAME}",
+            "{GOAL}",
+            "{SLUG}",
+            "{DATE}",
+            "{MATURITY}",
+            "{FIRST_NN}",
+            "{FIRST_PROMPT}",
+            "{FIRST_TITLE}",
+            "{FIRST_NOTE}",
+        ] {
+            assert!(
+                !TPL_VERIFY_CLOSEOUT_SCAFFOLD.contains(placeholder),
+                "verify-closeout-scaffold.sh contains fill placeholder {placeholder} — \
+                 files() and sync_targets() would produce different bytes, breaking DECISION-007"
+            );
         }
     }
 

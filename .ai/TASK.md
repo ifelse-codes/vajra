@@ -2,6 +2,18 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
+## Session 146 — close S144 findings: propagate verify-closeout.sh + PATH-first resolver — IN PROGRESS
+
+- Brief: `prompts/146-task-closeout-propagation.md`. Branch: `session-146-closeout-propagation`.
+- D1: `--sync-fleet` now propagates `scripts/verify-closeout.sh` (SYNC_HOOKS, ShellComment stamp, DECISION-007 S146 addendum).
+- D2: scaffold uses `scripts/verify-closeout-scaffold.sh` (PATH-first `command -v vajra` resolver).
+- 470 tests passing. Required handoffs: tech-lead ✓ · design-advisor ✓ · implementation-advisor ✓.
+- Pending: QA · fidelity-reviewer · verify-closeout.sh 146 green.
+
+## Session 145 — mandatory NO-CODE GT — COMPLETE
+
+- Lead-lens: 🟡 PARTIAL PASS. 12 audits live. Report: `sessions/session-145-ground-truth.md`. **Next: S146.**
+
 ## Session 144 — the chitra FULL-LOOP dogfood (upgrade + govern a build to close) — COMPLETE
 
 - Brief: `prompts/144-task-chitra-fullloop-dogfood.md`. **ACCEPT** (cold `fidelity-reviewer`, **6 of 7
