@@ -1,13 +1,20 @@
 # Session Boot
 
 ## Current Session
+- **Number:** 146 — IN PROGRESS (CODE). Goal: close S144 findings 1+2 — propagate `verify-closeout.sh`
+  via `--sync-fleet` (D1) + PATH-first binary resolver in scaffold template (D2).
+  Branch: `session-146-closeout-propagation`. Prompt: `prompts/146-task-closeout-propagation.md`.
+  Tech-lead: dispatched (required). Design-advisor: dispatched (required). Implementation-advisor: dispatched (required).
+  QA: pending. Fidelity-reviewer: pending. 470 tests passing.
+
+## Prior Session
 - **Number:** 145 — COMPLETE (mandatory NO-CODE Ground Truth, 145 % 5 == 0). **Lead-lens: 🟡 PARTIAL PASS.**
   Report: `sessions/session-145-ground-truth.md`. 12 audits live: stranger 21/21 · scaffold-drift 17/17 ·
   fmt clean · 469 tests · pipeline S141-S143 each 8/8 (S144 2/8 expected — dogfood) · 0 stars · 0 forks.
   Discipline 🟢 · Direction 🟡 · Cost 🔴 ($11.74/session proves it works — cut phase is next) · Dogfood 🟢.
   **Founder pick: A. Next: S146.**
 
-## Prior Session
+## Session Before Prior
 - **Number:** 144 — COMPLETE (PAID DOGFOOD: the chitra FULL-LOOP — upgrade chitra's stale `.ai/` with the
   real installed binary, then govern a real chitra build end to end through a green close). **Verdict:
   ACCEPT** (cold `fidelity-reviewer`, 6 of 7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT), attested below. Reports:
