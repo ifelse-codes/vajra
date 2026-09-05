@@ -2,13 +2,13 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 146 — close S144 findings: propagate verify-closeout.sh + PATH-first resolver — IN PROGRESS
+## Session 147 — awaiting founder pick — NOT STARTED
 
-- Brief: `prompts/146-task-closeout-propagation.md`. Branch: `session-146-closeout-propagation`.
-- D1: `--sync-fleet` now propagates `scripts/verify-closeout.sh` (SYNC_HOOKS, ShellComment stamp, DECISION-007 S146 addendum).
-- D2: scaffold uses `scripts/verify-closeout-scaffold.sh` (PATH-first `command -v vajra` resolver).
-- 470 tests passing. Required handoffs: tech-lead ✓ · design-advisor ✓ · implementation-advisor ✓.
-- Pending: QA · fidelity-reviewer · verify-closeout.sh 146 green.
+## Session 146 — close S144 findings: propagate verify-closeout.sh + PATH-first resolver — COMPLETE
+
+- Brief: `prompts/146-task-closeout-propagation.md`. PR [#175](https://github.com/ifelse-codes/vajra/pull/175) MERGED.
+- ACCEPT (fidelity-reviewer, 6 SHIPPED · 4 PARTIAL · 0 NOT-BUILT), attested `fb4ee708…`.
+- verify-closeout 15/15 GREEN. 471 tests. All 5 required crew dispatched.
 
 ## Session 145 — mandatory NO-CODE GT — COMPLETE
 

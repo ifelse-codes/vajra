@@ -1,13 +1,18 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 146 — IN PROGRESS (CODE). Goal: close S144 findings 1+2 — propagate `verify-closeout.sh`
-  via `--sync-fleet` (D1) + PATH-first binary resolver in scaffold template (D2).
-  Branch: `session-146-closeout-propagation`. Prompt: `prompts/146-task-closeout-propagation.md`.
-  Tech-lead: dispatched (required). Design-advisor: dispatched (required). Implementation-advisor: dispatched (required).
-  QA: pending. Fidelity-reviewer: pending. 470 tests passing.
+- **Number:** 147 — NOT STARTED. Awaiting founder pick.
 
 ## Prior Session
+- **Number:** 146 — COMPLETE (CODE: propagate close-gate to adopters). **Verdict: ACCEPT** (fidelity-reviewer,
+  6 SHIPPED · 4 PARTIAL · 0 NOT-BUILT), attested `fb4ee708…`. PR [#175](https://github.com/ifelse-codes/vajra/pull/175)
+  merged. D1: `vajra init --sync-fleet` now propagates `scripts/verify-closeout.sh` via `SYNC_HOOKS` (S142
+  ShellComment stamp path, four-state upgrade); D2: scaffold template has PATH-first binary resolver
+  (`command -v vajra`), allowing non-Rust adopters (chitra et al.) to run the close-gate natively. Vajra's
+  own gate is unchanged. 471 tests (470 + `fixture_146`). verify-closeout 15/15 GREEN.
+  Reports: `sessions/session-146-summary.md` + `sessions/session-146-review.md`. **Next: S147.**
+
+## Session Before Prior
 - **Number:** 145 — COMPLETE (mandatory NO-CODE Ground Truth, 145 % 5 == 0). **Lead-lens: 🟡 PARTIAL PASS.**
   Report: `sessions/session-145-ground-truth.md`. 12 audits live: stranger 21/21 · scaffold-drift 17/17 ·
   fmt clean · 469 tests · pipeline S141-S143 each 8/8 (S144 2/8 expected — dogfood) · 0 stars · 0 forks.
@@ -49,12 +54,8 @@
   first real-world test. Reports: `sessions/session-143-summary.md` + `sessions/session-143-review.md`.
 
 ## Next Session
-- **S146 — CODE: propagate `verify-closeout.sh` to adopters + PATH-first binary resolver.**
-  Prompt: `prompts/146-task-closeout-propagation.md`. Two deliverables: (D1) `vajra init --sync-fleet`
-  includes the close-gate in its upgrade loop (four-state, stamped, S142 `ShellComment` path); (D2) the
-  scaffolded close-gate resolves `vajra` on PATH, falling back to `target/release/vajra` for Vajra's own
-  self-governance. Guardrails: no new commands (rides existing `vajra init` + `--sync-fleet`); no changes
-  to this repo's own `scripts/verify-closeout.sh`. **Start in a FRESH chat.**
+- **S147 — awaiting founder pick.** Next mandatory GT: S150 (150 % 5 == 0). Cost 🔴 still blocks; prove-then-cut
+  arc ongoing. Dogfood age: S144 paid ($11.74). **Start in a FRESH chat.**
 
 ### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference
