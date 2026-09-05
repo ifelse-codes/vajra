@@ -4,7 +4,7 @@
 
 Method: Cold subagent, no builder summary consumed. Read prompt, SYNC_HOOKS entry, scaffold template, fixture_146 test, verify script, and all handoffs directly. Adversarial frame applied throughout.
 
-**Review-Inputs-SHA:** ccaad556a3edaf76e5e88e21ee388a9a84cb984acf20e765c5d7117f0dcdfa05
+**Review-Inputs-SHA:** fb4ee7082b14ed8ee939bd61e6ba08fbc53ec3bfeaa2181fbc2f6752f2152fdd
 
 ---
 
