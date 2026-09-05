@@ -135,6 +135,7 @@ implementation-advisor (required, dispatched after design):
 step 1 — done: 9f7b3b8 (scripts/verify-closeout-scaffold.sh, Cargo.toml, src/cli/init.rs)
 step 2 — done: 19e1341 (fill-transparency test, SYNC_HOOKS invariant doc)
 step 3 — done: 9f7b3b8 (Cargo.toml negation for scripts/verify-closeout-scaffold.sh)
+step 4 — done: 245818d (fixture_146 Rust test + C10 PATH-first live check + verify header fix)
 
 ## Guardrails
 
