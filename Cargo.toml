@@ -34,6 +34,7 @@ exclude = [
   "!scripts/hook-session-guard.sh",
   "!scripts/hook-session-start.sh",
   "!scripts/verify-closeout.sh",
+  "!scripts/verify-closeout-scaffold.sh",
   "!scripts/demo-session-template.sh",
   "sessions/",
   "source-material/",

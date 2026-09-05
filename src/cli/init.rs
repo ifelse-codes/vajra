@@ -21,6 +21,12 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     (".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
     (".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
     (".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
+    // S146 (DECISION-007 S146 addendum): the close-gate is a ShellComment-stamped pure-render shell
+    // script — the same shape as the hooks above. Adding it to SYNC_HOOKS gives adopters the
+    // four-state upgrade path (Missing/UpToDate/StaleRender/Drifted) so `--sync-fleet` can push a
+    // corrected gate (e.g. with check_required_crew) without a manual patch (S144 finding 1).
+    // Uses the scaffold template (PATH-first resolver) not the vajra source file — see S144 finding 2.
+    ("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT_SCAFFOLD),
 ];
 
 /// The canonical STAMPED render of one hook — a shell-comment `vajra-render-sha:` trailing line over
@@ -1074,10 +1080,10 @@ fn files(
         fx(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
-        // The closeout gate with teeth (S57): byte-identical to the vajra repo's own
-        // scripts/verify-closeout.sh (include_str!, one source). Carries the fidelity gate, so a
-        // scaffolded project's closeout also structurally requires an independent ACCEPT review.
-        fx("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT),
+        // S146: the scaffolded close-gate uses the scaffold template (PATH-first binary resolver,
+        // S144 finding 2) and is stamped via `fxs` so a fresh `init` + immediate `--sync-fleet`
+        // reports it `UpToDate` — the ONE-list invariant of DECISION-007.
+        fxs("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT_SCAFFOLD),
         // S99: the kickoff carries the station markers, rendered from the one canonical
         // template — a fresh repo is measurable by `vajra next --stations` from session 01.
         f("prompts/01-task-kickoff.md", &kickoff_prompt(goal, slug)),
@@ -1529,15 +1535,16 @@ const TPL_DARSHAN: &str = include_str!("../../darshan/SKILL.md");
 // with `cargo install` (like `darshan/`). Boot-loaded like Darshan; nothing in the binary parses it.
 const TPL_REVIEWER: &str = include_str!("../../reviewer/SKILL.md");
 
-// Canonical closeout gate (S56 teeth → S57 propagation) — the SAME `scripts/verify-closeout.sh`
-// the vajra repo runs, embedded verbatim so the scaffolded copy can never drift (S22 one-source
-// pattern). It carries `check_fidelity_review` + `waiver_ok` + `--fidelity-only`, so a scaffolded
-// project's closeout also STRUCTURALLY requires an independent ACCEPT review (DECISION-002), not
-// just discipline. Fully portable — it reads only the `.ai/` + `sessions/` + `prompts/` spine every
-// scaffold has, nothing vajra-repo-specific. `scripts/*` is excluded in Cargo.toml, so this file is
-// un-excluded there (per-file negation) so it ships with `cargo install`. Closes the S36-class
-// "the constitution tells the agent to run verify-closeout.sh but the scaffold never shipped it" gap.
-const TPL_VERIFY_CLOSEOUT: &str = include_str!("../../scripts/verify-closeout.sh");
+// S146 (DECISION-007 S146 addendum): the scaffold template for the close-gate — identical to the
+// vajra source gate except the three `local BIN="target/release/vajra"` lines use a PATH-first
+// resolver (`command -v vajra`) so non-Rust adopters (TypeScript, Python, chitra) can run the
+// binary-backed checks (S144 finding 2). Carries `check_fidelity_review` + `waiver_ok` +
+// `--fidelity-only` + `check_required_crew` — a scaffolded project's closeout structurally
+// requires an independent ACCEPT review (DECISION-002). Vajra's own `scripts/verify-closeout.sh`
+// is NOT modified — it runs from source. `scripts/*` is excluded in Cargo.toml; this file is
+// un-excluded there (per-file negation) so it ships with `cargo install`.
+const TPL_VERIFY_CLOSEOUT_SCAFFOLD: &str =
+    include_str!("../../scripts/verify-closeout-scaffold.sh");
 
 const TPL_VERIFY_TEMPLATE: &str = r#"#!/usr/bin/env bash
 # Template — copy to scripts/verify-session-NN.sh and customize per session.
@@ -1917,15 +1924,28 @@ mod tests {
     }
 
     #[test]
-    fn scaffold_ships_verify_closeout_verbatim_and_executable() {
+    fn scaffold_ships_verify_closeout_stamped_and_executable() {
         let dir = scaffold_tmp();
         let gate = dir.path().join("scripts/verify-closeout.sh");
         assert!(gate.exists(), "verify-closeout.sh not scaffolded");
-        // Byte-identical to the vajra repo's own gate — one source of truth, no drift.
-        assert_eq!(
-            fs::read_to_string(&gate).unwrap(),
-            TPL_VERIFY_CLOSEOUT,
-            "scaffolded verify-closeout.sh drifted from canonical scripts/verify-closeout.sh"
+        let on_disk = fs::read_to_string(&gate).unwrap();
+        // S146: the scaffold now uses the PATH-first template (not the vajra source gate) and
+        // is stamped via ShellComment so a fresh init + --sync-fleet reports UpToDate.
+        // Verify the stamp round-trip (render → parse → verify) rather than byte-identity with
+        // the vajra source gate (TPL_VERIFY_CLOSEOUT_SCAFFOLD, not the unmodified vajra gate).
+        assert!(
+            crate::fleet::render_stamp_verifies(&on_disk, crate::fleet::StampSyntax::ShellComment),
+            "scaffolded verify-closeout.sh stamp does not verify — stamp mismatch or missing"
+        );
+        // PATH-first resolver must be present (S144 finding 2).
+        assert!(
+            on_disk.contains("command -v vajra"),
+            "scaffolded verify-closeout.sh missing PATH-first binary resolver"
+        );
+        // The vajra source gate's hardcoded path must NOT appear (it's the fallback in a comment).
+        assert!(
+            on_disk.contains("target/release/vajra"),
+            "scaffolded verify-closeout.sh missing fallback path"
         );
         #[cfg(unix)]
         {
@@ -3325,8 +3345,8 @@ mod tests {
         top.sort();
         assert_eq!(
             top,
-            vec![".ai".to_string(), ".claude".to_string()],
-            "sync-fleet wrote outside .claude/ + .ai/ — it must never run the full init scaffold"
+            vec![".ai".to_string(), ".claude".to_string(), "scripts".to_string()],
+            "sync-fleet wrote outside .claude/ + .ai/ + scripts/ — it must never run the full init scaffold"
         );
         // Under .ai/ ONLY the constitution + hooks/ — never CONSTRAINTS.yaml, SESSION, etc.
         let mut ai: Vec<String> = fs::read_dir(dir.path().join(".ai"))
@@ -3345,10 +3365,12 @@ mod tests {
             constitution_before,
             "an up-to-date constitution must never be rewritten (no-churn)"
         );
+        // S146: scripts/ now exists (verify-closeout.sh is a sync target). Only scripts/
+        // verify-closeout.sh should appear — not a full scaffold of prompts, sessions, etc.
+        assert!(dir.path().join("scripts/verify-closeout.sh").exists());
         for unwanted in [
             ".ai/CONSTRAINTS.yaml",
             ".ai/SESSION",
-            "scripts",
             "prompts",
             "sessions",
             ".githooks",
