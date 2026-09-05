@@ -1,3 +1,14 @@
+---
+role: fidelity-reviewer
+session: 146
+agent: claude-code-subagent (verified: toolu_012VfKxJ2DS9RecCfzLuJywM)
+source-sha: 6431ca9ce8dcc4ba82cb459b2279c88060f6f2384fae31354209f7b2f4209b62
+captured: 2026-09-05T04:32:59Z
+cost_usd: null
+---
+
+# Fidelity-reviewer handoff — session 146
+
 # Session 146 — Fidelity Review
 
 **Second pass — ACCEPT**
@@ -46,3 +57,7 @@ rec 3 — Either drop the "no hollow source-greps" qualifier from AC7, or conver
 **Verdict:** ACCEPT
 
 The two deliverables — `--sync-fleet` propagating the close-gate (D1) and PATH-first binary resolver in the scaffold template (D2) — are substantively implemented and cross-confirmed. PARTIAL grades are test-quality gaps, not missing features. No feature is missing or broken.
+
+## Handoff Delta
+- `+` new: first fidelity-reviewer handoff for this session (4063 bytes of findings)
+- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
