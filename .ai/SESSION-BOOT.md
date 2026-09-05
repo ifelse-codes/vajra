@@ -1,6 +1,13 @@
 # Session Boot
 
 ## Current Session
+- **Number:** 145 — COMPLETE (mandatory NO-CODE Ground Truth, 145 % 5 == 0). **Lead-lens: 🟡 PARTIAL PASS.**
+  Report: `sessions/session-145-ground-truth.md`. 12 audits live: stranger 21/21 · scaffold-drift 17/17 ·
+  fmt clean · 469 tests · pipeline S141-S143 each 8/8 (S144 2/8 expected — dogfood) · 0 stars · 0 forks.
+  Discipline 🟢 · Direction 🟡 · Cost 🔴 ($11.74/session proves it works — cut phase is next) · Dogfood 🟢.
+  **Founder pick: A. Next: S146.**
+
+## Prior Session
 - **Number:** 144 — COMPLETE (PAID DOGFOOD: the chitra FULL-LOOP — upgrade chitra's stale `.ai/` with the
   real installed binary, then govern a real chitra build end to end through a green close). **Verdict:
   ACCEPT** (cold `fidelity-reviewer`, 6 of 7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT), attested below. Reports:
@@ -35,11 +42,12 @@
   first real-world test. Reports: `sessions/session-143-summary.md` + `sessions/session-143-review.md`.
 
 ## Next Session
-- **S145 — MANDATORY NO-CODE Ground Truth** (`145 % 5 == 0`). Launch as `VAJRA_GT_WAIVER=145 vajra claude`
-  only if converting to CODE (not the default). Run all required audits live. Candidates carried: **B** —
-  prove the 5 quiet fleet roles give GOOD advice (S140 open); **the S144 follow-up** — make `--sync-fleet`
-  propagate the close-gate + resolve `vajra` on PATH (findings 1+2); the chitra bar-family textured redesign
-  (chitra-side). **Start in a FRESH chat.**
+- **S146 — CODE: propagate `verify-closeout.sh` to adopters + PATH-first binary resolver.**
+  Prompt: `prompts/146-task-closeout-propagation.md`. Two deliverables: (D1) `vajra init --sync-fleet`
+  includes the close-gate in its upgrade loop (four-state, stamped, S142 `ShellComment` path); (D2) the
+  scaffolded close-gate resolves `vajra` on PATH, falling back to `target/release/vajra` for Vajra's own
+  self-governance. Guardrails: no new commands (rides existing `vajra init` + `--sync-fleet`); no changes
+  to this repo's own `scripts/verify-closeout.sh`. **Start in a FRESH chat.**
 
 ### Prior Session (S137 — COMPLETE)
 - **Number:** 137 — COMPLETE (PAID DOGFOOD: chitra's `scatter` chart locked to the reference

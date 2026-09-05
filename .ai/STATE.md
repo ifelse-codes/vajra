@@ -3,10 +3,21 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-144-chitra-fullloop-dogfood`** (S144 complete, ACCEPT + attested; PR opened/merged at close).
-**Next GT: S145 (mandatory NO-CODE).**
+**None — between sessions (S145 complete, S146 not yet started).**
+S145 was a mandatory NO-CODE GT. Closeout on `session-145-closeout`. **Next: S146.**
 
-## What shipped this session (S144 — the chitra FULL-LOOP dogfood)
+## What shipped this session (S145 — mandatory NO-CODE Ground Truth)
+
+- 12 audits run live: stranger 21/21 · scaffold-drift 17/17 · fmt clean · 469 tests.
+- Pipeline: S141–S143 each 8/8; S144 2/8 (expected — dogfood session, not CODE).
+- **🔴 Cost finding:** $11.74/session (S144 chitra dogfood). Prove phase done; cut phase is next.
+- **Dogfood-age tool blind spot** (known S140, LOW): tool reads S124; reality = S144 ($11.74, 1d ago).
+- **Lead-lens: 🟡 PARTIAL PASS.** Discipline 🟢 · Direction 🟡 · Cost 🔴 · Dogfood 🟢.
+- Report: `sessions/session-145-ground-truth.md`. **Founder pick: A (S144 follow-up).**
+- **Next: S146** — propagate `verify-closeout.sh` to adopters + PATH-first binary resolver.
+  Prompt: `prompts/146-task-closeout-propagation.md`.
+
+## What shipped prior (S144 — the chitra FULL-LOOP dogfood)
 - First real-world exercise of the complete upgrade loop (roles S141 + hooks S142 + constitution S143) on a
   REAL brownfield adopter, chitra, then a real chitra build governed end to end through a green close — all
   Vajra-side artifacts are `scripts/verify-session-144.sh` + the summary + review + 4 wrapper handoffs; the
@@ -55,12 +66,12 @@
   tamper-evident ledger, receipts (authoritative on headless stream-json).
 
 ## What Is In Progress
-- **Nothing mid-flight in Vajra.** S144 complete on `session-144-chitra-fullloop-dogfood`, ACCEPT + attested.
-- **Queued (not this session):** the S144 follow-up (propagate the close-gate + resolve `vajra` on PATH); the
-  chitra bar-family textured redesign (chitra-side); B (prove the 5 quiet roles).
+- **Nothing mid-flight.** S145 GT complete on `session-145-closeout`, no PR (GT sessions don't open PRs).
+- **Queued (S146):** propagate `verify-closeout.sh` to adopters via `--sync-fleet` + PATH-first binary resolver.
+- **Queued (later):** B (prove 5 quiet roles); chitra bar-family textured redesign (chitra-side); cost-cutting.
 
 ## Active PRs
-- **S144 PR** opened + merged at close. S143 MERGED (#172) · S142 MERGED · S141 MERGED (#170) · S139 MERGED (#168).
+- S145 — NO PR (GT session). S144 PR merged · S143 MERGED (#172) · S142 MERGED · S141 MERGED (#170).
 
 ## Direction (governance is the product)
 - **Product = provable agent governance** (`DECISION-001`). Direction, locked S130: **MAKE THE FLEET REAL.**
