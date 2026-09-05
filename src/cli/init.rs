@@ -3086,6 +3086,63 @@ mod tests {
         }
     }
 
+    /// S146 fixture: exercises all four reachable states of classify_fleet_file for
+    /// scripts/verify-closeout.sh specifically (AC8 requirement — the existing hook test
+    /// explicitly filters to .ai/hooks/ and skips the close-gate).
+    #[test]
+    fn fixture_146_close_gate_classify_all_states() {
+        let canonical = render_stamped_hook(TPL_VERIFY_CLOSEOUT_SCAFFOLD);
+
+        // Missing — not yet scaffolded
+        let state = classify_fleet_file(None, &canonical, crate::fleet::StampSyntax::ShellComment, None);
+        assert_eq!(state, FleetFileState::Missing, "absent file must be Missing");
+
+        // UpToDate — byte-identical to canonical
+        let state = classify_fleet_file(
+            Some(&canonical),
+            &canonical,
+            crate::fleet::StampSyntax::ShellComment,
+            None,
+        );
+        assert_eq!(state, FleetFileState::UpToDate, "canonical bytes must be UpToDate");
+
+        // StaleRender — a previous ShellComment-stamped version of the same body
+        // (old stamp present but body is a prior render — here we mutate the canonical body
+        // before re-stamping to simulate an older version being present on disk)
+        let old_body = format!("{}\n# (old version)\n", TPL_VERIFY_CLOSEOUT_SCAFFOLD);
+        let old_render = render_stamped_hook(&old_body);
+        let state = classify_fleet_file(
+            Some(&old_render),
+            &canonical,
+            crate::fleet::StampSyntax::ShellComment,
+            None,
+        );
+        assert_eq!(
+            state,
+            FleetFileState::StaleRender,
+            "a ShellComment-stamped old render must be StaleRender, not Drifted"
+        );
+
+        // Drifted — user-edited file with no stamp
+        let state = classify_fleet_file(
+            Some("#!/usr/bin/env bash\n# user edited this file\necho hello\n"),
+            &canonical,
+            crate::fleet::StampSyntax::ShellComment,
+            None,
+        );
+        assert_eq!(state, FleetFileState::Drifted, "unstamped user-edited file must be Drifted");
+
+        // UpToDate after scaffold — fresh init then plan_fleet_sync reports UpToDate
+        let dir = scaffold_tmp();
+        let plan = plan_fleet_sync(dir.path());
+        let close_gate = plan.iter().find(|i| i.rel == "scripts/verify-closeout.sh").unwrap();
+        assert_eq!(
+            close_gate.state,
+            FleetFileState::UpToDate,
+            "close-gate must be UpToDate immediately after scaffold (S146 DECISION-007 ONE-list invariant)"
+        );
+    }
+
     #[test]
     fn plan_fleet_sync_reports_every_registered_role_and_finds_an_empty_repo_all_missing() {
         let dir = tempfile::tempdir().unwrap();
