@@ -98,13 +98,37 @@ c6_vajra_source_unchanged() {
 }
 run_check "C6-vajra-source-gate-unchanged" c6_vajra_source_unchanged
 
-# C7: scaffold template has PATH-first resolver in all 3 binary-backed checks
-c7_scaffold_template_three_resolvers() {
+# C7: scaffolded gate (binary output) has PATH-first resolver in all 3 binary-backed checks
+# (execute-based: counts in the generated file, not the source template)
+c7_scaffold_gate_three_resolvers() {
+  local DIR; DIR=$(with_scaffold)
+  local COUNT; COUNT=$(grep -c "command -v vajra" "$DIR/scripts/verify-closeout.sh" || true)
+  echo "count=$COUNT"
+  rm -rf "$DIR"
+  [ "$COUNT" -eq 3 ]
+}
+run_check "C7-scaffold-gate-has-3-resolvers" c7_scaffold_gate_three_resolvers
+
+# C7b: source template also has 3 resolvers (structural guard so C7 and the source stay in sync)
+c7b_source_template_three_resolvers() {
   local COUNT; COUNT=$(grep -c "command -v vajra" "$ROOT/scripts/verify-closeout-scaffold.sh")
   echo "count=$COUNT"
   [ "$COUNT" -eq 3 ]
 }
-run_check "C7-scaffold-template-has-3-resolvers" c7_scaffold_template_three_resolvers
+run_check "C7b-source-template-has-3-resolvers" c7b_source_template_three_resolvers
+
+# C9: --sync-fleet detects a modified gate as Drifted (stamp-based drift detection works)
+c9_sync_fleet_detects_drift() {
+  local DIR; DIR=$(with_scaffold)
+  # Append a line to break the stamp
+  echo "# intentional drift" >> "$DIR/scripts/verify-closeout.sh"
+  local OUT; OUT=$(cd "$DIR" && "$BIN" init --sync-fleet 2>&1 || true)
+  echo "$OUT"
+  rm -rf "$DIR"
+  # Must report 'drifted' for verify-closeout.sh
+  echo "$OUT" | grep -i "verify-closeout" | grep -qi "drifted"
+}
+run_check "C9-sync-fleet-detects-drifted-gate" c9_sync_fleet_detects_drift
 
 # C8: 470 tests pass
 c8_tests_pass() {
