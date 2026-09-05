@@ -74,6 +74,69 @@ S142 `MarkdownComment`/`ShellComment` `StampSyntax` already covers shell files �
 from ADR-0001/0002/0003 as appropriate (the `## Design` section is mandatory — contact the
 design-advisor role if uncertain).
 
+## Design
+
+design-significant: no
+
+`scripts/verify-closeout.sh` is a pure-render shell script with a shebang on line 1 and no
+fill placeholders — the same shape as every `.ai/hooks/*.sh` file that S142 added to the
+`--sync-fleet` upgrade loop. `StampSyntax::ShellComment` already handles this shape: a
+`# vajra-render-sha: <hex>` trailing line that bash treats as a comment and that never
+touches the shebang. The four-state machine (`classify_fleet_file`, `boundary: None`,
+whole-file comparison) runs unchanged.
+
+The extension is a single new entry in `SYNC_HOOKS` with `syntax = StampSyntax::ShellComment`,
+`executable = true`, `boundary = None`, and a `render_stamped_hook(TPL_VERIFY_CLOSEOUT_SCAFFOLD)`
+canonical. No new enum variant, function, or module is required.
+
+Governed by DECISION-007 (docs/decisions/DECISION-007-agent-fleet.md), S142 addendum, which
+explicitly extended the stamp mechanism from role definitions to shell hooks as the general
+pattern for pure-render scaffold files. `scripts/verify-closeout-scaffold.sh` is the scaffold
+template (PATH-first binary resolver); the vajra source gate is unchanged.
+
+Alternatives rejected: new `StampSyntax` variant (unnecessary — `ShellComment` was designed for
+shebang-first shell scripts); boundary target (inapplicable — no user-owned fill header); separate
+`--sync-verify` command (rejected by DECISION-007: "A flag on an existing command, never an 8th
+top-level command"); omit from sync-fleet (creates the exact drift the mechanism exists to close).
+
+## Plan
+
+covers: 1, 2, 3, 4, 5
+
+step 1 — create scripts/verify-closeout-scaffold.sh with PATH-first resolver
+  covers: 1 5
+  Copy verify-closeout.sh; replace the three `local BIN="target/release/vajra"` lines with
+  `command -v vajra 2>/dev/null || echo "target/release/vajra"` (PATH-first, labeled fallback).
+
+step 2 — extend SYNC_HOOKS + update files() in src/cli/init.rs; add TPL constant; update tests
+  covers: 1 2 3 4
+  Add `("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT_SCAFFOLD)` to SYNC_HOOKS. Change
+  files() from `fx` to `fxs` with scaffold template. Update scaffold_ships_verify_closeout test
+  to check stamp verifies + PATH-first present rather than byte-identity with source gate.
+  Update sync-scope test to permit scripts/.
+
+step 3 — un-exclude scripts/verify-closeout-scaffold.sh in Cargo.toml
+  covers: (packaging)
+  Add `"!scripts/verify-closeout-scaffold.sh"` to the per-file negation list so cargo install
+  ships the scaffold template.
+
+## Advice
+
+design-advisor (required, dispatched before implementation):
+  ShellComment fits — no new code path. cite DECISION-007 S142 addendum. design-significant: no.
+
+implementation-advisor (required, dispatched after design):
+  D1 rides the existing SYNC_HOOKS + render_stamped_hook path. D2 is a template-only change.
+  Key invariant: SYNC_HOOKS entry canonical = fxs() content = render_stamped_hook(template).
+  Test must verify stamp round-trip (render_stamp_verifies) not byte-identity with source gate.
+
+## Execution
+
+step 1 — done: 9f7b3b8 (scripts/verify-closeout-scaffold.sh, Cargo.toml, src/cli/init.rs)
+step 2 — done: 19e1341 (fill-transparency test, SYNC_HOOKS invariant doc)
+step 3 — done: 9f7b3b8 (Cargo.toml negation for scripts/verify-closeout-scaffold.sh)
+step 4 — done: 245818d (fixture_146 Rust test + C10 PATH-first live check + verify header fix)
+
 ## Guardrails
 
 - Max 7 top-level commands (currently at 7 — this session adds NO new commands; the fix rides

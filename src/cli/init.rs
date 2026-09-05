@@ -13,7 +13,9 @@ const CLAUDE_SETTINGS_PATH: &str = ".claude/settings.json";
 /// `hook_templates_carry_no_fill_placeholders`, which is what makes the stamped render byte-identical
 /// across every install, the same clean fit as a fleet role. ONE list: `files()` scaffolds these
 /// stamped and `sync_targets()` syncs the same set, so a fresh `init` immediately reports them
-/// `UpToDate`.
+/// `UpToDate`. INVARIANT: every template in this list MUST be fill-transparent (no `{{UPPER}}`
+/// placeholders) — `fxs` calls `fill()` before stamping while `sync_targets` uses the raw
+/// template; any placeholder breaks byte-identity and causes UpToDate-on-init to silently fail.
 const SYNC_HOOKS: &[(&str, &str)] = &[
     (".ai/hooks/hook-session-start.sh", TPL_HOOK_SESSION_START),
     (".ai/hooks/hook-copilot-loader.sh", TPL_HOOK_COPILOT_LOADER),
@@ -21,6 +23,12 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     (".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
     (".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
     (".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
+    // S146 (DECISION-007 S146 addendum): the close-gate is a ShellComment-stamped pure-render shell
+    // script — the same shape as the hooks above. Adding it to SYNC_HOOKS gives adopters the
+    // four-state upgrade path (Missing/UpToDate/StaleRender/Drifted) so `--sync-fleet` can push a
+    // corrected gate (e.g. with check_required_crew) without a manual patch (S144 finding 1).
+    // Uses the scaffold template (PATH-first resolver) not the vajra source file — see S144 finding 2.
+    ("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT_SCAFFOLD),
 ];
 
 /// The canonical STAMPED render of one hook — a shell-comment `vajra-render-sha:` trailing line over
@@ -1074,10 +1082,10 @@ fn files(
         fx(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
-        // The closeout gate with teeth (S57): byte-identical to the vajra repo's own
-        // scripts/verify-closeout.sh (include_str!, one source). Carries the fidelity gate, so a
-        // scaffolded project's closeout also structurally requires an independent ACCEPT review.
-        fx("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT),
+        // S146: the scaffolded close-gate uses the scaffold template (PATH-first binary resolver,
+        // S144 finding 2) and is stamped via `fxs` so a fresh `init` + immediate `--sync-fleet`
+        // reports it `UpToDate` — the ONE-list invariant of DECISION-007.
+        fxs("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT_SCAFFOLD),
         // S99: the kickoff carries the station markers, rendered from the one canonical
         // template — a fresh repo is measurable by `vajra next --stations` from session 01.
         f("prompts/01-task-kickoff.md", &kickoff_prompt(goal, slug)),
@@ -1529,15 +1537,16 @@ const TPL_DARSHAN: &str = include_str!("../../darshan/SKILL.md");
 // with `cargo install` (like `darshan/`). Boot-loaded like Darshan; nothing in the binary parses it.
 const TPL_REVIEWER: &str = include_str!("../../reviewer/SKILL.md");
 
-// Canonical closeout gate (S56 teeth → S57 propagation) — the SAME `scripts/verify-closeout.sh`
-// the vajra repo runs, embedded verbatim so the scaffolded copy can never drift (S22 one-source
-// pattern). It carries `check_fidelity_review` + `waiver_ok` + `--fidelity-only`, so a scaffolded
-// project's closeout also STRUCTURALLY requires an independent ACCEPT review (DECISION-002), not
-// just discipline. Fully portable — it reads only the `.ai/` + `sessions/` + `prompts/` spine every
-// scaffold has, nothing vajra-repo-specific. `scripts/*` is excluded in Cargo.toml, so this file is
-// un-excluded there (per-file negation) so it ships with `cargo install`. Closes the S36-class
-// "the constitution tells the agent to run verify-closeout.sh but the scaffold never shipped it" gap.
-const TPL_VERIFY_CLOSEOUT: &str = include_str!("../../scripts/verify-closeout.sh");
+// S146 (DECISION-007 S146 addendum): the scaffold template for the close-gate — identical to the
+// vajra source gate except the three `local BIN="target/release/vajra"` lines use a PATH-first
+// resolver (`command -v vajra`) so non-Rust adopters (TypeScript, Python, chitra) can run the
+// binary-backed checks (S144 finding 2). Carries `check_fidelity_review` + `waiver_ok` +
+// `--fidelity-only` + `check_required_crew` — a scaffolded project's closeout structurally
+// requires an independent ACCEPT review (DECISION-002). Vajra's own `scripts/verify-closeout.sh`
+// is NOT modified — it runs from source. `scripts/*` is excluded in Cargo.toml; this file is
+// un-excluded there (per-file negation) so it ships with `cargo install`.
+const TPL_VERIFY_CLOSEOUT_SCAFFOLD: &str =
+    include_str!("../../scripts/verify-closeout-scaffold.sh");
 
 const TPL_VERIFY_TEMPLATE: &str = r#"#!/usr/bin/env bash
 # Template — copy to scripts/verify-session-NN.sh and customize per session.
@@ -1917,21 +1926,59 @@ mod tests {
     }
 
     #[test]
-    fn scaffold_ships_verify_closeout_verbatim_and_executable() {
+    fn scaffold_ships_verify_closeout_stamped_and_executable() {
         let dir = scaffold_tmp();
         let gate = dir.path().join("scripts/verify-closeout.sh");
         assert!(gate.exists(), "verify-closeout.sh not scaffolded");
-        // Byte-identical to the vajra repo's own gate — one source of truth, no drift.
-        assert_eq!(
-            fs::read_to_string(&gate).unwrap(),
-            TPL_VERIFY_CLOSEOUT,
-            "scaffolded verify-closeout.sh drifted from canonical scripts/verify-closeout.sh"
+        let on_disk = fs::read_to_string(&gate).unwrap();
+        // S146: the scaffold now uses the PATH-first template (not the vajra source gate) and
+        // is stamped via ShellComment so a fresh init + --sync-fleet reports UpToDate.
+        // Verify the stamp round-trip (render → parse → verify) rather than byte-identity with
+        // the vajra source gate (TPL_VERIFY_CLOSEOUT_SCAFFOLD, not the unmodified vajra gate).
+        assert!(
+            crate::fleet::render_stamp_verifies(&on_disk, crate::fleet::StampSyntax::ShellComment),
+            "scaffolded verify-closeout.sh stamp does not verify — stamp mismatch or missing"
+        );
+        // PATH-first resolver must be present (S144 finding 2).
+        assert!(
+            on_disk.contains("command -v vajra"),
+            "scaffolded verify-closeout.sh missing PATH-first binary resolver"
+        );
+        // The vajra source gate's hardcoded path must NOT appear (it's the fallback in a comment).
+        assert!(
+            on_disk.contains("target/release/vajra"),
+            "scaffolded verify-closeout.sh missing fallback path"
         );
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
             let mode = fs::metadata(&gate).unwrap().permissions().mode();
             assert_eq!(mode & 0o111, 0o111, "verify-closeout.sh must be executable");
+        }
+    }
+
+    #[test]
+    fn verify_closeout_scaffold_template_has_no_fill_placeholders() {
+        // DECISION-007 byte-identity invariant: `fxs` runs fill() before stamp, while
+        // `sync_targets` uses the raw template. Both produce UpToDate only if fill is a no-op.
+        // fill() replaces {PROJECT_NAME}, {GOAL}, {SLUG}, {DATE}, {MATURITY}, {FIRST_*}.
+        // This test catches any future edit that adds such a placeholder to the scaffold template.
+        for placeholder in [
+            "{PROJECT_NAME}",
+            "{GOAL}",
+            "{SLUG}",
+            "{DATE}",
+            "{MATURITY}",
+            "{FIRST_NN}",
+            "{FIRST_PROMPT}",
+            "{FIRST_TITLE}",
+            "{FIRST_NOTE}",
+        ] {
+            assert!(
+                !TPL_VERIFY_CLOSEOUT_SCAFFOLD.contains(placeholder),
+                "verify-closeout-scaffold.sh contains fill placeholder {placeholder} — \
+                 files() and sync_targets() would produce different bytes, breaking DECISION-007"
+            );
         }
     }
 
@@ -3039,6 +3086,63 @@ mod tests {
         }
     }
 
+    /// S146 fixture: exercises all four reachable states of classify_fleet_file for
+    /// scripts/verify-closeout.sh specifically (AC8 requirement — the existing hook test
+    /// explicitly filters to .ai/hooks/ and skips the close-gate).
+    #[test]
+    fn fixture_146_close_gate_classify_all_states() {
+        let canonical = render_stamped_hook(TPL_VERIFY_CLOSEOUT_SCAFFOLD);
+
+        // Missing — not yet scaffolded
+        let state = classify_fleet_file(None, &canonical, crate::fleet::StampSyntax::ShellComment, None);
+        assert_eq!(state, FleetFileState::Missing, "absent file must be Missing");
+
+        // UpToDate — byte-identical to canonical
+        let state = classify_fleet_file(
+            Some(&canonical),
+            &canonical,
+            crate::fleet::StampSyntax::ShellComment,
+            None,
+        );
+        assert_eq!(state, FleetFileState::UpToDate, "canonical bytes must be UpToDate");
+
+        // StaleRender — a previous ShellComment-stamped version of the same body
+        // (old stamp present but body is a prior render — here we mutate the canonical body
+        // before re-stamping to simulate an older version being present on disk)
+        let old_body = format!("{}\n# (old version)\n", TPL_VERIFY_CLOSEOUT_SCAFFOLD);
+        let old_render = render_stamped_hook(&old_body);
+        let state = classify_fleet_file(
+            Some(&old_render),
+            &canonical,
+            crate::fleet::StampSyntax::ShellComment,
+            None,
+        );
+        assert_eq!(
+            state,
+            FleetFileState::StaleRender,
+            "a ShellComment-stamped old render must be StaleRender, not Drifted"
+        );
+
+        // Drifted — user-edited file with no stamp
+        let state = classify_fleet_file(
+            Some("#!/usr/bin/env bash\n# user edited this file\necho hello\n"),
+            &canonical,
+            crate::fleet::StampSyntax::ShellComment,
+            None,
+        );
+        assert_eq!(state, FleetFileState::Drifted, "unstamped user-edited file must be Drifted");
+
+        // UpToDate after scaffold — fresh init then plan_fleet_sync reports UpToDate
+        let dir = scaffold_tmp();
+        let plan = plan_fleet_sync(dir.path());
+        let close_gate = plan.iter().find(|i| i.rel == "scripts/verify-closeout.sh").unwrap();
+        assert_eq!(
+            close_gate.state,
+            FleetFileState::UpToDate,
+            "close-gate must be UpToDate immediately after scaffold (S146 DECISION-007 ONE-list invariant)"
+        );
+    }
+
     #[test]
     fn plan_fleet_sync_reports_every_registered_role_and_finds_an_empty_repo_all_missing() {
         let dir = tempfile::tempdir().unwrap();
@@ -3325,8 +3429,8 @@ mod tests {
         top.sort();
         assert_eq!(
             top,
-            vec![".ai".to_string(), ".claude".to_string()],
-            "sync-fleet wrote outside .claude/ + .ai/ — it must never run the full init scaffold"
+            vec![".ai".to_string(), ".claude".to_string(), "scripts".to_string()],
+            "sync-fleet wrote outside .claude/ + .ai/ + scripts/ — it must never run the full init scaffold"
         );
         // Under .ai/ ONLY the constitution + hooks/ — never CONSTRAINTS.yaml, SESSION, etc.
         let mut ai: Vec<String> = fs::read_dir(dir.path().join(".ai"))
@@ -3345,10 +3449,12 @@ mod tests {
             constitution_before,
             "an up-to-date constitution must never be rewritten (no-churn)"
         );
+        // S146: scripts/ now exists (verify-closeout.sh is a sync target). Only scripts/
+        // verify-closeout.sh should appear — not a full scaffold of prompts, sessions, etc.
+        assert!(dir.path().join("scripts/verify-closeout.sh").exists());
         for unwanted in [
             ".ai/CONSTRAINTS.yaml",
             ".ai/SESSION",
-            "scripts",
             "prompts",
             "sessions",
             ".githooks",

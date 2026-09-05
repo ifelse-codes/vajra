@@ -1,6 +1,8 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-04 · **Session 145 — mandatory NO-CODE Ground Truth (145 % 5 == 0) — 🟡 PARTIAL PASS.**
+**Updated:** 2026-09-05 · **Session 146 — CODE: propagate close-gate to adopters (D1: `--sync-fleet` propagates `verify-closeout.sh`; D2: PATH-first binary resolver in scaffold template). ACCEPT (fidelity-reviewer, 6 SHIPPED · 4 PARTIAL · 0 NOT-BUILT). Brownfield adopters no longer get a frozen close-gate. Next GT: S150.**
+
+**Prior — Updated:** 2026-09-04 · **Session 145 — mandatory NO-CODE Ground Truth (145 % 5 == 0) — 🟡 PARTIAL PASS.**
 All 12 required audits run live. Discipline 🟢 (stranger 21/21 · scaffold-drift 17/17 · fmt clean · 469 tests ·
 pipeline S141-S143 each 8/8). Direction 🟡 (vision coherent, 0 external adoption). Cost 🔴 ($11.74/session —
 prove phase done, cut phase mandatory next). Dogfood 🟢 (S144 real $11.74 end-to-end). Dogfood-age tool
