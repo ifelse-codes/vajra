@@ -1,7 +1,7 @@
 ---
 role: fidelity-reviewer
 session: 147
-agent: claude-code-agent (session-147)
+agent: claude-code-subagent (verified: toolu_018sWx4gHH8bEnM8rRhhKMWe)
 source-sha: 99229f853f43dbf2865fee3e63f45ce199ce0307ab22780fec4e93977601091e
 captured: 2026-09-06T16:30:00Z
 cost_usd: null

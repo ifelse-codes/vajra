@@ -1,7 +1,7 @@
 ---
 role: qa-specialist
 session: 147
-agent: claude-code-agent (session-147)
+agent: claude-code-subagent (verified: toolu_016JQUWLe4TGFWxUFaBmzkBB)
 source-sha: a0f37db96a45c2566b242cae5a6e82e64ebca4ba916dfcb57828847ed7c0a74b
 captured: 2026-09-06T16:30:00Z
 cost_usd: null
