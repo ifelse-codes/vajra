@@ -1,7 +1,7 @@
 ---
 role: design-advisor
 session: 147
-agent: claude-code-agent (session-147)
+agent: claude-code-subagent (verified: toolu_01E87DN3aHBFRVbL8xt2e7ok)
 source-sha: 8c69842ee15a6acbd22f7ceb713070fb2abff523788c0ad53058085a8f68966e
 captured: 2026-09-06T16:30:00Z
 cost_usd: null

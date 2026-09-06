@@ -1,7 +1,7 @@
 ---
 role: plan-advisor
 session: 147
-agent: claude-code-agent (session-147)
+agent: claude-code-subagent (verified: toolu_01Gx6vVnWjNKTAW437e1Q4JP)
 source-sha: f046bd43e7a25a856c94c7cd02a043fbaa7cddd1ed70fb389b950efca57d2f34
 captured: 2026-09-06T16:30:00Z
 cost_usd: null

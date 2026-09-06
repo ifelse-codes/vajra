@@ -1,7 +1,7 @@
 ---
 role: tech-lead
 session: 147
-agent: claude-code-agent (session-147)
+agent: claude-code-subagent (verified: toolu_01C4KtF5TY5V1Kkr7niVoSUd)
 source-sha: 4478140acddc08ab09986f2c990be974fa2b3b4d5b5e809af7f2c8146ce0d6e4
 captured: 2026-09-06T16:30:00Z
 cost_usd: null
