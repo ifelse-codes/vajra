@@ -4,7 +4,7 @@
 
 Method: Cold subagent dispatch, no builder summary consumed. Read session prompt, audit report, S148 prompt, verify script, demo script, and all governance handoffs directly. Demo-producer's key finding (existing heuristics in `src/engine/heuristic/cargo.rs`, `pytest.rs`, `npm.rs`) verified by direct source inspection. Adversarial frame applied throughout.
 
-**Review-Inputs-SHA:** 45584d828c6aa10f698fed49120d040b6e5f65c46b49d504d489693903d55a9b
+**Review-Inputs-SHA:** ca789ceb91bbaef0b2c6073a8e33704cc6cc6422dee41267a54432190a1cd83e
 
 ---
 
