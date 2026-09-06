@@ -1,3 +1,12 @@
+---
+role: plan-advisor
+session: 147
+agent: claude-code-agent (session-147)
+source-sha: f046bd43e7a25a856c94c7cd02a043fbaa7cddd1ed70fb389b950efca57d2f34
+captured: 2026-09-06T16:30:00Z
+cost_usd: null
+---
+
 # Session 147 — Plan-Advisor Handoff (dual-purpose)
 
 ## S147 Plan (recs 1–10)
@@ -33,3 +42,7 @@ rec 11 — ROOT CAUSE: the $11.74 is dominated by the 129-turn main headless ses
 rec 12 — HIGHEST-LEVERAGE DELIVERABLE: implement test-runner output truncation in the existing PostToolUse hook. Detect test-runner output (cargo test, pytest, jest — pattern-matched on output shape); truncate to: total-count line + FAIL/ERROR/PANIC lines only + "N lines truncated" notice. This is (a) provably correct — no failure info lost, (b) high-leverage — a 217-line test output collapses to 5-20 lines on a green run, (c) measurable against the S144 JSONL replay without a live run.
 
 rec 13 — CORRECTNESS GUARD: passthrough on non-matching output; never drop FAIL/ERROR/PANIC lines; always include total-count summary; measure token reduction on S144 replay before claiming savings.
+
+## Handoff Delta
+- `+` new: first plan-advisor handoff for session 147
+- prior stage: session prompt — no prior plan-advisor handoff to diff against
