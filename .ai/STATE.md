@@ -3,16 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S145 complete, S146 not yet started).**
-S145 was a mandatory NO-CODE GT. Closeout on `session-145-closeout`. **Next: S146.**
+**None — between sessions (S147 complete, S148 not yet started).**
+S147 was a document-only session (quiet roles audit). PR pending merge. **Next: S148.**
 
-## What shipped this session (S145 — mandatory NO-CODE Ground Truth)
+## What shipped this session (S147 — prove the 5 quiet fleet roles)
 
-- 12 audits run live: stranger 21/21 · scaffold-drift 17/17 · fmt clean · 469 tests.
-- Pipeline: S141–S143 each 8/8; S144 2/8 (expected — dogfood session, not CODE).
-- **🔴 Cost finding:** $11.74/session (S144 chitra dogfood). Prove phase done; cut phase is next.
-- **Dogfood-age tool blind spot** (known S140, LOW): tool reads S124; reality = S144 ($11.74, 1d ago).
-- **Lead-lens: 🟡 PARTIAL PASS.** Discipline 🟢 · Direction 🟡 · Cost 🔴 · Dogfood 🟢.
+- All 5 quiet roles dispatched on S148 brief: researcher, plan-advisor, requirements-analyst, demo-producer, release-coordinator.
+- All 5 returned **Changed** advice. Zero Hollow. Zero INCOMPLETE.
+- **Critical finding (demo-producer):** test-runner heuristics already exist in `src/engine/heuristic/cargo.rs`, `pytest.rs`, `npm.rs`; S148 scope corrected from "implement" to "close the gaps" (Gap A: bare `jest`; Gap B: fail-path 30–399 lines).
+- DECISION-007 phase 1b executed. Off switch deferred (n=1).
+- verify-closeout 15/15 GREEN. ACCEPT attested `ba334227…`.
+- Reports: `sessions/session-147-quiet-roles-audit.md` + `sessions/session-147-review.md`. **Next: S148.**
 - Report: `sessions/session-145-ground-truth.md`. **Founder pick: A (S144 follow-up).**
 - **Next: S146** — propagate `verify-closeout.sh` to adopters + PATH-first binary resolver.
   Prompt: `prompts/146-task-closeout-propagation.md`.
