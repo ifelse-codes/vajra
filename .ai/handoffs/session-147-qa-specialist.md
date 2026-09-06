@@ -1,3 +1,12 @@
+---
+role: qa-specialist
+session: 147
+agent: claude-code-agent (session-147)
+source-sha: a0f37db96a45c2566b242cae5a6e82e64ebca4ba916dfcb57828847ed7c0a74b
+captured: 2026-09-06T16:30:00Z
+cost_usd: null
+---
+
 # Session 147 — QA-Specialist Handoff
 
 **Suite declaration:** All 11 checks are STRUCTURAL. No execute-based checks — no executable product exists. This is correct for a document-only session.
@@ -37,3 +46,7 @@ rec 4 — Script header must name all 4 fidelity gaps and declare suite is struc
 rec 5 — Run script against a deliberately broken audit to confirm each check goes RED for the right reason
 rec 6 — Do not add execute-based checks by running the Vajra binary — structural is correct
 rec 7 — C10 must include qa-specialist itself (this dispatch)
+
+## Handoff Delta
+- `+` new: first qa-specialist handoff for session 147
+- prior stage: session prompt — no prior qa-specialist handoff to diff against

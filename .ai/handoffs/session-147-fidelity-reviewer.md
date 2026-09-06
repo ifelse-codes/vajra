@@ -1,3 +1,12 @@
+---
+role: fidelity-reviewer
+session: 147
+agent: claude-code-agent (session-147)
+source-sha: 99229f853f43dbf2865fee3e63f45ce199ce0307ab22780fec4e93977601091e
+captured: 2026-09-06T16:30:00Z
+cost_usd: null
+---
+
 # Session 147 — Fidelity Reviewer Handoff
 
 **Role:** fidelity-reviewer
@@ -49,3 +58,7 @@ rec 1 — Demo script case signals should perform actual assertions against the 
 rec 2 — The narrow-brief constraint (AC1: named files only) has no structural verification in `verify-session-147.sh`; future sessions could add a check that each role section contains a "Brief:" statement.
 
 rec 3 — The plan-advisor "verbatim" audit quote contains sentences absent from the plan-advisor handoff; if handoffs are condensed summaries, state this explicitly in the session design so future reviewers do not mistake the gap as non-verbatim recording.
+
+## Handoff Delta
+- `+` new: first fidelity-reviewer handoff for session 147
+- prior stage: session prompt — no prior fidelity-reviewer handoff to diff against

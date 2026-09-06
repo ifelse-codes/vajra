@@ -1,3 +1,12 @@
+---
+role: implementation-advisor
+session: 147
+agent: claude-code-agent (session-147)
+source-sha: 4c559ebb26cffd7a94eb33c4e7639258a301da2b2cd9e8f396729e1867a53690
+captured: 2026-09-06T16:30:00Z
+cost_usd: null
+---
+
 # Session 147 — Implementation-Advisor Handoff
 
 ## Key recs for verify-session-147.sh
@@ -17,3 +26,7 @@ rec 5 — Use `git diff --exit-code main -- src/` to assert no src/ changes (git
 rec 6 — Derive role-section presence from the awk extraction (not a separate grep for role names); implement as a loop over the 5 role names, fail on first empty section with the role name in the error message.
 
 rec 7 — Label every check exec/struct in run_check call. Disclose judgment-label grep (rec 2) as fakest-green in script header.
+
+## Handoff Delta
+- `+` new: first implementation-advisor handoff for session 147
+- prior stage: session prompt — no prior implementation-advisor handoff to diff against
