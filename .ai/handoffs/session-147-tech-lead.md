@@ -26,6 +26,18 @@ cost_usd: null
 | fidelity-reviewer | required | 120K tokens | AC8 mandates it; cold review of audit + S148 prompt + verify script |
 | release-coordinator | deferred-budget | 60K tokens | Document-only session; payload dispatch for S148 audit |
 
+## Crew records
+
+crew researcher — deferred-budget — budget: 80000 tokens — payload dispatch for S148 audit; governance role not needed this session
+crew requirements-analyst — deferred-budget — budget: 60000 tokens — payload dispatch for S148 audit; requirements already specified in prompt
+crew design-advisor — required — budget: 50000 tokens — AC8 mandates it; confirm design-significant: no for this document-only session
+crew plan-advisor — required — budget: 80000 tokens — dual-purpose: S147 plan sequencing + S148 cost-cutting direction; prompt defers plan to after advice
+crew implementation-advisor — required — budget: 70000 tokens — AC8 mandates it; advise on verify-session-147.sh before qa-specialist specs it
+crew qa-specialist — required — budget: 70000 tokens — AC6 requires verify exit 0; qa-specialist specs the structural checks
+crew demo-producer — deferred-budget — budget: 60000 tokens — no demo AC in prompt; payload dispatch for S148 audit scope check
+crew fidelity-reviewer — required — budget: 120000 tokens — AC8 mandates it; cold review of audit + S148 prompt + verify script
+crew release-coordinator — deferred-budget — budget: 60000 tokens — document-only session; payload dispatch for S148 audit close-path check
+
 ## Dispatch order
 
 1. design-advisor
