@@ -1,6 +1,8 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-05 · **Session 146 — CODE: propagate close-gate to adopters (D1: `--sync-fleet` propagates `verify-closeout.sh`; D2: PATH-first binary resolver in scaffold template). ACCEPT (fidelity-reviewer, 6 SHIPPED · 4 PARTIAL · 0 NOT-BUILT). Brownfield adopters no longer get a frozen close-gate. Next GT: S150.**
+**Updated:** 2026-09-06 · **Session 147 — DOCUMENT: prove the 5 quiet fleet roles. All 5 (researcher, plan-advisor, requirements-analyst, demo-producer, release-coordinator) dispatched on the S148 cost-cutting brief. All 5 returned Changed advice. Key finding: demo-producer confirmed test-runner heuristics already exist in `src/engine/heuristic/`; S148 scope corrected from "implement" to "close the gaps." DECISION-007 phase 1b executed. ACCEPT (fidelity-reviewer, 6 SHIPPED · 2 PARTIAL · 0 NOT-BUILT). Next GT: S150.**
+
+**Prior — Updated:** 2026-09-05 · **Session 146 — CODE: propagate close-gate to adopters (D1: `--sync-fleet` propagates `verify-closeout.sh`; D2: PATH-first binary resolver in scaffold template). ACCEPT (fidelity-reviewer, 6 SHIPPED · 4 PARTIAL · 0 NOT-BUILT). Brownfield adopters no longer get a frozen close-gate. Next GT: S150.**
 
 **Prior — Updated:** 2026-09-04 · **Session 145 — mandatory NO-CODE Ground Truth (145 % 5 == 0) — 🟡 PARTIAL PASS.**
 All 12 required audits run live. Discipline 🟢 (stranger 21/21 · scaffold-drift 17/17 · fmt clean · 469 tests ·
