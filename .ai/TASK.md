@@ -2,7 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 147 — awaiting founder pick — NOT STARTED
+## Session 148 — close test-runner compression gaps — NOT STARTED
+
+- Brief: `prompts/148-task-compress-testrunner-gaps.md`. Gap A: bare `jest` not in dispatch table. Gap B: fail-path 30–399 lines not compressed. Measure first on S144 JSONL.
+
+## Session 147 — prove the 5 quiet fleet roles — COMPLETE
+
+- Brief: `prompts/147-task-quiet-roles-audit.md`. ACCEPT (fidelity-reviewer, 6 SHIPPED · 2 PARTIAL), attested `ba334227…`.
+- All 5 quiet roles dispatched; all 5 Changed. Key: heuristics exist, scope corrected for S148.
+- verify-closeout 15/15 GREEN. Reports: `sessions/session-147-quiet-roles-audit.md` + `sessions/session-147-review.md`.
 
 ## Session 146 — close S144 findings: propagate verify-closeout.sh + PATH-first resolver — COMPLETE
 

@@ -1,9 +1,18 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 147 — NOT STARTED. Awaiting founder pick.
+- **Number:** 148 — NOT STARTED. Awaiting founder pick.
 
 ## Prior Session
+- **Number:** 147 — COMPLETE (DOCUMENT: prove the 5 quiet fleet roles). **Verdict: ACCEPT** (fidelity-reviewer,
+  6 SHIPPED · 2 PARTIAL · 0 NOT-BUILT), attested `ba334227…`. PR pending merge.
+  All 5 quiet roles (researcher, plan-advisor, requirements-analyst, demo-producer, release-coordinator)
+  dispatched on the S148 cost-cutting brief; all 5 returned Changed advice. Key finding: test-runner
+  heuristics already exist in `src/engine/heuristic/`; S148 scope corrected from "implement" to "close
+  the gaps." DECISION-007 phase 1b executed. verify-closeout 15/15 GREEN.
+  Reports: `sessions/session-147-quiet-roles-audit.md` + `sessions/session-147-review.md`. **Next: S148.**
+
+## Session Before Prior
 - **Number:** 146 — COMPLETE (CODE: propagate close-gate to adopters). **Verdict: ACCEPT** (fidelity-reviewer,
   6 SHIPPED · 4 PARTIAL · 0 NOT-BUILT), attested `fb4ee708…`. PR [#175](https://github.com/ifelse-codes/vajra/pull/175)
   merged. D1: `vajra init --sync-fleet` now propagates `scripts/verify-closeout.sh` via `SYNC_HOOKS` (S142
