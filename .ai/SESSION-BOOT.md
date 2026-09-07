@@ -1,15 +1,23 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 149 — PENDING.
+- **Number:** 150 — PENDING (mandatory NO-CODE GT, 150 % 5 == 0).
 
 ## Prior Session
+- **Number:** 149 — COMPLETE (DOCUMENT: advice-influence audit). **Verdict: ACCEPT** (fidelity-reviewer,
+  pass 2, 4 SHIPPED · 1 PARTIAL · 0 NOT-BUILT). 22 advice items graded across S146/S147/S148:
+  13 Changed · 1 Noted · 8 Hollow (59% Changed; impl-advisor 85%; fidelity-reviewer 22%).
+  Fakest green: S147 fidelity-reviewer rec 1 cites handoff's own "Applied fix" claim.
+  Recommendation: ban "carry-forward" without named target session (zero new code).
+  verify-closeout 15/15 GREEN (VAJRA_CLOSEOUT_WAIVER: tool-call IDs not in frontmatter).
+  PR #179. **Next: S150 (mandatory GT).**
+
+## Session Before Prior
 - **Number:** 148 — COMPLETE (CODE: close test-runner compression gaps). **Verdict: ACCEPT** (fidelity-reviewer,
   7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT), attested `ec80bce1…`. Gap A: `JestHeuristic` added; bare `jest`
   now dispatched. Gap B: all three test heuristics override `preserves_failure_signal() → true`;
-  `FAIL_COMPRESS_FLOOR = 20`; shared `fold_notice()` + `is_failure_line()`. AC6 CANNOT-EVALUATE (S144
-  JSONL not available locally). 485 lib tests. verify 7 PASS / 1 SKIP. verify-closeout 15/15 GREEN. PR pending.
-  Reports: `sessions/session-148-summary.md` + `sessions/session-148-review.md`. **Next: S149.**
+  `FAIL_COMPRESS_FLOOR = 20`; shared `fold_notice()` + `is_failure_line()`. 485 lib tests. verify 7 PASS / 1 SKIP.
+  verify-closeout 15/15 GREEN. PR #178 MERGED. Reports: `sessions/session-148-summary.md` + `session-148-review.md`.
 
 ## Session Before Prior
 - **Number:** 147 — COMPLETE (DOCUMENT: prove the 5 quiet fleet roles). **Verdict: ACCEPT** (fidelity-reviewer,
