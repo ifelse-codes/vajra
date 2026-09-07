@@ -1,6 +1,8 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-07 · **Session 150 — mandatory NO-CODE Ground Truth (150 % 5 == 0) — 🟡 PARTIAL PASS.**
+**Updated:** 2026-09-07 · **Session 151 — CODE: fix cargo fmt + guard against recurrence. `cargo fmt` run on 4 S148 files; `check_cargo_fmt` added to verify-closeout.sh. 485 lib tests. 🟢 cargo-fmt-clean. Next GT: S155.**
+
+**Prior — Updated:** 2026-09-07 · **Session 150 — mandatory NO-CODE Ground Truth (150 % 5 == 0) — 🟡 PARTIAL PASS.**
 12 required audits + F2f lens run live. **One 🔴:** `cargo fmt --check` fails on main (4 files from S148;
 not caught by verify-session-148.sh or verify-closeout.sh). stranger 21/21 · scaffold-drift 17/17 · 485 lib
 tests · pipeline 3-5/8 (CODER never passes). Dogfood: S144 ($11.74); prove-then-cut-cost arc deferred.
