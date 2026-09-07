@@ -95,6 +95,8 @@ If found: count per-turn token usage (`usage.input_tokens` + `usage.output_token
 
 ---
 
+design-advisor: skipped — design-significant: yes already in prompt, covering record ADR-0003 specified explicitly, no open design question; tech-lead marked deferred-budget with arithmetic at session start.
+
 ## Plan
 
 *(To be written after tech-lead dispatch — following S147 plan-advisor template)*
