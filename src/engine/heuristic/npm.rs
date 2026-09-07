@@ -101,11 +101,7 @@ fn compress_jest_family_fail(stdout: &str) -> String {
         return stdout.to_string();
     }
     // AC5: no "Tests:" summary → not test-runner output → passthrough unchanged.
-    let summary = lines
-        .iter()
-        .rev()
-        .find(|l| l.contains("Tests:"))
-        .copied();
+    let summary = lines.iter().rev().find(|l| l.contains("Tests:")).copied();
     let Some(summary_line) = summary else {
         return stdout.to_string();
     };
@@ -227,8 +223,16 @@ mod tests {
         lines.push("Tests: 1 failed, 23 passed, 24 total".to_string());
         let stdout = lines.join("\n");
         let out = compress_jest_family_fail(&stdout);
-        assert!(out.contains("FAILED"), "FAILED line must be preserved: {}", out);
-        assert!(out.contains("Tests:"), "summary line must be preserved: {}", out);
+        assert!(
+            out.contains("FAILED"),
+            "FAILED line must be preserved: {}",
+            out
+        );
+        assert!(
+            out.contains("Tests:"),
+            "summary line must be preserved: {}",
+            out
+        );
         assert!(
             out.contains("lines folded"),
             "fold notice must be present: {}",
@@ -243,9 +247,7 @@ mod tests {
     #[test]
     fn npm_fail_gap_b_notice_format() {
         // Verify exact notice format from AC4
-        let mut lines: Vec<String> = (0..23)
-            .map(|i| format!("  ✓ passing_{}", i))
-            .collect();
+        let mut lines: Vec<String> = (0..23).map(|i| format!("  ✓ passing_{}", i)).collect();
         lines.push("  something FAILED here".to_string());
         lines.push("Tests: 1 failed, 23 passed, 24 total".to_string());
         let stdout = lines.join("\n");
@@ -281,9 +283,7 @@ mod tests {
     #[test]
     fn jest_pass_summary_preserved() {
         // 25-line passing jest output — summary line must survive
-        let mut lines: Vec<String> = (0..23)
-            .map(|i| format!("  ✓ test_{} (1 ms)", i))
-            .collect();
+        let mut lines: Vec<String> = (0..23).map(|i| format!("  ✓ test_{} (1 ms)", i)).collect();
         lines.push("Tests: 23 passed, 23 total".to_string());
         lines.push("".to_string());
         let stdout = lines.join("\n");
@@ -325,7 +325,10 @@ mod tests {
 
     #[test]
     fn non_test_output_passthrough() {
-        let stdout = (0..50).map(|i| format!("file_{}.txt", i)).collect::<Vec<_>>().join("\n");
+        let stdout = (0..50)
+            .map(|i| format!("file_{}.txt", i))
+            .collect::<Vec<_>>()
+            .join("\n");
         let out = compress_jest_family_fail(&stdout);
         assert_eq!(out, stdout, "non-test output must passthrough unchanged");
     }

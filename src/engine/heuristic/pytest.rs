@@ -184,7 +184,11 @@ mod tests {
         lines.push("====== 1 failed, 23 passed in 0.12s ======".into());
         let stdout = lines.join("\n");
         let out = compress_pytest_fail(&stdout);
-        assert!(out.contains("FAILED"), "FAILED line must be preserved: {}", out);
+        assert!(
+            out.contains("FAILED"),
+            "FAILED line must be preserved: {}",
+            out
+        );
         assert!(out.contains("passed"), "summary must be preserved: {}", out);
         assert!(
             out.contains("[vajra]") && out.contains("VAJRA_RAW=1"),

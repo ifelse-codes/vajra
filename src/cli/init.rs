@@ -3094,8 +3094,17 @@ mod tests {
         let canonical = render_stamped_hook(TPL_VERIFY_CLOSEOUT_SCAFFOLD);
 
         // Missing — not yet scaffolded
-        let state = classify_fleet_file(None, &canonical, crate::fleet::StampSyntax::ShellComment, None);
-        assert_eq!(state, FleetFileState::Missing, "absent file must be Missing");
+        let state = classify_fleet_file(
+            None,
+            &canonical,
+            crate::fleet::StampSyntax::ShellComment,
+            None,
+        );
+        assert_eq!(
+            state,
+            FleetFileState::Missing,
+            "absent file must be Missing"
+        );
 
         // UpToDate — byte-identical to canonical
         let state = classify_fleet_file(
@@ -3104,7 +3113,11 @@ mod tests {
             crate::fleet::StampSyntax::ShellComment,
             None,
         );
-        assert_eq!(state, FleetFileState::UpToDate, "canonical bytes must be UpToDate");
+        assert_eq!(
+            state,
+            FleetFileState::UpToDate,
+            "canonical bytes must be UpToDate"
+        );
 
         // StaleRender — a previous ShellComment-stamped version of the same body
         // (old stamp present but body is a prior render — here we mutate the canonical body
@@ -3130,12 +3143,19 @@ mod tests {
             crate::fleet::StampSyntax::ShellComment,
             None,
         );
-        assert_eq!(state, FleetFileState::Drifted, "unstamped user-edited file must be Drifted");
+        assert_eq!(
+            state,
+            FleetFileState::Drifted,
+            "unstamped user-edited file must be Drifted"
+        );
 
         // UpToDate after scaffold — fresh init then plan_fleet_sync reports UpToDate
         let dir = scaffold_tmp();
         let plan = plan_fleet_sync(dir.path());
-        let close_gate = plan.iter().find(|i| i.rel == "scripts/verify-closeout.sh").unwrap();
+        let close_gate = plan
+            .iter()
+            .find(|i| i.rel == "scripts/verify-closeout.sh")
+            .unwrap();
         assert_eq!(
             close_gate.state,
             FleetFileState::UpToDate,

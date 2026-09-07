@@ -269,7 +269,11 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
         lines.push("test tests::broken ... FAILED".into());
         let stdout = lines.join("\n");
         let out = compress_cargo_test_fail(&stdout);
-        assert!(out.contains("FAILED"), "FAILED line must be preserved: {}", out);
+        assert!(
+            out.contains("FAILED"),
+            "FAILED line must be preserved: {}",
+            out
+        );
         assert!(
             out.lines().count() < stdout.lines().count(),
             "compressed output must be shorter than input"
