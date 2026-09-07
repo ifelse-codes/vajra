@@ -28,6 +28,9 @@ pub struct JestHeuristic;
 
 impl Heuristic for JestHeuristic {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
+        // Matches `jest` and `jest <flags>` (bare command). `npx jest` is
+        // intentionally excluded — it starts with "npx", not "jest", and
+        // would require a separate dispatch arm in mod.rs (S148 scope: bare only).
         request.command.starts_with("jest")
     }
 

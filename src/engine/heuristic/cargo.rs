@@ -58,7 +58,7 @@ fn compress_cargo_build_success(stdout: &str) -> String {
 
 fn compress_cargo_build_fail(stdout: &str) -> String {
     let lines: Vec<&str> = stdout.lines().collect();
-    if lines.len() < 400 {
+    if lines.len() < crate::engine::FAIL_PASSTHROUGH_CAP {
         return stdout.to_string();
     }
     let errors: Vec<&str> = stdout
@@ -104,7 +104,7 @@ fn compress_cargo_test_fail(stdout: &str) -> String {
     let mut in_failure = false;
     for line in stdout.lines() {
         let trimmed = line.trim();
-        if super::is_failure_line(line) || (trimmed.starts_with("test ") && trimmed.ends_with("FAILED")) {
+        if super::is_failure_line(line) {
             in_failure = true;
             failures.push(line);
         } else if in_failure {
