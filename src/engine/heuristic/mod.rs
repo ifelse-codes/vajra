@@ -3,6 +3,27 @@
 //! Each heuristic detects its tool from the command and applies
 //! lossy-but-safe folding rules. Unknown tools fall back to `GenericHeuristic`.
 
+/// Passthrough floor for fail-path compression (AC7, S148).
+/// Outputs shorter than this are never truncated, even when a pattern matches.
+pub const FAIL_COMPRESS_FLOOR: usize = 20;
+
+/// Standard truncation notice injected whenever lines are dropped (AC4, S148).
+pub fn fold_notice(dropped: usize) -> String {
+    format!(
+        "[vajra] {} lines folded — set VAJRA_RAW=1 to see full output",
+        dropped
+    )
+}
+
+/// Returns true if `line` contains any failure-signal token (AC3, S148).
+/// Case-sensitive substring match: FAILED, PANIC, panicked at, ✕ (U+2715).
+pub fn is_failure_line(line: &str) -> bool {
+    line.contains("FAILED")
+        || line.contains("PANIC")
+        || line.contains("panicked at")
+        || line.contains('\u{2715}')
+}
+
 pub trait Heuristic: Send + Sync {
     fn detect(&self, request: &crate::engine::CompressionRequest) -> bool;
     fn compress(&self, request: &crate::engine::CompressionRequest) -> String;
@@ -33,6 +54,8 @@ pub fn select_heuristic(request: &crate::engine::CompressionRequest) -> Box<dyn 
         Box::new(git::GitStatusHeuristic)
     } else if cmd.starts_with("git diff --stat") {
         Box::new(git::GitDiffStatHeuristic)
+    } else if cmd.starts_with("jest") {
+        Box::new(npm::JestHeuristic)
     } else if cmd.starts_with("npm test") || cmd.starts_with("npm run test") {
         Box::new(npm::NpmTestHeuristic)
     } else if cmd.starts_with("pytest") {

@@ -1,4 +1,4 @@
-//! npm test output heuristics.
+//! npm test and jest output heuristics.
 
 use super::Heuristic;
 
@@ -14,8 +14,33 @@ impl Heuristic for NpmTestHeuristic {
         if request.tool_output.exit_code == Some(0) {
             compress_npm_test_pass(&request.tool_output.stdout)
         } else {
-            compress_npm_test_fail(&request.tool_output.stdout)
+            compress_jest_family_fail(&request.tool_output.stdout)
         }
+    }
+
+    fn preserves_failure_signal(&self) -> bool {
+        true
+    }
+}
+
+/// Gap A (S148): detect bare `jest` command.
+pub struct JestHeuristic;
+
+impl Heuristic for JestHeuristic {
+    fn detect(&self, request: &crate::engine::CompressionRequest) -> bool {
+        request.command.starts_with("jest")
+    }
+
+    fn compress(&self, request: &crate::engine::CompressionRequest) -> String {
+        if request.tool_output.exit_code == Some(0) {
+            compress_jest_pass(&request.tool_output.stdout)
+        } else {
+            compress_jest_family_fail(&request.tool_output.stdout)
+        }
+    }
+
+    fn preserves_failure_signal(&self) -> bool {
+        true
     }
 }
 
@@ -63,29 +88,60 @@ fn compress_npm_test_pass(stdout: &str) -> String {
     }
 }
 
-fn compress_npm_test_fail(stdout: &str) -> String {
+/// Shared fail-path compressor for npm test and jest (Gap B, S148).
+/// Preserves failure-signal lines (AC3) + summary line (AC2) + fold notice (AC4).
+/// Passthrough below FAIL_COMPRESS_FLOOR lines (AC7) or when no "Tests:" summary
+/// is found (AC5 — non-matching output returned byte-identical).
+fn compress_jest_family_fail(stdout: &str) -> String {
     let lines: Vec<&str> = stdout.lines().collect();
-    if lines.len() < 300 {
+    if lines.len() < super::FAIL_COMPRESS_FLOOR {
         return stdout.to_string();
     }
-    let failures: Vec<&str> = stdout
-        .lines()
-        .filter(|l| {
-            let t = l.trim();
-            t.starts_with("FAIL")
-                || t.starts_with("●")
-                || t.contains("FAIL")
-                || t.starts_with("  ✗")
-                || t.contains("Error:")
-                || t.contains("expected")
-                || t.contains("received")
-        })
+    // AC5: no "Tests:" summary → not test-runner output → passthrough unchanged.
+    let summary = lines
+        .iter()
+        .rev()
+        .find(|l| l.contains("Tests:"))
+        .copied();
+    let Some(summary_line) = summary else {
+        return stdout.to_string();
+    };
+    let kept: Vec<&str> = lines
+        .iter()
+        .filter(|l| super::is_failure_line(l))
+        .copied()
         .collect();
+    let kept_count = kept.len() + 1; // +1 for summary_line
+    let dropped = lines.len().saturating_sub(kept_count);
+    let mut out = kept.join("\n");
+    if !out.is_empty() {
+        out.push('\n');
+    }
+    out.push_str(summary_line);
+    if dropped > 0 {
+        out.push('\n');
+        out.push_str(&super::fold_notice(dropped));
+    }
+    out
+}
 
-    if failures.is_empty() {
-        stdout.to_string()
-    } else {
-        failures.join("\n")
+/// Pass-path compressor for bare jest (Gap A, S148).
+fn compress_jest_pass(stdout: &str) -> String {
+    let lines: Vec<&str> = stdout.lines().collect();
+    if lines.len() <= super::FAIL_COMPRESS_FLOOR {
+        return stdout.to_string();
+    }
+    let summary = lines
+        .iter()
+        .rev()
+        .find(|l| l.contains("Tests:") && (l.contains("passed") || l.contains("total")))
+        .copied();
+    match summary {
+        Some(s) => {
+            let dropped = lines.len() - 1;
+            format!("{}\n{}", s, super::fold_notice(dropped))
+        }
+        None => stdout.to_string(),
     }
 }
 
@@ -106,28 +162,31 @@ mod tests {
         }
     }
 
-    fn h() -> NpmTestHeuristic {
+    fn npm() -> NpmTestHeuristic {
         NpmTestHeuristic
     }
 
+    fn jest() -> JestHeuristic {
+        JestHeuristic
+    }
+
+    // ── existing npm tests ────────────────────────────────────────────────────
+
     #[test]
     fn npm_test_detects_npm_test() {
-        let request = make_request("", "npm test", 0);
-        assert!(h().detect(&request));
+        assert!(npm().detect(&make_request("", "npm test", 0)));
     }
 
     #[test]
     fn npm_run_test_detects_npm_run_test() {
-        let request = make_request("", "npm run test", 0);
-        assert!(h().detect(&request));
+        assert!(npm().detect(&make_request("", "npm run test", 0)));
     }
 
     #[test]
     fn npm_test_passthrough_small() {
         let stdout =
             "PASS test/foo.test.js\n\n  Console\n    2 tests passed\n\nTests: 2 passed, 2 total";
-        let request = make_request(stdout, "npm test", 0);
-        let out = h().compress(&request);
+        let out = npm().compress(&make_request(stdout, "npm test", 0));
         assert_eq!(out, stdout);
     }
 
@@ -146,21 +205,121 @@ mod tests {
     }
 
     #[test]
-    fn npm_test_fail_keeps_failures() {
+    fn npm_test_fail_short_passthrough() {
+        // 9 lines — below FAIL_COMPRESS_FLOOR(20) — must be byte-identical
         let stdout = "FAIL test/bar.test.js\n  ● test_baz (5 ms)\n\n    expect(received).toBe(expected)\n\n    12 |   expect(a).toBe(b);\n    13 | });\n\nTests: 1 failed, 5 passed, 6 total";
-        let request = make_request(stdout, "npm test", 1);
-        let out = h().compress(&request);
+        let out = npm().compress(&make_request(stdout, "npm test", 1));
+        assert_eq!(out, stdout, "short fail must passthrough unchanged");
+    }
+
+    // ── Gap B: npm test fail-path for 20–399 lines ────────────────────────────
+
+    #[test]
+    fn npm_fail_gap_b_preserves_failed_line() {
+        // 25 lines with one FAILED line — must appear in output
+        let mut lines: Vec<String> = (0..23)
+            .map(|i| format!("  ✓ test_passing_{} (1 ms)", i))
+            .collect();
+        lines.push("  ✕ test_broken FAILED".to_string());
+        lines.push("Tests: 1 failed, 23 passed, 24 total".to_string());
+        let stdout = lines.join("\n");
+        let out = compress_jest_family_fail(&stdout);
+        assert!(out.contains("FAILED"), "FAILED line must be preserved: {}", out);
+        assert!(out.contains("Tests:"), "summary line must be preserved: {}", out);
         assert!(
-            out.contains("FAIL") || out.contains("test_baz") || out.contains("expected"),
-            "output: {}",
+            out.contains("lines folded"),
+            "fold notice must be present: {}",
             out
         );
     }
 
     #[test]
-    fn npm_test_fail_small_passthrough() {
-        let stdout = "FAIL test/foo.test.js\n  ● test_one\n\n    Error: unexpected";
-        let out = compress_npm_test_fail(stdout);
+    fn npm_fail_gap_b_notice_format() {
+        // Verify exact notice format from AC4
+        let mut lines: Vec<String> = (0..23)
+            .map(|i| format!("  ✓ passing_{}", i))
+            .collect();
+        lines.push("  something FAILED here".to_string());
+        lines.push("Tests: 1 failed, 23 passed, 24 total".to_string());
+        let stdout = lines.join("\n");
+        let out = compress_jest_family_fail(&stdout);
+        assert!(
+            out.contains("[vajra]") && out.contains("lines folded") && out.contains("VAJRA_RAW=1"),
+            "notice must match AC4 format: {}",
+            out
+        );
+    }
+
+    #[test]
+    fn npm_fail_floor_passthrough() {
+        // Exactly 19 lines — below floor — byte-identical passthrough
+        let lines: Vec<String> = (0..19).map(|i| format!("line {}", i)).collect();
+        let stdout = lines.join("\n");
+        assert_eq!(compress_jest_family_fail(&stdout), stdout);
+    }
+
+    // ── Gap A: JestHeuristic detection and compression ────────────────────────
+
+    #[test]
+    fn jest_detects_bare_jest() {
+        assert!(jest().detect(&make_request("", "jest", 0)));
+        assert!(jest().detect(&make_request("", "jest --watchAll=false", 0)));
+    }
+
+    #[test]
+    fn jest_does_not_detect_npm() {
+        assert!(!jest().detect(&make_request("", "npm test", 0)));
+    }
+
+    #[test]
+    fn jest_pass_summary_preserved() {
+        // 25-line passing jest output — summary line must survive
+        let mut lines: Vec<String> = (0..23)
+            .map(|i| format!("  ✓ test_{} (1 ms)", i))
+            .collect();
+        lines.push("Tests: 23 passed, 23 total".to_string());
+        lines.push("".to_string());
+        let stdout = lines.join("\n");
+        let out = jest().compress(&make_request(&stdout, "jest", 0));
+        assert!(
+            out.contains("Tests: 23 passed"),
+            "summary must be preserved: {}",
+            out
+        );
+    }
+
+    #[test]
+    fn jest_pass_small_passthrough() {
+        let stdout = "PASS src/foo.test.js\nTests: 3 passed, 3 total";
+        let out = jest().compress(&make_request(stdout, "jest", 0));
         assert_eq!(out, stdout);
+    }
+
+    #[test]
+    fn jest_fail_preserves_failed_line() {
+        // 25 lines with a ✕ failure marker
+        let mut lines: Vec<String> = (0..22)
+            .map(|i| format!("  ✓ passing_{} (1 ms)", i))
+            .collect();
+        lines.push("  \u{2715} broken_test (5 ms)".to_string()); // ✕
+        lines.push("Tests: 1 failed, 22 passed, 23 total".to_string());
+        lines.push("".to_string());
+        let stdout = lines.join("\n");
+        let out = jest().compress(&make_request(&stdout, "jest", 1));
+        assert!(
+            out.contains('\u{2715}'),
+            "✕ failure line must be preserved: {}",
+            out
+        );
+        assert!(out.contains("Tests:"), "summary must be preserved: {}", out);
+    }
+
+    // ── AC5: passthrough on non-matching output ───────────────────────────────
+
+    #[test]
+    fn non_test_output_passthrough() {
+        let stdout = (0..50).map(|i| format!("file_{}.txt", i)).collect::<Vec<_>>().join("\n");
+        let out = compress_jest_family_fail(&stdout);
+        assert_eq!(out, stdout, "non-test output must passthrough unchanged");
     }
 }
