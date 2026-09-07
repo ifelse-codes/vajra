@@ -1,6 +1,14 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-07 · **Session 149 — DOCUMENT: advice-influence audit (F2f gap, S133 open finding). 22 advice items graded across S146/S147/S148 (impl-advisor + fidelity-reviewer): 13 Changed · 1 Noted · 8 Hollow (59% Changed; impl-advisor 85%). Fakest green: S147 fidelity-reviewer rec 1 cites handoff's own claim. Recommendation: ban carry-forward without named target session — zero new code. ACCEPT (fidelity-reviewer, pass 2, 4 SHIPPED · 1 PARTIAL). Next GT: S150.**
+**Updated:** 2026-09-07 · **Session 150 — mandatory NO-CODE Ground Truth (150 % 5 == 0) — 🟡 PARTIAL PASS.**
+12 required audits + F2f lens run live. **One 🔴:** `cargo fmt --check` fails on main (4 files from S148;
+not caught by verify-session-148.sh or verify-closeout.sh). stranger 21/21 · scaffold-drift 17/17 · 485 lib
+tests · pipeline 3-5/8 (CODER never passes). Dogfood: S144 ($11.74); prove-then-cut-cost arc deferred.
+F2f: 59% Changed; impl-advisor 85%; fidelity-reviewer 53% hollow on carry-forward. **Founder pick: S151
+= fmt fix + add `cargo fmt --check` to verify-closeout.sh. Next GT: S155.**
+Report: `sessions/session-150-ground-truth.md`.
+
+**Prior — Updated:** 2026-09-07 · **Session 149 — DOCUMENT: advice-influence audit (F2f gap, S133 open finding). 22 advice items graded across S146/S147/S148 (impl-advisor + fidelity-reviewer): 13 Changed · 1 Noted · 8 Hollow (59% Changed; impl-advisor 85%). Fakest green: S147 fidelity-reviewer rec 1 cites handoff's own claim. Recommendation: ban carry-forward without named target session — zero new code. ACCEPT (fidelity-reviewer, pass 2, 4 SHIPPED · 1 PARTIAL). Next GT: S150.**
 
 **Prior — Updated:** 2026-09-07 · **Session 148 — CODE: close test-runner compression gaps (Gap A: bare `jest` dispatched; Gap B: fail-path 30-399 lines compressed for all three test heuristics). ACCEPT (fidelity-reviewer, 7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT). AC6 CANNOT-EVALUATE (S144 JSONL not available). 485 lib tests. Next: S149.**
 
