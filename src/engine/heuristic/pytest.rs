@@ -16,6 +16,10 @@ impl Heuristic for PytestHeuristic {
             compress_pytest_fail(&request.tool_output.stdout)
         }
     }
+
+    fn preserves_failure_signal(&self) -> bool {
+        true
+    }
 }
 
 fn compress_pytest_pass(stdout: &str) -> String {
@@ -58,21 +62,39 @@ fn compress_pytest_pass(stdout: &str) -> String {
 
 fn compress_pytest_fail(stdout: &str) -> String {
     let lines: Vec<&str> = stdout.lines().collect();
-    if lines.len() < 300 {
+    if lines.len() < super::FAIL_COMPRESS_FLOOR {
         return stdout.to_string();
     }
-    let failures: Vec<&str> = stdout
-        .lines()
-        .filter(|l| {
-            let t = l.trim();
-            t.starts_with("FAILED") || t.starts_with("ERROR") || t.contains("AssertionError")
-        })
+    // Keep AC3 failure-signal lines + last summary line + fold notice (Gap B, S148).
+    let summary = lines
+        .iter()
+        .rev()
+        .find(|l| l.contains("passed") || l.contains("failed") || l.contains("==="))
+        .copied();
+    let kept: Vec<&str> = lines
+        .iter()
+        .filter(|l| super::is_failure_line(l))
+        .copied()
         .collect();
-
-    if failures.is_empty() {
+    let kept_count = kept.len() + summary.map_or(0, |_| 1);
+    let dropped = lines.len().saturating_sub(kept_count);
+    let mut out = kept.join("\n");
+    if let Some(s) = summary {
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        out.push_str(s);
+    }
+    if dropped > 0 {
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        out.push_str(&super::fold_notice(dropped));
+    }
+    if out.is_empty() {
         stdout.to_string()
     } else {
-        failures.join("\n")
+        out
     }
 }
 
@@ -148,5 +170,41 @@ mod tests {
         let stdout = "FAILED test_foo.py::test_bar";
         let out = compress_pytest_fail(stdout);
         assert_eq!(out, stdout);
+    }
+
+    // ── Gap B: pytest fail-path for 20–399 lines (S148) ─────────────────────
+
+    #[test]
+    fn pytest_fail_gap_b_preserves_failed_line() {
+        // 25-line output with FAILED line — must survive
+        let mut lines: Vec<String> = (0..23)
+            .map(|i| format!("test_module.py::test_pass_{} PASSED", i))
+            .collect();
+        lines.push("test_module.py::test_broken FAILED".into());
+        lines.push("====== 1 failed, 23 passed in 0.12s ======".into());
+        let stdout = lines.join("\n");
+        let out = compress_pytest_fail(&stdout);
+        assert!(out.contains("FAILED"), "FAILED line must be preserved: {}", out);
+        assert!(out.contains("passed"), "summary must be preserved: {}", out);
+        assert!(
+            out.contains("[vajra]") && out.contains("VAJRA_RAW=1"),
+            "fold notice must be present: {}",
+            out
+        );
+    }
+
+    #[test]
+    fn pytest_fail_floor_passthrough() {
+        // 19 lines — below FAIL_COMPRESS_FLOOR — byte-identical passthrough
+        let lines: Vec<String> = (0..19)
+            .map(|i| format!("test_module.py::test_{} PASSED", i))
+            .collect();
+        let stdout = lines.join("\n");
+        assert_eq!(compress_pytest_fail(&stdout), stdout);
+    }
+
+    #[test]
+    fn pytest_preserves_failure_signal_override() {
+        assert!(h().preserves_failure_signal());
     }
 }
