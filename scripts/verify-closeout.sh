@@ -145,6 +145,15 @@ check_cost_tracking() {
   fi
 }
 
+check_cargo_fmt() {
+  local NAME="cargo-fmt-clean"; local LOG="$ARTIFACTS/${NAME}.log"
+  if cargo fmt --check > "$LOG" 2>&1; then
+    ok "$NAME"
+  else
+    echo "FAIL: run \`cargo fmt\` to fix formatting, then re-run verify-closeout." >> "$LOG"; bad "$NAME"
+  fi
+}
+
 # --- Execution-sha placeholder guard (S81) -----------------------------------
 # Catches the S79 failure mode: a CODE session that closes with `step N — done: <sha>`
 # placeholders still in its `## Execution` section. The Coder gate (src/coder/mod.rs)
@@ -800,6 +809,7 @@ check_state_sections
 check_session_pair
 check_roadmap_current
 check_cost_tracking
+check_cargo_fmt
 check_execution_shas
 check_verify_demo_scripts
 check_fidelity_review
