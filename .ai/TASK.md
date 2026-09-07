@@ -2,7 +2,12 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 149 — PENDING FOUNDER PICK
+## Session 150 — NO-CODE Ground Truth (mandatory, 150 % 5 == 0) — PENDING
+
+- Brief: `prompts/150-task-ground-truth.md`.
+- 12 required audits + F2f lens (S149 advice-influence data). Start in a FRESH chat.
+
+## Session 149 — advice-influence audit — COMPLETE
 
 ## Session 148 — close test-runner compression gaps — COMPLETE
 
