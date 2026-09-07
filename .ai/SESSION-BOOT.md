@@ -1,14 +1,14 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 149 — NOT STARTED. Awaiting founder pick. Next mandatory GT: S150 (150 % 5 == 0).
+- **Number:** 149 — PENDING.
 
 ## Prior Session
 - **Number:** 148 — COMPLETE (CODE: close test-runner compression gaps). **Verdict: ACCEPT** (fidelity-reviewer,
-  7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT), attested `9998bd3f…`. Gap A: `JestHeuristic` added; bare `jest`
+  7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT), attested `ec80bce1…`. Gap A: `JestHeuristic` added; bare `jest`
   now dispatched. Gap B: all three test heuristics override `preserves_failure_signal() → true`;
   `FAIL_COMPRESS_FLOOR = 20`; shared `fold_notice()` + `is_failure_line()`. AC6 CANNOT-EVALUATE (S144
-  JSONL not available locally). 485 lib tests. verify 7 PASS / 1 SKIP.
+  JSONL not available locally). 485 lib tests. verify 7 PASS / 1 SKIP. verify-closeout 15/15 GREEN. PR pending.
   Reports: `sessions/session-148-summary.md` + `sessions/session-148-review.md`. **Next: S149.**
 
 ## Session Before Prior

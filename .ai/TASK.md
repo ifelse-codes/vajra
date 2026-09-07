@@ -7,7 +7,7 @@
 ## Session 148 — close test-runner compression gaps — COMPLETE
 
 - Brief: `prompts/148-task-compress-testrunner-gaps.md`. Gap A: bare `jest` not in dispatch table. Gap B: fail-path 30–399 lines not compressed.
-- **ACCEPT** (fidelity-reviewer, 7/8 SHIPPED · 1 PARTIAL · 0 NOT-BUILT), attested `9998bd3f…`.
+- **ACCEPT** (fidelity-reviewer, 7/8 SHIPPED · 1 PARTIAL · 0 NOT-BUILT), attested `ec80bce1…`. verify-closeout 15/15 GREEN. PR pending.
 - Gap A: `JestHeuristic` added; bare `jest` now dispatched. Gap B: all three test heuristics override `preserves_failure_signal() → true`; `FAIL_COMPRESS_FLOOR = 20`. Shared helpers: `fold_notice()`, `is_failure_line()`. AC6 CANNOT-EVALUATE (S144 JSONL not available locally). 485 lib tests. verify 7 PASS / 1 SKIP.
 - Reports: `sessions/session-148-summary.md` + `sessions/session-148-review.md`.
 
