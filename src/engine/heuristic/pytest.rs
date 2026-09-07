@@ -191,6 +191,10 @@ mod tests {
             "fold notice must be present: {}",
             out
         );
+        assert!(
+            out.lines().count() < stdout.lines().count(),
+            "compressed output must be shorter than input"
+        );
     }
 
     #[test]
