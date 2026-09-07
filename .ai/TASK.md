@@ -2,10 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 150 — NO-CODE Ground Truth (mandatory, 150 % 5 == 0) — PENDING
+## Session 151 — fix cargo fmt + guard against recurrence — PENDING
 
-- Brief: `prompts/150-task-ground-truth.md`.
-- 12 required audits + F2f lens (S149 advice-influence data). Start in a FRESH chat.
+- Brief: `prompts/151-task-fmt-fix.md`.
+- `cargo fmt` on 4 files (S148 left them dirty) + add `cargo fmt --check` to verify-closeout.sh. Start in a FRESH chat.
+
+## Session 150 — NO-CODE Ground Truth (mandatory, 150 % 5 == 0) — COMPLETE
+
+- Brief: `prompts/150-task-ground-truth.md`. Report: `sessions/session-150-ground-truth.md`.
+- 🟡 PARTIAL PASS. 12 audits + F2f lens. One 🔴: cargo fmt fails on main (S148). Founder pick: S151 = fmt fix.
 
 ## Session 149 — advice-influence audit — COMPLETE
 

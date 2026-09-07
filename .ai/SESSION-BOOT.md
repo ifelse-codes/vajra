@@ -1,16 +1,26 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 150 — PENDING (mandatory NO-CODE GT, 150 % 5 == 0).
+- **Number:** 151 — PENDING (CODE: fix cargo fmt + guard against recurrence).
+  Brief: `prompts/151-task-fmt-fix.md`. Start in a FRESH chat.
 
 ## Prior Session
-- **Number:** 149 — COMPLETE (DOCUMENT: advice-influence audit). **Verdict: ACCEPT** (fidelity-reviewer,
-  pass 2, 4 SHIPPED · 1 PARTIAL · 0 NOT-BUILT). 22 advice items graded across S146/S147/S148:
-  13 Changed · 1 Noted · 8 Hollow (59% Changed; impl-advisor 85%; fidelity-reviewer 22%).
-  Fakest green: S147 fidelity-reviewer rec 1 cites handoff's own "Applied fix" claim.
-  Recommendation: ban "carry-forward" without named target session (zero new code).
-  verify-closeout 15/15 GREEN (VAJRA_CLOSEOUT_WAIVER: tool-call IDs not in frontmatter).
-  PR #179. **Next: S150 (mandatory GT).**
+- **Number:** 150 — COMPLETE (mandatory NO-CODE GT, 150 % 5 == 0). **Lead verdict: 🟡 PARTIAL PASS.**
+  12 required audits + F2f lens run live. One 🔴: `cargo fmt --check` fails on main (4 files from S148;
+  neither verify-session-148.sh nor verify-closeout.sh caught it). stranger 21/21 · scaffold-drift 17/17 ·
+  485 lib tests · pipeline S146-S149: 3-5/8 (CODER never passes; CODE < DOCUMENT). Dogfood last S144
+  ($11.74). F2f: 59% Changed; impl-advisor 85%; fidelity-reviewer 53% hollow on carry-forward recs.
+  **Founder pick: S151 = fmt fix + add `cargo fmt --check` to verify-closeout.sh.**
+  Report: `sessions/session-150-ground-truth.md`. **Next GT: S155.**
+
+## Prior Session
+- **Number:** 150 — COMPLETE (mandatory NO-CODE GT, 150 % 5 == 0). **Lead verdict: 🟡 PARTIAL PASS.**
+  12 required audits + F2f lens run live. One 🔴: `cargo fmt --check` fails on main (4 files from S148;
+  neither verify-session-148.sh nor verify-closeout.sh caught it). stranger 21/21 · scaffold-drift 17/17 ·
+  485 lib tests · pipeline S146-S149: 3-5/8 (CODER never passes; CODE < DOCUMENT). Dogfood last S144
+  ($11.74). F2f: 59% Changed; impl-advisor 85%; fidelity-reviewer 53% hollow on carry-forward recs.
+  **Founder pick: S151 = fmt fix + add `cargo fmt --check` to verify-closeout.sh.**
+  Report: `sessions/session-150-ground-truth.md`. **Next GT: S155.**
 
 ## Session Before Prior
 - **Number:** 148 — COMPLETE (CODE: close test-runner compression gaps). **Verdict: ACCEPT** (fidelity-reviewer,
