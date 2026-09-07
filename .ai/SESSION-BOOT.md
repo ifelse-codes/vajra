@@ -1,17 +1,13 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 151 — PENDING (CODE: fix cargo fmt + guard against recurrence).
-  Brief: `prompts/151-task-fmt-fix.md`. Start in a FRESH chat.
+- **Number:** 152 — PENDING (TBD — founder pick at S151 closeout).
+  Start in a FRESH chat.
 
 ## Prior Session
-- **Number:** 150 — COMPLETE (mandatory NO-CODE GT, 150 % 5 == 0). **Lead verdict: 🟡 PARTIAL PASS.**
-  12 required audits + F2f lens run live. One 🔴: `cargo fmt --check` fails on main (4 files from S148;
-  neither verify-session-148.sh nor verify-closeout.sh caught it). stranger 21/21 · scaffold-drift 17/17 ·
-  485 lib tests · pipeline S146-S149: 3-5/8 (CODER never passes; CODE < DOCUMENT). Dogfood last S144
-  ($11.74). F2f: 59% Changed; impl-advisor 85%; fidelity-reviewer 53% hollow on carry-forward recs.
-  **Founder pick: S151 = fmt fix + add `cargo fmt --check` to verify-closeout.sh.**
-  Report: `sessions/session-150-ground-truth.md`. **Next GT: S155.**
+- **Number:** 151 — COMPLETE (CODE: fix cargo fmt + guard). **Verdict: ACCEPT** (fidelity-reviewer, 4/4 SHIPPED).
+  cargo fmt run on 4 S148 files; check_cargo_fmt() added to verify-closeout.sh; 485 lib tests; 16/16 GREEN.
+  PR pending on `session-151-fmt-fix`. **Next GT: S155.**
 
 ## Prior Session
 - **Number:** 150 — COMPLETE (mandatory NO-CODE GT, 150 % 5 == 0). **Lead verdict: 🟡 PARTIAL PASS.**
