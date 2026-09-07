@@ -1,6 +1,8 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-07 · **Session 148 — CODE: close test-runner compression gaps (Gap A: bare `jest` dispatched; Gap B: fail-path 30-399 lines compressed for all three test heuristics). ACCEPT (fidelity-reviewer, 7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT). AC6 CANNOT-EVALUATE (S144 JSONL not available). 485 lib tests. Next: S149.**
+**Updated:** 2026-09-07 · **Session 149 — DOCUMENT: advice-influence audit (F2f gap, S133 open finding). 22 advice items graded across S146/S147/S148 (impl-advisor + fidelity-reviewer): 13 Changed · 1 Noted · 8 Hollow (59% Changed; impl-advisor 85%). Fakest green: S147 fidelity-reviewer rec 1 cites handoff's own claim. Recommendation: ban carry-forward without named target session — zero new code. ACCEPT (fidelity-reviewer, pass 2, 4 SHIPPED · 1 PARTIAL). Next GT: S150.**
+
+**Prior — Updated:** 2026-09-07 · **Session 148 — CODE: close test-runner compression gaps (Gap A: bare `jest` dispatched; Gap B: fail-path 30-399 lines compressed for all three test heuristics). ACCEPT (fidelity-reviewer, 7 SHIPPED · 1 PARTIAL · 0 NOT-BUILT). AC6 CANNOT-EVALUATE (S144 JSONL not available). 485 lib tests. Next: S149.**
 
 **Prior — Updated:** 2026-09-06 · **Session 147 — DOCUMENT: prove the 5 quiet fleet roles. All 5 (researcher, plan-advisor, requirements-analyst, demo-producer, release-coordinator) dispatched on the S148 cost-cutting brief. All 5 returned Changed advice. Key finding: demo-producer confirmed test-runner heuristics already exist in `src/engine/heuristic/`; S148 scope corrected from "implement" to "close the gaps." DECISION-007 phase 1b executed. ACCEPT (fidelity-reviewer, 6 SHIPPED · 2 PARTIAL · 0 NOT-BUILT). Next GT: S150.**
 

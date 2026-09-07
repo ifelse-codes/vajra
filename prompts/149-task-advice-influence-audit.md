@@ -31,6 +31,8 @@ independently re-grades advice influence for 3 recent sessions and produces a cl
 
 design-significant: no
 
+design-advisor: skipped — DOCUMENT session; `design-significant: no` declared above; deliverable is a single markdown file with no architecture surface; no ADR or design record is created or modified.
+
 No new gates, no new code, no new Vajra commands. This is evidence-gathering before any enforcement
 decision. The only artifact is the audit report.
 
