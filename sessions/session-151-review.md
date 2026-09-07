@@ -29,4 +29,4 @@ rec 2 — `check_cargo_fmt` does not emit an on-success "how to fix" guidance li
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** 29357986c1a3fc7f29e874dea4b76761bf82e5477246681e6696a9cb55cd9103
+**Review-Inputs-SHA:** a05fe5accfeef199faf2b4e9952c4344f2a3c18e1ed074b8fc7cab3a65b328d4
