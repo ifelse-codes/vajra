@@ -32,6 +32,10 @@ impl Heuristic for CargoTestHeuristic {
             compress_cargo_test_fail(&request.tool_output.stdout)
         }
     }
+
+    fn preserves_failure_signal(&self) -> bool {
+        true
+    }
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -54,7 +58,7 @@ fn compress_cargo_build_success(stdout: &str) -> String {
 
 fn compress_cargo_build_fail(stdout: &str) -> String {
     let lines: Vec<&str> = stdout.lines().collect();
-    if lines.len() < 400 {
+    if lines.len() < crate::engine::FAIL_PASSTHROUGH_CAP {
         return stdout.to_string();
     }
     let errors: Vec<&str> = stdout
@@ -92,15 +96,15 @@ fn compress_cargo_test_success(stdout: &str) -> String {
 
 fn compress_cargo_test_fail(stdout: &str) -> String {
     let lines: Vec<&str> = stdout.lines().collect();
-    if lines.len() < 400 {
+    if lines.len() < super::FAIL_COMPRESS_FLOOR {
         return stdout.to_string();
     }
-    // Keep every failing test name + panic trace verbatim.
+    // Keep every failing test name + panic trace verbatim (Gap B, S148).
     let mut failures: Vec<&str> = Vec::new();
     let mut in_failure = false;
     for line in stdout.lines() {
         let trimmed = line.trim();
-        if trimmed.starts_with("test ") && trimmed.ends_with("FAILED") {
+        if super::is_failure_line(line) {
             in_failure = true;
             failures.push(line);
         } else if in_failure {
@@ -110,16 +114,16 @@ fn compress_cargo_test_fail(stdout: &str) -> String {
             }
         }
     }
-    let pass_count = stdout.lines().filter(|l| l.trim().ends_with("ok")).count();
     if failures.is_empty() {
-        format!("[{} passing lines omitted — errors present]", pass_count)
-    } else {
-        let fail_summary = format!("[{} passing lines folded]", pass_count);
-        let mut out = failures.join("\n");
-        out.push_str("\n\n");
-        out.push_str(&fail_summary);
-        out
+        return stdout.to_string();
     }
+    let dropped = lines.len().saturating_sub(failures.len());
+    let mut out = failures.join("\n");
+    if dropped > 0 {
+        out.push_str("\n\n");
+        out.push_str(&super::fold_notice(dropped));
+    }
+    out
 }
 
 #[cfg(test)]
@@ -245,5 +249,53 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
         let stdout = "error: could not compile";
         let out = compress_cargo_test_fail(stdout);
         assert_eq!(out, stdout);
+    }
+
+    // ── Gap B: cargo test fail-path for 20–399 lines (S148) ─────────────────
+
+    #[test]
+    fn cargo_test_fail_gap_b_preserves_failed_line() {
+        // 25-line output with one FAILED line — must survive compression
+        let mut lines: Vec<String> = vec![
+            "   Compiling mycrate v0.1.0".into(),
+            "    Finished test profile".into(),
+            "     Running unittests src/lib.rs".into(),
+            "".into(),
+            "running 24 tests".into(),
+        ];
+        for i in 0..19usize {
+            lines.push(format!("test tests::passing_{} ... ok", i));
+        }
+        lines.push("test tests::broken ... FAILED".into());
+        let stdout = lines.join("\n");
+        let out = compress_cargo_test_fail(&stdout);
+        assert!(out.contains("FAILED"), "FAILED line must be preserved: {}", out);
+        assert!(
+            out.lines().count() < stdout.lines().count(),
+            "compressed output must be shorter than input"
+        );
+    }
+
+    #[test]
+    fn cargo_test_fail_gap_b_fold_notice() {
+        // Build a 30-line fail output, confirm notice is present and well-formed
+        let mut lines: Vec<String> = (0..28)
+            .map(|i| format!("test tests::passing_{} ... ok", i))
+            .collect();
+        lines.push("test tests::broken ... FAILED".into());
+        lines.push("thread 'tests::broken' panicked at src/lib.rs:5:9: assertion failed".into());
+        let stdout = lines.join("\n");
+        let out = compress_cargo_test_fail(&stdout);
+        assert!(
+            out.contains("[vajra]") && out.contains("lines folded") && out.contains("VAJRA_RAW=1"),
+            "fold notice must match AC4: {}",
+            out
+        );
+    }
+
+    #[test]
+    fn cargo_test_preserves_failure_signal_override() {
+        // preserves_failure_signal() must be true so engine skips the fail gate
+        assert!(test_heuristic().preserves_failure_signal());
     }
 }

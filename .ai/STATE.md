@@ -3,20 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S147 complete, S148 not yet started).**
-S147 was a document-only session (quiet roles audit). PR pending merge. **Next: S148.**
+**None — between sessions (S148 complete, S149 not yet started).**
+S148 closed two compression gaps; PR pending. **Next: S149.**
 
-## What shipped this session (S147 — prove the 5 quiet fleet roles)
+## What shipped this session (S148 — close test-runner compression gaps)
 
-- All 5 quiet roles dispatched on S148 brief: researcher, plan-advisor, requirements-analyst, demo-producer, release-coordinator.
-- All 5 returned **Changed** advice. Zero Hollow. Zero INCOMPLETE.
-- **Critical finding (demo-producer):** test-runner heuristics already exist in `src/engine/heuristic/cargo.rs`, `pytest.rs`, `npm.rs`; S148 scope corrected from "implement" to "close the gaps" (Gap A: bare `jest`; Gap B: fail-path 30–399 lines).
-- DECISION-007 phase 1b executed. Off switch deferred (n=1).
-- verify-closeout 15/15 GREEN. ACCEPT attested `ba334227…`.
-- Reports: `sessions/session-147-quiet-roles-audit.md` + `sessions/session-147-review.md`. **Next: S148.**
-- Report: `sessions/session-145-ground-truth.md`. **Founder pick: A (S144 follow-up).**
-- **Next: S146** — propagate `verify-closeout.sh` to adopters + PATH-first binary resolver.
-  Prompt: `prompts/146-task-closeout-propagation.md`.
+- **Gap A closed:** `JestHeuristic` added to `src/engine/heuristic/npm.rs`; bare `jest` and `jest <flags>` now dispatched and compressed. Dispatch arm wired in `mod.rs` before `npm test`. `npx jest` intentionally excluded (different prefix; deferred).
+- **Gap B closed:** All three test heuristics (`CargoTestHeuristic`, `PytestHeuristic`, `NpmTestHeuristic`) override `preserves_failure_signal() → true`, bypassing the engine fail-gate. Internal threshold lowered from 400 to `FAIL_COMPRESS_FLOOR = 20`.
+- **Shared helpers in `mod.rs`:** `FAIL_COMPRESS_FLOOR = 20`, `fold_notice()` (AC4 format), `is_failure_line()` (AC3: FAILED, PANIC, panicked at, ✕).
+- **AC5 guard:** `compress_jest_family_fail` passthroughs when no `Tests:` summary line found.
+- **Verify:** `scripts/verify-session-148.sh` — 7 PASS, 1 SKIP (C7 CANNOT-EVALUATE; S144 JSONL not available locally).
+- 485 lib tests. ACCEPT attested `ec80bce1…`. Reports: `sessions/session-148-summary.md` + `sessions/session-148-review.md`.
 
 ## What shipped prior (S144 — the chitra FULL-LOOP dogfood)
 - First real-world exercise of the complete upgrade loop (roles S141 + hooks S142 + constitution S143) on a
