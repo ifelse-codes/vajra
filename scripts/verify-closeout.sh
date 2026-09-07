@@ -148,7 +148,7 @@ check_cost_tracking() {
 check_cargo_fmt() {
   local NAME="cargo-fmt-clean"; local LOG="$ARTIFACTS/${NAME}.log"
   if cargo fmt --check > "$LOG" 2>&1; then
-    ok "$NAME"
+    echo "OK: cargo fmt --check exits 0 (formatting clean)" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: run \`cargo fmt\` to fix formatting, then re-run verify-closeout." >> "$LOG"; bad "$NAME"
   fi
