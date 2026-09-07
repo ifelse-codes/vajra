@@ -2,10 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 151 — fix cargo fmt + guard against recurrence — PENDING
+## Session 152 — TBD — PENDING
+
+- Founder pick at S151 closeout. Start in a FRESH chat.
+
+## Session 151 — fix cargo fmt + guard against recurrence — COMPLETE
 
 - Brief: `prompts/151-task-fmt-fix.md`.
-- `cargo fmt` on 4 files (S148 left them dirty) + add `cargo fmt --check` to verify-closeout.sh. Start in a FRESH chat.
+- cargo fmt on 4 files; check_cargo_fmt added to verify-closeout.sh; 16/16 GREEN. PR pending.
 
 ## Session 150 — NO-CODE Ground Truth (mandatory, 150 % 5 == 0) — COMPLETE
 
