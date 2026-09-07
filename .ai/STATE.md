@@ -13,7 +13,7 @@ S148 closed two compression gaps; PR pending. **Next: S149.**
 - **Shared helpers in `mod.rs`:** `FAIL_COMPRESS_FLOOR = 20`, `fold_notice()` (AC4 format), `is_failure_line()` (AC3: FAILED, PANIC, panicked at, ✕).
 - **AC5 guard:** `compress_jest_family_fail` passthroughs when no `Tests:` summary line found.
 - **Verify:** `scripts/verify-session-148.sh` — 7 PASS, 1 SKIP (C7 CANNOT-EVALUATE; S144 JSONL not available locally).
-- 485 lib tests. ACCEPT attested `9998bd3f…`. Reports: `sessions/session-148-summary.md` + `sessions/session-148-review.md`.
+- 485 lib tests. ACCEPT attested `ec80bce1…`. Reports: `sessions/session-148-summary.md` + `sessions/session-148-review.md`.
 
 ## What shipped prior (S144 — the chitra FULL-LOOP dogfood)
 - First real-world exercise of the complete upgrade loop (roles S141 + hooks S142 + constitution S143) on a
