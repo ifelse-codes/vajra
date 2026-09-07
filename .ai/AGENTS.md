@@ -123,6 +123,38 @@ Hooks (`hook-pre-bash.sh`, `hook-pre-write.sh`) enforce. Authorized hardening go
 
 ---
 
+## Obedience Protocol (S152)
+
+When a builder does **not** follow a recommendation — marking it `deferred:` or `refused:` — they **MUST** write a proper explanation. A one-word label with no explanation is not acceptable.
+
+Required elements:
+- **What** the rec said (brief restatement)
+- **Why** it is being skipped (concrete reason — conflict with ADR, out of scope, already correct, etc.)
+- **When** it will be addressed, if deferred (a named session number, OR `backlog` with a one-line reason why no session can be named now)
+
+**Example:**
+```
+refused: rec 3 from implementation-advisor — the recommended approach conflicts with
+ADR-0003's passthrough contract; fixing at the architecture level is deferred to S154.
+```
+
+A `deferred:` with no named session is hollow. The next reviewer must grade it NOT-BUILT unless the explanation is present.
+
+---
+
+## Carry-Forward Rule (S152)
+
+A rec **carried forward** from a prior session MUST name a target session in the ROADMAP.
+
+- Acceptable: `carry-forward → S153` (session named, ROADMAP entry exists)
+- Acceptable: `carry-forward → backlog — reason: requires a paid dogfood run not yet scheduled`
+  (A `backlog` carry-forward MUST appear on the checklist for the next Ground Truth session (N % 5 == 0). Without a GT pickup it becomes indefinitely deferred — the same failure mode the rule was written to prevent.)
+- **NOT acceptable:** re-copying the rec text with no destination — this grades as NOT-BUILT at the next review
+
+A rec copied without a named target is functionally a polite "no." The fidelity-reviewer **must** flag any unnamed carry-forward as hollow. (Source: S149 audit — 6 of 9 fidelity-reviewer recs graded Hollow were carry-forward labels that removed all obligation.)
+
+---
+
 ## Self-Review (Before Every Ship)
 
 1. What can break?

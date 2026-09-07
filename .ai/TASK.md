@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 152 — TBD — PENDING
+## Session 153 — TBD — PENDING
 
-- Founder pick at S151 closeout. Start in a FRESH chat.
+- Founder pick at S152 closeout. Start in a FRESH chat.
+
+## Session 152 — DOCUMENT: obedience-skip + carry-forward rules — COMPLETE
+
+- Brief: `prompts/152-task-carryforward-rule.md`.
+- Obedience Protocol rule + Carry-Forward Rule added to AGENTS.md; 8 S149 hollow items audited (4 retired, 4 → S153). 16/16 GREEN. PR pending.
 
 ## Session 151 — fix cargo fmt + guard against recurrence — COMPLETE
 

@@ -1,6 +1,14 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-07 · **Session 151 — CODE: fix cargo fmt + guard against recurrence. `cargo fmt` run on 4 S148 files; `check_cargo_fmt` added to verify-closeout.sh. 485 lib tests. 🟢 cargo-fmt-clean. Next GT: S155.**
+**Updated:** 2026-09-07 · **Session 152 — DOCUMENT: obedience-skip + carry-forward rules added to `.ai/AGENTS.md`; 8 S149 hollow items audited (4 retired · 4 assigned → S153). Next GT: S155.**
+
+**S153 — scheduled carry-forward items (from S152 audit):**
+- S147 fidelity-reviewer rec 2: add a "Brief:" section check to DOCUMENT-session verify scripts
+- S147 fidelity-reviewer rec 3: add a handoff-condensation transparency note to `.ai/AGENTS.md`
+- S148 fidelity-reviewer rec 1: add cargo-build-fail threshold guardrail check to compression verify scripts
+These three items are concrete and small; they ride the next DOCUMENT or light CODE session that touches the advisory protocol or compression verify scripts.
+
+**Prior — Updated:** 2026-09-07 · **Session 151 — CODE: fix cargo fmt + guard against recurrence. `cargo fmt` run on 4 S148 files; `check_cargo_fmt` added to verify-closeout.sh. 485 lib tests. 🟢 cargo-fmt-clean. Next GT: S155.**
 
 **Prior — Updated:** 2026-09-07 · **Session 150 — mandatory NO-CODE Ground Truth (150 % 5 == 0) — 🟡 PARTIAL PASS.**
 12 required audits + F2f lens run live. **One 🔴:** `cargo fmt --check` fails on main (4 files from S148;

@@ -1,13 +1,15 @@
 # Session Boot
 
 ## Current Session
-- **Number:** 152 — PENDING (TBD — founder pick at S151 closeout).
-  Start in a FRESH chat.
+- **Number:** 152 — COMPLETE (DOCUMENT: obedience-skip + carry-forward rules). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED · 1 PARTIAL).
+  Obedience Protocol rule + Carry-Forward Rule added to AGENTS.md; backlog escape requires GT pickup.
+  8 S149 hollow items audited: 4 retired, 4 assigned → S153. 16/16 GREEN.
+  PR pending on `session-152-carryforward-rule`. **Next GT: S155.**
 
 ## Prior Session
 - **Number:** 151 — COMPLETE (CODE: fix cargo fmt + guard). **Verdict: ACCEPT** (fidelity-reviewer, 4/4 SHIPPED).
   cargo fmt run on 4 S148 files; check_cargo_fmt() added to verify-closeout.sh; 485 lib tests; 16/16 GREEN.
-  PR pending on `session-151-fmt-fix`. **Next GT: S155.**
+  PR #181 MERGED. **Next GT: S155.**
 
 ## Prior Session
 - **Number:** 150 — COMPLETE (mandatory NO-CODE GT, 150 % 5 == 0). **Lead verdict: 🟡 PARTIAL PASS.**
