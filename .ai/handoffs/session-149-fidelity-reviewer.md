@@ -1,4 +1,13 @@
-# Fidelity review — S149 (advice-influence audit)
+---
+role: fidelity-reviewer
+session: 149
+agent: claude-code-subagent
+source-sha: 21ee873f632949da32e12a47b7d8b542508d51b77ac4a0dbc19673239dbb473c
+captured: 2026-09-07T03:30:00Z
+cost_usd: null
+---
+
+# Session 149 — Fidelity Reviewer Handoff
 
 Two cold passes. Pass 1 REJECT → builder addressed all 3 recs → Pass 2 ACCEPT.
 
@@ -14,7 +23,7 @@ Two cold passes. Pass 1 REJECT → builder addressed all 3 recs → Pass 2 ACCEP
 
 **Recs issued:**
 - rec 1: Fix S148 section tally
-- rec 2: Replace circular Changed grades for S147 impl-advisor recs 1/2/5/6 with verify-script line citations
+- rec 2: Replace circular Changed grades for S147 impl-advisor with verify-script line citations
 - rec 3: Resolve AC5 / guardrail conflict explicitly
 
 ## Pass 2 (ACCEPT)
