@@ -1,10 +1,16 @@
 # Session Boot
 
+## Next Session
+- **S153 — PENDING.** Brief: `prompts/153-task-s153-carryforward-items.md`. Close 4 named
+  carry-forward items from S152 audit (AGENTS.md notes × 2, cargo-build-fail guardrail, "Brief:"
+  check for DOCUMENT verify scripts). **B (cost-cutting) is next high priority after S153.**
+  **Start in a FRESH chat.**
+
 ## Current Session
 - **Number:** 152 — COMPLETE (DOCUMENT: obedience-skip + carry-forward rules). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED · 1 PARTIAL).
   Obedience Protocol rule + Carry-Forward Rule added to AGENTS.md; backlog escape requires GT pickup.
   8 S149 hollow items audited: 4 retired, 4 assigned → S153. 16/16 GREEN.
-  PR pending on `session-152-carryforward-rule`. **Next GT: S155.**
+  PR #182 MERGED. **Next GT: S155.**
 
 ## Prior Session
 - **Number:** 151 — COMPLETE (CODE: fix cargo fmt + guard). **Verdict: ACCEPT** (fidelity-reviewer, 4/4 SHIPPED).

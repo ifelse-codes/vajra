@@ -2,11 +2,16 @@
 
 **Updated:** 2026-09-07 · **Session 152 — DOCUMENT: obedience-skip + carry-forward rules added to `.ai/AGENTS.md`; 8 S149 hollow items audited (4 retired · 4 assigned → S153). Next GT: S155.**
 
-**S153 — scheduled carry-forward items (from S152 audit):**
+**S153 — NEXT (founder pick 2026-09-08, option A):** Close 4 named carry-forward items.
 - S147 fidelity-reviewer rec 2: add a "Brief:" section check to DOCUMENT-session verify scripts
 - S147 fidelity-reviewer rec 3: add a handoff-condensation transparency note to `.ai/AGENTS.md`
 - S148 fidelity-reviewer rec 1: add cargo-build-fail threshold guardrail check to compression verify scripts
-These three items are concrete and small; they ride the next DOCUMENT or light CODE session that touches the advisory protocol or compression verify scripts.
+- S152 fidelity-reviewer rec 2 (deferred): add retirement-standard note to `.ai/AGENTS.md`
+Brief: `prompts/153-task-s153-carryforward-items.md`.
+
+**S154 (SOON — HIGH PRIORITY, founder 2026-09-08):** Prove-then-cut-cost arc — reduce per-session cost from ~$11.74 (S144 baseline). Needed before pitching Vajra to external adopters.
+
+**S156–S157 (after S155 GT):** Advice-influence re-audit (re-run S149 audit to measure whether S152 rules reduced the Hollow rate from 36%). Needs 3–4 more sessions of real data first.
 
 **Prior — Updated:** 2026-09-07 · **Session 151 — CODE: fix cargo fmt + guard against recurrence. `cargo fmt` run on 4 S148 files; `check_cargo_fmt` added to verify-closeout.sh. 485 lib tests. 🟢 cargo-fmt-clean. Next GT: S155.**
 
