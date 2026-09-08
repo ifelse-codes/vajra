@@ -1,3 +1,14 @@
+---
+role: tech-lead
+session: 154
+agent: claude-code-subagent (unverifiable: subagent transcript recorded gitBranch "session-135-tech-lead", not a session-154-* branch — this dispatch belongs to a different session)
+source-sha: 5b77652c75285665543aef69fe6dd31feea7380f216db2147a91a5582bec4e4b
+captured: 2026-09-08T05:11:22Z
+cost_usd: null
+---
+
+# Tech-lead handoff — session 154
+
 # Tech-Lead Handoff — Session 154
 
 ## Session type
@@ -38,3 +49,7 @@ CODE · bash guard tightening + AGENTS.md rule + self-bind
 - **Circular dependency guard:** do NOT call `vajra next --exec` from inside verify-closeout.sh. The guardrail is explicit: binary may be missing.
 - **Self-bind gap:** the `## Execution` in this very prompt has placeholder shas at the start of the session. Every step's sha must be filled before closeout — AC5 and AC6 both gate on this. Forgetting step 4 blocks the close.
 - **Waiver path:** the BLOCK must respect `VAJRA_CLOSEOUT_WAIVER` (same as fidelity gate) — GT/NO-CODE sessions must still pass without an Execution section.
+
+## Handoff Delta
+- `+` new: first tech-lead handoff for this session (3594 bytes of findings)
+- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
