@@ -154,16 +154,16 @@ check_cargo_fmt() {
   fi
 }
 
-# --- Execution-sha placeholder guard (S81) -----------------------------------
+# --- Execution-sha placeholder guard (S81, tightened S154) -------------------
 # Catches the S79 failure mode: a CODE session that closes with `step N — done: <sha>`
 # placeholders still in its `## Execution` section. The Coder gate (src/coder/mod.rs)
 # blocks a running session, but only if the closing `--advance` is invoked; verify-closeout.sh
 # is the last line of defence for the session's own prompt file.
 #
-# Pattern: the literal string 'done: <sha>' (angle-bracket placeholder from the session
-# template). Absent section → WARN only (backward-compat with pre-S68 prompts). Respects
-# `VAJRA_CLOSEOUT_WAIVER` (same escape hatch as the fidelity gate — GT/NO-CODE sessions
-# intentionally leave ## Execution unfilled).
+# S154 tightening: a prompt with real (non-placeholder) numbered `## Plan` steps but NO
+# `## Execution` section now BLOCKs instead of WARN — agents must record step traces.
+# Pre-S68 prompts and NO-CODE/GT sessions (no real plan steps) still WARN only.
+# Respects `VAJRA_CLOSEOUT_WAIVER` (GT / NO-CODE sessions that intentionally skip traces).
 check_execution_shas() {
   local NAME="execution-shas-filled"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
@@ -179,30 +179,56 @@ check_execution_shas() {
   local F="${prompts[0]}"
   echo "prompt: $F" >> "$LOG"
 
-  # Walk the prompt; collect lines in ## Execution that still say 'done: <sha>'.
-  local in_exec=0 has_exec=0
+  # Walk the prompt; detect real plan steps and collect ## Execution placeholders.
+  # "Real plan step" = numbered item (N. text) where text does NOT start with '<' (a placeholder).
+  # A prompt with real plan steps but no ## Execution section BLOCKs (S154): agents must record
+  # step N — done: <sha> as work lands. Legacy/NO-CODE prompts with no real plan steps only WARN.
+  local in_plan=0 has_plan_steps=0 in_exec=0 has_exec=0
   local bad_lines=() count=0
   while IFS= read -r line; do
     local lline; lline="$(echo "$line" | tr '[:upper:]' '[:lower:]')"
     if [[ "$lline" =~ ^#{1,6}[[:space:]] ]]; then
       local first_word; first_word="$(echo "$lline" | sed 's/^#* *//' | awk '{print $1}')"
-      if [ "$first_word" = "execution" ]; then
-        in_exec=1; has_exec=1
+      if [ "$first_word" = "plan" ]; then
+        in_plan=1; in_exec=0
+      elif [ "$first_word" = "execution" ]; then
+        in_exec=1; has_exec=1; in_plan=0
       else
-        in_exec=0
+        in_plan=0; in_exec=0
       fi
       continue
     fi
+    if [[ "$in_plan" -eq 1 ]]; then
+      # Numbered item: "N. text" — real if text does not start with '<' (template placeholder).
+      if [[ "$line" =~ ^[0-9]+\.[[:space:]] ]]; then
+        local step_text="${line#*.}"; step_text="${step_text# }"
+        if [[ "$step_text" != '<'* ]]; then
+          has_plan_steps=1
+        fi
+      fi
+    fi
     if [[ "$in_exec" -eq 1 ]]; then
-      if echo "$line" | grep -qF 'done: <sha>'; then
+      # Match any angle-bracket placeholder after 'done:': <sha>, <sha — ...>, etc.
+      if echo "$line" | grep -qE 'done:[[:space:]]*<'; then
         bad_lines+=("  $line"); count=$((count+1))
       fi
     fi
   done < "$F"
 
   if [[ "$has_exec" -eq 0 ]]; then
-    echo "WARN: no ## Execution section (pre-S68 prompt — backward-compat WARN only, not a block)" >> "$LOG"
-    ok "$NAME"; return
+    if [[ "$has_plan_steps" -eq 1 ]]; then
+      # Real plan steps exist but no ## Execution section — not a legacy prompt, BLOCK (S154).
+      echo "BLOCK: $F has real numbered plan steps but no ## Execution section" >> "$LOG"
+      echo "       Add '## Execution' and record 'step N — done: <sha>' as work lands." >> "$LOG"
+      if waiver_ok; then
+        echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
+        ok "$NAME"; return
+      fi
+      bad "$NAME"; return
+    else
+      echo "WARN: no ## Execution section (no real plan steps — backward-compat WARN only)" >> "$LOG"
+      ok "$NAME"; return
+    fi
   fi
 
   if [[ "$count" -eq 0 ]]; then

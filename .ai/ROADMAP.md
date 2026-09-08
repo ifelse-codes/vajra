@@ -1,8 +1,10 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-08 · **Session 153 — DOCUMENT+CODE: close 4 carry-forward items — ACCEPT (4/5 SHIPPED cold · AC5 at close).** 3 AGENTS.md prose additions + 1 cargo threshold guardrail test. 486 lib tests. 16/16 GREEN. PR pending. **Next GT: S155.**
+**Updated:** 2026-09-08 · **Session 154 — CODE: CODER station (step-sha traces) — ACCEPT (6/6 SHIPPED).** `check_execution_shas` now BLOCKs when real plan steps exist but `## Execution` is absent. Pre-existing placeholder-grep bug fixed. AGENTS.md rule added. S154 is the first CODE session to pass the CODER station (`ExecState::Recorded`). 486 lib tests. 17 checks GREEN. PR pending. **Next GT: S155.**
 
-**S154 — NEXT (TBD — B cost-cutting is highest priority):** Prove-then-cut-cost arc — reduce per-session cost from ~$11.74 (S144 baseline). Needed before pitching Vajra to external adopters.
+**S155 — NEXT (mandatory NO-CODE Ground Truth, 155 % 5 == 0):** Run all required audits (stranger check, scaffold drift, cargo fmt, lib tests, pipeline stations, dogfood age, cost/direction/discipline). Mandatory — cannot skip without GT waiver.
+
+**Prior — Updated:** 2026-09-08 · **Session 153 — DOCUMENT+CODE: close 4 carry-forward items — ACCEPT (4/5 SHIPPED cold · AC5 at close).** 3 AGENTS.md prose additions + 1 cargo threshold guardrail test. 486 lib tests. 16/16 GREEN. PR pending. **Next GT: S155.**
 
 **Prior — Updated:** 2026-09-07 · **Session 152 — DOCUMENT: obedience-skip + carry-forward rules added to `.ai/AGENTS.md`; 8 S149 hollow items audited (4 retired · 4 assigned → S153). ACCEPT. Next GT: S155.**
 
