@@ -35,6 +35,18 @@ Clean the baseline. Two items:
 3. Update STATE.md KNOWLEDGE.md size reference. covers: 4
 4. Run `verify-closeout.sh` on `main`; confirm exit 0. covers: 1
 
+## Crew
+
+- tech-lead: skipped — DOCUMENT+admin session; no new source code, no crew dispatch needed.
+- design-advisor: skipped — DOCUMENT+admin session; no design decisions.
+
+## Execution
+
+- step 1 — done: 064666c (S155 closeout PR #187 merged to main)
+- step 2 — done: d93ad50 (KNOWLEDGE.md prune + verify/demo scripts) + b2549bd (crew skip markers)
+- step 3 — done: 7a1e12d (STATE.md update — 282 lines)
+- step 4 — done: (verify run, no commit)
+
 ## Delta
 
 S155 GT flagged two compounding debts: verify-closeout on `main` is RED (2 FAIL, S153+S154 PRs unmerged) and KNOWLEDGE.md is 3× its stated size (1364 vs 475 lines). Both compound with every session that does not fix them. This session clears both before the next real coding session.
