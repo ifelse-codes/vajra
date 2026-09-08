@@ -2,9 +2,10 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 153 — TBD — PENDING
+## Session 153 — Close S153 carry-forward items — PENDING
 
-- Founder pick at S152 closeout. Start in a FRESH chat.
+- Brief: `prompts/153-task-s153-carryforward-items.md`. Start in a FRESH chat.
+- 4 named items: AGENTS.md handoff-condensation note + retirement-standard note + cargo-build-fail threshold guardrail + "Brief:" check for DOCUMENT verify scripts.
 
 ## Session 152 — DOCUMENT: obedience-skip + carry-forward rules — COMPLETE
 
