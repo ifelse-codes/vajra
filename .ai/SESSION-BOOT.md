@@ -1,17 +1,23 @@
 # Session Boot
 
 ## Next Session
-- **S155 — NEXT (mandatory NO-CODE Ground Truth, 155 % 5 == 0).** Cannot skip without GT waiver.
-  Brief: `prompts/155-task-ground-truth.md` (write before starting).
+- **S156 — NEXT (DOCUMENT+admin: merge S153+S154 PRs + KNOWLEDGE.md prune).**
+  Brief: `prompts/156-task-admin-close.md`.
   **Start in a FRESH chat.**
 
 ## Current Session
-- **Number:** 154 — COMPLETE (CODE: CODER station — step-sha traces). **Verdict: ACCEPT** (fidelity-reviewer, 6/6 SHIPPED cold).
-  `check_execution_shas` tightened (BLOCK on real plan + no `## Execution`); placeholder grep fixed; AGENTS.md rule added; self-bind filled.
-  486 lib tests. 17/17 GREEN. PR pending. **Next GT: S155 (mandatory).**
+- **Number:** 155 — COMPLETE (NO-CODE Ground Truth, 155 % 5 == 0). **Verdict: 🟡 PARTIAL PASS.**
+  12 audits + 6 special S155 inputs. One 🔴: KNOWLEDGE.md 1364 lines (header says 475 — 3× stale, chronic since S60). Two 🟡: prove-then-cut-cost 11 sessions overdue; tech-lead provenance false-negative is systemic.
+  🟢: stranger 21/21 · scaffold-drift 17/17 · cargo-fmt clean · 486 lib tests. CODER passes at S154 (first time).
+  Founder pick: **C — administrative close (merge PRs + KNOWLEDGE.md prune).** Report: `sessions/session-155-ground-truth.md`. **Next GT: S160.**
 
 ## Prior Session
-- **Number:** 153 — COMPLETE (DOCUMENT+CODE: close 4 carry-forward items). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED cold · AC5 at close).
+- **Number:** 154 — COMPLETE (CODE: CODER station — step-sha traces). **Verdict: ACCEPT** (fidelity-reviewer, 6/6 SHIPPED cold).
+  `check_execution_shas` tightened (BLOCK on real plan + no `## Execution`); placeholder grep fixed; AGENTS.md rule added; self-bind filled.
+  486 lib tests. 17/17 GREEN. PR pending. **Next GT: S155.**
+
+## Prior Session
+- **Number:** 153 — COMPLETE (DOCUMENT+CODE: close 4 carry-forward items). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED cold · AC5 at close). PR pending.
   3 AGENTS.md prose additions (handoff-condensation · retirement-standard · DOCUMENT-verify-standard) + 1 cargo threshold guardrail test. 486 lib tests. 16/16 GREEN.
   PR pending. **Next GT: S155.**
 
