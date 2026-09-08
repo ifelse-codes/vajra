@@ -2,10 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Session 153 — Close S153 carry-forward items — PENDING
+## Between Sessions — S153 complete, S154 not yet started
 
-- Brief: `prompts/153-task-s153-carryforward-items.md`. Start in a FRESH chat.
-- 4 named items: AGENTS.md handoff-condensation note + retirement-standard note + cargo-build-fail threshold guardrail + "Brief:" check for DOCUMENT verify scripts.
+**S153 closed.** 4 carry-forward items done. PR pending. Founder pick for S154 TBD.
+
+## Session 153 — Close S153 carry-forward items — COMPLETE
+
+- Brief: `prompts/153-task-s153-carryforward-items.md`.
+- 3 AGENTS.md prose notes + 1 cargo threshold test + verify-session-153.sh. 486 lib tests. 16/16 GREEN. ACCEPT.
 
 ## Session 152 — DOCUMENT: obedience-skip + carry-forward rules — COMPLETE
 

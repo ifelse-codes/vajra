@@ -1,15 +1,10 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-07 · **Session 152 — DOCUMENT: obedience-skip + carry-forward rules added to `.ai/AGENTS.md`; 8 S149 hollow items audited (4 retired · 4 assigned → S153). Next GT: S155.**
+**Updated:** 2026-09-08 · **Session 153 — DOCUMENT+CODE: close 4 carry-forward items — ACCEPT (4/5 SHIPPED cold · AC5 at close).** 3 AGENTS.md prose additions + 1 cargo threshold guardrail test. 486 lib tests. 16/16 GREEN. PR pending. **Next GT: S155.**
 
-**S153 — NEXT (founder pick 2026-09-08, option A):** Close 4 named carry-forward items.
-- S147 fidelity-reviewer rec 2: add a "Brief:" section check to DOCUMENT-session verify scripts
-- S147 fidelity-reviewer rec 3: add a handoff-condensation transparency note to `.ai/AGENTS.md`
-- S148 fidelity-reviewer rec 1: add cargo-build-fail threshold guardrail check to compression verify scripts
-- S152 fidelity-reviewer rec 2 (deferred): add retirement-standard note to `.ai/AGENTS.md`
-Brief: `prompts/153-task-s153-carryforward-items.md`.
+**S154 — NEXT (TBD — B cost-cutting is highest priority):** Prove-then-cut-cost arc — reduce per-session cost from ~$11.74 (S144 baseline). Needed before pitching Vajra to external adopters.
 
-**S154 (SOON — HIGH PRIORITY, founder 2026-09-08):** Prove-then-cut-cost arc — reduce per-session cost from ~$11.74 (S144 baseline). Needed before pitching Vajra to external adopters.
+**Prior — Updated:** 2026-09-07 · **Session 152 — DOCUMENT: obedience-skip + carry-forward rules added to `.ai/AGENTS.md`; 8 S149 hollow items audited (4 retired · 4 assigned → S153). ACCEPT. Next GT: S155.**
 
 **S156–S157 (after S155 GT):** Advice-influence re-audit (re-run S149 audit to measure whether S152 rules reduced the Hollow rate from 36%). Needs 3–4 more sessions of real data first.
 

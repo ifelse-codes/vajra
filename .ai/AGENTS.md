@@ -142,6 +142,17 @@ A `deferred:` with no named session is hollow. The next reviewer must grade it N
 
 ---
 
+## Handoff Condensation Transparency (S153)
+
+When a handoff quotes a recommendation in **condensed or paraphrased** form (not verbatim), the handoff MUST label it. Acceptable forms: `(condensed)` or `(paraphrased)` immediately after the quoted text. An unlabelled condensation is treated as verbatim by reviewers — a silent reword can change the meaning of the rec being graded.
+
+**Example:**
+```
+rec 3 (condensed): "add a guard for the FAIL_PASSTHROUGH_CAP boundary"
+```
+
+---
+
 ## Carry-Forward Rule (S152)
 
 A rec **carried forward** from a prior session MUST name a target session in the ROADMAP.
@@ -152,6 +163,24 @@ A rec **carried forward** from a prior session MUST name a target session in the
 - **NOT acceptable:** re-copying the rec text with no destination — this grades as NOT-BUILT at the next review
 
 A rec copied without a named target is functionally a polite "no." The fidelity-reviewer **must** flag any unnamed carry-forward as hollow. (Source: S149 audit — 6 of 9 fidelity-reviewer recs graded Hollow were carry-forward labels that removed all obligation.)
+
+---
+
+## Hollow-Advice Retirement Standard (S153)
+
+Not every hollow rec requires a code fix. Acceptable retirement criteria:
+
+- **RETIRED (closed session):** the session that generated the rec is merged and `verify-closeout.sh` passed. Acceptable only when the rec concerns in-flight state that no longer exists (e.g. a process gap in a session that has now closed cleanly).
+- **RETIRED (superseded):** a later session shipped equivalent or better behavior. Cite the session and the specific item. Not acceptable if only claimed — evidence required.
+- **NOT acceptable:** retiring a rec because "it would be nice someday" or because the issue is minor. Absence of a carry-forward is not retirement.
+
+A reviewer grading a bulk retirement must ask: *"Does 'closed session + build passing' apply here, or does the rec name a gap that outlives the session?"* When in doubt, assign to the next session rather than retire.
+
+---
+
+## DOCUMENT-Session Verify Script Standard (S153)
+
+A verify script for a DOCUMENT session (one that adds/revises protocol text rather than code) MUST include at least one check per documented role confirming a **`Brief:`** statement is present in that role's handoff section. A verify script that only checks for the presence of a file, or for a key phrase in the whole doc, is hollow — it cannot distinguish a filled handoff from an empty skeleton.
 
 ---
 
