@@ -79,10 +79,10 @@ no new module, no new command, no ADR impact.
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha — replace with real commit sha after step 1 lands>
-- step 2 — done: <sha — replace with real commit sha after step 2 lands>
-- step 3 — done: <sha — replace with real commit sha after step 3 lands>
-- step 4 — done: <sha — replace with real commit sha after step 4 lands>
+- step 1 — done: 87feba8
+- step 2 — done: 87feba8
+- step 3 — done: 1abba8d
+- step 4 — done: 1abba8d
 
 ## Delta (vs ROADMAP — OpenSpec markers)
 
