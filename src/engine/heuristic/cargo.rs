@@ -244,6 +244,47 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
         assert_eq!(out, stdout);
     }
 
+    // S153 guardrail: FAIL_PASSTHROUGH_CAP (not FAIL_COMPRESS_FLOOR) governs the cargo-build-fail
+    // threshold. The two constants are 400 and 20 respectively; a future edit swapping them would
+    // silently change the passthrough boundary by 20×.
+    //
+    // The test uses mixed input (most lines are non-error "Compiling ..." lines, a few are real
+    // "error:" lines). Below the cap the whole input is returned unchanged; above the cap only
+    // the error lines survive, so the output is shorter than the input.
+    #[test]
+    fn cargo_build_fail_passthrough_cap_governs_threshold() {
+        let cap = crate::engine::FAIL_PASSTHROUGH_CAP;
+
+        fn mixed_build_fail(n: usize) -> String {
+            let mut lines: Vec<String> = (0..n.saturating_sub(2))
+                .map(|i| format!("   Compiling crate-{} v0.1.0", i))
+                .collect();
+            lines.push("error[E0308]: mismatched types".into());
+            lines.push("error: aborting due to previous error".into());
+            lines.join("\n")
+        }
+
+        // One line below cap → passthrough (returns input unchanged)
+        let below = mixed_build_fail(cap - 1);
+        let out_below = compress_cargo_build_fail(&below);
+        assert_eq!(
+            out_below, below,
+            "input below FAIL_PASSTHROUGH_CAP must be returned unchanged"
+        );
+
+        // One line above cap → compression (only error lines survive)
+        let above = mixed_build_fail(cap + 1);
+        let out_above = compress_cargo_build_fail(&above);
+        assert_ne!(
+            out_above, above,
+            "input above FAIL_PASSTHROUGH_CAP must be compressed, not passed through"
+        );
+        assert!(
+            out_above.lines().count() < above.lines().count(),
+            "compressed output must be shorter than input"
+        );
+    }
+
     #[test]
     fn cargo_test_fail_small_is_passthrough() {
         let stdout = "error: could not compile";
