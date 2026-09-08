@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S154 complete, S155 not yet started
+## Between Sessions — S155 complete, S156 not yet started
 
-**S154 closed.** CODER station tightened; S154 is the first CODE session to pass the Coder gate. PR pending. Founder to start S155 (mandatory NO-CODE Ground Truth).
+**S155 GT closed.** 🟡 PARTIAL PASS. One 🔴 (KNOWLEDGE.md 1364 lines, 3× stale). Founder pick: C (merge S153+S154 PRs + KNOWLEDGE.md prune). Brief: `prompts/156-task-admin-close.md`. **Next GT: S160.**
+
+## Session 155 — NO-CODE Ground Truth (155 % 5 == 0) — COMPLETE
+
+- Brief: `prompts/155-task-ground-truth.md`. Report: `sessions/session-155-ground-truth.md`.
+- 🟡 PARTIAL PASS. 12 audits + 6 special inputs. 🟢: stranger 21/21 · scaffold-drift 17/17 · fmt · 486 tests. 🔴: KNOWLEDGE.md 1364 lines. 🟡: prove-then-cut-cost 11 sessions late; tech-lead provenance systemic gap.
+- Founder pick: **C — administrative close.**
 
 ## Session 154 — CODER station (step-sha traces) — COMPLETE
 

@@ -1,8 +1,12 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-08 · **Session 154 — CODE: CODER station (step-sha traces) — ACCEPT (6/6 SHIPPED).** `check_execution_shas` now BLOCKs when real plan steps exist but `## Execution` is absent. Pre-existing placeholder-grep bug fixed. AGENTS.md rule added. S154 is the first CODE session to pass the CODER station (`ExecState::Recorded`). 486 lib tests. 17 checks GREEN. PR pending. **Next GT: S155.**
+**Updated:** 2026-09-08 · **Session 155 — mandatory NO-CODE Ground Truth (155 % 5 == 0) — 🟡 PARTIAL PASS.**
+12 audits + 6 special S155 inputs. 🟢: stranger 21/21 · scaffold-drift 17/17 · cargo fmt clean · 486 lib tests · no constraint violations · constitution current. 🔴: KNOWLEDGE.md 1364 lines (header says 475 — 3× stale, chronic since S60). 🟡: prove-then-cut-cost 11 sessions overdue · tech-lead provenance false-negative systemic · dogfood-age tool reads S124 (real last = S144). CODER station passes at S154 for first time. Carry-forward rules: 0 unnamed in 3 sessions. **Founder pick: C — administrative close (merge S153+S154 PRs + KNOWLEDGE.md prune). Next GT: S160.**
+Report: `sessions/session-155-ground-truth.md`.
 
-**S155 — NEXT (mandatory NO-CODE Ground Truth, 155 % 5 == 0):** Run all required audits (stranger check, scaffold drift, cargo fmt, lib tests, pipeline stations, dogfood age, cost/direction/discipline). Mandatory — cannot skip without GT waiver.
+**S156 — NEXT (DOCUMENT+admin: merge S153+S154 PRs + KNOWLEDGE.md prune):** AC1 — verify-closeout on main GREEN (PRs merged); AC2 — KNOWLEDGE.md ≤ 400 lines; AC3 — header count updated; AC4 — STATE.md agrees; AC5 — no permanent lesson lost. Brief: `prompts/156-task-admin-close.md`.
+
+**Prior — Updated:** 2026-09-08 · **Session 154 — CODE: CODER station (step-sha traces) — ACCEPT (6/6 SHIPPED).** `check_execution_shas` now BLOCKs when real plan steps exist but `## Execution` is absent. Pre-existing placeholder-grep bug fixed. AGENTS.md rule added. S154 is the first CODE session to pass the CODER station (`ExecState::Recorded`). 486 lib tests. 17 checks GREEN. PR pending. **Next GT: S155.**
 
 **Prior — Updated:** 2026-09-08 · **Session 153 — DOCUMENT+CODE: close 4 carry-forward items — ACCEPT (4/5 SHIPPED cold · AC5 at close).** 3 AGENTS.md prose additions + 1 cargo threshold guardrail test. 486 lib tests. 16/16 GREEN. PR pending. **Next GT: S155.**
 
