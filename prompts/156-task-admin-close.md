@@ -43,8 +43,8 @@ Clean the baseline. Two items:
 ## Execution
 
 - step 1 — done: 064666c (S155 closeout PR #187 merged to main)
-- step 2 — done: <sha>
-- step 3 — done: <sha>
+- step 2 — done: d93ad50 (KNOWLEDGE.md prune + verify/demo scripts) + b2549bd (crew skip markers)
+- step 3 — done: 7a1e12d (STATE.md update — 282 lines)
 - step 4 — done: (verify run, no commit)
 
 ## Delta
