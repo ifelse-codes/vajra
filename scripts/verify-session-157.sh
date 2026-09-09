@@ -51,11 +51,12 @@ else
   bad "replay-check-test-still-passes"
 fi
 
-# AC4: release binary exists and is recent
-if [ -f "target/release/vajra" ]; then
-  ok "release-binary-exists"
+# AC4: cargo build --release succeeds for this session's changes
+echo "  running cargo build --release..."
+if cargo build --release 2>&1; then
+  ok "cargo-build-release"
 else
-  bad "release-binary-exists"
+  bad "cargo-build-release"
 fi
 
 echo "demo:header"
