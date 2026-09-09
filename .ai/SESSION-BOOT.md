@@ -1,10 +1,17 @@
 # Session Boot
 
 ## Next Session
-- **S159 — NEXT.**
+- **S160 — NEXT (mandatory NO-CODE Ground Truth, 160 % 5 == 0).**
   Founder to pick. **Start in a FRESH chat.**
 
 ## Current Session
+- **Number:** 159 — COMPLETE (DOCUMENT: advice-influence re-audit). **Verdict: ACCEPT** (fidelity-reviewer, 5/5 SHIPPED).
+  Graded 15 advice items (design-advisor + fidelity-reviewer) across S153–S158. S152 carry-forward rule: eliminated unnamed carry-forwards (the targeted pattern); overall Hollow rate did not improve (67% 3-category vs 36% S149 baseline — new Hollow patterns emerged). `sessions/session-159-advice-influence-reaudit.md` (250+ lines). `scripts/verify-session-159.sh` (14/14 PASS).
+  Fakest green: grade-labels-present + evidence-citations are single-occurrence greps — cannot confirm all 15 items are graded.
+  design-significant: no.
+  **Next GT: S160 (mandatory).**
+
+## Prior Session
 - **Number:** 158 — COMPLETE (CODE: demo enforcement — make demo step mandatory in CODE sessions). **Verdict: ACCEPT** (fidelity-reviewer, 5/5 SHIPPED).
   `is_code_session()` helper (affirmative `**CODE**` match); `check_verify_demo_scripts` type-aware; `check_demo_markers` runs demo live + verifies all 4 markers. `scripts/demo-session-158.sh` + `scripts/verify-session-158.sh` (14/14 PASS).
   Fakest green: demo cases only exercise exemption paths (GT + S157) — not the blocking path. `--demo-only 158` is the real behavioral evidence.
@@ -23,11 +30,5 @@
   S151–S155 PRs all merged. KNOWLEDGE.md pruned 1364 → 282 lines. STATE.md updated. verify-session-156.sh 4/4 PASS.
   Fakest green: SESSION-number proxy for AC1 (doesn't detect unmerged PRs). AC5 self-asserted (no fixture).
   **Next GT: S160.**
-
-## Prior Session
-- **Number:** 155 — COMPLETE (NO-CODE Ground Truth, 155 % 5 == 0). **Verdict: 🟡 PARTIAL PASS.**
-  12 audits + 6 special S155 inputs. One 🔴: KNOWLEDGE.md 1364 lines (header says 475 — 3× stale, chronic since S60). Two 🟡: prove-then-cut-cost 11 sessions overdue; tech-lead provenance false-negative is systemic.
-  🟢: stranger 21/21 · scaffold-drift 17/17 · cargo-fmt clean · 486 lib tests. CODER passes at S154 (first time).
-  Founder pick: **C — administrative close (merge PRs + KNOWLEDGE.md prune).** Report: `sessions/session-155-ground-truth.md`. **Next GT: S160.**
 
 **New chat.**
