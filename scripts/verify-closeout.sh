@@ -266,10 +266,11 @@ is_code_session() {
     fi
     if [ "$in_type" -eq 1 ]; then
       echo "$line" | grep -qE '^#' && break
-      if echo "$line" | grep -qiE 'document|no-code|ground.truth|dogfood'; then return 1; fi
+      if echo "$line" | grep -qF '**CODE**'; then return 0; fi
     fi
   done < "$F"
-  return 0
+  # prompt exists but no **CODE** marker found in Type section → non-CODE
+  return 1
 }
 
 # --- Verify/Demo script-presence guard (S98 follow-up — the step-5 gap) ------
