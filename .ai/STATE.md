@@ -3,16 +3,15 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S158 complete, S159 not yet started).**
+**None — between sessions (S159 complete, S160 not yet started).**
 
-## What was done this session (S158 — CODE: demo enforcement)
+## What was done this session (S159 — DOCUMENT: advice-influence re-audit)
 
-- `is_code_session()` — new shared helper in `verify-closeout.sh`; affirmative `**CODE**` match in the `## Type` section (design-advisor rec 2 implemented); no-prompt-file defaults to CODE.
-- `check_verify_demo_scripts` — updated to call `is_code_session()` before requiring demo script; DOCUMENT sessions exempt from demo requirement.
-- `check_demo_markers()` — new gate function; runs the demo script live via `bash "$D" 2>&1`; checks all 4 required markers (`demo:header`, `demo:cases`, `demo:summary_table`, `demo:before_after`); wired into the main sequence.
-- `scripts/demo-session-158.sh` — new; emits all 4 markers; shows S157 fix + S158 enforcement.
-- `scripts/verify-session-158.sh` — new; 14/14 PASS (covers all 5 ACs + `--demo-only 158` live check).
-- Fidelity review: ACCEPT (5/5 SHIPPED). design-significant: yes.
+- `sessions/session-159-advice-influence-reaudit.md` — 15 advice items graded (design-advisor + fidelity-reviewer) across S153–S158; Changed/Noted/Carry-forward(compliant)/Hollow breakdown; comparison to S149 baseline (59% Changed, 36% Hollow).
+- `scripts/verify-session-159.sh` — 14/14 PASS.
+- `.ai/handoffs/session-159-tech-lead.md` — tech-lead dispatch: fidelity-reviewer required, 8 roles deferred-budget.
+- `.ai/handoffs/session-159-fidelity-reviewer.md` — cold pass; ACCEPT 5/5 SHIPPED.
+- Fidelity review: ACCEPT (5/5 SHIPPED). Fakest green: single-occurrence grep checks in verify script. design-significant: no.
 
 ## What Currently Works
 
@@ -30,7 +29,7 @@
 
 ## What Is Broken / Weak / Disclosed
 
-- **🟡 prove-then-cut-cost arc unstarted** — deferred 13 sessions since S145. Founder priority 3 (after Sept 15 release + first-contact dogfood).
+- **🟡 prove-then-cut-cost arc unstarted** — deferred 14 sessions since S145. Founder priority 3 (after Sept 15 release + first-contact dogfood).
 - **🟡 Demo cases don't exercise the blocking path** — S158 demo shows exemption paths only; blocking path needs a synthetic fixture session (deferred).
 - **🟡 C5 (verify-153 circular check)** — assign to next DOCUMENT session.
 - **🟡 Dogfood-age tool blind spot** — reads S124 (this repo); real last was S144 (chitra). LOW priority.
@@ -40,22 +39,26 @@
 - **🟡 D2 fresh-scaffold first-contact dogfood** — STILL OUTSTANDING; founder priority 2.
 - **🟡 Autopilot Ladder Rung 2/3** — never completed; founder priority 3.
 - **🟡 Zero external users** — 0 stars, ~19 downloads; founder priority 4.
-- **🟡 Sept 15 release deadline** — 6 days away; founder priority 1.
+- **🟡 S156 fidelity-reviewer recs (2)** — Hollow; no tracking; carry-forward → S160 GT checklist.
+- **🟡 S157 fidelity-reviewer rec 2** — remove grep checks from future verify scripts; Hollow; carry-forward → S160 GT.
+- **🟡 S158 design-advisor rec 4** — DECISION record for session-type detection; deferred without named session (non-compliant under S152); carry-forward → S160 GT.
+- **🟡 S158 fidelity-reviewer recs 1&2** — demo blocking path cases + verify behavioral test; deferred without named session (non-compliant under S152); carry-forward → S160 GT.
+- **🟡 S159 fidelity-reviewer rec 1** — strengthen verify-session-159.sh grep checks to count checks; carry-forward → S160 GT (backlog).
+- **🟡 S153 rec 2 / S154 rec 2** — carry-forwards pointed at S155; S155 passed without acting; need re-evaluation at S160 GT.
 
 ## What Is In Progress
 
-- Nothing. S158 complete.
+- Nothing. S159 complete.
 
 ## Active PRs
 
-- S158 PR: to be opened at closeout.
+- S159 PR: to be opened at closeout.
 
 ## Direction (governance is the product)
 
 - **Product = provable agent governance** (`DECISION-001`). Direction: **MAKE THE FLEET REAL.**
-- **Founder priorities (S158 session):** (1) Sept 15 release; (2) first-contact dogfood; (3) Rung 2/3; (4) external adoption.
-- **S159:** founder to pick.
-- **Next GT: S160 (160 % 5 == 0).**
+- **Founder priorities (S159 session):** (1) Sept 15 release; (2) first-contact dogfood; (3) Rung 2/3; (4) external adoption.
+- **S160:** mandatory NO-CODE Ground Truth (160 % 5 == 0).
 
 ## Cost Tracking
 
@@ -63,5 +66,5 @@
 - S77–91: ~$0 each. S92: $0.2713 · S97: $1.2758 · S102: $0.4644 · S103: $0.6797 · S118: $4.0911 · S124: $3.2985
   · S126: $4.4482 · S134: $1.6103 (+~19.2M raw) · S138: $2.988 · S138B: $5.405.
 - **S144: `$11.742472` AUTHORITATIVE** (headless chitra dogfood, 129 turns) + **875,548 RAW subagent tokens**.
-- S135–S143: ~$0 metered each. S146–S158: ~$0 metered each.
-- Cumulative: **~$116 + S76 (unknown, ≤~$26.6) + S111–S158 subagents (unknown).**
+- S135–S143: ~$0 metered each. S146–S159: ~$0 metered each.
+- Cumulative: **~$116 + S76 (unknown, ≤~$26.6) + S111–S159 subagents (unknown).**
