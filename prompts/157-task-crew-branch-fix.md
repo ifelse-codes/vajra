@@ -73,6 +73,11 @@ fn cross_check_accepts_dispatch_from_non_session_branch() {
 3. Run `cargo test` — confirm all tests pass. covers: 1,2,3
 4. Run `cargo build --release`. covers: 4
 
+## Design
+
+design-significant: no
+design-advisor: skipped — one new match arm in an existing match block; no architectural surface, no new data structure, no ADR impact. Tech-lead explicitly marked design-advisor as deferred-budget for this reason.
+
 ## Delta
 
 S155 GT flagged the tech-lead provenance false-negative as systemic: if tech-lead is dispatched before the session branch is created, the gate rejects a valid handoff. S156 used `VAJRA_CLOSEOUT_WAIVER=156` as a workaround. This session closes the root cause so future sessions don't need the waiver.
