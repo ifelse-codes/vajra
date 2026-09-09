@@ -2,11 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S157 complete, S158 not yet started
+## Between Sessions — S158 complete, S159 not yet started
 
-**S157 ACCEPT (CODE).** One match arm + one test in `src/dispatch/mod.rs`. Pre-branch tech-lead dispatch (`gitBranch: "main"`) now accepted. 487 lib tests. 6/6 verify PASS. Two-pass fidelity review (REJECT → ACCEPT). **Next GT: S160.**
-Founder pick for S158: **demo enforcement** — make demo step mandatory in CODE sessions.
-Brief: `prompts/158-task-demo-enforcement.md`.
+**S158 ACCEPT (CODE).** `is_code_session()` (affirmative `**CODE**` match) + `check_verify_demo_scripts` (type-aware) + `check_demo_markers` (live run + 4 markers). `demo-session-158.sh` + `verify-session-158.sh` 14/14 PASS. design-significant: yes. **Next GT: S160.**
+Founder to pick S159 in a FRESH chat.
+
+## Session 158 — CODE: demo enforcement — COMPLETE
+
+- Brief: `prompts/158-task-demo-enforcement.md`. Review: `sessions/session-158-review.md`.
+- `is_code_session()` + `check_demo_markers` in `verify-closeout.sh`. Affirmative `**CODE**` matching. 5/5 SHIPPED. **ACCEPT.**
 
 ## Session 157 — CODE: fix tech-lead provenance false-negative — COMPLETE
 
