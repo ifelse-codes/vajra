@@ -248,6 +248,30 @@ check_execution_shas() {
   fi
 }
 
+# Returns 0 (true) if the current session is a CODE session.
+# Reads the ## Type section of the prompt file; defaults to CODE when absent.
+# GT (N % 5 == 0) is always non-CODE regardless of prompt content.
+# DOCUMENT, NO-CODE, DOGFOOD, and GROUND-TRUTH type lines return 1 (false).
+is_code_session() {
+  [ -n "$N" ] || return 1
+  [ "$((N % 5))" -ne 0 ] || return 1
+  local padded; padded="$(printf '%02d' "$N")"
+  shopt -s nullglob
+  local prompts=(prompts/${padded}-task-*.md)
+  [ "${#prompts[@]}" -gt 0 ] || return 0  # no prompt file → assume CODE
+  local F="${prompts[0]}" in_type=0
+  while IFS= read -r line; do
+    if echo "$line" | grep -qiE '^#{1,6}[[:space:]]+type[[:space:]]*$'; then
+      in_type=1; continue
+    fi
+    if [ "$in_type" -eq 1 ]; then
+      echo "$line" | grep -qE '^#' && break
+      if echo "$line" | grep -qiE 'document|no-code|ground.truth|dogfood'; then return 1; fi
+    fi
+  done < "$F"
+  return 0
+}
+
 # --- Verify/Demo script-presence guard (S98 follow-up — the step-5 gap) ------
 # Catches the S98 miss: a CODE session that closes WITHOUT its own
 # scripts/verify-session-NN.sh + demo-session-NN.sh. Every CODE session carries
@@ -257,11 +281,11 @@ check_execution_shas() {
 # which is exactly how S98 shipped scriptless. This is the last line of defence for
 # the session's OWN scripts, at its own close.
 #
-# Exempt (both mirror how the exec-sha + fidelity gates already treat non-CODE work):
+# Exempt (all mirror how the exec-sha + fidelity gates already treat non-CODE work):
 #   * NO-CODE ground-truth (N % 5 == 0) — no code, no scripts — passes N/A.
-#   * DOGFOOD / founder-waived (VAJRA_CLOSEOUT_WAIVER=N) — a dogfood produces no
-#     session scripts; the same escape hatch the other gates use — passes WAIVED.
-# Everything else is a CODE session and must have BOTH scripts (non-empty).
+#   * DOCUMENT sessions — no source changes, no mandatory demo — verify only.
+#   * DOGFOOD / founder-waived (VAJRA_CLOSEOUT_WAIVER=N) — passes WAIVED.
+# CODE sessions must have BOTH scripts (non-empty).
 check_verify_demo_scripts() {
   local NAME="verify-demo-scripts-present"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
@@ -276,20 +300,98 @@ check_verify_demo_scripts() {
   local D="scripts/demo-session-${N}.sh"
   local missing=()
   { [ -f "$V" ] && [ -s "$V" ]; } || missing+=("$V")
-  { [ -f "$D" ] && [ -s "$D" ]; } || missing+=("$D")
+
+  if is_code_session; then
+    # CODE sessions require the demo script too.
+    { [ -f "$D" ] && [ -s "$D" ]; } || missing+=("$D")
+  fi
 
   if [ "${#missing[@]}" -eq 0 ]; then
-    echo "OK: $V + $D both present and non-empty." >> "$LOG"; ok "$NAME"; return
+    if is_code_session; then
+      echo "OK: $V + $D both present and non-empty (CODE session)." >> "$LOG"
+    else
+      echo "OK: $V present and non-empty (non-CODE session; demo exempt)." >> "$LOG"
+    fi
+    ok "$NAME"; return
   fi
 
   for m in ${missing[@]+"${missing[@]}"}; do echo "MISSING: $m" >> "$LOG"; done
-  echo "BLOCK: session $N is a CODE session but is missing the step-5 script(s) above." >> "$LOG"
+  echo "BLOCK: session $N is missing the step-5 script(s) above." >> "$LOG"
   if waiver_ok; then
     echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>} (DOGFOOD / NO-CODE — no scripts)." >> "$LOG"
     ok "$NAME"
   else
-    echo "FAIL: add scripts/verify-session-${N}.sh + scripts/demo-session-${N}.sh (step 5, VERIFY + DEMO)," >> "$LOG"
+    if is_code_session; then
+      echo "FAIL: add scripts/verify-session-${N}.sh + scripts/demo-session-${N}.sh (step 5, VERIFY + DEMO)," >> "$LOG"
+    else
+      echo "FAIL: add scripts/verify-session-${N}.sh (step 5, VERIFY)," >> "$LOG"
+    fi
     echo "      or set VAJRA_CLOSEOUT_WAIVER=$N for a DOGFOOD / NO-CODE session that produces none." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
+# --- Demo marker check (S158 — close the silent-pass hole) -------------------
+# The Demo-er station (src/demo/mod.rs) checks markers only if the script exists AND
+# `vajra next --advance` is called. A CODE session that ships an exit-0 demo skeleton
+# with no markers passes the Demo-er station silently. This closes that gap: it RUNS
+# the demo script at close and blocks when any of the 4 required markers is absent from
+# live output (CONSTRAINTS.yaml#demo.required_elements):
+#   header · cases · summary_table · before_after
+# Exempt: non-CODE sessions (DOCUMENT / GT / DOGFOOD).
+# N/A: if the demo script is absent — that failure is owned by check_verify_demo_scripts.
+check_demo_markers() {
+  local NAME="demo-markers-present"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+
+  if ! is_code_session; then
+    echo "N/A: session $N is non-CODE — demo marker check exempt." >> "$LOG"
+    ok "$NAME"; return
+  fi
+
+  local D="scripts/demo-session-${N}.sh"
+  if [ ! -f "$D" ] || [ ! -s "$D" ]; then
+    echo "N/A: $D absent — check_verify_demo_scripts owns this failure." >> "$LOG"
+    ok "$NAME"; return
+  fi
+
+  local out code
+  out="$(bash "$D" 2>&1)" && code=0 || code=$?
+  printf '%s\n' "$out" >> "$LOG"
+  echo "exit=$code" >> "$LOG"
+
+  if [ "$code" -ne 0 ]; then
+    echo "BLOCK: $D exited $code — the demo script itself failed." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      bad "$NAME"
+    fi
+    return
+  fi
+
+  local required="header cases summary_table before_after"
+  local missing_markers="" count=0
+  for el in $required; do
+    if echo "$out" | grep -q "demo:${el}"; then
+      echo "OK: marker 'demo:${el}' found" >> "$LOG"
+    else
+      echo "MISSING: marker 'demo:${el}' not found in demo output" >> "$LOG"
+      missing_markers="${missing_markers} demo:${el}"; count=$((count+1))
+    fi
+  done
+
+  if [ "$count" -eq 0 ]; then
+    echo "OK: all 4 required markers present in $D output." >> "$LOG"; ok "$NAME"; return
+  fi
+
+  echo "BLOCK: $count required marker(s) absent from $D live output: $missing_markers" >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: emit each required marker in $D output:" >> "$LOG"
+    echo "      demo:header  demo:cases  demo:summary_table  demo:before_after" >> "$LOG"
     bad "$NAME"
   fi
 }
@@ -763,6 +865,17 @@ if [ "${1:-}" = "--scripts-only" ]; then
   if [ "$FAIL" -eq 0 ]; then echo "SCRIPTS: PASS"; exit 0; else echo "SCRIPTS: FAIL"; exit 1; fi
 fi
 
+# Focused entry point: run ONLY the demo marker check (S158). `--demo-only [N]`.
+if [ "${1:-}" = "--demo-only" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
+  check_demo_markers
+  echo ""
+  echo "=== Demo marker check (N=${N:-?}) ==="
+  for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
+  cat "$ARTIFACTS/demo-markers-present.log" 2>/dev/null || true
+  if [ "$FAIL" -eq 0 ]; then echo "DEMO: PASS"; exit 0; else echo "DEMO: FAIL"; exit 1; fi
+fi
+
 # Focused entry point: run ONLY the verdict-attestation check (S58). `--attest-only [N]`.
 if [ "${1:-}" = "--attest-only" ]; then
   if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
@@ -838,6 +951,7 @@ check_cost_tracking
 check_cargo_fmt
 check_execution_shas
 check_verify_demo_scripts
+check_demo_markers
 check_fidelity_review
 check_obeyed_judgments
 check_design_advisor_mandate
