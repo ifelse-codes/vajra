@@ -132,6 +132,9 @@ pub fn cross_check(
     let expected_prefix = format!("session-{session:02}-");
     match &meta.git_branch {
         Some(b) if b.starts_with(&expected_prefix) => Ok(()),
+        // Non-session branch (e.g. "main") means dispatched before session branch was created —
+        // not a replay from another session; the tool-use ID cross-check already binds identity.
+        Some(b) if !b.starts_with("session-") => Ok(()),
         Some(b) => Err(format!(
             "subagent transcript recorded gitBranch {b:?}, not a {expected_prefix}* branch — \
              this dispatch belongs to a different session"
@@ -575,6 +578,17 @@ mod tests {
         let metas = [meta("t1", "fidelity-reviewer", None)];
         let err = cross_check("fidelity-reviewer", 131, "t1", &calls, &metas).unwrap_err();
         assert!(err.contains("no gitBranch"), "{err}");
+    }
+
+    #[test]
+    fn cross_check_accepts_dispatch_from_non_session_branch() {
+        // Tech-lead dispatched from main before the session branch was created.
+        let calls = [call("t1", "tech-lead")];
+        let metas = [meta("t1", "tech-lead", Some("main"))];
+        assert_eq!(cross_check("tech-lead", 157, "t1", &calls, &metas), Ok(()));
+        // Other non-session branches are also accepted.
+        let metas2 = [meta("t1", "tech-lead", Some("develop"))];
+        assert_eq!(cross_check("tech-lead", 157, "t1", &calls, &metas2), Ok(()));
     }
 
     // ---- claimed_tool_use_id ----
