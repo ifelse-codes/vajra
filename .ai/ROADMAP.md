@@ -1,10 +1,14 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-09 · **Session 157 — CODE: fix tech-lead provenance false-negative — ACCEPT (4/5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT).**
+**Updated:** 2026-09-09 · **Session 158 — CODE: demo enforcement (make demo step mandatory in CODE sessions) — ACCEPT (5/5 SHIPPED).**
+`is_code_session()` helper (affirmative `**CODE**` match); `check_verify_demo_scripts` type-aware; `check_demo_markers` runs demo live + verifies all 4 markers. `scripts/demo-session-158.sh` + `scripts/verify-session-158.sh` (14/14 PASS). design-significant: yes.
+Fakest green: demo cases only exercise exemption paths (GT + S157) — not the blocking path. `--demo-only 158` is the real behavioral evidence. **Next GT: S160.**
+
+**S159 — NEXT:** Founder to pick.
+
+**Prior — Updated:** 2026-09-09 · **Session 157 — CODE: fix tech-lead provenance false-negative — ACCEPT (4/5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT).**
 One match arm in `cross_check` (`src/dispatch/mod.rs`): pre-branch dispatches from `"main"` now accepted; session-* replay check preserved. One new test. 487 lib tests. verify-session-157.sh 6/6 PASS. Two-pass fidelity review (REJECT → ACCEPT).
 Fakest green: `new-match-arm-present` grep proves text presence, not arm position — test suite is the real gate. **Next GT: S160.**
-
-**S158 — NEXT:** Founder pick: demo enforcement — make demo step mandatory in CODE sessions. Brief: `prompts/158-task-demo-enforcement.md`.
 
 **Prior — Updated:** 2026-09-08 · **Session 156 — DOCUMENT+admin: merge pending PRs + KNOWLEDGE.md prune — ACCEPT (3/5 SHIPPED · 2 PARTIAL).**
 All S151–S155 PRs merged. KNOWLEDGE.md pruned 1364 → 282 lines. STATE.md updated. verify-session-156.sh 4/4 PASS.

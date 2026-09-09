@@ -1,12 +1,17 @@
 # Session Boot
 
 ## Next Session
-- **S158 — NEXT.**
-  Founder pick: demo enforcement — make the demo step mandatory in CODE sessions.
-  Brief: `prompts/158-task-demo-enforcement.md`.
-  **Start in a FRESH chat.**
+- **S159 — NEXT.**
+  Founder to pick. **Start in a FRESH chat.**
 
 ## Current Session
+- **Number:** 158 — COMPLETE (CODE: demo enforcement — make demo step mandatory in CODE sessions). **Verdict: ACCEPT** (fidelity-reviewer, 5/5 SHIPPED).
+  `is_code_session()` helper (affirmative `**CODE**` match); `check_verify_demo_scripts` type-aware; `check_demo_markers` runs demo live + verifies all 4 markers. `scripts/demo-session-158.sh` + `scripts/verify-session-158.sh` (14/14 PASS).
+  Fakest green: demo cases only exercise exemption paths (GT + S157) — not the blocking path. `--demo-only 158` is the real behavioral evidence.
+  design-significant: yes (`is_code_session()` is a new shared inference contract; affirmative-matching adopted per design-advisor rec 2).
+  **Next GT: S160.**
+
+## Prior Session
 - **Number:** 157 — COMPLETE (CODE: fix tech-lead provenance false-negative). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT).
   One new match arm in `cross_check` (`src/dispatch/mod.rs`): non-session branches (e.g. `"main"`) now accepted. One new test. 487 lib tests. `verify-session-157.sh` 6/6 PASS.
   Fakest green: `new-match-arm-present` grep proves text presence, not arm position — test suite is the real gate.
@@ -24,15 +29,5 @@
   12 audits + 6 special S155 inputs. One 🔴: KNOWLEDGE.md 1364 lines (header says 475 — 3× stale, chronic since S60). Two 🟡: prove-then-cut-cost 11 sessions overdue; tech-lead provenance false-negative is systemic.
   🟢: stranger 21/21 · scaffold-drift 17/17 · cargo-fmt clean · 486 lib tests. CODER passes at S154 (first time).
   Founder pick: **C — administrative close (merge PRs + KNOWLEDGE.md prune).** Report: `sessions/session-155-ground-truth.md`. **Next GT: S160.**
-
-## Prior Session
-- **Number:** 154 — COMPLETE (CODE: CODER station — step-sha traces). **Verdict: ACCEPT** (fidelity-reviewer, 6/6 SHIPPED cold).
-  `check_execution_shas` tightened (BLOCK on real plan + no `## Execution`); placeholder grep fixed; AGENTS.md rule added; self-bind filled.
-  486 lib tests. 17/17 GREEN. PR #185 MERGED. **Next GT: S155.**
-
-## Prior Session
-- **Number:** 153 — COMPLETE (DOCUMENT+CODE: close 4 carry-forward items). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED cold · AC5 at close).
-  3 AGENTS.md prose additions (handoff-condensation · retirement-standard · DOCUMENT-verify-standard) + 1 cargo threshold guardrail test. 486 lib tests. 16/16 GREEN.
-  PR #184 MERGED. **Next GT: S155.**
 
 **New chat.**
