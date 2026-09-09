@@ -1,10 +1,14 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-08 · **Session 156 — DOCUMENT+admin: merge pending PRs + KNOWLEDGE.md prune — ACCEPT (3/5 SHIPPED · 2 PARTIAL).**
+**Updated:** 2026-09-09 · **Session 157 — CODE: fix tech-lead provenance false-negative — ACCEPT (4/5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT).**
+One match arm in `cross_check` (`src/dispatch/mod.rs`): pre-branch dispatches from `"main"` now accepted; session-* replay check preserved. One new test. 487 lib tests. verify-session-157.sh 6/6 PASS. Two-pass fidelity review (REJECT → ACCEPT).
+Fakest green: `new-match-arm-present` grep proves text presence, not arm position — test suite is the real gate. **Next GT: S160.**
+
+**S158 — NEXT:** Founder pick: demo enforcement — make demo step mandatory in CODE sessions. Brief: `prompts/158-task-demo-enforcement.md`.
+
+**Prior — Updated:** 2026-09-08 · **Session 156 — DOCUMENT+admin: merge pending PRs + KNOWLEDGE.md prune — ACCEPT (3/5 SHIPPED · 2 PARTIAL).**
 All S151–S155 PRs merged. KNOWLEDGE.md pruned 1364 → 282 lines. STATE.md updated. verify-session-156.sh 4/4 PASS.
 Fakest green: SESSION-number proxy for AC1 (cannot detect unmerged PRs). AC5 self-asserted (no fixture). **Next GT: S160.**
-
-**S157 — NEXT:** Pick from S156 A/B/C: (A) tech-lead provenance false-negative fix (CODE); (B) prove-then-cut-cost arc start (DOGFOOD); (C) GT S160 prep / backlog triage (DOCUMENT).
 
 **Prior — Updated:** 2026-09-08 · **Session 155 — mandatory NO-CODE Ground Truth (155 % 5 == 0) — 🟡 PARTIAL PASS.**
 12 audits + 6 special S155 inputs. 🟢: stranger 21/21 · scaffold-drift 17/17 · cargo fmt clean · 486 lib tests · no constraint violations · constitution current. 🔴: KNOWLEDGE.md 1364 lines (header says 475 — 3× stale, chronic since S60). 🟡: prove-then-cut-cost 11 sessions overdue · tech-lead provenance false-negative systemic · dogfood-age tool reads S124 (real last = S144). CODER station passes at S154 for first time. Carry-forward rules: 0 unnamed in 3 sessions. **Founder pick: C — administrative close (merge S153+S154 PRs + KNOWLEDGE.md prune). Next GT: S160.**

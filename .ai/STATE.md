@@ -3,15 +3,16 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**session-156-admin-close** — S156 DOCUMENT+admin in progress.
+**None — between sessions (S157 complete, S158 not yet started).**
 
-## What was done this session (S156 — DOCUMENT+admin administrative close)
+## What was done this session (S157 — CODE: fix tech-lead provenance false-negative)
 
-- **S155 closeout branch** merged to main as PR #187 (SESSION → 155, .ai/ sync).
-- **S153 PR #184** MERGED · **S154 PR #185** MERGED (confirmed in gh pr list).
-- **S151 PR #181** MERGED · **S152 PR #182** MERGED (already done in earlier sessions).
-- **KNOWLEDGE.md pruned:** 1364 lines → **282 lines** (≤ 400). Header updated to "282 lines as of S156".
-- Permanent lessons retained; session-narrative entries discarded (already in ROADMAP + SESSION-BOOT).
+- One new match arm in `src/dispatch/mod.rs` `cross_check`: `Some(b) if !b.starts_with("session-") => Ok(())` — accepts dispatches from non-session branches (e.g. `"main"`).
+- One new unit test `cross_check_accepts_dispatch_from_non_session_branch` — covers `"main"` and `"develop"`.
+- `scripts/verify-session-157.sh` — 6/6 PASS (includes real `cargo build --release`).
+- Two-pass fidelity review: REJECT (AC4 hollow binary check) → fix → ACCEPT.
+- Tech-lead + implementation-advisor + fidelity-reviewer all dispatched with verified provenance.
+- 487 lib tests (was 486).
 
 ## What Currently Works
 
@@ -24,29 +25,35 @@
 - Obedience-skip rule + carry-forward rule + handoff-condensation rule + retirement-standard + DOCUMENT-session verify standard in AGENTS.md (S152/S153).
 - Cargo-build-fail threshold guardrail test (S153).
 - **KNOWLEDGE.md**: 282 lines, header accurate as of S156.
+- **Tech-lead provenance false-negative FIXED (S157):** pre-branch dispatches from `"main"` are now accepted by `cross_check`.
 
 ## What Is Broken / Weak / Disclosed
 
-- **🟡 Tech-lead provenance false-negative** — systemic: gitBranch recorded at dispatch time; if tech-lead dispatched before session branch checkout, verifier rejects it. No fix scheduled yet (carry-forward → S157 A/B/C options).
-- **🟡 prove-then-cut-cost arc unstarted** — deferred 12 sessions since S145. Must appear as A or B at S157 closeout.
+- **🟡 prove-then-cut-cost arc unstarted** — deferred 13 sessions since S145. Founder priority 3 (after Sept 15 release + first-contact dogfood).
+- **🟡 Demo step skipped in CODE sessions** — no enforcement; S158 will fix this (founder pick).
 - **🟡 C5 (verify-153 circular check)** — assign to next DOCUMENT session.
-- **🟡 Demo-er absent in CODE sessions** (S151, S153 no Demo-er; S154 has it) — not consistent.
 - **🟡 Dogfood-age tool blind spot** — reads S124 (this repo); real last was S144 (chitra). LOW priority.
 - **🟡 Waiver path for BLOCK case untested** — carry-forward → backlog.
 - **🟡 Tightening-delta not falsified** — carry-forward → backlog.
+- **🟡 Reviewer independence at close** — fidelity-reviewer can technically be self-certified; carry-forward → backlog.
+- **🟡 D2 fresh-scaffold first-contact dogfood** — STILL OUTSTANDING; founder priority 2.
+- **🟡 Autopilot Ladder Rung 2/3** — never completed; founder priority 3.
+- **🟡 Zero external users** — 0 stars, ~19 downloads; founder priority 4.
+- **🟡 Sept 15 release deadline** — 6 days away; founder priority 1.
 
 ## What Is In Progress
 
-- **session-156-admin-close** — S156 DOCUMENT+admin. PR to be opened at closeout.
+- Nothing. S157 complete.
 
 ## Active PRs
 
-- All S151–S155 PRs merged. S156 PR pending (this session).
+- S157 PR: to be opened at closeout.
 
 ## Direction (governance is the product)
 
 - **Product = provable agent governance** (`DECISION-001`). Direction: **MAKE THE FLEET REAL.**
-- **Founder completeness order (S140):** (1) fresh-user/upgrade — DONE (S141-143, proven S144); (2) chitra dogfoods — S144 full-loop done; (3) prove-then-cut-cost — DEFERRED; (4) gauge = low.
+- **Founder priorities (S157 session):** (1) Sept 15 release; (2) first-contact dogfood; (3) Rung 2/3; (4) external adoption.
+- **S158:** demo enforcement (founder pick).
 - **Next GT: S160 (160 % 5 == 0).**
 
 ## Cost Tracking
@@ -55,5 +62,5 @@
 - S77–91: ~$0 each. S92: $0.2713 · S97: $1.2758 · S102: $0.4644 · S103: $0.6797 · S118: $4.0911 · S124: $3.2985
   · S126: $4.4482 · S134: $1.6103 (+~19.2M raw) · S138: $2.988 · S138B: $5.405.
 - **S144: `$11.742472` AUTHORITATIVE** (headless chitra dogfood, 129 turns) + **875,548 RAW subagent tokens**.
-- S135–S143: ~$0 metered each. S146–S156: ~$0 metered each.
-- Cumulative: **~$116 + S76 (unknown, ≤~$26.6) + S111–S156 subagents (unknown).**
+- S135–S143: ~$0 metered each. S146–S157: ~$0 metered each.
+- Cumulative: **~$116 + S76 (unknown, ≤~$26.6) + S111–S157 subagents (unknown).**
