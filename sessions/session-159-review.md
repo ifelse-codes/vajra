@@ -40,4 +40,4 @@ rec 3 — (applied in-session) Put the 3-category view (direct apples-to-apples)
 
 All 5 ACs are genuinely SHIPPED. The audit reads actual handoff and summary files, grades each item against the corroborating source (not the advisor's own claim), and delivers a clear plain-English answer: the S152 rule eliminated its targeted pattern (unnamed carry-forwards) but did not improve the overall Hollow rate. No scope creep. The fakest green is a verify-script structural weakness, not a hollow finding in the audit itself.
 
-Review-Inputs-SHA: (pending — to be filled after SESSION updated to 159)
+Review-Inputs-SHA: d6ccddbd815cdc63f4a0a55bb9da0f0c33be3a8a9beda5eafdbc31201d404501
