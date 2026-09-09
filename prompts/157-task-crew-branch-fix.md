@@ -76,3 +76,18 @@ fn cross_check_accepts_dispatch_from_non_session_branch() {
 ## Delta
 
 S155 GT flagged the tech-lead provenance false-negative as systemic: if tech-lead is dispatched before the session branch is created, the gate rejects a valid handoff. S156 used `VAJRA_CLOSEOUT_WAIVER=156` as a workaround. This session closes the root cause so future sessions don't need the waiver.
+
+## Advice
+
+obeyed: 78eed2e — tech-lead rec 1: new arm inserted strictly between starts_with arm and catch-all; no None arm added before it.
+obeyed: 78eed2e — tech-lead rec 2: cargo test run before cargo build --release; both green.
+obeyed: 78eed2e — tech-lead rec 3: ## Execution filled with step SHAs as work lands.
+
+obeyed: 78eed2e — impl-advisor rec 1: single new match arm inserted at correct position; no other function code changed.
+obeyed: 78eed2e — impl-advisor rec 2: new test covers both "main" and "develop"; single file change.
+obeyed: 78eed2e — impl-advisor rec 3: cross_check_fails_when_git_branch_is_a_different_session confirmed green before recording SHA.
+
+## Execution
+
+step 1 — done: 78eed2e
+step 2 — done: 78eed2e
