@@ -2,10 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S158 complete, S159 not yet started
+## Between Sessions — S159 complete, S160 not yet started
 
-**S158 ACCEPT (CODE).** `is_code_session()` (affirmative `**CODE**` match) + `check_verify_demo_scripts` (type-aware) + `check_demo_markers` (live run + 4 markers). `demo-session-158.sh` + `verify-session-158.sh` 14/14 PASS. design-significant: yes. **Next GT: S160.**
-Founder to pick S159 in a FRESH chat.
+**S159 ACCEPT (DOCUMENT).** Graded 15 advice items across S153–S158 (design-advisor + fidelity-reviewer). S152 carry-forward rule: eliminated unnamed carry-forwards; overall Hollow rate did not improve (67% 3-cat vs 36% S149 baseline). `verify-session-159.sh` 14/14 PASS. **Next GT: S160 (mandatory).**
+Founder to pick S160 in a FRESH chat.
+
+## Session 159 — DOCUMENT: advice-influence re-audit — COMPLETE
+
+- Brief: `prompts/159-task-advice-influence-reaudit.md`. Review: `sessions/session-159-review.md`.
+- 15 items graded. Audit: `sessions/session-159-advice-influence-reaudit.md`. 5/5 SHIPPED. **ACCEPT.**
 
 ## Session 158 — CODE: demo enforcement — COMPLETE
 
