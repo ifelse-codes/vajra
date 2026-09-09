@@ -47,6 +47,18 @@ design-significant: no
 
 Pure measurement session — no new code, no new interface, no ADR. Reads handoffs and session summaries; produces a report and a verify script. No architectural decision surface.
 
+## Crew
+
+design-advisor: skipped — design-significant: no; pure measurement session (read-and-grade only, no new code or interface); tech-lead confirmed deferred-budget in `.ai/handoffs/session-159-tech-lead.md`.
+
+## Execution
+
+step 1 — done: d8e5a70
+step 2 — done: d8e5a70
+step 3 — done: d8e5a70
+step 4 — done: d8e5a70
+step 5 — done: d8e5a70
+
 ## Delta
 
 S149 established the baseline and diagnosed the Hollow problem. S152 added the carry-forward rule. This session measures the outcome — did 6 sessions of the new rule change the rate? If yes, the mechanic works. If no, the next step is a structured enforcement gate (S149 said "if Noted > 30% after a re-audit, build the mechanical check").
