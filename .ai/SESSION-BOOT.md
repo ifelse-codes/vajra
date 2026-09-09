@@ -1,11 +1,19 @@
 # Session Boot
 
 ## Next Session
-- **S157 — NEXT.**
-  Pick from S156 A/B/C: (A) tech-lead provenance false-negative fix (CODE); (B) prove-then-cut-cost arc start (DOGFOOD); (C) GT S160 prep / backlog triage (DOCUMENT).
+- **S158 — NEXT.**
+  Founder pick: demo enforcement — make the demo step mandatory in CODE sessions.
+  Brief: `prompts/158-task-demo-enforcement.md`.
   **Start in a FRESH chat.**
 
 ## Current Session
+- **Number:** 157 — COMPLETE (CODE: fix tech-lead provenance false-negative). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT).
+  One new match arm in `cross_check` (`src/dispatch/mod.rs`): non-session branches (e.g. `"main"`) now accepted. One new test. 487 lib tests. `verify-session-157.sh` 6/6 PASS.
+  Fakest green: `new-match-arm-present` grep proves text presence, not arm position — test suite is the real gate.
+  Two-pass fidelity review: REJECT (AC4 hollow) → fix → ACCEPT.
+  **Next GT: S160.**
+
+## Prior Session
 - **Number:** 156 — COMPLETE (DOCUMENT+admin: merge pending PRs + KNOWLEDGE.md prune). **Verdict: ACCEPT** (fidelity-reviewer, 3/5 SHIPPED · 2 PARTIAL).
   S151–S155 PRs all merged. KNOWLEDGE.md pruned 1364 → 282 lines. STATE.md updated. verify-session-156.sh 4/4 PASS.
   Fakest green: SESSION-number proxy for AC1 (doesn't detect unmerged PRs). AC5 self-asserted (no fixture).
@@ -26,16 +34,5 @@
 - **Number:** 153 — COMPLETE (DOCUMENT+CODE: close 4 carry-forward items). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED cold · AC5 at close).
   3 AGENTS.md prose additions (handoff-condensation · retirement-standard · DOCUMENT-verify-standard) + 1 cargo threshold guardrail test. 486 lib tests. 16/16 GREEN.
   PR #184 MERGED. **Next GT: S155.**
-
-## Prior Session
-- **Number:** 152 — COMPLETE (DOCUMENT: obedience-skip + carry-forward rules). **Verdict: ACCEPT** (fidelity-reviewer, 4/5 SHIPPED · 1 PARTIAL).
-  Obedience Protocol rule + Carry-Forward Rule added to AGENTS.md; backlog escape requires GT pickup.
-  8 S149 hollow items audited: 4 retired, 4 assigned → S153. 16/16 GREEN.
-  PR #182 MERGED. **Next GT: S155.**
-
-## Prior Session
-- **Number:** 151 — COMPLETE (CODE: fix cargo fmt + guard). **Verdict: ACCEPT** (fidelity-reviewer, 4/4 SHIPPED).
-  cargo fmt run on 4 S148 files; check_cargo_fmt() added to verify-closeout.sh; 485 lib tests; 16/16 GREEN.
-  PR #181 MERGED. **Next GT: S155.**
 
 **New chat.**
