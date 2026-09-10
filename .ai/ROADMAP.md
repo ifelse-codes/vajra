@@ -1,9 +1,13 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-09 · **Session 159 — DOCUMENT: advice-influence re-audit — ACCEPT (5/5 SHIPPED).**
+**Updated:** 2026-09-10 · **Session 160 — mandatory NO-CODE Ground Truth (160 % 5 == 0) — 🟡 PARTIAL PASS.**
+12 audits run live. 🟢 stranger 21/21 · scaffold-drift 17/17 · cargo fmt clean · 487 lib tests · KNOWLEDGE.md 282 lines. 🔴 3 active S152 carry-forward violations from S158 (assigned → S161 mandatory) · no inter-GT dogfood (2-day window). 🟡 Autopilot Ladder no session owner (15+ sessions) · dogfood-age tool blind spot (reads S124, real last = S144) · Releaser station structurally absent (merged branch not pruned). Carry-forward decisions: S158-DA-r4, S158-FR-r1, S158-FR-r2, S153-FR → S161 mandatory; S156-FR-r1, S156-FR-r2, S157-FR-r2, S159-FR-r1, S154-QA → backlog. Meta-finding: no audit measures whether the Sept 15 backstop is on track; v0.1 conditions met at S108. **Founder pick: S161 = B+A (close S158 carry-forwards + D2 first-contact dogfood). Next GT: S165.**
+Report: `sessions/session-160-ground-truth.md`.
+
+**Prior — Updated:** 2026-09-09 · **Session 159 — DOCUMENT: advice-influence re-audit — ACCEPT (5/5 SHIPPED).**
 15 advice items graded (design-advisor + fidelity-reviewer) across S153–S158. S152 carry-forward rule PARTIAL effect: eliminated unnamed carry-forwards (the targeted pattern); overall Hollow rate did not improve (67% 3-category vs 36% S149 baseline). New Hollow patterns: S156 sessions without formal handoffs break tracking; unnamed deferred items in S158 violate S152 but are hard to detect. `verify-session-159.sh` 14/14 PASS. design-significant: no.
 Fakest green: single-occurrence grep checks in verify script cannot confirm all 15 items are graded.
-Carry-forwards to S160 GT: S156-FR-r1, S156-FR-r2, S157-FR-r2, S158-DA-r4, S158-FR-r1, S158-FR-r2, S159-FR-r1 (verify strengthening). **Next GT: S160 (mandatory).**
+**Next GT: S165.**
 
 **Prior — Updated:** 2026-09-09 · **Session 158 — CODE: demo enforcement (make demo step mandatory in CODE sessions) — ACCEPT (5/5 SHIPPED).**
 `is_code_session()` helper (affirmative `**CODE**` match); `check_verify_demo_scripts` type-aware; `check_demo_markers` runs demo live + verifies all 4 markers. `scripts/demo-session-158.sh` + `scripts/verify-session-158.sh` (14/14 PASS). design-significant: yes.
@@ -11,7 +15,7 @@ Fakest green: demo cases only exercise exemption paths (GT + S157) — not the b
 
 **S156–S157 (after S155 GT):** Advice-influence re-audit (re-run S149 audit to measure whether S152 rules reduced the Hollow rate from 36%). **S159 DONE: result = partial; rule eliminated unnamed carry-forwards but overall Hollow rate not improved.**
 
-**S160 — NEXT (mandatory NO-CODE Ground Truth, 160 % 5 == 0):** Founder to pick.
+**S161 — NEXT (CODE + DOGFOOD: close S158 carry-forwards + D2 first-contact dogfood):** Prompt: `prompts/161-task-b-closeouts-and-d2-dogfood.md`.
 
 **Prior — Updated:** 2026-09-09 · **Session 157 — CODE: fix tech-lead provenance false-negative — ACCEPT (4/5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT).**
 One match arm in `cross_check` (`src/dispatch/mod.rs`): pre-branch dispatches from `"main"` now accepted; session-* replay check preserved. One new test. 487 lib tests. verify-session-157.sh 6/6 PASS. Two-pass fidelity review (REJECT → ACCEPT).
