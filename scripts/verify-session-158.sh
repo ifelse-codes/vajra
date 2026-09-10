@@ -26,11 +26,20 @@ else
   bad "is_code_session-present (helper not found in verify-closeout.sh)"
 fi
 
-# AC1: check_verify_demo_scripts uses is_code_session
-if grep -A5 "is_code_session" scripts/verify-closeout.sh | grep -q "demo"; then
-  ok "verify-demo-scripts-type-aware"
+# AC1 behavioral: check_demo_markers blocks on marker-free CODE session
+TMPDIR_BH="$(mktemp -d)"
+mkdir -p "$TMPDIR_BH/.ai" "$TMPDIR_BH/prompts" "$TMPDIR_BH/scripts"
+echo "99" > "$TMPDIR_BH/.ai/SESSION"
+printf '## Type\n**CODE**\n' > "$TMPDIR_BH/prompts/99-task-fixture.md"
+printf '#!/usr/bin/env bash\necho "no markers"\n' > "$TMPDIR_BH/scripts/demo-session-99.sh"
+chmod +x "$TMPDIR_BH/scripts/demo-session-99.sh"
+BHAV_OUT="$(CLAUDE_PROJECT_DIR="$TMPDIR_BH" bash scripts/verify-closeout.sh --demo-only 99 2>&1)" && BHAV_EXIT=0 || BHAV_EXIT=$?
+rm -rf "$TMPDIR_BH"
+if [ "$BHAV_EXIT" -ne 0 ] || echo "$BHAV_OUT" | grep -q "DEMO: FAIL"; then
+  ok "check_demo_markers-blocks-marker-free-code-session"
 else
-  bad "verify-demo-scripts-type-aware (no demo reference near is_code_session)"
+  bad "check_demo_markers-blocks-marker-free-code-session (should FAIL but did not)"
+  echo "$BHAV_OUT" | tail -5
 fi
 
 # AC2: check_demo_markers function present in verify-closeout.sh
