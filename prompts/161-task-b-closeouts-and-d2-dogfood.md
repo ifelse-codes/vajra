@@ -65,12 +65,12 @@ tech-lead to dispatch first (mandatory). design-advisor required (design-signifi
 
 _Fill in as steps land:_
 
-step 1 — done: <sha>
-step 2 — done: <sha>
-step 3 — done: <sha>
-step 4 — done: <sha>
-step 5 — done: <sha>
-step 6 — done: <sha>
+step 1 — done: 375edcf
+step 2 — done: ec301d0
+step 3 — done: ec301d0
+step 4 — done: 08bbb04
+step 5 — done: 6e98553
+step 6 — done: fadbaa0
 
 ## Delta
 
