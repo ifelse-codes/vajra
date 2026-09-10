@@ -3,14 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S160 complete, S161 not yet started).**
+**None — between sessions (S161 complete, S162 not yet started).**
 
-## What was done this session (S160 — NO-CODE Ground Truth)
+## What was done this session (S161 — CODE + DOGFOOD)
 
-- `sessions/session-160-ground-truth.md` — 12 audits run live (stranger 21/21, scaffold-drift 17/17, fmt clean, 487 tests). 🟡 PARTIAL PASS.
-- Carry-forward decisions: 4 items from S158/S153 → S161 mandatory; 5 items → backlog.
-- S161 prompt written: `prompts/161-task-b-closeouts-and-d2-dogfood.md`.
-- `.ai/SESSION` → 160.
+- AC1: `docs/decisions/DECISION-008-session-type-detection.md` — new peer decision record for `is_code_session()` affirmative-match contract and `check_demo_markers()` enforcement pattern (sha `375edcf`).
+- AC2: `scripts/demo-session-158.sh` — Case 4 added: blocking-path fixture (CODE + marker-free → BLOCK confirmed) (sha `ec301d0`).
+- AC3: `scripts/verify-session-158.sh` — behavioral integration test replaces source-proximity grep; tmpdir fixture with CLAUDE_PROJECT_DIR, `--demo-only 99`, asserts FAIL (sha `ec301d0`).
+- AC4: `scripts/verify-closeout.sh` `check_required_crew` — greps `.ai/handoffs/session-${N}-*.md` for `Brief:` (not AGENTS.md); WARN-only for non-CODE sessions. `scripts/verify-session-153.sh` C5 — greps real handoff file (sha `08bbb04`).
+- AC5/AC6: D2 dogfood at scratchpad/d2-dogfood — `vajra init` (38 files), `vajra claude -p` session-00, 15/15 verify-closeout with VAJRA_CLOSEOUT_WAIVER=0, governed handoffs for tech-lead/design-advisor/fidelity-reviewer via `vajra next --role`. Cost: null (total_cost_usd not in JSONL).
+- AC7: `scripts/verify-session-161.sh` — 17/17 PASS (sha `fadbaa0`).
+- `.ai/SESSION` → 161.
 
 ## What Currently Works
 
@@ -25,46 +28,38 @@
 - **KNOWLEDGE.md**: 282 lines, header accurate as of S156.
 - **Tech-lead provenance false-negative FIXED (S157):** pre-branch dispatches from `"main"` are now accepted by `cross_check`.
 - **Demo enforcement LIVE (S158):** `check_demo_markers` runs demo scripts live at closeout; `is_code_session()` type-gating; affirmative `**CODE**` matching.
+- **DECISION-008 (S161):** `is_code_session()` affirmative-match contract documented; `CODE + DOGFOOD` IS CODE; GT override is structural (N%5==0); three rejected alternatives on record.
+- **C5 circular check FIXED (S161):** `check_required_crew` greps real handoff files for `Brief:`, not AGENTS.md.
+- **D2 first-contact dogfood run (S161):** vajra init → session 00 → 15/15 closeout on fresh stranger repo. Gaps: inner session did not autonomously call `vajra next --role` (post-hoc); waiver required for non-vajra repos.
 
 ## What Is Broken / Weak / Disclosed
 
-- **🟡 prove-then-cut-cost arc unstarted** — deferred 15+ sessions since S145. Founder priority 3 (after Sept 15 release + first-contact dogfood).
-- **🟡 Demo cases don't exercise the blocking path** — S158 demo shows exemption paths only; blocking path needs a synthetic fixture session → **S161 mandatory (S158-FR-r1)**.
-- **🟡 C5 (verify-closeout circular check)** — `check_required_crew` greps AGENTS.md note instead of real handoff file → **S161 mandatory (S153-FR)**.
-- **🟡 S158-DA-r4** — DECISION record for session-type detection not written → **S161 mandatory**.
-- **🟡 S158-FR-r2** — source-proximity grep in verify-session-158.sh not replaced with behavioral test → **S161 mandatory**.
-- **🟡 Dogfood-age tool blind spot** — reads S124 (this repo); real last was S144 (chitra). LOW priority.
+- **🟡 prove-then-cut-cost arc unstarted** — deferred 15+ sessions since S145. Founder priority 3 (after release + dogfood).
+- **🟡 D2 inner-session gap** — inner `vajra claude -p` session dispatched fleet roles as subagents but did not autonomously call `vajra next --role`; outer session completed that step. The "self-driving unattended close" claim (S140) is not yet verified end-to-end.
+- **🟡 D2 waiver path** — `check_required_crew` requires `target/release/vajra` (local binary); non-vajra repos must waiver. Fall back to system vajra binary = backlog.
+- **🟡 fidelity-review-accept naming gap** — when SESSION is "00", N=0 and check looks for `session-0-review.md` not `session-00-review.md`. Backlog.
+- **🟡 Dogfood-age tool blind spot** — reads S124; real last dogfood = S144 (chitra) / S161 (D2). LOW priority.
 - **🟡 Waiver path for BLOCK case untested** — carry-forward → backlog.
 - **🟡 Tightening-delta not falsified** — carry-forward → backlog.
-- **🟡 Reviewer independence at close** — fidelity-reviewer can technically be self-certified; carry-forward → backlog.
-- **🟡 D2 fresh-scaffold first-contact dogfood** — STILL OUTSTANDING; founder priority 2 → **S161**.
+- **🟡 Reviewer independence at close** — carry-forward → backlog.
 - **🟡 Autopilot Ladder Rung 2/3** — never completed; founder priority 3.
-- **🟡 Zero external users** — 0 stars, ~19 downloads; founder priority 4.
+- **🟡 Zero external users** — 0 stars; founder priority 4.
 - **🟡 S156-FR-r1, S156-FR-r2** — backlog (prune-session-specific; no prune scheduled).
 - **🟡 S157-FR-r2** — backlog (applies gradually to future verify scripts).
 - **🟡 S159-FR-r1** — backlog (S159 closed; pattern applies to future audit verify scripts).
 - **🟡 S154-QA recs 1–3** — backlog confirmed.
 - **🟡 Releaser station** — NEVER passes; merged branch `session-156-admin-close` not pruned; structural gap.
+- **🟡 S161-FR recs 2–4** — backlog: content validation in check_required_crew; vajra next --role inner/outer doc; fidelity-review-accept naming; cost-absence vs cost-captured distinguish.
 
 ## What Is In Progress
 
-- Nothing. S160 complete.
+- Nothing. S161 complete.
 
 ## Active PRs
 
-- S160 PR: to be opened at closeout.
+- S161 PR: to be opened at closeout.
 
 ## Direction (governance is the product)
 
 - **Product = provable agent governance** (`DECISION-001`). Direction: **MAKE THE FLEET REAL.**
-- **Founder priorities (S160 GT):** (1) Sept 15 release [v0.1 already shipped on crates.io — conditions met at S108]; (2) D2 first-contact dogfood → S161; (3) Rung 2/3; (4) external adoption.
-- **S161:** CODE + DOGFOOD — close S158 carry-forwards (4 mandatory items) + D2 first-contact dogfood.
-
-## Cost Tracking
-
-- Session 00–30: ~$0.46 cumulative. S36: ~$61.4 · S46: ~$3.84 · S63: ~$1.27 · S76: real but UNKNOWN (≤~$26.6).
-- S77–91: ~$0 each. S92: $0.2713 · S97: $1.2758 · S102: $0.4644 · S103: $0.6797 · S118: $4.0911 · S124: $3.2985
-  · S126: $4.4482 · S134: $1.6103 (+~19.2M raw) · S138: $2.988 · S138B: $5.405.
-- **S144: `$11.742472` AUTHORITATIVE** (headless chitra dogfood, 129 turns) + **875,548 RAW subagent tokens**.
-- S135–S143: ~$0 metered each. S146–S160: ~$0 metered each.
-- Cumulative: **~$116 + S76 (unknown, ≤~$26.6) + S111–S160 subagents (unknown).**
+- **Founder priorities (S160 GT):** (1) Sept 15 release [v0.1 already shipped on crates.io — conditions met at S108]; (2) D2 first-contact dogfood → S161 DONE; (3) Rung 2/3; (4) external adoption.
