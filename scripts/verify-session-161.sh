@@ -51,7 +51,15 @@ run_check "demo-blocking-path-blocks"  demo_blocking_path
 
 # ── AC3: verify-session-158.sh behavioral check present ──────────────────────
 VS158="scripts/verify-session-158.sh"
-run_check "verify-158-no-source-grep"  bash -c "! grep -q 'grep -A5.*is_code_session.*demo\|grep.*is_code_session.*|.*grep.*demo' '$VS158' 2>/dev/null || true; grep -q 'mktemp\|TMPDIR' '$VS158'"
+# AC3: old source-proximity grep gone, replaced by behavioral fixture with mktemp
+verify_158_behavioral() {
+  # The old check was: grep -A5 "is_code_session" | grep -q "demo"
+  # Confirm: that exact pattern no longer exists AND mktemp/TMPDIR is present
+  grep -qF 'grep -A5 "is_code_session"' "$VS158" && return 1  # old grep still present → FAIL
+  grep -q 'mktemp\|TMPDIR' "$VS158" || return 1               # behavioral fixture absent → FAIL
+  return 0
+}
+run_check "verify-158-no-source-grep"  verify_158_behavioral
 run_check "verify-158-behavioral-fixture" grep -q "CLAUDE_PROJECT_DIR" "$VS158"
 run_check "verify-158-asserts-fail"    grep -q "should FAIL\|BHAV_EXIT\|FAIL" "$VS158"
 
