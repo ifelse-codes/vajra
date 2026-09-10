@@ -59,6 +59,13 @@
 
 - S161 PR: to be opened at closeout.
 
+## Cost Tracking
+
+| Session | Cost (authoritative) | Notes |
+|---------|----------------------|-------|
+| S161 (Part 1 — AC1-AC4) | $0 | Code + verify changes; no paid run |
+| S161 (Part 2 — D2 dogfood) | null | `total_cost_usd` not in JSONL from vajra 9ebb758; inner session via `vajra claude -p`; token estimate ~$14.15 (not authoritative) |
+
 ## Direction (governance is the product)
 
 - **Product = provable agent governance** (`DECISION-001`). Direction: **MAKE THE FLEET REAL.**
