@@ -63,10 +63,12 @@ c4_document_verify_standard() {
 }
 run_check "C4-document-verify-standard" c4_document_verify_standard
 
-# C5: The DOCUMENT-session note explicitly mentions "Brief:" (AC4 depth)
+# C5: A real S153 handoff file contains "Brief:" (S161 fix — old check grepped AGENTS.md itself,
+# which was circular: the rule text in AGENTS.md contains the word "Brief:")
 c5_brief_requirement() {
-  grep -A5 "DOCUMENT-Session Verify Script Standard" "$AGENTS" \
-    | grep -q "Brief:" || return 1
+  local handoff=".ai/handoffs/session-153-fidelity-reviewer.md"
+  [ -f "$handoff" ] || return 1
+  grep -q "Brief:" "$handoff" || return 1
 }
 run_check "C5-brief-requirement" c5_brief_requirement
 

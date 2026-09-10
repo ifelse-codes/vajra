@@ -645,6 +645,23 @@ check_required_crew() {
   fi
   if [ "$code" -eq 0 ]; then
     echo "OK: session $N has a real tech-lead handoff and every role it marked \`required\` produced a governed handoff." >> "$LOG"
+    # Brief: check for non-CODE (DOCUMENT) sessions — S153 C5 fix (S161). Greps real handoff
+    # files, not AGENTS.md (the old verify-session-153.sh C5 was circular: AGENTS.md itself
+    # contains the word "Brief:" in the rule text). WARN only — new check, must not break
+    # existing sessions that predate the Brief: requirement.
+    if ! is_code_session; then
+      shopt -s nullglob
+      local hs=(.ai/handoffs/session-${N}-*.md)
+      local brief_found=0
+      for h in ${hs[@]+"${hs[@]}"}; do
+        if grep -q "Brief:" "$h" 2>/dev/null; then brief_found=1; break; fi
+      done
+      if [ "${#hs[@]}" -gt 0 ] && [ "$brief_found" -eq 0 ]; then
+        echo "WARN: non-CODE session $N has handoffs but none contain 'Brief:' (DOCUMENT-Session Verify Script Standard, S153 C5 fix)." >> "$LOG"
+      elif [ "$brief_found" -eq 1 ]; then
+        echo "OK: Brief: found in a real handoff file (not AGENTS.md) for non-CODE session $N." >> "$LOG"
+      fi
+    fi
     ok "$NAME"; return
   fi
   echo "BLOCK: session $N is missing its tech-lead handoff, or a role the tech-lead marked \`required\` produced no governed handoff." >> "$LOG"
