@@ -30,6 +30,9 @@ crew demo-producer — deferred-budget — budget: 0 tokens — demo-session-158
 crew release-coordinator — deferred-budget — budget: 0 tokens — standard PR workflow; no release coordination needed
 crew plan-advisor — deferred-budget — budget: 0 tokens — 6-step plan is complete and execution-traced; no re-planning
 
+## Handoff Delta
+- `+` new: tech-lead handoff for session 161 (S161 CODE + DOGFOOD)
+
 ## Crew rationale
 
 S161 has two independent deliverables. design-advisor is required because DECISION-008 is

@@ -12,6 +12,9 @@ cost_usd: null
 Project: vajra (Rust CLI for AI agent governance)
 Session: 161 — close S158 carry-forwards + D2 first-contact dogfood
 
+## Handoff Delta
+- `+` new: design-advisor handoff for session 161 (design-significant: yes, DECISION-008)
+
 ## design-significant: yes
 
 DECISION-008 establishes `is_code_session()` and `check_demo_markers()` as a named,

@@ -11,6 +11,9 @@ cost_usd: null
 
 **Verdict: ACCEPT** (5/7 SHIPPED, 2 PARTIAL — see review)
 
+## Handoff Delta
+- `+` new: fidelity-reviewer handoff for session 161 (ACCEPT, 5/7 SHIPPED · 2 PARTIAL)
+
 ## Brief
 
 Cold independent review of S161 delivery against `prompts/161-task-b-closeouts-and-d2-dogfood.md`.
