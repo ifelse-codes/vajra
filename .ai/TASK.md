@@ -2,10 +2,16 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S159 complete, S160 not yet started
+## Between Sessions — S160 complete, S161 not yet started
 
-**S159 ACCEPT (DOCUMENT).** Graded 15 advice items across S153–S158 (design-advisor + fidelity-reviewer). S152 carry-forward rule: eliminated unnamed carry-forwards; overall Hollow rate did not improve (67% 3-cat vs 36% S149 baseline). `verify-session-159.sh` 14/14 PASS. **Next GT: S160 (mandatory).**
-Founder to pick S160 in a FRESH chat.
+**S160 ACCEPT (NO-CODE Ground Truth).** 12 audits run live. 🟢 stranger 21/21 · scaffold-drift 17/17 · fmt clean · 487 tests. 🔴 3 active S152 violations from S158 (assigned → S161). 🔴 no inter-GT dogfood (2-day window). 🟡 vision/roadmap stalled on ladder (15+ sessions); dogfood-age tool blind spot; Releaser structural gap. S160 carry-forward decisions made. **Prompt: `prompts/161-task-b-closeouts-and-d2-dogfood.md`.**
+
+## Session 160 — NO-CODE Ground Truth — COMPLETE
+
+- Report: `sessions/session-160-ground-truth.md`.
+- 12 audits, 🟡 PARTIAL PASS. 4 green · 4 yellow · 2 red.
+- Carry-forward decisions: S158 violations → S161 (mandatory). Backlog items confirmed.
+- **Verdict: 🟡 PARTIAL PASS.**
 
 ## Session 159 — DOCUMENT: advice-influence re-audit — COMPLETE
 
