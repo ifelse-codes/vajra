@@ -33,6 +33,8 @@
 
 The vajra repo's S161 handoffs initially contained D2 hello-world content — the design-advisor said "design-significant: no" directly contradicting the prompt's "design-significant: yes". Files passed the crew existence gate on presence alone. Corrected before closeout per fidelity-reviewer rec 1.
 
+**Review-Inputs-SHA:** 4b07664d9625b06eaaaaa4307af15fd808500a847c89e676fa5ec77d09e1ee4a
+
 ## Deferred findings (backlog)
 
 1. Content validation in `check_required_crew` beyond file existence (session/project scope check).
