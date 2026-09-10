@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S160 complete, S161 not yet started
+## Between Sessions — S161 complete, S162 not yet started
 
-**S160 ACCEPT (NO-CODE Ground Truth).** 12 audits run live. 🟢 stranger 21/21 · scaffold-drift 17/17 · fmt clean · 487 tests. 🔴 3 active S152 violations from S158 (assigned → S161). 🔴 no inter-GT dogfood (2-day window). 🟡 vision/roadmap stalled on ladder (15+ sessions); dogfood-age tool blind spot; Releaser structural gap. S160 carry-forward decisions made. **Prompt: `prompts/161-task-b-closeouts-and-d2-dogfood.md`.**
+**S161 ACCEPT (CODE + DOGFOOD).** AC1–AC4 all SHIPPED (DECISION-008, blocking-path demo, behavioral verify test, C5 circular check fix). AC5–AC6 PARTIAL (D2 dogfood ran, verify-closeout 15/15 with waiver, inner session gap disclosed). AC7 17/17. **Prompt: `prompts/161-task-b-closeouts-and-d2-dogfood.md`.** S162 TBD — founder pick.
+
+## Session 161 — CODE + DOGFOOD: S158 carry-forwards + D2 dogfood — COMPLETE
+
+- Brief: `prompts/161-task-b-closeouts-and-d2-dogfood.md`. Summary: `sessions/session-161-summary.md`. Review: `sessions/session-161-review.md`.
+- AC1–AC4 SHIPPED · AC5–AC6 PARTIAL · AC7 SHIPPED (17/17). **ACCEPT (5/7 SHIPPED).**
 
 ## Session 160 — NO-CODE Ground Truth — COMPLETE
 
@@ -36,5 +41,5 @@
 ## Session 155 — NO-CODE Ground Truth (155 % 5 == 0) — COMPLETE
 
 - Brief: `prompts/155-task-ground-truth.md`. Report: `sessions/session-155-ground-truth.md`.
-- 🟡 PARTIAL PASS. 12 audits + 6 special inputs. 🟢: stranger 21/21 · scaffold-drift 17/17 · fmt · 486 tests. 🔴: KNOWLEDGE.md 1364 lines. 🟡: prove-then-cut-cost 11 sessions late; tech-lead provenance systemic gap.
+- 🟡 PARTIAL PASS. 12 audits + 6 special inputs. 🟢: stranger 21/21 · scaffold-drift 17/17 · fmt · 486 tests. 🔴: KNOWLEDGE.md 1364 lines. 🟡: prove-then-cut-cost 11 sessions late; tech-lead provenance false-negative systemic gap.
 - Founder pick: **C — administrative close.**
