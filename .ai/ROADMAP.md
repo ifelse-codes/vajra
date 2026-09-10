@@ -1,6 +1,9 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-10 · **Session 160 — mandatory NO-CODE Ground Truth (160 % 5 == 0) — 🟡 PARTIAL PASS.**
+**Updated:** 2026-09-10 · **Session 161 — CODE + DOGFOOD: close S158 carry-forwards + D2 first-contact dogfood — ACCEPT (5/7 SHIPPED · 2 PARTIAL).**
+AC1–AC4 all SHIPPED (DECISION-008 written; blocking-path demo confirmed; behavioral verify test replaces source-proximity grep; C5 circular check fixed). AC5–AC6 PARTIAL: D2 vajra init + vajra claude -p + 15/15 closeout with waiver; governed handoffs created post-hoc (inner session dispatched fleet as subagents only). AC7 17/17. Fakest green: S161 handoffs initially contained D2 content; corrected. design-significant: yes (DECISION-008). Deferred: inner-session autonomy gap; check_required_crew content validation; system-binary fallback for non-vajra repos. **Founder pick: S162 TBD. Next GT: S165.**
+
+**Prior — Updated:** 2026-09-10 · **Session 160 — mandatory NO-CODE Ground Truth (160 % 5 == 0) — 🟡 PARTIAL PASS.**
 12 audits run live. 🟢 stranger 21/21 · scaffold-drift 17/17 · cargo fmt clean · 487 lib tests · KNOWLEDGE.md 282 lines. 🔴 3 active S152 carry-forward violations from S158 (assigned → S161 mandatory) · no inter-GT dogfood (2-day window). 🟡 Autopilot Ladder no session owner (15+ sessions) · dogfood-age tool blind spot (reads S124, real last = S144) · Releaser station structurally absent (merged branch not pruned). Carry-forward decisions: S158-DA-r4, S158-FR-r1, S158-FR-r2, S153-FR → S161 mandatory; S156-FR-r1, S156-FR-r2, S157-FR-r2, S159-FR-r1, S154-QA → backlog. Meta-finding: no audit measures whether the Sept 15 backstop is on track; v0.1 conditions met at S108. **Founder pick: S161 = B+A (close S158 carry-forwards + D2 first-contact dogfood). Next GT: S165.**
 Report: `sessions/session-160-ground-truth.md`.
 
@@ -15,7 +18,7 @@ Fakest green: demo cases only exercise exemption paths (GT + S157) — not the b
 
 **S156–S157 (after S155 GT):** Advice-influence re-audit (re-run S149 audit to measure whether S152 rules reduced the Hollow rate from 36%). **S159 DONE: result = partial; rule eliminated unnamed carry-forwards but overall Hollow rate not improved.**
 
-**S161 — NEXT (CODE + DOGFOOD: close S158 carry-forwards + D2 first-contact dogfood):** Prompt: `prompts/161-task-b-closeouts-and-d2-dogfood.md`.
+**S161 — DONE (CODE + DOGFOOD: close S158 carry-forwards + D2 first-contact dogfood). ACCEPT.**
 
 **Prior — Updated:** 2026-09-09 · **Session 157 — CODE: fix tech-lead provenance false-negative — ACCEPT (4/5 SHIPPED · 1 PARTIAL · 0 NOT-BUILT).**
 One match arm in `cross_check` (`src/dispatch/mod.rs`): pre-branch dispatches from `"main"` now accepted; session-* replay check preserved. One new test. 487 lib tests. verify-session-157.sh 6/6 PASS. Two-pass fidelity review (REJECT → ACCEPT).

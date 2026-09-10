@@ -49,6 +49,22 @@ header "3 · S158 demo script itself emits the 4 required markers"
 label "demo:header, demo:cases, demo:summary_table, demo:before_after all present in THIS output"
 ok "Confirmed (you are reading them right now)"
 
+header "4 · Blocking-path: CODE session with marker-free demo → BLOCK"
+label "Setting up synthetic fixture in a tmpdir"
+TMPDIR_SYN="$(mktemp -d)"
+mkdir -p "$TMPDIR_SYN/.ai" "$TMPDIR_SYN/prompts" "$TMPDIR_SYN/scripts"
+echo "99" > "$TMPDIR_SYN/.ai/SESSION"
+printf '## Type\n**CODE**\n' > "$TMPDIR_SYN/prompts/99-task-fixture.md"
+printf '#!/usr/bin/env bash\necho "Fake demo — no markers"\nexit 0\n' > "$TMPDIR_SYN/scripts/demo-session-99.sh"
+chmod +x "$TMPDIR_SYN/scripts/demo-session-99.sh"
+BLOCK_OUT="$(CLAUDE_PROJECT_DIR="$TMPDIR_SYN" bash scripts/verify-closeout.sh --demo-only 99 2>&1)" && BLOCK_EXIT=0 || BLOCK_EXIT=$?
+rm -rf "$TMPDIR_SYN"
+if [ "$BLOCK_EXIT" -ne 0 ] || echo "$BLOCK_OUT" | grep -q "DEMO: FAIL"; then
+  ok "Blocking path confirmed: CODE session with marker-free demo → BLOCK (exit $BLOCK_EXIT)"
+else
+  printf "${YELLOW}  UNEXPECTED PASS (expected BLOCK): %s${RESET}\n" "$(echo "$BLOCK_OUT" | tail -1)"
+fi
+
 # demo:summary_table
 header "Summary  [demo:summary_table]"
 printf "\n"
@@ -59,6 +75,7 @@ printf "  %-42s %s\n" "4-marker live run (AC2)"                     "ENFORCED"
 printf "  %-42s %s\n" "DOCUMENT sessions exempt"                    "CORRECT"
 printf "  %-42s %s\n" "GT sessions exempt (N % 5 == 0)"             "CORRECT"
 printf "  %-42s %s\n" "S158 demo emits all 4 markers"               "PASS"
+printf "  %-42s %s\n" "Blocking-path: marker-free CODE → BLOCK"      "CONFIRMED"
 printf "\n"
 
 ok "Session 158 demo complete."
