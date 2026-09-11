@@ -3,17 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S162 complete, S163 not yet started).**
+**None — between sessions (S163 complete, S164 not yet started).**
 
-## What was done this session (S162 — CODE: waiver path tests + fresh-init investigation)
+## What was done this session (S163 — CODE: fix hollow verify checks — F09 + F08)
 
-- AC1: `scripts/verify-session-162.sh` — behavioral test: `VAJRA_CLOSEOUT_WAIVER=162` on synthetic fixture forcing fidelity FAIL → verify-closeout exits 0 (sha `48e89f1`).
-- AC2: `scripts/verify-session-162.sh` — behavioral test: `VAJRA_CLOSEOUT_WAIVER=999` (999≠162) → verify-closeout stays RED; fidelity-review-accept confirmed FAIL (sha `48e89f1`).
-- AC3: `scripts/verify-session-162.sh` — behavioral test: VAJRA_CLOSEOUT_WAIVER_REASON found in exact artifact log path captured from waiver run output (sha `48e89f1`).
-- AC4: Fresh-init investigation — `vajra check` 10/11 (FAIL: branch), `vajra next` 0/8 roles, `vajra next --stations` ABSENT stations, `verify-closeout.sh` RED. All signals honest. No false-ready signal.
-- AC5: No fix needed — finding 14 closed as honest. Documented in demo + verify.
-- AC6: `scripts/verify-session-162.sh` 13/13 PASS (sha `48e89f1`); `scripts/demo-session-162.sh` all 4 markers (sha `b35f243`).
-- `.ai/SESSION` → 162.
+- AC1: `verify-session-158.sh` — 2 hollow source greps replaced with behavioral tests: DOCUMENT fixture → `--demo-only 99` → exit 0 (exempt); CODE+4-markers fixture → `--demo-only 99` → "DEMO: PASS" in output.
+- AC2: `verify-session-157.sh` — 2 hollow source greps replaced with `cargo test` invocations: `cross_check_accepts_dispatch_from_non_session_branch ... ok`; `cross_check_fails_when_git_branch_is_a_different_session ... ok`.
+- AC3: `verify-session-154.sh` — hollow `has_plan_steps`/`S154` greps replaced with `--check-exec-shas 154` live entry point; real-plan+no-exec fixture exits non-zero (BLOCK proven).
+- AC4: 5 FALSIFIABILITY comments added, each naming a concrete input the old grep accepted and the new test rejects. Key note: `has_plan_steps` is a LOCAL VARIABLE inside `check_execution_shas`, not a callable function.
+- AC5: `_AC5_PASS` tracker — passes only when all three patched scripts exit 0.
+- AC6: `scripts/verify-session-163.sh` 10/10 PASS; awk self-scan confirms 0 source-proximity greps (sha `65ba748`); `scripts/demo-session-163.sh` all 4 markers.
+- `.ai/SESSION` → 163.
 
 ## What Currently Works
 
@@ -33,16 +33,17 @@
 - **D2 first-contact dogfood run (S161):** vajra init → session 00 → 15/15 closeout on fresh stranger repo. Gaps: inner session did not autonomously call `vajra next --role` (post-hoc); waiver required for non-vajra repos.
 - **VAJRA_CLOSEOUT_WAIVER proven end-to-end (S162):** correct-session waiver passes, wrong-session waiver blocked, reason recorded in artifact log. All three proven by live behavioral tests (not source grep).
 - **Finding 14 CLOSED (S162):** fresh `vajra init` gives honest signals — 0/8 stations ABSENT, verify-closeout RED. No false-ready fix needed.
+- **F09 + F08 CLOSED (S163):** 5 hollow source-proximity greps across verify-session-154/157/158 replaced with subprocess invocations against synthetic fixtures. 5 FALSIFIABILITY comments added (closes F08 for these checks). verify-session-163.sh 10/10 behavioral.
 
 ## What Is Broken / Weak / Disclosed
 
+- **🟡 Releaser station** — NEVER passes; merged branch `session-156-admin-close` not pruned; structural gap. **S164 target.**
 - **🟡 prove-then-cut-cost arc unstarted** — deferred 15+ sessions since S145. Founder priority 3 (after release + dogfood).
 - **🟡 D2 inner-session gap** — inner `vajra claude -p` session dispatched fleet roles as subagents but did not autonomously call `vajra next --role`; outer session completed that step. The "self-driving unattended close" claim (S140) is not yet verified end-to-end.
 - **🟡 D2 waiver path** — `check_required_crew` requires `target/release/vajra` (local binary); non-vajra repos must waiver. Fall back to system vajra binary = backlog.
 - **🟡 fidelity-review-accept naming gap** — when SESSION is "00", N=0 and check looks for `session-0-review.md` not `session-00-review.md`. Backlog.
 - **🟡 Dogfood-age tool blind spot** — reads S124; real last dogfood = S144 (chitra) / S161 (D2). LOW priority.
 - **🟡 Waiver path for BLOCK case untested** — carry-forward → backlog (S162 proved the fidelity gate waiver path; other check waiver paths are not individually tested).
-- **🟡 Tightening-delta not falsified** — carry-forward → backlog.
 - **🟡 Reviewer independence at close** — carry-forward → backlog.
 - **🟡 Autopilot Ladder Rung 2/3** — never completed; founder priority 3.
 - **🟡 Zero external users** — 0 stars; founder priority 4.
@@ -50,21 +51,23 @@
 - **🟡 S157-FR-r2** — backlog (applies gradually to future verify scripts).
 - **🟡 S159-FR-r1** — backlog (S159 closed; pattern applies to future audit verify scripts).
 - **🟡 S154-QA recs 1–3** — backlog confirmed.
-- **🟡 Releaser station** — NEVER passes; merged branch `session-156-admin-close` not pruned; structural gap.
 - **🟡 S161-FR recs 2–4** — backlog: content validation in check_required_crew; vajra next --role inner/outer doc; fidelity-review-accept naming; cost-absence vs cost-captured distinguish.
+- **🟡 check_demo_markers-in-main-sequence** — pre-existing source-proximity grep in verify-session-158.sh (not added by S163, excluded from scope). Carry-forward → backlog.
+- **🟡 Root cause of hollow verify checks not gated** — S163 retroactively fixed existing hollow checks; no gate prevents future sessions from writing new ones. Backlog.
 
 ## What Is In Progress
 
-- Nothing. S162 complete.
+- Nothing. S163 complete.
 
 ## Active PRs
 
-- S162 PR: pending.
+- S163 PR: #195 pending merge.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S163 | $0 | No paid run; bash scripting + verify changes only |
 | S162 | $0 | No paid run; code + verify changes only |
 | S161 (Part 1 — AC1-AC4) | $0 | Code + verify changes; no paid run |
 | S161 (Part 2 — D2 dogfood) | null | `total_cost_usd` not in JSONL from vajra 9ebb758; inner session via `vajra claude -p`; token estimate ~$14.15 (not authoritative) |
