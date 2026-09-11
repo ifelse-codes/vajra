@@ -48,12 +48,10 @@ tech-lead to dispatch first (mandatory). fidelity-reviewer required (two deliver
 
 ## Execution
 
-_Fill in as steps land:_
-
-step 1 — done: <sha>
-step 2 — done: <sha>
-step 3 — done: <sha>
-step 4 — done: <sha>
+step 1 — done: b35f243 (demo-session-162.sh + tech-lead handoff; waiver Cases A/B/C)
+step 2 — done: b35f243 (AC4 investigation: fresh-init signals documented in demo + verify)
+step 3 — done: b35f243 (AC5: no fix needed — finding 14 closed as honest; documented)
+step 4 — done: 48e89f1 (verify-session-162.sh — 13/13 pass)
 
 ## Delta
 
