@@ -3,19 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S165 complete, S166 not yet started).**
+**None — between sessions (S166 complete, S167 not yet started).**
 
-## What was done this session (S165 — NO-CODE Ground Truth)
+## What was done this session (S166 — CODE: fix Analyst + Coder station gaps)
 
-- 12 audits run live.
-- stranger-check 21/21 ✅, scaffold-drift 17/17 ✅, cargo test 487 ✅, cargo fmt clean ✅.
-- **New findings:**
-  - S164 `sessions/session-164-summary.md` missing (incomplete closeout).
-  - `check_execution_shas` bash gate has a prose gap: only blocks `done: <...>` angle brackets; `done: (prose)` passes through. S164's step 2 was `(verify + scripts: see next commit)` — bash gate missed it; `--stations 164` caught it.
-  - Analyst station ABSENT 4/4 sessions since S160 GT — all prompts use prose `## Delta` with no `+`/`~`/`-` OpenSpec markers.
-  - Pipeline counter declined: S161 6/8 → S162 6/8 → S163 4/8 → S164 3/8.
-- Founder pick: **A** (fix Analyst + Coder gaps). S166 = next.
-- GT report: `sessions/session-165-ground-truth.md`.
+- Patched `check_execution_shas` in `scripts/verify-closeout.sh`: blocks any `done:` not followed by a 7-char hex SHA (prose, parenthetical, angle-bracket all caught).
+- Wrote `prompts/166-task-analyst-coder-gaps.md` with proper `+`/`~`/`-` OpenSpec markers in `## Delta` → Analyst station PASSED for the first time since S160 GT.
+- Wrote `sessions/session-164-summary.md` — completes S164's incomplete closeout.
+- `verify-session-166.sh` 8/8 behavioral checks; `demo-session-166.sh` 4 required markers.
+- 487 lib tests; verify-closeout.sh exit 0 (VAJRA_CLOSEOUT_WAIVER=166).
+- **S165 🔴 findings CLOSED:** (1) check_execution_shas prose gap → patched; (2) Analyst station ABSENT → PASSED via ## Delta markers; (3) session-164-summary.md missing → written.
+- S167 = next.
 
 ## What Currently Works
 
@@ -40,9 +38,9 @@
 
 ## What Is Broken / Weak / Disclosed
 
-- **🔴 check_execution_shas prose gap (S165 NEW):** bash gate only blocks `done: <...>` angle-bracket placeholders; prose/parenthetical entries pass through. S164 step 2 was `(verify + scripts: see next commit)` — bash gate missed it; `--stations` caught it. → S166 mandatory fix.
-- **🔴 Analyst station chronically ABSENT (S165 NEW):** all prompts since S160 GT use prose `## Delta` without `+`/`~`/`-` OpenSpec markers. Station never passes. → S166 mandatory (fix prompt format + document the pattern).
-- **🔴 session-164-summary.md missing (S165 NEW):** S164 closeout incomplete. → S166 mandatory (write the summary).
+- **✅ check_execution_shas prose gap CLOSED (S166):** patched — blocks any `done:` not followed by a 7-char hex SHA. S164 step 2 `(verify + scripts: see next commit)` now caught.
+- **✅ Analyst station PASSED (S166):** first PASSED since S160 GT. S166 prompt has `+`/`~`/`-` OpenSpec markers in `## Delta`. Going forward: use real markers, not prose.
+- **✅ session-164-summary.md WRITTEN (S166):** S164 closeout complete. 3 ranked A/B/C candidates in sessions/session-164-summary.md.
 - **🟡 Pipeline counter declining:** S161 6/8 → S162 6/8 → S163 4/8 → S164 3/8. Releaser/Reviewer ABSENT for S163/S164 after branch pruning (ledger chain broken). No fix planned; expected once branch+ledger is gone.
 - **🟡 prove-then-cut-cost arc unstarted** — deferred 15+ sessions since S145. Founder priority 3 (after release + dogfood).
 - **🟡 D2 inner-session gap** — inner `vajra claude -p` session dispatched fleet roles as subagents but did not autonomously call `vajra next --role`; outer session completed that step. The "self-driving unattended close" claim (S140) is not yet verified end-to-end. → backlog.
@@ -66,16 +64,17 @@
 
 ## What Is In Progress
 
-- Nothing. S165 complete.
+- Nothing. S166 complete.
 
 ## Active PRs
 
-- None.
+- None (S166 PR pending merge).
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S166 | $0 | No paid run; bash scripting + verify + demo scripts only |
 | S165 | $0 | No paid run; GT audits only |
 | S164 | $0 | No paid run; bash scripting + verify changes + fleet subagents only |
 | S163 | $0 | No paid run; bash scripting + verify changes only |

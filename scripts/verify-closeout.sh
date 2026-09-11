@@ -208,8 +208,10 @@ check_execution_shas() {
       fi
     fi
     if [[ "$in_exec" -eq 1 ]]; then
-      # Match any angle-bracket placeholder after 'done:': <sha>, <sha — ...>, etc.
-      if echo "$line" | grep -qE 'done:[[:space:]]*<'; then
+      # Block any 'done:' not followed by a 7-char hex git SHA (S166).
+      # Catches angle-bracket placeholders (<sha>), parenthetical prose ((text...)),
+      # and bare prose — not just the '<' form the original check caught.
+      if echo "$line" | grep -qE 'done:' && ! echo "$line" | grep -qE 'done:[[:space:]]+[0-9a-f]{7}'; then
         bad_lines+=("  $line"); count=$((count+1))
       fi
     fi
@@ -232,17 +234,17 @@ check_execution_shas() {
   fi
 
   if [[ "$count" -eq 0 ]]; then
-    echo "OK: no 'done: <sha>' placeholders in ## Execution" >> "$LOG"; ok "$NAME"; return
+    echo "OK: every 'done:' in ## Execution carries a valid 7-char hex SHA" >> "$LOG"; ok "$NAME"; return
   fi
 
-  for bl in ${bad_lines[@]+"${bad_lines[@]}"}; do echo "PLACEHOLDER:$bl" >> "$LOG"; done
-  echo "BLOCK: $count step(s) in $F still have 'done: <sha>' placeholder(s)" >> "$LOG"
+  for bl in ${bad_lines[@]+"${bad_lines[@]}"}; do echo "BAD-SHA:$bl" >> "$LOG"; done
+  echo "BLOCK: $count step(s) in $F have a 'done:' without a valid 7-char hex SHA (S166)" >> "$LOG"
 
   if waiver_ok; then
     echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
     ok "$NAME"
   else
-    echo "FAIL: fill every 'done: <sha>' in ## Execution with the landing commit sha," >> "$LOG"
+    echo "FAIL: fill every 'done:' in ## Execution with the landing commit sha (7+ lowercase hex chars)," >> "$LOG"
     echo "      or set VAJRA_CLOSEOUT_WAIVER=$N (GT / NO-CODE sessions only)." >> "$LOG"
     bad "$NAME"
   fi

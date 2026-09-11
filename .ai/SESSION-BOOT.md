@@ -1,19 +1,18 @@
 # Session Boot
 
 ## Next Session
-- **S166 — NEXT (CODE: fix Analyst + Coder station gaps — Option A).**
+- **S167 — NEXT (TBD: see options in `sessions/session-166-summary.md`).**
   Start in a FRESH chat.
-  Prompt: write `prompts/166-task-analyst-coder-gaps.md` at session start (GT hook blocked prompt write during S165; .ai/ updates committed).
 
 ## Current Session
+- **Number:** 166 — COMPLETE (CODE: fix Analyst + Coder station gaps — Option A). **Verdict: ACCEPT.**
+  AC1 SHIPPED: Analyst station PASSED for S166 (`vajra next --stations 166` → [PASSED] Analyst WHAT). AC2 SHIPPED: `check_execution_shas` blocks prose/parenthetical `done:` entries (S164 step 2 now caught). AC3 SHIPPED: real 7-char hex SHAs still pass (non-regression). AC4 SHIPPED: `sessions/session-164-summary.md` written (S164 closeout complete). AC5 SHIPPED: `verify-session-166.sh` 8/8 behavioral checks. AC6 SHIPPED: cargo test --lib 487 pass. AC7 SHIPPED: verify-closeout.sh exit 0 (VAJRA_CLOSEOUT_WAIVER=166).
+  design-significant: no.
+  **Next: S167.**
+
+## Prior Session
 - **Number:** 165 — COMPLETE (NO-CODE Ground Truth — mandatory: 165 % 5 == 0). **Verdict: 🟡 PARTIAL PASS.**
   4 green · 4 yellow · 3 red. Key reds: (1) S164 session-164-summary.md missing + ## Execution step 2 prose not caught by check_execution_shas bash gate; (2) Analyst station ABSENT 4/4 sessions since S160 GT (prose ## Delta, no +/~/- OpenSpec markers); (3) pipeline counter declining 6→6→4→3. Greens: stranger 21/21, scaffold-drift 17/17, cargo test 487, fmt clean. Founder pick: A (fix Analyst + Coder gaps).
   **Next: S166.**
-
-## Prior Session
-- **Number:** 164 — COMPLETE (CODE: close Releaser station gap — Option B). **Verdict: ACCEPT** (fidelity-reviewer, AC1+AC3+AC4+AC5 SHIPPED; AC3 PARTIAL).
-  AC1 SHIPPED (check_release_coordinator() in verify-closeout.sh; vajra next --check-release-close N; hollow-binary guard; release-coordinator PASS at closeout). AC3 PARTIAL (session-156-admin-close pruned from origin; git fetch --prune; NoBranch = warning not block; confirmed by release-coordinator handoff, not from diff). AC4 SHIPPED (cargo test --lib 487 pass; verify-session-163.sh non-regression; PASS count ≥ 16). AC5 SHIPPED (verify-session-164.sh 9/9 behavioral; zero source-proximity greps).
-  design-significant: no (single-station fix; no new interface or ADR).
-  **Next: S165 (GT).**
 
 **New chat.**
