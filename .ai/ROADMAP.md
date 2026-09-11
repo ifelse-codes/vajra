@@ -1,6 +1,9 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-10 · **Session 161 — CODE + DOGFOOD: close S158 carry-forwards + D2 first-contact dogfood — ACCEPT (5/7 SHIPPED · 2 PARTIAL).**
+**Updated:** 2026-09-11 · **Session 162 — CODE: waiver path behavioral tests + fresh-init signal investigation — ACCEPT (6/6 SHIPPED).**
+AC1–AC3 SHIPPED: VAJRA_CLOSEOUT_WAIVER proven end-to-end — correct-session waiver passes (exit 0), wrong-session waiver blocked (exit 1), reason recorded in artifact log; all tests invoke verify-closeout.sh LIVE (no source grep). AC4 SHIPPED: fresh init investigated — vajra check 10/11, vajra next 0/8 roles, stations ABSENT, verify-closeout RED; signals honest. AC5 SHIPPED: no false-ready fix needed (finding 14 closed). AC6 SHIPPED: 13/13 verify pass. design-significant: no. **Founder pick: S163 TBD. Next GT: S165.**
+
+**Prior — Updated:** 2026-09-10 · **Session 161 — CODE + DOGFOOD: close S158 carry-forwards + D2 first-contact dogfood — ACCEPT (5/7 SHIPPED · 2 PARTIAL).**
 AC1–AC4 all SHIPPED (DECISION-008 written; blocking-path demo confirmed; behavioral verify test replaces source-proximity grep; C5 circular check fixed). AC5–AC6 PARTIAL: D2 vajra init + vajra claude -p + 15/15 closeout with waiver; governed handoffs created post-hoc (inner session dispatched fleet as subagents only). AC7 17/17. Fakest green: S161 handoffs initially contained D2 content; corrected. design-significant: yes (DECISION-008). Deferred: inner-session autonomy gap; check_required_crew content validation; system-binary fallback for non-vajra repos. **Founder pick: S162 TBD. Next GT: S165.**
 
 **Prior — Updated:** 2026-09-10 · **Session 160 — mandatory NO-CODE Ground Truth (160 % 5 == 0) — 🟡 PARTIAL PASS.**

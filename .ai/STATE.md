@@ -3,17 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S161 complete, S162 not yet started).**
+**None — between sessions (S162 complete, S163 not yet started).**
 
-## What was done this session (S161 — CODE + DOGFOOD)
+## What was done this session (S162 — CODE: waiver path tests + fresh-init investigation)
 
-- AC1: `docs/decisions/DECISION-008-session-type-detection.md` — new peer decision record for `is_code_session()` affirmative-match contract and `check_demo_markers()` enforcement pattern (sha `375edcf`).
-- AC2: `scripts/demo-session-158.sh` — Case 4 added: blocking-path fixture (CODE + marker-free → BLOCK confirmed) (sha `ec301d0`).
-- AC3: `scripts/verify-session-158.sh` — behavioral integration test replaces source-proximity grep; tmpdir fixture with CLAUDE_PROJECT_DIR, `--demo-only 99`, asserts FAIL (sha `ec301d0`).
-- AC4: `scripts/verify-closeout.sh` `check_required_crew` — greps `.ai/handoffs/session-${N}-*.md` for `Brief:` (not AGENTS.md); WARN-only for non-CODE sessions. `scripts/verify-session-153.sh` C5 — greps real handoff file (sha `08bbb04`).
-- AC5/AC6: D2 dogfood at scratchpad/d2-dogfood — `vajra init` (38 files), `vajra claude -p` session-00, 15/15 verify-closeout with VAJRA_CLOSEOUT_WAIVER=0, governed handoffs for tech-lead/design-advisor/fidelity-reviewer via `vajra next --role`. Cost: null (total_cost_usd not in JSONL).
-- AC7: `scripts/verify-session-161.sh` — 17/17 PASS (sha `fadbaa0`).
-- `.ai/SESSION` → 161.
+- AC1: `scripts/verify-session-162.sh` — behavioral test: `VAJRA_CLOSEOUT_WAIVER=162` on synthetic fixture forcing fidelity FAIL → verify-closeout exits 0 (sha `48e89f1`).
+- AC2: `scripts/verify-session-162.sh` — behavioral test: `VAJRA_CLOSEOUT_WAIVER=999` (999≠162) → verify-closeout stays RED; fidelity-review-accept confirmed FAIL (sha `48e89f1`).
+- AC3: `scripts/verify-session-162.sh` — behavioral test: VAJRA_CLOSEOUT_WAIVER_REASON found in exact artifact log path captured from waiver run output (sha `48e89f1`).
+- AC4: Fresh-init investigation — `vajra check` 10/11 (FAIL: branch), `vajra next` 0/8 roles, `vajra next --stations` ABSENT stations, `verify-closeout.sh` RED. All signals honest. No false-ready signal.
+- AC5: No fix needed — finding 14 closed as honest. Documented in demo + verify.
+- AC6: `scripts/verify-session-162.sh` 13/13 PASS (sha `48e89f1`); `scripts/demo-session-162.sh` all 4 markers (sha `b35f243`).
+- `.ai/SESSION` → 162.
 
 ## What Currently Works
 
@@ -28,9 +28,11 @@
 - **KNOWLEDGE.md**: 282 lines, header accurate as of S156.
 - **Tech-lead provenance false-negative FIXED (S157):** pre-branch dispatches from `"main"` are now accepted by `cross_check`.
 - **Demo enforcement LIVE (S158):** `check_demo_markers` runs demo scripts live at closeout; `is_code_session()` type-gating; affirmative `**CODE**` matching.
-- **DECISION-008 (S161):** `is_code_session()` affirmative-match contract documented; `CODE + DOGFOOD` IS CODE; GT override is structural (N%5==0); three rejected alternatives on record.
+- **DECISION-008 (S161):** `is_code_session()` affirmative-match contract documented; `CODE + DOGFOOD` IS CODE; GT override is structural (N%5==0).
 - **C5 circular check FIXED (S161):** `check_required_crew` greps real handoff files for `Brief:`, not AGENTS.md.
 - **D2 first-contact dogfood run (S161):** vajra init → session 00 → 15/15 closeout on fresh stranger repo. Gaps: inner session did not autonomously call `vajra next --role` (post-hoc); waiver required for non-vajra repos.
+- **VAJRA_CLOSEOUT_WAIVER proven end-to-end (S162):** correct-session waiver passes, wrong-session waiver blocked, reason recorded in artifact log. All three proven by live behavioral tests (not source grep).
+- **Finding 14 CLOSED (S162):** fresh `vajra init` gives honest signals — 0/8 stations ABSENT, verify-closeout RED. No false-ready fix needed.
 
 ## What Is Broken / Weak / Disclosed
 
@@ -39,7 +41,7 @@
 - **🟡 D2 waiver path** — `check_required_crew` requires `target/release/vajra` (local binary); non-vajra repos must waiver. Fall back to system vajra binary = backlog.
 - **🟡 fidelity-review-accept naming gap** — when SESSION is "00", N=0 and check looks for `session-0-review.md` not `session-00-review.md`. Backlog.
 - **🟡 Dogfood-age tool blind spot** — reads S124; real last dogfood = S144 (chitra) / S161 (D2). LOW priority.
-- **🟡 Waiver path for BLOCK case untested** — carry-forward → backlog.
+- **🟡 Waiver path for BLOCK case untested** — carry-forward → backlog (S162 proved the fidelity gate waiver path; other check waiver paths are not individually tested).
 - **🟡 Tightening-delta not falsified** — carry-forward → backlog.
 - **🟡 Reviewer independence at close** — carry-forward → backlog.
 - **🟡 Autopilot Ladder Rung 2/3** — never completed; founder priority 3.
@@ -53,16 +55,17 @@
 
 ## What Is In Progress
 
-- Nothing. S161 complete.
+- Nothing. S162 complete.
 
 ## Active PRs
 
-- S161 PR: to be opened at closeout.
+- S162 PR: pending.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S162 | $0 | No paid run; code + verify changes only |
 | S161 (Part 1 — AC1-AC4) | $0 | Code + verify changes; no paid run |
 | S161 (Part 2 — D2 dogfood) | null | `total_cost_usd` not in JSONL from vajra 9ebb758; inner session via `vajra claude -p`; token estimate ~$14.15 (not authoritative) |
 
