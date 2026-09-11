@@ -50,6 +50,11 @@ design-advisor: skipped — design-significant: no.
 
 tech-lead to dispatch first (mandatory). fidelity-reviewer required (DECISION-002; no self-cert). release-coordinator required — the session's own goal is to make the release-coordinator station pass; an independent release-coordinator handoff must confirm the fix is real, not self-asserted.
 
+## Execution
+
+step 1 — done: e5552d8 (investigate + implement: --check-release-close flag in src/cli/next.rs; check_release_coordinator in verify-closeout.sh; git fetch --prune pruned stale remote tracking refs; session-156-admin-close deleted from origin)
+step 2 — done: (verify + scripts: see next commit)
+
 ## Delta
 
 The Releaser station was last touched at S71–S72 (Demo-er → Releaser sprint). S160 GT flagged it as structurally absent (merged branch `session-156-admin-close` not pruned; station NEVER passes). S163 GT carry-forward listed it as backlog. S164 closes it: the 8-station spine is complete only when all 8 stations actually pass, not just pass on the right kind of sessions.
