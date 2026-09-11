@@ -130,6 +130,9 @@ pub fn run(args: &[String]) -> Result<()> {
     if let Some(i) = args.iter().position(|a| a == "--check-release") {
         return run_check_release(args.get(i + 1));
     }
+    if let Some(i) = args.iter().position(|a| a == "--check-release-close") {
+        return run_check_release_close(args.get(i + 1));
+    }
     if args.iter().any(|a| a == "--intake") {
         return run_intake();
     }
@@ -1039,6 +1042,55 @@ fn run_check_release(nn: Option<&String>) -> Result<()> {
             }
         });
     }
+    if verdict.blocked() {
+        println!("verdict: NOT READY");
+        for r in &verdict.reasons {
+            println!("  ✗ {r}");
+        }
+    } else {
+        println!("verdict: READY");
+    }
+    for w in &verdict.warnings {
+        println!("  ⚠ {w}");
+    }
+    if verdict.blocked() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+/// `vajra next --check-release-close NN` — the Releaser close-gate (S164): find the prior session
+/// automatically (the newest session at-or-below NN with evidence, excluding the in-flight branch)
+/// and check its ship state. Used by `check_release_coordinator` in `verify-closeout.sh`.
+///
+/// This is the close-gate analogue of `--check-release NN` (which checks an explicit session).
+/// The `--advance` code calls `release_gate_for_close` internally; this flag gives `verify-
+/// closeout.sh` a standalone entry point so the gate runs at close even when `--advance` is not
+/// invoked (the S129 "registered ≠ run" hole, applied here as it was for the Obeyed/Mandate/Crew
+/// gates in S132/S133/S139).
+fn run_check_release_close(nn: Option<&String>) -> Result<()> {
+    let closing = parse_session(nn, "--check-release-close")?;
+    let root = repo_root()?;
+    let verdict = releaser::release_gate_for_close(&root, closing);
+
+    let target_label = match verdict.session {
+        Some(nn) => format!("session {nn:02} (close gate for session {closing:02})"),
+        None => format!("(no prior session — close gate for session {closing:02})"),
+    };
+    println!("=== releaser: ship for {target_label} ===");
+
+    if let Some(state) = &verdict.state {
+        println!("main: {} · branch: {}", state.main, {
+            match &state.branch {
+                releaser::BranchShip::Merged(refs) => format!("{} (merged)", refs.join(", ")),
+                releaser::BranchShip::Unmerged(refs) => {
+                    format!("{} (NOT merged)", refs.join(", "))
+                }
+                releaser::BranchShip::NoBranch => "not found (pruned or never created)".into(),
+            }
+        });
+    }
+
     if verdict.blocked() {
         println!("verdict: NOT READY");
         for r in &verdict.reasons {
