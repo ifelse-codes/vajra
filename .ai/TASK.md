@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S163 complete, S164 not yet started
+## Between Sessions — S164 complete, S165 not yet started
 
-**S163 ACCEPT (CODE: fix hollow verify checks — F09 + F08).** AC1–AC6 all SHIPPED (10/10 verify pass). **Prompt: `prompts/163-task-hollow-verify-fix.md`.** S164 = B: Releaser station gap — founder pick at S163 closeout.
+**S164 ACCEPT (CODE: close Releaser station gap — Option B).** AC1+AC3+AC4+AC5 SHIPPED (AC3 PARTIAL — external branch deletion confirmed by release-coordinator, not from diff). **Prompt: `prompts/164-task-releaser-station-gap.md`.** S165 = next (options presented at S164 closeout).
+
+## Session 164 — CODE: close Releaser station gap — COMPLETE
+
+- Brief: `prompts/164-task-releaser-station-gap.md`. Review: `sessions/session-164-review.md`.
+- AC1 SHIPPED: `release-coordinator` PASS in verify-closeout.sh. AC3 PARTIAL: session-156-admin-close confirmed pruned (external action). AC4 SHIPPED: non-regression. AC5 SHIPPED: 9/9 behavioral checks. **ACCEPT.**
 
 ## Session 163 — CODE: fix hollow verify checks (F09 + F08) — COMPLETE
 
