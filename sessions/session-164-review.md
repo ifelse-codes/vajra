@@ -33,4 +33,4 @@ rec 2 (fix hollow-binary guard mismatch) — addressed in-session: guard changed
 
 The `NoBranch` path in `src/releaser/mod.rs` already pushed to `warnings` (not `reasons`) before S164 — this was the S72 design. The S164 code fix is the `check_release_coordinator` function and the `--check-release-close` CLI entry point, not a change to the NoBranch logic.
 
-Review-Inputs-SHA: cb71116a8d6d2593aebb6d766463025e5e0782203f3886bc8f10262341e6c938
+Review-Inputs-SHA: 4741dab1324305b1c3fa33f0b02365d3859ea0bed2749f19a83a64d8dd2bd2de
