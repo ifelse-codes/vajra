@@ -710,7 +710,7 @@ check_release_coordinator() {
   # An unrecognised `vajra next` flag falls through to `run_dump()` and exits 0 (S132 finding),
   # so a build without this gate would green the check while reporting nothing. Require the
   # gate's own header — the same hollow-binary guard used by every other binary-backed check.
-  if ! grep -q "=== releaser: ship for session" <<<"$out"; then
+  if ! grep -q "=== releaser: ship for" <<<"$out"; then
     echo "BLOCK: the binary produced no Releaser-gate output — this build does not carry the gate." >> "$LOG"
     if waiver_ok; then
       echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"

@@ -98,8 +98,9 @@ else
   bad "ac4-verify-163-non-regression"
 fi
 
-# AC4: non-regression — release-coordinator count in verify-closeout.sh did not
-# add a new FAIL (PASS count ≥ 16, the pre-S164 baseline).
+# AC4: non-regression — PASS count ≥ 16 (baseline includes release-coordinator).
+# Pre-S164 baseline was 15 (check absent). S164 adds release-coordinator → 16.
+# If release-coordinator regressed to FAIL, count drops to 15 → check fails.
 # Behavioral: counts PASS lines in live verify-closeout.sh output.
 echo "  running: verify-closeout.sh PASS count ≥ 16 (AC4 — no regression)..."
 PASS_COUNT="$(echo "$CLOSE_OUT" | grep -c " PASS$" || true)"
