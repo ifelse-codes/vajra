@@ -1,39 +1,40 @@
-# Tech-lead handoff — Session 164
+---
+role: tech-lead
+session: 164
+agent: claude-code-subagent (verified: toolu_01G4ENuTcyEgD4RXPMKNcs15)
+source-sha: e5552d8ac3f18e13a86e60b85cf2e97aaefd7f0f
+captured: 2026-09-11T08:00:00Z
+cost_usd: null
+---
 
-**Role:** tech-lead  
-**Session:** 164  
-**Date:** 2026-09-11  
-**Agent:** claude-code-subagent (verified: subagent dispatch from session-164-releaser-station)
+# Tech-lead handoff — session 164
 
-## Brief
+**Brief:** CODE session closing the Releaser station gap. `verify-closeout.sh` had no `check_release_coordinator` function, so the Releaser never actually gated at close (S129 "registered ≠ run" pattern). Fix is a 2-file change: `--check-release-close N` CLI flag in `src/cli/next.rs` + `check_release_coordinator()` in `scripts/verify-closeout.sh`. Option B chosen: prune `session-156-admin-close` from origin + `git fetch --prune`. Four ACs: AC1 (release-coordinator PASS), AC3 (branch pruned), AC4 (non-regression), AC5 (behavioral verify script).
 
-Session 164 closes the Releaser station gap: `verify-closeout.sh` has no `check_release_coordinator` function, so the Releaser never actually gates at close. The fix is a 2-file change (new `--check-release-close N` CLI flag in `src/cli/next.rs` + `check_release_coordinator` in `scripts/verify-closeout.sh`).
+---
 
-## Verdict
+crew researcher — deferred-budget — budget: 0 tokens — no external research needed; all facts in local codebase
+crew requirements-analyst — deferred-budget — budget: 0 tokens — AC table is complete and unambiguous; Option A vs B decision already made by founder
+crew design-advisor — deferred-budget — budget: 0 tokens — design-significant: no; no ADR or interface decision in scope
+crew plan-advisor — deferred-budget — budget: 0 tokens — plan has 4 explicit steps with covers: tags; nothing to clarify
+crew implementation-advisor — deferred-budget — budget: 0 tokens — scope is bash scripting + single CLI flag; plan is specific
+crew qa-specialist — required — budget: 600000 tokens — verify script is the primary deliverable; QA must confirm each check is execute-based (not a source grep)
+crew demo-producer — required — budget: 400000 tokens — four cases must each show an independent behavioral signal; not redundant binary calls
+crew fidelity-reviewer — required — budget: 600000 tokens — mandatory per DECISION-002/AGENTS.md; no self-cert; cold independent pass against each AC
+crew release-coordinator — required — budget: 400000 tokens — session goal is to make release-coordinator pass; independent release-coordinator must confirm the fix is real, not self-asserted
 
-READY — with two blocking prerequisites named below.
+---
 
-## Required crew
+## Handoff Delta
 
-| Role | Status | Budget |
-|---|---|---|
-| tech-lead | required — DISPATCHED | done |
-| qa-specialist | required | 600K tokens |
-| demo-producer | required | 400K tokens |
-| fidelity-reviewer | required (DECISION-002) | 600K tokens |
-| release-coordinator | required (stated in prompt) | 400K tokens |
-| researcher | deferred-budget | — |
-| requirements-analyst | deferred-budget | — |
-| design-advisor | deferred-budget | — |
-| plan-advisor | deferred-budget | — |
-| implementation-advisor | deferred-budget | — |
+**From prior session (S163):** No overlap. S163 fixed hollow verify checks retroactively. S164 closes the Releaser station gap (structural: the gate was never in verify-closeout.sh).
 
-## Recs
+**New in S164:** `check_release_coordinator()` function + `--check-release-close N` CLI flag. session-156-admin-close pruned from origin. Hollow-binary guard fixed (ship for → covers no-prior-session case).
 
-rec 1 — Merge PR #195 (`session-163-hollow-verify-fix`) BEFORE writing any code. The Releaser close-gate test in `verify-session-164.sh` cannot produce a PASS until session 163 is an ancestor of `main`. Any CODE work before that merge produces a false-red in the very fixture the session is building.
+---
 
-obeyed: rec 1 — prerequisite enforced; no CODE work started until user confirms PR #195 merged.
+## Key Risks / Watch-Outs
 
-rec 2 — The `--check-release-close N` header must begin with `=== releaser: ship for session` (the same literal prefix as `--check-release`). The `check_release_coordinator` function in `verify-closeout.sh` greps for this prefix to confirm the binary ran the gate (not a hollow exit-0). A differently-worded opener silently defeats the hollow-binary guard.
-
-obeyed: rec 2 — implementation will use the prefix `=== releaser: ship for session {target:02} (close gate for session {closing:02}) ===`.
+1. Merge PR #195 first — the Releaser close-gate test cannot produce PASS until session 163 is an ancestor of main.
+2. The `--check-release-close N` header must begin with `=== releaser: ship for` to satisfy the hollow-binary guard in `check_release_coordinator`.
+3. NoBranch (session-163 branch absent from origin after squash merge) is WARNING not BLOCK — the gate must return READY.
