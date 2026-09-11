@@ -287,6 +287,36 @@ else
 fi
 echo ""
 
+# ---- 6. hollow-grep scan in the last 10 verify scripts --------------------------------
+# A "hollow" source-proximity grep is a line that runs `grep` directly against a src/*.rs
+# file (not piped from echo), which proves only that a string exists in source — not that
+# the code behaves as intended (S163 finding; closed retroactively for 154/157/158).
+# Flagging new occurrences here lets the CI catch them early.
+echo "--- 6. no hollow grep.*src/.*\.rs in the last 10 verify scripts ---"
+VERIFY_SCRIPTS="$(ls -1 "$ROOT/scripts/verify-session-"*.sh 2>/dev/null \
+  | grep -v verify-session-template \
+  | sort -t- -k3 -n \
+  | tail -10)"
+HOLLOW_HITS=0
+while IFS= read -r script; do
+  [ -z "$script" ] && continue
+  # Standalone grep: has 'grep' + 'src/' + '.rs' on the same non-comment, non-pipe-from-echo line.
+  HITS="$(awk '
+    /^[[:space:]]*#/ { next }          # skip comment lines
+    /echo[^|]*\|/ { next }             # skip echo … | grep pipelines
+    /grep/ && /src\// && /\.rs/ { print FILENAME ":" NR ": " $0 }
+  ' "$script" 2>/dev/null || true)"
+  if [ -n "$HITS" ]; then
+    fail "no hollow src/*.rs grep in $(basename "$script")" "$HITS"
+    HOLLOW_HITS=$((HOLLOW_HITS+1))
+  fi
+done <<< "$VERIFY_SCRIPTS"
+CHECKED_V="$(printf '%s\n' "$VERIFY_SCRIPTS" | grep -c . || true)"
+if [ "$HOLLOW_HITS" -eq 0 ]; then
+  pass "no hollow src/*.rs greps in last $CHECKED_V verify scripts ($CHECKED_V scanned)"
+fi
+echo ""
+
 # ---- verdict ---------------------------------------------------------------------------
 echo "=== scaffold-drift: $PASS passed, $FAIL failed ==="
 if [ "$FAIL" -eq 0 ]; then
