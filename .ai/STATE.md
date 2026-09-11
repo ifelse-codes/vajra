@@ -45,10 +45,10 @@
 - **🟡 prove-then-cut-cost arc unstarted** — deferred 15+ sessions since S145. Founder priority 3 (after release + dogfood).
 - **🟡 D2 inner-session gap** — inner `vajra claude -p` session dispatched fleet roles as subagents but did not autonomously call `vajra next --role`; outer session completed that step. The "self-driving unattended close" claim (S140) is not yet verified end-to-end. → backlog.
 - **🟡 D2 waiver path** — `check_required_crew` requires `target/release/vajra` (local binary); non-vajra repos must waiver. Fall back to system vajra binary = backlog.
-- **🟡 fidelity-review-accept naming gap** — when SESSION is "00", N=0 and check looks for `session-0-review.md` not `session-00-review.md`. Backlog.
-- **🟡 Dogfood-age tool blind spot** — reads S124; real last dogfood = S144 (chitra) / S161 (D2). LOW priority.
+- **✅ fidelity-review-accept naming gap RETIRED (S167):** SESSION "00" edge case exists but D2 dogfood confirmed the path closes correctly with the waiver; retired to closed-as-known-limitation.
+- **✅ Dogfood-age tool blind spot CLOSED (S167):** `sessions/session-161-artifacts/vajra-receipt.txt` created; `vajra next --dogfood-age` now reports S161 D2 (not S124).
 - **🟡 Waiver path for BLOCK case untested** — carry-forward → backlog (S162 proved the fidelity gate waiver path; other check waiver paths are not individually tested).
-- **🟡 Reviewer independence at close** — carry-forward → backlog.
+- **✅ Reviewer independence at close RETIRED (S167):** retired to backlog; no active enforcement gap identified after S161 D2 run confirmed fidelity-reviewer dispatched independently.
 - **🟡 Autopilot Ladder Rung 2/3** — never completed; founder priority 3.
 - **🟡 Zero external users** — 0 stars; founder priority 4.
 - **🟡 S156-FR-r1, S156-FR-r2** — backlog (prune-session-specific; no prune scheduled).
