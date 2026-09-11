@@ -13,18 +13,32 @@ bad() { echo "  FAIL  $1"; FAIL=$((FAIL+1)); }
 
 echo "=== verify-session-157 ==="
 
-# AC2: new test exists in src/dispatch/mod.rs
-if grep -q "cross_check_accepts_dispatch_from_non_session_branch" src/dispatch/mod.rs; then
-  ok "new-test-present"
+# AC2: new test exists AND passes (targeted cargo test run)
+# FALSIFIABILITY: the old grep accepted a src/dispatch/mod.rs that had the test NAME
+# in a comment but the test body was absent or #[ignore]d — cargo test rejects it:
+# a missing or disabled function would not emit
+# "cross_check_accepts_dispatch_from_non_session_branch ... ok".
+echo "  running targeted cargo test: cross_check_accepts_dispatch_from_non_session_branch..."
+TEST_NON_SESSION="$(cargo test cross_check_accepts_dispatch_from_non_session_branch 2>&1)"
+if echo "$TEST_NON_SESSION" | grep -q "cross_check_accepts_dispatch_from_non_session_branch ... ok"; then
+  ok "new-test-present-and-passes"
 else
-  bad "new-test-present (test function not found in src/dispatch/mod.rs)"
+  bad "new-test-present-and-passes"
+  echo "$TEST_NON_SESSION" | tail -10
 fi
 
-# guard: new match arm exists
-if grep -q '!b.starts_with("session-")' src/dispatch/mod.rs; then
-  ok "new-match-arm-present"
+# guard fix active — verified via the complementary test that would fail without it
+# FALSIFIABILITY: the old grep for '!b.starts_with("session-")' accepted that pattern
+# in dead code or a comment — cargo test rejects it: if the guard were absent,
+# cross_check_fails_when_git_branch_is_a_different_session would FAIL (wrong branch
+# accepted instead of rejected).
+echo "  running targeted cargo test: cross_check_fails_when_git_branch_is_a_different_session..."
+TEST_DIFF_SESSION="$(cargo test cross_check_fails_when_git_branch_is_a_different_session 2>&1)"
+if echo "$TEST_DIFF_SESSION" | grep -q "cross_check_fails_when_git_branch_is_a_different_session ... ok"; then
+  ok "fix-guard-enforced-by-test"
 else
-  bad "new-match-arm-present (guard not found in src/dispatch/mod.rs)"
+  bad "fix-guard-enforced-by-test"
+  echo "$TEST_DIFF_SESSION" | tail -10
 fi
 
 # AC1 + AC2 + AC3: cargo test (all 487 tests pass, including new + replay-check tests)

@@ -124,12 +124,28 @@ check_agents_rule() {
 }
 run_check "ac4-agents-md-has-execution-rule" check_agents_rule
 
-# ── verify-closeout.sh contains the S154 tightening (structural) ─────────────
-check_closeout_tightened() {
-  grep -q 'has_plan_steps' scripts/verify-closeout.sh && \
-  grep -q 'S154' scripts/verify-closeout.sh
-}
-run_check "closeout-tightening-present" check_closeout_tightened
+# ── S154 tightening proven via --check-exec-shas live entry point ─────────────
+# FALSIFIABILITY: the old grep accepted a verify-closeout.sh with "has_plan_steps"
+# as a local variable name in a comment and "S154" in a doc block only — no actual
+# tightening logic needed to pass. Key: has_plan_steps is a LOCAL VARIABLE inside
+# check_execution_shas (~line 186), not a callable function; a string grep proves
+# nothing about its logic. The new test rejects a hollow implementation:
+# --check-exec-shas on a real-plan + no-exec fixture must exit non-zero (BLOCK). If
+# the S154 tightening were absent, this would silently exit 0 (PASS), which the
+# source-extraction harness in ac1-real-plan-no-exec-blocks would also have missed.
+TMPDIR_TI="$(mktemp -d)"
+mkdir -p "$TMPDIR_TI/.ai" "$TMPDIR_TI/prompts"
+echo "154" > "$TMPDIR_TI/.ai/SESSION"
+printf '# S154 tightening-behavioral\n> **Status:** APPROVED\n## Plan\n1. a real step that covers: 1\n2. another step covers: 2\n' \
+  > "$TMPDIR_TI/prompts/154-task-test.md"
+TI_OUT="$(CLAUDE_PROJECT_DIR="$TMPDIR_TI" bash scripts/verify-closeout.sh --check-exec-shas 154 2>&1)" && TI_EXIT=0 || TI_EXIT=$?
+rm -rf "$TMPDIR_TI"
+if [ "$TI_EXIT" -ne 0 ]; then
+  ok_check "closeout-tightening-behavioral"
+else
+  bad_check "closeout-tightening-behavioral (--check-exec-shas must BLOCK real-plan + no exec)"
+  echo "$TI_OUT" | tail -5
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

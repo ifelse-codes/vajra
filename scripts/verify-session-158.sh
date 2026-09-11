@@ -19,11 +19,24 @@ named_test_passed() {
 
 echo "=== verify-session-158 ==="
 
-# AC1: is_code_session helper present in verify-closeout.sh
-if grep -q "is_code_session" scripts/verify-closeout.sh; then
-  ok "is_code_session-present"
+# AC1: is_code_session type-gates correctly — DOCUMENT sessions are exempt
+# FALSIFIABILITY: the old grep accepted a verify-closeout.sh with "is_code_session"
+# in a comment but no function body — the new test rejects it: without a working
+# is_code_session, --demo-only would NOT exempt DOCUMENT sessions (a no-marker
+# fixture would exit non-zero or emit DEMO: FAIL instead of passing).
+TMPDIR_DOC="$(mktemp -d)"
+mkdir -p "$TMPDIR_DOC/.ai" "$TMPDIR_DOC/prompts" "$TMPDIR_DOC/scripts"
+echo "99" > "$TMPDIR_DOC/.ai/SESSION"
+printf '## Type\n**DOCUMENT**\n' > "$TMPDIR_DOC/prompts/99-task-fixture.md"
+printf '#!/usr/bin/env bash\necho "no markers here"\n' > "$TMPDIR_DOC/scripts/demo-session-99.sh"
+chmod +x "$TMPDIR_DOC/scripts/demo-session-99.sh"
+DOC_OUT="$(CLAUDE_PROJECT_DIR="$TMPDIR_DOC" bash scripts/verify-closeout.sh --demo-only 99 2>&1)" && DOC_EXIT=0 || DOC_EXIT=$?
+rm -rf "$TMPDIR_DOC"
+if [ "$DOC_EXIT" -eq 0 ]; then
+  ok "is_code_session-exempts-document-session"
 else
-  bad "is_code_session-present (helper not found in verify-closeout.sh)"
+  bad "is_code_session-exempts-document-session (DOCUMENT session should be demo-exempt)"
+  echo "$DOC_OUT" | tail -5
 fi
 
 # AC1 behavioral: check_demo_markers blocks on marker-free CODE session
@@ -42,11 +55,24 @@ else
   echo "$BHAV_OUT" | tail -5
 fi
 
-# AC2: check_demo_markers function present in verify-closeout.sh
-if grep -q "check_demo_markers" scripts/verify-closeout.sh; then
-  ok "check_demo_markers-present"
+# AC2: check_demo_markers emits DEMO: PASS for CODE session with all 4 markers
+# FALSIFIABILITY: the old grep accepted a verify-closeout.sh with "check_demo_markers"
+# in a comment but no implementation — the new test rejects it: a missing or hollow
+# function would not emit "DEMO: PASS" when a CODE fixture provides all 4 markers.
+TMPDIR_MK="$(mktemp -d)"
+mkdir -p "$TMPDIR_MK/.ai" "$TMPDIR_MK/prompts" "$TMPDIR_MK/scripts"
+echo "99" > "$TMPDIR_MK/.ai/SESSION"
+printf '## Type\n**CODE**\n' > "$TMPDIR_MK/prompts/99-task-fixture.md"
+printf '#!/usr/bin/env bash\necho "demo:header"\necho "demo:cases"\necho "demo:summary_table"\necho "demo:before_after"\n' \
+  > "$TMPDIR_MK/scripts/demo-session-99.sh"
+chmod +x "$TMPDIR_MK/scripts/demo-session-99.sh"
+MK_OUT="$(CLAUDE_PROJECT_DIR="$TMPDIR_MK" bash scripts/verify-closeout.sh --demo-only 99 2>&1)" && MK_EXIT=0 || MK_EXIT=$?
+rm -rf "$TMPDIR_MK"
+if echo "$MK_OUT" | grep -q "DEMO: PASS"; then
+  ok "check_demo_markers-passes-with-all-markers"
 else
-  bad "check_demo_markers-present (function not found in verify-closeout.sh)"
+  bad "check_demo_markers-passes-with-all-markers (CODE session with 4 markers should emit DEMO: PASS)"
+  echo "$MK_OUT" | tail -5
 fi
 
 # AC2: check_demo_markers wired into main sequence
@@ -57,12 +83,9 @@ else
   bad "check_demo_markers-in-main-sequence"
 fi
 
-# AC2: DOCUMENT session is exempt — is_code_session returns false for document type
-if grep -q "document" scripts/verify-closeout.sh && grep -q "is_code_session" scripts/verify-closeout.sh; then
-  ok "document-session-exempt"
-else
-  bad "document-session-exempt (is_code_session or document exemption missing from verify-closeout.sh)"
-fi
+# AC2: DOCUMENT session is exempt — proven behaviorally by is_code_session-exempts-document-session above.
+# (Pre-existing hollow grep replaced: grep -q "document" scripts/verify-closeout.sh was case-sensitive
+# and never matched the uppercase "DOCUMENT" string — it was already failing before S163.)
 
 # AC3: cargo test
 echo "  running cargo test..."
