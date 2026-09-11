@@ -674,6 +674,65 @@ check_required_crew() {
   fi
 }
 
+# --- Releaser close-gate (S164 — the S72 station finally binds at close) -----
+# The Releaser station (src/releaser/mod.rs, S72) checks a session's ship hygiene — whether
+# the prior session's branch was merged, local main is synced, and merged locals are pruned.
+# That gate lived only inside `vajra next --advance` (the S129 "registered ≠ run" hole).
+# This check closes the gap: it runs the gate via `--check-release-close N`, which calls
+# `release_gate_for_close(root, N)` to auto-find the prior session, and blocks if the verdict
+# is NOT READY — using the same pattern as `check_required_crew` (S139) and friends.
+#
+# Honest limit (from the Releaser itself): "pruned after merge" and "squash-merged then pruned"
+# look identical — a branch's absence is a WARNING (not a block); only an UNMERGED surviving
+# branch or an out-of-sync main BLOCKs. A fresh repo with no prior session PASSES.
+# The gate NEVER fetches, pushes, merges, or deletes — those remain human acts.
+check_release_coordinator() {
+  local NAME="release-coordinator"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+  local BIN="target/release/vajra"
+  if [ ! -x "$BIN" ]; then
+    echo "BLOCK: $BIN not built — this check cannot evaluate the Releaser gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: run \`cargo build --release\` so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  local out code
+  # set -e-safe capture (S139): a bare command-substitution assignment aborts under `set -e` the
+  # instant the binary exits non-zero (this gate's BLOCKING path), before the FAIL reason prints.
+  # The `&& code=0 || code=$?` list suppresses `set -e` while binding the real exit status.
+  out="$("$BIN" next --check-release-close "$N" 2>&1)" && code=0 || code=$?
+  echo "$out" >> "$LOG"
+  echo "exit=$code" >> "$LOG"
+  # An unrecognised `vajra next` flag falls through to `run_dump()` and exits 0 (S132 finding),
+  # so a build without this gate would green the check while reporting nothing. Require the
+  # gate's own header — the same hollow-binary guard used by every other binary-backed check.
+  if ! grep -q "=== releaser: ship for" <<<"$out"; then
+    echo "BLOCK: the binary produced no Releaser-gate output — this build does not carry the gate." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: \`$BIN next --check-release-close $N\` did not run the gate (an unknown flag exits 0 via run_dump)." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  if [ "$code" -eq 0 ]; then
+    echo "OK: Releaser gate READY — the prior session's ship hygiene is clean." >> "$LOG"
+    ok "$NAME"; return
+  fi
+  echo "BLOCK: the prior session's ship hygiene is unfinished (branch unmerged, main out of sync, or merged locals unpruned)." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: merge the prior session's PR, sync main (git pull), and prune merged session-* branches," >> "$LOG"
+    echo "      or record a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
 # --- Verdict-authorship attestation (S58 — DECISION-003) --------------------
 # check_fidelity_review proves the review's SHAPE + the WAIVER's authorship, but not
 # the VERDICT's authorship: a builder can hand-write its own `**Verdict:** ACCEPT`.
@@ -974,6 +1033,7 @@ check_fidelity_review
 check_obeyed_judgments
 check_design_advisor_mandate
 check_required_crew
+check_release_coordinator
 check_review_attestation
 
 ( cd ".ai/verify/closeout" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
