@@ -2,6 +2,8 @@
 
 **Verdict: ACCEPT — 6/6 SHIPPED**
 
+**Review-Inputs-SHA:** f5eb4e8940f671f84de2638f343e3506634593f40c52a0467dab6ea9f052e518
+
 Reviewed by: independent fidelity-reviewer subagent (cold pass, fed only prompt + delivered files).
 
 ## AC verdicts
