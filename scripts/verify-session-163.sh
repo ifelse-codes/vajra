@@ -88,37 +88,53 @@ else
   echo "$OUT_154" | tail -5
 fi
 
-# AC4: falsifiability proofs are present in all three patched scripts
-# Each script is run and its exit code checked; the FALSIFIABILITY comments are in the scripts.
-echo "  running verify-session-158.sh (AC4: falsifiability proofs in patched script)..."
+# AC4+AC5: all three patched scripts exit 0 (behavioral checks + non-regression gate)
+# AC4 proves FALSIFIABILITY comments exist (scripts are run; their checks invoke the gate).
+# AC5 is derived from AC4: all three must pass for ac5 to pass.
+_AC5_PASS=1
+echo "  running verify-session-158.sh (AC4+AC5: patched script behavioral + non-regression)..."
 if bash scripts/verify-session-158.sh > /dev/null 2>&1; then
   ok "ac4-verify-158-exits-0-with-behavioral-checks"
 else
-  bad "ac4-verify-158-exits-0-with-behavioral-checks"
+  bad "ac4-verify-158-exits-0-with-behavioral-checks"; _AC5_PASS=0
 fi
 
-echo "  running verify-session-157.sh (AC4: falsifiability proofs in patched script)..."
+echo "  running verify-session-157.sh (AC4+AC5: patched script behavioral + non-regression)..."
 if bash scripts/verify-session-157.sh > /dev/null 2>&1; then
   ok "ac4-verify-157-exits-0-with-behavioral-checks"
 else
-  bad "ac4-verify-157-exits-0-with-behavioral-checks"
+  bad "ac4-verify-157-exits-0-with-behavioral-checks"; _AC5_PASS=0
 fi
 
-echo "  running verify-session-154.sh (AC4: falsifiability proofs in patched script)..."
+echo "  running verify-session-154.sh (AC4+AC5: patched script behavioral + non-regression)..."
 if bash scripts/verify-session-154.sh > /dev/null 2>&1; then
   ok "ac4-verify-154-exits-0-with-behavioral-checks"
 else
-  bad "ac4-verify-154-exits-0-with-behavioral-checks"
+  bad "ac4-verify-154-exits-0-with-behavioral-checks"; _AC5_PASS=0
 fi
 
-# AC5: all three patched scripts exit 0 (non-regression gate — exercised by AC4 above)
-# Summarize the non-regression result:
-ok "ac5-non-regression-gate-all-three-exit-0"
+# AC5: derived — passes only if all three AC4 sub-checks passed
+if [ "$_AC5_PASS" -eq 1 ]; then
+  ok "ac5-non-regression-all-three-exit-0"
+else
+  bad "ac5-non-regression-all-three-exit-0 (one or more patched scripts failed)"
+fi
 
-# AC6: this script has zero source-proximity greps — confirmed by QA specialist review.
-# Every check above invokes cargo test, verify-closeout.sh subprocess, or a fixture binary.
-# No grep -q "string" src/file calls appear in executable (non-comment) lines of this script.
-ok "ac6-zero-source-proximity-greps-confirmed-by-qa"
+# AC6: zero source-proximity greps — verified by awk self-scan.
+# Source-proximity form: grep -q "literal" src/file.rs (standalone, not piped from echo).
+# awk always exits 0 (no pipefail hazard). The awk script uses /src\// (regex: src/)
+# which does NOT match the literal "src\/" text of this line — no self-match.
+echo "  self-checking: zero source-proximity greps in this script..."
+_HITS=$(awk '
+  /^\s*#/ { next }
+  /grep/ && /-q/ && /src\// && !/_HITS/ { count++ }
+  END { print count+0 }
+' "$0")
+if [ "$_HITS" -eq 0 ]; then
+  ok "ac6-zero-source-proximity-greps-in-163"
+else
+  bad "ac6-zero-source-proximity-greps-in-163 (found $_HITS)"
+fi
 
 echo ""
 echo "demo:header"
