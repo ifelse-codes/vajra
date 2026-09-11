@@ -3,18 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S164 complete, S165 not yet started).**
+**None — between sessions (S165 complete, S166 not yet started).**
 
-## What was done this session (S164 — CODE: close Releaser station gap — Option B)
+## What was done this session (S165 — NO-CODE Ground Truth)
 
-- AC1: `check_release_coordinator()` added to `scripts/verify-closeout.sh` (hollow-binary guard + waiver support). `vajra next --check-release-close N` CLI flag added to `src/cli/next.rs`. Gate calls `releaser::release_gate_for_close(&root, closing)`. Header `=== releaser: ship for session NN (close gate for session NN) ===` matches hollow-binary guard. `release-coordinator` PASS at closeout.
-- AC3 (Option B): `session-156-admin-close` deleted from origin. `git fetch --prune` cleaned stale remote tracking refs. `BranchShip::NoBranch` = warning (not block) — gate returns READY.
-- AC4: Purely additive changes. 487 lib tests pass. verify-session-163.sh non-regression.
-- AC5: `scripts/verify-session-164.sh` 9/9 PASS — all execute-based, zero source-proximity greps.
-- `scripts/demo-session-164.sh`: 4 markers; Cases 1-4 each independent (binary, git ls-remote, verify-closeout.sh, verify-session-164.sh).
-- Fidelity-reviewer ACCEPT: hollow-binary guard fixed (guard now matches `ship for` not `ship for session` — no-prior-session case was latent bug).
-- Fleet: tech-lead + qa-specialist + demo-producer + release-coordinator all ACCEPT.
-- `.ai/SESSION` → 164.
+- 12 audits run live.
+- stranger-check 21/21 ✅, scaffold-drift 17/17 ✅, cargo test 487 ✅, cargo fmt clean ✅.
+- **New findings:**
+  - S164 `sessions/session-164-summary.md` missing (incomplete closeout).
+  - `check_execution_shas` bash gate has a prose gap: only blocks `done: <...>` angle brackets; `done: (prose)` passes through. S164's step 2 was `(verify + scripts: see next commit)` — bash gate missed it; `--stations 164` caught it.
+  - Analyst station ABSENT 4/4 sessions since S160 GT — all prompts use prose `## Delta` with no `+`/`~`/`-` OpenSpec markers.
+  - Pipeline counter declined: S161 6/8 → S162 6/8 → S163 4/8 → S164 3/8.
+- Founder pick: **A** (fix Analyst + Coder gaps). S166 = next.
+- GT report: `sessions/session-165-ground-truth.md`.
 
 ## What Currently Works
 
@@ -39,8 +40,12 @@
 
 ## What Is Broken / Weak / Disclosed
 
+- **🔴 check_execution_shas prose gap (S165 NEW):** bash gate only blocks `done: <...>` angle-bracket placeholders; prose/parenthetical entries pass through. S164 step 2 was `(verify + scripts: see next commit)` — bash gate missed it; `--stations` caught it. → S166 mandatory fix.
+- **🔴 Analyst station chronically ABSENT (S165 NEW):** all prompts since S160 GT use prose `## Delta` without `+`/`~`/`-` OpenSpec markers. Station never passes. → S166 mandatory (fix prompt format + document the pattern).
+- **🔴 session-164-summary.md missing (S165 NEW):** S164 closeout incomplete. → S166 mandatory (write the summary).
+- **🟡 Pipeline counter declining:** S161 6/8 → S162 6/8 → S163 4/8 → S164 3/8. Releaser/Reviewer ABSENT for S163/S164 after branch pruning (ledger chain broken). No fix planned; expected once branch+ledger is gone.
 - **🟡 prove-then-cut-cost arc unstarted** — deferred 15+ sessions since S145. Founder priority 3 (after release + dogfood).
-- **🟡 D2 inner-session gap** — inner `vajra claude -p` session dispatched fleet roles as subagents but did not autonomously call `vajra next --role`; outer session completed that step. The "self-driving unattended close" claim (S140) is not yet verified end-to-end.
+- **🟡 D2 inner-session gap** — inner `vajra claude -p` session dispatched fleet roles as subagents but did not autonomously call `vajra next --role`; outer session completed that step. The "self-driving unattended close" claim (S140) is not yet verified end-to-end. → backlog.
 - **🟡 D2 waiver path** — `check_required_crew` requires `target/release/vajra` (local binary); non-vajra repos must waiver. Fall back to system vajra binary = backlog.
 - **🟡 fidelity-review-accept naming gap** — when SESSION is "00", N=0 and check looks for `session-0-review.md` not `session-00-review.md`. Backlog.
 - **🟡 Dogfood-age tool blind spot** — reads S124; real last dogfood = S144 (chitra) / S161 (D2). LOW priority.
@@ -57,20 +62,21 @@
 - **🟡 Root cause of hollow verify checks not gated** — S163 retroactively fixed existing hollow checks; no gate prevents future sessions from writing new ones. Backlog.
 - **🟡 Releaser NoBranch self-granted jurisdiction** — squash-merged+pruned branch is indistinguishable from unmerged+pruned branch; gate discloses this as a warning. Honest blind spot; no fix planned.
 - **🟡 S164-QA rec 1** — no falsifiability fixture for ac3 negative path (git ls-remote against a controlled absent branch). Backlog.
-- **🟡 S164-QA rec 2** — PASS count baseline comment: now documented in verify-session-164.sh. DONE in-session; no remaining action.
+- **🟡 init.rs hand-typed scaffold scope** — `src/cli/init.rs` hand-types `communication.forbid`, `load_order`, `demo.required_elements` against live twins in CONSTRAINTS.yaml; derivation scope doesn't cover these. Named by S129 cold review → backlog.
 
 ## What Is In Progress
 
-- Nothing. S164 complete.
+- Nothing. S165 complete.
 
 ## Active PRs
 
-- S164 PR: pending (to be opened at end of S164 closeout).
+- None.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S165 | $0 | No paid run; GT audits only |
 | S164 | $0 | No paid run; bash scripting + verify changes + fleet subagents only |
 | S163 | $0 | No paid run; bash scripting + verify changes only |
 | S162 | $0 | No paid run; code + verify changes only |

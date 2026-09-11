@@ -2,9 +2,16 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S164 complete, S165 not yet started
+## Between Sessions — S165 complete, S166 not yet started
 
-**S164 ACCEPT (CODE: close Releaser station gap — Option B).** AC1+AC3+AC4+AC5 SHIPPED (AC3 PARTIAL — external branch deletion confirmed by release-coordinator, not from diff). **Prompt: `prompts/164-task-releaser-station-gap.md`.** S165 = next (options presented at S164 closeout).
+**S165 PARTIAL PASS (NO-CODE Ground Truth).** 4 green · 4 yellow · 3 red. Key reds: check_execution_shas prose gap; Analyst station 0/4 sessions PASSED since S160 (prose ## Delta); pipeline counter declining 6→6→4→3. Founder pick: **A — fix Analyst + Coder station gaps**. Prompt: write `prompts/166-task-analyst-coder-gaps.md` at S166 start (GT hook blocked write during S165). S166 = next.
+
+## Session 165 — NO-CODE Ground Truth — COMPLETE
+
+- Report: `sessions/session-165-ground-truth.md`.
+- 12 audits. 🟡 PARTIAL PASS. 4 green · 4 yellow · 3 red.
+- Carry-forward decisions: Analyst prose gap → S166 mandatory; check_execution_shas prose gap → S166; session-164-summary.md → S166. D2 inner-session, init.rs scaffold scope → backlog.
+- **Verdict: 🟡 PARTIAL PASS.**
 
 ## Session 164 — CODE: close Releaser station gap — COMPLETE
 
