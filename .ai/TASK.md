@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S165 complete, S166 not yet started
+## Between Sessions — S166 complete, S167 not yet started
 
-**S165 PARTIAL PASS (NO-CODE Ground Truth).** 4 green · 4 yellow · 3 red. Key reds: check_execution_shas prose gap; Analyst station 0/4 sessions PASSED since S160 (prose ## Delta); pipeline counter declining 6→6→4→3. Founder pick: **A — fix Analyst + Coder station gaps**. Prompt: write `prompts/166-task-analyst-coder-gaps.md` at S166 start (GT hook blocked write during S165). S166 = next.
+**S166 ACCEPT (CODE: fix Analyst + Coder station gaps).** All 7 ACs SHIPPED. Analyst PASSED for S166 (first time since S160 GT). check_execution_shas blocks prose/parenthetical done: entries (S164 step 2 now caught). sessions/session-164-summary.md written (S164 closeout complete). S167 = next. See `sessions/session-166-summary.md` for ranked A/B/C candidates.
+
+## Session 166 — CODE: fix Analyst + Coder station gaps — COMPLETE
+
+- Brief: `prompts/166-task-analyst-coder-gaps.md`. Summary: `sessions/session-166-summary.md`.
+- AC1 SHIPPED: Analyst PASSED (substantive ## Delta with +/~/- markers). AC2 SHIPPED: prose done: → BLOCK. AC3 SHIPPED: real SHA still passes. AC4 SHIPPED: session-164-summary.md exists. AC5 SHIPPED: verify-session-166.sh 8/8 behavioral. AC6 SHIPPED: 487 lib tests. AC7 SHIPPED: verify-closeout.sh exit 0. **ACCEPT.**
 
 ## Session 165 — NO-CODE Ground Truth — COMPLETE
 
