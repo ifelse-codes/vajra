@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S162 complete, S163 not yet started
+## Between Sessions — S163 complete, S164 not yet started
 
-**S162 ACCEPT (CODE: waiver path tests + fresh-init investigation).** AC1–AC6 all SHIPPED (13/13 verify pass). **Prompt: `prompts/162-task-waiver-test-and-fresh-signal.md`.** S163 TBD — founder pick.
+**S163 ACCEPT (CODE: fix hollow verify checks — F09 + F08).** AC1–AC6 all SHIPPED (10/10 verify pass). **Prompt: `prompts/163-task-hollow-verify-fix.md`.** S164 = B: Releaser station gap — founder pick at S163 closeout.
+
+## Session 163 — CODE: fix hollow verify checks (F09 + F08) — COMPLETE
+
+- Brief: `prompts/163-task-hollow-verify-fix.md`. Summary: `sessions/session-163-summary.md`. Review: `sessions/session-163-review.md`.
+- AC1–AC6 all SHIPPED. **ACCEPT.**
 
 ## Session 162 — CODE: waiver path behavioral tests + fresh-init investigation — COMPLETE
 
@@ -22,8 +27,3 @@
 - 12 audits, 🟡 PARTIAL PASS. 4 green · 4 yellow · 2 red.
 - Carry-forward decisions: S158 violations → S161 (mandatory). Backlog items confirmed.
 - **Verdict: 🟡 PARTIAL PASS.**
-
-## Session 159 — DOCUMENT: advice-influence re-audit — COMPLETE
-
-- Brief: `prompts/159-task-advice-influence-reaudit.md`. Review: `sessions/session-159-review.md`.
-- 15 items graded. Audit: `sessions/session-159-advice-influence-reaudit.md`. 5/5 SHIPPED. **ACCEPT.**
