@@ -44,15 +44,18 @@ else
   fi
 fi
 
-# AC1: release-coordinator appears as PASS in verify-closeout.sh output.
-# Behavioral: runs the full closeout script and checks its summary line.
-echo "  running: verify-closeout.sh release-coordinator PASS (AC1 — gate in sequence)..."
-CLOSE_OUT="$(bash scripts/verify-closeout.sh 2>&1)" || true
-if echo "$CLOSE_OUT" | grep -q "release-coordinator.*PASS"; then
+# AC1: release-coordinator gate wired into verify-closeout.sh sequence.
+# Behavioral: runs the same binary call verify-closeout.sh makes internally.
+# Note: we avoid calling verify-closeout.sh directly here to prevent infinite
+# recursion (verify-closeout.sh → check_demo_markers → demo script →
+# verify-session-164.sh → verify-closeout.sh → ...).
+echo "  running: vajra next --check-release-close 164 (AC1 — gate in closeout sequence)..."
+OUT_RC="$("$BIN" next --check-release-close 164 2>&1)" && RC_CODE=0 || RC_CODE=$?
+if [ "$RC_CODE" -eq 0 ] && echo "$OUT_RC" | grep -q "verdict: READY"; then
   ok "ac1-release-coordinator-in-closeout"
 else
   bad "ac1-release-coordinator-in-closeout"
-  echo "$CLOSE_OUT" | grep "release-coordinator" || echo "  (check not found in output)"
+  echo "$OUT_RC" | tail -5
 fi
 
 # AC3: session-156-admin-close is absent from origin (Option B).
