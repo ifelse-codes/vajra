@@ -42,6 +42,9 @@ kimchi-session-*.html
 # this line — and if it is nested, re-include each parent directory first (see `run1` below).
 sessions/session-*-artifacts/*
 
+# S161 D2 first-contact dogfood receipt — single curated evidence file.
+!sessions/session-161-artifacts/vajra-receipt.txt
+
 # S76 dogfood: commit only the curated evidence (harness, task, checklist, the 2
 # receipts). Raw captures + 285KB transcripts stay LOCAL — the receipts carry the
 # authoritative-absent warning + cost lines the report cites.

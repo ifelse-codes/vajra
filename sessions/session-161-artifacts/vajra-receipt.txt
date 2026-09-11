@@ -1,0 +1,8 @@
+
+─── vajra · D2 first-contact dogfood (S161) ──────────────────
+ cost                 : not captured (non-headless run; total_cost_usd absent from JSONL)
+ token estimate       : ~$14.15  [estimate — not authoritative]
+ inner session lines  : 117  (vajra claude -p, session-00-onboarding)
+ closeout             : 15/15 green  (VAJRA_CLOSEOUT_WAIVER=0)
+ receipt source       : sessions/session-161-summary.md (Part 2, AC5–AC6)
+──────────────────────────────────────────────────────────────
