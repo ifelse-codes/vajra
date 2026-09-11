@@ -43,11 +43,11 @@ design-advisor: skipped — design-significant: no; fix to an existing guard pat
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
 
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha — closeout commit>
+- step 1 — done: 6df5f75
+- step 2 — done: cc4b742
+- step 3 — done: 7e63c2f
+- step 4 — done: 7e63c2f
+- step 5 — done: d6a20f8
 
 ## Guardrails
 
