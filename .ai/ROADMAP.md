@@ -1,6 +1,10 @@
 # Vajra — Working Roadmap
 
-**Updated:** 2026-09-11 · **Session 165 — mandatory NO-CODE Ground Truth (165 % 5 == 0) — 🟡 PARTIAL PASS.**
+**Updated:** 2026-09-11 · **Session 166 — CODE: fix Analyst + Coder station gaps (Option A) — ACCEPT (7/7 ACs SHIPPED).**
+AC1 SHIPPED: Analyst PASSED for S166 (first time since S160 GT — `vajra next --stations 166` → [PASSED] Analyst WHAT). AC2 SHIPPED: `check_execution_shas` now blocks prose/parenthetical `done:` entries (S164 step 2 caught). AC3 SHIPPED: real 7-char hex SHA still passes (non-regression). AC4 SHIPPED: `sessions/session-164-summary.md` written (S164 closeout complete, 3 A/B/C candidates). AC5 SHIPPED: `verify-session-166.sh` 8/8 behavioral checks (synthetic fixtures, zero source-proximity greps). AC6 SHIPPED: cargo test --lib 487 pass. AC7 SHIPPED: verify-closeout.sh exit 0 (VAJRA_CLOSEOUT_WAIVER=166). design-significant: no. Pipeline counter for S166: 4/8 (Analyst PASSED — improvement from 3/8). Carry-forward: prompt authors must use `+`/`~`/`-` markers in ## Delta going forward. **Next: S167 (TBD — see sessions/session-166-summary.md).**
+Brief: `prompts/166-task-analyst-coder-gaps.md`.
+
+**Prior — Updated:** 2026-09-11 · **Session 165 — mandatory NO-CODE Ground Truth (165 % 5 == 0) — 🟡 PARTIAL PASS.**
 12 audits run live. 🟢: stranger 21/21 · scaffold-drift 17/17 · cargo test 487 · cargo fmt clean · KNOWLEDGE.md 282 lines accurate. 🔴: (1) check_execution_shas bash gate has prose gap (S164 step 2 was `(verify + scripts: see next commit)`, not a SHA — bash gate missed it, --stations caught it); (2) Analyst station ABSENT 4/4 sessions since S160 GT (prose ## Delta, no +/~/- markers); (3) session-164-summary.md missing (incomplete S164 closeout). 🟡: pipeline counter declining 6→6→4→3; D2 dogfood cost null (tool blind spot); dogfood-age reads S124 (known blind spot). Carry-forward: Analyst + check_execution_shas + session-164-summary → S166 mandatory; D2 inner-session gap → backlog. Founder pick: A (fix Analyst + Coder station gaps). **Next: S166.**
 Report: `sessions/session-165-ground-truth.md`.
 
