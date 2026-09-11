@@ -41,6 +41,7 @@ Two pre-ship audit findings (Sept 9 audit) that have never been closed:
 ## Design
 
 design-significant: no — no new interface contract or architectural decision. Waiver behavior is already defined (S56/S93); this session proves it works and fixes an existing output. No ADR needed.
+design-advisor: skipped — design-significant: no; no ADR or interface decision in scope.
 
 ## Crew
 
