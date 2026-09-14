@@ -2,9 +2,11 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S166 complete, S167 not yet started
+## Between Sessions — S166 complete · S167 prompt APPROVED (founder, 2026-09-14)
 
-**S166 ACCEPT (CODE: fix Analyst + Coder station gaps).** All 7 ACs SHIPPED. Analyst PASSED for S166 (first time since S160 GT). check_execution_shas blocks prose/parenthetical done: entries (S164 step 2 now caught). sessions/session-164-summary.md written (S164 closeout complete). S167 = next. See `sessions/session-166-summary.md` for ranked A/B/C candidates.
+**Next: Session 167 — CODE: every Vajra demo plays as a rich story in the terminal.** Brief: `prompts/167-task-rich-terminal-demo.md` — **Status: APPROVED** (founder token "approved", 2026-09-14). Founder direction (between-sessions chat): the drawing kit, the rich outline, the new rules, the updated `demo-producer`, the demo files on the `--sync-fleet` list, then a release. Local prototype (gitignored): `sessions/session-167-artifacts/prototype/`. The number 167 was first used by an ungoverned adhoc fixes merge (`fab1b79`) that never advanced `.ai/SESSION`; this session takes it because `vajra next --advance` opens `.ai/SESSION` + 1. **S168** (founder-named) = Vajra fills in the number tiles + scorecard slides itself, and the Demo-er checks that way. **S170** = mandatory NO-CODE GT. **✅ Resolved 2026-09-14:** `vajra next --stations 167` read `[PASSED] Releaser SHIP` before any S167 work existed — off the old merged `origin/session-167-adhoc-fixes` branch (a false green). With founder approval that branch was deleted from GitHub (PR #199 merged, no commits of its own); `--stations 167` now reads Releaser ABSENT (3 of 8). The prompt's shared-prefix guardrail still applies to any clone holding a stale ref (`git fetch --prune`). Add this gotcha to `.ai/KNOWLEDGE.md` at S167 closeout: reusing a session number whose old merged branch still exists makes the Releaser pass early.
+
+**S166 ACCEPT (CODE: fix Analyst + Coder station gaps).** All 7 ACs SHIPPED. Analyst PASSED for S166 (first time since S160 GT). check_execution_shas blocks prose/parenthetical done: entries (S164 step 2 now caught). sessions/session-164-summary.md written (S164 closeout complete). See `sessions/session-166-summary.md` for its ranked A/B/C candidates.
 
 ## Session 166 — CODE: fix Analyst + Coder station gaps — COMPLETE
 

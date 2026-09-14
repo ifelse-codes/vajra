@@ -61,3 +61,12 @@ design-advisor: skipped — design-significant: no; fix to an existing guard pat
 - `+` `check_execution_shas` blocks prose/parenthetical `done:` entries — closes the S165 🔴 bash gate gap
 - `+` `sessions/session-164-summary.md` — completes S164's incomplete closeout
 - `~` `prompts/166-task-analyst-coder-gaps.md` (this file) — first prompt since S160 GT with real OpenSpec markers in `## Delta`; Analyst station PASSES for session 166
+
+## Advice (answered in S167 — the retroactive cold review, `sessions/session-166-review.md`)
+- fidelity-reviewer rec 1 — deferred: .ai/ROADMAP.md
+  reason: the SHA regex word boundary + 7-40 length is carried to S169 (a close-gate change; S167 is one story: the terminal demo).
+- fidelity-reviewer rec 2 — deferred: .ai/ROADMAP.md
+  reason: the `git cat-file -e` existence check is carried to S169, same reason.
+- fidelity-reviewer rec 3 — obeyed: d2e146d
+- fidelity-reviewer rec 4 — deferred: .ai/ROADMAP.md
+  reason: the "claimed verdict with no review file" close check is carried to S169, same reason.
