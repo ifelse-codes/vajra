@@ -20,7 +20,8 @@ Yes for the demo work; the release (AC13) waits for the merge and the founder's 
 
 | Check | Result |
 |---|---|
-| `scripts/verify-session-168.sh` | final code: **102 pass, 1 fail** — the one fail was AC10b (fidelity recs not yet answered at that moment); re-run after `## Advice` below |
+| `scripts/verify-session-168.sh` | **103 pass, 0 fail** — exit 0 (final code, every recommendation answered) |
+| Obeyed judge (`implementation-advisor`) | 24 of 25 `obeyed:` implemented · 1 mismatch (tech-lead rec 5) → re-answered as a reasoned `deferred:` |
 | `cargo test --lib` | 509 pass (493 + 16 new) |
 | `cargo clippy --all-targets -- -D warnings` · `cargo fmt --check` | clean |
 | `DEMO_MODE=stream bash scripts/demo-session-168.sh` | exit 0 · 16 of 16 live checks |
@@ -59,6 +60,7 @@ Yes for the demo work; the release (AC13) waits for the merge and the founder's 
 - **Old kit demos break on purpose:** `dk_check "label" 0` / `$_DK_RC` / `PASS` now turn red with a message naming the new form.
 - **Cost:** `--demo-facts` on a session with an attested review takes ~10 s (the Reviewer station re-derives the attestation hash); the gate derives once more after the run.
 - **Not tested:** Windows (bash kit; WSL untested); a real light-background terminal (escape codes proven, not eyeballed); Linux only via CI Rust tests.
+- **Process — the obeyed judge:** `verify-closeout.sh` blocked on 25 unjudged `obeyed:` dispositions. The tech-lead had marked `implementation-advisor` `deferred-budget`; it was dispatched anyway, once, as the independent judge (it made none of the recommendations it graded), fed one patch file per named commit. An extra handoff from a deferred role does not affect the crew gate (only `required` roles are checked). Adding that handoff changed the attested diff, so the review's `Review-Inputs-SHA` was recomputed after it landed — no code, script or decision record changed.
 - **Process:** `vajra next --advance` into S168 used `VAJRA_SKIP_CODER_GATE=1` because S167's step 10 (the release) was still pending — the same pending release is this session's AC13.
 
 ## Next — three candidates (ranked)
