@@ -70,3 +70,7 @@ design-advisor: skipped — design-significant: no; fix to an existing guard pat
 - fidelity-reviewer rec 3 — obeyed: d2e146d
 - fidelity-reviewer rec 4 — deferred: .ai/ROADMAP.md
   reason: the "claimed verdict with no review file" close check is carried to S169, same reason.
+- tech-lead rec 1 — deferred: .ai/ROADMAP.md
+  reason: a close-gate check for a missing tech-lead crew decision is carried to S169 with the other S166 close-gate fixes (row S169).
+- tech-lead rec 2 — deferred: sessions/session-166-review.md
+  reason: that review is titled retroactive and states it was dispatched in S167 because S166 recorded none; the S166 summary no longer claims a passed review.
