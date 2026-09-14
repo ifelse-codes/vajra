@@ -1,19 +1,15 @@
 # Session Boot
 
 ## Next Session
-- **S167 — NEXT: every Vajra demo plays as a rich story in the terminal** — `prompts/167-task-rich-terminal-demo.md` (**Status: APPROVED** — founder, 2026-09-14).
-  167 was first used by an ungoverned adhoc fixes merge (`fab1b79`) that never advanced `.ai/SESSION`; `vajra next --advance` opens SESSION + 1. S168 (founder-named) = Vajra fills in the number + scorecard slides itself. S170 = mandatory NO-CODE GT.
-  Start in a FRESH chat · branch `session-167-rich-terminal-demo`.
+- **Pick pending (founder).** Candidates in `sessions/session-167-summary.md`: A · S168 Vajra fills in the demo numbers itself (founder-named) · B · S169 tighten the close gate · C · S167-release ship vajractl 0.2.0. S170 = mandatory NO-CODE GT.
+  **Blocker first:** `.ai/SESSION` is stuck at 166 — S166's crew gate (no override) needs real S166 records for implementation-advisor, qa-specialist and fidelity-reviewer, or the founder moves the counter by hand. `vajra next --advance` refuses until then.
+  Start in a FRESH chat once the prompt is written and approved.
 
 ## Current Session
-- **Number:** 166 — COMPLETE (CODE: fix Analyst + Coder station gaps — Option A). **Verdict: ACCEPT.**
-  AC1 SHIPPED: Analyst station PASSED for S166 (`vajra next --stations 166` → [PASSED] Analyst WHAT). AC2 SHIPPED: `check_execution_shas` blocks prose/parenthetical `done:` entries (S164 step 2 now caught). AC3 SHIPPED: real 7-char hex SHAs still pass (non-regression). AC4 SHIPPED: `sessions/session-164-summary.md` written (S164 closeout complete). AC5 SHIPPED: `verify-session-166.sh` 8/8 behavioral checks. AC6 SHIPPED: cargo test --lib 487 pass. AC7 SHIPPED: verify-closeout.sh exit 0 (VAJRA_CLOSEOUT_WAIVER=166).
-  design-significant: no.
-  **Next: S167.**
+- **Number:** 166 — recorded counter (stuck; see blocker). S166 closed with no tech-lead and no fidelity handoff; **retroactive cold review (S167): REJECT** — 4 SHIPPED · 3 PARTIAL. Recs 1/2/4 + retroactive tech-lead rec 1 → S169.
 
 ## Prior Session
-- **Number:** 165 — COMPLETE (NO-CODE Ground Truth — mandatory: 165 % 5 == 0). **Verdict: 🟡 PARTIAL PASS.**
-  4 green · 4 yellow · 3 red. Key reds: (1) S164 session-164-summary.md missing + ## Execution step 2 prose not caught by check_execution_shas bash gate; (2) Analyst station ABSENT 4/4 sessions since S160 GT (prose ## Delta, no +/~/- OpenSpec markers); (3) pipeline counter declining 6→6→4→3. Greens: stranger 21/21, scaffold-drift 17/17, cargo test 487, fmt clean. Founder pick: A (fix Analyst + Coder gaps).
-  **Next: S166.**
+- **S167 — MERGED WITHOUT A FORMAL CLOSE (founder decision, 2026-09-14)** — CODE: every Vajra demo plays as a rich story in the terminal. **Cold review: ACCEPT** (10 SHIPPED · 1 NOT-BUILT = AC10 release, waits for the founder's go).
+  `scripts/demo-kit.sh` + the seven-section template (empty fails by name) · HTML-deck rule retired (DECISION-009) · kit + template on `--sync-fleet` · verify 69/69 · 493 lib tests · PR #200. Its `verify-closeout.sh` never ran.
 
 **New chat.**
