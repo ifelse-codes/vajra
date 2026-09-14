@@ -11,7 +11,7 @@
 - Brief: `prompts/167-task-rich-terminal-demo.md`. Summary: `sessions/session-167-summary.md`. Review: `sessions/session-167-review.md`. Decision: `docs/decisions/DECISION-009-terminal-demo.md`.
 - AC1–AC9, AC11 SHIPPED · AC10 NOT-BUILT (release after merge + founder go). verify-session-167.sh 69/69 · 493 lib tests. **ACCEPT.**
 - Found at boot: S166 closed with no tech-lead / fidelity handoff → retroactive S166 review REJECT (`sessions/session-166-review.md`); tech-lead back-filled and labelled RETROACTIVE (founder choice), but the crew gate still refused.
-- **Merged without a formal close (founder decision).** `.ai/SESSION` stays 166 and S167's `verify-closeout.sh` never ran. Before the next session can `--advance`, S166's crew gate must be satisfied (real S166 records for implementation-advisor, qa-specialist, fidelity-reviewer) or the founder moves the counter by hand.
+- **Merged without a formal close (founder decision).** S167's `verify-closeout.sh` never ran. The founder then moved `.ai/SESSION` 166 → 167 by hand (S166's crew gate could not be satisfied after the fact); the next `--advance` opens 168.
 
 ## Session 166 — CODE: fix Analyst + Coder station gaps — CLOSED (retroactive review: REJECT)
 
