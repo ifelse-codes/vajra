@@ -53,14 +53,12 @@ demo:
   required_elements: [header, cases, summary_table, before_after]
   # Same bound (S73) on the Demo-er live re-run — killed past timeout_secs → cannot-evaluate BLOCK.
   timeout_secs: 600
-  presentation: interactive_html
-  presentation_rules:
-    - run demo script or commands to capture real output
-    - present as interactive HTML slide deck via show_widget
-    - terminal-styled output blocks with PASS/FAIL coloring
-    - one slide per major feature, final slide is scorecard
-    - include auto-play and keyboard nav
-    - bash script stays for CI/verify — presentation is agent's job for user
+  # S167 (DECISION-009): the terminal demo IS the human demo. `presentation: interactive_html`
+  # is retired — the demo script, drawn with scripts/demo-kit.sh, plays as a deck in a terminal
+  # and prints every slide plus the markers when piped. No separate HTML deck.
+  presentation: terminal_deck
+  kit: 'scripts/demo-kit.sh'
+  outline: [headline, story, before_after, rule, cases, scorecard, next]
 
 release:
   # The ship contract (S72): the Releaser gate re-derives these facts from git LIVE at close —
