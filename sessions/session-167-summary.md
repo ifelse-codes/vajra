@@ -57,7 +57,8 @@ Mostly — the code, rules, sync path, demo and verify are done; the release (AC
 - `vajra next --advance` refused to open S167: **S166 had no fidelity-reviewer and no tech-lead handoff**, and its summary credited a self-written "ACCEPT (fidelity-reviewer)".
 - A retroactive cold review of S166 ran: **REJECT · 4 SHIPPED · 3 PARTIAL** (`sessions/session-166-review.md`). The S166 summary is corrected; recs 1/2/4 are carried to **S169**, rec 3 obeyed (`d2e146d`).
 - The fidelity gate still (rightly) rejects that review's provenance — it was dispatched from S167's branch. `VAJRA_SKIP_FIDELITY_GATE=1` was used, disclosed here.
-- **The crew gate has no override:** S166's missing tech-lead cannot be made up after the fact. `.ai/SESSION` is still **166**. How to open 167 is the founder's call (see the chat).
+- **The crew gate has no override.** Founder chose a labelled back-fill: a tech-lead was dispatched from a `session-166-crew-backfill` branch and recorded as RETROACTIVE (`.ai/handoffs/session-166-tech-lead.md`; its 2 recs answered in the S166 prompt, rec 1 → S169). The gate still refused: that crew decision marks implementation-advisor, qa-specialist and fidelity-reviewer `required`, and S166 has no valid record for any of them.
+- **Founder decision (2026-09-14): merge PR #200 without a formal close.** `.ai/SESSION` stays **166**; `scripts/verify-closeout.sh` never ran for S167; the cold review (ACCEPT) and verify (69/69) are the evidence instead. The next session cannot `vajra next --advance` until S166's crew gate is satisfied or the counter is moved by hand.
 
 ## Next — three candidates (ranked)
 
