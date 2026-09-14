@@ -164,8 +164,8 @@ and strangers get it in a released version.
   reason: chitra has no S167 kit render, so the "kit upgrades" half of AC7 cannot be shown there; carried as a named item. When: backlog — reason: needs a real project that synced S167 before S168; picked up at the S170 GT.
 - tech-lead rec 4 — deferred: .ai/handoffs/session-167-release-coordinator.md
   reason: the five release recs can only be carried out at step 11, after the merge and on the founder's go; step 11 follows them for v0.2.0 — separate bump PR tagged on its merge · no leftover session branches · install-smoke with VAJRA_SMOKE_RELEASE_TAG=v0.2.0 and the tap formula · published-crate `vajra init` kit check · `cargo publish` typed by the founder. When: this session's step 11 if the founder says go; otherwise the release session named in ROADMAP row S167-release.
-- tech-lead rec 5 — obeyed: f1e950d
-  note: the gate change landed in full before any release work; the release (step 11) is the part left for after the merge.
+- tech-lead rec 5 — deferred: sessions/session-168-summary.md
+  reason: rec 5 asked that, if the cap hit, the release be cut first, AC13 be graded NOT-BUILT with the reason, and the summary name the release as the next candidate. The independent judge found `obeyed: f1e950d` a mismatch — that commit adds the demo and verify, not those three things — so it is re-answered here. What is true: the release was the part cut (no release work landed before the gate change); AC13 is graded NOT-BUILT with its reason in the summary; the summary ranks the release as candidate B, not first, because the founder had already named S169 — and ROADMAP row S168-release puts the release before S169. When: the release itself — after the merge, on the founder's go (ROADMAP S168-release).
 - design-advisor rec 1 — obeyed: a9d277a
 - design-advisor rec 2 — obeyed: 84e2375
 - design-advisor rec 3 — obeyed: 9d0282a
