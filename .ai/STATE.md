@@ -13,7 +13,7 @@
 - Kit + template on `SYNC_HOOKS` (stamped); `SHIPPED_UNSTAMPED_RENDERS` lets an untouched shipped template (3 byte versions, incl. chitra's pre-S71 inline copy) upgrade without `--overwrite-drifted`.
 - `scripts/demo-session-167.sh` (first real demo on the kit) · `scripts/verify-session-167.sh` 69/69 · 493 lib tests · clippy/fmt clean · PR #200.
 - Cold review **ACCEPT** (10 SHIPPED · 1 NOT-BUILT = AC10 release, waits for merge + founder go).
-- Found at boot: S166 closed with no tech-lead + no fidelity handoff. Retroactive S166 review = REJECT (recs 1/2/4 → S169). S166 tech-lead back-filled, labelled RETROACTIVE (founder choice) — the crew gate still refused (3 required roles with no S166 record). **Founder decision: merge PR #200 without a formal close.** `.ai/SESSION` stays 166; S167's `verify-closeout.sh` never ran.
+- Found at boot: S166 closed with no tech-lead + no fidelity handoff. Retroactive S166 review = REJECT (recs 1/2/4 → S169). S166 tech-lead back-filled, labelled RETROACTIVE (founder choice) — the crew gate still refused (3 required roles with no S166 record). **Founder decision: merge PR #200 without a formal close**, then the founder moved `.ai/SESSION` to 167 by hand. S167's `verify-closeout.sh` never ran.
 
 ## What Currently Works
 
@@ -27,7 +27,7 @@
 
 ## What Is Broken / Weak / Disclosed
 
-- **🔴 `.ai/SESSION` stuck at 166.** S166's crew gate (no override) needs real S166 records for implementation-advisor, qa-specialist and fidelity-reviewer; S167 merged unclosed by founder choice. The next session cannot `vajra next --advance` until that gate is satisfied or the founder moves the counter by hand.
+- **🟡 `.ai/SESSION` moved 166 → 167 by hand (founder, 2026-09-14).** S166's crew gate (no override) could not be satisfied after the fact, so the gate was bypassed by a knowing founder act, not passed. S166 has no valid records for its three required roles; S167 has no `verify-closeout.sh` run.
 - **🟡 Thin demo fills still pass (S167 fakest green):** `dk_check "x" PASS` counts as a live check that cannot fail; replacing every `dk_todo` with that passes. → **S168** (Vajra fills tiles + scorecard itself; dk_check must run a command).
 - **🟡 S166 close was self-certified** — retroactive review REJECT; close-gate tightening (SHA word boundary + length, `git cat-file` existence, claimed-verdict-with-no-review check) → **S169**.
 - **🟡 AC10 release not done** — vajractl still 0.1.0; release waits for merge + founder go (ROADMAP `S167-release`).
