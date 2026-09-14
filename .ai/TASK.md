@@ -9,7 +9,7 @@
 ## Session 168 — CODE: a demo that cannot be faked — COMPLETE
 
 - Brief: `prompts/168-task-demo-final.md`. Summary: `sessions/session-168-summary.md`. Review: `sessions/session-168-review.md`. Decision: `docs/decisions/DECISION-010-unfakeable-demo.md`.
-- `dk_check` runs a command · `vajra next --demo-facts NN` · Vajra-filled tiles + scorecard · the Demo-er gate requires `demo:complete` + true facts · light theme · 508 lib tests. AC13 (release) NOT-BUILT — waits for merge + founder go.
+- `dk_check` runs a command · `vajra next --demo-facts NN` · Vajra-filled tiles + scorecard · the Demo-er gate requires `demo:complete` + true facts · light theme · 509 lib tests. AC13 (release) NOT-BUILT — waits for merge + founder go.
 - Advance into S168 used `VAJRA_SKIP_CODER_GATE=1` (S167's pending release step), disclosed.
 
 ## Session 167 — CODE: the terminal demo is the human demo — COMPLETE (merged without a formal close)

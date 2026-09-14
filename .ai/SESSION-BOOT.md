@@ -6,7 +6,7 @@
 
 ## Current Session
 - **Number:** 168 — CLOSED. CODE: a demo that cannot be faked (DECISION-010). Cold review: `sessions/session-168-review.md`.
-  `dk_check` runs a command (bare PASS refused) · `vajra next --demo-facts NN` · Vajra-filled tiles + scorecard · the Demo-er gate requires `demo:complete` + true facts for kit-built demos · light theme · 508 lib tests.
+  `dk_check` runs a command (bare PASS refused) · `vajra next --demo-facts NN` · Vajra-filled tiles + scorecard · the Demo-er gate requires `demo:complete` + true facts for kit-built demos · light theme · 509 lib tests.
   Release 0.2.0 (AC13) NOT-BUILT yet — waits for the merge + founder go.
 
 ## Prior Session
