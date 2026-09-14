@@ -139,7 +139,8 @@ and strangers get it in a released version.
 - step 7 — done: f1e950d
 - step 8 — done: f1e950d
 - step 9 — done: f1e950d
-- step 10 — pending: cold fidelity review, summary, PR and merge
+- step 10 — done: 17011a5
+  note: four cold passes (three dodges found and fixed in-session); 17011a5 lands the handoff of the pass of record (ACCEPT). The summary and review file land in the closeout commit; PR + merge follow `verify-closeout.sh`.
 - step 11 — pending: the 0.2.0 release waits for the merge and the founder's go in chat (AC13)
 
 ## Advice (every recorded recommendation, answered)
@@ -147,6 +148,20 @@ and strangers get it in a released version.
   note: design-advisor got only the AC5 question + DECISION-008/009, the CONSTRAINTS demo block, demo_gate_with and the kit; it ruled on the opt-out hole (recs 1–2).
 - tech-lead rec 2 — obeyed: ce72d1b
   note: dispatched after the brief update (92e4f2e) with a draft demo, pointed at the template, the kit and the draft only; its 14 recs are answered below.
+- tech-lead rec 3 — obeyed: 17011a5
+  note: the fidelity-reviewer got the prompt, the diff (as a file) and verify-session-168.sh, with AC1/AC4/AC13 named; every handoff was committed before `--inputs-sha`; `verify-closeout.sh` runs on this branch before merge.
+- fidelity-reviewer rec 1 — deferred: sessions/session-168-summary.md
+  reason: the summary's "what the gate proves" line is corrected there now (outside the attested diff); the same sentence in DECISION-010 is corrected in S169, because changing it here would make the review of record stale. When: S169 (ROADMAP row S169).
+- fidelity-reviewer rec 2 — deferred: .ai/ROADMAP.md
+  reason: a live "zero checks + hand-printed check-passed/complete → READY, disclosed floor" row in the verify script and demo changes the reviewed delivery. When: S169 (ROADMAP row S169).
+- fidelity-reviewer rec 3 — deferred: .ai/ROADMAP.md
+  reason: relabelling or replacing the markdown-grep checks AC5a–e / AC10a changes the reviewed verify script. When: S169 (ROADMAP row S169).
+- fidelity-reviewer rec 4 — deferred: sessions/session-168-summary.md
+  reason: the real verify exit and counts are in the summary's Evidence table (done there, outside the attested diff).
+- fidelity-reviewer rec 5 — deferred: .ai/ROADMAP.md
+  reason: AC13 stays NOT-BUILT until install-smoke passes on release, crates and brew with VAJRA_SMOKE_RELEASE_TAG=v0.2.0 and the published crate refuses a bare PASS. When: ROADMAP row S168-release (after merge, on the founder's go).
+- fidelity-reviewer rec 6 — deferred: .ai/ROADMAP.md
+  reason: chitra has no S167 kit render, so the "kit upgrades" half of AC7 cannot be shown there; carried as a named item. When: backlog — reason: needs a real project that synced S167 before S168; picked up at the S170 GT.
 - tech-lead rec 4 — deferred: .ai/handoffs/session-167-release-coordinator.md
   reason: the five release recs can only be carried out at step 11, after the merge and on the founder's go; step 11 follows them for v0.2.0 — separate bump PR tagged on its merge · no leftover session branches · install-smoke with VAJRA_SMOKE_RELEASE_TAG=v0.2.0 and the tap formula · published-crate `vajra init` kit check · `cargo publish` typed by the founder. When: this session's step 11 if the founder says go; otherwise the release session named in ROADMAP row S167-release.
 - tech-lead rec 5 — obeyed: f1e950d
