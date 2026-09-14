@@ -12,7 +12,7 @@
 - `dk_vajra_tiles NN` / `dk_vajra_scorecard NN` draw those facts ("filled in by Vajra") and print `demo:fact` lines; `dk_finish` prints `demo:complete` only when the outline passed; light theme (`DEMO_THEME=light` / light `COLORFGBG`).
 - The Demo-er gate: a kit-built demo (sources the kit, or its output contains any kit marker — substring scan) must print `demo:complete` and every fact, each equal to what the gate derives right after the run, from the run folder, with `VAJRA_BIN` = the gate's own binary. Non-kit demos keep the old rule, warned (DECISION-010, overturns DECISION-009 §4).
 - `complete` joins `demo.required_elements` here and in the `vajra init` scaffold. Template, `demo-session-167.sh`, `verify-session-167.sh` and the `demo-producer` brief migrated.
-- Crew: tech-lead · design-advisor · demo-producer (14 recs, all obeyed) · fidelity-reviewer (two cold passes; the first found the indented-`demo:complete` dodge, fixed in-session). 508 lib tests; `demo-session-168.sh` 16/16 live checks.
+- Crew: tech-lead · design-advisor · demo-producer (14 recs, all obeyed) · fidelity-reviewer (two cold passes; the first found the indented-`demo:complete` dodge, fixed in-session). 509 lib tests; `demo-session-168.sh` 16/16 live checks.
 
 ## What Currently Works
 

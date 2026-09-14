@@ -21,7 +21,7 @@ Yes for the demo work; the release (AC13) waits for the merge and the founder's 
 | Check | Result |
 |---|---|
 | `scripts/verify-session-168.sh` | see the close run (recorded in the PR) |
-| `cargo test --lib` | 508 pass (493 + 15 new) |
+| `cargo test --lib` | 509 pass (493 + 16 new) |
 | `cargo clippy --all-targets -- -D warnings` · `cargo fmt --check` | clean |
 | `DEMO_MODE=stream bash scripts/demo-session-168.sh` | exit 0 · 16 of 16 live checks |
 | `vajra next --check-demo 168` / `167` | READY / READY under the new gate |
@@ -52,7 +52,9 @@ Yes for the demo work; the release (AC13) waits for the merge and the founder's 
 - **Fakest green:** `dk_check "x" true` still passes — a real command is not a meaningful one. The demo's rule slide shows it live.
 - **What an author can still fake:** extra hand-drawn tiles beside the Vajra-filled ones (the gate checks the facts, not every number on screen); a hand-typed `demo:fact` line with the **right** value (the gate proves the value, not who drew it); an `echo demo:complete` (satisfies that element and marks the demo kit-built, so every fact must then be printed and true — and a failed or refused check still blocks through `demo:check-failed`).
 - **The kit is bash the demo sources:** a determined author can write `DK_SCORES` directly, redefine `dk_check`/`dk_finish` after sourcing, or (clean room on) create during the run the files the facts come from. The gate proves what the output says, not honest use of the kit.
-- **Two cold passes found two dodges, both fixed in-session:** pass 1 — an indented ` demo:complete` passed as legacy (kit-sign scan made a substring scan); pass 2 — `\033[demo:complete` counted raw but not stripped (every scan now reads the same stripped text), and `dk_marker complete` in place of `dk_finish` rescued a typed PASS (the kit now prints `demo:check-failed`, which blocks).
+- **What the gate proves, exactly:** every fact printed is true; no kit-reported failure, refusal or unfilled placeholder was hidden; at least one live check passed. It does NOT prove the whole outline passed — a demo with its placeholders deleted, one real check and a hand-printed `demo:complete` still closes.
+- **Cold pass 3** found the unfilled-outline + `dk_marker complete` path (zero checks): fixed — `dk_todo` prints `demo:check-failed`, and a kit-built demo needs a `demo:check-passed`; `_dk_facts` failures print `demo:check-failed` too.
+- **Two earlier cold passes found two dodges, both fixed in-session:** pass 1 — an indented ` demo:complete` passed as legacy (kit-sign scan made a substring scan); pass 2 — `\033[demo:complete` counted raw but not stripped (every scan now reads the same stripped text), and `dk_marker complete` in place of `dk_finish` rescued a typed PASS (the kit now prints `demo:check-failed`, which blocks).
 - **What existing projects get:** after upgrading `vajra` and `vajra init --sync-fleet`, their kit-built demos get the `demo:complete` + fact checks automatically. A demo that drops every kit sign stays on the old four-marker rule (warned by name) **until they add `complete` to `CONSTRAINTS.yaml#demo.required_elements`** — sync never touches that file. New projects scaffold with `complete` already required.
 - **Old kit demos break on purpose:** `dk_check "label" 0` / `$_DK_RC` / `PASS` now turn red with a message naming the new form.
 - **Cost:** `--demo-facts` on a session with an attested review takes ~10 s (the Reviewer station re-derives the attestation hash); the gate derives once more after the run.

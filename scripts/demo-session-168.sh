@@ -21,7 +21,7 @@ export VAJRA_BIN="$BIN"   # the kit reads Vajra's facts from this binary (the ga
 S167=40fe6f7              # the S167 merge — the kit and template before this session
 
 # Recorded at close — measured outside this deck, never re-run here (labelled "recorded").
-REC_TESTS_N=508
+REC_TESTS_N=509
 REC_TESTS="cargo test --lib: $REC_TESTS_N pass, 0 fail"
 REC_LINT="cargo clippy --all-targets -D warnings: clean · cargo fmt --check: clean"
 REC_CHITRA="--dry-run: template 'would upgrade', kit 'would create' (chitra never synced S167); HEAD, status and stash identical before and after"
