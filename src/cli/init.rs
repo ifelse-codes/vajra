@@ -29,6 +29,11 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     // corrected gate (e.g. with check_required_crew) without a manual patch (S144 finding 1).
     // Uses the scaffold template (PATH-first resolver) not the vajra source file — see S144 finding 2.
     ("scripts/verify-closeout.sh", TPL_VERIFY_CLOSEOUT_SCAFFOLD),
+    // S167 (DECISION-009): the demo template (the seven-section outline) and the terminal deck
+    // drawing kit it sources. Both are fill-free, so the stamped render is byte-identical across
+    // every install and `--sync-fleet` can upgrade them through the same four states.
+    ("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
+    ("scripts/demo-kit.sh", TPL_DEMO_KIT),
 ];
 
 /// The canonical STAMPED render of one hook — a shell-comment `vajra-render-sha:` trailing line over
@@ -230,6 +235,35 @@ struct SyncTarget {
     boundary: Option<&'static str>,
 }
 
+/// S167 (DECISION-009): the sha256 of every UNSTAMPED render Vajra shipped for a sync target before
+/// that target was scaffolded stamped. Closed history — every render from S167 on carries a stamp,
+/// so this list never grows. Derived once from git (the command is recorded in DECISION-009) and
+/// re-checked against git history by a test whenever `.git` is present.
+const SHIPPED_UNSTAMPED_RENDERS: &[(&str, &[&str])] = &[(
+    "scripts/demo-session-template.sh",
+    &[
+        // a78e07e (S71) — the canonical scripts/demo-session-template.sh, embedded by include_str!.
+        "a4fd31c57b2a795971501417873c7ba84e6bc76a58115344bcf3d1747704430b",
+        // ee5c8c7..95f8b39 — the inline `r#"…"#` template in src/cli/init.rs before S71
+        // (chitra's copy). Carries no fill token, so every install got these exact bytes.
+        "31b37550286e316df7848565bacbf5e16f14b2dd440419293a1ec5cc4b95dcdd",
+        // 88f4a8e..31d30dc — the earlier inline template, same shape.
+        "fae423cb2260ec8702197e2a8f521bbd9ede4bab15e3a1d082924862461a01b9",
+    ],
+)];
+
+/// True when `body` is byte-identical to an unstamped render Vajra itself once shipped at `rel` —
+/// provably untouched, so upgrading it destroys nothing. A pure function of the bytes (not the
+/// git-blame provenance S136 rejected); no match means today's `Drifted`, never a guess.
+fn is_shipped_unstamped_render(rel: &str, body: &str) -> bool {
+    SHIPPED_UNSTAMPED_RENDERS
+        .iter()
+        .filter(|(r, _)| *r == rel)
+        .any(|(_, shas)| {
+            crate::fleet::sha256_hex(body.as_bytes()).is_some_and(|h| shas.contains(&h.as_str()))
+        })
+}
+
 /// Every pure-render scaffold file `--sync-fleet` governs: the fleet roles (frontmatter stamp), the
 /// shell hooks (S142, shell-comment stamp), and — S143 — the constitution's governed BODY (markdown
 /// stamp, a boundary target). ONE list, so `plan_fleet_sync` and the scaffold agree on exactly this
@@ -284,7 +318,18 @@ pub fn plan_fleet_sync(root: &Path) -> Vec<FleetSyncItem> {
                 Err(e) if e.kind() == io::ErrorKind::NotFound => None,
                 Err(_) => Some(String::new()),
             };
-            let state = classify_fleet_file(on_disk.as_deref(), &t.canonical, t.syntax, t.boundary);
+            let mut state =
+                classify_fleet_file(on_disk.as_deref(), &t.canonical, t.syntax, t.boundary);
+            // S167 (DECISION-009): an unstamped copy byte-identical to a render Vajra itself once
+            // shipped is a provable older render, not a user edit — it upgrades without
+            // `--overwrite-drifted`. Anything else stays `Drifted`.
+            if state == FleetFileState::Drifted
+                && on_disk
+                    .as_deref()
+                    .is_some_and(|body| is_shipped_unstamped_render(&t.rel, body))
+            {
+                state = FleetFileState::StaleRender;
+            }
             FleetSyncItem {
                 label: t.label,
                 rel: t.rel,
@@ -1081,7 +1126,10 @@ fn files(
         fx(".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
         fx(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
-        fx("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
+        // S167 (DECISION-009): the demo template + the drawing kit it sources are on `SYNC_HOOKS`,
+        // scaffolded stamped so a fresh `init` + immediate `--sync-fleet` reports them `UpToDate`.
+        fxs("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
+        fxs("scripts/demo-kit.sh", TPL_DEMO_KIT),
         // S146: the scaffolded close-gate uses the scaffold template (PATH-first binary resolver,
         // S144 finding 2) and is stamped via `fxs` so a fresh `init` + immediate `--sync-fleet`
         // reports it `UpToDate` — the ONE-list invariant of DECISION-007.
@@ -1170,7 +1218,7 @@ const TPL_AGENTS_BODY: &str = concat!(
 2. BRANCH — `session-NN-<slug>` from `main`.
 3. PLAN — Bullets. Max 2 assumptions. Wait for approval.
 4. EXECUTE — Atomic changes. Max 3 files per commit.
-5. VERIFY + DEMO — `scripts/verify-session-NN.sh` exits 0. `scripts/demo-session-NN.sh` shows what was built (cumulative).
+5. VERIFY + DEMO — `scripts/verify-session-NN.sh` exits 0. `scripts/demo-session-NN.sh` shows what was built (cumulative). The terminal demo IS the human demo: copy `scripts/demo-session-template.sh` (the seven-section outline, drawn with `scripts/demo-kit.sh`), fill every section with live runs, and show the user that script — never a separate HTML deck.
 6. PR — Open PR to `main`.
 7. SUMMARY + FIDELITY REVIEW — `sessions/session-NN-summary.md` + an independent `sessions/session-NN-review.md` (a cold pass; see `reviewer/SKILL.md`). 3 next options.
 8. CLOSEOUT — Sync `.ai/` files. `scripts/verify-closeout.sh` exits 0 (structurally requires an ACCEPT review).
@@ -1299,6 +1347,11 @@ demo:
   required_elements: [header, cases, summary_table, before_after]
   # Same bound (S73) on the Demo-er live re-run — killed past timeout_secs → cannot-evaluate BLOCK.
   timeout_secs: 600
+  # S167 (DECISION-009): the terminal demo IS the human demo — the demo script, drawn with the
+  # scaffolded scripts/demo-kit.sh, plays as a deck in a terminal. No separate HTML deck.
+  presentation: terminal_deck
+  kit: 'scripts/demo-kit.sh'
+  outline: [headline, story, before_after, rule, cases, scorecard, next]
 
 release:
   # The ship contract (S72): the Releaser gate re-derives these facts from git LIVE at close —
@@ -1599,6 +1652,10 @@ else echo "RED ($PASS pass, $FAIL fail)"; exit 1; fi
 // Until S71 the canonical file did not exist on disk (named in CONSTRAINTS, inline-only here —
 // the S70 GT finding); now the file IS the source and this embed cannot drift from it.
 const TPL_DEMO_TEMPLATE: &str = include_str!("../../scripts/demo-session-template.sh");
+
+// S167 (DECISION-009): the terminal deck drawing kit the template sources — the canonical
+// scripts/demo-kit.sh, embedded byte-identical and scaffolded + synced stamped (`SYNC_HOOKS`).
+const TPL_DEMO_KIT: &str = include_str!("../../scripts/demo-kit.sh");
 
 /// The session-01 kickoff prompt, rendered from the ONE canonical station-marker template
 /// (`analyst::PROMPT_TEMPLATE`) rather than a second inline copy (S99).
@@ -3506,5 +3563,410 @@ mod tests {
             assert_eq!(item.state, FleetFileState::Drifted);
         }
         fs::set_permissions(&full, fs::Permissions::from_mode(0o644)).unwrap();
+    }
+
+    // ── S167 (DECISION-009): the terminal demo kit + the rich demo template ────────────────────
+
+    /// A small deck that uses every drawing call in the kit, sourced from the scaffolded kit next to
+    /// it — the sample AC1 runs under bash.
+    const S167_SAMPLE_DECK: &str = r#"set -uo pipefail
+. "$(cd "$(dirname "$0")" && pwd)/demo-kit.sh"
+s1() { dk_section headline "session 0 · sample"; dk_h1 "A " "sample" " deck."; dk_metrics "A|1|of 1" "B|2|live" "C|3" "D|4|recorded" "E|5"; dk_verdict "ONE BREATH" "Old: nothing." "New: something ✓ with a long line that must wrap across the heavy box because it keeps going past the width."; }
+s2() { dk_section story; dk_bullets "Lead.|rest of a bullet long enough to wrap around the column edge at seventy-two columns for sure."; }
+s3() { dk_section before_after; dk_run_v printf 'old\nline two\n'; local b="$_DK_OUT"; dk_run_v printf 'new ✓\n'; dk_compare "BEFORE|old · exit 0" "$b" "AFTER|new · exit 0" "$_DK_OUT"; dk_check "before differs from after" PASS; }
+s4() { dk_section rule; dk_table "In|Out|Why" "done: abc1234|✓ pass|a real id" "done: (prose that is long and clips past forty two columns)|✗ block|prose — words words words words words words words words words words"; }
+s5() { dk_section cases; dk_term "1 · a case" "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; dk_check "case one" 0; }
+s6() { dk_section scorecard; dk_scorecard "LIVE"; }
+s7() { dk_section next; dk_caption "the end"; }
+dk_deck s1 s2 s3 s4 s5 s6 s7
+dk_finish
+"#;
+
+    /// Run a script under bash with no terminal (the Demo-er gate's view), the demo knobs cleared.
+    fn run_demo_script(dir: &Path, script: &str, envs: &[(&str, &str)]) -> std::process::Output {
+        let mut cmd = Command::new("bash");
+        cmd.arg(script)
+            .current_dir(dir)
+            .stdin(std::process::Stdio::null());
+        for k in [
+            "DEMO_MODE",
+            "NO_COLOR",
+            "DEMO_COLOR",
+            "DEMO_WIDTH",
+            "CLAUDE_PROJECT_DIR",
+        ] {
+            cmd.env_remove(k);
+        }
+        for (k, v) in envs {
+            cmd.env(k, v);
+        }
+        cmd.output().expect("bash must be runnable")
+    }
+
+    /// Every box in rendered output: each `┌`/`┏` must have its partner corner on the same line and
+    /// its side edges in the same COLUMNS on every line down to the bottom corners. Columns are
+    /// chars — every glyph the kit draws is one cell wide. Returns (boxes, crooked, widest line).
+    fn box_scan(text: &str) -> (usize, usize, usize) {
+        let rows: Vec<Vec<char>> = text.split('\n').map(|l| l.chars().collect()).collect();
+        let (mut boxes, mut bad) = (0, 0);
+        for (i, row) in rows.iter().enumerate() {
+            for (c, &ch) in row.iter().enumerate() {
+                let (tr, bl, br, v) = match ch {
+                    '┌' => ('┐', '└', '┘', '│'),
+                    '┏' => ('┓', '┗', '┛', '┃'),
+                    _ => continue,
+                };
+                let Some(r) = row[c + 1..]
+                    .iter()
+                    .position(|&x| x == tr)
+                    .map(|p| p + c + 1)
+                else {
+                    bad += 1;
+                    continue;
+                };
+                boxes += 1;
+                let mut closed = false;
+                for below in &rows[i + 1..] {
+                    let (lc, rc) = (below.get(c).copied(), below.get(r).copied());
+                    if lc == Some(bl) {
+                        if rc != Some(br) {
+                            bad += 1;
+                        }
+                        closed = true;
+                        break;
+                    }
+                    if lc != Some(v) || rc != Some(v) {
+                        bad += 1;
+                        closed = true;
+                        break;
+                    }
+                }
+                if !closed {
+                    bad += 1;
+                }
+            }
+        }
+        (boxes, bad, rows.iter().map(|r| r.len()).max().unwrap_or(0))
+    }
+
+    /// The scanner itself must be able to fail, or a green below proves nothing.
+    #[test]
+    fn box_scan_catches_a_crooked_box() {
+        assert_eq!(box_scan("┌──┐\n│ab│\n└──┘\n"), (1, 0, 4));
+        assert_eq!(
+            box_scan("┌──┐\n│abc│\n└──┘\n").1,
+            1,
+            "a shifted right edge is crooked"
+        );
+        assert_eq!(box_scan("┌──┐\n│ab│\n").1, 1, "an unclosed box is crooked");
+    }
+
+    /// AC1: `vajra init` scaffolds the kit, and a deck sourced from it runs under bash with no
+    /// terminal — exit 0, every box straight at widths 100 and 72, the four markers present, zero
+    /// escape bytes under NO_COLOR, and straight boxes even with no UTF-8 locale at all.
+    #[test]
+    fn scaffolded_demo_kit_draws_straight_boxes_and_honours_no_color() {
+        let dir = scaffold_tmp();
+        assert!(
+            dir.path().join("scripts/demo-kit.sh").exists(),
+            "init must scaffold the kit"
+        );
+        fs::write(dir.path().join("scripts/demo-sample.sh"), S167_SAMPLE_DECK).unwrap();
+        for w in ["100", "72"] {
+            let out = run_demo_script(dir.path(), "scripts/demo-sample.sh", &[("DEMO_WIDTH", w)]);
+            let text = String::from_utf8(out.stdout).unwrap();
+            assert!(
+                out.status.success(),
+                "sample deck failed at width {w}: {text}"
+            );
+            let (boxes, bad, widest) = box_scan(&text);
+            assert!(
+                boxes >= 8,
+                "expected the sample's boxes at width {w}, got {boxes}"
+            );
+            assert_eq!(bad, 0, "crooked boxes at width {w}:\n{text}");
+            assert!(
+                widest <= w.parse().unwrap(),
+                "a line is {widest} wide at width {w}"
+            );
+            for m in [
+                "demo:header",
+                "demo:before_after",
+                "demo:cases",
+                "demo:summary_table",
+            ] {
+                assert!(text.contains(m), "{m} missing from the non-terminal run");
+            }
+        }
+        let plain = run_demo_script(
+            dir.path(),
+            "scripts/demo-sample.sh",
+            &[("NO_COLOR", "1"), ("DEMO_COLOR", "1")],
+        );
+        assert!(plain.status.success());
+        assert!(
+            !plain.stdout.contains(&0x1b),
+            "NO_COLOR must print zero escape bytes"
+        );
+        let color = run_demo_script(dir.path(), "scripts/demo-sample.sh", &[("DEMO_COLOR", "1")]);
+        assert!(
+            color.stdout.contains(&0x1b),
+            "DEMO_COLOR=1 must color (the check above can fail)"
+        );
+        let bytes = run_demo_script(
+            dir.path(),
+            "scripts/demo-sample.sh",
+            &[
+                ("LC_ALL", "C"),
+                ("LANG", "C"),
+                ("DEMO_KIT_LOCALE", "keep"),
+                ("DEMO_WIDTH", "72"),
+            ],
+        );
+        let text = String::from_utf8(bytes.stdout).unwrap();
+        assert!(bytes.status.success(), "no-UTF-8 run failed: {text}");
+        assert_eq!(
+            box_scan(&text).1,
+            0,
+            "crooked boxes with no UTF-8 locale:\n{text}"
+        );
+    }
+
+    /// AC2: an unedited copy of the template cannot pass as a demo — it exits non-zero and names
+    /// every unfilled section; with every section filled it exits 0 and prints all four markers.
+    #[test]
+    fn demo_template_unedited_fails_by_name_and_a_filled_outline_passes() {
+        let dir = scaffold_tmp();
+        let tpl = fs::read_to_string(dir.path().join("scripts/demo-session-template.sh")).unwrap();
+        fs::write(dir.path().join("scripts/demo-session-99.sh"), &tpl).unwrap();
+        let out = run_demo_script(dir.path(), "scripts/demo-session-99.sh", &[]);
+        let text = String::from_utf8(out.stdout).unwrap();
+        assert!(
+            !out.status.success(),
+            "an unfilled outline must fail:\n{text}"
+        );
+        // The kit word-wraps its closing lines to the deck width; compare with the wraps undone.
+        let flat = text.split_whitespace().collect::<Vec<_>>().join(" ");
+        assert!(
+            flat.contains(
+                "unfilled section(s): headline, story, before_after, rule, cases, scorecard, next"
+            ),
+            "the failure must name every unfilled section:\n{text}"
+        );
+        let filled: String = tpl
+            .lines()
+            .map(|l| {
+                if l.trim_start().starts_with("dk_todo ") {
+                    "  dk_check \"this section ran a live check\" PASS".to_string()
+                } else {
+                    l.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert_ne!(
+            filled,
+            tpl.trim_end(),
+            "the template must carry dk_todo placeholders"
+        );
+        fs::write(dir.path().join("scripts/demo-session-98.sh"), filled).unwrap();
+        let out = run_demo_script(dir.path(), "scripts/demo-session-98.sh", &[]);
+        let text = String::from_utf8(out.stdout).unwrap();
+        assert!(out.status.success(), "a filled outline must pass:\n{text}");
+        for m in [
+            "demo:header",
+            "demo:before_after",
+            "demo:cases",
+            "demo:summary_table",
+        ] {
+            assert!(
+                text.contains(m),
+                "{m} missing from the filled outline's output"
+            );
+        }
+    }
+
+    /// AC3: the scaffold never tells an agent to make an HTML deck, and says the terminal demo is
+    /// the human demo — in the template and the constitution alike.
+    #[test]
+    fn scaffold_retires_the_html_deck_rule() {
+        let dir = scaffold_tmp();
+        for rel in [
+            "scripts/demo-session-template.sh",
+            ".ai/AGENTS.md",
+            ".ai/CONSTRAINTS.yaml",
+        ] {
+            let body = fs::read_to_string(dir.path().join(rel)).unwrap();
+            assert!(
+                !body.contains("interactive_html"),
+                "{rel} still carries interactive_html"
+            );
+            assert!(
+                !body.contains("interactive HTML slide deck"),
+                "{rel} still tells the agent to make an HTML slide deck"
+            );
+        }
+        for rel in ["scripts/demo-session-template.sh", ".ai/AGENTS.md"] {
+            let body = fs::read_to_string(dir.path().join(rel)).unwrap();
+            assert!(
+                body.contains("The terminal demo IS the human demo")
+                    || body.contains("THE TERMINAL DEMO IS THE HUMAN DEMO"),
+                "{rel} must say the terminal demo is the human demo"
+            );
+        }
+    }
+
+    /// AC4: the template and the kit ride `--sync-fleet` through all four states — UpToDate on a
+    /// fresh scaffold, Missing is created, a stamped older render upgrades without
+    /// `--overwrite-drifted`, a hand edit is refused by name, and `--dry-run` writes nothing.
+    #[test]
+    fn sync_fleet_carries_the_demo_template_and_kit_through_every_state() {
+        let state_of = |root: &Path, rel: &str| {
+            plan_fleet_sync(root)
+                .into_iter()
+                .find(|i| i.rel == rel)
+                .unwrap()
+                .state
+        };
+        let run = |root: &Path, dry_run: bool| {
+            let mut out = Vec::new();
+            let res = sync_fleet(
+                root,
+                SyncOpts {
+                    dry_run,
+                    overwrite_drifted: false,
+                },
+                &mut out,
+            );
+            (res, String::from_utf8(out).unwrap())
+        };
+        let tpl_rel = "scripts/demo-session-template.sh";
+        let kit_rel = "scripts/demo-kit.sh";
+        let dir = scaffold_tmp();
+        let root = dir.path();
+        assert_eq!(state_of(root, tpl_rel), FleetFileState::UpToDate);
+        assert_eq!(state_of(root, kit_rel), FleetFileState::UpToDate);
+
+        // Missing: a dry run reports it and writes nothing; the real run creates the canonical kit.
+        fs::remove_file(root.join(kit_rel)).unwrap();
+        assert_eq!(state_of(root, kit_rel), FleetFileState::Missing);
+        let (res, _) = run(root, true);
+        assert!(res.is_ok());
+        assert!(!root.join(kit_rel).exists(), "--dry-run must write nothing");
+        let (res, _) = run(root, false);
+        assert!(res.is_ok(), "creating a missing kit must succeed: {res:?}");
+        assert_eq!(
+            fs::read_to_string(root.join(kit_rel)).unwrap(),
+            render_stamped_hook(TPL_DEMO_KIT)
+        );
+
+        // StaleRender: an older STAMPED render of each upgrades without --overwrite-drifted.
+        for (rel, tpl) in [(tpl_rel, TPL_DEMO_TEMPLATE), (kit_rel, TPL_DEMO_KIT)] {
+            let older = crate::fleet::stamp_render(
+                &format!("{tpl}# an older render's extra line\n"),
+                crate::fleet::StampSyntax::ShellComment,
+            );
+            fs::write(root.join(rel), &older).unwrap();
+            assert_eq!(state_of(root, rel), FleetFileState::StaleRender, "{rel}");
+        }
+        let (res, text) = run(root, false);
+        assert!(
+            res.is_ok(),
+            "stale renders must upgrade without the flag: {res:?} {text}"
+        );
+        assert_eq!(
+            fs::read_to_string(root.join(tpl_rel)).unwrap(),
+            render_stamped_hook(TPL_DEMO_TEMPLATE)
+        );
+        assert_eq!(
+            fs::read_to_string(root.join(kit_rel)).unwrap(),
+            render_stamped_hook(TPL_DEMO_KIT)
+        );
+
+        // Drifted: a hand edit (stamp no longer verifies) and an unstamped copy Vajra never shipped
+        // are both refused by name, never overwritten.
+        let edited = render_stamped_hook(TPL_DEMO_KIT).replace("demo-kit.sh", "my-kit.sh");
+        fs::write(root.join(kit_rel), &edited).unwrap();
+        let unknown = format!("{TPL_DEMO_TEMPLATE}# a user's own tweak\n");
+        fs::write(root.join(tpl_rel), &unknown).unwrap();
+        assert_eq!(state_of(root, kit_rel), FleetFileState::Drifted);
+        assert_eq!(state_of(root, tpl_rel), FleetFileState::Drifted);
+        let (res, text) = run(root, false);
+        let err = res.unwrap_err().to_string();
+        assert!(
+            err.contains(kit_rel) && err.contains(tpl_rel),
+            "must name both: {err}"
+        );
+        assert!(
+            text.contains("--overwrite-drifted"),
+            "must name the flag: {text}"
+        );
+        assert_eq!(fs::read_to_string(root.join(kit_rel)).unwrap(), edited);
+        assert_eq!(fs::read_to_string(root.join(tpl_rel)).unwrap(), unknown);
+    }
+
+    /// DECISION-009's open question: an unstamped template byte-identical to one Vajra shipped is a
+    /// provable old render. The list must agree with git history (when `.git` is present) and a
+    /// real shipped copy must upgrade without `--overwrite-drifted`.
+    #[test]
+    fn a_shipped_unstamped_demo_template_upgrades_and_the_list_matches_git_history() {
+        let rel = "scripts/demo-session-template.sh";
+        assert!(!is_shipped_unstamped_render(rel, TPL_DEMO_TEMPLATE));
+        assert!(!is_shipped_unstamped_render(
+            "scripts/demo-kit.sh",
+            TPL_DEMO_TEMPLATE
+        ));
+        let repo = env!("CARGO_MANIFEST_DIR");
+        let git = |args: &[&str]| {
+            Command::new("git")
+                .args(args)
+                .current_dir(repo)
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+        };
+        let Some(log) = git(&["log", "--format=%H", "--", rel]) else {
+            return; // a published crate has no git history to check against
+        };
+        let mut shipped = 0;
+        for commit in String::from_utf8(log.stdout).unwrap().lines() {
+            let Some(show) = git(&["show", &format!("{commit}:{rel}")]) else {
+                continue;
+            };
+            let body = String::from_utf8(show.stdout).unwrap();
+            if body.contains("demo-kit.sh") {
+                continue; // S167 and later: stamped at scaffold, never needs the list
+            }
+            shipped += 1;
+            assert!(
+                is_shipped_unstamped_render(rel, &body),
+                "pre-S167 template at {commit} is missing from SHIPPED_UNSTAMPED_RENDERS"
+            );
+            let dir = scaffold_tmp();
+            fs::write(dir.path().join(rel), &body).unwrap();
+            let item = plan_fleet_sync(dir.path())
+                .into_iter()
+                .find(|i| i.rel == rel)
+                .unwrap();
+            assert_eq!(item.state, FleetFileState::StaleRender);
+            let mut out = Vec::new();
+            sync_fleet(
+                dir.path(),
+                SyncOpts {
+                    dry_run: false,
+                    overwrite_drifted: false,
+                },
+                &mut out,
+            )
+            .expect("a shipped template must upgrade without --overwrite-drifted");
+            assert_eq!(
+                fs::read_to_string(dir.path().join(rel)).unwrap(),
+                render_stamped_hook(TPL_DEMO_TEMPLATE)
+            );
+        }
+        assert!(
+            shipped >= 1,
+            "git history must hold at least the one shipped template"
+        );
     }
 }

@@ -36,6 +36,7 @@ exclude = [
   "!scripts/verify-closeout.sh",
   "!scripts/verify-closeout-scaffold.sh",
   "!scripts/demo-session-template.sh",
+  "!scripts/demo-kit.sh",
   "sessions/",
   "source-material/",
   "VAJRA-MASTER.md",

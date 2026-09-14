@@ -69,17 +69,27 @@ Anything else stays `Drifted`, exactly as today.
 - **This departs from the S141/S142 limit** "smooth going forward, never retroactively" — on
   purpose, for one target, for the reasons above. The kit is new, so it needs no list.
 
-The list was derived once from git history, before S167 changed the file:
+The list was derived once from git history, before S167 changed the file. Two sources, because
+until S71 the template lived inline in `src/cli/init.rs` (never containing a fill token, so every
+install received the raw bytes):
 
 ```bash
+# 1. the canonical file (S71 on)
 for c in $(git log --format=%h -- scripts/demo-session-template.sh); do
   git show "$c:scripts/demo-session-template.sh" | shasum -a 256
 done
-# a78e07e  a4fd31c57b2a795971501417873c7ba84e6bc76a58115344bcf3d1747704430b  (the only shipped version)
+# a78e07e → a4fd31c57b2a795971501417873c7ba84e6bc76a58115344bcf3d1747704430b
+
+# 2. the inline `const TPL_DEMO_TEMPLATE: &str = r#"…"#;` in every commit of src/cli/init.rs
+#    (python: regex the raw string out of `git show <rev>:src/cli/init.rs`, sha256 the body)
+# ee5c8c7..95f8b39 → 31b37550286e316df7848565bacbf5e16f14b2dd440419293a1ec5cc4b95dcdd  (chitra's copy)
+# 88f4a8e..31d30dc → fae423cb2260ec8702197e2a8f521bbd9ede4bab15e3a1d082924862461a01b9
 ```
 
-A test re-derives the hashes from git when `.git` exists, so the list cannot silently disagree
-with history.
+The first source was found alone at first; chitra's dry run (AC5) reported its template `Drifted`,
+which is how the inline versions were found — the "incomplete, never unsafe" fallback working as
+designed. A test re-derives source 1 from git when `.git` exists; source 2 is closed history (the
+inline constant was deleted at S71) and is recorded here.
 
 ## Rejected alternatives
 
