@@ -288,3 +288,11 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **Pre-S71 scaffolds carry an INLINE demo template** (from `const TPL_DEMO_TEMPLATE: &str = r#"…"#` in `src/cli/init.rs`), not the S71 file. `SHIPPED_UNSTAMPED_RENDERS` lists all three shipped byte versions (a4fd31c5 file · 31b37550 + fae423cb inline); chitra's copy is 31b37550.
 - **The demo kit owns the EXIT trap** and switches to a UTF-8 locale itself (bash 3.2 counts bytes otherwise); with no UTF-8 locale it measures by dropping continuation bytes. `DEMO_KIT_LOCALE=keep` skips the switch (test hook). Deck mode only when stdin AND stdout are terminals.
 - **scaffold-drift's hollow-grep scan flags any verify line holding both `grep` and a `src/*.rs` path** — even a `git diff -- src/x.rs | grep`. Write the diff to a file first; grep the file.
+
+## S168 — permanent facts
+
+- **Demo facts are parsed from COLUMN-0 `demo:fact key=value` lines only** (`demoer::facts::fact_lines`); an indented table row that mentions the marker is prose. But kit-built DETECTION is a substring scan, the same as the element scan — the two must agree, or an indented `demo:complete` earns the element while dodging the kit rules (S168 cold review rec 1).
+- **The Demo-er gate sets `VAJRA_BIN` to its own executable** for the demo run and derives facts from the folder the demo ran in (the clean room when on). Demos in this repo `export VAJRA_BIN="${VAJRA_BIN:-$ROOT/target/release/vajra}"` because the installed `vajra` may predate `--demo-facts`.
+- **`vajra next --advance` prompts `[y/N]` on stdin** — pipe `echo y |` when running it non-interactively; without it the advance aborts after running every gate.
+- **Commits need `VAJRA_ALLOW_COMMIT=NN` in the environment** (the L2 pre-commit hook); a chat approval token alone does not satisfy the hook.
+- **`sessions/session-NN-artifacts/` is gitignored** — local evidence only (chitra dry-run captures, review diffs).
