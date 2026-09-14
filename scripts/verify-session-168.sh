@@ -104,6 +104,7 @@ gate_row() {  # NAME WANT_RC PATTERN HEADLINE CASES FINISH [legacy-old|legacy-ne
   case "${7:-}" in
     legacy-*) printf "printf 'demo:header\\\\ndemo:cases\\\\ndemo:summary_table\\\\ndemo:before_after\\\\n'\n" > "$d/scripts/demo-session-99.sh"
               [ "$7" = legacy-old ] && sed -i.bak 's/, complete\]/]/' "$d/.ai/CONSTRAINTS.yaml" ;;
+    escaped-complete) printf "printf 'demo:header\\\\ndemo:cases\\\\ndemo:summary_table\\\\ndemo:before_after\\\\n\\\\033[demo:complete\\\\n'\n" > "$d/scripts/demo-session-99.sh" ;;
     indented-complete) printf "printf 'demo:header\\\\ndemo:cases\\\\ndemo:summary_table\\\\ndemo:before_after\\\\n demo:complete\\\\n'\n" > "$d/scripts/demo-session-99.sh" ;;
     *) deck "$d/scripts/demo-session-99.sh" "$4" "$5" "$6"
        [ "$1" = typed-tile ] && sed -i.bak 's/dk_vajra_scorecard 99; //' "$d/scripts/demo-session-99.sh" ;;
@@ -122,6 +123,17 @@ gate_row no-finish    1 "shows no complete"                  'dk_vajra_tiles 99'
 gate_row legacy-old   0 "not built on"                       '' '' '' legacy-old
 gate_row legacy-new   1 "shows no complete"                  '' '' '' legacy-new
 gate_row indented-complete 1 "prints no demo:fact"           '' '' '' indented-complete
+# AC6 literal path (S168 cold review 2, rec 3): the scaffolded TEMPLATE, copied and filled honestly.
+TP="$T/g-template"; rm -rf "$TP"; cp -R "$FRESH" "$TP"
+sed -e 's/^\([[:space:]]*\)dk_todo .*/\1dk_check "this section ran a live check" test -f .ai\/AGENTS.md/' \
+    -e 's/^SESSION="NN"$/SESSION="99"/' "$TP/scripts/demo-session-template.sh" > "$TP/scripts/demo-session-99.sh"
+tout="$(cd "$TP" && "$BIN" next --check-demo 99 2>&1)"; rc=$?
+check "AC6: the scaffolded template, filled with real commands, passes the gate (exit $rc)" bash -c "[ $rc -eq 0 ] && printf '%s' \"\$1\" | grep -q 'verdict: READY'" _ "$tout"
+perl -0pi -e 's/dk_check "this section ran a live check" test -f \.ai\/AGENTS\.md/dk_check "this section ran a live check" PASS/' "$TP/scripts/demo-session-99.sh"   # first one only
+tout="$(cd "$TP" && "$BIN" next --check-demo 99 2>&1)"; rc=$?
+check "AC6: the same template with one typed PASS is blocked (exit $rc)" bash -c "[ $rc -ne 0 ] && printf '%s' \"\$1\" | grep -q 'refused: a bare PASS'" _ "$tout"
+gate_row fake-finish  1 "check-failed"                       'dk_vajra_tiles 99' 'dk_check "x" PASS' 'dk_marker complete'
+gate_row escaped-complete 1 "shows no complete"              '' '' '' escaped-complete
 check "AC6: the scaffold's CONSTRAINTS.yaml requires complete" grep -q 'required_elements: \[header, cases, summary_table, before_after, complete\]' "$FRESH/.ai/CONSTRAINTS.yaml"
 
 # Rust fixtures for the gate (typed PASS · forged fact · no dk_finish · honest · echoed signs).
