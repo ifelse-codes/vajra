@@ -7,11 +7,11 @@
 **Handoff:** `.ai/handoffs/session-168-fidelity-reviewer.md`
 **Passes:** four. Passes 1–3 (all ACCEPT) each found a dodge of the kit rules, fixed in-session: an indented ` demo:complete` passing as legacy · `\033[demo:complete` counted raw but not stripped, and `dk_marker complete` rescuing a typed PASS · an unfilled outline with zero checks and a hand-printed `complete`. Pass 4 is the pass of record, on the final code.
 **Verdict:** ACCEPT
-**Review-Inputs-SHA:** e14d6939f45f3c377168773de7a5b55c2db4528440142d0658c417c34bbcfc1d
+**Review-Inputs-SHA:** 49dbb9659c5b55886debd2c7d8d295ca60078964aedb1a2827dfe819b4bfb9f1
 
 ## Method controls
 
-Read-only; nothing run. The prompt's `## Execution` and `## Advice` were not taken as evidence. The SHA covers the prompt and the handoffs as committed at close, recomputed twice after the pass of record, with no code, script or decision-record change in between: (1) after this pass's recommendations were answered in `## Advice` (was `a536c3f3…`); (2) after the independent obeyed judge's handoff (`.ai/handoffs/session-168-implementation-advisor.md`, 24 implemented · 1 mismatch) landed and tech-lead rec 5 was re-answered from `obeyed:` to a reasoned `deferred:`.
+Read-only; nothing run. The prompt's `## Execution` and `## Advice` were not taken as evidence. The SHA covers the prompt and the handoffs as committed at close, recomputed twice after the pass of record, with no code, script or decision-record change in between: (1) after this pass's recommendations were answered in `## Advice` (was `a536c3f3…`); (2) after the independent obeyed judge's handoff (`.ai/handoffs/session-168-implementation-advisor.md`, 24 implemented · 1 mismatch) landed and tech-lead rec 5 was re-answered from `obeyed:` to a reasoned `deferred:` (was `e14d6939…`); (3) after a CI-config-only change — `fetch-depth: 0` in `.github/workflows/ci.yml`, because a depth-1 clone failed the two git-history demo-template tests (red since S167's PRs). No product code, kit, script or decision record changed after the pass of record.
 
 ## Per-AC verdict (pass of record)
 
