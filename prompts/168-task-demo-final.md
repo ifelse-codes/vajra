@@ -130,17 +130,51 @@ and strangers get it in a released version.
 11. After the merge and the founder's go: release 0.2.0 per the S167 release-coordinator order (separate release PR for the bump, tag that merge, founder types `cargo publish`, tap update, install-smoke ×3, published-crate `vajra init` check). covers: 13
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
-- step 7 — done: <sha>
-- step 8 — done: <sha>
-- step 9 — done: <sha>
-- step 10 — done: <sha>
-- step 11 — done: <sha>
+- step 1 — done: 2165cec
+- step 2 — done: dbaf1c3
+- step 3 — done: 7a85060
+- step 4 — done: a9d277a
+- step 5 — done: c510a07
+- step 6 — done: ce72d1b
+- step 7 — done: f1e950d
+- step 8 — done: f1e950d
+- step 9 — done: f1e950d
+- step 10 — pending: cold fidelity review, summary, PR and merge
+- step 11 — pending: the 0.2.0 release waits for the merge and the founder's go in chat (AC13)
+
+## Advice (every recorded recommendation, answered)
+- tech-lead rec 1 — obeyed: 2165cec
+  note: design-advisor got only the AC5 question + DECISION-008/009, the CONSTRAINTS demo block, demo_gate_with and the kit; it ruled on the opt-out hole (recs 1–2).
+- tech-lead rec 2 — obeyed: ce72d1b
+  note: dispatched after the brief update (92e4f2e) with a draft demo, pointed at the template, the kit and the draft only; its 14 recs are answered below.
+- tech-lead rec 4 — obeyed: .ai/handoffs/session-167-release-coordinator.md
+  note: step 11 follows those five recs for v0.2.0 — separate bump PR tagged on its merge · no leftover session branches · install-smoke with VAJRA_SMOKE_RELEASE_TAG=v0.2.0 and the tap formula · published-crate `vajra init` kit check · `cargo publish` typed by the founder.
+- tech-lead rec 5 — obeyed: f1e950d
+  note: the gate change landed in full before any release work; the release (step 11) is the part left for after the merge.
+- design-advisor rec 1 — obeyed: a9d277a
+- design-advisor rec 2 — obeyed: 84e2375
+- design-advisor rec 3 — obeyed: 9d0282a
+- design-advisor rec 4 — obeyed: 9d0282a
+- design-advisor rec 5 — obeyed: a9d277a
+- design-advisor rec 6 — obeyed: 7a85060
+  note: dk_check runs through dk_run_v and keeps _DK_OUT/_DK_RC; the refusal names the new form; the break for old kit demos is recorded in DECISION-010.
+- design-advisor rec 7 — obeyed: 2165cec
+- demo-producer rec 1 — obeyed: f1e950d
+- demo-producer rec 2 — obeyed: f1e950d
+- demo-producer rec 3 — obeyed: f1e950d
+- demo-producer rec 4 — obeyed: f1e950d
+  note: took the reword option — the panel says the kit catches the typed PASS and the gate catches the typed tile on the next slide, where a "typed tile, no facts" row runs the real gate.
+- demo-producer rec 5 — obeyed: f1e950d
+- demo-producer rec 6 — obeyed: f1e950d
+- demo-producer rec 7 — obeyed: f1e950d
+  note: the forged value is derived + 1; the legacy-old warning is part of that row's live check (its pattern is the warning text).
+- demo-producer rec 8 — obeyed: f1e950d
+- demo-producer rec 9 — obeyed: f1e950d
+- demo-producer rec 10 — obeyed: f1e950d
+- demo-producer rec 11 — obeyed: f1e950d
+- demo-producer rec 12 — obeyed: f1e950d
+- demo-producer rec 13 — obeyed: f1e950d
+- demo-producer rec 14 — obeyed: f1e950d
 
 ## Guardrails
 - ONE story: finish the demo. No 8th command (`--demo-facts` is a flag on `vajra next`), no new
