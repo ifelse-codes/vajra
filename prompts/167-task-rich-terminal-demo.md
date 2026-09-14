@@ -150,7 +150,8 @@ terminal, from the version people actually install.
 
 ## Advice (every recorded recommendation, answered)
 - tech-lead rec 1 — obeyed: d6806f5
-- tech-lead rec 2 — obeyed: cb6de81
+- tech-lead rec 2 — obeyed: 17c96e9
+  note: 17c96e9 lands the release-coordinator handoff (dispatched before step 10). The ship checks read THIS branch: `origin/session-167-adhoc-fixes` was deleted (PR #199), `git branch -a` lists only `session-167-rich-terminal-demo`, and `vajra next --stations 167` reads Releaser "branch not merged into main" — this unmerged branch, not the old merged one.
 - tech-lead rec 3 — obeyed: cb6de81
 - tech-lead rec 4 — obeyed: 9c363bc
 - design-advisor rec 1 — obeyed: d6806f5
