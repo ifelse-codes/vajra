@@ -18,7 +18,7 @@ git clone https://github.com/ifelse-codes/vajra && cd vajra && cargo install --p
 
 Both build the `vajractl` crate and drop a `vajra` binary on your PATH. This path is checked end-to-end by [`scripts/install-smoke.sh`](scripts/install-smoke.sh): a fresh-directory install → `vajra init` → `vajra next`, asserting each step succeeds inside a time budget and **exiting non-zero if anything is broken**. Run it yourself — every "it installs" claim here is re-derivable, not a feeling.
 
-**No Rust? Download a prebuilt binary** — from the [`v0.1.0` release](https://github.com/ifelse-codes/vajra/releases/latest), which ships a self-contained `vajra` for macOS (Apple Silicon + Intel) and Linux (x86_64). Pick your platform's tarball:
+**No Rust? Download a prebuilt binary** — from the [`v0.2.0` release](https://github.com/ifelse-codes/vajra/releases/latest), which ships a self-contained `vajra` for macOS (Apple Silicon + Intel) and Linux (x86_64). Pick your platform's tarball:
 
 ```bash
 # macOS Apple Silicon — for Intel or Linux swap in x86_64-apple-darwin / x86_64-unknown-linux-gnu
@@ -28,7 +28,7 @@ sudo mv vajra /usr/local/bin/
 
 Each tarball ships a `.sha256` beside it, and this path is proven by the same instrument: `VAJRA_SMOKE_SOURCE=release scripts/install-smoke.sh` downloads the tarball for your host, verifies its sha256, then runs `vajra init` → `vajra next`, **exiting non-zero on any broken step**.
 
-Two more channels — both **published and proven** by the same instrument ([`scripts/install-smoke.sh`](scripts/install-smoke.sh), modes `VAJRA_SMOKE_SOURCE=crates` and `=brew`): each installs from the real channel, then runs `vajra init` → `vajra next`, **exiting non-zero on any broken step**. The crate name is settled in [`DECISION-006`](docs/decisions/DECISION-006-crate-name.md); the Homebrew formula lives in the [`ifelse-codes/homebrew-tap`](https://github.com/ifelse-codes/homebrew-tap) repo and installs the sha256-verified `v0.1.0` release binary.
+Two more channels — both **published and proven** by the same instrument ([`scripts/install-smoke.sh`](scripts/install-smoke.sh), modes `VAJRA_SMOKE_SOURCE=crates` and `=brew`): each installs from the real channel, then runs `vajra init` → `vajra next`, **exiting non-zero on any broken step**. The crate name is settled in [`DECISION-006`](docs/decisions/DECISION-006-crate-name.md); the Homebrew formula lives in the [`ifelse-codes/homebrew-tap`](https://github.com/ifelse-codes/homebrew-tap) repo and installs the sha256-verified `v0.2.0` release binary.
 
 ```bash
 # crates.io (needs Rust)
