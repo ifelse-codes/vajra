@@ -74,7 +74,11 @@ The Demo-er gate only checked exit 0 plus four `demo:` markers, so it could not 
 
 - A hand-typed `echo demo:complete` still satisfies the `complete` element — but it makes the demo
   kit-built, so it must then print every fact, each true; and every failed or refused `dk_check`
-  prints `demo:check-failed`, which blocks whether or not `dk_finish` ran (S168 cold review 2).
+  prints `demo:check-failed`, which blocks whether or not `dk_finish` ran (S168 cold review 2); so
+  does every unfilled `dk_todo`, and a kit-built demo must print at least one `demo:check-passed`
+  (cold review 3). What the gate proves: the facts are true, no kit-reported failure or placeholder
+  was hidden, and at least one check passed — not that the whole outline passed (a demo with the
+  placeholders deleted, one real check and a hand-printed `demo:complete` still closes).
   Every scan reads the same ANSI-stripped text. A hand-typed `demo:fact` line with the RIGHT value
   passes: the gate proves the value, not who drew it.
 - The kit is plain bash the demo sources: a determined author can write `DK_SCORES` directly,

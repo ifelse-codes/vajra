@@ -231,6 +231,7 @@ dk_section() { local name="$1"; shift
 # replaced with the real thing. Deleting it without filling the section in defeats only yourself.
 dk_todo() {
   case " $DK_TODOS " in *" $1 "*) ;; *) DK_TODOS="$DK_TODOS $1" ;; esac
+  dk_marker "check-failed $1 — unfilled"   # the gate blocks on this even if dk_finish is skipped
   dk_wrap $(( DK_W - 4 )) "${2:-fill in this section}" | dk_box "$DK_W" "${C_NO}✗ TO FILL IN · $1${C_0}"; }
 
 # ---- live checks + scorecard (the demo exits non-zero if any live check fails) --------------
@@ -249,7 +250,7 @@ dk_check() { local quiet=0 label res l
     return 0
   fi
   dk_run_v "$@" </dev/null
-  if [ "$_DK_RC" = 0 ]; then res=PASS; else res=FAIL; DK_FAILS=$((DK_FAILS+1)); dk_marker "check-failed $label — exit $_DK_RC"; fi
+  if [ "$_DK_RC" = 0 ]; then res=PASS; dk_marker "check-passed $label"; else res=FAIL; DK_FAILS=$((DK_FAILS+1)); dk_marker "check-failed $label — exit $_DK_RC"; fi
   DK_SCORES+=("$res|$label")
   [ "$quiet" = 1 ] && return 0
   if [ "$res" = PASS ]; then printf '  %s\n' "${C_YES}✓${C_0} $label"
@@ -265,6 +266,7 @@ _dk_facts() { local n="${1:-}" line k   # loads DKF_<key> + _DK_FACTS; a failure
   case "$_DK_OUT" in "session=$n"*) ;; *) [ "$_DK_RC" = 0 ] && _DK_RC=1 ;; esac   # an old vajra prints no facts
   if [ "$_DK_RC" != 0 ]; then
     DK_SCORES+=("FAIL|Vajra filled in the facts for session $n"); DK_FAILS=$((DK_FAILS+1))
+    dk_marker "check-failed Vajra facts for session $n — ${VAJRA_BIN:-vajra} exited $_DK_RC"
     _dk_fail_line "✗ could not read Vajra's facts: ${VAJRA_BIN:-vajra} next --demo-facts $n exited $_DK_RC — install vajra 0.2.0+ or set VAJRA_BIN"
     return 1; fi
   _DK_FACTS="$_DK_OUT"

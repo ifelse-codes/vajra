@@ -251,6 +251,19 @@ pub fn demo_report_with(
                     failed.join("; ")
                 ));
             }
+            // Cold review 3, rec 1: an unfilled outline with zero checks and a hand-printed
+            // `demo:complete` passed. The kit prints `demo:check-passed` per passing check and
+            // `demo:check-failed … — unfilled` per `dk_todo`; a kit-built demo needs one pass.
+            if !clean
+                .lines()
+                .any(|l| l.trim_end().starts_with("demo:check-passed "))
+            {
+                reasons.push(
+                    "printed no demo:check-passed — no live check passed through dk_check, so \
+                     nothing in this demo was checked"
+                        .to_string(),
+                );
+            }
             if !clean.lines().any(|l| l.trim() == "demo:complete") {
                 reasons.push(
                     "never printed `demo:complete` — it did not reach a passing dk_finish (a \
@@ -936,6 +949,39 @@ dk_deck s1 s2 s3 s4 s5 s6 s7
         assert!(v.reasons.iter().any(|r| r.contains("demo:complete")));
     }
 
+    #[test]
+    fn a_hand_printed_complete_cannot_pass_an_unfilled_or_unchecked_outline() {
+        // Cold review 3, rec 1: the scaffolded outline left unfilled, zero checks, and
+        // `dk_marker complete` in place of `dk_finish`.
+        let tmp = kit_repo("dk_todo cases \"fill me\"", false);
+        let root = tmp.path();
+        let script = root.join("scripts/demo-session-71.sh");
+        let mut text = fs::read_to_string(&script).unwrap();
+        text.push_str("dk_marker complete\n");
+        fs::write(&script, text).unwrap();
+        let v = gate_kit(root);
+        assert!(
+            v.reasons.iter().any(|r| r.contains("unfilled")),
+            "{:?}",
+            v.reasons
+        );
+        assert!(v.reasons.iter().any(|r| r.contains("no demo:check-passed")));
+
+        // Placeholders deleted too — still nothing checked, still blocked.
+        let bare = fs::read_to_string(&script)
+            .unwrap()
+            .replace("dk_todo cases \"fill me\"", ":");
+        fs::write(&script, bare).unwrap();
+        let v = gate_kit(root);
+        assert!(
+            matches!(v.state, DemoState::KitUnproven(_)),
+            "{:?}",
+            v.state
+        );
+        assert!(v.reasons.iter().any(|r| r.contains("no demo:check-passed")));
+    }
+
+    #[cfg(unix)]
     #[test]
     fn a_hand_printed_complete_cannot_rescue_a_refused_check() {
         // Cold review 2, rec 2: the typed-PASS demo with `dk_marker complete` in place of
