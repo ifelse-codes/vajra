@@ -170,6 +170,14 @@ terminal, from the version people actually install.
   reason: the published-crate `vajra init` check happens at the release step (row S167-release).
 - release-coordinator rec 5 — deferred: .ai/ROADMAP.md
   reason: `cargo publish` is typed by the founder at the release step (row S167-release); no agent publishes.
+- fidelity-reviewer rec 1 — deferred: .ai/ROADMAP.md
+  reason: making dk_check run a real command and the Demo-er require "demo complete" changes the gate — S168's job (row S168).
+- fidelity-reviewer rec 2 — deferred: .ai/ROADMAP.md
+  reason: changing the verify script after the cold review would change the reviewed delivery; carried to S169 (row S169).
+- fidelity-reviewer rec 3 — deferred: sessions/session-167-review.md
+  reason: done in a7ed117 and re-judged there; a rec's own role cannot judge its own obedience (KNOWLEDGE S143).
+- fidelity-reviewer rec 4 — deferred: .ai/ROADMAP.md
+  reason: the release row S167-release already lists install-smoke for release, crates and brew plus the published-crate `vajra init` kit check.
 
 ## Guardrails
 - ONE story: the rich terminal demo for every Vajra user. No 8th command, no new crate
