@@ -1,60 +1,86 @@
 #!/usr/bin/env bash
-# Template — copy to scripts/demo-session-NN.sh and customize per session.
-# Demo scripts are narrative — they show what was built with real/mock data.
-# Demos are cumulative: each session's demo includes prior session capabilities.
+# Template — copy to scripts/demo-session-NN.sh, then fill in every section.
+# `vajra init` scaffolds this file and `vajra init --sync-fleet` upgrades it: edit your COPY.
 #
-# The sprint-demo contract (CONSTRAINTS.yaml#demo.required_elements): seeing the demo, the
-# user knows what THIS session delivered, and the before-and-after. The demo must SHOW
-#   header · cases · summary_table · before_after
-# by emitting a `demo:<element>` marker for each. The Demo-er gate (S71) RE-RUNS this script
-# LIVE at close (`vajra next --check-demo NN`) and blocks on a non-zero exit or on an element
-# missing from the live output — a recorded green is never trusted, and a hollow exit-0 demo
-# fails the element scan. Markers are recorded evidence, the same honesty class as `covers: N`:
-# emit each where its section really happens; stacking them defeats only yourself.
+# THE TERMINAL DEMO IS THE HUMAN DEMO (DECISION-009). Whoever watches runs this script in a
+# terminal and sees a slide deck (← → / space · a autoplay · q quit). The Demo-er gate (S71)
+# re-runs the SAME script at close (`vajra next --check-demo NN`) and blocks on a non-zero exit
+# or a missing `demo:<element>` marker: header · cases · summary_table · before_after.
+# There is no separate HTML deck to make — this script is the demo.
 #
-# NOTE: This bash script is for CI/verify. When a user asks to see the demo,
-# the agent should present results as an interactive HTML slide deck
-# (terminal-styled, auto-play, PASS/FAIL coloring, scorecard summary).
+# The outline — seven sections, one slide each, drawn with scripts/demo-kit.sh:
+#   1 headline      what shipped · number tiles · the change in one breath   → demo:header
+#   2 story         what happened this session, in plain words
+#   3 before_after  the SAME input through the old and the new, both live    → demo:before_after
+#   4 rule          the new rule or behaviour, in plain words
+#   5 cases         ordinary and odd inputs, each run live and checked       → demo:cases
+#   6 scorecard     live checks vs recorded numbers · honest notes · what
+#                   this demo does NOT show                                  → demo:summary_table
+#   7 next          what comes next + a small-words helper
+# `dk_section` prints each marker where its section really renders. Each `dk_todo` is a
+# placeholder that FAILS the demo by name — replace it with the real thing. dk_finish also fails
+# when a section never rendered, when no live check ran, or when a live check failed.
+#
+# Rules for a demo that shows something:
+#   - A panel that claims a result runs the real command: dk_run_v · dk_term · dk_check.
+#   - The before is REAL: run the old code out of git (git show <sha>:<path> > "$DK_TMP/old"),
+#     or say plainly the capability did not exist. Never echo a hand-written "before".
+#   - A number not re-run here is labelled "recorded", never "live".
+#   - Demos are cumulative: keep showing what earlier sessions built while it still matters.
+# Try it: DEMO_MODE=stream bash scripts/demo-session-NN.sh shows the gate's view; run it bare in a
+# terminal for the deck. Kit reference: the header of scripts/demo-kit.sh.
 
-set -euo pipefail
+set -uo pipefail   # no -e: a live check that fails must be SHOWN, not abort the demo
+KIT="$(cd "$(dirname "$0")" && pwd)/demo-kit.sh"
+[ -f "$KIT" ] || { echo "demo: $KIT is missing — run: vajra init --sync-fleet" >&2; exit 1; }
+. "$KIT"
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
-cd "$ROOT"
+cd "$ROOT" || exit 1
 
 # === EDIT PER SESSION ===
 SESSION="NN"
 # ========================
 
-BOLD="\033[1m"; CYAN="\033[36m"; GREEN="\033[32m"
-YELLOW="\033[33m"; DIM="\033[2m"; RESET="\033[0m"
+slide_headline() {
+  dk_section headline "session $SESSION · what shipped"
+  dk_todo headline "One line on what this session delivered (dk_h1 \"The gate now \" \"blocks\" \" a fake step.\"), number tiles that say live or recorded (dk_metrics \"CHECKS|9|of 9 · live\" \"TESTS|487|recorded\"), and the change in one breath (dk_verdict \"WHAT CHANGED, IN ONE BREATH\" \"Old: …\" \"New: …\")."
+}
 
-header() { printf "\n${CYAN}${BOLD}══ %s ══${RESET}\n" "$1"; }
-label()  { printf "${YELLOW}${BOLD}▸ %s${RESET}\n" "$1"; }
-ok()     { printf "${GREEN}✓ %s${RESET}\n" "$1"; }
+slide_story() {
+  dk_section story "the story"
+  dk_h2 "What we did this session"
+  dk_todo story "Three to five plain-words bullets: why this work, what changed, what was proven (dk_bullets \"Lead words.|the rest\" …). Add a dk_caption for any word a newcomer would not know."
+}
 
-# --- demo:header — what this session delivered, in one line ---
-header "Session ${SESSION} Demo  [demo:header]"
-# label "One line: the capability this session added."
+slide_before_after() {
+  dk_section before_after "the change · two real runs · same input"
+  dk_h2 "Before → After"
+  dk_todo before_after "Run the SAME input through the old code and the new, both live. Old code out of git: git show <sha>:<path> > \"\$DK_TMP/old.sh\". Then dk_run_v <old>; before=\"\$_DK_OUT\"; dk_run_v <new>; dk_compare \"BEFORE|at <sha> · exit N\" \"\$before\" \"AFTER|today · exit N\" \"\$_DK_OUT\"; and dk_check the difference you expect."
+}
 
-# --- demo:before_after — the sprint-demo core ---
-header "Before → After  [demo:before_after]"
-label "BEFORE — what the product could not do until this session:"
-# echo "  show the old behavior (or its absence) with a real command"
-label "AFTER — the same flow, now working:"
-# echo "  run the real command here; the output IS the evidence"
+slide_rule() {
+  dk_section rule "the rule, in plain words"
+  dk_h2 "What happens now"
+  dk_todo rule "The new rule or behaviour in plain words, best as a table where each row is a real run: dk_table \"The input|What happens|Why\" \"row|✓ passes|reason\" …"
+}
 
-# --- demo:cases — run the real thing; each case is live output, not a claim ---
-header "Cases  [demo:cases]"
-# header "1 · Feature Name"
-# label "Description of what this demonstrates"
-# Run commands, show output, display results
-# ok "What this proves"
+slide_cases() {
+  dk_section cases "the cases · live"
+  dk_h2 "See it for yourself"
+  dk_todo cases "Ordinary and odd inputs, each run live and shown: dk_run_v <cmd>; dk_term \"1 · what this case shows\" \"\$_DK_OUT\"; dk_check \"what it proves\" \$_DK_RC. Include at least one case that would fail if the work were reverted."
+}
 
-# --- demo:summary_table — the scorecard ---
-header "Summary  [demo:summary_table]"
-printf "\n"
-printf "  %-30s %s\n" "Feature" "Status"
-printf "  %-30s %s\n" "------------------------------" "------"
-# printf "  %-30s %s\n" "Feature name"                  "WORKS"
-printf "\n"
+slide_scorecard() {
+  dk_section scorecard "proof · what ran live · what was recorded"
+  dk_h2 "The scorecard"
+  dk_todo scorecard "dk_scorecard \"LIVE — ran while you watched\" lists every dk_check. Then a table of numbers measured elsewhere, labelled recorded (dk_table \"Recorded at close — not re-run here|Result\" …), and dk_verdict \"HONEST NOTES\" naming the fakest green and what this demo does NOT show."
+}
 
-ok "Session ${SESSION} demo complete."
+slide_next() {
+  dk_section next "where this sits · what's next"
+  dk_h2 "Next"
+  dk_todo next "The next options in one table (dk_table \" |Option|Why pick it · the risk\" …), then a small-words helper: dk_table \"word|meaning\" for every term a newcomer would trip on."
+}
+
+dk_deck slide_headline slide_story slide_before_after slide_rule slide_cases slide_scorecard slide_next
+dk_finish

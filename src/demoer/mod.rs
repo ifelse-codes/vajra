@@ -12,8 +12,10 @@
 //! `demo.md`: `CONSTRAINTS.yaml#demo` already records the contract and the demo scripts ARE the
 //! store (memory `feedback-map-concepts-to-vajra`). No second store, no 8th command (rides
 //! `vajra next`), no new dependency. The binary **surfaces + enforces, never authors** a demo —
-//! and never renders one (the human-facing slide deck is the agent's Darshan job per
-//! `demo.presentation_rules`).
+//! and never renders one. S167 (DECISION-009): the terminal demo IS the human demo — the same
+//! script this gate re-runs plays as a slide deck in a terminal, drawn by the scaffolded
+//! `scripts/demo-kit.sh`; `demo.presentation: interactive_html` (a separate agent-made HTML deck)
+//! is retired. The gate logic below is unchanged.
 //!
 //! The marker here is *executable* (a demo script), so per the S69 house pattern the gate
 //! RE-RUNS it instead of trusting a recorded green:
@@ -405,7 +407,7 @@ demo:
   template: 'scripts/demo-session-template.sh'
   cumulative: true
   required_elements: [header, cases, summary_table, before_after]
-  presentation: interactive_html
+  presentation: terminal_deck
 ";
 
     fn repo_with_constraints(content: &str) -> tempfile::TempDir {

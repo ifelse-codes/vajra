@@ -2,45 +2,22 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S166 complete, S167 not yet started
+## Between Sessions — S167 complete · next pick pending (founder)
 
-**S166 ACCEPT (CODE: fix Analyst + Coder station gaps).** All 7 ACs SHIPPED. Analyst PASSED for S166 (first time since S160 GT). check_execution_shas blocks prose/parenthetical done: entries (S164 step 2 now caught). sessions/session-164-summary.md written (S164 closeout complete). S167 = next. See `sessions/session-166-summary.md` for ranked A/B/C candidates.
+**S167 ACCEPT (CODE: every Vajra demo plays as a rich story in the terminal).** Cold review 10 SHIPPED · 1 NOT-BUILT (AC10 — the 0.2.0 release waits for the merge of PR #200 and the founder's go; order in ROADMAP `S167-release`). See `sessions/session-167-summary.md` for its three ranked candidates: **A · S168** Vajra fills in the demo numbers itself (founder-named) · **B · S169** tighten the close gate S166 loosened · **C · S167-release** ship vajractl 0.2.0. **S170** = mandatory NO-CODE GT.
 
-## Session 166 — CODE: fix Analyst + Coder station gaps — COMPLETE
+## Session 167 — CODE: the terminal demo is the human demo — COMPLETE
 
-- Brief: `prompts/166-task-analyst-coder-gaps.md`. Summary: `sessions/session-166-summary.md`.
-- AC1 SHIPPED: Analyst PASSED (substantive ## Delta with +/~/- markers). AC2 SHIPPED: prose done: → BLOCK. AC3 SHIPPED: real SHA still passes. AC4 SHIPPED: session-164-summary.md exists. AC5 SHIPPED: verify-session-166.sh 8/8 behavioral. AC6 SHIPPED: 487 lib tests. AC7 SHIPPED: verify-closeout.sh exit 0. **ACCEPT.**
+- Brief: `prompts/167-task-rich-terminal-demo.md`. Summary: `sessions/session-167-summary.md`. Review: `sessions/session-167-review.md`. Decision: `docs/decisions/DECISION-009-terminal-demo.md`.
+- AC1–AC9, AC11 SHIPPED · AC10 NOT-BUILT (release after merge + founder go). verify-session-167.sh 69/69 · 493 lib tests. **ACCEPT.**
+- Found at boot: S166 closed with no tech-lead / fidelity handoff → retroactive S166 review REJECT (`sessions/session-166-review.md`); tech-lead back-filled and labelled RETROACTIVE (founder choice), but the crew gate still refused.
+- **Merged without a formal close (founder decision).** `.ai/SESSION` stays 166 and S167's `verify-closeout.sh` never ran. Before the next session can `--advance`, S166's crew gate must be satisfied (real S166 records for implementation-advisor, qa-specialist, fidelity-reviewer) or the founder moves the counter by hand.
+
+## Session 166 — CODE: fix Analyst + Coder station gaps — CLOSED (retroactive review: REJECT)
+
+- Brief: `prompts/166-task-analyst-coder-gaps.md`. Summary: `sessions/session-166-summary.md` (corrected S167). Review: `sessions/session-166-review.md`.
+- 4 SHIPPED · 3 PARTIAL. Recs 1/2/4 → S169.
 
 ## Session 165 — NO-CODE Ground Truth — COMPLETE
 
-- Report: `sessions/session-165-ground-truth.md`.
-- 12 audits. 🟡 PARTIAL PASS. 4 green · 4 yellow · 3 red.
-- Carry-forward decisions: Analyst prose gap → S166 mandatory; check_execution_shas prose gap → S166; session-164-summary.md → S166. D2 inner-session, init.rs scaffold scope → backlog.
-- **Verdict: 🟡 PARTIAL PASS.**
-
-## Session 164 — CODE: close Releaser station gap — COMPLETE
-
-- Brief: `prompts/164-task-releaser-station-gap.md`. Review: `sessions/session-164-review.md`.
-- AC1 SHIPPED: `release-coordinator` PASS in verify-closeout.sh. AC3 PARTIAL: session-156-admin-close confirmed pruned (external action). AC4 SHIPPED: non-regression. AC5 SHIPPED: 9/9 behavioral checks. **ACCEPT.**
-
-## Session 163 — CODE: fix hollow verify checks (F09 + F08) — COMPLETE
-
-- Brief: `prompts/163-task-hollow-verify-fix.md`. Summary: `sessions/session-163-summary.md`. Review: `sessions/session-163-review.md`.
-- AC1–AC6 all SHIPPED. **ACCEPT.**
-
-## Session 162 — CODE: waiver path behavioral tests + fresh-init investigation — COMPLETE
-
-- Brief: `prompts/162-task-waiver-test-and-fresh-signal.md`. Summary: `sessions/session-162-summary.md`. Review: `sessions/session-162-review.md`.
-- AC1–AC6 all SHIPPED. **ACCEPT.**
-
-## Session 161 — CODE + DOGFOOD: S158 carry-forwards + D2 first-contact dogfood — COMPLETE
-
-- Brief: `prompts/161-task-b-closeouts-and-d2-dogfood.md`. Summary: `sessions/session-161-summary.md`. Review: `sessions/session-161-review.md`.
-- AC1–AC4 SHIPPED · AC5–AC6 PARTIAL · AC7 SHIPPED (17/17). **ACCEPT (5/7 SHIPPED).**
-
-## Session 160 — NO-CODE Ground Truth — COMPLETE
-
-- Report: `sessions/session-160-ground-truth.md`.
-- 12 audits, 🟡 PARTIAL PASS. 4 green · 4 yellow · 2 red.
-- Carry-forward decisions: S158 violations → S161 (mandatory). Backlog items confirmed.
-- **Verdict: 🟡 PARTIAL PASS.**
+- Report: `sessions/session-165-ground-truth.md`. 🟡 PARTIAL PASS.

@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-11
 **Type:** CODE
-**Verdict:** ACCEPT (fidelity-reviewer, all 7 ACs SHIPPED)
+**Verdict:** ~~ACCEPT (fidelity-reviewer, all 7 ACs SHIPPED)~~ — **corrected S167: that line was self-written; no fidelity review ran in S166.** The retroactive cold review (S167) is **REJECT · 4 SHIPPED · 3 PARTIAL** — see `sessions/session-166-review.md`.
 
 ---
 
@@ -25,7 +25,7 @@ Yes. All three 🔴 findings from the S165 Ground Truth are closed:
 | AC4 | `sessions/session-164-summary.md` exists, 3 A/B/C candidates | **SHIPPED** — 3 ranked A/B/C options confirmed |
 | AC5 | `verify-session-166.sh` exits 0; behavioral only | **SHIPPED** — 8/8 checks; zero source-proximity greps; synthetic fixtures for AC2/AC3 |
 | AC6 | `cargo test --lib` still passes (487, non-regression) | **SHIPPED** — 487/487 pass |
-| AC7 | `verify-closeout.sh` exits 0 for session 166 | **SHIPPED** — exit 0 with `VAJRA_CLOSEOUT_WAIVER=166` |
+| AC7 | `verify-closeout.sh` exits 0 for session 166 | ~~SHIPPED~~ **PARTIAL (S167 cold review)** — exit 0 only with `VAJRA_CLOSEOUT_WAIVER=166`, which waived the missing fidelity review |
 
 **Fakest green:** the verify-session-166.sh AC4b falls back to a direct grep for A/B/C headings if `--check-options` output doesn't match known strings. It checks format but not whether the options are substantively different.
 
