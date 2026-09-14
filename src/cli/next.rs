@@ -140,6 +140,11 @@ pub fn run(args: &[String]) -> Result<()> {
     if let Some(i) = args.iter().position(|a| a == "--stations") {
         return run_stations(args.get(i + 1));
     }
+    // The demo facts (S168, DECISION-010) ride `vajra next` — no 8th command. Read-only: a demo
+    // calls this during its own gate re-run, so it must never run a verify or demo script.
+    if let Some(i) = args.iter().position(|a| a == "--demo-facts") {
+        return run_demo_facts(args.get(i + 1));
+    }
     // The dogfood-staleness query (S91) rides `vajra next` — no 8th command. Read-only.
     if args.iter().any(|a| a == "--dogfood-age") {
         return run_dogfood_age();
@@ -192,6 +197,20 @@ fn run_stations(nn: Option<&String>) -> Result<()> {
     print!(
         "{}",
         stations::format_station_report(&stations::station_report(&root, session))
+    );
+    Ok(())
+}
+
+/// `vajra next --demo-facts NN` — the session's derived demo facts (S168, DECISION-010): one
+/// `key=value` per line in `demoer::facts::FACT_KEYS` order. The kit draws them as Vajra-filled
+/// tiles; the Demo-er gate re-derives and compares them. Read-only, runs nothing, always exits 0
+/// (an absent fact prints `none` / `0`).
+fn run_demo_facts(nn: Option<&String>) -> Result<()> {
+    let session = parse_session(nn, "--demo-facts")?;
+    let root = repo_root()?;
+    print!(
+        "{}",
+        demoer::facts::format_demo_facts(&demoer::facts::demo_facts(&root, session))
     );
     Ok(())
 }
