@@ -15,6 +15,7 @@ cd "$ROOT" || exit 1
 SESSION="167"
 # ========================
 BIN="${VAJRA_BIN:-$ROOT/target/release/vajra}"
+export VAJRA_BIN="$BIN"   # S168: the kit reads Vajra's facts from this binary (the gate sets it to itself)
 PRE=fab1b79   # main just before S167 — the last commit carrying the old template
 ALL="headline story before_after rule cases scorecard next"
 
@@ -43,6 +44,7 @@ slide_headline() {
   up="$(printf '%s\n' "$_DK_OUT" | grep -cE 'demo-(kit|session-template)\.sh \(up to date\)')"
   html="$(cat "$FRESH/scripts/demo-session-template.sh" "$FRESH/.ai/AGENTS.md" "$FRESH/.ai/CONSTRAINTS.yaml" \
           .ai/AGENTS.md .ai/CONSTRAINTS.yaml | grep -c 'interactive_html\|interactive HTML slide deck')"
+  dk_vajra_tiles "$SESSION"   # S168: stations · review · advice · crew — filled in by Vajra
   dk_metrics "OUTLINE|7|sections" "SCAFFOLDED|$have|of 2 files · live" "SYNC|$up|of 2 up to date · live" \
     "HTML RULES|$html|left · live" "LIB TESTS|493|recorded"
   dk_verdict "WHAT CHANGED, IN ONE BREATH" \
@@ -81,8 +83,8 @@ $(printf '%s\n' "$_DK_OUT" | sed -n '/demo not filled in/,$p')"
   dk_compare "BEFORE|template at $PRE · exit $brc" "$before" "AFTER|template today · exit $arc" "$after"
   dk_caption "Both panels are live runs. The before ran the old template straight out of git (commit $PRE). The after is an unedited copy of today's template."
   echo
-  if [ "$brc" = 0 ] && [ "$arc" != 0 ]; then dk_check "an empty demo used to pass · now it fails by name" PASS
-  else dk_check "an empty demo used to pass · now it fails by name (before exit $brc, after exit $arc)" FAIL; fi
+  dk_check "an empty demo used to pass · now it fails by name (before exit $brc, after exit $arc)" \
+    test "$brc" = 0 -a "$arc" != 0
 }
 
 # rule_deck FILE "SECTIONS" "COMMANDS" — a tiny deck: one slide per section, then the commands.
@@ -100,19 +102,18 @@ slide_rule() {
   local d="$DK_TMP/rule" n=0 row label secs cmds want why got badge; local -a rows
   mkdir -p "$d"
   for row in \
-    "every section shown, a live check passed|$ALL|dk_check ok PASS quiet|PASS|the only way to pass" \
-    "a section still holds its TO FILL IN box|$ALL|dk_check ok PASS quiet; dk_todo story x|BLOCK|an outline left empty" \
-    "a section was never shown|headline story before_after rule cases scorecard|dk_check ok PASS quiet|BLOCK|the story has a hole" \
+    "every section shown, a live check passed|$ALL|dk_check -q ok true|PASS|the only way to pass" \
+    "a section still holds its TO FILL IN box|$ALL|dk_check -q ok true; dk_todo story x|BLOCK|an outline left empty" \
+    "a section was never shown|headline story before_after rule cases scorecard|dk_check -q ok true|BLOCK|the story has a hole" \
     "no live check ran at all|$ALL|:|BLOCK|a demo that checks nothing shows nothing" \
-    "a live check failed|$ALL|dk_check ok FAIL quiet|BLOCK|the failure is shown, and the exit is non-zero"; do
+    "a live check failed|$ALL|dk_check -q ok false|BLOCK|the failure is shown, and the exit is non-zero"; do
     n=$((n+1)); label="${row%%|*}"; row="${row#*|}"; secs="${row%%|*}"; row="${row#*|}"
     cmds="${row%%|*}"; row="${row#*|}"; want="${row%%|*}"; why="${row#*|}"
     rule_deck "$d/deck-$n.sh" "$secs" "$cmds"
     if DEMO_MODE=stream bash "$d/deck-$n.sh" >/dev/null 2>&1; then got=PASS; else got=BLOCK; fi
     if [ "$got" = PASS ]; then badge="${C_YES}✓ passes${C_0}"; else badge="${C_NO}✗ fails${C_0}"; fi
     rows+=("$label|$badge|$why")
-    if [ "$got" = "$want" ]; then dk_check "rule · $label → $want" PASS quiet
-    else dk_check "rule · $label should be $want, got $got" FAIL quiet; fi
+    dk_check -q "rule · $label → $want (got $got)" test "$got" = "$want"
   done
   dk_table "The demo…|Result|Why" "${rows[@]}"
   dk_caption "Each row wrote a tiny throwaway deck on the real kit and ran it the way the gate does (not in a terminal)."
@@ -143,19 +144,19 @@ slide_cases() {
     dk_term "1 · vajra init in an empty folder" "$c1"; dk_term "2 · --sync-fleet right after init" "$c2"
     dk_term "3 · an untouched OLD template" "$c3"; dk_term "4 · a hand-edited kit" "$c4"
   fi
-  if grep -q '^# vajra-render-sha: ' "$FRESH/scripts/demo-kit.sh" 2>/dev/null; then dk_check "init scaffolds the kit, stamped" PASS
-  else dk_check "init scaffolds the kit, stamped" FAIL; fi
-  if [ "$(printf '%s\n' "$c2" | grep -c 'up to date')" = 2 ]; then dk_check "both demo files are up to date right after init" PASS
-  else dk_check "both demo files are up to date right after init" FAIL; fi
-  if printf '%s' "$c3" | grep -q 'upgrade'; then dk_check "an untouched old template upgrades without --overwrite-drifted" PASS
-  else dk_check "an untouched old template upgrades without --overwrite-drifted" FAIL; fi
-  if printf '%s' "$c4" | grep -q 'DRIFT'; then dk_check "a hand-edited kit is refused, never overwritten" PASS
-  else dk_check "a hand-edited kit is refused, never overwritten" FAIL; fi
+  dk_check "init scaffolds the kit, stamped" grep -q '^# vajra-render-sha: ' "$FRESH/scripts/demo-kit.sh"
+  dk_check "both demo files are up to date right after init" \
+    test "$(printf '%s\n' "$c2" | grep -c 'up to date')" = 2
+  dk_check "an untouched old template upgrades without --overwrite-drifted" \
+    bash -c 'printf "%s" "$1" | grep -q upgrade' _ "$c3"
+  dk_check "a hand-edited kit is refused, never overwritten" \
+    bash -c 'printf "%s" "$1" | grep -q DRIFT' _ "$c4"
 }
 
 slide_scorecard() {
   dk_section scorecard "proof · what ran live in this deck · what was recorded at close"   # prints demo:summary_table
   dk_h2 "The scorecard"
+  dk_vajra_scorecard "$SESSION"   # S168: Vajra's facts, re-derived by the gate at close
   dk_scorecard "LIVE — ran while you watched"
   echo
   dk_table "Recorded at close — not re-run here|Result" \
@@ -185,4 +186,4 @@ slide_next() {
 }
 
 dk_deck slide_headline slide_story slide_before_after slide_rule slide_cases slide_scorecard slide_next
-dk_finish
+dk_finish   # prints demo:complete only when the whole outline passed (S168)

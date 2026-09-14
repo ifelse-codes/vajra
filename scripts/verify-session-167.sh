@@ -57,9 +57,9 @@ set -uo pipefail
 . "$(cd "$(dirname "$0")" && pwd)/demo-kit.sh"
 s1() { dk_section headline "sample"; dk_h1 "A " "sample" " deck."; dk_metrics "A|1|of 1" "B|2|live" "C|3" "D|4|recorded" "E|5"; dk_verdict "ONE BREATH" "Old: nothing." "New: something ✓ with a long line that must wrap across the heavy box because it keeps going past the width."; }
 s2() { dk_section story; dk_bullets "Lead.|a bullet long enough to wrap around the column edge at seventy-two columns for sure."; }
-s3() { dk_section before_after; dk_run_v printf 'old\nline two\n'; local b="$_DK_OUT"; dk_run_v printf 'new ✓\n'; dk_compare "BEFORE|old" "$b" "AFTER|new" "$_DK_OUT"; dk_check "differs" PASS; }
+s3() { dk_section before_after; dk_run_v printf 'old\nline two\n'; local b="$_DK_OUT"; dk_run_v printf 'new ✓\n'; dk_compare "BEFORE|old" "$b" "AFTER|new" "$_DK_OUT"; dk_check "differs" test "$b" != "$_DK_OUT"; }
 s4() { dk_section rule; dk_table "In|Out|Why" "done: abc1234|✓ pass|a real id" "done: (prose that is long and clips past forty two columns)|✗ block|words words words words words words words words words words words"; }
-s5() { dk_section cases; dk_term "1 · a case" "$(printf '\033[1mbold output from a command\033[0m that is long enough to wrap inside the terminal panel for sure yes')"; dk_check "case" 0; }
+s5() { dk_section cases; dk_term "1 · a case" "$(printf '\033[1mbold output from a command\033[0m that is long enough to wrap inside the terminal panel for sure yes')"; dk_check "case" true; }
 s6() { dk_section scorecard; dk_scorecard "LIVE"; }
 s7() { dk_section next; dk_caption "the end"; }
 dk_deck s1 s2 s3 s4 s5 s6 s7
@@ -88,9 +88,12 @@ check "AC2a: unedited template copy exits non-zero (got $rc)" test "$rc" -ne 0
 flat="$(tr -s ' \n' '  ' < "$T/empty.txt")"
 check "AC2b: the failure names all seven unfilled sections" \
   bash -c "printf '%s' \"\$1\" | grep -q 'unfilled section(s): headline, story, before_after, rule, cases, scorecard, next'" _ "$flat"
-sed 's/^\([[:space:]]*\)dk_todo .*/\1dk_check "this section ran a live check" PASS/' \
+# S168 migration: dk_check runs a command (a bare PASS is refused), and the template's tiles and
+# scorecard read Vajra's facts — so the filled copy names a real session and the real binary.
+sed -e 's/^\([[:space:]]*\)dk_todo .*/\1dk_check "this section ran a live check" true/' \
+    -e 's/^SESSION="NN"$/SESSION="98"/' \
   "$FRESH/scripts/demo-session-template.sh" > "$FRESH/scripts/demo-session-98.sh"
-( cd "$FRESH" && DEMO_MODE=stream bash scripts/demo-session-98.sh > "$T/filled.txt" 2>&1 </dev/null ); rc=$?
+( cd "$FRESH" && VAJRA_BIN="$BIN" DEMO_MODE=stream bash scripts/demo-session-98.sh > "$T/filled.txt" 2>&1 </dev/null ); rc=$?
 check "AC2c: the filled outline exits 0 (got $rc)" test "$rc" -eq 0
 for m in header before_after cases summary_table; do
   check "AC2d: filled outline prints demo:$m" grep -q "^demo:$m\$" "$T/filled.txt"
@@ -200,9 +203,12 @@ pty_run "q" "$T/pty-quit.txt"; rc=$?
 check "AC6e: q on slide 1 says 'stopped at slide 1 of 7', never 'complete'" \
   bash -c "grep -q 'stopped at slide 1 of 7' '$T/pty-quit.txt' && ! grep -q 'demo complete' '$T/pty-quit.txt'"
 DEMOER_RS="src/demoer/mod.rs"   # the changed LINES since $PRE are what is checked, not the source text
-git diff "$PRE" -- "$DEMOER_RS" > "$T/demoer.diff"
+# S168 migration: S168 changes the gate ON PURPOSE (DECISION-010 overturns DECISION-009 §4), so the
+# claim is pinned to S167's own delivery — $PRE up to the S167 merge — not to today's tree.
+S167_MERGE=40fe6f7
+git diff "$PRE" "$S167_MERGE" -- "$DEMOER_RS" > "$T/demoer.diff"
 demoer_changes="$(grep -E '^[+-][^+-]' "$T/demoer.diff" | grep -vE '^[+-]//!|^[+-]  presentation: (interactive_html|terminal_deck)$' || true)"
-check "AC6f: Demo-er gate logic unchanged since $PRE (header comment + test fixture only)" test -z "$demoer_changes"
+check "AC6f: S167 left the Demo-er gate logic unchanged ($PRE..$S167_MERGE, header comment + test fixture only)" test -z "$demoer_changes"
 
 # ---------------------------------------------------------------------------
 # AC7: the decision record exists and carries its required parts.

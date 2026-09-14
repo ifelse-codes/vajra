@@ -15,7 +15,9 @@
 //! and never renders one. S167 (DECISION-009): the terminal demo IS the human demo — the same
 //! script this gate re-runs plays as a slide deck in a terminal, drawn by the scaffolded
 //! `scripts/demo-kit.sh`; `demo.presentation: interactive_html` (a separate agent-made HTML deck)
-//! is retired. The gate logic below is unchanged.
+//! is retired. S168 (DECISION-010, overturning DECISION-009 §4): a demo BUILT ON THE KIT must
+//! also print `demo:complete` and every `demo:fact`, each equal to what `facts::demo_facts` derives
+//! right after the re-run — a typed PASS, a typed number, or a demo that never finished blocks.
 //!
 //! The marker here is *executable* (a demo script), so per the S69 house pattern the gate
 //! RE-RUNS it instead of trusting a recorded green:
