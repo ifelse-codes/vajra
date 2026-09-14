@@ -104,7 +104,9 @@ gate_row() {  # NAME WANT_RC PATTERN HEADLINE CASES FINISH [legacy-old|legacy-ne
   case "${7:-}" in
     legacy-*) printf "printf 'demo:header\\\\ndemo:cases\\\\ndemo:summary_table\\\\ndemo:before_after\\\\n'\n" > "$d/scripts/demo-session-99.sh"
               [ "$7" = legacy-old ] && sed -i.bak 's/, complete\]/]/' "$d/.ai/CONSTRAINTS.yaml" ;;
-    *) deck "$d/scripts/demo-session-99.sh" "$4" "$5" "$6" ;;
+    indented-complete) printf "printf 'demo:header\\\\ndemo:cases\\\\ndemo:summary_table\\\\ndemo:before_after\\\\n demo:complete\\\\n'\n" > "$d/scripts/demo-session-99.sh" ;;
+    *) deck "$d/scripts/demo-session-99.sh" "$4" "$5" "$6"
+       [ "$1" = typed-tile ] && sed -i.bak 's/dk_vajra_scorecard 99; //' "$d/scripts/demo-session-99.sh" ;;
   esac
   printf '%s\n' "$f99" | sed "s/^stations_passed=.*/stations_passed=$((sp + 1))/; s/^/demo:fact /" > "$d/forged.txt"
   out="$(cd "$d" && "$BIN" next --check-demo 99 2>&1)"; rc=$?
@@ -113,22 +115,24 @@ gate_row() {  # NAME WANT_RC PATTERN HEADLINE CASES FINISH [legacy-old|legacy-ne
   check "AC4/AC6 $1: ...for the right reason ('$3')" has "$out" "$3"
 }
 gate_row honest       0 "verdict: READY"                     'dk_vajra_tiles 99' "$REAL" dk_finish
-gate_row typed-pass   1 "exited 1"                           'dk_vajra_tiles 99' 'dk_check "x" PASS' dk_finish
+gate_row typed-pass   1 "refused: a bare PASS"               'dk_vajra_tiles 99' 'dk_check "x" PASS' dk_finish
 gate_row forged-fact  1 "Vajra derives stations_passed=$sp"  'cat forged.txt' "$REAL" dk_finish
 gate_row typed-tile   1 "prints no demo:fact"                'dk_metrics "STATIONS|8|of 8"' "$REAL" 'dk_finish'
 gate_row no-finish    1 "shows no complete"                  'dk_vajra_tiles 99' "$REAL" ''
 gate_row legacy-old   0 "not built on"                       '' '' '' legacy-old
 gate_row legacy-new   1 "shows no complete"                  '' '' '' legacy-new
+gate_row indented-complete 1 "prints no demo:fact"           '' '' '' indented-complete
 check "AC6: the scaffold's CONSTRAINTS.yaml requires complete" grep -q 'required_elements: \[header, cases, summary_table, before_after, complete\]' "$FRESH/.ai/CONSTRAINTS.yaml"
 
 # Rust fixtures for the gate (typed PASS · forged fact · no dk_finish · honest · echoed signs).
 cargo test --quiet --lib demoer:: > "$T/demoer-tests.txt" 2>&1; rc=$?
 check "AC4: the Demo-er gate's Rust fixtures pass (exit $rc)" test "$rc" -eq 0
+cargo test --quiet --lib -- --list > "$T/test-list.txt" 2>/dev/null
 for t in kit_demo_honest_passes_with_no_downgrade_warning kit_demo_with_a_typed_pass_blocks \
          kit_demo_with_a_forged_fact_blocks_naming_it kit_demo_that_never_reaches_dk_finish_blocks \
-         hand_echoed_kit_signs_make_the_demo_kit_built demo_facts_never_runs_a_script; do
-  cargo test --quiet --lib "$t" -- --exact --list 2>/dev/null | grep -q "$t: test" \
-    && ok "AC4: fixture exists: $t" || bad "AC4: fixture missing: $t"
+         hand_echoed_kit_signs_make_the_demo_kit_built an_indented_complete_marker_cannot_dodge_the_kit_rules \
+         demo_facts_never_runs_a_script; do
+  check "AC4: fixture registered and ran in the suite: $t" grep -q "::$t: test$" "$T/test-list.txt"
 done
 
 # ---------------------------------------------------------------------------
@@ -163,7 +167,7 @@ if [ -d "$CHITRA/.git" ]; then
   st() { git -C "$CHITRA" rev-parse HEAD; git -C "$CHITRA" status --porcelain; git -C "$CHITRA" stash list; }
   s0="$(st)"; c_out="$(cd "$CHITRA" && "$BIN" init --sync-fleet --dry-run 2>&1)"; s1="$(st)"
   check "AC7d: chitra dry-run lists the template as an upgrade" has "$c_out" "would   upgrade scripts/demo-session-template.sh"
-  check "AC7d: chitra dry-run lists the kit (create — chitra never synced S167)" has "$c_out" "scripts/demo-kit.sh"
+  check "AC7d: chitra dry-run lists the kit as a create (chitra never synced S167)" has "$c_out" "would   create scripts/demo-kit.sh"
   check "AC7e: chitra HEAD, status and stash identical before and after" test "$s0" = "$s1"
 else
   bad "AC7: chitra not found at $CHITRA — cannot evaluate (set VAJRA_CHITRA)"
@@ -225,7 +229,7 @@ H=.ai/handoffs/session-168-demo-producer.md
 check "AC10a: the demo-producer handoff exists with verified dispatch provenance" grep -q '^agent: claude-code-subagent (verified: toolu_' "$H"
 check "AC10b: the Advice gate finds every recommendation answered" bash -c "'$BIN' next --check-advice 168 >/dev/null 2>&1"
 DP="$FRESH/.claude/agents/demo-producer.md"
-for w in dk_vajra_tiles dk_vajra_scorecard 'dk_check \\"label\\" <command' demo:header demo:cases demo:summary_table demo:before_after demo:complete; do
+for w in dk_vajra_tiles dk_vajra_scorecard 'dk_check "label" <command' demo:header demo:cases demo:summary_table demo:before_after demo:complete; do
   check "AC10c: the scaffolded demo-producer names '$w'" grep -q "$w" "$DP"
 done
 check "AC10d: it keeps tools: Read, Grep, Glob" grep -qx "tools: Read, Grep, Glob" "$DP"
