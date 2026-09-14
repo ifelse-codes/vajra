@@ -2,7 +2,9 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S167 complete · next pick pending (founder)
+## Between Sessions — S167 complete · S168 prompt APPROVED (founder, 2026-09-14)
+
+**Next: Session 168 — CODE: finish the demo work — a demo that cannot be faked, shipped.** Brief: `prompts/168-task-demo-final.md` — **Status: APPROVED** (founder token "approved", 2026-09-14). Founder direction (2026-09-14): "I want the demo work to complete full and final." Scope: command-backed `dk_check`, Vajra-filled tiles + scorecard (`vajra next --demo-facts NN`), the Demo-er gate proves `demo:complete` + facts at close, light theme, migrate S167's demo/verify, run `demo-producer` for real, then release 0.2.0 on the founder's go. Start in a FRESH chat · branch `session-168-demo-final`.
 
 **S167 ACCEPT (CODE: every Vajra demo plays as a rich story in the terminal).** Cold review 10 SHIPPED · 1 NOT-BUILT (AC10 — the 0.2.0 release waits for the merge of PR #200 and the founder's go; order in ROADMAP `S167-release`). See `sessions/session-167-summary.md` for its three ranked candidates: **A · S168** Vajra fills in the demo numbers itself (founder-named) · **B · S169** tighten the close gate S166 loosened · **C · S167-release** ship vajractl 0.2.0. **S170** = mandatory NO-CODE GT.
 
