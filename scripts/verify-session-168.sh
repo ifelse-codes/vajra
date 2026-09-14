@@ -132,6 +132,12 @@ check "AC6: the scaffolded template, filled with real commands, passes the gate 
 perl -0pi -e 's/dk_check "this section ran a live check" test -f \.ai\/AGENTS\.md/dk_check "this section ran a live check" PASS/' "$TP/scripts/demo-session-99.sh"   # first one only
 tout="$(cd "$TP" && "$BIN" next --check-demo 99 2>&1)"; rc=$?
 check "AC6: the same template with one typed PASS is blocked (exit $rc)" bash -c "[ $rc -ne 0 ] && printf '%s' \"\$1\" | grep -q 'refused: a bare PASS'" _ "$tout"
+TU="$T/g-unfilled"; rm -rf "$TU"; cp -R "$FRESH" "$TU"   # cold review 3: unfilled + hand-printed complete
+sed -e 's/^SESSION="NN"$/SESSION="99"/' -e 's/^dk_finish$/dk_marker complete/' \
+  "$TU/scripts/demo-session-template.sh" > "$TU/scripts/demo-session-99.sh"
+tout="$(cd "$TU" && "$BIN" next --check-demo 99 2>&1)"; rc=$?
+check "AC4/AC6: the UNFILLED template with dk_marker complete in place of dk_finish is blocked (exit $rc)" \
+  bash -c "[ $rc -ne 0 ] && printf '%s' \"\$1\" | grep -q 'unfilled' && printf '%s' \"\$1\" | grep -q 'no demo:check-passed'" _ "$tout"
 gate_row fake-finish  1 "check-failed"                       'dk_vajra_tiles 99' 'dk_check "x" PASS' 'dk_marker complete'
 gate_row escaped-complete 1 "shows no complete"              '' '' '' escaped-complete
 check "AC6: the scaffold's CONSTRAINTS.yaml requires complete" grep -q 'required_elements: \[header, cases, summary_table, before_after, complete\]' "$FRESH/.ai/CONSTRAINTS.yaml"
