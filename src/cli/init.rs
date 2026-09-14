@@ -1344,7 +1344,9 @@ demo:
   cumulative: true
   # The sprint-demo contract (S71): the demo must SHOW each element (a `demo:<element>` marker
   # in its live output) — the Demo-er gate re-runs the script at close and blocks otherwise.
-  required_elements: [header, cases, summary_table, before_after]
+  # S168 (DECISION-010): `complete` — the demo reached a passing dk_finish. A demo built on the kit
+  # must also print every fact Vajra fills in, equal to what the gate derives at close.
+  required_elements: [header, cases, summary_table, before_after, complete]
   # Same bound (S73) on the Demo-er live re-run — killed past timeout_secs → cannot-evaluate BLOCK.
   timeout_secs: 600
   # S167 (DECISION-009): the terminal demo IS the human demo — the demo script, drawn with the
@@ -3869,6 +3871,8 @@ dk_finish
 
     /// AC2: an unedited copy of the template cannot pass as a demo — it exits non-zero and names
     /// every unfilled section; with every section filled it exits 0 and prints all four markers.
+    /// S168: the filled outline also prints `demo:complete` and Vajra's facts (a stub `vajra`).
+    #[cfg(unix)]
     #[test]
     fn demo_template_unedited_fails_by_name_and_a_filled_outline_passes() {
         let dir = scaffold_tmp();
@@ -3904,8 +3908,25 @@ dk_finish
             tpl.trim_end(),
             "the template must carry dk_todo placeholders"
         );
+        assert!(
+            tpl.contains("dk_vajra_tiles \"$SESSION\"")
+                && tpl.contains("dk_vajra_scorecard \"$SESSION\""),
+            "the template's tiles and scorecard are filled in by Vajra"
+        );
+        assert!(
+            !tpl.lines().any(|l| {
+                let t = l.trim_start();
+                t.starts_with("dk_check ") && (t.ends_with(" PASS") || t.ends_with(" 0"))
+            }),
+            "the template must never show a bare-token dk_check"
+        );
         fs::write(dir.path().join("scripts/demo-session-98.sh"), filled).unwrap();
-        let out = run_demo_script(dir.path(), "scripts/demo-session-98.sh", &[]);
+        let stub = stub_vajra(dir.path());
+        let out = run_demo_script(
+            dir.path(),
+            "scripts/demo-session-98.sh",
+            &[("VAJRA_BIN", &stub)],
+        );
         let text = String::from_utf8(out.stdout).unwrap();
         assert!(out.status.success(), "a filled outline must pass:\n{text}");
         for m in [
@@ -3913,6 +3934,8 @@ dk_finish
             "demo:before_after",
             "demo:cases",
             "demo:summary_table",
+            "demo:complete",
+            "demo:fact stations_passed=5",
         ] {
             assert!(
                 text.contains(m),

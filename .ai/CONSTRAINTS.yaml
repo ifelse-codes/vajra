@@ -50,7 +50,9 @@ demo:
   cumulative: true
   # The sprint-demo contract (S71): the demo must SHOW each element (a `demo:<element>` marker
   # in its live output) — the Demo-er gate re-runs the script at close and blocks otherwise.
-  required_elements: [header, cases, summary_table, before_after]
+  # S168 (DECISION-010): `complete` — the demo reached a passing dk_finish. A demo built on the kit
+  # must also print every fact Vajra fills in, equal to what the gate derives at close.
+  required_elements: [header, cases, summary_table, before_after, complete]
   # Same bound (S73) on the Demo-er live re-run — killed past timeout_secs → cannot-evaluate BLOCK.
   timeout_secs: 600
   # S167 (DECISION-009): the terminal demo IS the human demo. The old rule (an agent-made HTML
