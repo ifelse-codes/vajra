@@ -1,6 +1,6 @@
 # DECISION-009 — The Terminal Demo Is the Human Demo
 
-**Status:** Accepted
+**Status:** Accepted — §4 ("The gate does not change") overturned by DECISION-010 (S168)
 **Date:** 2026-09-14
 **Session:** S167
 **Rests on:** DECISION-007 (agent fleet) — its S136 (`--sync-fleet`), S141 (render stamp), S142 (stamped shell scripts in `SYNC_HOOKS`) and S143 (constitution body) addenda · DECISION-008 (session-type detection; the `check_demo_markers` demo enforcement it documents)

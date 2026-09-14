@@ -1344,7 +1344,9 @@ demo:
   cumulative: true
   # The sprint-demo contract (S71): the demo must SHOW each element (a `demo:<element>` marker
   # in its live output) — the Demo-er gate re-runs the script at close and blocks otherwise.
-  required_elements: [header, cases, summary_table, before_after]
+  # S168 (DECISION-010): `complete` — the demo reached a passing dk_finish. A demo built on the kit
+  # must also print every fact Vajra fills in, equal to what the gate derives at close.
+  required_elements: [header, cases, summary_table, before_after, complete]
   # Same bound (S73) on the Demo-er live re-run — killed past timeout_secs → cannot-evaluate BLOCK.
   timeout_secs: 600
   # S167 (DECISION-009): the terminal demo IS the human demo — the demo script, drawn with the
@@ -3573,9 +3575,9 @@ mod tests {
 . "$(cd "$(dirname "$0")" && pwd)/demo-kit.sh"
 s1() { dk_section headline "session 0 · sample"; dk_h1 "A " "sample" " deck."; dk_metrics "A|1|of 1" "B|2|live" "C|3" "D|4|recorded" "E|5"; dk_verdict "ONE BREATH" "Old: nothing." "New: something ✓ with a long line that must wrap across the heavy box because it keeps going past the width."; }
 s2() { dk_section story; dk_bullets "Lead.|rest of a bullet long enough to wrap around the column edge at seventy-two columns for sure."; }
-s3() { dk_section before_after; dk_run_v printf 'old\nline two\n'; local b="$_DK_OUT"; dk_run_v printf 'new ✓\n'; dk_compare "BEFORE|old · exit 0" "$b" "AFTER|new · exit 0" "$_DK_OUT"; dk_check "before differs from after" PASS; }
+s3() { dk_section before_after; dk_run_v printf 'old\nline two\n'; local b="$_DK_OUT"; dk_run_v printf 'new ✓\n'; dk_compare "BEFORE|old · exit 0" "$b" "AFTER|new · exit 0" "$_DK_OUT"; dk_check "before differs from after" test "$b" != "$_DK_OUT"; }
 s4() { dk_section rule; dk_table "In|Out|Why" "done: abc1234|✓ pass|a real id" "done: (prose that is long and clips past forty two columns)|✗ block|prose — words words words words words words words words words words"; }
-s5() { dk_section cases; dk_term "1 · a case" "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; dk_check "case one" 0; }
+s5() { dk_section cases; dk_term "1 · a case" "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; dk_check "case one" true; }
 s6() { dk_section scorecard; dk_scorecard "LIVE"; }
 s7() { dk_section next; dk_caption "the end"; }
 dk_deck s1 s2 s3 s4 s5 s6 s7
@@ -3732,8 +3734,145 @@ dk_finish
         );
     }
 
+    /// A stub `vajra` for kit tests: prints a fixed fact set for the session it is asked about.
+    #[cfg(unix)]
+    fn stub_vajra(root: &Path) -> String {
+        use std::os::unix::fs::PermissionsExt;
+        let stub = root.join("stub-vajra");
+        fs::write(
+            &stub,
+            "#!/bin/sh\nprintf 'session=%s\\nstations_passed=5\\nstations_total=8\\nstations_names=Analyst,Architect,Planner,Coder,QA\\nreview=ACCEPT\\nrecs_answered=3\\nrecs_total=4\\ncrew_handoffs=2\\ncrew_roles=tech-lead,design-advisor\\n' \"$3\"\n",
+        )
+        .unwrap();
+        fs::set_permissions(&stub, fs::Permissions::from_mode(0o755)).unwrap();
+        stub.to_str().unwrap().to_string()
+    }
+
+    /// S168 AC1 · AC3 · AC8: `dk_check` runs a real command and refuses a bare token by name; the
+    /// Vajra-filled tiles and scorecard show the facts and print one `demo:fact` per fact; the light
+    /// theme is chosen by DEMO_THEME or COLORFGBG; NO_COLOR stays escape-free; boxes stay straight.
+    #[cfg(unix)]
+    #[test]
+    fn s168_kit_runs_real_checks_fills_vajra_facts_and_has_a_light_theme() {
+        let dir = scaffold_tmp();
+        let root = dir.path();
+        let stub = stub_vajra(root);
+        let deck = |name: &str, check: &str, envs: &[(&str, &str)]| {
+            let body = format!(
+                ". \"$(cd \"$(dirname \"$0\")\" && pwd)/demo-kit.sh\"\n\
+                 s1() {{ dk_section headline; dk_vajra_tiles 168; }}\n\
+                 s2() {{ dk_section story; }}\ns3() {{ dk_section before_after; }}\n\
+                 s4() {{ dk_section rule; }}\ns5() {{ dk_section cases; {check}; }}\n\
+                 s6() {{ dk_section scorecard; dk_vajra_scorecard 168; dk_scorecard LIVE; }}\n\
+                 s7() {{ dk_section next; }}\ndk_deck s1 s2 s3 s4 s5 s6 s7\ndk_finish\n"
+            );
+            fs::write(root.join(format!("scripts/{name}.sh")), body).unwrap();
+            let mut all: Vec<(&str, &str)> = vec![("VAJRA_BIN", &stub), ("COLORTERM", "")];
+            all.extend_from_slice(envs);
+            let out = run_demo_script(root, &format!("scripts/{name}.sh"), &all);
+            (out.status.success(), String::from_utf8(out.stdout).unwrap())
+        };
+        let honest = "dk_check \"a real command\" test -d scripts; dk_check -q \"quiet\" true";
+
+        let (ok, text) = deck("honest", honest, &[]);
+        assert!(ok, "an honest deck must pass:\n{text}");
+        for want in [
+            "demo:kit",
+            "demo:complete",
+            "demo:fact session=168",
+            "demo:fact stations_passed=5",
+            "demo:fact crew_roles=tech-lead,design-advisor",
+            "filled in by Vajra",
+            "Filled in by Vajra · session 168",
+            "2 of 2 pass",
+        ] {
+            assert!(text.contains(want), "missing {want:?}:\n{text}");
+        }
+        assert_eq!(text.matches("demo:fact review=ACCEPT").count(), 2);
+
+        for (name, check, why) in [
+            ("typed", "dk_check \"typed\" PASS", "refused"),
+            ("digit", "dk_check \"rc\" 0", "refused"),
+            ("failing", "dk_check \"fails\" false", "✗ fails"),
+            (
+                "quietfail",
+                "dk_check \"ok\" true; dk_check -q \"hidden\" false",
+                "1 of 2 live checks FAILED",
+            ),
+        ] {
+            let (ok, text) = deck(name, check, &[]);
+            assert!(!ok, "{name} must fail:\n{text}");
+            assert!(text.contains(why), "{name} must say {why:?}:\n{text}");
+            assert!(
+                !text.contains("demo:complete"),
+                "{name} printed demo:complete"
+            );
+        }
+        let (_, quiet) = deck(
+            "quietfail",
+            "dk_check \"ok\" true; dk_check -q \"hidden\" false",
+            &[],
+        );
+        assert!(
+            !quiet.contains("✗ hidden (exit"),
+            "-q keeps the check line off-screen"
+        );
+        let (ok, text) = deck("nobin", honest, &[("VAJRA_BIN", "/nonexistent/vajra")]);
+        assert!(
+            !ok && text.contains("could not read Vajra's facts"),
+            "{text}"
+        );
+
+        let light = "\u{1b}[38;5;56m";
+        let dark = "\u{1b}[38;5;99m";
+        let (_, t) = deck(
+            "honest",
+            honest,
+            &[("DEMO_COLOR", "1"), ("DEMO_THEME", "light")],
+        );
+        assert!(t.contains(light) && !t.contains(dark), "DEMO_THEME=light");
+        let (_, t) = deck(
+            "honest",
+            honest,
+            &[("DEMO_COLOR", "1"), ("COLORFGBG", "0;15")],
+        );
+        assert!(t.contains(light), "COLORFGBG light background");
+        let (_, t) = deck(
+            "honest",
+            honest,
+            &[("DEMO_COLOR", "1"), ("COLORFGBG", "15;0")],
+        );
+        assert!(
+            t.contains(dark) && !t.contains(light),
+            "dark stays the default"
+        );
+        let (_, t) = deck(
+            "honest",
+            honest,
+            &[
+                ("DEMO_COLOR", "1"),
+                ("DEMO_THEME", "light"),
+                ("NO_COLOR", "1"),
+            ],
+        );
+        assert!(!t.contains('\u{1b}'), "NO_COLOR prints zero escape bytes");
+        for w in ["100", "72"] {
+            let (ok, t) = deck("honest", honest, &[("DEMO_WIDTH", w)]);
+            assert!(ok);
+            let (boxes, bad, widest) = box_scan(&t);
+            assert!(
+                boxes >= 5,
+                "4 Vajra tiles + the scorecard at {w}, got {boxes}:\n{t}"
+            );
+            assert_eq!(bad, 0, "crooked at {w}:\n{t}");
+            assert!(widest <= w.parse().unwrap(), "{widest} wide at {w}");
+        }
+    }
+
     /// AC2: an unedited copy of the template cannot pass as a demo — it exits non-zero and names
     /// every unfilled section; with every section filled it exits 0 and prints all four markers.
+    /// S168: the filled outline also prints `demo:complete` and Vajra's facts (a stub `vajra`).
+    #[cfg(unix)]
     #[test]
     fn demo_template_unedited_fails_by_name_and_a_filled_outline_passes() {
         let dir = scaffold_tmp();
@@ -3757,7 +3896,7 @@ dk_finish
             .lines()
             .map(|l| {
                 if l.trim_start().starts_with("dk_todo ") {
-                    "  dk_check \"this section ran a live check\" PASS".to_string()
+                    "  dk_check \"this section ran a live check\" true".to_string()
                 } else {
                     l.to_string()
                 }
@@ -3769,8 +3908,25 @@ dk_finish
             tpl.trim_end(),
             "the template must carry dk_todo placeholders"
         );
+        assert!(
+            tpl.contains("dk_vajra_tiles \"$SESSION\"")
+                && tpl.contains("dk_vajra_scorecard \"$SESSION\""),
+            "the template's tiles and scorecard are filled in by Vajra"
+        );
+        assert!(
+            !tpl.lines().any(|l| {
+                let t = l.trim_start();
+                t.starts_with("dk_check ") && (t.ends_with(" PASS") || t.ends_with(" 0"))
+            }),
+            "the template must never show a bare-token dk_check"
+        );
         fs::write(dir.path().join("scripts/demo-session-98.sh"), filled).unwrap();
-        let out = run_demo_script(dir.path(), "scripts/demo-session-98.sh", &[]);
+        let stub = stub_vajra(dir.path());
+        let out = run_demo_script(
+            dir.path(),
+            "scripts/demo-session-98.sh",
+            &[("VAJRA_BIN", &stub)],
+        );
         let text = String::from_utf8(out.stdout).unwrap();
         assert!(out.status.success(), "a filled outline must pass:\n{text}");
         for m in [
@@ -3778,6 +3934,8 @@ dk_finish
             "demo:before_after",
             "demo:cases",
             "demo:summary_table",
+            "demo:complete",
+            "demo:fact stations_passed=5",
         ] {
             assert!(
                 text.contains(m),
@@ -3903,6 +4061,65 @@ dk_finish
         );
         assert_eq!(fs::read_to_string(root.join(kit_rel)).unwrap(), edited);
         assert_eq!(fs::read_to_string(root.join(tpl_rel)).unwrap(), unknown);
+    }
+
+    /// S168 AC7: the kit and the template exactly as S167 scaffolded them (stamped) are real
+    /// `StaleRender`s — `--sync-fleet` upgrades both without `--overwrite-drifted`. The S167 bytes are
+    /// read from git (the S167 merge) when `.git` exists; a published crate has no history to read.
+    #[test]
+    fn s167_stamped_kit_and_template_upgrade_as_stale_renders() {
+        let repo = env!("CARGO_MANIFEST_DIR");
+        let dir = scaffold_tmp();
+        let root = dir.path();
+        for (rel, now) in [
+            ("scripts/demo-kit.sh", TPL_DEMO_KIT),
+            ("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
+        ] {
+            let Some(show) = Command::new("git")
+                .args(["show", &format!("40fe6f7:{rel}")])
+                .current_dir(repo)
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+            else {
+                // No history (a published crate) skips; history present but no S167 commit FAILS.
+                assert!(
+                    !Path::new(repo).join(".git").exists(),
+                    "git history is present but `git show 40fe6f7:{rel}` failed"
+                );
+                return;
+            };
+            let s167 = String::from_utf8(show.stdout).unwrap();
+            assert_ne!(s167, now, "S168 must have changed {rel}");
+            fs::write(root.join(rel), render_stamped_hook(&s167)).unwrap();
+        }
+        let states: Vec<(String, FleetFileState)> = plan_fleet_sync(root)
+            .into_iter()
+            .filter(|i| i.rel.starts_with("scripts/demo-"))
+            .map(|i| (i.rel.to_string(), i.state))
+            .collect();
+        assert_eq!(states.len(), 2, "{states:?}");
+        for (rel, state) in states {
+            assert_eq!(state, FleetFileState::StaleRender, "{rel}");
+        }
+        let mut out = Vec::new();
+        let res = sync_fleet(
+            root,
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        );
+        assert!(res.is_ok(), "{res:?} {}", String::from_utf8_lossy(&out));
+        assert_eq!(
+            fs::read_to_string(root.join("scripts/demo-kit.sh")).unwrap(),
+            render_stamped_hook(TPL_DEMO_KIT)
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("scripts/demo-session-template.sh")).unwrap(),
+            render_stamped_hook(TPL_DEMO_TEMPLATE)
+        );
     }
 
     /// DECISION-009's open question: an unstamped template byte-identical to one Vajra shipped is a

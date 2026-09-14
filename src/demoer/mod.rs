@@ -15,7 +15,9 @@
 //! and never renders one. S167 (DECISION-009): the terminal demo IS the human demo — the same
 //! script this gate re-runs plays as a slide deck in a terminal, drawn by the scaffolded
 //! `scripts/demo-kit.sh`; `demo.presentation: interactive_html` (a separate agent-made HTML deck)
-//! is retired. The gate logic below is unchanged.
+//! is retired. S168 (DECISION-010, overturning DECISION-009 §4): a demo BUILT ON THE KIT must
+//! also print `demo:complete` and every `demo:fact`, each equal to what `facts::demo_facts` derives
+//! right after the re-run — a typed PASS, a typed number, or a demo that never finished blocks.
 //!
 //! The marker here is *executable* (a demo script), so per the S69 house pattern the gate
 //! RE-RUNS it instead of trusting a recorded green:
@@ -41,6 +43,8 @@ use std::fs;
 use std::path::Path;
 
 use crate::gate_run::CannotEvaluate;
+
+pub mod facts;
 
 /// `CONSTRAINTS.yaml#demo` defaults — the spine's recorded contract when the file or keys are
 /// missing (the same patterns `vajra init` scaffolds).
@@ -103,6 +107,23 @@ pub struct DemoContract {
     /// Elements whose `demo:<element>` marker the script TEXT lacks (static scan; every element
     /// when the script is missing). The live output scan in `--check-demo` is the enforced one.
     pub missing_in_file: Vec<String>,
+    /// The script text names `demo-kit.sh` (S168, DECISION-010) — one of the signs that the demo is
+    /// built on the kit, so the gate also requires `demo:complete` and true facts.
+    pub sources_kit: bool,
+}
+
+/// Is this demo built on the kit (S168, DECISION-010)? Any ONE sign is enough — the script text
+/// names `demo-kit.sh`, or the live output carries a `demo:kit`, `demo:complete` or `demo:fact`
+/// line — so a faker must remove every sign to fall back to the old four-marker rule (warned).
+///
+/// The scan is a SUBSTRING match — the same test `missing_elements` uses to credit an element — so
+/// the two can never disagree: any output that earns `complete` is kit-built and owes its facts
+/// (the S168 cold review found an indented ` demo:complete` passing as legacy while the element
+/// scan counted it). Stricter on purpose: a demo that merely mentions a kit marker is held to the
+/// kit's rules.
+pub fn is_kit_built(sources_kit: bool, output: &str) -> bool {
+    let o = facts::strip_ansi(output);
+    sources_kit || o.contains("demo:kit") || o.contains("demo:complete") || o.contains("demo:fact ")
 }
 
 /// Elements from `required` whose `demo:<element>` marker `text` does not contain.
@@ -123,9 +144,12 @@ pub fn gather_contract(root: &Path, session: u32) -> DemoContract {
     let (script_pattern, required_elements) = demo_patterns(&root.join(".ai/CONSTRAINTS.yaml"));
     let script = script_pattern.replace("{NN}", &format!("{session:02}"));
     let path = root.join(&script);
-    let missing_in_file = match fs::read_to_string(&path) {
-        Ok(text) => missing_elements(&text, &required_elements),
-        Err(_) => required_elements.clone(),
+    let (missing_in_file, sources_kit) = match fs::read_to_string(&path) {
+        Ok(text) => (
+            missing_elements(&text, &required_elements),
+            text.contains("demo-kit.sh"),
+        ),
+        Err(_) => (required_elements.clone(), false),
     };
     DemoContract {
         session,
@@ -133,6 +157,7 @@ pub fn gather_contract(root: &Path, session: u32) -> DemoContract {
         script,
         required_elements,
         missing_in_file,
+        sources_kit,
     }
 }
 
@@ -153,17 +178,27 @@ pub enum DemoState {
     /// The script re-ran LIVE and exited 0 but its OUTPUT lacks these required elements —
     /// BLOCKS. The hollow demo (exit 0, nothing shown) dies here, by construction.
     MissingElements(Vec<String>),
-    /// The script re-ran LIVE, exited 0, and its output carries every required element.
+    /// The script re-ran LIVE, exited 0, and its output carries every required element — and, for a
+    /// demo built on the kit, `demo:complete` plus every fact, each equal to what Vajra derives.
     LiveGreen,
+    /// Exit 0 with every required element, but NOT built on the kit: the old four-marker rule
+    /// applied, with no `demo:complete` or fact check. Passes with a warning naming the downgrade.
+    LegacyGreen,
+    /// Built on the kit, exit 0, every element shown — but `demo:complete` is missing or a
+    /// `demo:fact` is typed, stale, unknown or absent (S168). BLOCKS, naming each reason.
+    KitUnproven(Vec<String>),
 }
 
 impl DemoState {
-    /// A blocking state refuses the close at L2/L3. Only a live green or a missing script
-    /// (legacy WARN) does not block.
+    /// A blocking state refuses the close at L2/L3. Only a live green, a legacy green (warned) or
+    /// a missing script (legacy WARN) does not block.
     pub fn blocks(&self) -> bool {
         matches!(
             self,
-            DemoState::LiveRed(_) | DemoState::MissingElements(_) | DemoState::CannotEvaluate(_)
+            DemoState::LiveRed(_)
+                | DemoState::MissingElements(_)
+                | DemoState::CannotEvaluate(_)
+                | DemoState::KitUnproven(_)
         )
     }
 }
@@ -176,17 +211,75 @@ pub fn demo_report(
     contract: &DemoContract,
     run: impl FnOnce(&str) -> (Result<i32, CannotEvaluate>, String),
 ) -> DemoState {
+    demo_report_with(contract, run, |_| Vec::new())
+}
+
+/// `demo_report` with the facts source injected (S168): `derive(NN)` returns session NN's facts as
+/// Vajra derives them RIGHT AFTER the run, from the folder the demo ran in.
+pub fn demo_report_with(
+    contract: &DemoContract,
+    run: impl FnOnce(&str) -> (Result<i32, CannotEvaluate>, String),
+    derive: impl Fn(u32) -> Vec<(String, String)>,
+) -> DemoState {
     if !contract.script_exists {
         return DemoState::NoScript;
     }
     let (code, output) = run(&contract.script);
     match code {
         Ok(0) => {
-            let missing = missing_elements(&output, &contract.required_elements);
-            if missing.is_empty() {
+            // ONE normalized text for every scan (S168 cold review 2, rec 1): an element credited on
+            // raw bytes but missed by the kit-sign scan on stripped bytes was a dodge.
+            let clean = facts::strip_ansi(&output);
+            let missing = missing_elements(&clean, &contract.required_elements);
+            if !missing.is_empty() {
+                return DemoState::MissingElements(missing);
+            }
+            if !is_kit_built(contract.sources_kit, &clean) {
+                return DemoState::LegacyGreen;
+            }
+            let mut reasons = Vec::new();
+            // A failed or refused kit check blocks even when `demo:complete` was printed by hand
+            // (cold review 2, rec 2: `dk_marker complete` in place of `dk_finish`).
+            let failed: Vec<&str> = clean
+                .lines()
+                .filter_map(|l| l.trim_end().strip_prefix("demo:check-failed "))
+                .collect();
+            if !failed.is_empty() {
+                reasons.push(format!(
+                    "printed demo:check-failed for {} — a live check failed or was refused, so \
+                     the demo cannot close whatever else it prints",
+                    failed.join("; ")
+                ));
+            }
+            // Cold review 3, rec 1: an unfilled outline with zero checks and a hand-printed
+            // `demo:complete` passed. The kit prints `demo:check-passed` per passing check and
+            // `demo:check-failed … — unfilled` per `dk_todo`; a kit-built demo needs one pass.
+            if !clean
+                .lines()
+                .any(|l| l.trim_end().starts_with("demo:check-passed "))
+            {
+                reasons.push(
+                    "printed no demo:check-passed — no live check passed through dk_check, so \
+                     nothing in this demo was checked"
+                        .to_string(),
+                );
+            }
+            if !clean.lines().any(|l| l.trim() == "demo:complete") {
+                reasons.push(
+                    "never printed `demo:complete` — it did not reach a passing dk_finish (a \
+                     section unfilled, a live check failed or refused, or dk_finish never called)"
+                        .to_string(),
+                );
+            }
+            reasons.extend(facts::check_facts(
+                &facts::fact_lines(&output),
+                contract.session,
+                derive,
+            ));
+            if reasons.is_empty() {
                 DemoState::LiveGreen
             } else {
-                DemoState::MissingElements(missing)
+                DemoState::KitUnproven(reasons)
             }
         }
         Ok(c) => DemoState::LiveRed(c),
@@ -233,13 +326,39 @@ pub fn demo_gate_with(
     session: u32,
     run: impl FnOnce(&str) -> (Result<i32, CannotEvaluate>, String),
 ) -> DemoVerdict {
+    demo_gate_with_facts(root, session, run, |s| facts::demo_facts(root, s))
+}
+
+/// `demo_gate_with` with the facts source injected (S168) — `derive` must read the folder the demo
+/// ran in (the clean room when enabled), so the demo and the gate see the same files.
+pub fn demo_gate_with_facts(
+    root: &Path,
+    session: u32,
+    run: impl FnOnce(&str) -> (Result<i32, CannotEvaluate>, String),
+    derive: impl Fn(u32) -> Vec<(String, String)>,
+) -> DemoVerdict {
     let contract = gather_contract(root, session);
-    let state = demo_report(&contract, run);
+    let state = demo_report_with(&contract, run, derive);
     let mut reasons = Vec::new();
     let mut warnings = Vec::new();
 
     match &state {
         DemoState::LiveGreen => {}
+        DemoState::LegacyGreen => warnings.push(format!(
+            "{} is not built on scripts/demo-kit.sh — the old four-marker rule applied: no \
+             `demo:complete` check and no fact check (a downgrade, named: a demo that drops every \
+             kit sign dodges both; where CONSTRAINTS.yaml#demo.required_elements lists \
+             `complete`, a demo must print it, and printing it makes the demo kit-built)",
+            contract.script
+        )),
+        DemoState::KitUnproven(why) => {
+            for w in why {
+                reasons.push(format!(
+                    "{} is built on the demo kit but {w}",
+                    contract.script
+                ));
+            }
+        }
         DemoState::NoScript => warnings.push(format!(
             "no demo script recorded for session {:02} ({} missing) — NO-CODE ground-truth \
              and legacy sessions pass, but note the dodge: deleting the script downgrades this \
@@ -292,14 +411,22 @@ pub fn demo_gate(root: &Path, session: u32) -> DemoVerdict {
     let timeout = crate::gate_run::gate_timeout(&constraints, "demo");
     let (cr_enabled, cr_bootstrap) = crate::gate_run::clean_room_config(&constraints);
 
+    // S168: a kit demo reads its facts from THIS binary, so the demo and the comparison cannot skew.
+    let envs: Vec<(&str, std::ffi::OsString)> = std::env::current_exe()
+        .map(|p| vec![("VAJRA_BIN", p.into_os_string())])
+        .unwrap_or_default();
+
     let skip = std::env::var("VAJRA_SKIP_CLEAN_ROOM").as_deref() == Ok("1");
     if !cr_enabled || skip {
         if cr_enabled && skip {
             eprintln!("[vajra: VAJRA_SKIP_CLEAN_ROOM=1 — skipping clean room, Demo-er runs in working tree]");
         }
-        return demo_gate_with(root, session, |script| {
-            crate::gate_run::run_captured(root, script, timeout)
-        });
+        return demo_gate_with_facts(
+            root,
+            session,
+            |script| crate::gate_run::run_captured_env(root, script, timeout, &envs),
+            |s| facts::demo_facts(root, s),
+        );
     }
 
     // Clean room is enabled — try to create it.
@@ -344,9 +471,12 @@ pub fn demo_gate(root: &Path, session: u32) -> DemoVerdict {
     }
 
     let run_path = cr.path.clone();
-    let verdict = demo_gate_with(root, session, |script| {
-        crate::gate_run::run_captured(&run_path, script, timeout)
-    });
+    let verdict = demo_gate_with_facts(
+        root,
+        session,
+        |script| crate::gate_run::run_captured_env(&run_path, script, timeout, &envs),
+        |s| facts::demo_facts(&run_path, s),
+    );
     drop(cr); // explicit cleanup before returning
     verdict
 }
@@ -428,6 +558,7 @@ demo:
             script_exists,
             required_elements: elements(&["header", "cases", "summary_table", "before_after"]),
             missing_in_file: Vec::new(),
+            sources_kit: false,
         }
     }
 
@@ -544,9 +675,9 @@ demo:
             ]))
         );
         assert!(hollow.blocks());
-        // Exit 0 + every marker in the LIVE output → the only green.
+        // Exit 0 + every marker in the LIVE output, no kit sign → the legacy green (S168: warned).
         let green = demo_report(&contract(true), |_| (Ok(0), FULL_OUTPUT.to_string()));
-        assert_eq!(green, DemoState::LiveGreen);
+        assert_eq!(green, DemoState::LegacyGreen);
         assert!(!green.blocks());
     }
 
@@ -593,8 +724,12 @@ demo:
         fs::write(root.join("scripts/demo-session-71.sh"), full).unwrap();
         let v = demo_gate(root, 71);
         assert!(!v.blocked(), "reasons: {:?}", v.reasons);
-        assert_eq!(v.state, DemoState::LiveGreen);
-        assert!(v.warnings.is_empty());
+        assert_eq!(v.state, DemoState::LegacyGreen);
+        assert!(
+            v.warnings.iter().any(|w| w.contains("not built on")),
+            "a legacy demo passes, but the warning names the downgrade: {:?}",
+            v.warnings
+        );
     }
 
     #[test]
@@ -667,5 +802,265 @@ demo:
         let missing = format_demo_contract(&gather_contract(tmp.path(), 72));
         assert!(missing.contains("MISSING"));
         assert!(missing.contains("✗ summary_table"));
+    }
+
+    // ── S168 (DECISION-010): a kit-built demo must reach demo:complete and print true facts ─────
+
+    const OUTLINE: &str = "s1() { dk_section headline; dk_vajra_tiles 71; }
+s2() { dk_section story; }
+s3() { dk_section before_after; }
+s4() { dk_section rule; }
+s5() { dk_section cases; CHECK; }
+s6() { dk_section scorecard; dk_scorecard LIVE; }
+s7() { dk_section next; }
+dk_deck s1 s2 s3 s4 s5 s6 s7
+";
+
+    /// A temp repo with the REAL kit, a demo built on it, and a stub `vajra` that prints the facts
+    /// file (written AFTER the demo, so the honest file equals what the gate derives).
+    fn kit_repo(check: &str, finish: bool) -> tempfile::TempDir {
+        use std::os::unix::fs::PermissionsExt;
+        let tmp = repo_with_constraints(CONSTRAINTS);
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(
+            root.join("scripts/demo-kit.sh"),
+            include_str!("../../scripts/demo-kit.sh"),
+        )
+        .unwrap();
+        let script = format!(
+            ". \"$(cd \"$(dirname \"$0\")\" && pwd)/demo-kit.sh\"\n{}{}",
+            OUTLINE.replace("CHECK", check),
+            if finish { "dk_finish\n" } else { "" }
+        );
+        fs::write(root.join("scripts/demo-session-71.sh"), script).unwrap();
+        fs::write(
+            root.join("facts-71.txt"),
+            facts::format_demo_facts(&facts::demo_facts(root, 71)),
+        )
+        .unwrap();
+        let stub = root.join("stub-vajra");
+        fs::write(
+            &stub,
+            format!("#!/bin/sh\ncat \"{}/facts-$3.txt\"\n", root.display()),
+        )
+        .unwrap();
+        fs::set_permissions(&stub, fs::Permissions::from_mode(0o755)).unwrap();
+        tmp
+    }
+
+    fn gate_kit(root: &Path) -> DemoVerdict {
+        let envs = [
+            ("VAJRA_BIN", root.join("stub-vajra").into_os_string()),
+            ("DEMO_MODE", "stream".into()),
+        ];
+        demo_gate_with_facts(
+            root,
+            71,
+            |script| {
+                crate::gate_run::run_captured_env(
+                    root,
+                    script,
+                    std::time::Duration::from_secs(120),
+                    &envs,
+                )
+            },
+            |s| facts::demo_facts(root, s),
+        )
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn kit_demo_honest_passes_with_no_downgrade_warning() {
+        let tmp = kit_repo("dk_check \"a real command\" test -d scripts", true);
+        let v = gate_kit(tmp.path());
+        assert_eq!(v.state, DemoState::LiveGreen, "reasons: {:?}", v.reasons);
+        assert!(v.warnings.is_empty(), "{:?}", v.warnings);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn kit_demo_with_a_typed_pass_blocks() {
+        let tmp = kit_repo("dk_check \"typed\" PASS", true);
+        let v = gate_kit(tmp.path());
+        assert!(v.blocked());
+        // Blocked for the RIGHT reason: the kit refused the token (a crash would also exit 1).
+        let (_, out) = crate::gate_run::run_captured_env(
+            tmp.path(),
+            "scripts/demo-session-71.sh",
+            std::time::Duration::from_secs(120),
+            &[
+                ("VAJRA_BIN", tmp.path().join("stub-vajra").into_os_string()),
+                ("DEMO_MODE", "stream".into()),
+            ],
+        );
+        assert!(out.contains("refused: a bare PASS"), "{out}");
+        assert_eq!(
+            v.state,
+            DemoState::LiveRed(1),
+            "the kit refuses the token and exits 1"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn kit_demo_with_a_forged_fact_blocks_naming_it() {
+        let tmp = kit_repo("dk_check \"a real command\" test -d scripts", true);
+        let root = tmp.path();
+        let honest = fs::read_to_string(root.join("facts-71.txt")).unwrap();
+        let forged: String = honest
+            .lines()
+            .map(|l| {
+                if l.starts_with("stations_passed=") {
+                    "stations_passed=8\n".to_string()
+                } else {
+                    format!("{l}\n")
+                }
+            })
+            .collect();
+        assert_ne!(forged, honest, "the fixture must actually forge a fact");
+        fs::write(root.join("facts-71.txt"), forged).unwrap();
+        let v = gate_kit(root);
+        assert!(
+            matches!(v.state, DemoState::KitUnproven(_)),
+            "{:?}",
+            v.state
+        );
+        assert!(
+            v.reasons
+                .iter()
+                .any(|r| r.contains("stations_passed=8") && r.contains("Vajra derives")),
+            "{:?}",
+            v.reasons
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn kit_demo_that_never_reaches_dk_finish_blocks() {
+        let tmp = kit_repo("dk_check \"a real command\" test -d scripts", false);
+        let v = gate_kit(tmp.path());
+        // Exit 0 and every marker shown — only the missing `demo:complete` catches it.
+        assert!(
+            matches!(v.state, DemoState::KitUnproven(_)),
+            "{:?}",
+            v.state
+        );
+        assert!(v.reasons.iter().any(|r| r.contains("demo:complete")));
+    }
+
+    #[test]
+    fn a_hand_printed_complete_cannot_pass_an_unfilled_or_unchecked_outline() {
+        // Cold review 3, rec 1: the scaffolded outline left unfilled, zero checks, and
+        // `dk_marker complete` in place of `dk_finish`.
+        let tmp = kit_repo("dk_todo cases \"fill me\"", false);
+        let root = tmp.path();
+        let script = root.join("scripts/demo-session-71.sh");
+        let mut text = fs::read_to_string(&script).unwrap();
+        text.push_str("dk_marker complete\n");
+        fs::write(&script, text).unwrap();
+        let v = gate_kit(root);
+        assert!(
+            v.reasons.iter().any(|r| r.contains("unfilled")),
+            "{:?}",
+            v.reasons
+        );
+        assert!(v.reasons.iter().any(|r| r.contains("no demo:check-passed")));
+
+        // Placeholders deleted too — still nothing checked, still blocked.
+        let bare = fs::read_to_string(&script)
+            .unwrap()
+            .replace("dk_todo cases \"fill me\"", ":");
+        fs::write(&script, bare).unwrap();
+        let v = gate_kit(root);
+        assert!(
+            matches!(v.state, DemoState::KitUnproven(_)),
+            "{:?}",
+            v.state
+        );
+        assert!(v.reasons.iter().any(|r| r.contains("no demo:check-passed")));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_hand_printed_complete_cannot_rescue_a_refused_check() {
+        // Cold review 2, rec 2: the typed-PASS demo with `dk_marker complete` in place of
+        // `dk_finish` exits 0 and prints true facts — the kit's check-failed marker still blocks.
+        let tmp = kit_repo("dk_check \"typed\" PASS", false);
+        let root = tmp.path();
+        let script = root.join("scripts/demo-session-71.sh");
+        let mut text = fs::read_to_string(&script).unwrap();
+        text.push_str("dk_marker complete\n");
+        fs::write(&script, text).unwrap();
+        let v = gate_kit(root);
+        assert!(
+            matches!(v.state, DemoState::KitUnproven(_)),
+            "{:?}",
+            v.state
+        );
+        assert!(
+            v.reasons
+                .iter()
+                .any(|r| r.contains("check-failed") && r.contains("refused")),
+            "{:?}",
+            v.reasons
+        );
+        assert!(!v.reasons.iter().any(|r| r.contains("never printed")));
+    }
+
+    #[test]
+    fn an_escaped_complete_marker_is_not_credited() {
+        // Cold review 2, rec 1: `\033[demo:complete` counted on raw bytes, vanished when stripped.
+        let tmp =
+            repo_with_constraints(&CONSTRAINTS.replace("before_after]", "before_after, complete]"));
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(
+            root.join("scripts/demo-session-71.sh"),
+            "printf 'demo:header\\ndemo:cases\\ndemo:summary_table\\ndemo:before_after\\n\\033[demo:complete\\n'\n",
+        )
+        .unwrap();
+        let v = demo_gate(root, 71);
+        assert_eq!(
+            v.state,
+            DemoState::MissingElements(vec!["complete".to_string()])
+        );
+    }
+
+    #[test]
+    fn an_indented_complete_marker_cannot_dodge_the_kit_rules() {
+        // S168 cold review rec 1: ` demo:complete` (leading space) earned the `complete` element
+        // but was not a kit sign, so a non-kit demo passed as legacy with no fact check.
+        let tmp =
+            repo_with_constraints(&CONSTRAINTS.replace("before_after]", "before_after, complete]"));
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(
+            root.join("scripts/demo-session-71.sh"),
+            "printf 'demo:header\\ndemo:cases\\ndemo:summary_table\\ndemo:before_after\\n demo:complete\\n'\n",
+        )
+        .unwrap();
+        let v = demo_gate(root, 71);
+        assert!(v.blocked(), "{:?} {:?}", v.state, v.warnings);
+        assert!(matches!(v.state, DemoState::KitUnproven(_)));
+        assert!(v.reasons.iter().any(|r| r.contains("prints no demo:fact")));
+    }
+
+    #[test]
+    fn hand_echoed_kit_signs_make_the_demo_kit_built() {
+        // No kit in the script text, but an echoed `demo:complete` + a typed fact: detection by
+        // output fires, so the typed fact and the missing fact set block.
+        let tmp = repo_with_constraints(CONSTRAINTS);
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(
+            root.join("scripts/demo-session-71.sh"),
+            "printf 'demo:header\\ndemo:cases\\ndemo:summary_table\\ndemo:before_after\\ndemo:complete\\ndemo:fact session=71\\ndemo:fact stations_passed=8\\n'\n",
+        )
+        .unwrap();
+        let v = demo_gate(root, 71);
+        assert!(v.blocked(), "{:?}", v.state);
+        assert!(v.reasons.iter().any(|r| r.contains("stations_passed=8")));
+        assert!(v.reasons.iter().any(|r| r.contains("prints no demo:fact")));
     }
 }

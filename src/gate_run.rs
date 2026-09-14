@@ -216,6 +216,21 @@ pub fn run_captured(
     run_captured_inner(bash(root, script), script, timeout)
 }
 
+/// `run_captured` with extra environment for the child (S168): the Demo-er sets `VAJRA_BIN` to its
+/// own executable so a kit demo reads its facts from the same binary that compares them.
+pub fn run_captured_env(
+    root: &Path,
+    script: &str,
+    timeout: Duration,
+    envs: &[(&str, std::ffi::OsString)],
+) -> (Result<i32, CannotEvaluate>, String) {
+    let mut cmd = bash(root, script);
+    for (k, v) in envs {
+        cmd.env(k, v);
+    }
+    run_captured_inner(cmd, script, timeout)
+}
+
 /// Test-only seam, mirrors `run_streamed_with_program` (S84 Design note).
 #[cfg(test)]
 fn run_captured_with_program(
