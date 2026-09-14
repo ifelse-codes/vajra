@@ -53,9 +53,9 @@ demo:
   required_elements: [header, cases, summary_table, before_after]
   # Same bound (S73) on the Demo-er live re-run — killed past timeout_secs → cannot-evaluate BLOCK.
   timeout_secs: 600
-  # S167 (DECISION-009): the terminal demo IS the human demo. `presentation: interactive_html`
-  # is retired — the demo script, drawn with scripts/demo-kit.sh, plays as a deck in a terminal
-  # and prints every slide plus the markers when piped. No separate HTML deck.
+  # S167 (DECISION-009): the terminal demo IS the human demo. The old rule (an agent-made HTML
+  # slide deck, shown separately) is retired — the demo script, drawn with scripts/demo-kit.sh,
+  # plays as a deck in a terminal and prints every slide plus the markers when piped.
   presentation: terminal_deck
   kit: 'scripts/demo-kit.sh'
   outline: [headline, story, before_after, rule, cases, scorecard, next]

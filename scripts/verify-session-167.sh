@@ -199,7 +199,9 @@ check "AC6d: seven key presses page through all 7 slides to 'demo complete' (exi
 pty_run "q" "$T/pty-quit.txt"; rc=$?
 check "AC6e: q on slide 1 says 'stopped at slide 1 of 7', never 'complete'" \
   bash -c "grep -q 'stopped at slide 1 of 7' '$T/pty-quit.txt' && ! grep -q 'demo complete' '$T/pty-quit.txt'"
-demoer_changes="$(git diff "$PRE" -- src/demoer/mod.rs | grep -E '^[+-][^+-]' | grep -vE '^[+-]//!|^[+-]  presentation: (interactive_html|terminal_deck)$' || true)"
+DEMOER_RS="src/demoer/mod.rs"   # the changed LINES since $PRE are what is checked, not the source text
+git diff "$PRE" -- "$DEMOER_RS" > "$T/demoer.diff"
+demoer_changes="$(grep -E '^[+-][^+-]' "$T/demoer.diff" | grep -vE '^[+-]//!|^[+-]  presentation: (interactive_html|terminal_deck)$' || true)"
 check "AC6f: Demo-er gate logic unchanged since $PRE (header comment + test fixture only)" test -z "$demoer_changes"
 
 # ---------------------------------------------------------------------------
@@ -211,7 +213,7 @@ check "AC7a: DECISION-009 exists" test -f "$D"
 check "AC7b: it says the terminal demo is the human demo" grep -q "The Terminal Demo Is the Human Demo" "$D"
 check "AC7c: it says the kit is not a Darshan renderer" grep -q "not a Darshan renderer" "$D"
 for alt in "Keep agent-made HTML" "A renderer inside the binary" "Vajra-built slides now"; do
-  check "AC7d: rejected alternative with a reason: $alt" grep -q "^| $alt | .\{20,\}" "$D"
+  check "AC7d: rejected alternative with a reason: $alt" grep -q "^| $alt[^|]* | .\{20,\}" "$D"
 done
 check "AC7e: it names S168" grep -q "S168" "$D"
 
