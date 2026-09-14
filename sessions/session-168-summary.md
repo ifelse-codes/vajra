@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-14
 **Type:** CODE
-**Verdict:** pending the cold fidelity review (`sessions/session-168-review.md`) — the map below is the builder's, not a grade.
+**Verdict:** ACCEPT — cold fidelity review of record (`sessions/session-168-review.md`, pass 4 of 4): 10 SHIPPED · 3 PARTIAL (AC7, AC12, AC14) · 1 NOT-BUILT (AC13 release). The map below is the builder's; the review is the grade.
 
 ---
 
