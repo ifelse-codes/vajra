@@ -4082,7 +4082,12 @@ dk_finish
                 .ok()
                 .filter(|o| o.status.success())
             else {
-                return; // a published crate has no git history to check against
+                // No history (a published crate) skips; history present but no S167 commit FAILS.
+                assert!(
+                    !Path::new(repo).join(".git").exists(),
+                    "git history is present but `git show 40fe6f7:{rel}` failed"
+                );
+                return;
             };
             let s167 = String::from_utf8(show.stdout).unwrap();
             assert_ne!(s167, now, "S168 must have changed {rel}");

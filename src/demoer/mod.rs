@@ -115,12 +115,15 @@ pub struct DemoContract {
 /// Is this demo built on the kit (S168, DECISION-010)? Any ONE sign is enough — the script text
 /// names `demo-kit.sh`, or the live output carries a `demo:kit`, `demo:complete` or `demo:fact`
 /// line — so a faker must remove every sign to fall back to the old four-marker rule (warned).
+///
+/// The scan is a SUBSTRING match — the same test `missing_elements` uses to credit an element — so
+/// the two can never disagree: any output that earns `complete` is kit-built and owes its facts
+/// (the S168 cold review found an indented ` demo:complete` passing as legacy while the element
+/// scan counted it). Stricter on purpose: a demo that merely mentions a kit marker is held to the
+/// kit's rules.
 pub fn is_kit_built(sources_kit: bool, output: &str) -> bool {
-    sources_kit
-        || facts::strip_ansi(output).lines().any(|l| {
-            let t = l.trim_end(); // markers print at column 0; an indented mention is prose
-            t == "demo:kit" || t == "demo:complete" || t.starts_with("demo:fact ")
-        })
+    let o = facts::strip_ansi(output);
+    sources_kit || o.contains("demo:kit") || o.contains("demo:complete") || o.contains("demo:fact ")
 }
 
 /// Elements from `required` whose `demo:<element>` marker `text` does not contain.
@@ -318,8 +321,8 @@ pub fn demo_gate_with_facts(
         DemoState::LegacyGreen => warnings.push(format!(
             "{} is not built on scripts/demo-kit.sh — the old four-marker rule applied: no \
              `demo:complete` check and no fact check (a downgrade, named: a demo that drops every \
-             kit sign dodges both; add `complete` to CONSTRAINTS.yaml#demo.required_elements to \
-             close it)",
+             kit sign dodges both; where CONSTRAINTS.yaml#demo.required_elements lists \
+             `complete`, a demo must print it, and printing it makes the demo kit-built)",
             contract.script
         )),
         DemoState::KitUnproven(why) => {
@@ -855,6 +858,17 @@ dk_deck s1 s2 s3 s4 s5 s6 s7
         let tmp = kit_repo("dk_check \"typed\" PASS", true);
         let v = gate_kit(tmp.path());
         assert!(v.blocked());
+        // Blocked for the RIGHT reason: the kit refused the token (a crash would also exit 1).
+        let (_, out) = crate::gate_run::run_captured_env(
+            tmp.path(),
+            "scripts/demo-session-71.sh",
+            std::time::Duration::from_secs(120),
+            &[
+                ("VAJRA_BIN", tmp.path().join("stub-vajra").into_os_string()),
+                ("DEMO_MODE", "stream".into()),
+            ],
+        );
+        assert!(out.contains("refused: a bare PASS"), "{out}");
         assert_eq!(
             v.state,
             DemoState::LiveRed(1),
@@ -907,6 +921,25 @@ dk_deck s1 s2 s3 s4 s5 s6 s7
             v.state
         );
         assert!(v.reasons.iter().any(|r| r.contains("demo:complete")));
+    }
+
+    #[test]
+    fn an_indented_complete_marker_cannot_dodge_the_kit_rules() {
+        // S168 cold review rec 1: ` demo:complete` (leading space) earned the `complete` element
+        // but was not a kit sign, so a non-kit demo passed as legacy with no fact check.
+        let tmp =
+            repo_with_constraints(&CONSTRAINTS.replace("before_after]", "before_after, complete]"));
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(
+            root.join("scripts/demo-session-71.sh"),
+            "printf 'demo:header\\ndemo:cases\\ndemo:summary_table\\ndemo:before_after\\n demo:complete\\n'\n",
+        )
+        .unwrap();
+        let v = demo_gate(root, 71);
+        assert!(v.blocked(), "{:?} {:?}", v.state, v.warnings);
+        assert!(matches!(v.state, DemoState::KitUnproven(_)));
+        assert!(v.reasons.iter().any(|r| r.contains("prints no demo:fact")));
     }
 
     #[test]
