@@ -42,6 +42,8 @@ use std::path::Path;
 
 use crate::gate_run::CannotEvaluate;
 
+pub mod facts;
+
 /// `CONSTRAINTS.yaml#demo` defaults — the spine's recorded contract when the file or keys are
 /// missing (the same patterns `vajra init` scaffolds).
 const DEFAULT_SCRIPT_PATTERN: &str = "scripts/demo-session-{NN}.sh";

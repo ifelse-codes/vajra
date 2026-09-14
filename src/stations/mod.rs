@@ -629,7 +629,7 @@ fn prompt_bytes_at(root: &Path, tip: &str, rel: &str) -> Option<Vec<u8>> {
 /// The final canonical `**Verdict:** ACCEPT|REJECT` line resolves the review. Mirrors
 /// `verify-closeout.sh`: a line whose text contains `verdict:` and then `accept`/`reject`. `None`
 /// when no canonical verdict line exists ("No expected verdict supplied" has no colon — not a match).
-fn review_verdict_accept(text: &str) -> Option<bool> {
+pub(crate) fn review_verdict_accept(text: &str) -> Option<bool> {
     let verdicts: Vec<bool> = text
         .lines()
         .map(|l| l.to_lowercase())
