@@ -33,7 +33,7 @@ fresh_init() {
 in_dir() { local d="$1"; shift; ( cd "$d" && "$@" ); }   # run a command inside a folder
 
 slide_headline() {
-  dk_section headline "session $SESSION · the rich terminal demo · 2026-09-14"
+  dk_section headline "session $SESSION · the rich terminal demo · 2026-09-14"   # prints demo:header
   dk_h1 "Every Vajra demo now plays as a " "slide deck in the terminal" "."
   dk_p "One story: agents asked for a demo kept making HTML pages, because Vajra's own rules said the demo script was for machines and the human demo was a separate page. Now the demo script IS the human demo — in this repo and in every project that runs vajra init."
   fresh_init
@@ -64,7 +64,7 @@ slide_story() {
 }
 
 slide_before_after() {
-  dk_section before_after "the change · two real runs · same input"
+  dk_section before_after "the change · two real runs · same input"   # prints demo:before_after
   dk_h2 "Before → After"
   dk_p "The input: copy the demo template to a new session demo and run it without filling anything in — the laziest demo possible."
   local old="$DK_TMP/before" new="$DK_TMP/after" before brc after arc
@@ -119,7 +119,7 @@ slide_rule() {
 }
 
 slide_cases() {
-  dk_section cases "the cases · live"
+  dk_section cases "the cases · live"   # prints demo:cases
   dk_h2 "Four things to see for yourself"
   fresh_init
   local c1 c2 c3 c4 oldp="$DK_TMP/oldproj" edp="$DK_TMP/edited" pw
@@ -154,7 +154,7 @@ slide_cases() {
 }
 
 slide_scorecard() {
-  dk_section scorecard "proof · what ran live in this deck · what was recorded at close"
+  dk_section scorecard "proof · what ran live in this deck · what was recorded at close"   # prints demo:summary_table
   dk_h2 "The scorecard"
   dk_scorecard "LIVE — ran while you watched"
   echo

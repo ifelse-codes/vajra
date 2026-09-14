@@ -144,7 +144,7 @@ terminal, from the version people actually install.
 - step 6 — done: cb6de81
 - step 7 — done: 117230d
 - step 8 — done: cb6de81
-- step 9 — done: cb6de81
+- step 9 — done: 9c363bc
 - step 10 — pending: the release waits for the merge and the founder's go in chat (AC10; order in `.ai/handoffs/session-167-release-coordinator.md`)
 
 
@@ -152,7 +152,7 @@ terminal, from the version people actually install.
 - tech-lead rec 1 — obeyed: d6806f5
 - tech-lead rec 2 — obeyed: cb6de81
 - tech-lead rec 3 — obeyed: cb6de81
-- tech-lead rec 4 — obeyed: cb6de81
+- tech-lead rec 4 — obeyed: 9c363bc
 - design-advisor rec 1 — obeyed: d6806f5
 - design-advisor rec 2 — obeyed: d6806f5
 - design-advisor rec 3 — obeyed: d6806f5
