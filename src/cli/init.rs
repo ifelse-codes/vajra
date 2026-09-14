@@ -4063,6 +4063,60 @@ dk_finish
         assert_eq!(fs::read_to_string(root.join(tpl_rel)).unwrap(), unknown);
     }
 
+    /// S168 AC7: the kit and the template exactly as S167 scaffolded them (stamped) are real
+    /// `StaleRender`s — `--sync-fleet` upgrades both without `--overwrite-drifted`. The S167 bytes are
+    /// read from git (the S167 merge) when `.git` exists; a published crate has no history to read.
+    #[test]
+    fn s167_stamped_kit_and_template_upgrade_as_stale_renders() {
+        let repo = env!("CARGO_MANIFEST_DIR");
+        let dir = scaffold_tmp();
+        let root = dir.path();
+        for (rel, now) in [
+            ("scripts/demo-kit.sh", TPL_DEMO_KIT),
+            ("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
+        ] {
+            let Some(show) = Command::new("git")
+                .args(["show", &format!("40fe6f7:{rel}")])
+                .current_dir(repo)
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+            else {
+                return; // a published crate has no git history to check against
+            };
+            let s167 = String::from_utf8(show.stdout).unwrap();
+            assert_ne!(s167, now, "S168 must have changed {rel}");
+            fs::write(root.join(rel), render_stamped_hook(&s167)).unwrap();
+        }
+        let states: Vec<(String, FleetFileState)> = plan_fleet_sync(root)
+            .into_iter()
+            .filter(|i| i.rel.starts_with("scripts/demo-"))
+            .map(|i| (i.rel.to_string(), i.state))
+            .collect();
+        assert_eq!(states.len(), 2, "{states:?}");
+        for (rel, state) in states {
+            assert_eq!(state, FleetFileState::StaleRender, "{rel}");
+        }
+        let mut out = Vec::new();
+        let res = sync_fleet(
+            root,
+            SyncOpts {
+                dry_run: false,
+                overwrite_drifted: false,
+            },
+            &mut out,
+        );
+        assert!(res.is_ok(), "{res:?} {}", String::from_utf8_lossy(&out));
+        assert_eq!(
+            fs::read_to_string(root.join("scripts/demo-kit.sh")).unwrap(),
+            render_stamped_hook(TPL_DEMO_KIT)
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("scripts/demo-session-template.sh")).unwrap(),
+            render_stamped_hook(TPL_DEMO_TEMPLATE)
+        );
+    }
+
     /// DECISION-009's open question: an unstamped template byte-identical to one Vajra shipped is a
     /// provable old render. The list must agree with git history (when `.git` is present) and a
     /// real shipped copy must upgrade without `--overwrite-drifted`.
