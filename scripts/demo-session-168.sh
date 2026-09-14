@@ -160,9 +160,10 @@ slide_cases() {
 $(in_dir "$rec" ls ran-verify ran-demo 2>&1 | sed 's/^ls: //')"
 
   printf '. "%s"\ns() { dk_section headline; dk_check "ok" true; }\ndk_deck s\n' "$KIT" > "$tiny"
-  nl="$(DEMO_COLOR=1 DEMO_THEME=light COLORTERM= DEMO_MODE=stream bash "$tiny" 2>/dev/null | LC_ALL=C grep -c $'\033\[38;5;56m')"
-  nd="$(DEMO_COLOR=1 DEMO_THEME=dark COLORTERM= DEMO_MODE=stream bash "$tiny" 2>/dev/null | LC_ALL=C grep -c $'\033\[38;5;99m')"
-  nf="$(DEMO_COLOR=1 COLORFGBG='0;15' COLORTERM= DEMO_MODE=stream bash "$tiny" 2>/dev/null | LC_ALL=C grep -c $'\033\[38;5;56m')"
+  # env -u NO_COLOR: these three runs measure colour, so a viewer's own NO_COLOR must not leak in
+  nl="$(env -u NO_COLOR DEMO_COLOR=1 DEMO_THEME=light COLORTERM= DEMO_MODE=stream bash "$tiny" 2>/dev/null | LC_ALL=C grep -c $'\033\[38;5;56m')"
+  nd="$(env -u NO_COLOR DEMO_COLOR=1 DEMO_THEME=dark COLORTERM= DEMO_MODE=stream bash "$tiny" 2>/dev/null | LC_ALL=C grep -c $'\033\[38;5;99m')"
+  nf="$(env -u NO_COLOR DEMO_COLOR=1 COLORFGBG='0;15' COLORTERM= DEMO_MODE=stream bash "$tiny" 2>/dev/null | LC_ALL=C grep -c $'\033\[38;5;56m')"
   nn="$(NO_COLOR=1 DEMO_COLOR=1 DEMO_THEME=light DEMO_MODE=stream bash "$tiny" 2>/dev/null | LC_ALL=C grep -c $'\033')"
   c3="DEMO_THEME=light     → $nl line(s) in deep violet 38;5;56
 DEMO_THEME=dark      → $nd line(s) in soft violet 38;5;99
