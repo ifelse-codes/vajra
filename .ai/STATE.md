@@ -51,6 +51,7 @@
 - **✅ Reviewer independence at close RETIRED (S167):** retired to backlog; no active enforcement gap identified after S161 D2 run confirmed fidelity-reviewer dispatched independently.
 - **🟡 Autopilot Ladder Rung 2/3** — never completed; founder priority 3.
 - **🟡 Zero external users** — 0 stars; founder priority 4.
+- **🟡 Crew advice impact (F13)** — S159 audit: 13% hollow rate; mandate proves dispatch, not influence. No mechanical fix possible pre-release. **Deferred post-release by founder decision.**
 - **🟡 S156-FR-r1, S156-FR-r2** — backlog (prune-session-specific; no prune scheduled).
 - **🟡 S157-FR-r2** — backlog (applies gradually to future verify scripts).
 - **🟡 S159-FR-r1** — backlog (S159 closed; pattern applies to future audit verify scripts).

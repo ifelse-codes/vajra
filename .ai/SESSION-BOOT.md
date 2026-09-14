@@ -1,8 +1,9 @@
 # Session Boot
 
 ## Next Session
-- **S167 — NEXT (TBD: see options in `sessions/session-166-summary.md`).**
-  Start in a FRESH chat.
+- **S167 — NEXT: every Vajra demo plays as a rich story in the terminal** — `prompts/167-task-rich-terminal-demo.md` (**Status: APPROVED** — founder, 2026-09-14).
+  167 was first used by an ungoverned adhoc fixes merge (`fab1b79`) that never advanced `.ai/SESSION`; `vajra next --advance` opens SESSION + 1. S168 (founder-named) = Vajra fills in the number + scorecard slides itself. S170 = mandatory NO-CODE GT.
+  Start in a FRESH chat · branch `session-167-rich-terminal-demo`.
 
 ## Current Session
 - **Number:** 166 — COMPLETE (CODE: fix Analyst + Coder station gaps — Option A). **Verdict: ACCEPT.**
