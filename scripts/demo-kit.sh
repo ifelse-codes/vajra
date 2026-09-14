@@ -244,11 +244,12 @@ dk_check() { local quiet=0 label res l
   case "$tok" in ''|PASS|FAIL|pass|fail) bare=1 ;; *[!0-9]*) ;; *) bare=1 ;; esac   # empty · word · all digits
   if [ "$bare" = 1 ]; then
     DK_REFUSED="$DK_REFUSED|$label"; DK_SCORES+=("FAIL|$label — refused"); DK_FAILS=$((DK_FAILS+1))
+    dk_marker "check-failed $label — refused"   # the gate blocks on this line, dk_finish or not
     _dk_fail_line "✗ dk_check \"$label\" ${tok:-(no command)} — refused: a bare ${tok:-missing command} is not a check. Write dk_check \"$label\" <command…> so its real exit code decides."
     return 0
   fi
   dk_run_v "$@" </dev/null
-  if [ "$_DK_RC" = 0 ]; then res=PASS; else res=FAIL; DK_FAILS=$((DK_FAILS+1)); fi
+  if [ "$_DK_RC" = 0 ]; then res=PASS; else res=FAIL; DK_FAILS=$((DK_FAILS+1)); dk_marker "check-failed $label — exit $_DK_RC"; fi
   DK_SCORES+=("$res|$label")
   [ "$quiet" = 1 ] && return 0
   if [ "$res" = PASS ]; then printf '  %s\n' "${C_YES}✓${C_0} $label"

@@ -73,8 +73,14 @@ The Demo-er gate only checked exit 0 plus four `demo:` markers, so it could not 
 ## Honest limits
 
 - A hand-typed `echo demo:complete` still satisfies the `complete` element — but it makes the demo
-  kit-built, so it must then print every fact, each true. A hand-typed `demo:fact` line with the
-  RIGHT value passes: the gate proves the value, not who drew it.
+  kit-built, so it must then print every fact, each true; and every failed or refused `dk_check`
+  prints `demo:check-failed`, which blocks whether or not `dk_finish` ran (S168 cold review 2).
+  Every scan reads the same ANSI-stripped text. A hand-typed `demo:fact` line with the RIGHT value
+  passes: the gate proves the value, not who drew it.
+- The kit is plain bash the demo sources: a determined author can write `DK_SCORES` directly,
+  redefine `dk_check` / `dk_finish` after sourcing, or (with the clean room on) create during the
+  run the files the facts are derived from. The gate proves what the output says, not that the
+  author used the kit honestly.
 - `dk_check "x" true` still passes: a real command is not a meaningful one.
 - A demo can draw hand-typed tiles beside the Vajra-filled ones; the gate checks the facts, not
   every number on screen.

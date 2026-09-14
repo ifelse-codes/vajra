@@ -227,18 +227,31 @@ pub fn demo_report_with(
     let (code, output) = run(&contract.script);
     match code {
         Ok(0) => {
-            let missing = missing_elements(&output, &contract.required_elements);
+            // ONE normalized text for every scan (S168 cold review 2, rec 1): an element credited on
+            // raw bytes but missed by the kit-sign scan on stripped bytes was a dodge.
+            let clean = facts::strip_ansi(&output);
+            let missing = missing_elements(&clean, &contract.required_elements);
             if !missing.is_empty() {
                 return DemoState::MissingElements(missing);
             }
-            if !is_kit_built(contract.sources_kit, &output) {
+            if !is_kit_built(contract.sources_kit, &clean) {
                 return DemoState::LegacyGreen;
             }
             let mut reasons = Vec::new();
-            if !facts::strip_ansi(&output)
+            // A failed or refused kit check blocks even when `demo:complete` was printed by hand
+            // (cold review 2, rec 2: `dk_marker complete` in place of `dk_finish`).
+            let failed: Vec<&str> = clean
                 .lines()
-                .any(|l| l.trim() == "demo:complete")
-            {
+                .filter_map(|l| l.trim_end().strip_prefix("demo:check-failed "))
+                .collect();
+            if !failed.is_empty() {
+                reasons.push(format!(
+                    "printed demo:check-failed for {} — a live check failed or was refused, so \
+                     the demo cannot close whatever else it prints",
+                    failed.join("; ")
+                ));
+            }
+            if !clean.lines().any(|l| l.trim() == "demo:complete") {
                 reasons.push(
                     "never printed `demo:complete` — it did not reach a passing dk_finish (a \
                      section unfilled, a live check failed or refused, or dk_finish never called)"
@@ -921,6 +934,51 @@ dk_deck s1 s2 s3 s4 s5 s6 s7
             v.state
         );
         assert!(v.reasons.iter().any(|r| r.contains("demo:complete")));
+    }
+
+    #[test]
+    fn a_hand_printed_complete_cannot_rescue_a_refused_check() {
+        // Cold review 2, rec 2: the typed-PASS demo with `dk_marker complete` in place of
+        // `dk_finish` exits 0 and prints true facts — the kit's check-failed marker still blocks.
+        let tmp = kit_repo("dk_check \"typed\" PASS", false);
+        let root = tmp.path();
+        let script = root.join("scripts/demo-session-71.sh");
+        let mut text = fs::read_to_string(&script).unwrap();
+        text.push_str("dk_marker complete\n");
+        fs::write(&script, text).unwrap();
+        let v = gate_kit(root);
+        assert!(
+            matches!(v.state, DemoState::KitUnproven(_)),
+            "{:?}",
+            v.state
+        );
+        assert!(
+            v.reasons
+                .iter()
+                .any(|r| r.contains("check-failed") && r.contains("refused")),
+            "{:?}",
+            v.reasons
+        );
+        assert!(!v.reasons.iter().any(|r| r.contains("never printed")));
+    }
+
+    #[test]
+    fn an_escaped_complete_marker_is_not_credited() {
+        // Cold review 2, rec 1: `\033[demo:complete` counted on raw bytes, vanished when stripped.
+        let tmp =
+            repo_with_constraints(&CONSTRAINTS.replace("before_after]", "before_after, complete]"));
+        let root = tmp.path();
+        fs::create_dir_all(root.join("scripts")).unwrap();
+        fs::write(
+            root.join("scripts/demo-session-71.sh"),
+            "printf 'demo:header\\ndemo:cases\\ndemo:summary_table\\ndemo:before_after\\n\\033[demo:complete\\n'\n",
+        )
+        .unwrap();
+        let v = demo_gate(root, 71);
+        assert_eq!(
+            v.state,
+            DemoState::MissingElements(vec!["complete".to_string()])
+        );
     }
 
     #[test]
