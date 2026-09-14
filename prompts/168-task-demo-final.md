@@ -147,8 +147,8 @@ and strangers get it in a released version.
   note: design-advisor got only the AC5 question + DECISION-008/009, the CONSTRAINTS demo block, demo_gate_with and the kit; it ruled on the opt-out hole (recs 1–2).
 - tech-lead rec 2 — obeyed: ce72d1b
   note: dispatched after the brief update (92e4f2e) with a draft demo, pointed at the template, the kit and the draft only; its 14 recs are answered below.
-- tech-lead rec 4 — obeyed: .ai/handoffs/session-167-release-coordinator.md
-  note: step 11 follows those five recs for v0.2.0 — separate bump PR tagged on its merge · no leftover session branches · install-smoke with VAJRA_SMOKE_RELEASE_TAG=v0.2.0 and the tap formula · published-crate `vajra init` kit check · `cargo publish` typed by the founder.
+- tech-lead rec 4 — deferred: .ai/handoffs/session-167-release-coordinator.md
+  reason: the five release recs can only be carried out at step 11, after the merge and on the founder's go; step 11 follows them for v0.2.0 — separate bump PR tagged on its merge · no leftover session branches · install-smoke with VAJRA_SMOKE_RELEASE_TAG=v0.2.0 and the tap formula · published-crate `vajra init` kit check · `cargo publish` typed by the founder. When: this session's step 11 if the founder says go; otherwise the release session named in ROADMAP row S167-release.
 - tech-lead rec 5 — obeyed: f1e950d
   note: the gate change landed in full before any release work; the release (step 11) is the part left for after the merge.
 - design-advisor rec 1 — obeyed: a9d277a
