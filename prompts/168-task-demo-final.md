@@ -94,11 +94,18 @@ and strangers get it in a released version.
   a derived K-of-8, never a self-asserted digit). The gate recomputes them at close and compares.
 - Recursion is designed out: `--demo-facts` reads, never runs; a demo calling it inside its own
   gate re-run cannot trigger another run.
-- **Open question for the design review — decide it on the record (AC5).** How does the gate
-  know a demo is kit-built (a `demo:kit` marker the kit prints? the script sourcing
-  `demo-kit.sh`?), and should `complete`/`fact` join `demo.required_elements` — knowing
-  `CONSTRAINTS.yaml` is deliberately never synced, so existing projects would not get a list
-  change without editing it?
+- **Open question (AC5) — DECIDED in `docs/decisions/DECISION-010-unfakeable-demo.md`** (design-advisor
+  handoff `.ai/handoffs/session-168-design-advisor.md`): a new record, because it overturns
+  DECISION-009 §4 ("The gate does not change"); DECISION-009 carries a pointer.
+  - Kit-built = the script text sources `demo-kit.sh` OR the live output carries any `demo:kit` /
+    `demo:complete` / `demo:fact` line. With no sign, the old four-marker rule applies and the
+    warning names the downgrade.
+  - `complete` joins `demo.required_elements` in this repo and in the `vajra init` scaffold; the
+    built-in default stays four elements; `fact` does not join (detection triggers it). Existing
+    projects get the fact + complete checks on kit-built demos after upgrading + `--sync-fleet`;
+    non-kit demos stay on the old rule until they edit CONSTRAINTS.yaml.
+  - A kit-built demo must print every fact; exact `key=value` match on a closed key list, color
+    stripped; facts derived from the folder the demo ran in, with the gate's own binary via `VAJRA_BIN`.
 
 ## Crew
 - `tech-lead` FIRST (mandatory) — its verdict binds.
