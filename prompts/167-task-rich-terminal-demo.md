@@ -136,16 +136,39 @@ terminal, from the version people actually install.
 10. After the merge and the founder's go: bump the version, tag, publish to crates.io, update the Homebrew tap, update the README, and run `install-smoke.sh` for each channel. covers: 10
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
-- step 5 — done: <sha>
-- step 6 — done: <sha>
-- step 7 — done: <sha>
-- step 8 — done: <sha>
-- step 9 — done: <sha>
-- step 10 — done: <sha>
+- step 1 — done: d6806f5
+- step 2 — done: 374840c
+- step 3 — done: 8c65e79
+- step 4 — done: 1343f5b
+- step 5 — done: 8c6ccea
+- step 6 — done: cb6de81
+- step 7 — done: 117230d
+- step 8 — done: cb6de81
+- step 9 — done: cb6de81
+- step 10 — pending: the release waits for the merge and the founder's go in chat (AC10; order in `.ai/handoffs/session-167-release-coordinator.md`)
+
+
+## Advice (every recorded recommendation, answered)
+- tech-lead rec 1 — obeyed: d6806f5
+- tech-lead rec 2 — obeyed: cb6de81
+- tech-lead rec 3 — obeyed: cb6de81
+- tech-lead rec 4 — obeyed: cb6de81
+- design-advisor rec 1 — obeyed: d6806f5
+- design-advisor rec 2 — obeyed: d6806f5
+- design-advisor rec 3 — obeyed: d6806f5
+- design-advisor rec 4 — obeyed: d6806f5
+- design-advisor rec 5 — obeyed: 8c6ccea
+- design-advisor rec 6 — obeyed: 8c6ccea
+- design-advisor rec 7 — obeyed: d6806f5
+- release-coordinator rec 1 — deferred: .ai/ROADMAP.md
+  reason: the version bump is a separate post-merge release PR by design (row S167-release); it cannot land before the merge.
+- release-coordinator rec 2 — refused: already true — `git branch --list 'session-167-*'` shows only session-167-rich-terminal-demo (checked 2026-09-14), so there is nothing to prune.
+- release-coordinator rec 3 — deferred: .ai/ROADMAP.md
+  reason: pinning the smoke tag and tap formula happens at the release step (row S167-release).
+- release-coordinator rec 4 — deferred: .ai/ROADMAP.md
+  reason: the published-crate `vajra init` check happens at the release step (row S167-release).
+- release-coordinator rec 5 — deferred: .ai/ROADMAP.md
+  reason: `cargo publish` is typed by the founder at the release step (row S167-release); no agent publishes.
 
 ## Guardrails
 - ONE story: the rich terminal demo for every Vajra user. No 8th command, no new crate
