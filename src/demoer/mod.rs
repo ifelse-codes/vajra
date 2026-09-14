@@ -118,7 +118,7 @@ pub struct DemoContract {
 pub fn is_kit_built(sources_kit: bool, output: &str) -> bool {
     sources_kit
         || facts::strip_ansi(output).lines().any(|l| {
-            let t = l.trim();
+            let t = l.trim_end(); // markers print at column 0; an indented mention is prose
             t == "demo:kit" || t == "demo:complete" || t.starts_with("demo:fact ")
         })
 }

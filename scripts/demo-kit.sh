@@ -275,7 +275,7 @@ _dk_fact_markers() { local line; while IFS= read -r line; do [ -n "$line" ] && d
 # dk_vajra_tiles NN [LABEL|VALUE|small …] — four tiles from Vajra's facts (your extra tiles after them)
 dk_vajra_tiles() { local n="${1:-}"; [ $# -gt 0 ] && shift; _dk_facts "$n" || return 0
   dk_metrics "STATIONS|$DKF_stations_passed|of $DKF_stations_total" "REVIEW|$DKF_review" \
-    "ADVICE|$DKF_recs_answered|of $DKF_recs_total answered" "CREW|$DKF_crew_handoffs|handoffs" "$@"
+    "ADVICE|$DKF_recs_answered|of $DKF_recs_total" "CREW|$DKF_crew_handoffs|handoffs" "$@"
   dk_caption "▲ STATIONS · REVIEW · ADVICE · CREW: filled in by Vajra (vajra next --demo-facts $n), never typed — the Demo-er gate re-derives them at close."
   _dk_fact_markers; }
 # dk_vajra_scorecard NN — the same facts as a table, with the station and role names

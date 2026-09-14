@@ -109,11 +109,13 @@ pub fn strip_ansi(s: &str) -> String {
 }
 
 /// Every `demo:fact key=value` line in a demo's live output, color stripped, in output order.
+/// Only a line that STARTS with the marker counts — the kit prints markers at column 0, so an
+/// indented table row or panel that merely mentions `demo:fact` is prose, not a fact.
 /// A line with no `=` yields an empty key, which `check_facts` reports as unknown.
 pub fn fact_lines(output: &str) -> Vec<(String, String)> {
     strip_ansi(output)
         .lines()
-        .filter_map(|l| l.trim().strip_prefix("demo:fact "))
+        .filter_map(|l| l.trim_end().strip_prefix("demo:fact "))
         .map(|rest| match rest.trim().split_once('=') {
             Some((k, v)) => (k.trim().to_string(), v.trim().to_string()),
             None => (String::new(), rest.trim().to_string()),
@@ -303,6 +305,8 @@ mod tests {
                 .collect::<Vec<_>>()
                 .join("\n")
         );
+        // An indented table row that mentions the marker is prose (found live on the S168 demo).
+        let out = format!("{out}  demo:fact     │ A line the demo prints for each fact\n");
         let lines = fact_lines(&out);
         assert_eq!(lines.len(), 10);
         assert_eq!(check_facts(&lines, 168, truth), Vec::<String>::new());
