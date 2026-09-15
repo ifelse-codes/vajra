@@ -1342,3 +1342,27 @@ upgrades everything"
 is now literally true for every pure render Vajra owns — roles + hooks + the constitution's governed body
 under one `vajra init --sync-fleet` — with `CONSTRAINTS.yaml` the only add-only scaffold file left, by
 design.
+
+## S169 addendum — the waiver cannot back a claim (supersedes one clause of the S133 addendum)
+
+**What changed.** The S133 addendum (item 3) says `VAJRA_CLOSEOUT_WAIVER` "still applies at
+`verify-closeout.sh`". That stays true for every check EXCEPT the new `check_claimed_evidence`, which has
+no waiver path:
+- a summary that claims a verdict (`Verdict:` + ACCEPT/REJECT) with no `sessions/session-NN-review.md` or
+  no `.ai/handoffs/session-NN-fidelity-reviewer.md` BLOCKS;
+- a CODE session with no `.ai/handoffs/session-NN-tech-lead.md` BLOCKS — a plain file test, so an unbuilt
+  binary cannot slip past it.
+
+**Why.** S166 closed with `VAJRA_CLOSEOUT_WAIVER=166`, a self-written `**Verdict:** ACCEPT`, no review and
+no tech-lead. A waiver excuses evidence a session never claimed; it cannot make a false claim true
+(DECISION-002: no self-certification). The tech-lead is mandatory for CODE sessions since S135; the waiver
+is documented for GT / NO-CODE / DOGFOOD sessions, which `is_code_session` already exempts.
+
+**Post-merge steps (S169 AC5).** A numbered `## Plan` step must land before the session's merge. Work
+that can only happen after it (a release: tag, `cargo publish`, brew tap) goes in its own ROADMAP row,
+never a plan step — so neither the closeout nor the next `--advance` needs `VAJRA_SKIP_CODER_GATE`.
+`check_execution_shas` now blocks at close any real plan step without a well-formed, existing `done:`
+sha (a `pending:` line included). Rejected: a `post-merge: <row>` marker (two parsers, and the row can be
+added in the same commit that cites it) and an `--advance` "landed on main" check (git sees the tag, not
+the publish). **Limit:** nothing proves the ROADMAP row is ever carried out — a forgotten release is as
+invisible as any unplanned work.
