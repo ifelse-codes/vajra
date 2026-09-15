@@ -1,14 +1,14 @@
 # Session Boot
 
 ## Next Session
-- **S170 — mandatory NO-CODE Ground Truth (S166–S169)** — `prompts/170-task-ground-truth.md` (**Status: DRAFT** — needs the founder's approval token before `vajra next --advance`). 12 required audits + 7 special inputs. Candidate after it: S171 carry-forwards (ROADMAP row S171).
+- **S171 — Interactive, built from the founder's own testing** — `prompts/171-task-interactive.md` (**Status: DRAFT** — the founder brings what he found testing Vajra in his other project; we write/edit the prompt together in chat, then work in short check-in loops).
   Start in a FRESH chat.
 
 ## Current Session
-- **Number:** 169 — CLOSED. CODE: a session cannot close on made-up evidence. Cold review: `sessions/session-169-review.md` (pass 1 REJECT → fixed → pass 2 ACCEPT 8/9).
-  `done:` = whole 7–40 hex sha that exists · every plan step needs one (`pending:` blocks) · `claimed-evidence-real` has no waiver path · post-merge work = its own ROADMAP row (DECISION-007 S169 addendum) · scaffold carries it · verify 39/0 · demo 13/13.
+- **Number:** 170 — CLOSED. NO-CODE Ground Truth (S166–S169): `sessions/session-170-ground-truth.md`. 🔴 off course — 66% of changed lines were paperwork, 5 gate overrides, 0 outside users, crates.io still 0.1.0.
+  Founder decision: he tests Vajra himself; sessions from S171 are interactive. Options A (finish 0.2.0 release) and B (light mode) stay open for his call.
 
 ## Prior Session
-- **Number:** 168 — CLOSED. CODE: a demo that cannot be faked (DECISION-010). Release 0.2.0: tag + GitHub release out, crates.io still 0.1.0.
+- **Number:** 169 — CLOSED. CODE: a session cannot close on made-up evidence. Review: `sessions/session-169-review.md` (pass 2 ACCEPT).
 
 **New chat.**
