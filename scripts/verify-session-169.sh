@@ -58,6 +58,17 @@ echo "review" > "$FX/sessions/session-53-review.md"
 echo "fr" > "$FX/.ai/handoffs/session-53-fidelity-reviewer.md"; echo "crew" > "$FX/.ai/handoffs/session-53-tech-lead.md"
 prompt 54 '**CODE**' "step 1 — done: $SHORT"
 prompt 55 '**NO-CODE** ground truth' "step 1 — done: $SHORT"
+# S169 cold review recs 1+2: a stranger's first sessions are zero-padded (session-01), and the verdict
+# claim must not be dodged by another separator, lowercase, or a verdict on the next line.
+prompt 01 '**CODE**' "step 1 — done: $SHORT"
+echo "crew" > "$FX/.ai/handoffs/session-01-tech-lead.md"
+prompt 02 '**CODE**' "step 1 — done: $SHORT"
+echo "crew" > "$FX/.ai/handoffs/session-02-tech-lead.md"
+printf 'Verdict — accept, all shipped\n' > "$FX/sessions/session-02-summary.md"
+prompt 03 '**CODE**' "step 1 — done: $SHORT"
+echo "crew" > "$FX/.ai/handoffs/session-03-tech-lead.md"
+printf '## Verdict\nREJECT\n' > "$FX/sessions/session-03-summary.md"
+prompt 04 '**CODE**' "step 1 — done: $SHORT"
 
 run_cases() { # gate tag
   local g="$1" t="$2"
@@ -84,6 +95,16 @@ run_cases() { # gate tag
   VAJRA_CLOSEOUT_WAIVER=54 run "$g" --check-claimed 54
   expect "[$t] AC4a: CODE session, no tech-lead handoff, waiver set → BLOCK" 1 "no .ai/handoffs/session-54-tech-lead.md"
   run "$g" --check-claimed 55; expect "[$t] AC4b control: a NO-CODE / GT session needs no tech-lead file" 0 "N/A: session 55 is not a CODE session"
+  # Zero-padding (rec 1) — session 1 lives at session-01; the padded file passes, its absence blocks.
+  VAJRA_CLOSEOUT_WAIVER=1 run "$g" --check-claimed 1
+  expect "[$t] pad a: CODE session 1 with .ai/handoffs/session-01-tech-lead.md passes" 0 "OK: CODE session 1 has .ai/handoffs/session-01-tech-lead.md"
+  VAJRA_CLOSEOUT_WAIVER=4 run "$g" --check-claimed 4
+  expect "[$t] pad b: CODE session 4 with no tech-lead file blocks, naming session-04" 1 "no .ai/handoffs/session-04-tech-lead.md"
+  # Claim dodges (rec 2).
+  VAJRA_CLOSEOUT_WAIVER=2 run "$g" --check-claimed 2
+  expect "[$t] dodge a: 'Verdict — accept' (em dash, lowercase) is a claim → BLOCK" 1 "sessions/session-02-review.md is absent"
+  VAJRA_CLOSEOUT_WAIVER=3 run "$g" --check-claimed 3
+  expect "[$t] dodge b: a verdict heading with REJECT on the next line is a claim → BLOCK" 1 ".ai/handoffs/session-03-fidelity-reviewer.md is absent"
   # Wiring — the check runs in the FULL close, and it is this check (not the waived review check) that refuses.
   echo 51 > "$FX/.ai/SESSION"
   VAJRA_CLOSEOUT_WAIVER=51 run "$g"

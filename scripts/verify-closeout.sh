@@ -264,13 +264,13 @@ check_execution_shas() {
   fi
 
   for bl in ${bad_lines[@]+"${bad_lines[@]}"}; do echo "BAD-SHA:$bl" >> "$LOG"; done
-  echo "BLOCK: $count step(s) in $F have a 'done:' without a valid 7-char hex SHA (S166)" >> "$LOG"
+  echo "BLOCK: $count problem(s) in $F's ## Execution — prose, a malformed or made-up sha, or a step with no done: (S169)" >> "$LOG"
 
   if waiver_ok; then
     echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
     ok "$NAME"
   else
-    echo "FAIL: fill every 'done:' in ## Execution with the landing commit sha (7+ lowercase hex chars)," >> "$LOG"
+    echo "FAIL: record every plan step as 'step N — done: <sha>' — a whole 7–40 char lowercase hex sha of a commit that exists," >> "$LOG"
     echo "      or set VAJRA_CLOSEOUT_WAIVER=$N (GT / NO-CODE sessions only)." >> "$LOG"
     bad "$NAME"
   fi
@@ -719,15 +719,24 @@ check_claimed_evidence() {
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
   local blocks=0
-  local S="sessions/session-${N}-summary.md"
+  # Vajra writes session files zero-padded (`session-{:02}`: src/fleet, src/analyst, src/stations) —
+  # session 1 is session-01 (S169 cold review rec 1). The review file is also accepted unpadded,
+  # because check_fidelity_review above still reads it that way.
+  local pn; pn="$(printf '%02d' "$N")"
+  local S="sessions/session-${pn}-summary.md"
+  [ -f "$S" ] || S="sessions/session-${N}-summary.md"
   local claim=""
   if [ -f "$S" ]; then
-    claim="$(grep -iE 'verdict[*_[:space:]]*:' "$S" | grep -E 'ACCEPT|REJECT' | head -1)" || true
+    # Any `verdict` line, any separator and any case, whose own line or the next names accept/reject
+    # (S169 cold review rec 2: `Verdict — accept` and a verdict on the next line dodged `verdict:`).
+    claim="$(grep -iE -A1 'verdict' "$S" | grep -iE 'accept|reject' | head -1)" || true
   fi
   if [ -n "$claim" ]; then
     echo "summary claims a verdict: $claim" >> "$LOG"
+    local R="sessions/session-${pn}-review.md"
+    [ ! -s "$R" ] && [ -s "sessions/session-${N}-review.md" ] && R="sessions/session-${N}-review.md"
     local f
-    for f in "sessions/session-${N}-review.md" ".ai/handoffs/session-${N}-fidelity-reviewer.md"; do
+    for f in "$R" ".ai/handoffs/session-${pn}-fidelity-reviewer.md"; do
       if [ -s "$f" ]; then echo "OK: $f present" >> "$LOG"
       else echo "BLOCK: $S claims a verdict but $f is absent — a claimed review with no review behind it." >> "$LOG"; blocks=$((blocks+1)); fi
     done
@@ -735,10 +744,10 @@ check_claimed_evidence() {
     echo "OK: $S claims no verdict (nothing to back)." >> "$LOG"
   fi
   if is_code_session; then
-    if [ -s ".ai/handoffs/session-${N}-tech-lead.md" ]; then
-      echo "OK: CODE session $N has .ai/handoffs/session-${N}-tech-lead.md" >> "$LOG"
+    if [ -s ".ai/handoffs/session-${pn}-tech-lead.md" ]; then
+      echo "OK: CODE session $N has .ai/handoffs/session-${pn}-tech-lead.md" >> "$LOG"
     else
-      echo "BLOCK: CODE session $N has no .ai/handoffs/session-${N}-tech-lead.md — no recorded crew decision." >> "$LOG"; blocks=$((blocks+1))
+      echo "BLOCK: CODE session $N has no .ai/handoffs/session-${pn}-tech-lead.md — no recorded crew decision." >> "$LOG"; blocks=$((blocks+1))
     fi
   else
     echo "N/A: session $N is not a CODE session — tech-lead file not required here." >> "$LOG"
