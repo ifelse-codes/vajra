@@ -13,7 +13,9 @@ cd "$ROOT" || exit 1
 SESSION="169"
 # ========================
 OLD_SHA="8bdd69a"                                   # main before S169: the gate as S168 left it
-BIN="${VAJRA_BIN:-$ROOT/target/release/vajra}"
+# The kit's Vajra-filled facts call $VAJRA_BIN; the installed `vajra` may predate --demo-facts (KNOWLEDGE).
+export VAJRA_BIN="${VAJRA_BIN:-$ROOT/target/release/vajra}"
+BIN="$VAJRA_BIN"
 NEW_GATE="$ROOT/scripts/verify-closeout.sh"
 OLD_GATE="$DK_TMP/old-gate.sh"
 FX="$DK_TMP/fx"
