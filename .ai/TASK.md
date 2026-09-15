@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S168 complete · S169 prompt DRAFT (awaiting founder approval)
+## Between Sessions — S169 complete · S170 prompt DRAFT (awaiting founder approval)
 
-**Next: Session 169 — CODE: tighten the close gate S166 loosened.** Brief: `prompts/169-task-close-gate-tightening.md` — **Status: DRAFT** (founder-named direction 2026-09-14; needs the approval token before `vajra next --advance`). **Before it:** release vajractl 0.2.0 (S167 + S168) after the S168 merge, on the founder's go (ROADMAP `S168-release`). **S170** = mandatory NO-CODE GT. Start in a FRESH chat.
+**Next: Session 170 — NO-CODE mandatory Ground Truth over S166–S169.** Brief: `prompts/170-task-ground-truth.md` — **Status: DRAFT** (needs the approval token before `vajra next --advance`). Candidate after it: S171 carry-forwards (ROADMAP row S171). Start in a FRESH chat.
+
+## Session 169 — CODE: a session cannot close on made-up evidence — COMPLETE
+
+- Brief: `prompts/169-task-close-gate-tightening.md`. Summary: `sessions/session-169-summary.md`. Review: `sessions/session-169-review.md` (pass 2 ACCEPT). Decision: DECISION-007 S169 addendum.
+- `done:` shas must exist · every plan step lands before merge · `claimed-evidence-real` (no waiver) · scaffold carries it · verify 39/0 · demo 13/13 · 509 lib tests. Advance into S169 used `VAJRA_SKIP_CODER_GATE=1` (S168's pending release), disclosed.
 
 ## Session 168 — CODE: a demo that cannot be faked — COMPLETE
 
