@@ -42,8 +42,8 @@
   note: tech-lead handoff landed in 14e6cc8; the design-advisor handoff + the AC5 decision (DECISION-007 S169 addendum) in 07c2f2d.
 - step 2 — done: 14e6cc8
 - step 3 — done: 14e6cc8
-- step 4 — done: 0b05694
-  note: scaffold carry 07c2f2d · verify-session-169.sh b9a75ed · demo aab3f30 + its VAJRA_BIN export 0b05694 (the close gate re-runs the demo bare). The cold review, summary and closeout land in the closeout commit; sessions/ is outside the attested diff.
+- step 4 — done: 59e1686
+  note: scaffold carry 07c2f2d · verify-session-169.sh b9a75ed · demo aab3f30 + its VAJRA_BIN export 0b05694 · cold review pass 1 (REJECT, 7ede30b) fixed in 59e1686. The review of record, summary and closeout land in the closeout commit; sessions/ is outside the attested diff.
 
 ## Advice (every recorded recommendation, answered)
 - tech-lead rec 1 — obeyed: 14e6cc8
@@ -62,6 +62,18 @@
 - design-advisor rec 5 — obeyed: 07c2f2d
 - design-advisor rec 6 — obeyed: b9a75ed
   note: verify-session-169.sh runs every case on both gates, so a check carried into one copy but not the other goes red.
+- fidelity-reviewer rec 1 — obeyed: 59e1686
+  note: both gates resolve the summary and handoffs zero-padded (`session-01`); the review file is read unpadded only when that file exists (check_fidelity_review still reads it that way). Fixtures `pad a` (session 01 passes) and `pad b` (session 04 blocks, named) on both gates.
+- fidelity-reviewer rec 2 — obeyed: 59e1686
+  note: a claim is any `verdict` line whose own line or the next names accept/reject, any case; fixtures `dodge a` (`Verdict — accept`) and `dodge b` (heading, REJECT on the next line) block on both gates.
+- fidelity-reviewer rec 3 — deferred: .ai/ROADMAP.md
+  reason: rec 3 asks that a `done:` sha be reachable from the session branch and not from the merge-base. That rule must still hold after the branch merges and is pruned (the Releaser's NoBranch blind spot), which is a design question of its own, not a fix to this gate. When: S171 (ROADMAP row S171).
+- fidelity-reviewer rec 4 — obeyed: 59e1686
+  note: the stale S166 BLOCK/FAIL lines are replaced. A byte-identity check was not added: the two copies differ on purpose (the scaffold has no cargo-fmt, demo-marker or release checks); verify runs every S169 case on both instead.
+- fidelity-reviewer rec 5 — deferred: sessions/session-169-summary.md
+  reason: the summary with exactly 3 ranked candidates is written after the review of record, in this session's closeout commit (sessions/ is outside the attested diff). When: S169 closeout.
+- fidelity-reviewer rec 6 — obeyed: 7ede30b
+  note: DECISION-007's S169 addendum now lists what stays open — waivable NO-DONE and made-up shas, `1)`/indented plans invisible to the parser, and existence-not-ownership (carried to S171).
 
 ## Guardrails
 - Slice to ONE story. Own the `.ai/` spine — no second store, no unapproved 8th command.
