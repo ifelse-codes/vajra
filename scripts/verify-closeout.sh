@@ -185,6 +185,8 @@ check_execution_shas() {
   # step N — done: <sha> as work lands. Legacy/NO-CODE prompts with no real plan steps only WARN.
   local in_plan=0 has_plan_steps=0 in_exec=0 has_exec=0
   local bad_lines=() count=0
+  # S169 (design-advisor rec 2): space-padded step-number sets (strings, not arrays — bash 3.2).
+  local plan_nums=" " done_nums=" "
   while IFS= read -r line; do
     local lline; lline="$(echo "$line" | tr '[:upper:]' '[:lower:]')"
     if [[ "$lline" =~ ^#{1,6}[[:space:]] ]]; then
@@ -203,15 +205,26 @@ check_execution_shas() {
       if [[ "$line" =~ ^[0-9]+\.[[:space:]] ]]; then
         local step_text="${line#*.}"; step_text="${step_text# }"
         if [[ "$step_text" != '<'* ]]; then
-          has_plan_steps=1
+          has_plan_steps=1; plan_nums+="${line%%.*} "
         fi
       fi
     fi
-    if [[ "$in_exec" -eq 1 ]]; then
-      # Block any 'done:' not followed by a 7-char hex git SHA (S166).
-      # Catches angle-bracket placeholders (<sha>), parenthetical prose ((text...)),
-      # and bare prose — not just the '<' form the original check caught.
-      if echo "$line" | grep -qE 'done:' && ! echo "$line" | grep -qE 'done:[[:space:]]+[0-9a-f]{7}'; then
+    if [[ "$in_exec" -eq 1 ]] && [[ "$line" == *done:* ]]; then
+      # S169 (S166 review recs 1+2): a `done:` must name a WHOLE 7–40 char lowercase hex sha —
+      # word boundary on both sides, so `done: defacedprose` (7 hex letters glued to prose), a
+      # 6-char and a 41-char run all BLOCK — and that sha must EXIST as a commit. `done: defaced
+      # prose` is well-formed hex but names no commit, so the existence check names it. A check
+      # that cannot run `git` (no repo) cannot evaluate, so it BLOCKs too (S69).
+      local sha_re='done:[[:space:]]+([0-9a-f]{7,40})([^0-9a-zA-Z_]|$)'
+      if [[ "$line" =~ $sha_re ]]; then
+        local sha="${BASH_REMATCH[1]}"
+        if ! git cat-file -e "${sha}^{commit}" 2>/dev/null; then
+          bad_lines+=("  NO-SUCH-COMMIT ${sha}: $line"); count=$((count+1))
+        else
+          local step_re='step[[:space:]]+([0-9]+)'
+          if [[ "$line" =~ $step_re ]]; then done_nums+="${BASH_REMATCH[1]} "; fi
+        fi
+      else
         bad_lines+=("  $line"); count=$((count+1))
       fi
     fi
@@ -233,18 +246,31 @@ check_execution_shas() {
     fi
   fi
 
+  # S169 AC5 (design-advisor rec 2): every real plan step must land before the merge, so each needs
+  # a well-formed, existing `done:` sha. A `pending:` line (S168 step 11) records none and BLOCKS
+  # here at close, not only at the next `--advance`. Post-merge work belongs in its own ROADMAP row.
+  if [[ "$has_plan_steps" -eq 1 ]]; then
+    local pn
+    for pn in $plan_nums; do
+      if [[ "$done_nums" != *" $pn "* ]]; then
+        bad_lines+=("  NO-DONE step ${pn}: no existing 'done: <sha>' (a pending/post-merge step belongs in its own ROADMAP row)")
+        count=$((count+1))
+      fi
+    done
+  fi
+
   if [[ "$count" -eq 0 ]]; then
-    echo "OK: every 'done:' in ## Execution carries a valid 7-char hex SHA" >> "$LOG"; ok "$NAME"; return
+    echo "OK: every real plan step has a 'done:' naming a whole 7–40 hex sha that exists as a commit" >> "$LOG"; ok "$NAME"; return
   fi
 
   for bl in ${bad_lines[@]+"${bad_lines[@]}"}; do echo "BAD-SHA:$bl" >> "$LOG"; done
-  echo "BLOCK: $count step(s) in $F have a 'done:' without a valid 7-char hex SHA (S166)" >> "$LOG"
+  echo "BLOCK: $count problem(s) in $F's ## Execution — prose, a malformed or made-up sha, or a step with no done: (S169)" >> "$LOG"
 
   if waiver_ok; then
     echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
     ok "$NAME"
   else
-    echo "FAIL: fill every 'done:' in ## Execution with the landing commit sha (7+ lowercase hex chars)," >> "$LOG"
+    echo "FAIL: record every plan step as 'step N — done: <sha>' — a whole 7–40 char lowercase hex sha of a commit that exists," >> "$LOG"
     echo "      or set VAJRA_CLOSEOUT_WAIVER=$N (GT / NO-CODE sessions only)." >> "$LOG"
     bad "$NAME"
   fi
@@ -676,6 +702,75 @@ check_required_crew() {
   fi
 }
 
+# --- Claimed-evidence gate (S169 — the S166 self-certified close) ------------
+# S166 closed with a summary line `**Verdict:** ACCEPT (fidelity-reviewer ...)` for a review that
+# never ran, and with no tech-lead handoff. Both checks above would have caught it — but
+# VAJRA_CLOSEOUT_WAIVER=166 was set, and the waiver passes every check. A waiver can excuse
+# evidence a session never CLAIMED to have; it cannot excuse evidence the record says exists.
+# So this check has NO waiver path:
+#   (a) the summary claims a verdict (a `Verdict:` line with ACCEPT/REJECT) → the review file AND
+#       the fidelity-reviewer handoff must both exist, non-empty (S166 review rec 4);
+#   (b) a CODE session (is_code_session) → .ai/handoffs/session-N-tech-lead.md must exist, checked
+#       in plain bash so it binds even when the binary is not built (S166 tech-lead rec 1).
+# Limit: presence only — whether the review is real is check_fidelity_review's and the attestation's
+# job; this check refuses a claim with nothing behind it.
+check_claimed_evidence() {
+  local NAME="claimed-evidence-real"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+  local blocks=0
+  # Vajra writes session files zero-padded (`session-{:02}`: src/fleet, src/analyst, src/stations) —
+  # session 1 is session-01 (S169 cold review rec 1). The review file is also accepted unpadded,
+  # because check_fidelity_review above still reads it that way.
+  local pn; pn="$(printf '%02d' "$N")"
+  local S="sessions/session-${pn}-summary.md"
+  [ -f "$S" ] || S="sessions/session-${N}-summary.md"
+  local claim=""
+  if [ -f "$S" ]; then
+    # Any `verdict` line, any separator and any case, whose own line or the next names accept/reject
+    # (S169 cold review rec 2: `Verdict — accept` and a verdict on the next line dodged `verdict:`).
+    claim="$(grep -iE -A1 'verdict' "$S" | grep -iE 'accept|reject' | head -1)" || true
+  fi
+  if [ -n "$claim" ]; then
+    echo "summary claims a verdict: $claim" >> "$LOG"
+    local R="sessions/session-${pn}-review.md"
+    [ ! -s "$R" ] && [ -s "sessions/session-${N}-review.md" ] && R="sessions/session-${N}-review.md"
+    local f
+    for f in "$R" ".ai/handoffs/session-${pn}-fidelity-reviewer.md"; do
+      if [ -s "$f" ]; then echo "OK: $f present" >> "$LOG"
+      else echo "BLOCK: $S claims a verdict but $f is absent — a claimed review with no review behind it." >> "$LOG"; blocks=$((blocks+1)); fi
+    done
+  else
+    echo "OK: $S claims no verdict (nothing to back)." >> "$LOG"
+  fi
+  if is_code_session; then
+    if [ -s ".ai/handoffs/session-${pn}-tech-lead.md" ]; then
+      echo "OK: CODE session $N has .ai/handoffs/session-${pn}-tech-lead.md" >> "$LOG"
+    else
+      echo "BLOCK: CODE session $N has no .ai/handoffs/session-${pn}-tech-lead.md — no recorded crew decision." >> "$LOG"; blocks=$((blocks+1))
+    fi
+  else
+    echo "N/A: session $N is not a CODE session — tech-lead file not required here." >> "$LOG"
+  fi
+  if [ "$blocks" -eq 0 ]; then ok "$NAME"; return; fi
+  if [ -n "${VAJRA_CLOSEOUT_WAIVER:-}" ]; then
+    echo "NOT WAIVABLE: VAJRA_CLOSEOUT_WAIVER=${VAJRA_CLOSEOUT_WAIVER} is set, but a waiver cannot back a claimed review or a CODE session's crew decision (S169)." >> "$LOG"
+  fi
+  echo "FAIL: dispatch the missing role(s) and record the handoff, or remove the unbacked verdict claim from the summary." >> "$LOG"
+  bad "$NAME"
+}
+
+# Focused entry point for fixtures: run ONLY the claimed-evidence check (S169). `--check-claimed [N]`.
+if [ "${1:-}" = "--check-claimed" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
+  check_claimed_evidence
+  echo ""
+  echo "=== Claimed-evidence check (N=${N:-?}) ==="
+  for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
+  cat "$ARTIFACTS/claimed-evidence-real.log" 2>/dev/null || true
+  if [ "$FAIL" -eq 0 ]; then echo "CLAIMED: PASS"; exit 0; else echo "CLAIMED: FAIL"; exit 1; fi
+fi
+
 # --- Releaser close-gate (S164 — the S72 station finally binds at close) -----
 # The Releaser station (src/releaser/mod.rs, S72) checks a session's ship hygiene — whether
 # the prior session's branch was merged, local main is synced, and merged locals are pruned.
@@ -1035,6 +1130,7 @@ check_fidelity_review
 check_obeyed_judgments
 check_design_advisor_mandate
 check_required_crew
+check_claimed_evidence
 check_release_coordinator
 check_review_attestation
 

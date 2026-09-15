@@ -170,38 +170,77 @@ check_execution_shas() {
   local F="${prompts[0]}"
   echo "prompt: $F" >> "$LOG"
 
-  # Walk the prompt; collect lines in ## Execution that still say 'done: <sha>'.
-  local in_exec=0 has_exec=0
+  # S169 (carried from Vajra's own gate): walk the real numbered `## Plan` steps and every `done:` in
+  # `## Execution`. A `done:` must name a WHOLE 7–40 char lowercase hex sha (word boundary — so
+  # `done: defacedprose`, 6 and 41 chars BLOCK) that EXISTS as a commit (`done: defaced prose` names
+  # none). Every real plan step needs one: a `pending:` line records none — post-merge work (a
+  # release) belongs in its own ROADMAP row. Real plan steps with no `## Execution` BLOCK (S154).
+  # A check that cannot run `git` cannot evaluate, so it BLOCKs too.
+  local in_plan=0 has_plan_steps=0 in_exec=0 has_exec=0
   local bad_lines=() count=0
+  local plan_nums=" " done_nums=" "   # space-padded sets (strings, not arrays — bash 3.2)
   while IFS= read -r line; do
     local lline; lline="$(echo "$line" | tr '[:upper:]' '[:lower:]')"
     if [[ "$lline" =~ ^#{1,6}[[:space:]] ]]; then
       local first_word; first_word="$(echo "$lline" | sed 's/^#* *//' | awk '{print $1}')"
-      if [ "$first_word" = "execution" ]; then
-        in_exec=1; has_exec=1
+      if [ "$first_word" = "plan" ]; then
+        in_plan=1; in_exec=0
+      elif [ "$first_word" = "execution" ]; then
+        in_exec=1; has_exec=1; in_plan=0
       else
-        in_exec=0
+        in_plan=0; in_exec=0
       fi
       continue
     fi
-    if [[ "$in_exec" -eq 1 ]]; then
-      if echo "$line" | grep -qF 'done: <sha>'; then
+    if [[ "$in_plan" -eq 1 ]] && [[ "$line" =~ ^[0-9]+\.[[:space:]] ]]; then
+      local step_text="${line#*.}"; step_text="${step_text# }"
+      if [[ "$step_text" != '<'* ]]; then has_plan_steps=1; plan_nums+="${line%%.*} "; fi
+    fi
+    if [[ "$in_exec" -eq 1 ]] && [[ "$line" == *done:* ]]; then
+      local sha_re='done:[[:space:]]+([0-9a-f]{7,40})([^0-9a-zA-Z_]|$)'
+      if [[ "$line" =~ $sha_re ]]; then
+        local sha="${BASH_REMATCH[1]}"
+        if ! git cat-file -e "${sha}^{commit}" 2>/dev/null; then
+          bad_lines+=("  NO-SUCH-COMMIT ${sha}: $line"); count=$((count+1))
+        else
+          local step_re='step[[:space:]]+([0-9]+)'
+          if [[ "$line" =~ $step_re ]]; then done_nums+="${BASH_REMATCH[1]} "; fi
+        fi
+      else
         bad_lines+=("  $line"); count=$((count+1))
       fi
     fi
   done < "$F"
 
   if [[ "$has_exec" -eq 0 ]]; then
-    echo "WARN: no ## Execution section (pre-S68 prompt — backward-compat WARN only, not a block)" >> "$LOG"
+    if [[ "$has_plan_steps" -eq 1 ]]; then
+      echo "BLOCK: $F has real numbered plan steps but no ## Execution section" >> "$LOG"
+      if waiver_ok; then
+        echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
+        ok "$NAME"; return
+      fi
+      bad "$NAME"; return
+    fi
+    echo "WARN: no ## Execution section (no real plan steps — backward-compat WARN only)" >> "$LOG"
     ok "$NAME"; return
   fi
 
-  if [[ "$count" -eq 0 ]]; then
-    echo "OK: no 'done: <sha>' placeholders in ## Execution" >> "$LOG"; ok "$NAME"; return
+  if [[ "$has_plan_steps" -eq 1 ]]; then
+    local pn
+    for pn in $plan_nums; do
+      if [[ "$done_nums" != *" $pn "* ]]; then
+        bad_lines+=("  NO-DONE step ${pn}: no existing 'done: <sha>' (a pending/post-merge step belongs in its own ROADMAP row)")
+        count=$((count+1))
+      fi
+    done
   fi
 
-  for bl in ${bad_lines[@]+"${bad_lines[@]}"}; do echo "PLACEHOLDER:$bl" >> "$LOG"; done
-  echo "BLOCK: $count step(s) in $F still have 'done: <sha>' placeholder(s)" >> "$LOG"
+  if [[ "$count" -eq 0 ]]; then
+    echo "OK: every real plan step has a 'done:' naming a whole 7–40 hex sha that exists as a commit" >> "$LOG"; ok "$NAME"; return
+  fi
+
+  for bl in ${bad_lines[@]+"${bad_lines[@]}"}; do echo "BAD-SHA:$bl" >> "$LOG"; done
+  echo "BLOCK: $count problem(s) in $F's ## Execution — prose, a malformed or made-up sha, or a step with no done: (S169)" >> "$LOG"
 
   if waiver_ok; then
     echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
@@ -212,6 +251,91 @@ check_execution_shas() {
     bad "$NAME"
   fi
 }
+
+# Returns 0 (true) if the current session is a CODE session (carried from Vajra's own gate, S169).
+# Reads the ## Type section of the prompt file; defaults to CODE when absent.
+# GT (N % 5 == 0) is always non-CODE; a prompt whose ## Type has no **CODE** marker is non-CODE.
+is_code_session() {
+  [ -n "$N" ] || return 1
+  [ "$((N % 5))" -ne 0 ] || return 1
+  local padded; padded="$(printf '%02d' "$N")"
+  shopt -s nullglob
+  local prompts=(prompts/${padded}-task-*.md)
+  [ "${#prompts[@]}" -gt 0 ] || return 0  # no prompt file → assume CODE
+  local F="${prompts[0]}" in_type=0
+  while IFS= read -r line; do
+    if echo "$line" | grep -qiE '^#{1,6}[[:space:]]+type[[:space:]]*$'; then
+      in_type=1; continue
+    fi
+    if [ "$in_type" -eq 1 ]; then
+      echo "$line" | grep -qE '^#' && break
+      if echo "$line" | grep -qF '**CODE**'; then return 0; fi
+    fi
+  done < "$F"
+  return 1
+}
+
+# --- Claimed-evidence gate (S169 — carried from Vajra's own gate) -----------
+# A waiver can excuse evidence a session never CLAIMED; it cannot back evidence the record says
+# exists. So this check has NO waiver path:
+#   (a) the summary claims a verdict (a `Verdict:` line with ACCEPT/REJECT) → the review file AND
+#       the fidelity-reviewer handoff must both exist, non-empty;
+#   (b) a CODE session → .ai/handoffs/session-N-tech-lead.md must exist (plain bash, no binary).
+# Limit: presence only — whether the review is real is check_fidelity_review's job.
+check_claimed_evidence() {
+  local NAME="claimed-evidence-real"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+  local blocks=0
+  # Vajra writes session files zero-padded (`session-{:02}`) — session 1 is session-01. The review
+  # file is also accepted unpadded, because check_fidelity_review still reads it that way.
+  local pn; pn="$(printf '%02d' "$N")"
+  local S="sessions/session-${pn}-summary.md"
+  [ -f "$S" ] || S="sessions/session-${N}-summary.md"
+  local claim=""
+  if [ -f "$S" ]; then
+    # Any `verdict` line, any separator and any case, whose own line or the next names accept/reject.
+    claim="$(grep -iE -A1 'verdict' "$S" | grep -iE 'accept|reject' | head -1)" || true
+  fi
+  if [ -n "$claim" ]; then
+    echo "summary claims a verdict: $claim" >> "$LOG"
+    local R="sessions/session-${pn}-review.md"
+    [ ! -s "$R" ] && [ -s "sessions/session-${N}-review.md" ] && R="sessions/session-${N}-review.md"
+    local f
+    for f in "$R" ".ai/handoffs/session-${pn}-fidelity-reviewer.md"; do
+      if [ -s "$f" ]; then echo "OK: $f present" >> "$LOG"
+      else echo "BLOCK: $S claims a verdict but $f is absent — a claimed review with no review behind it." >> "$LOG"; blocks=$((blocks+1)); fi
+    done
+  else
+    echo "OK: $S claims no verdict (nothing to back)." >> "$LOG"
+  fi
+  if is_code_session; then
+    if [ -s ".ai/handoffs/session-${pn}-tech-lead.md" ]; then
+      echo "OK: CODE session $N has .ai/handoffs/session-${pn}-tech-lead.md" >> "$LOG"
+    else
+      echo "BLOCK: CODE session $N has no .ai/handoffs/session-${pn}-tech-lead.md — no recorded crew decision." >> "$LOG"; blocks=$((blocks+1))
+    fi
+  else
+    echo "N/A: session $N is not a CODE session — tech-lead file not required here." >> "$LOG"
+  fi
+  if [ "$blocks" -eq 0 ]; then ok "$NAME"; return; fi
+  if [ -n "${VAJRA_CLOSEOUT_WAIVER:-}" ]; then
+    echo "NOT WAIVABLE: VAJRA_CLOSEOUT_WAIVER=${VAJRA_CLOSEOUT_WAIVER} is set, but a waiver cannot back a claimed review or a CODE session's crew decision (S169)." >> "$LOG"
+  fi
+  echo "FAIL: dispatch the missing role(s) and record the handoff, or remove the unbacked verdict claim from the summary." >> "$LOG"
+  bad "$NAME"
+}
+
+# Focused entry point: run ONLY the claimed-evidence check (S169). `--check-claimed [N]`.
+if [ "${1:-}" = "--check-claimed" ]; then
+  if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file; fi
+  check_claimed_evidence
+  echo ""
+  echo "=== Claimed-evidence check (N=${N:-?}) ==="
+  for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
+  cat "$ARTIFACTS/claimed-evidence-real.log" 2>/dev/null || true
+  if [ "$FAIL" -eq 0 ]; then echo "CLAIMED: PASS"; exit 0; else echo "CLAIMED: FAIL"; exit 1; fi
+fi
 
 # --- Verify/Demo script-presence guard (S98 follow-up — the step-5 gap) ------
 # Catches the S98 miss: a CODE session that closes WITHOUT its own
@@ -809,6 +933,7 @@ check_fidelity_review
 check_obeyed_judgments
 check_design_advisor_mandate
 check_required_crew
+check_claimed_evidence
 check_review_attestation
 
 ( cd ".ai/verify/closeout" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
