@@ -296,3 +296,6 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **`vajra next --advance` prompts `[y/N]` on stdin** — pipe `echo y |` when running it non-interactively; without it the advance aborts after running every gate.
 - **Commits need `VAJRA_ALLOW_COMMIT=NN` in the environment** (the L2 pre-commit hook); a chat approval token alone does not satisfy the hook.
 - **`sessions/session-NN-artifacts/` is gitignored** — local evidence only (chitra dry-run captures, review diffs).
+- **`.ai/handoffs/` is INSIDE the review-attestation diff** (`canonical_inputs_sha` excludes only `sessions/`, `prompts/` and the closeout-synced `.ai/` files). Commit every handoff — the fidelity-reviewer's included — BEFORE running `verify-closeout.sh --inputs-sha NN`, or the attestation goes stale (S169).
+- **`VAJRA_CLOSEOUT_WAIVER` cannot pass `claimed-evidence-real`** (S169): a summary `Verdict:` line needs the review file + fidelity-reviewer handoff, and a CODE session needs `.ai/handoffs/session-NN-tech-lead.md`, waiver or not. Every other close check still honours the waiver.
+- **A `## Plan` step must land before the merge** (S169, DECISION-007 addendum): closeout blocks any real plan step without an existing `done:` sha, `pending:` included. A release goes in its own ROADMAP row, never a plan step.
