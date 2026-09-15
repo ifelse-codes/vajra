@@ -72,6 +72,14 @@
   note: the stale S166 BLOCK/FAIL lines are replaced. A byte-identity check was not added: the two copies differ on purpose (the scaffold has no cargo-fmt, demo-marker or release checks); verify runs every S169 case on both instead.
 - fidelity-reviewer rec 5 — deferred: sessions/session-169-summary.md
   reason: the summary with exactly 3 ranked candidates is written after the review of record, in this session's closeout commit (sessions/ is outside the attested diff). When: S169 closeout.
+- fidelity-reviewer rec 7 — deferred: .ai/ROADMAP.md
+  reason: a no-claim fixture (`Verdict: pending` + an "acceptance criteria" line) changes the reviewed verify script after the ACCEPT of record; no close in flight is exposed — S170 is a ground-truth session, which writes no summary. When: S171 (ROADMAP row S171).
+- fidelity-reviewer rec 8 — deferred: .ai/ROADMAP.md
+  reason: a word-boundary match plus a `review …: ACCEPT` shape changes the gate after the ACCEPT of record, and needs rec 7's no-claim fixture beside it so an over-match shows red. When: S171 (ROADMAP row S171).
+- fidelity-reviewer rec 9 — deferred: .ai/ROADMAP.md
+  reason: padding `check_fidelity_review` and `check_review_attestation` touches two checks outside this prompt's acceptance criteria and the attestation hash path; it belongs with rec 8 in one gate change. When: S171 (ROADMAP row S171).
+- fidelity-reviewer rec 10 — deferred: .ai/ROADMAP.md
+  reason: the comment and DECISION-007 wording should describe the claim match S171 ships (recs 7–8), not the one it replaces. When: S171 (ROADMAP row S171).
 - fidelity-reviewer rec 6 — obeyed: 7ede30b
   note: DECISION-007's S169 addendum now lists what stays open — waivable NO-DONE and made-up shas, `1)`/indented plans invisible to the parser, and existence-not-ownership (carried to S171).
 
