@@ -1366,3 +1366,8 @@ sha (a `pending:` line included). Rejected: a `post-merge: <row>` marker (two pa
 added in the same commit that cites it) and an `--advance` "landed on main" check (git sees the tag, not
 the publish). **Limit:** nothing proves the ROADMAP row is ever carried out — a forgotten release is as
 invisible as any unplanned work.
+
+**What stays open (S169 cold review, pass 1, rec 6 — recorded, not closed).** `VAJRA_CLOSEOUT_WAIVER`
+still passes `execution-shas-filled`, so a `NO-DONE` step and a made-up sha remain waivable. A plan
+written as `1)` or indented is invisible to the step parser, so it records no steps to check. And
+`git cat-file -e` proves a sha names SOME commit, not one of this session's (rec 3 — carried to S171).
