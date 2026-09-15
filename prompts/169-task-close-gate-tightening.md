@@ -42,8 +42,8 @@
   note: tech-lead handoff landed in 14e6cc8; the design-advisor handoff + the AC5 decision (DECISION-007 S169 addendum) in 07c2f2d.
 - step 2 — done: 14e6cc8
 - step 3 — done: 14e6cc8
-- step 4 — done: aab3f30
-  note: scaffold carry 07c2f2d · verify-session-169.sh b9a75ed · demo aab3f30. The cold review, summary and closeout land in the closeout commit, outside the attested diff (sessions/ is excluded from the review hash).
+- step 4 — done: 0b05694
+  note: scaffold carry 07c2f2d · verify-session-169.sh b9a75ed · demo aab3f30 + its VAJRA_BIN export 0b05694 (the close gate re-runs the demo bare). The cold review, summary and closeout land in the closeout commit; sessions/ is outside the attested diff.
 
 ## Advice (every recorded recommendation, answered)
 - tech-lead rec 1 — obeyed: 14e6cc8
