@@ -38,7 +38,10 @@
 4. Carry the checks into the scaffolded close gate; write `verify-session-169.sh`; cold review; close. covers: 1, 2, 3, 4, 5
 
 ## Execution (the Coder gate — record each plan step's landing commit as work lands)
-- step 1 — done: <sha>
+- step 1 — done: 07c2f2d
+  note: tech-lead handoff landed in 14e6cc8; the design-advisor handoff + the AC5 decision (DECISION-007 S169 addendum) in 07c2f2d.
+- step 2 — done: 14e6cc8
+- step 3 — done: 14e6cc8
 
 ## Guardrails
 - Slice to ONE story. Own the `.ai/` spine — no second store, no unapproved 8th command.
