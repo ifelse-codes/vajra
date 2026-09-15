@@ -1,8 +1,7 @@
 # Session 169 — close-gate-tightening: a session cannot close on made-up evidence
 
-> **Status:** DRAFT — the Analyst gate (`vajra next --advance`) BLOCKS starting this session
-> while DRAFT. Flip to `APPROVED` once the human signs off (an approval token recorded here,
-> the same trust model as a commit-approval; tamper-evidence is the later cross-stage ledger).
+> **Status:** APPROVED — founder approval token "approved", given in chat on 2026-09-15
+> ("start session 169 , all approved").
 
 ## Type
 - **CODE**. Max 2 assumptions · 2 retries · ~2h · 1 story · new chat · approval token before any commit.
@@ -28,8 +27,9 @@
 5. The session decides on the record how a plan step that can only land after the merge (a release) is recorded without a skip env var.
 
 ## Design (the Architect gate — record the decision, cite the ADR/DECISION it rests on)
-- design-significant: yes — the closeout gate's checks change for every Vajra project.
-- Rests on DECISION-002 (fidelity over discipline; no self-certification) and DECISION-007 (the crew; tech-lead mandatory since S135). The open question for the design-advisor: AC5 (post-merge steps).
+- design-significant: yes — the close gate's checks change for every Vajra project, and the unwaivable tech-lead check departs from a locked record.
+- Rests on DECISION-002 (no self-certification: a claimed review with no file blocks even under the waiver) and DECISION-007 (tech-lead mandatory since S135). It deliberately departs from DECISION-007's S133 clause that `VAJRA_CLOSEOUT_WAIVER` still applies at closeout: a missing tech-lead in a CODE session is no longer waivable (S169 addendum recorded in DECISION-007).
+- AC5 decision (design-advisor rec 1): a numbered plan step must land before the merge; post-merge work (a release) goes in its own ROADMAP row, never a plan step. `check_execution_shas` blocks at close any real plan step with no existing `done:` sha, `pending:` included. Rejected: a `post-merge:` marker (two parsers; a row can be added just to satisfy it) and an `--advance` "landed on main" check (git sees the tag, not the publish). Limit: nothing proves the ROADMAP row is ever carried out.
 
 ## Plan (ordered steps — cite the acceptance criteria each step covers, e.g. `covers: 1, 3`)
 1. Dispatch tech-lead, then design-advisor; record the AC5 decision. covers: 5
