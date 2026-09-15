@@ -42,6 +42,26 @@
   note: tech-lead handoff landed in 14e6cc8; the design-advisor handoff + the AC5 decision (DECISION-007 S169 addendum) in 07c2f2d.
 - step 2 — done: 14e6cc8
 - step 3 — done: 14e6cc8
+- step 4 — done: aab3f30
+  note: scaffold carry 07c2f2d · verify-session-169.sh b9a75ed · demo aab3f30. The cold review, summary and closeout land in the closeout commit, outside the attested diff (sessions/ is excluded from the review hash).
+
+## Advice (every recorded recommendation, answered)
+- tech-lead rec 1 — obeyed: 14e6cc8
+  note: check_claimed_evidence has no waiver path; the tech-lead file is a plain `-s` test (no binary); the binary-backed checks keep their waiver unchanged.
+- tech-lead rec 2 — refused: the match is lowercase-only `[0-9a-f]{7,40}`, not `[0-9a-fA-F]` — git prints lowercase shas and the S166 check it replaces was lowercase too; the word boundary, the 7–40 length and `git cat-file -e` are built as the rec says (14e6cc8), and each failing line and sha is named in the log.
+- tech-lead rec 3 — refused: the design-advisor, the role that owns AC5, ruled against a `post-merge:` marker — it needs grammar in two parsers, and a ROADMAP row can be added in the same commit that cites it. Post-merge work goes in its own ROADMAP row instead (DECISION-007 S169 addendum, 07c2f2d).
+- tech-lead rec 4 — obeyed: b9a75ed
+  note: every verify case matches the exact block line (`grep -F`), beside pass controls; the fidelity-reviewer is asked to probe `done: defaced prose`.
+- tech-lead rec 5 — obeyed: 07c2f2d
+  note: `vajra init` embeds a separate copy (`scripts/verify-closeout-scaffold.sh` via include_str!), carried in its own commit.
+- design-advisor rec 1 — obeyed: 07c2f2d
+- design-advisor rec 2 — obeyed: 14e6cc8
+- design-advisor rec 3 — obeyed: 14e6cc8
+- design-advisor rec 4 — obeyed: 07c2f2d
+  note: no change to src/coder/mod.rs; bash + the scaffold copy only.
+- design-advisor rec 5 — obeyed: 07c2f2d
+- design-advisor rec 6 — obeyed: b9a75ed
+  note: verify-session-169.sh runs every case on both gates, so a check carried into one copy but not the other goes red.
 
 ## Guardrails
 - Slice to ONE story. Own the `.ai/` spine — no second store, no unapproved 8th command.
