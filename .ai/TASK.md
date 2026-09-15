@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S169 complete · S170 prompt DRAFT (awaiting founder approval)
+## Between Sessions — S170 complete · S171 interactive (prompt written with the founder)
 
-**Next: Session 170 — NO-CODE mandatory Ground Truth over S166–S169.** Brief: `prompts/170-task-ground-truth.md` — **Status: DRAFT** (needs the approval token before `vajra next --advance`). Candidate after it: S171 carry-forwards (ROADMAP row S171). Start in a FRESH chat.
+**Next: Session 171 — interactive.** Brief: `prompts/171-task-interactive.md` — **Status: DRAFT**. The founder tests Vajra in his other project, brings findings, we write/edit the prompt together, then build in short check-in loops. Start in a FRESH chat.
+
+## Session 170 — NO-CODE Ground Truth (S166–S169) — COMPLETE
+
+- Brief: `prompts/170-task-ground-truth.md`. Report: `sessions/session-170-ground-truth.md`. 🔴 off course: 66% paperwork lines, 5 gate overrides, 0 outside users, crates.io 0.1.0.
+- Founder decision: he tests Vajra himself (option C); sessions go interactive. A (finish 0.2.0 release) and B (light mode) open. New user-facing bug: `vajra next --advance` rewrites SESSION-BOOT by number swap only.
 
 ## Session 169 — CODE: a session cannot close on made-up evidence — COMPLETE
 

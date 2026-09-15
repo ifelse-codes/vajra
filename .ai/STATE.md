@@ -3,9 +3,17 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S169 complete, S170 not yet started).**
+**None — between sessions (S170 complete, S171 not yet started).**
 
-## What was done this session (S169 — CODE: a session cannot close on made-up evidence)
+## What was done this session (S170 — NO-CODE Ground Truth over S166–S169)
+
+- Report: `sessions/session-170-ground-truth.md`. 🔴 off course: 83 commits, 66% of changed lines paperwork, 5 gate overrides, $0, 0 stars/forks/issues.
+- Live: stranger-check 21/0 and scaffold-drift 18/0 — but both test source 0.2.0, not the published crate (crates.io 0.1.0, 19 downloads). Brew tap formula IS at 0.2.0. `vajra next --dogfood-age` → S161.
+- Keep/optional/remove ceremony table written; S171 loopholes stay parked (most retired as policing).
+- Founder decision: he tests Vajra himself in his other project; from S171 sessions are interactive.
+- Found: `vajra next --advance` rewrites SESSION-BOOT.md by swapping the number only (wrong "CLOSED. CODE…" text) — open, user-facing.
+
+## Previous session (S169 — CODE: a session cannot close on made-up evidence)
 
 - `check_execution_shas`: a `done:` must name a whole 7–40 char lowercase hex sha (word boundary) that `git cat-file -e` finds; every real `## Plan` step needs one — a `pending:` line BLOCKS at close.
 - New `check_claimed_evidence` (`claimed-evidence-real`), **no waiver path**: a summary verdict claim needs the review file + fidelity-reviewer handoff; a CODE session needs `.ai/handoffs/session-NN-tech-lead.md`. Zero-padded (`session-01`).
@@ -23,8 +31,8 @@
 
 ## What Is Broken / Weak / Disclosed
 
-- **🟡 Release 0.2.0 half done** — tag `v0.2.0` + GitHub release out; **crates.io still 0.1.0**, brew tap + install-smoke unverified (ROADMAP `S168-release`). A stranger's `cargo install` gets none of S167–S169.
-- **🟡 S169 fakest green:** the claim match is words only (misses `Cold review: ACCEPT`, over-matches "Acceptance"); claimed-evidence proves files exist, not that they are real; a made-up `done:` sha is still waivable; `git cat-file -e` accepts any old commit → all carried to S171.
+- **🟡 Release 0.2.0 half done** — tag `v0.2.0` + GitHub release out; **crates.io still 0.1.0** (founder types `cargo publish`); brew tap formula is at 0.2.0 but install-smoke not run (ROADMAP `S168-release`). A stranger's `cargo install` gets none of S167–S169. Founder's own installed `vajra` is 0.1.0.
+- **🟡 S169 fakest green:** the claim match is words only; claimed-evidence proves files exist, not that they are real; a made-up `done:` sha is still waivable; `git cat-file -e` accepts any old commit → **parked — policing** (ROADMAP `S171-parked`).
 - **🟡 `check_fidelity_review` / `check_review_attestation` read the review unpadded** — a new repo's sessions 1–9 are read inconsistently (S171).
 - **🟡 `vajra next --advance` into S168 AND S169 used `VAJRA_SKIP_CODER_GATE=1`** (a pending release step). S169's plan has no post-merge step, so S170's advance should need none.
 - **🟡 Old records under new rules:** closed S167/S168 prompts fail `--check-exec-shas`; `verify-session-166.sh` AC3 is red (non-git fixture). Old sessions are never re-graded; nothing re-runs old verify scripts.
@@ -34,11 +42,11 @@
 
 ## What Is In Progress
 
-- Nothing. S169 complete; PR `session-169-close-gate-tightening` → main. S170 prompt DRAFT (mandatory GT).
+- Nothing. S170 GT complete on `session-170-closeout` (uncommitted until founder approves). Founder is testing Vajra in his other project; S171 prompt gets written with him.
 
 ## Active PRs
 
-- S169 PR — `session-169-close-gate-tightening` → main.
+- None. S169 merged as #205.
 
 ## Cost Tracking
 
@@ -52,5 +60,5 @@
 
 ## Direction (governance is the product)
 
-- **Product = provable agent governance** (`DECISION-001`). Direction: **MAKE THE FLEET REAL.**
+- **Product = provable agent governance** (`DECISION-001`). Direction (2026-09-15): **no more policing — reach a real user.** Founder tests Vajra himself; sessions are interactive from S171.
 - **Founder priorities (S140/S160):** (1) fresh-user experience + release; (2) prove it works, then cut cost; (3) self-driving unattended close / Rung 2–3; (4) external adoption.
