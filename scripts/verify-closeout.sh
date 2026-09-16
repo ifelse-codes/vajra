@@ -373,6 +373,58 @@ check_verify_demo_scripts() {
   fi
 }
 
+# --- The handover to the human (S171, founder's call) ------------------------
+# The founder's rudra sessions 00-02 each ended without him being offered the three ranked
+# options the constitution promises — twice the agent simply announced what came next, and
+# nothing noticed, because no close check ever looked. This one looks. It is deliberately a
+# check on the HANDOVER, not on Vajra's own paperwork: the three candidates are how the human
+# keeps the wheel.
+#
+# Counted the way `vajra next --check-options` counts (A/B/C bullets or a 1/2/3 ranking under a
+# "candidates" heading). The binary does it when it is on PATH — one source of truth — and this
+# falls back to a plain count so a repo without vajra installed still gets a verdict rather than
+# a silent pass.
+check_next_options() {
+  local NAME="three-next-options"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+
+  local S; S="$(spath sessions/session- -summary.md)"
+  if [ ! -s "$S" ]; then
+    echo "BLOCK: $S absent — no summary, so no options were offered." >> "$LOG"
+    if waiver_ok; then echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N" >> "$LOG"; ok "$NAME"; else
+      echo "FAIL: write $S ending in exactly 3 ranked next-session candidates." >> "$LOG"; bad "$NAME"; fi
+    return
+  fi
+
+  local count=""
+  if command -v vajra >/dev/null 2>&1; then
+    local out; out="$(vajra next --check-options "$N" 2>&1 || true)"
+    printf '%s\n' "$out" >> "$LOG"
+    case "$out" in *"verdict: READY"*) count=3 ;; esac
+  fi
+  if [ -z "$count" ]; then
+    # Fallback: count ranked markers under the candidates heading.
+    count="$(awk '
+      /^[[:space:]]*#/ { insec = (tolower($0) ~ /candidate/); next }
+      insec && /^[[:space:]]*([0-9][.)]|[-*][[:space:]]*\*{0,2}[A-Z][^[:alnum:]])/ { n++ }
+      END { print n + 0 }' "$S")"
+    echo "counted $count ranked candidate(s) in $S (fallback count)" >> "$LOG"
+  fi
+
+  if [ "${count:-0}" -eq 3 ]; then
+    echo "OK: $S offers exactly 3 ranked next-session candidates." >> "$LOG"; ok "$NAME"; return
+  fi
+  echo "BLOCK: $S records ${count:-0} ranked candidate(s), not 3 — the human was never given the choice." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: end $S with exactly 3 ranked candidates (A/B/C or 1/2/3), show them in the chat," >> "$LOG"
+    echo "      and write the next prompt from the one the human picks." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
 # --- Demo marker check (S158 — close the silent-pass hole) -------------------
 # The Demo-er station (src/demo/mod.rs) checks markers only if the script exists AND
 # `vajra next --advance` is called. A CODE session that ships an exit-0 demo skeleton
@@ -1141,6 +1193,7 @@ check_execution_shas
 check_verify_demo_scripts
 check_demo_markers
 check_fidelity_review
+check_next_options
 check_obeyed_judgments
 check_design_advisor_mandate
 check_required_crew
