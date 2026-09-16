@@ -136,11 +136,12 @@ if [ "$MATURITY" = "L1" ]; then
 fi
 
 {
-  echo "[vajra commit-guard] BLOCKED: git commit without approval evidence."
-  echo "  Governing $GOVERNS."
-  echo "  no-autonomous-commit is ENFORCED (S93). A commit needs explicit founder approval,"
-  echo "  supplied as an un-forgeable env marker set at launch (mirrors VAJRA_CLOSEOUT_WAIVER):"
+  echo "Vajra stopped this commit: the agent has no approval to commit for session ${SESS:-NN}."
+  echo "  Working in $GOVERNS."
+  echo "  Ask the person you are working with to approve it. They can either type the commit"
+  echo "  themselves in their own terminal, or start the agent with the approval already given:"
   echo "      VAJRA_ALLOW_COMMIT=${SESS:-NN} vajra claude"
-  echo "  To downgrade to advice: set maturity: L1 in .ai/CONSTRAINTS.yaml."
+  echo "  (Approval has to come from outside the agent, so it cannot approve itself.)"
+  echo "  For warnings instead of blocks: set maturity: L1 in .ai/CONSTRAINTS.yaml."
 } 1>&2
 exit 2

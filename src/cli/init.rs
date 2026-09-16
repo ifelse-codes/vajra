@@ -885,7 +885,11 @@ fn first_run_aha(root: &Path) {
         None => eprint!("{}", render_aha_fallback()),
     }
     eprintln!();
-    eprintln!("Next: git add .ai/ && start a guided session →  vajra claude");
+    // S171: the old one-liner never said to COMMIT, and the founder's first `git commit` after
+    // init was then refused by Vajra's own hook. Spell both steps out, in the order they happen.
+    eprintln!("Next — two steps:");
+    eprintln!("  1. save these files:        git add -A && git commit -m \"Add Vajra\"");
+    eprintln!("  2. start the first session: vajra claude   (then say: start session 00)");
 }
 
 /// Fire the scaffolded co-pilot hook once and capture what the agent would see.
