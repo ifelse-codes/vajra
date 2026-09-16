@@ -625,6 +625,24 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
                         skipped += 1;
                     }
                 }
+            } else if entry.path == ".gitignore" {
+                // S171: skipping an existing `.gitignore` left a brownfield project with none of
+                // Vajra's ignores, so its first commit carried local-only run artifacts. Append
+                // the block once, keyed by its marker line; never rewrite what is already there.
+                match append_gitignore_block(&full, &entry.content) {
+                    Ok(true) => {
+                        eprintln!("  append {} (Vajra's local-only artifacts)", entry.path);
+                        merged += 1;
+                    }
+                    Ok(false) => {
+                        eprintln!("  skip   {} (Vajra's lines already present)", entry.path);
+                        skipped += 1;
+                    }
+                    Err(e) => {
+                        eprintln!("  warn   {} left untouched — {e}", entry.path);
+                        skipped += 1;
+                    }
+                }
             } else {
                 eprintln!("  skip   {}", entry.path);
                 skipped += 1;
@@ -720,6 +738,27 @@ fn merge_claude_settings_file(path: &Path, template: &str) -> Result<bool> {
 /// an existing user `.claude/settings.json`, preserving every user key and hook. Idempotent:
 /// a Vajra group is appended only if the target event array does not already contain a
 /// structurally-equal group *or* reference that group's `.ai/hooks/*.sh` script paths.
+/// Append Vajra's ignore block to an existing `.gitignore`, once. Returns `Ok(true)` when it was
+/// added, `Ok(false)` when the marker is already there. Never rewrites or reorders the user's own
+/// lines — it only adds at the end (S171).
+fn append_gitignore_block(path: &Path, block: &str) -> Result<bool> {
+    let existing =
+        fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
+    if existing.contains(GITIGNORE_MARKER) {
+        return Ok(false);
+    }
+    let sep = if existing.is_empty() || existing.ends_with("\n\n") {
+        ""
+    } else if existing.ends_with('\n') {
+        "\n"
+    } else {
+        "\n\n"
+    };
+    fs::write(path, format!("{existing}{sep}{block}"))
+        .with_context(|| format!("failed to append to {}", path.display()))?;
+    Ok(true)
+}
+
 /// Returns `(pretty-printed merged JSON, changed?)`. A malformed / non-object existing file
 /// is an `Err` — the caller must not overwrite it.
 ///
@@ -1589,8 +1628,16 @@ const TPL_GITHOOK_PRE_PUSH: &str = include_str!("../../.githooks/pre-push");
 
 // The scaffold's `.gitignore` — the session-guard writes the owning chat's id into
 // `.ai/.session-owner`, a local-only record that must never be committed.
-const TPL_GITIGNORE: &str = r#"# Vajra session-guard owner record (one-session-per-chat) — local only, never commit.
+/// Everything Vajra writes that must stay on the machine it ran on. `GITIGNORE_MARKER` is the
+/// first line, so an existing `.gitignore` can be APPENDED to once and never again (S171: rudra
+/// had its own `.gitignore`, the scaffold skipped it, and the first commit shipped
+/// `.ai/.session-owner` plus two `latest` symlinks that point at directories nobody else has).
+const GITIGNORE_MARKER: &str = "# ── Vajra: local-only session artifacts ──";
+const TPL_GITIGNORE: &str = r#"# ── Vajra: local-only session artifacts ──
+# The session-guard's owner record (one chat owns one session) and every verify/demo run's
+# output. Git gets the summary, the review and the small evidence records — never the raw runs.
 .ai/.session-owner
+.ai/verify/
 "#;
 
 // Darshan (S27/S28) — the human's glanceable output skill, embedded verbatim from the
@@ -2140,6 +2187,27 @@ mod tests {
             c.contains("one_session_per_chat: true"),
             "session-guard is gated on one_session_per_chat: true"
         );
+    }
+
+    #[test]
+    /// S171: a project that already has a `.gitignore` must still get Vajra's lines — the
+    /// founder's rudra was skipped, and its first commit carried `.ai/.session-owner` and two
+    /// `latest` symlinks pointing at directories only his machine has. Appended once, never twice,
+    /// and the project's own lines are left exactly as they were.
+    #[test]
+    fn an_existing_gitignore_is_appended_to_once_and_never_rewritten() {
+        let dir = tempfile::tempdir().unwrap();
+        let gi = dir.path().join(".gitignore");
+        fs::write(&gi, "target/\n*.log\n").unwrap();
+
+        assert!(append_gitignore_block(&gi, TPL_GITIGNORE).unwrap());
+        let after = fs::read_to_string(&gi).unwrap();
+        assert!(after.starts_with("target/\n*.log\n"), "{after}");
+        assert!(after.contains(".ai/.session-owner"), "{after}");
+        assert!(after.contains(".ai/verify/"), "{after}");
+
+        assert!(!append_gitignore_block(&gi, TPL_GITIGNORE).unwrap());
+        assert_eq!(fs::read_to_string(&gi).unwrap(), after, "appended twice");
     }
 
     #[test]
