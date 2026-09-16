@@ -446,12 +446,20 @@ fn run_steps(nn: Option<&String>) -> Result<()> {
             .trim()
             .parse::<u32>()
             .with_context(|| format!("session number must be an integer (got {v:?})"))?,
-        None => current_session(&root).context("no .ai/SESSION to read a session number from")?,
+        // S171: the BRANCH wins over `.ai/SESSION` here. The founder started session 02 in rudra
+        // while the spine still said 01 (S01's closeout never rolled the pointer forward), so the
+        // boot checklist described the session that had already closed — "the design is recorded"
+        // instead of "dispatch the tech-lead". A checklist about the wrong session is worse than
+        // none. Every gate still keys off `.ai/SESSION`; only this advice follows the branch.
+        None => session_of_branch(&current_branch(&root))
+            .or_else(|| current_session(&root))
+            .context("no session-NN branch and no .ai/SESSION to read a session number from")?,
     };
     print!(
         "{}",
         nextstep::format_steps(&nextstep::steps(&root, session), session)
     );
+    print!("{}", nextstep::format_options(&root, session));
     Ok(())
 }
 
@@ -1375,6 +1383,7 @@ fn run_dump() -> Result<()> {
         // agent stop and ASK him what came next — the demo, the ranked options, the next prompt and
         // the whole crew were skipped because they lived in prose nobody was forced to read.
         print!("{}", nextstep::format_steps(&nextstep::steps(&root, n), n));
+        print!("{}", nextstep::format_options(&root, n));
         println!();
     }
 
@@ -1959,6 +1968,16 @@ fn repo_root() -> Result<PathBuf> {
     find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")
 }
 
+/// The session number a `session-NN-<slug>` branch names, if it is one (S171).
+fn session_of_branch(branch: &str) -> Option<u32> {
+    let rest = branch.strip_prefix("session-")?;
+    let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
+    if digits.is_empty() || !rest[digits.len()..].starts_with('-') {
+        return None;
+    }
+    digits.parse().ok()
+}
+
 fn current_branch(root: &Path) -> String {
     Command::new("git")
         .arg("branch")
@@ -2129,6 +2148,17 @@ mod tests {
             session: "99".into(),
         });
         assert!(bad.contains("commits: BLOCKED") && bad.contains("session 99"));
+    }
+
+    /// S171: a session-NN branch names the session the checklist is about, even when `.ai/SESSION`
+    /// still points at the one that closed.
+    #[test]
+    fn the_branch_names_the_session_for_the_checklist() {
+        assert_eq!(session_of_branch("session-02-risk-lease-kill"), Some(2));
+        assert_eq!(session_of_branch("session-171-interactive"), Some(171));
+        assert_eq!(session_of_branch("main"), None);
+        assert_eq!(session_of_branch("session-x-y"), None);
+        assert_eq!(session_of_branch("session-02"), None);
     }
 
     #[test]

@@ -90,10 +90,11 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         ),
         Step::new(
             passed("Demo-er"),
-            "there is a demo the human can watch",
+            "there is a demo, and it has been PLAYED for the human",
             format!(
                 "copy scripts/demo-session-template.sh to scripts/demo-session-{nn}.sh, fill every \
-                 section with live runs, then run it"
+                 section with live runs — then run it in front of them: bash \
+                 scripts/demo-session-{nn}.sh"
             ),
         ),
         Step::new(
@@ -114,9 +115,10 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         ),
         Step::new(
             next_prompt,
-            "the human has picked an option and the next prompt is written",
+            "the 3 options have been SHOWN in chat and the human has picked one",
             format!(
-                "show the 3 options, wait for the pick, then write prompts/{:02}-task-<slug>.md",
+                "print the three candidates from the summary in the chat, ask which one, then \
+                 write prompts/{:02}-task-<slug>.md from the pick",
                 session + 1
             ),
         ),
@@ -168,6 +170,39 @@ pub fn format_steps(steps: &[Step], session: u32) -> String {
     out
 }
 
+/// The three ranked candidates, ready to paste into the chat (S171). The founder's session 02 wrote
+/// them into the summary and then told him "next is S03" without ever showing them — so the file
+/// had the options and the human never got the choice. `vajra next --steps` prints them whenever
+/// they exist and the next prompt has not been written yet.
+pub fn format_options(root: &Path, session: u32) -> String {
+    if prompt_exists(root, session + 1) {
+        return String::new();
+    }
+    let Some(rel) = analyst::options_gate(root, session).summary_path else {
+        return String::new();
+    };
+    let Ok(text) = std::fs::read_to_string(root.join(&rel)) else {
+        return String::new();
+    };
+    if analyst::count_ranked_options(&text) != 3 {
+        return String::new();
+    }
+    let mut out = String::from("\n----- show these to the human and ask which one -----\n");
+    let mut in_section = false;
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with('#') {
+            in_section = trimmed.to_ascii_lowercase().contains("candidate");
+            continue;
+        }
+        if in_section && !trimmed.is_empty() {
+            out.push_str(&format!("  {trimmed}\n"));
+        }
+    }
+    out.push_str(&format!("  (from {rel})\n"));
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -216,9 +251,9 @@ mod tests {
     fn the_checklist_names_the_demo_the_options_and_the_next_prompt() {
         let d = repo();
         let text = format_steps(&steps(d.path(), 1), 1);
-        assert!(text.contains("a demo the human can watch"), "{text}");
+        assert!(text.contains("PLAYED for the human"), "{text}");
         assert!(text.contains("exactly 3 ranked options"), "{text}");
-        assert!(text.contains("the next prompt is written"), "{text}");
+        assert!(text.contains("SHOWN in chat"), "{text}");
     }
 
     /// The next prompt counts as written only when the padded file is really there.
@@ -228,7 +263,7 @@ mod tests {
         let step = |n| {
             steps(d.path(), n)
                 .into_iter()
-                .find(|s| s.what.contains("next prompt is written"))
+                .find(|s| s.what.contains("SHOWN in chat"))
                 .unwrap()
                 .done
         };

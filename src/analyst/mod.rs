@@ -440,10 +440,24 @@ pub fn count_ranked_options(content: &str) -> usize {
 /// followed by a non-alphanumeric (so `- **A 🥇 — …` / `- A. …` count, but `- **Abstract …` and a
 /// `*Goal:*` sub-bullet do not).
 fn option_letter(line: &str) -> Option<char> {
-    let rest = line
-        .trim()
+    let trimmed = line.trim();
+    // S171: a NUMBERED list is a ranking too. The founder's rudra session 02 wrote "1. …/2. …/3. …"
+    // under `## 3 ranked next candidates` and this counted ZERO, so the gate said the options were
+    // missing when they were right there. A/B/C and 1/2/3 both count now; the marker is the key,
+    // so the two spellings can never add up to six.
+    let numbered = trimmed
+        .split_once(['.', ')'])
+        .map(|(head, _)| head)
+        .filter(|head| {
+            !head.is_empty() && head.len() <= 2 && head.chars().all(|c| c.is_ascii_digit())
+        })
+        .and_then(|head| head.chars().next());
+    if numbered.is_some() {
+        return numbered;
+    }
+    let rest = trimmed
         .strip_prefix('-')
-        .or_else(|| line.trim().strip_prefix('*'))?
+        .or_else(|| trimmed.strip_prefix('*'))?
         .trim_start()
         .trim_start_matches('*')
         .trim_start();
@@ -663,6 +677,20 @@ pub fn scaffold_prompt(root: &Path, session: u32, slug: &str) -> Result<PathBuf,
 
 #[cfg(test)]
 mod tests {
+
+    /// S171 (founder's rudra session 02): a numbered ranking is a ranking. This exact summary tail
+    /// counted ZERO options, so Vajra reported the founder's three candidates as missing.
+    #[test]
+    fn a_numbered_ranking_counts_as_three_options() {
+        let summary = "## 3 ranked next candidates\n\n            1. **(Recommended) Session 03 — execution OMS/EMS.** Consume the lease at a real\n               adapter; closes the M2 loop.\n            2. **Wire the gate into the real OrderGateway.** Prove commit-seq ordering.\n            3. **Async directive monitors.** Watchers under monotonic generations.\n";
+        assert_eq!(count_ranked_options(summary), 3);
+        assert!(matches!(options_state(summary), OptionsState::Exactly3));
+
+        // Lettered still works, and the two spellings never double-count.
+        let lettered = "## candidates\n- **A — one**\n- **B — two**\n- **C — three**\n";
+        assert_eq!(count_ranked_options(lettered), 3);
+    }
+
     use super::*;
 
     const GOOD: &str = r#"# Session 56 — planner: plan a slice
