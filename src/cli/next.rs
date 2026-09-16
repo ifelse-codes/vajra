@@ -1304,20 +1304,19 @@ fn commit_authorization(branch: &str, marker: Option<&str>) -> CommitAuth {
 fn render_commit_auth(auth: CommitAuth) -> String {
     match auth {
         CommitAuth::PreGranted(m) => format!(
-            "commit approval: PRE-GRANTED — VAJRA_ALLOW_COMMIT={m} is set in this launch \
-             environment.\n  That marker IS the founder's approval token for this session \
-             (S93); commits may proceed\n  without a chat token. Advisory line — the L3 \
-             guard remains the enforcing check."
+            "commits: ALLOWED — the person who started this run set VAJRA_ALLOW_COMMIT={m}.\n  \
+             That is their approval for this session, so you may commit without asking again."
         ),
         CommitAuth::Mismatch { marker, session } => format!(
-            "commit approval: NOT VALID HERE — VAJRA_ALLOW_COMMIT={marker} is scoped to session \
-             {marker},\n  but this branch is session {session}. The guard will BLOCK. Relaunch \
-             with VAJRA_ALLOW_COMMIT={session}."
+            "commits: BLOCKED — the approval on hand is for session {marker}, but this branch is \
+             session {session}.\n  Ask for VAJRA_ALLOW_COMMIT={session}, or let the person commit \
+             in their own terminal."
         ),
         CommitAuth::TokenRequired => String::from(
-            "commit approval: REQUIRED — no VAJRA_ALLOW_COMMIT in this launch environment.\n  \
-             A human must give an approval token in chat before any commit. For an UNATTENDED \
-             run,\n  the founder pre-authorizes at launch: `VAJRA_ALLOW_COMMIT=NN vajra claude`.",
+            "commits: BLOCKED — nobody has approved commits for this run.\n  Saying yes in chat \
+             does not reach the check. Either the person types the commit in their\n  own \
+             terminal — Vajra never stops a person — or they start you with\n  \
+             `VAJRA_ALLOW_COMMIT=NN vajra claude`.",
         ),
     }
 }
@@ -1366,6 +1365,10 @@ fn run_dump() -> Result<()> {
             report.passed(),
             stations::STATION_COUNT
         );
+        // S171: the founder read this count as "6 specialists worked on my session". It is not
+        // that — it counts the records in the repo (a filled section, a landed sha, an attested
+        // review), which is why a session where no helper agent ran at all can still show 3 of 8.
+        println!("  (counted from what is written in the repo, not from who was asked to help)");
         println!();
 
         // S171: the checklist, and the one move to make next. The founder's first-run test had the
@@ -2101,20 +2104,21 @@ mod tests {
         );
     }
 
-    /// The rendered lines must name the un-forgeable route for an UNATTENDED run, and must
-    /// disclose that this surface is advisory rather than a permission.
+    /// The rendered lines must say plainly whether commits are allowed, name the route for an
+    /// unattended run, and (S171) say that a chat "yes" does not reach the check — the founder's
+    /// first-run test had him say "ship it" and watch the commit fail anyway.
     #[test]
     fn commit_auth_lines_state_route_and_bound() {
         let granted = render_commit_auth(CommitAuth::PreGranted("99".into()));
-        assert!(granted.contains("PRE-GRANTED"));
-        assert!(granted.contains("approval token"));
-        assert!(
-            granted.contains("Advisory"),
-            "pre-granted line hides that it is not the enforcing check"
-        );
+        assert!(granted.contains("commits: ALLOWED"));
+        assert!(granted.contains("VAJRA_ALLOW_COMMIT=99"));
 
         let required = render_commit_auth(CommitAuth::TokenRequired);
-        assert!(required.contains("REQUIRED"));
+        assert!(required.contains("commits: BLOCKED"));
+        assert!(
+            required.contains("Saying yes in chat does not reach the check"),
+            "the packet must not imply a chat token works: {required}"
+        );
         assert!(
             required.contains("VAJRA_ALLOW_COMMIT=NN vajra claude"),
             "packet does not tell an unattended run how to be pre-authorized"
@@ -2124,7 +2128,7 @@ mod tests {
             marker: "98".into(),
             session: "99".into(),
         });
-        assert!(bad.contains("NOT VALID HERE") && bad.contains("BLOCK"));
+        assert!(bad.contains("commits: BLOCKED") && bad.contains("session 99"));
     }
 
     #[test]
