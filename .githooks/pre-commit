@@ -22,10 +22,14 @@ esac
 # the approval marker. Claude Code sets CLAUDECODE / CLAUDE_CODE_ENTRYPOINT; Cursor sets
 # CURSOR_TRACE_ID; any other agent can declare itself with VAJRA_AGENT=1.
 #
-# Honesty about layers: an agent that writes the command line can drop those variables for one
-# command, so this git-level belt was always auditable, never un-forgeable. The teeth are the L3
-# PreToolUse guard (scripts/hook-commit-guard.sh), which reads its OWN launch environment — out of
-# reach of an inline prefix — and fires even on `git commit --no-verify`, which skips this hook.
+# Honesty about layers, in two parts (the second added by S171's cold review, rec 9):
+#  1. An agent that writes the command line can drop those variables for one command, so this
+#     git-level belt was always auditable, never un-forgeable.
+#  2. The teeth are the L3 PreToolUse guard (scripts/hook-commit-guard.sh), which reads its OWN
+#     launch environment and fires even on `git commit --no-verify` — but that guard exists ONLY
+#     under Claude Code. For any other agent that does not set VAJRA_AGENT=1, this split removes
+#     the last enforcement layer rather than relocating it. Set VAJRA_AGENT=1 in that agent's
+#     environment if you want the belt to hold there.
 agent_shell=0
 if [ -n "${CLAUDECODE:-}${CLAUDE_CODE_ENTRYPOINT:-}${CURSOR_TRACE_ID:-}${VAJRA_AGENT:-}" ]; then
   agent_shell=1

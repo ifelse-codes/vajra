@@ -397,18 +397,32 @@ check_next_options() {
     return
   fi
 
+  # S171 cold review rec 2: read the NUMBER the binary prints, never infer three from the word
+  # READY — `vajra next --check-options` says READY for a summary with no candidates section at
+  # all (that case is only a warning), which is exactly what this check exists to stop. When the
+  # binary answers, its answer stands; the fallback runs ONLY when vajra cannot answer.
   local count=""
   if command -v vajra >/dev/null 2>&1; then
     local out; out="$(vajra next --check-options "$N" 2>&1 || true)"
     printf '%s\n' "$out" >> "$LOG"
-    case "$out" in *"verdict: READY"*) count=3 ;; esac
+    count="$(printf '%s\n' "$out" | sed -n 's/^ranked options:[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -1)"
+    [ -z "$count" ] && echo "note: this vajra prints no 'ranked options:' line (pre-S171) — counting here instead." >> "$LOG"
   fi
   if [ -z "$count" ]; then
-    # Fallback: count ranked markers under the candidates heading.
+    # Fallback (no vajra, or one too old to report a count): distinct markers, one family at a
+    # time, under a heading naming the candidates — the rule src/analyst/mod.rs applies.
     count="$(awk '
       /^[[:space:]]*#/ { insec = (tolower($0) ~ /candidate/); next }
-      insec && /^[[:space:]]*([0-9][.)]|[-*][[:space:]]*\*{0,2}[A-Z][^[:alnum:]])/ { n++ }
-      END { print n + 0 }' "$S")"
+      !insec { next }
+      match($0, /^[[:space:]]*[0-9]+[.)][[:space:]]/) {
+        key = $0; sub(/^[[:space:]]*/, "", key); sub(/[.)].*$/, "", key)
+        if (!(key in nums)) { nums[key] = 1; nn++ } next
+      }
+      match($0, /^[[:space:]]*[-*][[:space:]]*\*{0,2}[A-Z][^[:alnum:]]/) {
+        key = $0; sub(/^[[:space:]]*[-*][[:space:]]*\**/, "", key); key = substr(key, 1, 1)
+        if (!(key in lets)) { lets[key] = 1; ln++ } next
+      }
+      END { print (nn + 0 > ln + 0 ? nn + 0 : ln + 0) }' "$S")"
     echo "counted $count ranked candidate(s) in $S (fallback count)" >> "$LOG"
   fi
 

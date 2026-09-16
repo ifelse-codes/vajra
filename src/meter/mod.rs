@@ -676,6 +676,39 @@ mod tests {
 {"type":"assistant","version":"2.1.177","message":{"model":"claude-opus-4-8","usage":{"input_tokens":50,"output_tokens":200,"cache_read_input_tokens":5000,"cache_creation_input_tokens":1000,"cache_creation":{"ephemeral_5m_input_tokens":300,"ephemeral_1h_input_tokens":700},"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0}}}}"#.to_string()
     }
 
+    /// S171 cold review rec 7: the same claim against REAL bytes. Four lines lifted from the
+    /// founder's own rudra session-00 transcript (ids, model and `usage` only — no content): one
+    /// assistant message that Claude Code wrote across three lines, each repeating that message's
+    /// whole usage, plus a second, different message. The honest total counts the first message
+    /// once; the pre-S171 sum counted it three times, which is where the 2.3x came from.
+    #[test]
+    fn a_real_multiblock_message_from_the_founders_transcript_is_charged_once() {
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("sessions/session-171-artifacts/fixtures/s171-multiblock-message.jsonl");
+        let text = fs::read_to_string(&fixture).expect("fixture readable");
+        assert_eq!(text.lines().count(), 4, "fixture shape changed");
+
+        let cost = meter_session(&fixture, None, None).unwrap();
+        let t = &cost.model_breakdown[0].tokens;
+        // Message 1 (three lines) + message 2 (one line), each counted once.
+        assert_eq!(t.input, 12774 + 2, "input: {t:?}");
+        assert_eq!(t.output, 329 + 169, "output: {t:?}");
+        assert_eq!(t.cache_read, 8105 + 78008, "cache_read: {t:?}");
+
+        // What the old code did: every line summed. Proves the fixture really is a repeat.
+        let naive: u64 = text
+            .lines()
+            .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
+            .map(|v| get_u64(&v["message"]["usage"], "output_tokens"))
+            .sum();
+        assert_eq!(
+            naive,
+            329 * 3 + 169,
+            "the fixture must contain a real repeat"
+        );
+        assert!(naive > t.output, "dedupe must reduce the charge");
+    }
+
     /// S171: Claude Code writes one line per content block, each repeating the message's whole
     /// `usage`. Three lines for one reply must be charged once — this is the 2.3x the founder
     /// caught on his own rudra run (receipt $19.33 vs Claude Code's $8.38).

@@ -1,9 +1,9 @@
 # Session 171 — Interactive: built from the founder's own testing
 
-> **Status:** DRAFT — written together with the founder at the start of the S171 chat, from what he found testing Vajra in his other project. Flip to `APPROVED` when he says so.
+> **Status:** APPROVED — the founder approved each fix in the chat as it was shown ("go", "yes", "fix problem N"), the way this session was designed to run.
 
 ## Type
-- To be decided with the founder (CODE or DOCUMENT).
+- **CODE.** Fixes to the binary, the hooks and the close gate, driven by the founder's own first-run test on `rudra`.
 
 ## How this session runs (founder, 2026-09-15)
 1. Founder shares what he hit testing Vajra in his other project.
@@ -57,13 +57,38 @@
 - W5: Full close worked with the two launch settings: PR #1 opened + merged on GitHub, closeout 16/16, branch pruned, main synced.
 
 ## Goal
-1. _Filled in from the founder's findings at session start._
+1. Fix what the founder actually hit using Vajra 0.2.0 on his own project, in the order he hit it, showing each fix before the next.
 
 ## Deliverables
-1. _Filled in with the founder._
+1. **The "01 vs 1" bugs** — demo facts and the close gate accept the padded session names every new project uses (F19, F23).
+2. **The guards stop the agent, not the human** — a person's own commits and pushes go through; an agent shell still needs the launch approval (F1, F2, F3, F6, F10, F13b, F15).
+3. **Vajra names the next step** — a derived checklist at every boot, ending in the one move to make now, covering the crew dispatch, the demo, the 3 options and the next prompt (F7, F8, F18, F20, F22, F25).
+4. **The receipt tells the truth, in plain words** — each message charged once, and no jargon (F16, F14, F17, F21).
+5. **The fixes reach existing projects** — `--sync-fleet` can upgrade the git belt; an existing `.gitignore` gets Vajra's lines; re-running `init` greets a running project properly (F26, F27, F28).
+6. **The handover to the human is real** — numbered rankings count as options, `--steps` prints them for the chat, and a session cannot close without them (F32, F33, F34).
 
 ## Acceptance
-1. _Filled in with the founder — each item something he can check himself._
+1. In a fresh project, a person can run `git add -A && git commit` after `vajra init` with no block and no `--no-verify`; an agent shell without approval is still stopped. *(checked live in a scratch repo and in rudra: 13-file commit, no block)*
+2. `vajra next --steps` prints a per-session checklist whose first unfinished line is the next move, and prints the three candidates when they exist. *(checked against rudra sessions 01 and 02)*
+3. The receipt lands within ~10% of Claude Code's own figure. *(rudra session 02: Vajra $19.25 vs Claude Code $19.56 — 1.6%)*
+4. The close gate fails a summary that does not offer exactly three ranked options, and passes one that does, whether they are `A/B/C` or `1/2/3`. *(both paths run)*
+5. `cargo test` green. *(520 tests)*
+
+## Plan
+- step 1 — the padded session names, both gates. covers: 1
+- step 2 — human-vs-agent guards + plain messages. covers: 1
+- step 3 — the derived next-step checklist at boot. covers: 2
+- step 4 — one charge per message + plain receipt. covers: 3
+- step 5 — sync reaches existing projects. covers: 1
+- step 6 — the options: parser, chat surface, close gate. covers: 4
+
+## Execution
+- step 1 — done: 5e16130 / 842bc4b
+- step 2 — done: 4f927aa
+- step 3 — done: 1184f50
+- step 4 — done: c1740de
+- step 5 — done: cb327ad / 72e05de / 5fe9152
+- step 6 — done: 733f01d / 318f86c
 
 ## Guardrails
 - No new checks or gates on Vajra's own paperwork (no more policing).

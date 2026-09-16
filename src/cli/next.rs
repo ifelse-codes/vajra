@@ -441,11 +441,10 @@ fn utc_now() -> String {
 /// the first unfinished one named as the next move. NN defaults to `.ai/SESSION`.
 fn run_steps(nn: Option<&String>) -> Result<()> {
     let root = repo_root()?;
-    let session = match nn {
-        Some(v) => v
-            .trim()
-            .parse::<u32>()
-            .with_context(|| format!("session number must be an integer (got {v:?})"))?,
+    let session = match nn.and_then(|v| v.trim().parse::<u32>().ok()) {
+        // S171 cold review rec 11: an unparseable argument used to ERROR, and the boot hook hides
+        // stderr — a silent no-checklist. Fall through to the branch / `.ai/SESSION` instead.
+        Some(n) => n,
         // S171: the BRANCH wins over `.ai/SESSION` here. The founder started session 02 in rudra
         // while the spine still said 01 (S01's closeout never rolled the pointer forward), so the
         // boot checklist described the session that had already closed — "the design is recorded"
@@ -477,6 +476,17 @@ fn run_check_options(nn: Option<&String>) -> Result<()> {
         "summary: {}",
         verdict.summary_path.as_deref().unwrap_or("(none)")
     );
+    // S171 cold review rec 2: a machine-readable count, so the close gate reads the NUMBER rather
+    // than inferring three from the word READY. `options_gate` only WARNS when a summary carries no
+    // candidates section at all, so "READY" covered the very case the gate exists to stop — a
+    // session that offered the human nothing.
+    let counted = verdict
+        .summary_path
+        .as_deref()
+        .and_then(|rel| fs::read_to_string(root.join(rel)).ok())
+        .map(|text| analyst::count_ranked_options(&text))
+        .unwrap_or(0);
+    println!("ranked options: {counted}");
     if verdict.blocked() {
         println!("verdict: NOT READY");
         for r in &verdict.reasons {

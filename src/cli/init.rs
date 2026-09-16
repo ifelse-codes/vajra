@@ -245,18 +245,42 @@ struct SyncTarget {
 /// that target was scaffolded stamped. Closed history — every render from S167 on carries a stamp,
 /// so this list never grows. Derived once from git (the command is recorded in DECISION-009) and
 /// re-checked against git history by a test whenever `.git` is present.
-const SHIPPED_UNSTAMPED_RENDERS: &[(&str, &[&str])] = &[(
-    "scripts/demo-session-template.sh",
-    &[
-        // a78e07e (S71) — the canonical scripts/demo-session-template.sh, embedded by include_str!.
-        "a4fd31c57b2a795971501417873c7ba84e6bc76a58115344bcf3d1747704430b",
-        // ee5c8c7..95f8b39 — the inline `r#"…"#` template in src/cli/init.rs before S71
-        // (chitra's copy). Carries no fill token, so every install got these exact bytes.
-        "31b37550286e316df7848565bacbf5e16f14b2dd440419293a1ec5cc4b95dcdd",
-        // 88f4a8e..31d30dc — the earlier inline template, same shape.
-        "fae423cb2260ec8702197e2a8f521bbd9ede4bab15e3a1d082924862461a01b9",
-    ],
-)];
+const SHIPPED_UNSTAMPED_RENDERS: &[(&str, &[&str])] = &[
+    // S171 cold review rec 4: the git belt was scaffolded UNSTAMPED until this session, so every
+    // project installed before today carries these exact bytes. Without them `--sync-fleet` calls
+    // the belt `Drifted` and refuses to upgrade it without `--overwrite-drifted` — which is also
+    // the flag that clobbers real local edits. These are every version the repo ever shipped
+    // (`git log -- .githooks/*`, sha256 of the blob), so an untouched belt upgrades cleanly and a
+    // belt someone edited still stops and asks.
+    (
+        ".githooks/pre-commit",
+        &[
+            // 4142c1f — the belt as of 0.2.0 (approval marker + 3-file cap, pre-S171).
+            "b58d3ff3ae6bea3791153081072bed7c3a52554c8f280ab51909184434ef26a9",
+            // 12ac391 — the first tracked belt (S43).
+            "d37b7ffc6b3c0ce240f1bc1e00b264e89d0e8df7dd81dee510ef84298ffc001d",
+        ],
+    ),
+    (
+        ".githooks/pre-push",
+        &[
+            // 12ac391 — unchanged from S43 until S171.
+            "85b3e233d7d6cf5e53c5d035fb3e0c355c6a8cdd3e40843968f26a1dcb5f1e9e",
+        ],
+    ),
+    (
+        "scripts/demo-session-template.sh",
+        &[
+            // a78e07e (S71) — the canonical scripts/demo-session-template.sh, embedded by include_str!.
+            "a4fd31c57b2a795971501417873c7ba84e6bc76a58115344bcf3d1747704430b",
+            // ee5c8c7..95f8b39 — the inline `r#"…"#` template in src/cli/init.rs before S71
+            // (chitra's copy). Carries no fill token, so every install got these exact bytes.
+            "31b37550286e316df7848565bacbf5e16f14b2dd440419293a1ec5cc4b95dcdd",
+            // 88f4a8e..31d30dc — the earlier inline template, same shape.
+            "fae423cb2260ec8702197e2a8f521bbd9ede4bab15e3a1d082924862461a01b9",
+        ],
+    ),
+];
 
 /// True when `body` is byte-identical to an unstamped render Vajra itself once shipped at `rel` —
 /// provably untouched, so upgrading it destroys nothing. A pure function of the bytes (not the
@@ -744,7 +768,10 @@ fn merge_claude_settings_file(path: &Path, template: &str) -> Result<bool> {
 fn append_gitignore_block(path: &Path, block: &str) -> Result<bool> {
     let existing =
         fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
-    if existing.contains(GITIGNORE_MARKER) {
+    // S171 cold review rec 10: a project scaffolded by an older Vajra carries the block's first
+    // line but not today's marker — appending again would duplicate `.ai/.session-owner`.
+    const OLD_FIRST_LINE: &str = "# Vajra session-guard owner record";
+    if existing.contains(GITIGNORE_MARKER) || existing.contains(OLD_FIRST_LINE) {
         return Ok(false);
     }
     let sep = if existing.is_empty() || existing.ends_with("\n\n") {
@@ -961,9 +988,13 @@ fn first_run_aha(root: &Path) {
     eprintln!();
     // S171: the old one-liner never said to COMMIT, and the founder's first `git commit` after
     // init was then refused by Vajra's own hook. Spell both steps out, in the order they happen.
-    eprintln!("Next — two steps:");
-    eprintln!("  1. save these files:        git add -A && git commit -m \"Add Vajra\"");
-    eprintln!("  2. start the first session: vajra claude   (then say: start session 00)");
+    // S171 cold review rec 1: a fresh repo is on `main`, and the belt refuses `main` for everyone —
+    // so "commit these files" as step 1 walked the user straight into the block this session fixed.
+    // The branch comes first, as it does for every session.
+    eprintln!("Next — three steps:");
+    eprintln!("  1. make this session's branch: git checkout -b session-00-onboarding");
+    eprintln!("  2. save these files:           git add -A && git commit -m \"Add Vajra\"");
+    eprintln!("  3. start the session:          vajra claude   (then say: start session 00)");
 }
 
 /// Fire the scaffolded co-pilot hook once and capture what the agent would see.
@@ -2218,7 +2249,6 @@ mod tests {
         );
     }
 
-    #[test]
     /// S171: re-running `vajra init` on a project already past session 00 must not greet it as a
     /// brand-new one. The founder re-ran it in rudra at session 02 and was told to start session 00.
     #[test]

@@ -90,7 +90,7 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         ),
         Step::new(
             passed("Demo-er"),
-            "there is a demo, and it has been PLAYED for the human",
+            "a demo script exists and draws every required section",
             format!(
                 "copy scripts/demo-session-template.sh to scripts/demo-session-{nn}.sh, fill every \
                  section with live runs — then run it in front of them: bash \
@@ -115,7 +115,7 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         ),
         Step::new(
             next_prompt,
-            "the 3 options have been SHOWN in chat and the human has picked one",
+            "the next session's prompt exists (write it from the human's pick)",
             format!(
                 "print the three candidates from the summary in the chat, ask which one, then \
                  write prompts/{:02}-task-<slug>.md from the pick",
@@ -165,6 +165,12 @@ pub fn format_steps(steps: &[Step], session: u32) -> String {
             out.push_str(
                 "  Do it without being asked — this list is the session, not a menu for the human.\n",
             );
+            // S171 cold review rec 5: every ✓ above is a FILE existing. A demo written and never
+            // run, or options written and never shown, still ticks. Say so rather than let the
+            // wording imply the human was there.
+            out.push_str(
+                "  ✓ means the file is there — never that the human watched the demo or picked.\n",
+            );
         }
     }
     out
@@ -175,9 +181,8 @@ pub fn format_steps(steps: &[Step], session: u32) -> String {
 /// had the options and the human never got the choice. `vajra next --steps` prints them whenever
 /// they exist and the next prompt has not been written yet.
 pub fn format_options(root: &Path, session: u32) -> String {
-    if prompt_exists(root, session + 1) {
-        return String::new();
-    }
+    // S171 cold review rec 8: printed whenever the three exist. Skipping them once the next prompt
+    // was written let an agent suppress the handover simply by writing that prompt first.
     let Some(rel) = analyst::options_gate(root, session).summary_path else {
         return String::new();
     };
@@ -200,6 +205,12 @@ pub fn format_options(root: &Path, session: u32) -> String {
         }
     }
     out.push_str(&format!("  (from {rel})\n"));
+    if prompt_exists(root, session + 1) {
+        out.push_str(&format!(
+            "  A prompt for session {:02} is already written — say which of these it came from.\n",
+            session + 1
+        ));
+    }
     out
 }
 
@@ -251,9 +262,11 @@ mod tests {
     fn the_checklist_names_the_demo_the_options_and_the_next_prompt() {
         let d = repo();
         let text = format_steps(&steps(d.path(), 1), 1);
-        assert!(text.contains("PLAYED for the human"), "{text}");
+        assert!(text.contains("a demo script exists"), "{text}");
         assert!(text.contains("exactly 3 ranked options"), "{text}");
-        assert!(text.contains("SHOWN in chat"), "{text}");
+        assert!(text.contains("next session's prompt exists"), "{text}");
+        // S171 cold review rec 5: the list must not imply the human was in the room.
+        assert!(text.contains("never that the human watched"), "{text}");
     }
 
     /// The next prompt counts as written only when the padded file is really there.
@@ -263,7 +276,7 @@ mod tests {
         let step = |n| {
             steps(d.path(), n)
                 .into_iter()
-                .find(|s| s.what.contains("SHOWN in chat"))
+                .find(|s| s.what.contains("next session's prompt exists"))
                 .unwrap()
                 .done
         };
