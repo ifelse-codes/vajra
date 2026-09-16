@@ -669,7 +669,7 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
     // Activate the git-level belt (S43): point git at the scaffolded .githooks/.
     configure_githooks_path(root);
 
-    if brownfield {
+    if brownfield && vajra_already_running(root).is_none() {
         eprintln!();
         eprintln!("Existing codebase detected → session 00 is a guided onboarding:");
         eprintln!("  study the repo, fill .ai/KNOWLEDGE.md + .ai/STATE.md with reality,");
@@ -909,10 +909,39 @@ fn is_brownfield(root: &Path) -> bool {
         .unwrap_or(false)
 }
 
+/// Is this project already RUNNING Vajra (past its first session)? `Some(n)` = `.ai/SESSION` reads
+/// session n and there is real session history. Re-running `vajra init` in such a project is a
+/// legitimate thing to do — it picks up new scaffold files and appends the `.gitignore` block —
+/// but the first-run tail was written for a brand-new project: the founder re-ran it in rudra at
+/// session 02 and was told "Existing codebase detected → session 00 is a guided onboarding" and
+/// "start session 00" (S171).
+fn vajra_already_running(root: &Path) -> Option<u32> {
+    let raw = fs::read_to_string(root.join(".ai/SESSION")).ok()?;
+    let n: u32 = raw.trim().parse().ok()?;
+    let has_history = fs::read_dir(root.join("sessions"))
+        .map(|entries| {
+            entries.filter_map(|e| e.ok()).any(|e| {
+                e.file_name()
+                    .to_str()
+                    .is_some_and(|f| f.ends_with("-summary.md"))
+            })
+        })
+        .unwrap_or(false);
+    (n > 0 || has_history).then_some(n)
+}
+
 /// First-run "aha" (S23): after scaffolding, let the user *see* the co-pilot work in
 /// seconds — fire the just-scaffolded hook once against a sample `git commit` so the
 /// guard is felt, not just filed. Best-effort: a missing bash/jq never fails init.
 fn first_run_aha(root: &Path) {
+    // Already running Vajra: this was a top-up, not a first run. Say where the project actually is.
+    if let Some(n) = vajra_already_running(root) {
+        eprintln!();
+        eprintln!("This project already runs Vajra — nothing of yours was overwritten.");
+        eprintln!("  You are on session {n:02}. Next: vajra claude");
+        eprintln!("  To pull in newer hooks and gates too: vajra init --sync-fleet");
+        return;
+    }
     eprintln!();
     eprintln!("▶ See it work — a 5-second simulation against your new project:");
     eprintln!();
@@ -2190,6 +2219,26 @@ mod tests {
     }
 
     #[test]
+    /// S171: re-running `vajra init` on a project already past session 00 must not greet it as a
+    /// brand-new one. The founder re-ran it in rudra at session 02 and was told to start session 00.
+    #[test]
+    fn a_project_past_its_first_session_is_not_a_first_run() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".ai")).unwrap();
+        fs::create_dir_all(dir.path().join("sessions")).unwrap();
+
+        fs::write(dir.path().join(".ai/SESSION"), "00\n").unwrap();
+        assert_eq!(vajra_already_running(dir.path()), None, "a fresh scaffold");
+
+        fs::write(dir.path().join(".ai/SESSION"), "01\n").unwrap();
+        assert_eq!(vajra_already_running(dir.path()), Some(1));
+
+        // Still session 00 on disk, but a closed session exists — history counts too.
+        fs::write(dir.path().join(".ai/SESSION"), "00\n").unwrap();
+        fs::write(dir.path().join("sessions/session-00-summary.md"), "# s00").unwrap();
+        assert_eq!(vajra_already_running(dir.path()), Some(0));
+    }
+
     /// S171: a project that already has a `.gitignore` must still get Vajra's lines — the
     /// founder's rudra was skipped, and its first commit carried `.ai/.session-owner` and two
     /// `latest` symlinks pointing at directories only his machine has. Appended once, never twice,
