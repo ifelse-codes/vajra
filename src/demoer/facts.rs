@@ -66,7 +66,10 @@ pub fn demo_facts(root: &Path, session: u32) -> Vec<(String, String)> {
     };
     let crew_names: Vec<&str> = crew.iter().map(String::as_str).collect();
     let values = [
-        session.to_string(),
+        // S171: padded, like every session-numbered path Vajra writes (`session-01-…`). The demo
+        // kit passes the padded number, so an unpadded fact made every check fail in a new
+        // project's first ten sessions.
+        format!("{session:02}"),
         passed.len().to_string(),
         report.stations.len().to_string(),
         list(&passed),
@@ -190,7 +193,14 @@ pub fn check_facts(
             .entry(scope)
             .or_insert_with(|| derive(scope).into_iter().collect());
         let want = truth.get(k).map(String::as_str).unwrap_or("none");
-        if want != v {
+        // S171: `session=1` and `session=01` name the same session — compare that one as a
+        // number, so a demo written before the facts were padded still passes.
+        let matches = if k == "session" {
+            matches!((v.parse::<u32>(), want.parse::<u32>()), (Ok(a), Ok(b)) if a == b)
+        } else {
+            want == v
+        };
+        if !matches {
             reasons.push(format!(
                 "demo:fact {k}={v} (session {scope}) but Vajra derives {k}={want} — a typed or \
                  stale fact"
@@ -216,6 +226,25 @@ pub fn check_facts(
 mod tests {
     use super::*;
 
+    /// S171 (founder's rudra test): a new project's first ten sessions are `session-01`, not
+    /// `session-1`. The kit asks for "01"; the fact must come back the same way, and a demo that
+    /// still prints the unpadded spelling must not be called a lie.
+    #[test]
+    fn single_digit_session_fact_is_padded_and_either_spelling_matches() {
+        let derive = |n: u32| {
+            let mut f = truth(n);
+            f[0] = ("session".to_string(), format!("{n:02}"));
+            f
+        };
+        assert_eq!(derive(1)[0].1, "01");
+        let mut padded = facts(&[("session", "01")]);
+        padded.extend(truth(1).into_iter().skip(1));
+        assert!(check_facts(&padded, 1, derive).is_empty());
+        let mut unpadded = facts(&[("session", "1")]);
+        unpadded.extend(truth(1).into_iter().skip(1));
+        assert!(check_facts(&unpadded, 1, derive).is_empty());
+    }
+
     fn facts(pairs: &[(&str, &str)]) -> Vec<(String, String)> {
         pairs
             .iter()
@@ -224,7 +253,7 @@ mod tests {
     }
 
     fn truth(session: u32) -> Vec<(String, String)> {
-        let s = session.to_string();
+        let s = format!("{session:02}");
         facts(&[
             ("session", &s),
             ("stations_passed", "5"),
