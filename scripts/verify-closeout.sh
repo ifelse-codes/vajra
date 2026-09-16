@@ -32,6 +32,19 @@ mkdir -p "$ARTIFACTS"
 
 PASS=0; FAIL=0; RESULTS=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
+# --- session file names: padded or not (S171, founder's rudra test) -------------------
+# Vajra writes session files zero-padded — session 1 is `session-01-…` — but N here is the
+# unpadded integer (10#), so every path below asked for `…-1.sh` / `session-1-review.md`.
+# In a new project's first ten sessions that demanded DUPLICATE files next to the real ones.
+# Build the padded name first; accept the unpadded one only when that is the file that
+# exists. For N >= 10 both forms are identical, so nothing changes for an older repo.
+spath() {   # spath <prefix> <suffix>  ->  the session-numbered path to use
+  local pad p u; pad="$(printf '%02d' "$N")"; p="${1}${pad}${2}"; u="${1}${N}${2}"
+  if   [ -e "$p" ]; then printf '%s' "$p"
+  elif [ -e "$u" ]; then printf '%s' "$u"
+  else printf '%s' "$p"; fi
+}
+
 bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); }
 
 N=""
@@ -325,8 +338,8 @@ check_verify_demo_scripts() {
     ok "$NAME"; return
   fi
 
-  local V="scripts/verify-session-${N}.sh"
-  local D="scripts/demo-session-${N}.sh"
+  local V; V="$(spath scripts/verify-session- .sh)"
+  local D; D="$(spath scripts/demo-session- .sh)"
   local missing=()
   { [ -f "$V" ] && [ -s "$V" ]; } || missing+=("$V")
 
@@ -351,9 +364,9 @@ check_verify_demo_scripts() {
     ok "$NAME"
   else
     if is_code_session; then
-      echo "FAIL: add scripts/verify-session-${N}.sh + scripts/demo-session-${N}.sh (step 5, VERIFY + DEMO)," >> "$LOG"
+      echo "FAIL: add $V + $D (step 5, VERIFY + DEMO)," >> "$LOG"
     else
-      echo "FAIL: add scripts/verify-session-${N}.sh (step 5, VERIFY)," >> "$LOG"
+      echo "FAIL: add $V (step 5, VERIFY)," >> "$LOG"
     fi
     echo "      or set VAJRA_CLOSEOUT_WAIVER=$N for a DOGFOOD / NO-CODE session that produces none." >> "$LOG"
     bad "$NAME"
@@ -379,7 +392,7 @@ check_demo_markers() {
     ok "$NAME"; return
   fi
 
-  local D="scripts/demo-session-${N}.sh"
+  local D; D="$(spath scripts/demo-session- .sh)"
   if [ ! -f "$D" ] || [ ! -s "$D" ]; then
     echo "N/A: $D absent — check_verify_demo_scripts owns this failure." >> "$LOG"
     ok "$NAME"; return
@@ -438,7 +451,7 @@ waiver_ok() { [ -n "${VAJRA_CLOSEOUT_WAIVER:-}" ] && [ "${VAJRA_CLOSEOUT_WAIVER}
 check_fidelity_review() {
   local NAME="fidelity-review-accept"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
-  local F="sessions/session-${N}-review.md"
+  local F; F="$(spath sessions/session- -review.md)"
   : > "$LOG"
 
   # (1) Require the artifact.
@@ -447,7 +460,7 @@ check_fidelity_review() {
     if waiver_ok; then
       echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
     else
-      echo "FAIL: supply sessions/session-${N}-review.md (cold pass) or a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"; bad "$NAME"
+      echo "FAIL: supply $F (cold pass) or a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"; bad "$NAME"
     fi
     return
   fi
@@ -679,7 +692,8 @@ check_required_crew() {
     # existing sessions that predate the Brief: requirement.
     if ! is_code_session; then
       shopt -s nullglob
-      local hs=(.ai/handoffs/session-${N}-*.md)
+      local hs=(.ai/handoffs/session-$(printf '%02d' "$N")-*.md)
+      [ "${#hs[@]}" -eq 0 ] && hs=(.ai/handoffs/session-${N}-*.md)
       local brief_found=0
       for h in ${hs[@]+"${hs[@]}"}; do
         if grep -q "Brief:" "$h" 2>/dev/null; then brief_found=1; break; fi
@@ -891,7 +905,7 @@ canonical_inputs_sha() {
 check_review_attestation() {
   local NAME="review-inputs-attested"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
-  local F="sessions/session-${N}-review.md"
+  local F; F="$(spath sessions/session- -review.md)"
   : > "$LOG"
 
   if [ ! -f "$F" ] || [ ! -s "$F" ]; then
