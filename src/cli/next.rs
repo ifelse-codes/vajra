@@ -18,6 +18,7 @@ use crate::fleet;
 use crate::gate_run;
 use crate::mandate;
 use crate::maturity::{read_maturity, MaturityLevel};
+use crate::nextstep;
 use crate::obeyed;
 use crate::planner;
 use crate::qa;
@@ -42,6 +43,12 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--validate") {
         return run_validate(args.get(i + 1));
+    }
+    // S171: the session's remaining steps on their own — what the boot hook prints, so the very
+    // first thing an agent reads is the move it should make without being asked.
+    if args.iter().any(|a| a == "--steps") {
+        let i = args.iter().position(|a| a == "--steps").unwrap();
+        return run_steps(args.get(i + 1));
     }
     if let Some(i) = args.iter().position(|a| a == "--check-options") {
         return run_check_options(args.get(i + 1));
@@ -430,6 +437,24 @@ fn utc_now() -> String {
 /// `vajra next --check-options NN` — the Analyst's OPTIONS gate (S62 / J2): does
 /// `sessions/session-NN-summary.md` record exactly 3 ranked next candidates? Exit 1 if it records
 /// a wrong count (BLOCK); pass on exactly 3 or a wholly absent section (WARN). Mirrors `--validate`.
+/// `vajra next --steps [NN]` — the session checklist alone (no packet): every step, ✓ or ✗, and
+/// the first unfinished one named as the next move. NN defaults to `.ai/SESSION`.
+fn run_steps(nn: Option<&String>) -> Result<()> {
+    let root = repo_root()?;
+    let session = match nn {
+        Some(v) => v
+            .trim()
+            .parse::<u32>()
+            .with_context(|| format!("session number must be an integer (got {v:?})"))?,
+        None => current_session(&root).context("no .ai/SESSION to read a session number from")?,
+    };
+    print!(
+        "{}",
+        nextstep::format_steps(&nextstep::steps(&root, session), session)
+    );
+    Ok(())
+}
+
 fn run_check_options(nn: Option<&String>) -> Result<()> {
     let nn = nn.context("usage: vajra next --check-options <NN>")?;
     let session: u32 = nn
@@ -1341,6 +1366,12 @@ fn run_dump() -> Result<()> {
             report.passed(),
             stations::STATION_COUNT
         );
+        println!();
+
+        // S171: the checklist, and the one move to make next. The founder's first-run test had the
+        // agent stop and ASK him what came next — the demo, the ranked options, the next prompt and
+        // the whole crew were skipped because they lived in prose nobody was forced to read.
+        print!("{}", nextstep::format_steps(&nextstep::steps(&root, n), n));
         println!();
     }
 
