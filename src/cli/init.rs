@@ -34,6 +34,12 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     // every install and `--sync-fleet` can upgrade them through the same four states.
     ("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
     ("scripts/demo-kit.sh", TPL_DEMO_KIT),
+    // S171: the git-level belt. It was the ONLY guard `--sync-fleet` could not upgrade, so the
+    // fix that stops Vajra blocking the human's own commits would never have reached a project
+    // that already exists. Same four-state upgrade path as every hook above; a belt a project
+    // edited itself reports Drifted and waits for `--overwrite-drifted`.
+    (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
+    (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
 ];
 
 /// The canonical STAMPED render of one hook — a shell-comment `vajra-render-sha:` trailing line over
@@ -1127,8 +1133,11 @@ fn files(
         // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
         // in configure_githooks_path(). Closes the raw `echo > .ai/SESSION` / direct-commit
         // bypass at the right layer.
-        fx(".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
-        fx(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
+        // S171: scaffolded STAMPED (like the .ai/ hooks) so `--sync-fleet` can upgrade them.
+        // Without the stamp an existing project could never receive a fix to these two — the
+        // founder's rudra sync shipped every other fix and left the old human-blocking belt behind.
+        fxs(".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
+        fxs(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         // S167 (DECISION-009): the demo template + the drawing kit it sources are on `SYNC_HOOKS`,
         // scaffolded stamped so a fresh `init` + immediate `--sync-fleet` reports them `UpToDate`.
@@ -2259,10 +2268,11 @@ mod tests {
         ] {
             let hook = dir.path().join(rel);
             assert!(hook.exists(), "{rel} not scaffolded");
-            // Byte-identical to the vajra repo's own .githooks/* — one source, no drift.
+            // The vajra repo's own .githooks/* verbatim, plus the render stamp that lets
+            // `--sync-fleet` upgrade them later (S171) — one source, no drift.
             assert_eq!(
                 fs::read_to_string(&hook).unwrap(),
-                canonical,
+                render_stamped_hook(canonical),
                 "scaffolded {rel} drifted from the canonical .githooks source"
             );
             #[cfg(unix)]
@@ -3512,8 +3522,14 @@ mod tests {
         top.sort();
         assert_eq!(
             top,
-            vec![".ai".to_string(), ".claude".to_string(), "scripts".to_string()],
-            "sync-fleet wrote outside .claude/ + .ai/ + scripts/ — it must never run the full init scaffold"
+            vec![
+                ".ai".to_string(),
+                ".claude".to_string(),
+                ".githooks".to_string(),
+                "scripts".to_string()
+            ],
+            "sync-fleet wrote outside .claude/ + .ai/ + .githooks/ + scripts/ — it must never run \
+             the full init scaffold"
         );
         // Under .ai/ ONLY the constitution + hooks/ — never CONSTRAINTS.yaml, SESSION, etc.
         let mut ai: Vec<String> = fs::read_dir(dir.path().join(".ai"))
@@ -3535,13 +3551,11 @@ mod tests {
         // S146: scripts/ now exists (verify-closeout.sh is a sync target). Only scripts/
         // verify-closeout.sh should appear — not a full scaffold of prompts, sessions, etc.
         assert!(dir.path().join("scripts/verify-closeout.sh").exists());
-        for unwanted in [
-            ".ai/CONSTRAINTS.yaml",
-            ".ai/SESSION",
-            "prompts",
-            "sessions",
-            ".githooks",
-        ] {
+        // S171: .githooks/pre-commit + pre-push ARE sync targets now (the human-vs-agent fix had
+        // to reach existing projects), so the belt is expected — a full scaffold is still not.
+        assert!(dir.path().join(".githooks/pre-commit").exists());
+        assert!(dir.path().join(".githooks/pre-push").exists());
+        for unwanted in [".ai/CONSTRAINTS.yaml", ".ai/SESSION", "prompts", "sessions"] {
             assert!(
                 !dir.path().join(unwanted).exists(),
                 "{unwanted} was scaffolded by --sync-fleet"

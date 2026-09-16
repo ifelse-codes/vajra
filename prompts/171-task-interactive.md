@@ -27,7 +27,9 @@
 | F12 | 3 — prompt 01 written | Agent contradicts itself: S00 docs-only = "no demo", but S01 (also docs-only) "is where the first demo appears" | ⚪ |
 | F13 | after session 00 | Nobody says how to finish session 00: branch never merged to `main`, never pushed. Guide + agent jump straight to "new chat, session 01" | 🔴 |
 | F13b | after session 00 | Founder asks "doesn't Claude/Vajra merge it if I ask?" Checked rudra's hooks: agent CAN local-merge (nothing blocks), but push / PR / PR-merge are blocked by the publish-guard unless launched with `VAJRA_ALLOW_PUBLISH=1` — same "chat approval doesn't count" wall as F6 | 🔴 |
+| F14 | `vajra next` | Shows "✓ Analyst framed what to build" while prompt 01 is still DRAFT; also says "approval token in chat before any commit" — but chat approval doesn't work (F6) | 🟡 |
 | F15 | after merge | Agent merged locally then offers `git push origin main`. Vajra's own pre-push hook forbids pushing `main` ("open a PR instead") AND the publish-guard blocks the agent's push — but a PR is now impossible (branch == main). Local-merge path strands the work off GitHub; Vajra never told the agent to go branch → PR → merge | 🔴 |
+| F26 | after the fixes | `vajra init --sync-fleet` upgraded 5 files in rudra but NOT `.githooks/pre-commit` / `pre-push` — the only guard it could never update, so the human-vs-agent fix would never reach an existing project. Both are sync targets now (stamped) | 🔴 |
 | F16 | exit receipt (session 00, opus-4-8) | Receipt estimate **~$19.33**; Claude Code's own status line showed **"Est. usage: $8.38"** for the same session → Vajra is **2.3× higher**. Session 01 receipt: **~$54.47** (cache-w $28.90, cache-r $18.59) — Claude Code figure not captured. Biggest lines: cache-write $8.85, cache-read $6.84 — suspect cache pricing. Text is jargon: "authoritative", "JSONL", "total_cost_usd", "cache-r/cache-w" | 🟡 |
 | F17 | session 01 start | Co-pilot loader stops the agent's edit with a red "hook error" ("load TASK.md + ROADMAP.md first"). Agent recovers on its own, but it looks like a failure to the user | ⚪ |
 | F18 | session 01 end | Demo skipped AGAIN until founder asked "why no demo?" (repeat of F8). Nothing made it happen before asking for commit | 🔴 (repeat) |
@@ -45,7 +47,6 @@
 - W3: Session 01 finished on its own: readiness doc (8/8 specs), verify script 11/11 exit 0, summary + 3 candidates, zero code touched. Stopped to ask for commit approval + one real project decision — right moments to stop.
 - W4: Once asked, the crew ran for real (tech-lead → qa-specialist + fidelity-reviewer). **The reviewers caught a real contradiction** in the founder's project docs (OQ-7) — the crew added value.
 - W5: Full close worked with the two launch settings: PR #1 opened + merged on GitHub, closeout 16/16, branch pruned, main synced.
-| F14 | `vajra next` | Shows "✓ Analyst framed what to build" while prompt 01 is still DRAFT; also says "approval token in chat before any commit" — but chat approval doesn't work (F6) | 🟡 |
 
 ## Goal
 1. _Filled in from the founder's findings at session start._
