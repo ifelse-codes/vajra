@@ -1,4 +1,9 @@
-//! Scratch: print the receipt for a transcript file. `cargo run --example receipt_for -- <path>`
+//! Price a past session: print Vajra's receipt for any Claude Code transcript on disk.
+//!
+//! `cargo run --example receipt_for -- ~/.claude/projects/<slug>/<uuid>.jsonl`
+//!
+//! Kept because a cost claim you cannot re-run is not a cost claim (S171): this is what produced
+//! the $19.25-against-Claude-Code's-$19.56 check on the founder's own session.
 use std::path::PathBuf;
 
 fn main() {

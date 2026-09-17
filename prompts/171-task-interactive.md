@@ -90,6 +90,33 @@
 - step 5 — done: cb327ad / 72e05de / 5fe9152
 - step 6 — done: 733f01d / 318f86c
 
+## Advice
+
+Two independent cold reviews ran on this session (pass 1 REJECT → fixed → pass 2 REJECT → fixed).
+Their recommendations and what was done with each:
+
+**Pass 1 (`sessions/session-171-review-pass1.md`, REJECT):**
+- fidelity-reviewer rec 1 — obeyed: 2b41ae3 (init tells the user to branch BEFORE the first commit)
+- fidelity-reviewer rec 2 — obeyed: 2b41ae3 (`ranked options: N`; the gate reads the number, not "READY")
+- fidelity-reviewer rec 3 — obeyed: 2b41ae3 (list-shape required; letter and number families counted apart)
+- fidelity-reviewer rec 4 — obeyed: 2b41ae3 (the shipped belt renders registered, so an untouched belt upgrades)
+- fidelity-reviewer rec 5 — obeyed: 2b41ae3 (steps say what the evidence proves; the ✓ caveat is printed)
+- fidelity-reviewer rec 6 — obeyed: 2b41ae3 (duplicate `#[test]` removed; CI runs `clippy --all-targets`)
+- fidelity-reviewer rec 7 — obeyed: 2b41ae3 (a real 4-line transcript fixture replaced the tautological test)
+- fidelity-reviewer rec 8 — obeyed: 2b41ae3 (the options print even once the next prompt exists)
+- fidelity-reviewer rec 9 — obeyed: 2b41ae3 (the belt comment names the no-L3 case for other agents)
+
+**Pass 2 (`sessions/session-171-review-pass2.md`, REJECT — the delivered tree failed its own acceptance 5):**
+- fidelity-reviewer rec 1 — obeyed: the fixture is tracked (`.gitignore` carve-out, the S76/S77 pattern); `cargo test` now runs anywhere, not only on this machine
+- fidelity-reviewer rec 2 — obeyed: `every_shipped_belt_render_is_listed_and_upgrades_cleanly` checks the hashes against the RELEASE TAGS and proves each upgrades without `--overwrite-drifted`
+- fidelity-reviewer rec 3 — obeyed: `find_summary_for` accepts the unpadded spelling F23 left behind, so the new gate cannot false-block those repos
+- fidelity-reviewer rec 4 — obeyed: only the outermost list level counts, per family
+- fidelity-reviewer rec 5 — obeyed: the ✓ caveat prints in the all-done branch too
+- fidelity-reviewer rec 6 — obeyed: the belt no longer claims "Vajra does not stop a person's commit"; it names main, `.ai/` drift and the drift-guard
+- fidelity-reviewer rec 7 — obeyed in part: the two scaffold prompts are untracked and ignored. **refused** for `examples/receipt_for.rs`: it is the only way a person can price a past session (it produced the $19.25-vs-$19.56 check the founder ran himself), so it stays — as an example, not shipped code.
+- fidelity-reviewer rec 8 — obeyed: this section
+- fidelity-reviewer rec 9 — obeyed: `tests/close_gate_options.rs` runs the real shell check in both branches — fallback, new binary, and an old binary that prints no count
+
 ## Guardrails
 - No new checks or gates on Vajra's own paperwork (no more policing).
 - Show each step before the next; stop when the founder says stop.

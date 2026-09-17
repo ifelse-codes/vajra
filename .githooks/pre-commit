@@ -54,8 +54,9 @@ if [ "$agent_shell" = 1 ] && [[ "$branch" =~ ^session-([0-9]+)- ]]; then
   if [ "${VAJRA_ALLOW_COMMIT:-}" != "$sess" ]; then
     echo "Vajra stopped this commit: the agent has no approval to commit for session $sess."
     echo
-    echo "  If YOU are typing this, run it in your own terminal instead — Vajra does not"
-    echo "  stop a person's commit."
+    echo "  If YOU are typing this, run it in your own terminal instead — Vajra does not ask a"
+    echo "  person for approval. (It does still stop anyone committing on main, on .ai/ drift,"
+    echo "  or when the drift-guard says no.)"
     echo
     echo "  To let the agent commit, start it with the approval already given:"
     echo "      VAJRA_ALLOW_COMMIT=$sess vajra claude"

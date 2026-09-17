@@ -158,7 +158,14 @@ pub fn format_steps(steps: &[Step], session: u32) -> String {
         ));
     }
     match steps.iter().find(|s| !s.done) {
-        None => out.push_str("  ▶ nothing left — close the session.\n"),
+        None => {
+            out.push_str("  ▶ nothing left — close the session.\n");
+            // S171 pass-2 cold review rec 5: the caveat belongs here MOST of all — an all-✓ list
+            // is exactly when someone reads it as "the human saw everything".
+            out.push_str(
+                "  ✓ means the file is there — never that the human watched the demo or picked.\n",
+            );
+        }
         Some(s) => {
             out.push_str(&format!("\n  ▶ YOUR NEXT STEP: {}\n", s.what));
             out.push_str(&format!("      how: {}\n", s.how));

@@ -4287,6 +4287,78 @@ dk_finish
         );
     }
 
+    /// S171 pass-2 cold review rec 2: the belt's entries in `SHIPPED_UNSTAMPED_RENDERS` were two
+    /// hand-typed hashes that no test checked — the same "the marker is the proof" pattern this
+    /// session was convened to kill. Every version of the belt this repo ever shipped must be in
+    /// the list, and each must upgrade without `--overwrite-drifted`; a project that edited its
+    /// own belt must still be refused.
+    #[test]
+    fn every_shipped_belt_render_is_listed_and_upgrades_cleanly() {
+        let repo = env!("CARGO_MANIFEST_DIR");
+        let git = |args: &[&str]| {
+            Command::new("git")
+                .args(args)
+                .current_dir(repo)
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+        };
+        for (rel, tpl) in [
+            (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
+            (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
+        ] {
+            // RELEASE TAGS, not every commit: what a project actually carries is whatever the
+            // release it installed from shipped. A mid-session commit on a branch never reached
+            // anyone, and demanding a hash for each would make every future belt edit a two-step
+            // ritual — the ceremony this session is meant to remove.
+            let Some(tags) = git(&["tag"]) else {
+                return; // a published crate has no git history to check against
+            };
+            let mut checked = 0;
+            for tag in String::from_utf8(tags.stdout).unwrap().lines() {
+                let Some(show) = git(&["show", &format!("{tag}:{rel}")]) else {
+                    continue;
+                };
+                let body = String::from_utf8(show.stdout).unwrap();
+                if body == tpl {
+                    continue; // today's bytes: scaffolded stamped, never needs the list
+                }
+                assert!(
+                    is_shipped_unstamped_render(rel, &body),
+                    "{rel} as shipped in {tag} is missing from SHIPPED_UNSTAMPED_RENDERS — a \
+                     project installed from that release would be called Drifted, never upgraded"
+                );
+                let dir = scaffold_tmp();
+                fs::write(dir.path().join(rel), &body).unwrap();
+                let item = plan_fleet_sync(dir.path())
+                    .into_iter()
+                    .find(|i| i.rel == rel)
+                    .unwrap();
+                assert_eq!(item.state, FleetFileState::StaleRender, "{rel} from {tag}");
+                let mut out = Vec::new();
+                sync_fleet(
+                    dir.path(),
+                    SyncOpts {
+                        dry_run: false,
+                        overwrite_drifted: false,
+                    },
+                    &mut out,
+                )
+                .expect("a shipped belt must upgrade without --overwrite-drifted");
+                assert_eq!(
+                    fs::read_to_string(dir.path().join(rel)).unwrap(),
+                    render_stamped_hook(tpl)
+                );
+                checked += 1;
+            }
+            assert!(checked >= 1, "a release tag must carry a pre-S171 {rel}");
+
+            // A belt someone edited themselves is NOT a shipped render — it must still be refused.
+            let edited = format!("{tpl}\n# a local edit\n");
+            assert!(!is_shipped_unstamped_render(rel, &edited));
+        }
+    }
+
     /// DECISION-009's open question: an unstamped template byte-identical to one Vajra shipped is a
     /// provable old render. The list must agree with git history (when `.git` is present) and a
     /// real shipped copy must upgrade without `--overwrite-drifted`.

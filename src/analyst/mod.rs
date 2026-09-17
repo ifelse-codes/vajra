@@ -418,8 +418,8 @@ fn is_candidate_heading(line: &str) -> bool {
 /// once. Returns 0 when no candidates section exists.
 pub fn count_ranked_options(content: &str) -> usize {
     let mut in_section = false;
-    let mut letters: Vec<String> = Vec::new();
-    let mut numbers: Vec<String> = Vec::new();
+    let mut letters: Vec<(usize, String)> = Vec::new();
+    let mut numbers: Vec<(usize, String)> = Vec::new();
     for line in content.lines() {
         if line.trim_start().starts_with('#') {
             in_section = is_candidate_heading(line);
@@ -429,34 +429,49 @@ pub fn count_ranked_options(content: &str) -> usize {
             continue;
         }
         match option_marker(line) {
-            Some(Marker::Letter(c)) if !letters.contains(&c) => letters.push(c),
-            Some(Marker::Number(n)) if !numbers.contains(&n) => numbers.push(n),
+            Some(Marker::Letter(i, c)) if !letters.contains(&(i, c.clone())) => {
+                letters.push((i, c))
+            }
+            Some(Marker::Number(i, n)) if !numbers.contains(&(i, n.clone())) => {
+                numbers.push((i, n))
+            }
             _ => {}
         }
     }
-    // S171 cold review rec 3: the two spellings are separate FAMILIES. Merging them let two real
-    // `A`/`B` options plus one stray numbered line add up to a passing three.
-    letters.len().max(numbers.len())
+    // Only the OUTERMOST level is the ranking: anything indented under an option — numbered
+    // sub-steps especially — belongs to that option (S171 pass-2 cold review rec 4). And the two
+    // spellings are separate FAMILIES, so two real `A`/`B` options plus one stray numbered line
+    // cannot add up to a passing three (S171 pass-1 rec 3).
+    let outer = letters
+        .iter()
+        .chain(numbers.iter())
+        .map(|(i, _)| *i)
+        .min()
+        .unwrap_or(0);
+    let at_outer = |v: &Vec<(usize, String)>| v.iter().filter(|(i, _)| *i == outer).count();
+    at_outer(&letters).max(at_outer(&numbers))
 }
 
 /// A ranked-option marker: `A`/`B`/`C…` or `1`/`2`/`3…` (S171).
 enum Marker {
-    Letter(String),
-    Number(String),
+    Letter(usize, String),
+    Number(usize, String),
 }
 
 /// The marker a ranked-option line opens with, if it is one.
 fn option_marker(line: &str) -> Option<Marker> {
-    if let Some(n) = numbered_marker(line) {
-        return Some(Marker::Number(n));
+    if let Some((indent, n)) = numbered_marker(line) {
+        return Some(Marker::Number(indent, n));
     }
-    option_letter(line).map(|c| Marker::Letter(c.to_string()))
+    let indent = line.len() - line.trim_start().len();
+    option_letter(line).map(|c| Marker::Letter(indent, c.to_string()))
 }
 
 /// A markdown ordered-list item's number: digits, then `.` or `)`, then a SPACE (S171 cold review
 /// rec 3 — without the space `3.5× faster`, `0.2.0 ships next` and any version string counted as
 /// options). Multi-digit stays distinct, so a ranking past nine no longer collapses onto `1`.
-fn numbered_marker(line: &str) -> Option<String> {
+fn numbered_marker(line: &str) -> Option<(usize, String)> {
+    let indent = line.len() - line.trim_start().len();
     let trimmed = line.trim_start();
     let digits: String = trimmed.chars().take_while(char::is_ascii_digit).collect();
     if digits.is_empty() || digits.len() > 3 {
@@ -465,7 +480,7 @@ fn numbered_marker(line: &str) -> Option<String> {
     let rest = &trimmed[digits.len()..];
     let mut chars = rest.chars();
     match (chars.next(), chars.next()) {
-        (Some('.') | Some(')'), Some(' ')) => Some(digits),
+        (Some('.') | Some(')'), Some(' ')) => Some((indent, digits)),
         _ => None,
     }
 }
@@ -550,8 +565,16 @@ pub fn options_gate(root: &Path, session: u32) -> OptionsVerdict {
 
 /// Find `sessions/session-NN-summary.md` for a session number.
 pub fn find_summary_for(root: &Path, session: u32) -> Option<String> {
-    let rel = format!("sessions/session-{session:02}-summary.md");
-    root.join(&rel).is_file().then_some(rel)
+    // Padded is what Vajra writes, so look there first. The unpadded spelling is accepted as a
+    // fallback because F23 littered real repos with `session-1-…` files: without this the options
+    // gate would read "no summary" and BLOCK a session whose three candidates are right there
+    // (S171 pass-2 cold review rec 3).
+    let padded = format!("sessions/session-{session:02}-summary.md");
+    if root.join(&padded).is_file() {
+        return Some(padded);
+    }
+    let unpadded = format!("sessions/session-{session}-summary.md");
+    root.join(&unpadded).is_file().then_some(unpadded)
 }
 
 /// The gate's decision for advancing INTO `session`.
@@ -710,6 +733,21 @@ mod tests {
         // Lettered still works, and the two spellings never double-count.
         let lettered = "## candidates\n- **A — one**\n- **B — two**\n- **C — three**\n";
         assert_eq!(count_ranked_options(lettered), 3);
+    }
+
+    /// S171 pass-2 cold review rec 4: numbered sub-steps under a lettered option are part of that
+    /// option — counting them blocked a summary that was fine. And rec 3: an unpadded summary is
+    /// still found, because F23 left real repos full of `session-1-…` names.
+    #[test]
+    fn nested_numbered_substeps_do_not_inflate_the_count() {
+        // Written with explicit newlines: a `\`-continued Rust string strips the indentation this
+        // test is about.
+        let nested = "## candidates\n- **A — one**\n  1. do this\n  2. then this\n  3. then that\n  4. and this\n- **B — two**\n- **C — three**\n";
+        assert_eq!(count_ranked_options(nested), 3);
+
+        let numbered_with_substeps =
+            "## candidates\n1. one\n   1. sub\n   2. sub\n2. two\n3. three\n";
+        assert_eq!(count_ranked_options(numbered_with_substeps), 3);
     }
 
     /// S171 cold review rec 3: prose that merely starts with digits is not an option, families do
