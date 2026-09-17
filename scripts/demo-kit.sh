@@ -258,12 +258,25 @@ dk_check() { local quiet=0 label res l
     printf '%s\n' "$_DK_OUT" | tail -n 3 | while IFS= read -r l; do dk_fit_v "$l" $(( DK_W - 6 )); printf '    %s\n' "${C_D}$_DK_F${C_0}"; done
   fi; return 0; }
 
+# S171: a session number as a plain number, so "01" and "1" compare equal. Anything that is not
+# all digits (the template's own SESSION="NN", say) comes back untouched and simply compares as
+# text — `$((10#NN))` would be a fatal arithmetic error and kill the whole demo.
+_dk_num() { case "${1:-}" in ''|*[!0-9]*) printf '%s' "${1:-}" ;; *) printf '%s' "$((10#$1))" ;; esac; }
+
 # ---- the facts Vajra fills in (vajra next --demo-facts NN) — never typed by hand ---------------
 _dk_facts() { local n="${1:-}" line k   # loads DKF_<key> + _DK_FACTS; a failure is a failed check
-  [ -n "$_DK_FACTS" ] && [ "${DKF_session:-}" = "$n" ] && return 0   # read once per session per run
+  # S171: compare session numbers as NUMBERS — the kit is called with "01" while vajra prints
+  # the padded fact; either spelling of the same session must count as the same session.
+  [ -n "$_DK_FACTS" ] && [ "$(_dk_num "${DKF_session:-}")" = "$(_dk_num "$n")" ] && return 0
   _DK_FACTS=""
   dk_run_v "${VAJRA_BIN:-vajra}" next --demo-facts "$n" </dev/null
-  case "$_DK_OUT" in "session=$n"*) ;; *) [ "$_DK_RC" = 0 ] && _DK_RC=1 ;; esac   # an old vajra prints no facts
+  # an old vajra prints no facts; a padded/unpadded spelling of the same number is fine (S171)
+  _dk_sess_line="$(printf '%s' "$_DK_OUT" | head -1)"
+  case "$_dk_sess_line" in
+    session=*) [ "$(_dk_num "${_dk_sess_line#session=}")" = "$(_dk_num "$n")" ] \
+                 || { [ "$_DK_RC" = 0 ] && _DK_RC=1; } ;;
+    *) [ "$_DK_RC" = 0 ] && _DK_RC=1 ;;
+  esac
   if [ "$_DK_RC" != 0 ]; then
     DK_SCORES+=("FAIL|Vajra filled in the facts for session $n"); DK_FAILS=$((DK_FAILS+1))
     dk_marker "check-failed Vajra facts for session $n — ${VAJRA_BIN:-vajra} exited $_DK_RC"

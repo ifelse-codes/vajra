@@ -18,6 +18,7 @@ use crate::fleet;
 use crate::gate_run;
 use crate::mandate;
 use crate::maturity::{read_maturity, MaturityLevel};
+use crate::nextstep;
 use crate::obeyed;
 use crate::planner;
 use crate::qa;
@@ -42,6 +43,12 @@ pub fn run(args: &[String]) -> Result<()> {
     }
     if let Some(i) = args.iter().position(|a| a == "--validate") {
         return run_validate(args.get(i + 1));
+    }
+    // S171: the session's remaining steps on their own — what the boot hook prints, so the very
+    // first thing an agent reads is the move it should make without being asked.
+    if args.iter().any(|a| a == "--steps") {
+        let i = args.iter().position(|a| a == "--steps").unwrap();
+        return run_steps(args.get(i + 1));
     }
     if let Some(i) = args.iter().position(|a| a == "--check-options") {
         return run_check_options(args.get(i + 1));
@@ -430,6 +437,31 @@ fn utc_now() -> String {
 /// `vajra next --check-options NN` — the Analyst's OPTIONS gate (S62 / J2): does
 /// `sessions/session-NN-summary.md` record exactly 3 ranked next candidates? Exit 1 if it records
 /// a wrong count (BLOCK); pass on exactly 3 or a wholly absent section (WARN). Mirrors `--validate`.
+/// `vajra next --steps [NN]` — the session checklist alone (no packet): every step, ✓ or ✗, and
+/// the first unfinished one named as the next move. NN defaults to `.ai/SESSION`.
+fn run_steps(nn: Option<&String>) -> Result<()> {
+    let root = repo_root()?;
+    let session = match nn.and_then(|v| v.trim().parse::<u32>().ok()) {
+        // S171 cold review rec 11: an unparseable argument used to ERROR, and the boot hook hides
+        // stderr — a silent no-checklist. Fall through to the branch / `.ai/SESSION` instead.
+        Some(n) => n,
+        // S171: the BRANCH wins over `.ai/SESSION` here. The founder started session 02 in rudra
+        // while the spine still said 01 (S01's closeout never rolled the pointer forward), so the
+        // boot checklist described the session that had already closed — "the design is recorded"
+        // instead of "dispatch the tech-lead". A checklist about the wrong session is worse than
+        // none. Every gate still keys off `.ai/SESSION`; only this advice follows the branch.
+        None => session_of_branch(&current_branch(&root))
+            .or_else(|| current_session(&root))
+            .context("no session-NN branch and no .ai/SESSION to read a session number from")?,
+    };
+    print!(
+        "{}",
+        nextstep::format_steps(&nextstep::steps(&root, session), session)
+    );
+    print!("{}", nextstep::format_options(&root, session));
+    Ok(())
+}
+
 fn run_check_options(nn: Option<&String>) -> Result<()> {
     let nn = nn.context("usage: vajra next --check-options <NN>")?;
     let session: u32 = nn
@@ -444,6 +476,17 @@ fn run_check_options(nn: Option<&String>) -> Result<()> {
         "summary: {}",
         verdict.summary_path.as_deref().unwrap_or("(none)")
     );
+    // S171 cold review rec 2: a machine-readable count, so the close gate reads the NUMBER rather
+    // than inferring three from the word READY. `options_gate` only WARNS when a summary carries no
+    // candidates section at all, so "READY" covered the very case the gate exists to stop — a
+    // session that offered the human nothing.
+    let counted = verdict
+        .summary_path
+        .as_deref()
+        .and_then(|rel| fs::read_to_string(root.join(rel)).ok())
+        .map(|text| analyst::count_ranked_options(&text))
+        .unwrap_or(0);
+    println!("ranked options: {counted}");
     if verdict.blocked() {
         println!("verdict: NOT READY");
         for r in &verdict.reasons {
@@ -1279,20 +1322,19 @@ fn commit_authorization(branch: &str, marker: Option<&str>) -> CommitAuth {
 fn render_commit_auth(auth: CommitAuth) -> String {
     match auth {
         CommitAuth::PreGranted(m) => format!(
-            "commit approval: PRE-GRANTED — VAJRA_ALLOW_COMMIT={m} is set in this launch \
-             environment.\n  That marker IS the founder's approval token for this session \
-             (S93); commits may proceed\n  without a chat token. Advisory line — the L3 \
-             guard remains the enforcing check."
+            "commits: ALLOWED — the person who started this run set VAJRA_ALLOW_COMMIT={m}.\n  \
+             That is their approval for this session, so you may commit without asking again."
         ),
         CommitAuth::Mismatch { marker, session } => format!(
-            "commit approval: NOT VALID HERE — VAJRA_ALLOW_COMMIT={marker} is scoped to session \
-             {marker},\n  but this branch is session {session}. The guard will BLOCK. Relaunch \
-             with VAJRA_ALLOW_COMMIT={session}."
+            "commits: BLOCKED — the approval on hand is for session {marker}, but this branch is \
+             session {session}.\n  Ask for VAJRA_ALLOW_COMMIT={session}, or let the person commit \
+             in their own terminal."
         ),
         CommitAuth::TokenRequired => String::from(
-            "commit approval: REQUIRED — no VAJRA_ALLOW_COMMIT in this launch environment.\n  \
-             A human must give an approval token in chat before any commit. For an UNATTENDED \
-             run,\n  the founder pre-authorizes at launch: `VAJRA_ALLOW_COMMIT=NN vajra claude`.",
+            "commits: BLOCKED — nobody has approved commits for this run.\n  Saying yes in chat \
+             does not reach the check. Either the person types the commit in their\n  own \
+             terminal — Vajra never stops a person — or they start you with\n  \
+             `VAJRA_ALLOW_COMMIT=NN vajra claude`.",
         ),
     }
 }
@@ -1341,6 +1383,17 @@ fn run_dump() -> Result<()> {
             report.passed(),
             stations::STATION_COUNT
         );
+        // S171: the founder read this count as "6 specialists worked on my session". It is not
+        // that — it counts the records in the repo (a filled section, a landed sha, an attested
+        // review), which is why a session where no helper agent ran at all can still show 3 of 8.
+        println!("  (counted from what is written in the repo, not from who was asked to help)");
+        println!();
+
+        // S171: the checklist, and the one move to make next. The founder's first-run test had the
+        // agent stop and ASK him what came next — the demo, the ranked options, the next prompt and
+        // the whole crew were skipped because they lived in prose nobody was forced to read.
+        print!("{}", nextstep::format_steps(&nextstep::steps(&root, n), n));
+        print!("{}", nextstep::format_options(&root, n));
         println!();
     }
 
@@ -1925,6 +1978,16 @@ fn repo_root() -> Result<PathBuf> {
     find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")
 }
 
+/// The session number a `session-NN-<slug>` branch names, if it is one (S171).
+fn session_of_branch(branch: &str) -> Option<u32> {
+    let rest = branch.strip_prefix("session-")?;
+    let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
+    if digits.is_empty() || !rest[digits.len()..].starts_with('-') {
+        return None;
+    }
+    digits.parse().ok()
+}
+
 fn current_branch(root: &Path) -> String {
     Command::new("git")
         .arg("branch")
@@ -2070,20 +2133,21 @@ mod tests {
         );
     }
 
-    /// The rendered lines must name the un-forgeable route for an UNATTENDED run, and must
-    /// disclose that this surface is advisory rather than a permission.
+    /// The rendered lines must say plainly whether commits are allowed, name the route for an
+    /// unattended run, and (S171) say that a chat "yes" does not reach the check — the founder's
+    /// first-run test had him say "ship it" and watch the commit fail anyway.
     #[test]
     fn commit_auth_lines_state_route_and_bound() {
         let granted = render_commit_auth(CommitAuth::PreGranted("99".into()));
-        assert!(granted.contains("PRE-GRANTED"));
-        assert!(granted.contains("approval token"));
-        assert!(
-            granted.contains("Advisory"),
-            "pre-granted line hides that it is not the enforcing check"
-        );
+        assert!(granted.contains("commits: ALLOWED"));
+        assert!(granted.contains("VAJRA_ALLOW_COMMIT=99"));
 
         let required = render_commit_auth(CommitAuth::TokenRequired);
-        assert!(required.contains("REQUIRED"));
+        assert!(required.contains("commits: BLOCKED"));
+        assert!(
+            required.contains("Saying yes in chat does not reach the check"),
+            "the packet must not imply a chat token works: {required}"
+        );
         assert!(
             required.contains("VAJRA_ALLOW_COMMIT=NN vajra claude"),
             "packet does not tell an unattended run how to be pre-authorized"
@@ -2093,7 +2157,18 @@ mod tests {
             marker: "98".into(),
             session: "99".into(),
         });
-        assert!(bad.contains("NOT VALID HERE") && bad.contains("BLOCK"));
+        assert!(bad.contains("commits: BLOCKED") && bad.contains("session 99"));
+    }
+
+    /// S171: a session-NN branch names the session the checklist is about, even when `.ai/SESSION`
+    /// still points at the one that closed.
+    #[test]
+    fn the_branch_names_the_session_for_the_checklist() {
+        assert_eq!(session_of_branch("session-02-risk-lease-kill"), Some(2));
+        assert_eq!(session_of_branch("session-171-interactive"), Some(171));
+        assert_eq!(session_of_branch("main"), None);
+        assert_eq!(session_of_branch("session-x-y"), None);
+        assert_eq!(session_of_branch("session-02"), None);
     }
 
     #[test]

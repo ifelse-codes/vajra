@@ -8,9 +8,32 @@ cd "$ROOT"
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo DETACHED)"
 case "$branch" in
   main|master)
-    echo "[pre-commit BLOCK] Direct commits to '$branch' forbidden. Branch session-NN-<slug> first."
+    echo "Vajra stopped this commit: you are on '$branch'."
+    echo "  Work happens on a session branch. Make one first:"
+    echo "      git checkout -b session-NN-<what-this-session-is>"
     exit 1 ;;
 esac
+
+# --- Who is typing this commit? (S171 — from the founder's first-run test) -------------------
+# This belt exists to stop the AGENT committing on its own. It was stopping the HUMAN too: a
+# founder's own `git add -A && git commit -m "Add Vajra"`, the very first commit after
+# `vajra init`, was refused — and the fix it suggested could not work (38 files, 3-file cap).
+# So: a commit typed by a person in their own terminal goes through. An agent shell still needs
+# the approval marker. Claude Code sets CLAUDECODE / CLAUDE_CODE_ENTRYPOINT; Cursor sets
+# CURSOR_TRACE_ID; any other agent can declare itself with VAJRA_AGENT=1.
+#
+# Honesty about layers, in two parts (the second added by S171's cold review, rec 9):
+#  1. An agent that writes the command line can drop those variables for one command, so this
+#     git-level belt was always auditable, never un-forgeable.
+#  2. The teeth are the L3 PreToolUse guard (scripts/hook-commit-guard.sh), which reads its OWN
+#     launch environment and fires even on `git commit --no-verify` — but that guard exists ONLY
+#     under Claude Code. For any other agent that does not set VAJRA_AGENT=1, this split removes
+#     the last enforcement layer rather than relocating it. Set VAJRA_AGENT=1 in that agent's
+#     environment if you want the belt to hold there.
+agent_shell=0
+if [ -n "${CLAUDECODE:-}${CLAUDE_CODE_ENTRYPOINT:-}${CURSOR_TRACE_ID:-}${VAJRA_AGENT:-}" ]; then
+  agent_shell=1
+fi
 
 # --- Approval-evidence gate (S93 — no-autonomous-commit: voluntary -> ENFORCED) --------------
 # On a session branch, a commit requires an un-forgeable human approval marker: the env var
@@ -26,21 +49,30 @@ esac
 # (scripts/hook-commit-guard.sh): its launch env is beyond an inline prefix's reach, and it
 # fires even on `git commit --no-verify` (which skips THIS hook but not PreToolUse). To commit
 # autonomously the agent must beat BOTH layers. See sessions/session-93-summary.md.
-if [[ "$branch" =~ ^session-([0-9]+)- ]]; then
+if [ "$agent_shell" = 1 ] && [[ "$branch" =~ ^session-([0-9]+)- ]]; then
   sess="${BASH_REMATCH[1]}"
   if [ "${VAJRA_ALLOW_COMMIT:-}" != "$sess" ]; then
-    echo "[pre-commit BLOCK] Autonomous commit on '$branch' without approval evidence."
-    echo "  no-autonomous-commit is ENFORCED (S93), not voluntary. A commit needs founder"
-    echo "  approval, supplied as an un-forgeable env marker (mirrors VAJRA_CLOSEOUT_WAIVER):"
+    echo "Vajra stopped this commit: the agent has no approval to commit for session $sess."
+    echo
+    echo "  If YOU are typing this, run it in your own terminal instead — Vajra does not ask a"
+    echo "  person for approval. (It does still stop anyone committing on main, on .ai/ drift,"
+    echo "  or when the drift-guard says no.)"
+    echo
+    echo "  To let the agent commit, start it with the approval already given:"
+    echo "      VAJRA_ALLOW_COMMIT=$sess vajra claude"
+    echo "  or approve this one commit:"
     echo "      VAJRA_ALLOW_COMMIT=$sess git commit ..."
-    echo "  Override this git hook only via git's own --no-verify (still caught by the L3 guard)."
     exit 1
   fi
 fi
 
+# The 3-files-per-commit rule keeps an AGENT's changes reviewable. A person committing their
+# own work is not the problem it was written for — and the first commit of a new Vajra project
+# is ~38 scaffold files (S171).
 staged="$(git diff --cached --name-only --diff-filter=ACMR | sed '/^$/d' | wc -l | tr -d ' ')"
-if [ "${staged:-0}" -gt 3 ]; then
-  echo "[pre-commit BLOCK] $staged files staged; max 3 per atomic change."
+if [ "$agent_shell" = 1 ] && [ "${staged:-0}" -gt 3 ]; then
+  echo "Vajra stopped this commit: $staged files at once; an agent commits at most 3."
+  echo "  Commit them in smaller, related groups."
   exit 1
 fi
 

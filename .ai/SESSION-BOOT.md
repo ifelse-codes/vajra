@@ -1,14 +1,15 @@
 # Session Boot
 
 ## Next Session
-- **S171 — Interactive, built from the founder's own testing** — `prompts/171-task-interactive.md` (**Status: DRAFT** — the founder brings what he found testing Vajra in his other project; we write/edit the prompt together in chat, then work in short check-in loops).
+- **S172 — the founder picks from S171's three candidates** — `sessions/session-171-summary.md` lists them (crew dispatch that happens rather than is advised · finish the 0.2.0 release · keep testing rudra). Write `prompts/172-task-<slug>.md` from his pick.
   Start in a FRESH chat.
 
 ## Current Session
-- **Number:** 170 — CLOSED. NO-CODE Ground Truth (S166–S169): `sessions/session-170-ground-truth.md`. 🔴 off course — 66% of changed lines were paperwork, 5 gate overrides, 0 outside users, crates.io still 0.1.0.
-  Founder decision: he tests Vajra himself; sessions from S171 are interactive. Options A (finish 0.2.0 release) and B (light mode) stay open for his call.
+- **Number:** 171 — CLOSED. CODE, interactive: the founder's own first-run test on `rudra` produced 34 findings; all five problem groups fixed. Summary: `sessions/session-171-summary.md`. Review: `sessions/session-171-review.md` (pass 3 ACCEPT, after two REJECTs — `-pass1.md`, `-pass2.md`).
+  Cost record: `sessions/session-171-artifacts/cost-check.md` (receipt was 2.3× high; now 1.6% from Claude Code's own figure).
+  Carried to S172: an executable test for the human-vs-agent belt split (pass-3 rec 7), and F31 — the agent still plans before dispatching the tech-lead.
 
 ## Prior Session
-- **Number:** 169 — CLOSED. CODE: a session cannot close on made-up evidence. Review: `sessions/session-169-review.md` (pass 2 ACCEPT).
+- **Number:** 170 — CLOSED. NO-CODE Ground Truth (S166–S169): `sessions/session-170-ground-truth.md`. 🔴 off course.
 
 **New chat.**

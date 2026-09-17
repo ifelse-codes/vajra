@@ -64,9 +64,10 @@ esac
 echo ""
 _SESS=$(echo "$BRANCH" | grep -oE '^session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
 if [ -z "${VAJRA_ALLOW_COMMIT:-}" ]; then
-  echo "[commit approval] REQUIRED — no VAJRA_ALLOW_COMMIT in this launch environment."
-  echo "  A human must give an approval token in chat before any commit. For an UNATTENDED run,"
-  echo "  the founder pre-authorizes at launch: VAJRA_ALLOW_COMMIT=${_SESS:-NN} vajra claude"
+  echo "[commit approval] NOT GIVEN for this launch — you may not commit on your own."
+  echo "  Saying yes in chat does NOT reach this check (S171). Either the person types the commit"
+  echo "  in their own terminal — Vajra does not stop a person — or they start you with the"
+  echo "  approval already given: VAJRA_ALLOW_COMMIT=${_SESS:-NN} vajra claude"
 elif [ -z "$_SESS" ] || [ "${VAJRA_ALLOW_COMMIT}" = "$_SESS" ]; then
   echo "[commit approval] PRE-GRANTED — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT} is set at launch."
   echo "  That marker IS the founder's approval token for this session (S93); commits may proceed"
@@ -75,6 +76,16 @@ else
   echo "[commit approval] NOT VALID HERE — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT} is scoped to"
   echo "  session ${VAJRA_ALLOW_COMMIT}, but this branch is session ${_SESS}. The guard will BLOCK."
   echo "  Relaunch with VAJRA_ALLOW_COMMIT=${_SESS}."
+fi
+
+# S171 (founder's first-run test): the session's checklist, printed at boot. Everything the agent
+# skipped until it was asked — the crew dispatch, the demo, the three ranked options, the next
+# prompt — is a line here, with the first unfinished one named as the move to make now. Prose in
+# .ai/AGENTS.md was skippable; this is the first thing the session reads. Silent when vajra is not
+# on PATH (an older install still boots).
+if command -v vajra >/dev/null 2>&1; then
+  echo ""
+  vajra next --steps 2>/dev/null || true
 fi
 
 exit 0

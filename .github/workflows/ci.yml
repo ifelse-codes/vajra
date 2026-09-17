@@ -26,5 +26,7 @@ jobs:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --check
-      - run: cargo clippy -- -D warnings
+      # S171 cold review rec 6: --all-targets, or a warning inside a #[cfg(test)] module
+      # (a duplicated #[test] attribute, in that review) sails past CI unseen.
+      - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test

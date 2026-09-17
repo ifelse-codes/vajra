@@ -32,6 +32,19 @@ mkdir -p "$ARTIFACTS"
 
 PASS=0; FAIL=0; RESULTS=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
+# --- session file names: padded or not (S171, founder's rudra test) -------------------
+# Vajra writes session files zero-padded — session 1 is `session-01-…` — but N here is the
+# unpadded integer (10#), so every path below asked for `…-1.sh` / `session-1-review.md`.
+# In a new project's first ten sessions that demanded DUPLICATE files next to the real ones.
+# Build the padded name first; accept the unpadded one only when that is the file that
+# exists. For N >= 10 both forms are identical, so nothing changes for an older repo.
+spath() {   # spath <prefix> <suffix>  ->  the session-numbered path to use
+  local pad p u; pad="$(printf '%02d' "$N")"; p="${1}${pad}${2}"; u="${1}${N}${2}"
+  if   [ -e "$p" ]; then printf '%s' "$p"
+  elif [ -e "$u" ]; then printf '%s' "$u"
+  else printf '%s' "$p"; fi
+}
+
 bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); }
 
 N=""
@@ -325,8 +338,8 @@ check_verify_demo_scripts() {
     ok "$NAME"; return
   fi
 
-  local V="scripts/verify-session-${N}.sh"
-  local D="scripts/demo-session-${N}.sh"
+  local V; V="$(spath scripts/verify-session- .sh)"
+  local D; D="$(spath scripts/demo-session- .sh)"
   local missing=()
   { [ -f "$V" ] && [ -s "$V" ]; } || missing+=("$V")
 
@@ -351,11 +364,90 @@ check_verify_demo_scripts() {
     ok "$NAME"
   else
     if is_code_session; then
-      echo "FAIL: add scripts/verify-session-${N}.sh + scripts/demo-session-${N}.sh (step 5, VERIFY + DEMO)," >> "$LOG"
+      echo "FAIL: add $V + $D (step 5, VERIFY + DEMO)," >> "$LOG"
     else
-      echo "FAIL: add scripts/verify-session-${N}.sh (step 5, VERIFY)," >> "$LOG"
+      echo "FAIL: add $V (step 5, VERIFY)," >> "$LOG"
     fi
     echo "      or set VAJRA_CLOSEOUT_WAIVER=$N for a DOGFOOD / NO-CODE session that produces none." >> "$LOG"
+    bad "$NAME"
+  fi
+}
+
+# --- The handover to the human (S171, founder's call) ------------------------
+# The founder's rudra sessions 00-02 each ended without him being offered the three ranked
+# options the constitution promises — twice the agent simply announced what came next, and
+# nothing noticed, because no close check ever looked. This one looks. It is deliberately a
+# check on the HANDOVER, not on Vajra's own paperwork: the three candidates are how the human
+# keeps the wheel.
+#
+# Counted the way `vajra next --check-options` counts (A/B/C bullets or a 1/2/3 ranking under a
+# "candidates" heading). The binary does it when it is on PATH — one source of truth — and this
+# falls back to a plain count so a repo without vajra installed still gets a verdict rather than
+# a silent pass.
+check_next_options() {
+  local NAME="three-next-options"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+
+  local S; S="$(spath sessions/session- -summary.md)"
+  if [ ! -s "$S" ]; then
+    echo "BLOCK: $S absent — no summary, so no options were offered." >> "$LOG"
+    if waiver_ok; then echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N" >> "$LOG"; ok "$NAME"; else
+      echo "FAIL: write $S ending in exactly 3 ranked next-session candidates." >> "$LOG"; bad "$NAME"; fi
+    return
+  fi
+
+  # S171 cold review rec 2: read the NUMBER the binary prints, never infer three from the word
+  # READY — `vajra next --check-options` says READY for a summary with no candidates section at
+  # all (that case is only a warning), which is exactly what this check exists to stop. When the
+  # binary answers, its answer stands; the fallback runs ONLY when vajra cannot answer.
+  local count=""
+  if command -v vajra >/dev/null 2>&1; then
+    local out; out="$(vajra next --check-options "$N" 2>&1 || true)"
+    printf '%s\n' "$out" >> "$LOG"
+    count="$(printf '%s\n' "$out" | sed -n 's/^ranked options:[[:space:]]*\([0-9][0-9]*\).*/\1/p' | head -1)"
+    [ -z "$count" ] && echo "note: this vajra prints no 'ranked options:' line (pre-S171) — counting here instead." >> "$LOG"
+  fi
+  if [ -z "$count" ]; then
+    # Fallback (no vajra, or one too old to report a count): distinct markers, one family at a
+    # time, under a heading naming the candidates — the rule src/analyst/mod.rs applies.
+    count="$(awk '
+      function indent_of(line,   t) { t = line; sub(/[^[:space:]].*$/, "", t); return length(t) }
+      /^[[:space:]]*#/ { insec = (tolower($0) ~ /candidate/); next }
+      !insec { next }
+      match($0, /^[[:space:]]*[0-9]+[.)][[:space:]]/) {
+        key = $0; sub(/^[[:space:]]*/, "", key); sub(/[.)].*$/, "", key)
+        num_ind[nn_all] = indent_of($0); num_key[nn_all] = key; nn_all++; next
+      }
+      match($0, /^[[:space:]]*[-*][[:space:]]*\*{0,2}[A-Z][^[:alnum:]]/) {
+        key = $0; sub(/^[[:space:]]*[-*][[:space:]]*\**/, "", key); key = substr(key, 1, 1)
+        let_ind[ln_all] = indent_of($0); let_key[ln_all] = key; ln_all++; next
+      }
+      END {
+        # S171 pass-3 cold review rec 1: only the OUTERMOST level is the ranking — numbered
+        # sub-steps written under an option belong to that option. The Rust counter
+        # (src/analyst/mod.rs) has done this since pass 2; without it here, the fallback — the
+        # path every project on an older binary takes — BLOCKED a summary that really did offer
+        # three options.
+        outer = -1
+        for (i = 0; i < nn_all; i++) if (outer < 0 || num_ind[i] < outer) outer = num_ind[i]
+        for (i = 0; i < ln_all; i++) if (outer < 0 || let_ind[i] < outer) outer = let_ind[i]
+        for (i = 0; i < nn_all; i++) if (num_ind[i] == outer && !(num_key[i] in nums)) { nums[num_key[i]] = 1; nn++ }
+        for (i = 0; i < ln_all; i++) if (let_ind[i] == outer && !(let_key[i] in lets)) { lets[let_key[i]] = 1; ln++ }
+        print (nn + 0 > ln + 0 ? nn + 0 : ln + 0)
+      }' "$S")"
+    echo "counted $count ranked candidate(s) in $S (fallback count)" >> "$LOG"
+  fi
+
+  if [ "${count:-0}" -eq 3 ]; then
+    echo "OK: $S offers exactly 3 ranked next-session candidates." >> "$LOG"; ok "$NAME"; return
+  fi
+  echo "BLOCK: $S records ${count:-0} ranked candidate(s), not 3 — the human was never given the choice." >> "$LOG"
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: end $S with exactly 3 ranked candidates (A/B/C or 1/2/3), show them in the chat," >> "$LOG"
+    echo "      and write the next prompt from the one the human picks." >> "$LOG"
     bad "$NAME"
   fi
 }
@@ -379,7 +471,7 @@ check_demo_markers() {
     ok "$NAME"; return
   fi
 
-  local D="scripts/demo-session-${N}.sh"
+  local D; D="$(spath scripts/demo-session- .sh)"
   if [ ! -f "$D" ] || [ ! -s "$D" ]; then
     echo "N/A: $D absent — check_verify_demo_scripts owns this failure." >> "$LOG"
     ok "$NAME"; return
@@ -438,7 +530,7 @@ waiver_ok() { [ -n "${VAJRA_CLOSEOUT_WAIVER:-}" ] && [ "${VAJRA_CLOSEOUT_WAIVER}
 check_fidelity_review() {
   local NAME="fidelity-review-accept"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
-  local F="sessions/session-${N}-review.md"
+  local F; F="$(spath sessions/session- -review.md)"
   : > "$LOG"
 
   # (1) Require the artifact.
@@ -447,7 +539,7 @@ check_fidelity_review() {
     if waiver_ok; then
       echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
     else
-      echo "FAIL: supply sessions/session-${N}-review.md (cold pass) or a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"; bad "$NAME"
+      echo "FAIL: supply $F (cold pass) or a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"; bad "$NAME"
     fi
     return
   fi
@@ -679,7 +771,8 @@ check_required_crew() {
     # existing sessions that predate the Brief: requirement.
     if ! is_code_session; then
       shopt -s nullglob
-      local hs=(.ai/handoffs/session-${N}-*.md)
+      local hs=(.ai/handoffs/session-$(printf '%02d' "$N")-*.md)
+      [ "${#hs[@]}" -eq 0 ] && hs=(.ai/handoffs/session-${N}-*.md)
       local brief_found=0
       for h in ${hs[@]+"${hs[@]}"}; do
         if grep -q "Brief:" "$h" 2>/dev/null; then brief_found=1; break; fi
@@ -891,7 +984,7 @@ canonical_inputs_sha() {
 check_review_attestation() {
   local NAME="review-inputs-attested"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
-  local F="sessions/session-${N}-review.md"
+  local F; F="$(spath sessions/session- -review.md)"
   : > "$LOG"
 
   if [ ! -f "$F" ] || [ ! -s "$F" ]; then
@@ -1127,6 +1220,7 @@ check_execution_shas
 check_verify_demo_scripts
 check_demo_markers
 check_fidelity_review
+check_next_options
 check_obeyed_judgments
 check_design_advisor_mandate
 check_required_crew

@@ -63,17 +63,18 @@ fire() {
   IFS="$OLDIFS"
 
   if [ "$MATURITY" = "L1" ]; then
-    echo "[vajra co-pilot] ⚡on($pattern) — consider loading:"
+    echo "[vajra] before this step ($pattern), it is worth reading:"
     printf '%s' "$list"
     echo "  why: $why"
     return 0
   fi
 
   {
-    echo "[vajra co-pilot] ⚡on($pattern) fired — load these before continuing:"
+    echo "[vajra] Nothing is broken — this step is paused until you read ($pattern):"
     printf '%s' "$list"
     echo "  why: $why"
-    echo "  Open them, then retry. (Set maturity: L1 in CONSTRAINTS.yaml for advisory-only.)"
+    echo "  Read them, then run the same thing again."
+    echo "  (For warnings instead of pauses: set maturity: L1 in .ai/CONSTRAINTS.yaml.)"
   } 1>&2
   exit 2
 }

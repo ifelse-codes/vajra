@@ -135,6 +135,34 @@ pub fn missing_elements(text: &str, required: &[String]) -> Vec<String> {
         .collect()
 }
 
+/// Elements a SCRIPT does not appear to draw. Same as `missing_elements`, plus one spelling the
+/// live scan must never accept: a kit-built demo writes `dk_section header "…"`, and the kit prints
+/// the `demo:header` marker when that section renders. Scanning the file for the marker alone
+/// therefore read every kit-built demo as empty — the Demo-er station showed "no demo yet" for a
+/// demo that runs green (S171, found in the founder's rudra test). Reporting only: the enforced
+/// scan is still the LIVE output one, which keeps using `missing_elements`.
+pub fn missing_elements_in_script(text: &str, required: &[String]) -> Vec<String> {
+    required
+        .iter()
+        .filter(|e| {
+            if text.contains(&format!("demo:{e}")) {
+                return false;
+            }
+            // The kit names its sections after the slide and prints the ELEMENT marker:
+            // `dk_section headline` prints `demo:header`, `dk_section scorecard` prints
+            // `demo:summary_table`, and `dk_finish` prints `demo:complete`.
+            let drawn_by: &[&str] = match e.as_str() {
+                "header" => &["dk_section headline"],
+                "summary_table" => &["dk_section scorecard"],
+                "complete" => &["dk_finish"],
+                other => return !text.contains(&format!("dk_section {other}")),
+            };
+            !drawn_by.iter().any(|call| text.contains(call))
+        })
+        .cloned()
+        .collect()
+}
+
 /// Resolve session NN's demo contract from the spine (read-only — nothing executes here).
 /// Existence is `is_file()`, NOT readability: an unreadable script still EXISTS, so the gate
 /// re-runs it and blocks on the failure — `chmod 000` must not turn a BLOCK into the no-script
@@ -146,7 +174,7 @@ pub fn gather_contract(root: &Path, session: u32) -> DemoContract {
     let path = root.join(&script);
     let (missing_in_file, sources_kit) = match fs::read_to_string(&path) {
         Ok(text) => (
-            missing_elements(&text, &required_elements),
+            missing_elements_in_script(&text, &required_elements),
             text.contains("demo-kit.sh"),
         ),
         Err(_) => (required_elements.clone(), false),
@@ -520,6 +548,23 @@ pub fn format_demo_contract(contract: &DemoContract) -> String {
 
 #[cfg(test)]
 mod tests {
+
+    /// S171: a kit-built demo draws its sections with `dk_section`, and the kit prints the marker
+    /// at run time. The static scan must credit that, or every kit demo reads as "no demo yet"
+    /// while it runs green.
+    #[test]
+    fn a_kit_built_script_counts_its_dk_section_calls() {
+        let required: Vec<String> = ["header", "cases", "summary_table", "before_after"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let script = "dk_section headline \"what shipped\"\ndk_section cases \"live\"\n\
+                      dk_section scorecard \"proof\"\ndk_section before_after \"two runs\"\n";
+        assert!(missing_elements_in_script(script, &required).is_empty());
+        // The LIVE scan is unchanged — it still wants the printed markers, not the source calls.
+        assert_eq!(missing_elements(script, &required).len(), 4);
+    }
+
     use super::*;
 
     const CONSTRAINTS: &str = "\

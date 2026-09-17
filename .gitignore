@@ -62,3 +62,14 @@ sessions/session-76-artifacts/run2/*
 # meter/receipt tests + verify-session-77 depend on it; the raw run.jsonl stays local).
 !sessions/session-76-artifacts/fixtures
 
+# S171 regression fixture — 4 lines of a real rudra transcript, ids + `usage` only, no content.
+# `a_real_multiblock_message_from_the_founders_transcript_is_charged_once` reads it, so it MUST be
+# tracked: pass 2's cold review caught the test panicking on every machine but the author's.
+!sessions/session-171-artifacts/fixtures
+# The derived cost record behind acceptance 3 (numbers only, no transcript) — S171 pass-3 rec 2.
+!sessions/session-171-artifacts/cost-check.md
+
+
+# S171: scaffold debris from running `vajra init` inside Vajra itself — not part of the product.
+prompts/00-task-brownfield-onboarding.md
+prompts/01-task-kickoff.md

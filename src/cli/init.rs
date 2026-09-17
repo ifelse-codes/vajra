@@ -34,6 +34,12 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     // every install and `--sync-fleet` can upgrade them through the same four states.
     ("scripts/demo-session-template.sh", TPL_DEMO_TEMPLATE),
     ("scripts/demo-kit.sh", TPL_DEMO_KIT),
+    // S171: the git-level belt. It was the ONLY guard `--sync-fleet` could not upgrade, so the
+    // fix that stops Vajra blocking the human's own commits would never have reached a project
+    // that already exists. Same four-state upgrade path as every hook above; a belt a project
+    // edited itself reports Drifted and waits for `--overwrite-drifted`.
+    (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
+    (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
 ];
 
 /// The canonical STAMPED render of one hook — a shell-comment `vajra-render-sha:` trailing line over
@@ -239,18 +245,42 @@ struct SyncTarget {
 /// that target was scaffolded stamped. Closed history — every render from S167 on carries a stamp,
 /// so this list never grows. Derived once from git (the command is recorded in DECISION-009) and
 /// re-checked against git history by a test whenever `.git` is present.
-const SHIPPED_UNSTAMPED_RENDERS: &[(&str, &[&str])] = &[(
-    "scripts/demo-session-template.sh",
-    &[
-        // a78e07e (S71) — the canonical scripts/demo-session-template.sh, embedded by include_str!.
-        "a4fd31c57b2a795971501417873c7ba84e6bc76a58115344bcf3d1747704430b",
-        // ee5c8c7..95f8b39 — the inline `r#"…"#` template in src/cli/init.rs before S71
-        // (chitra's copy). Carries no fill token, so every install got these exact bytes.
-        "31b37550286e316df7848565bacbf5e16f14b2dd440419293a1ec5cc4b95dcdd",
-        // 88f4a8e..31d30dc — the earlier inline template, same shape.
-        "fae423cb2260ec8702197e2a8f521bbd9ede4bab15e3a1d082924862461a01b9",
-    ],
-)];
+const SHIPPED_UNSTAMPED_RENDERS: &[(&str, &[&str])] = &[
+    // S171 cold review rec 4: the git belt was scaffolded UNSTAMPED until this session, so every
+    // project installed before today carries these exact bytes. Without them `--sync-fleet` calls
+    // the belt `Drifted` and refuses to upgrade it without `--overwrite-drifted` — which is also
+    // the flag that clobbers real local edits. These are every version the repo ever shipped
+    // (`git log -- .githooks/*`, sha256 of the blob), so an untouched belt upgrades cleanly and a
+    // belt someone edited still stops and asks.
+    (
+        ".githooks/pre-commit",
+        &[
+            // 4142c1f — the belt as of 0.2.0 (approval marker + 3-file cap, pre-S171).
+            "b58d3ff3ae6bea3791153081072bed7c3a52554c8f280ab51909184434ef26a9",
+            // 12ac391 — the first tracked belt (S43).
+            "d37b7ffc6b3c0ce240f1bc1e00b264e89d0e8df7dd81dee510ef84298ffc001d",
+        ],
+    ),
+    (
+        ".githooks/pre-push",
+        &[
+            // 12ac391 — unchanged from S43 until S171.
+            "85b3e233d7d6cf5e53c5d035fb3e0c355c6a8cdd3e40843968f26a1dcb5f1e9e",
+        ],
+    ),
+    (
+        "scripts/demo-session-template.sh",
+        &[
+            // a78e07e (S71) — the canonical scripts/demo-session-template.sh, embedded by include_str!.
+            "a4fd31c57b2a795971501417873c7ba84e6bc76a58115344bcf3d1747704430b",
+            // ee5c8c7..95f8b39 — the inline `r#"…"#` template in src/cli/init.rs before S71
+            // (chitra's copy). Carries no fill token, so every install got these exact bytes.
+            "31b37550286e316df7848565bacbf5e16f14b2dd440419293a1ec5cc4b95dcdd",
+            // 88f4a8e..31d30dc — the earlier inline template, same shape.
+            "fae423cb2260ec8702197e2a8f521bbd9ede4bab15e3a1d082924862461a01b9",
+        ],
+    ),
+];
 
 /// True when `body` is byte-identical to an unstamped render Vajra itself once shipped at `rel` —
 /// provably untouched, so upgrading it destroys nothing. A pure function of the bytes (not the
@@ -619,6 +649,24 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
                         skipped += 1;
                     }
                 }
+            } else if entry.path == ".gitignore" {
+                // S171: skipping an existing `.gitignore` left a brownfield project with none of
+                // Vajra's ignores, so its first commit carried local-only run artifacts. Append
+                // the block once, keyed by its marker line; never rewrite what is already there.
+                match append_gitignore_block(&full, &entry.content) {
+                    Ok(true) => {
+                        eprintln!("  append {} (Vajra's local-only artifacts)", entry.path);
+                        merged += 1;
+                    }
+                    Ok(false) => {
+                        eprintln!("  skip   {} (Vajra's lines already present)", entry.path);
+                        skipped += 1;
+                    }
+                    Err(e) => {
+                        eprintln!("  warn   {} left untouched — {e}", entry.path);
+                        skipped += 1;
+                    }
+                }
             } else {
                 eprintln!("  skip   {}", entry.path);
                 skipped += 1;
@@ -645,7 +693,7 @@ pub fn scaffold(root: &Path, project_name: &str, goal: &str, maturity: &str) -> 
     // Activate the git-level belt (S43): point git at the scaffolded .githooks/.
     configure_githooks_path(root);
 
-    if brownfield {
+    if brownfield && vajra_already_running(root).is_none() {
         eprintln!();
         eprintln!("Existing codebase detected → session 00 is a guided onboarding:");
         eprintln!("  study the repo, fill .ai/KNOWLEDGE.md + .ai/STATE.md with reality,");
@@ -714,6 +762,30 @@ fn merge_claude_settings_file(path: &Path, template: &str) -> Result<bool> {
 /// an existing user `.claude/settings.json`, preserving every user key and hook. Idempotent:
 /// a Vajra group is appended only if the target event array does not already contain a
 /// structurally-equal group *or* reference that group's `.ai/hooks/*.sh` script paths.
+/// Append Vajra's ignore block to an existing `.gitignore`, once. Returns `Ok(true)` when it was
+/// added, `Ok(false)` when the marker is already there. Never rewrites or reorders the user's own
+/// lines — it only adds at the end (S171).
+fn append_gitignore_block(path: &Path, block: &str) -> Result<bool> {
+    let existing =
+        fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
+    // S171 cold review rec 10: a project scaffolded by an older Vajra carries the block's first
+    // line but not today's marker — appending again would duplicate `.ai/.session-owner`.
+    const OLD_FIRST_LINE: &str = "# Vajra session-guard owner record";
+    if existing.contains(GITIGNORE_MARKER) || existing.contains(OLD_FIRST_LINE) {
+        return Ok(false);
+    }
+    let sep = if existing.is_empty() || existing.ends_with("\n\n") {
+        ""
+    } else if existing.ends_with('\n') {
+        "\n"
+    } else {
+        "\n\n"
+    };
+    fs::write(path, format!("{existing}{sep}{block}"))
+        .with_context(|| format!("failed to append to {}", path.display()))?;
+    Ok(true)
+}
+
 /// Returns `(pretty-printed merged JSON, changed?)`. A malformed / non-object existing file
 /// is an `Err` — the caller must not overwrite it.
 ///
@@ -864,10 +936,39 @@ fn is_brownfield(root: &Path) -> bool {
         .unwrap_or(false)
 }
 
+/// Is this project already RUNNING Vajra (past its first session)? `Some(n)` = `.ai/SESSION` reads
+/// session n and there is real session history. Re-running `vajra init` in such a project is a
+/// legitimate thing to do — it picks up new scaffold files and appends the `.gitignore` block —
+/// but the first-run tail was written for a brand-new project: the founder re-ran it in rudra at
+/// session 02 and was told "Existing codebase detected → session 00 is a guided onboarding" and
+/// "start session 00" (S171).
+fn vajra_already_running(root: &Path) -> Option<u32> {
+    let raw = fs::read_to_string(root.join(".ai/SESSION")).ok()?;
+    let n: u32 = raw.trim().parse().ok()?;
+    let has_history = fs::read_dir(root.join("sessions"))
+        .map(|entries| {
+            entries.filter_map(|e| e.ok()).any(|e| {
+                e.file_name()
+                    .to_str()
+                    .is_some_and(|f| f.ends_with("-summary.md"))
+            })
+        })
+        .unwrap_or(false);
+    (n > 0 || has_history).then_some(n)
+}
+
 /// First-run "aha" (S23): after scaffolding, let the user *see* the co-pilot work in
 /// seconds — fire the just-scaffolded hook once against a sample `git commit` so the
 /// guard is felt, not just filed. Best-effort: a missing bash/jq never fails init.
 fn first_run_aha(root: &Path) {
+    // Already running Vajra: this was a top-up, not a first run. Say where the project actually is.
+    if let Some(n) = vajra_already_running(root) {
+        eprintln!();
+        eprintln!("This project already runs Vajra — nothing of yours was overwritten.");
+        eprintln!("  You are on session {n:02}. Next: vajra claude");
+        eprintln!("  To pull in newer hooks and gates too: vajra init --sync-fleet");
+        return;
+    }
     eprintln!();
     eprintln!("▶ See it work — a 5-second simulation against your new project:");
     eprintln!();
@@ -885,7 +986,15 @@ fn first_run_aha(root: &Path) {
         None => eprint!("{}", render_aha_fallback()),
     }
     eprintln!();
-    eprintln!("Next: git add .ai/ && start a guided session →  vajra claude");
+    // S171: the old one-liner never said to COMMIT, and the founder's first `git commit` after
+    // init was then refused by Vajra's own hook. Spell both steps out, in the order they happen.
+    // S171 cold review rec 1: a fresh repo is on `main`, and the belt refuses `main` for everyone —
+    // so "commit these files" as step 1 walked the user straight into the block this session fixed.
+    // The branch comes first, as it does for every session.
+    eprintln!("Next — three steps:");
+    eprintln!("  1. make this session's branch: git checkout -b session-00-onboarding");
+    eprintln!("  2. save these files:           git add -A && git commit -m \"Add Vajra\"");
+    eprintln!("  3. start the session:          vajra claude   (then say: start session 00)");
 }
 
 /// Fire the scaffolded co-pilot hook once and capture what the agent would see.
@@ -1123,8 +1232,11 @@ fn files(
         // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
         // in configure_githooks_path(). Closes the raw `echo > .ai/SESSION` / direct-commit
         // bypass at the right layer.
-        fx(".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
-        fx(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
+        // S171: scaffolded STAMPED (like the .ai/ hooks) so `--sync-fleet` can upgrade them.
+        // Without the stamp an existing project could never receive a fix to these two — the
+        // founder's rudra sync shipped every other fix and left the old human-blocking belt behind.
+        fxs(".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
+        fxs(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         // S167 (DECISION-009): the demo template + the drawing kit it sources are on `SYNC_HOOKS`,
         // scaffolded stamped so a fresh `init` + immediate `--sync-fleet` reports them `UpToDate`.
@@ -1576,8 +1688,16 @@ const TPL_GITHOOK_PRE_PUSH: &str = include_str!("../../.githooks/pre-push");
 
 // The scaffold's `.gitignore` — the session-guard writes the owning chat's id into
 // `.ai/.session-owner`, a local-only record that must never be committed.
-const TPL_GITIGNORE: &str = r#"# Vajra session-guard owner record (one-session-per-chat) — local only, never commit.
+/// Everything Vajra writes that must stay on the machine it ran on. `GITIGNORE_MARKER` is the
+/// first line, so an existing `.gitignore` can be APPENDED to once and never again (S171: rudra
+/// had its own `.gitignore`, the scaffold skipped it, and the first commit shipped
+/// `.ai/.session-owner` plus two `latest` symlinks that point at directories nobody else has).
+const GITIGNORE_MARKER: &str = "# ── Vajra: local-only session artifacts ──";
+const TPL_GITIGNORE: &str = r#"# ── Vajra: local-only session artifacts ──
+# The session-guard's owner record (one chat owns one session) and every verify/demo run's
+# output. Git gets the summary, the review and the small evidence records — never the raw runs.
 .ai/.session-owner
+.ai/verify/
 "#;
 
 // Darshan (S27/S28) — the human's glanceable output skill, embedded verbatim from the
@@ -2129,6 +2249,46 @@ mod tests {
         );
     }
 
+    /// S171: re-running `vajra init` on a project already past session 00 must not greet it as a
+    /// brand-new one. The founder re-ran it in rudra at session 02 and was told to start session 00.
+    #[test]
+    fn a_project_past_its_first_session_is_not_a_first_run() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".ai")).unwrap();
+        fs::create_dir_all(dir.path().join("sessions")).unwrap();
+
+        fs::write(dir.path().join(".ai/SESSION"), "00\n").unwrap();
+        assert_eq!(vajra_already_running(dir.path()), None, "a fresh scaffold");
+
+        fs::write(dir.path().join(".ai/SESSION"), "01\n").unwrap();
+        assert_eq!(vajra_already_running(dir.path()), Some(1));
+
+        // Still session 00 on disk, but a closed session exists — history counts too.
+        fs::write(dir.path().join(".ai/SESSION"), "00\n").unwrap();
+        fs::write(dir.path().join("sessions/session-00-summary.md"), "# s00").unwrap();
+        assert_eq!(vajra_already_running(dir.path()), Some(0));
+    }
+
+    /// S171: a project that already has a `.gitignore` must still get Vajra's lines — the
+    /// founder's rudra was skipped, and its first commit carried `.ai/.session-owner` and two
+    /// `latest` symlinks pointing at directories only his machine has. Appended once, never twice,
+    /// and the project's own lines are left exactly as they were.
+    #[test]
+    fn an_existing_gitignore_is_appended_to_once_and_never_rewritten() {
+        let dir = tempfile::tempdir().unwrap();
+        let gi = dir.path().join(".gitignore");
+        fs::write(&gi, "target/\n*.log\n").unwrap();
+
+        assert!(append_gitignore_block(&gi, TPL_GITIGNORE).unwrap());
+        let after = fs::read_to_string(&gi).unwrap();
+        assert!(after.starts_with("target/\n*.log\n"), "{after}");
+        assert!(after.contains(".ai/.session-owner"), "{after}");
+        assert!(after.contains(".ai/verify/"), "{after}");
+
+        assert!(!append_gitignore_block(&gi, TPL_GITIGNORE).unwrap());
+        assert_eq!(fs::read_to_string(&gi).unwrap(), after, "appended twice");
+    }
+
     #[test]
     fn scaffold_gitignores_session_owner() {
         let dir = scaffold_tmp();
@@ -2255,10 +2415,11 @@ mod tests {
         ] {
             let hook = dir.path().join(rel);
             assert!(hook.exists(), "{rel} not scaffolded");
-            // Byte-identical to the vajra repo's own .githooks/* — one source, no drift.
+            // The vajra repo's own .githooks/* verbatim, plus the render stamp that lets
+            // `--sync-fleet` upgrade them later (S171) — one source, no drift.
             assert_eq!(
                 fs::read_to_string(&hook).unwrap(),
-                canonical,
+                render_stamped_hook(canonical),
                 "scaffolded {rel} drifted from the canonical .githooks source"
             );
             #[cfg(unix)]
@@ -3508,8 +3669,14 @@ mod tests {
         top.sort();
         assert_eq!(
             top,
-            vec![".ai".to_string(), ".claude".to_string(), "scripts".to_string()],
-            "sync-fleet wrote outside .claude/ + .ai/ + scripts/ — it must never run the full init scaffold"
+            vec![
+                ".ai".to_string(),
+                ".claude".to_string(),
+                ".githooks".to_string(),
+                "scripts".to_string()
+            ],
+            "sync-fleet wrote outside .claude/ + .ai/ + .githooks/ + scripts/ — it must never run \
+             the full init scaffold"
         );
         // Under .ai/ ONLY the constitution + hooks/ — never CONSTRAINTS.yaml, SESSION, etc.
         let mut ai: Vec<String> = fs::read_dir(dir.path().join(".ai"))
@@ -3531,13 +3698,11 @@ mod tests {
         // S146: scripts/ now exists (verify-closeout.sh is a sync target). Only scripts/
         // verify-closeout.sh should appear — not a full scaffold of prompts, sessions, etc.
         assert!(dir.path().join("scripts/verify-closeout.sh").exists());
-        for unwanted in [
-            ".ai/CONSTRAINTS.yaml",
-            ".ai/SESSION",
-            "prompts",
-            "sessions",
-            ".githooks",
-        ] {
+        // S171: .githooks/pre-commit + pre-push ARE sync targets now (the human-vs-agent fix had
+        // to reach existing projects), so the belt is expected — a full scaffold is still not.
+        assert!(dir.path().join(".githooks/pre-commit").exists());
+        assert!(dir.path().join(".githooks/pre-push").exists());
+        for unwanted in [".ai/CONSTRAINTS.yaml", ".ai/SESSION", "prompts", "sessions"] {
             assert!(
                 !dir.path().join(unwanted).exists(),
                 "{unwanted} was scaffolded by --sync-fleet"
@@ -4120,6 +4285,83 @@ dk_finish
             fs::read_to_string(root.join("scripts/demo-session-template.sh")).unwrap(),
             render_stamped_hook(TPL_DEMO_TEMPLATE)
         );
+    }
+
+    /// S171 pass-2 cold review rec 2: the belt's entries in `SHIPPED_UNSTAMPED_RENDERS` were two
+    /// hand-typed hashes that no test checked — the same "the marker is the proof" pattern this
+    /// session was convened to kill. Every version of the belt this repo ever shipped must be in
+    /// the list, and each must upgrade without `--overwrite-drifted`; a project that edited its
+    /// own belt must still be refused.
+    #[test]
+    fn every_shipped_belt_render_is_listed_and_upgrades_cleanly() {
+        let repo = env!("CARGO_MANIFEST_DIR");
+        let git = |args: &[&str]| {
+            Command::new("git")
+                .args(args)
+                .current_dir(repo)
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+        };
+        for (rel, tpl) in [
+            (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
+            (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
+        ] {
+            // RELEASE TAGS, not every commit. What this covers: a project installed from a
+            // release. What it does NOT cover (S171 pass-3 cold review rec 5, stated rather than
+            // papered over): README also documents `cargo install --git` and `clone && cargo
+            // install --path .`, which deliver main-HEAD bytes from an arbitrary commit — a belt
+            // that existed only between tags is not listed, so such a project sees `Drifted` and
+            // needs `--overwrite-drifted`. Demanding a hash per commit would make every belt edit
+            // a two-step ritual; the honest trade is to name the gap.
+            // A tag whose belt is today's bytes is skipped below: post-S171 the belt scaffolds
+            // STAMPED, so those projects never need the list at all (rec 6).
+            let Some(tags) = git(&["tag"]) else {
+                return; // a published crate has no git history to check against
+            };
+            let mut checked = 0;
+            for tag in String::from_utf8(tags.stdout).unwrap().lines() {
+                let Some(show) = git(&["show", &format!("{tag}:{rel}")]) else {
+                    continue;
+                };
+                let body = String::from_utf8(show.stdout).unwrap();
+                if body == tpl {
+                    continue; // today's bytes: scaffolded stamped, never needs the list
+                }
+                assert!(
+                    is_shipped_unstamped_render(rel, &body),
+                    "{rel} as shipped in {tag} is missing from SHIPPED_UNSTAMPED_RENDERS — a \
+                     project installed from that release would be called Drifted, never upgraded"
+                );
+                let dir = scaffold_tmp();
+                fs::write(dir.path().join(rel), &body).unwrap();
+                let item = plan_fleet_sync(dir.path())
+                    .into_iter()
+                    .find(|i| i.rel == rel)
+                    .unwrap();
+                assert_eq!(item.state, FleetFileState::StaleRender, "{rel} from {tag}");
+                let mut out = Vec::new();
+                sync_fleet(
+                    dir.path(),
+                    SyncOpts {
+                        dry_run: false,
+                        overwrite_drifted: false,
+                    },
+                    &mut out,
+                )
+                .expect("a shipped belt must upgrade without --overwrite-drifted");
+                assert_eq!(
+                    fs::read_to_string(dir.path().join(rel)).unwrap(),
+                    render_stamped_hook(tpl)
+                );
+                checked += 1;
+            }
+            assert!(checked >= 1, "a release tag must carry a pre-S171 {rel}");
+
+            // A belt someone edited themselves is NOT a shipped render — it must still be refused.
+            let edited = format!("{tpl}\n# a local edit\n");
+            assert!(!is_shipped_unstamped_render(rel, &edited));
+        }
     }
 
     /// DECISION-009's open question: an unstamped template byte-identical to one Vajra shipped is a

@@ -64,6 +64,14 @@ const MODEL_PRICING: &[ModelPricing] = &[
     },
 ];
 
+/// Said when the run reported no charge of its own. Plain words on purpose (S171): the founder's
+/// first-run receipt read "no authoritative cost available … no total_cost_usd in JSONL", which
+/// tells a new user nothing. `apply_captured_cost` drops this warning by matching on it, so the
+/// text lives in ONE place.
+pub(crate) const NO_REPORTED_COST_WARNING: &str =
+    "this run did not report what it cost, so the figure above is Vajra's own estimate from the \
+     tokens in the transcript — not the charge on your bill";
+
 const WEB_SEARCH_PER_REQUEST: f64 = 0.01;
 const WEB_FETCH_PER_REQUEST: f64 = 0.01;
 const TOKENS_PER_LINE_ESTIMATE: f64 = 12.0;
@@ -164,7 +172,7 @@ impl SessionCost {
         if let Some(cost) = captured {
             if self.authoritative_dollars.is_none() {
                 self.authoritative_dollars = Some(cost);
-                self.warnings.retain(|w| !w.contains("no total_cost_usd"));
+                self.warnings.retain(|w| w != NO_REPORTED_COST_WARNING);
             }
         }
     }
@@ -296,11 +304,7 @@ pub fn meter_session(
         ));
     }
     if authoritative_dollars.is_none() {
-        warnings.push(
-            "no total_cost_usd in JSONL — no authoritative cost available; the figure shown is a \
-             token estimate only, not the charge"
-                .into(),
-        );
+        warnings.push(NO_REPORTED_COST_WARNING.into());
     }
 
     Ok(SessionCost {
@@ -326,6 +330,16 @@ fn parse_jsonl(
 ) -> Result<()> {
     let content = fs::read_to_string(path)
         .with_context(|| format!("failed to read JSONL: {}", path.display()))?;
+
+    // S171 (founder's first-run test): Claude Code writes ONE LINE PER CONTENT BLOCK of an
+    // assistant message, and every one of those lines repeats the SAME `usage` object — the
+    // message's totals, not that block's share. Summing every line therefore charged a
+    // three-block reply three times. Measured on the founder's rudra session 00: 128 usage lines,
+    // 56 real messages, receipt $19.33 against Claude Code's own $8.38 — the 2.3x he spotted.
+    // So: count a message ONCE, keyed by `message.id`, falling back to `requestId` and then the
+    // line's own `uuid`. A line with none of the three is counted (it cannot be a repeat we can
+    // recognise, and dropping it would understate the bill).
+    let mut counted: std::collections::HashSet<String> = std::collections::HashSet::new();
 
     for line in content.lines() {
         if line.trim().is_empty() {
@@ -364,6 +378,18 @@ fn parse_jsonl(
             Some(m) if !m.is_empty() && m != "<synthetic>" => m,
             _ => continue,
         };
+
+        // One message, one charge (see the note at the top of this function).
+        let key = parsed["message"]["id"]
+            .as_str()
+            .or_else(|| parsed["requestId"].as_str())
+            .or_else(|| parsed["uuid"].as_str())
+            .map(str::to_string);
+        if let Some(k) = key {
+            if !counted.insert(k) {
+                continue;
+            }
+        }
 
         let usage = &parsed["message"]["usage"];
 
@@ -450,7 +476,7 @@ pub fn format_receipt(cost: &SessionCost) -> String {
         .iter()
         .map(|m| {
             let short_model = m.model.replace("claude-", "");
-            format!("{} {} lines", short_model, m.assistant_lines)
+            format!("{} · {} replies", short_model, m.assistant_lines)
         })
         .collect();
 
@@ -472,23 +498,30 @@ pub fn format_receipt(cost: &SessionCost) -> String {
     match cost.authoritative_dollars {
         Some(authoritative) => {
             out.push_str(&format!(
-                " ${:.4}  total  ({})\n",
+                " ${:.2}  what this run cost  ({})\n",
                 authoritative,
                 model_summary.join(" · ")
             ));
             out.push_str(&format!(
-                "         ${:.4}  token estimate  {}\n",
+                "         ${:.2}  Vajra's own estimate from tokens  {}\n",
                 cost.total_dollars, estimate_tag
             ));
         }
         None => {
             out.push_str(&format!(
-                " no authoritative cost available  ({})\n",
+                " ~${:.2}  estimated  ({})\n",
+                cost.total_dollars,
                 model_summary.join(" · ")
             ));
+            // The plain `[estimate]` tag would only repeat the sentence; an unknown-model tag
+            // says something the sentence does not, so that one still rides along.
+            let tag = if estimate_tag == "[estimate]" {
+                String::new()
+            } else {
+                format!("  {estimate_tag}")
+            };
             out.push_str(&format!(
-                "         ~${:.4}  token estimate  {}\n",
-                cost.total_dollars, estimate_tag
+                "         worked out from the tokens used — not the charge on your bill{tag}\n"
             ));
         }
     }
@@ -516,7 +549,7 @@ pub fn format_receipt(cost: &SessionCost) -> String {
         + total_tokens.cache_write_1h as f64 * primary_input * 2.0)
         / 1e6;
     out.push_str(&format!(
-        "         input ${:.4} · output ${:.4} · cache-r ${:.4} · cache-w ${:.4}\n",
+        "         new text ${:.2} · replies ${:.2} · re-reading context ${:.2} · saving context ${:.2}\n",
         input_cost, output_cost, cache_r_cost, cache_w_cost
     ));
 
@@ -641,6 +674,71 @@ mod tests {
 {"type":"assistant","version":"2.1.177","message":{"model":"<synthetic>","usage":{}}}
 {"type":"user","message":{"content":"test"}}
 {"type":"assistant","version":"2.1.177","message":{"model":"claude-opus-4-8","usage":{"input_tokens":50,"output_tokens":200,"cache_read_input_tokens":5000,"cache_creation_input_tokens":1000,"cache_creation":{"ephemeral_5m_input_tokens":300,"ephemeral_1h_input_tokens":700},"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0}}}}"#.to_string()
+    }
+
+    /// S171 cold review rec 7: the same claim against REAL bytes. Four lines lifted from the
+    /// founder's own rudra session-00 transcript (ids, model and `usage` only — no content): one
+    /// assistant message that Claude Code wrote across three lines, each repeating that message's
+    /// whole usage, plus a second, different message. The honest total counts the first message
+    /// once; the pre-S171 sum counted it three times, which is where the 2.3x came from.
+    #[test]
+    fn a_real_multiblock_message_from_the_founders_transcript_is_charged_once() {
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("sessions/session-171-artifacts/fixtures/s171-multiblock-message.jsonl");
+        let text = fs::read_to_string(&fixture).expect("fixture readable");
+        assert_eq!(text.lines().count(), 4, "fixture shape changed");
+
+        let cost = meter_session(&fixture, None, None).unwrap();
+        let t = &cost.model_breakdown[0].tokens;
+        // Message 1 (three lines) + message 2 (one line), each counted once.
+        assert_eq!(t.input, 12774 + 2, "input: {t:?}");
+        assert_eq!(t.output, 329 + 169, "output: {t:?}");
+        assert_eq!(t.cache_read, 8105 + 78008, "cache_read: {t:?}");
+
+        // What the old code did: every line summed. Proves the fixture really is a repeat.
+        let naive: u64 = text
+            .lines()
+            .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
+            .map(|v| get_u64(&v["message"]["usage"], "output_tokens"))
+            .sum();
+        assert_eq!(
+            naive,
+            329 * 3 + 169,
+            "the fixture must contain a real repeat"
+        );
+        assert!(naive > t.output, "dedupe must reduce the charge");
+    }
+
+    /// S171: Claude Code writes one line per content block, each repeating the message's whole
+    /// `usage`. Three lines for one reply must be charged once — this is the 2.3x the founder
+    /// caught on his own rudra run (receipt $19.33 vs Claude Code's $8.38).
+    #[test]
+    fn one_message_is_charged_once_however_many_lines_it_spans() {
+        let block = |id: &str| {
+            format!(
+                r#"{{"type":"assistant","requestId":"req_{id}","message":{{"id":"{id}","model":"claude-opus-4-8","usage":{{"input_tokens":100,"output_tokens":10,"cache_read_input_tokens":1000,"cache_creation_input_tokens":0}}}}}}"#
+            )
+        };
+        let dir = std::env::temp_dir().join("vajra-test-meter-dedup");
+        let _ = fs::create_dir_all(&dir);
+
+        let once = dir.join("once.jsonl");
+        fs::write(&once, format!("{}\n", block("msg_a"))).unwrap();
+        let single = meter_session(&once, None, None).unwrap();
+
+        let thrice = dir.join("thrice.jsonl");
+        let three = block("msg_a");
+        fs::write(&thrice, format!("{three}\n{three}\n{three}\n")).unwrap();
+        let repeated = meter_session(&thrice, None, None).unwrap();
+
+        assert_eq!(repeated.total_dollars, single.total_dollars);
+        assert_eq!(repeated.model_breakdown[0].tokens.output, 10);
+
+        // Two DIFFERENT messages still add up — the fix must not swallow real traffic.
+        let two = dir.join("two.jsonl");
+        fs::write(&two, format!("{}\n{}\n", block("msg_a"), block("msg_b"))).unwrap();
+        let pair = meter_session(&two, None, None).unwrap();
+        assert_eq!(pair.model_breakdown[0].tokens.output, 20);
     }
 
     #[test]
@@ -789,12 +887,15 @@ mod tests {
         };
 
         let receipt = format_receipt(&cost);
-        assert!(receipt.contains("$0.0859"));
+        assert!(receipt.contains("$0.09"));
         assert!(receipt.contains("83 lines folded across 7 tool calls"));
         assert!(receipt.contains("~$0.0187 saved"));
-        assert!(receipt.contains("opus-4-8 42 lines"));
+        assert!(receipt.contains("opus-4-8 · 42 replies"));
         // No authoritative figure → the headline total is labeled an estimate (S66, criterion 2).
-        assert!(receipt.contains("[estimate]"), "receipt: {receipt}");
+        assert!(
+            receipt.contains("not the charge on your bill"),
+            "an estimate must never read as the bill: {receipt}"
+        );
     }
 
     /// A JSONL with a model absent from `MODEL_PRICING` (so priced at the unknown-model upper
@@ -836,8 +937,14 @@ mod tests {
 
         let receipt = format_receipt(&result);
         // Headline = authoritative; estimate present but labeled; upper-bound mispricing disclosed.
-        assert!(receipt.contains("$1.2662  total"), "receipt: {receipt}");
-        assert!(receipt.contains("token estimate"), "receipt: {receipt}");
+        assert!(
+            receipt.contains("$1.27  what this run cost"),
+            "receipt: {receipt}"
+        );
+        assert!(
+            receipt.contains("Vajra's own estimate"),
+            "receipt: {receipt}"
+        );
         assert!(
             receipt.contains("priced at the unknown-model upper bound"),
             "receipt: {receipt}"
@@ -872,12 +979,15 @@ mod tests {
         assert!((result.billed_dollars() - result.total_dollars).abs() < 1e-12);
 
         let receipt = format_receipt(&result);
-        assert!(receipt.contains("[estimate]"), "receipt: {receipt}");
+        assert!(
+            receipt.contains("not the charge on your bill"),
+            "an estimate must never read as the bill: {receipt}"
+        );
         assert!(
             result
                 .warnings
                 .iter()
-                .any(|w| w.contains("no total_cost_usd")),
+                .any(|w| w == NO_REPORTED_COST_WARNING),
             "authoritative-absent note expected: {:?}",
             result.warnings
         );
@@ -945,29 +1055,23 @@ mod tests {
         fs::write(&jsonl_path, fixture_jsonl()).unwrap();
         let mut cost = meter_session(&jsonl_path, None, None).unwrap();
         assert!(cost.authoritative_dollars.is_none());
-        assert!(cost
-            .warnings
-            .iter()
-            .any(|w| w.contains("no total_cost_usd")));
+        assert!(cost.warnings.iter().any(|w| w == NO_REPORTED_COST_WARNING));
 
         // Feed the tool's own captured cost (S78) → it becomes the bill and the absent-warning goes.
         cost.apply_captured_cost(Some(0.4211));
         assert_eq!(cost.authoritative_dollars, Some(0.4211));
         assert!((cost.billed_dollars() - 0.4211).abs() < 1e-9);
         assert!(
-            !cost
-                .warnings
-                .iter()
-                .any(|w| w.contains("no total_cost_usd")),
+            !cost.warnings.iter().any(|w| w == NO_REPORTED_COST_WARNING),
             "authoritative-absent warning must be dropped: {:?}",
             cost.warnings
         );
         let receipt = format_receipt(&cost);
-        assert!(receipt.contains("$0.4211  total"), "receipt: {receipt}");
         assert!(
-            !receipt.contains("no authoritative cost available"),
+            receipt.contains("$0.42  what this run cost"),
             "receipt: {receipt}"
         );
+        assert!(!receipt.contains("estimated  ("), "receipt: {receipt}");
 
         let _ = fs::remove_dir_all(&dir);
     }
@@ -982,10 +1086,7 @@ mod tests {
         let mut cost = meter_session(&jsonl_path, None, None).unwrap();
         cost.apply_captured_cost(None);
         assert!(cost.authoritative_dollars.is_none());
-        assert!(cost
-            .warnings
-            .iter()
-            .any(|w| w.contains("no total_cost_usd")));
+        assert!(cost.warnings.iter().any(|w| w == NO_REPORTED_COST_WARNING));
 
         // A transcript that already carried its own authoritative figure is not overridden.
         fs::write(&jsonl_path, unpriced_model_fixture_with_authoritative()).unwrap();
@@ -1033,9 +1134,9 @@ mod tests {
         assert!((cost.billed_dollars() - captured.unwrap()).abs() < 1e-9);
 
         let receipt = format_receipt(&cost);
-        assert!(receipt.contains("  total"), "receipt: {receipt}");
+        assert!(receipt.contains("what this run cost"), "receipt: {receipt}");
         assert!(
-            !receipt.contains("no authoritative cost available"),
+            !receipt.contains("estimated  ("),
             "captured cost must supersede the honest fallback: {receipt}"
         );
     }
@@ -1084,17 +1185,20 @@ mod tests {
         let receipt = format_receipt(&result);
         // No authoritative figure → the headline is the honest statement, never a `$… total`
         // (criterion 2).
-        assert!(
-            receipt.contains("no authoritative cost available"),
-            "receipt: {receipt}"
-        );
+        assert!(receipt.contains("estimated  ("), "receipt: {receipt}");
         assert!(
             !receipt.contains("  total"),
             "estimate must not masquerade as a total: {receipt}"
         );
         // The estimate is still shown, labeled — and NOT with the unknown-model tag anymore.
-        assert!(receipt.contains("token estimate"), "receipt: {receipt}");
-        assert!(receipt.contains("[estimate]"), "receipt: {receipt}");
+        assert!(
+            receipt.contains("Vajra's own estimate"),
+            "receipt: {receipt}"
+        );
+        assert!(
+            receipt.contains("not the charge on your bill"),
+            "an estimate must never read as the bill: {receipt}"
+        );
         assert!(
             !receipt.contains("priced at the unknown-model upper bound"),
             "fable-5 is priced now — no unknown-model tag: {receipt}"
@@ -1104,7 +1208,7 @@ mod tests {
             result
                 .warnings
                 .iter()
-                .any(|w| w.contains("no total_cost_usd")),
+                .any(|w| w == NO_REPORTED_COST_WARNING),
             "warnings: {:?}",
             result.warnings
         );
