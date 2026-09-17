@@ -66,6 +66,8 @@ sessions/session-76-artifacts/run2/*
 # `a_real_multiblock_message_from_the_founders_transcript_is_charged_once` reads it, so it MUST be
 # tracked: pass 2's cold review caught the test panicking on every machine but the author's.
 !sessions/session-171-artifacts/fixtures
+# The derived cost record behind acceptance 3 (numbers only, no transcript) — S171 pass-3 rec 2.
+!sessions/session-171-artifacts/cost-check.md
 
 
 # S171: scaffold debris from running `vajra init` inside Vajra itself — not part of the product.

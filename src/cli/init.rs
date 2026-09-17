@@ -4307,10 +4307,15 @@ dk_finish
             (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
             (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         ] {
-            // RELEASE TAGS, not every commit: what a project actually carries is whatever the
-            // release it installed from shipped. A mid-session commit on a branch never reached
-            // anyone, and demanding a hash for each would make every future belt edit a two-step
-            // ritual — the ceremony this session is meant to remove.
+            // RELEASE TAGS, not every commit. What this covers: a project installed from a
+            // release. What it does NOT cover (S171 pass-3 cold review rec 5, stated rather than
+            // papered over): README also documents `cargo install --git` and `clone && cargo
+            // install --path .`, which deliver main-HEAD bytes from an arbitrary commit — a belt
+            // that existed only between tags is not listed, so such a project sees `Drifted` and
+            // needs `--overwrite-drifted`. Demanding a hash per commit would make every belt edit
+            // a two-step ritual; the honest trade is to name the gap.
+            // A tag whose belt is today's bytes is skipped below: post-S171 the belt scaffolds
+            // STAMPED, so those projects never need the list at all (rec 6).
             let Some(tags) = git(&["tag"]) else {
                 return; // a published crate has no git history to check against
             };

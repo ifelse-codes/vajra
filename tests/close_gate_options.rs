@@ -67,6 +67,12 @@ const THREE_LETTERED: &str = "# S\n## candidates\n- **A — one**\n- **B — two
 const NO_SECTION: &str = "# S\n\nWe did some work and picked the next thing ourselves.\n";
 const TWO_PLUS_PROSE: &str =
     "# S\n## candidates\n- **A — one**\n- **B — two**\n1.5 seconds saved\n";
+/// Three real options whose first carries four numbered sub-steps — the shape that made the
+/// fallback answer 4 and BLOCK a correct handover (S171 pass-3 cold review rec 1).
+const THREE_WITH_SUBSTEPS: &str = "# S\n## 3 ranked next candidates\n- **A — one**\n  1. do this\n  2. then this\n  3. then that\n  4. and this\n- **B — two**\n- **C — three**\n";
+/// A numbered ranking whose options carry numbered sub-steps of their own.
+const NUMBERED_WITH_SUBSTEPS: &str =
+    "# S\n## candidates\n1. one\n   1. sub\n   2. sub\n2. two\n3. three\n";
 
 /// Without a vajra on PATH the awk fallback decides — and it must agree with the Rust counter.
 #[test]
@@ -82,6 +88,13 @@ fn the_fallback_counts_three_and_refuses_everything_else() {
         !run_check(TWO_PLUS_PROSE, None).0,
         "two options plus a numeric line is not three"
     );
+
+    // The fallback must agree with the Rust counter about nesting, or it blocks a correct
+    // handover for every project still running an older binary (pass-3 rec 1).
+    let (passed, log) = run_check(THREE_WITH_SUBSTEPS, None);
+    assert!(passed, "sub-steps under an option are not options:\n{log}");
+    let (passed, log) = run_check(NUMBERED_WITH_SUBSTEPS, None);
+    assert!(passed, "nested numbered sub-steps must not count:\n{log}");
 }
 
 /// The pass-1 hole, as a test: a vajra that says READY while reporting no options must NOT pass.

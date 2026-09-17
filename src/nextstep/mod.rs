@@ -276,6 +276,33 @@ mod tests {
         assert!(text.contains("never that the human watched"), "{text}");
     }
 
+    /// S171 pass-3 cold review rec 3: the handover the agent cannot suppress. Three candidates are
+    /// printed whenever they exist — including after the next prompt is written, which is how an
+    /// agent used to skip showing them (pass-1 rec 8).
+    #[test]
+    fn the_three_candidates_are_printed_and_cannot_be_suppressed() {
+        let d = repo();
+        let summary = d.path().join("sessions/session-01-summary.md");
+
+        // Nothing to show yet.
+        assert_eq!(format_options(d.path(), 1), "");
+
+        // Two is not a handover.
+        fs::write(&summary, "# S\n## candidates\n1. one\n2. two\n").unwrap();
+        assert_eq!(format_options(d.path(), 1), "");
+
+        fs::write(&summary, "# S\n## candidates\n1. one\n2. two\n3. three\n").unwrap();
+        let shown = format_options(d.path(), 1);
+        assert!(shown.contains("show these to the human"), "{shown}");
+        assert!(shown.contains("3. three"), "{shown}");
+
+        // Writing the next prompt first must NOT hide them.
+        fs::write(d.path().join("prompts/02-task-next.md"), "# 02").unwrap();
+        let still = format_options(d.path(), 1);
+        assert!(still.contains("3. three"), "{still}");
+        assert!(still.contains("already written"), "{still}");
+    }
+
     /// The next prompt counts as written only when the padded file is really there.
     #[test]
     fn the_next_prompt_step_reads_the_padded_file_name() {

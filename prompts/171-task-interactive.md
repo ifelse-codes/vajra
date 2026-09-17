@@ -68,7 +68,7 @@
 6. **The handover to the human is real** — numbered rankings count as options, `--steps` prints them for the chat, and a session cannot close without them (F32, F33, F34).
 
 ## Acceptance
-1. In a fresh project, a person can run `git add -A && git commit` after `vajra init` with no block and no `--no-verify`; an agent shell without approval is still stopped. *(checked live in a scratch repo and in rudra: 13-file commit, no block)*
+1. In a fresh project, **on the session branch `vajra init` now tells the user to make first**, a person can run `git add -A && git commit` with no block and no `--no-verify`; an agent shell without approval is still stopped. (`main` is still refused for everyone — that rule is unchanged, and the init text routes around it.) *(checked live in a scratch repo and in rudra: 13-file commit, no block)*
 2. `vajra next --steps` prints a per-session checklist whose first unfinished line is the next move, and prints the three candidates when they exist. *(checked against rudra sessions 01 and 02)*
 3. The receipt lands within ~10% of Claude Code's own figure. *(rudra session 02: Vajra $19.25 vs Claude Code $19.56 — 1.6%)*
 4. The close gate fails a summary that does not offer exactly three ranked options, and passes one that does, whether they are `A/B/C` or `1/2/3`. *(both paths run)*
@@ -110,12 +110,22 @@ Their recommendations and what was done with each:
 - fidelity-reviewer rec 1 — obeyed: the fixture is tracked (`.gitignore` carve-out, the S76/S77 pattern); `cargo test` now runs anywhere, not only on this machine
 - fidelity-reviewer rec 2 — obeyed: `every_shipped_belt_render_is_listed_and_upgrades_cleanly` checks the hashes against the RELEASE TAGS and proves each upgrades without `--overwrite-drifted`
 - fidelity-reviewer rec 3 — obeyed: `find_summary_for` accepts the unpadded spelling F23 left behind, so the new gate cannot false-block those repos
-- fidelity-reviewer rec 4 — obeyed: only the outermost list level counts, per family
+- fidelity-reviewer rec 4 — obeyed **in the Rust counter only at the time of pass 2**; pass 3 caught that the gates' awk fallback still counted nested sub-steps, and it now applies the same outermost-level rule (`verify-closeout.sh` + the scaffold copy, with a must-PASS test case)
 - fidelity-reviewer rec 5 — obeyed: the ✓ caveat prints in the all-done branch too
 - fidelity-reviewer rec 6 — obeyed: the belt no longer claims "Vajra does not stop a person's commit"; it names main, `.ai/` drift and the drift-guard
 - fidelity-reviewer rec 7 — obeyed in part: the two scaffold prompts are untracked and ignored. **refused** for `examples/receipt_for.rs`: it is the only way a person can price a past session (it produced the $19.25-vs-$19.56 check the founder ran himself), so it stays — as an example, not shipped code.
 - fidelity-reviewer rec 8 — obeyed: this section
-- fidelity-reviewer rec 9 — obeyed: `tests/close_gate_options.rs` runs the real shell check in both branches — fallback, new binary, and an old binary that prints no count
+- fidelity-reviewer rec 9 — obeyed **for the scaffold copy** (`scripts/verify-closeout-scaffold.sh`, the one every project gets): `tests/close_gate_options.rs` runs its real `check_next_options` in three branches — fallback, new binary, old binary with no count — and, after pass 3, the nested-sub-step case. This repo's own `scripts/verify-closeout.sh` carries the identical body; nothing asserts the two copies stay identical (carry-forward → S172)
+
+**Pass 3 (`sessions/session-171-review.md`, ACCEPT with 8 recs):**
+- fidelity-reviewer rec 1 — obeyed: the awk fallback in both gates now counts only the outermost list level, with two must-PASS cases in `tests/close_gate_options.rs`. This was a real user-facing bug: it BLOCKED a correct handover on the default path for every project still on the 0.2.0 binary.
+- fidelity-reviewer rec 2 — obeyed: `sessions/session-171-artifacts/cost-check.md`, the derived record behind acceptance 3 (before/after figures, Claude Code's own numbers, the reproduce command).
+- fidelity-reviewer rec 3 — obeyed: `the_three_candidates_are_printed_and_cannot_be_suppressed` in `src/nextstep/mod.rs`.
+- fidelity-reviewer rec 4 — obeyed: the two overstated dispositions above are corrected in place.
+- fidelity-reviewer rec 5 — obeyed: the belt-render test's rationale now says plainly what it covers (release tags) and what it does not (an install from an arbitrary main commit between tags), and `README` install paths are named in the comment.
+- fidelity-reviewer rec 6 — obeyed: the test skips any tag whose belt is today's bytes, which is every post-S171 tag (they ship stamped), so a future belt edit cannot turn it red for a render that never needed listing.
+- fidelity-reviewer rec 7 — deferred → **S172**: an executable test for the pre-commit / pre-push human-vs-agent split. It is the riskiest change in this session and nothing executes it; the six cases were run by hand in a scratch repo (transcript only). Named session, not backlog.
+- fidelity-reviewer rec 8 — obeyed: acceptance 1 now says what the code does — on a session branch.
 
 ## Guardrails
 - No new checks or gates on Vajra's own paperwork (no more policing).

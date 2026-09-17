@@ -445,17 +445,30 @@ check_next_options() {
     # Fallback (no vajra, or one too old to report a count): distinct markers, one family at a
     # time, under a heading naming the candidates — the rule src/analyst/mod.rs applies.
     count="$(awk '
+      function indent_of(line,   t) { t = line; sub(/[^[:space:]].*$/, "", t); return length(t) }
       /^[[:space:]]*#/ { insec = (tolower($0) ~ /candidate/); next }
       !insec { next }
       match($0, /^[[:space:]]*[0-9]+[.)][[:space:]]/) {
         key = $0; sub(/^[[:space:]]*/, "", key); sub(/[.)].*$/, "", key)
-        if (!(key in nums)) { nums[key] = 1; nn++ } next
+        num_ind[nn_all] = indent_of($0); num_key[nn_all] = key; nn_all++; next
       }
       match($0, /^[[:space:]]*[-*][[:space:]]*\*{0,2}[A-Z][^[:alnum:]]/) {
         key = $0; sub(/^[[:space:]]*[-*][[:space:]]*\**/, "", key); key = substr(key, 1, 1)
-        if (!(key in lets)) { lets[key] = 1; ln++ } next
+        let_ind[ln_all] = indent_of($0); let_key[ln_all] = key; ln_all++; next
       }
-      END { print (nn + 0 > ln + 0 ? nn + 0 : ln + 0) }' "$S")"
+      END {
+        # S171 pass-3 cold review rec 1: only the OUTERMOST level is the ranking — numbered
+        # sub-steps written under an option belong to that option. The Rust counter
+        # (src/analyst/mod.rs) has done this since pass 2; without it here, the fallback — the
+        # path every project on an older binary takes — BLOCKED a summary that really did offer
+        # three options.
+        outer = -1
+        for (i = 0; i < nn_all; i++) if (outer < 0 || num_ind[i] < outer) outer = num_ind[i]
+        for (i = 0; i < ln_all; i++) if (outer < 0 || let_ind[i] < outer) outer = let_ind[i]
+        for (i = 0; i < nn_all; i++) if (num_ind[i] == outer && !(num_key[i] in nums)) { nums[num_key[i]] = 1; nn++ }
+        for (i = 0; i < ln_all; i++) if (let_ind[i] == outer && !(let_key[i] in lets)) { lets[let_key[i]] = 1; ln++ }
+        print (nn + 0 > ln + 0 ? nn + 0 : ln + 0)
+      }' "$S")"
     echo "counted $count ranked candidate(s) in $S (fallback count)" >> "$LOG"
   fi
 
