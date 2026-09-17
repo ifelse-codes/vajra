@@ -1,6 +1,13 @@
 # Session 171 — Interactive: the founder's own first-run test, fixed as we went
 
-**Type:** CODE · **Branch:** `session-171-interactive` · **Close:** light (waived, see below)
+**Type:** CODE · **Branch:** `session-171-interactive` · **Close:** light, by the founder's choice
+
+**Close gate: 15 pass, 5 waived.** The five are the ceremony this session did not do, named rather than hidden:
+`verify-demo-scripts-present` (no `verify-session-171.sh` / `demo-session-171.sh`), `required-crew` and
+`design-advisor-mandate` (no tech-lead or design-advisor dispatch for this session), `obeyed-judgments`
+(the `## Advice` dispositions were not judged by an independent role), and `review-inputs-attested` —
+that last one deliberately: pass 3's ACCEPT was given on the diff BEFORE its own recommendations were
+implemented, so binding its hash to the final diff would claim a review that did not happen.
 
 ## What this session was
 
@@ -38,6 +45,12 @@ The checklist's steps read like actions ("has been PLAYED", "have been SHOWN") b
 them is judged by a file existing. A demo written and never run, or options written and never
 shown, still tick. The only line in this session with real teeth is the new close check, and it
 only counts three candidates — it cannot tell whether the human ever saw them.
+
+## What the three reviews cost
+
+Three cold passes (REJECT → REJECT → ACCEPT), ~433k subagent tokens. Two of them caught defects that
+would have reached a user: a test suite green only on this machine, and a close gate that false-blocked
+a correct handover. The third pass's own recommendations were implemented before this close.
 
 ## 3 ranked next candidates
 

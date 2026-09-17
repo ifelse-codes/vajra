@@ -3,23 +3,20 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions (S170 complete, S171 not yet started).**
+**`session-171-interactive` — merged at close (S171 complete).**
 
-## What was done this session (S170 — NO-CODE Ground Truth over S166–S169)
+## What was done this session (S171 — interactive, the founder's own first-run test)
 
-- Report: `sessions/session-170-ground-truth.md`. 🔴 off course: 83 commits, 66% of changed lines paperwork, 5 gate overrides, $0, 0 stars/forks/issues.
-- Live: stranger-check 21/0 and scaffold-drift 18/0 — but both test source 0.2.0, not the published crate (crates.io 0.1.0, 19 downloads). Brew tap formula IS at 0.2.0. `vajra next --dogfood-age` → S161.
-- Keep/optional/remove ceremony table written; S171 loopholes stay parked (most retired as policing).
-- Founder decision: he tests Vajra himself in his other project; from S171 sessions are interactive.
-- Found: `vajra next --advance` rewrites SESSION-BOOT.md by swapping the number only (wrong "CLOSED. CODE…" text) — open, user-facing.
+- The founder installed 0.2.0 into `rudra` and ran the normal path (init → S00 → S01 → S02), pasting what he hit. 34 findings, F1–F34, recorded in `prompts/171-task-interactive.md`.
+- Fixed, in the order he hit them: padded session names (F19/F23) · the guards stop the AGENT, not the human (F1–F3, F6, F10, F13b, F15) · a derived next-step checklist at boot (`vajra next --steps`, `src/nextstep/`) (F7, F8, F18, F20, F22, F25) · one charge per message + plain-word receipt (F14, F16, F17, F21) · the fixes reach EXISTING projects (F26–F28) · the handover: numbered rankings count, the candidates print, and `three-next-options` refuses a close that offered nothing (F32–F34).
+- Measured: receipt was 2.3× high (rudra S00 $19.33 vs Claude Code $8.38); now 1.6% off on rudra S02 ($19.25 vs $19.56). Record: `sessions/session-171-artifacts/cost-check.md`.
+- Three cold reviews: REJECT → REJECT → ACCEPT. Pass 2 caught the suite being green only on this machine (an untracked fixture); pass 3 caught the awk fallback false-blocking a correct handover.
+- Light close, by the founder's choice: no `verify-session-171.sh`, no `demo-session-171.sh`, no crew handoffs for this session — waived, not green.
 
-## Previous session (S169 — CODE: a session cannot close on made-up evidence)
+## Previous session (S170 — NO-CODE Ground Truth over S166–S169)
 
-- `check_execution_shas`: a `done:` must name a whole 7–40 char lowercase hex sha (word boundary) that `git cat-file -e` finds; every real `## Plan` step needs one — a `pending:` line BLOCKS at close.
-- New `check_claimed_evidence` (`claimed-evidence-real`), **no waiver path**: a summary verdict claim needs the review file + fidelity-reviewer handoff; a CODE session needs `.ai/handoffs/session-NN-tech-lead.md`. Zero-padded (`session-01`).
-- AC5 decided (DECISION-007 S169 addendum): post-merge work (a release) is its own ROADMAP row, never a plan step.
-- The scaffolded close gate (`scripts/verify-closeout-scaffold.sh`) carries all of it; `verify-session-169.sh` runs 19 cases on both gates (39/0).
-- Crew: tech-lead · design-advisor · fidelity-reviewer pass 1 REJECT (padding bug, claim dodges — fixed) → pass 2 ACCEPT · implementation-advisor as judge. Demo 13/13 · 509 lib tests.
+- Report: `sessions/session-170-ground-truth.md`. 🔴 off course: 66% of changed lines paperwork, 5 gate overrides, 0 outside users, crates.io 0.1.0.
+- Founder decision: he tests Vajra himself; sessions from S171 are interactive.
 
 ## What Currently Works
 
@@ -33,7 +30,10 @@
 
 - **🟡 Release 0.2.0 half done** — tag `v0.2.0` + GitHub release out; **crates.io still 0.1.0** (founder types `cargo publish`); brew tap formula is at 0.2.0 but install-smoke not run (ROADMAP `S168-release`). A stranger's `cargo install` gets none of S167–S169. Founder's own installed `vajra` is 0.1.0.
 - **🟡 S169 fakest green:** the claim match is words only; claimed-evidence proves files exist, not that they are real; a made-up `done:` sha is still waivable; `git cat-file -e` accepts any old commit → **parked — policing** (ROADMAP `S171-parked`).
-- **🟡 `check_fidelity_review` / `check_review_attestation` read the review unpadded** — a new repo's sessions 1–9 are read inconsistently (S171).
+- **🟢 FIXED S171:** the close gate and the demo facts read the padded session names; `find_summary_for` accepts the unpadded spelling old repos carry.
+- **🔴 F31 (open, from the founder's own run):** the boot checklist names the tech-lead as the first move and the agent still plans first. Telling moved it; it did not close it. → S172 candidate 1.
+- **🟡 No test executes the commit/push belt** — the human-vs-agent split (S171's riskiest change) was run by hand only. → S172 (pass-3 rec 7).
+- **🟡 `--sync-fleet` cannot upgrade a belt installed from an arbitrary main commit** (only release-tag renders are listed) — such a project needs `--overwrite-drifted`.
 - **🟡 `vajra next --advance` into S168 AND S169 used `VAJRA_SKIP_CODER_GATE=1`** (a pending release step). S169's plan has no post-merge step, so S170's advance should need none.
 - **🟡 Old records under new rules:** closed S167/S168 prompts fail `--check-exec-shas`; `verify-session-166.sh` AC3 is red (non-git fixture). Old sessions are never re-graded; nothing re-runs old verify scripts.
 - **🟡 S166 + S167 never passed `verify-closeout.sh`**; S168 fakest green (`dk_check "x" true`) stands; S168 review recs 1–3 → S171.

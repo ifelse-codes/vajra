@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S170 complete · S171 interactive (prompt written with the founder)
+## Between Sessions — S171 complete (interactive, the founder's own first-run test)
 
-**Next: Session 171 — interactive.** Brief: `prompts/171-task-interactive.md` — **Status: DRAFT**. The founder tests Vajra in his other project, brings findings, we write/edit the prompt together, then build in short check-in loops. Start in a FRESH chat.
+**Next: Session 172 — the founder picks from S171's three candidates** (`sessions/session-171-summary.md`): (1) make the crew dispatch happen rather than be advised (F31, the last open finding from his run); (2) finish the 0.2.0 release so anyone outside this machine gets these fixes; (3) keep testing rudra and fix what that finds. Write `prompts/172-task-<slug>.md` from the pick. Start in a FRESH chat.
+
+## Session 171 — Interactive: the founder's own first-run test — COMPLETE
+
+- Brief: `prompts/171-task-interactive.md` (34 findings F1–F34 from installing Vajra 0.2.0 into `rudra`). Summary: `sessions/session-171-summary.md`. Reviews: pass 1 REJECT → pass 2 REJECT → pass 3 ACCEPT (`sessions/session-171-review.md`).
+- Shipped: padded session names · the guards stop the agent not the human · a derived next-step checklist at boot · one charge per message (receipt 2.3× → 1.6%) · the fixes reach existing projects · the handover (3 options) is parsed, printed and gated at close.
+- Deferred → S172: an executable test for the belt split (pass-3 rec 7); F31 (the agent still plans before dispatching the tech-lead).
 
 ## Session 170 — NO-CODE Ground Truth (S166–S169) — COMPLETE
 
