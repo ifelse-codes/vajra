@@ -4,7 +4,7 @@
 
 ## Between Sessions — S171 complete (interactive, the founder's own first-run test)
 
-**Next: Session 172 — the founder picks from S171's three candidates** (`sessions/session-171-summary.md`): (1) make the crew dispatch happen rather than be advised (F31, the last open finding from his run); (2) finish the 0.2.0 release so anyone outside this machine gets these fixes; (3) keep testing rudra and fix what that finds. Write `prompts/172-task-<slug>.md` from the pick. Start in a FRESH chat.
+**Next: Session 172 — keep testing rudra, fix what it finds** (founder's pick, candidate 3). Brief: `prompts/172-task-keep-testing.md` — **Status: DRAFT**, filled in live from his run. Carried in by name: an executable test for the commit/push belt split (S171 pass-3 rec 7) and a third watch on F31. Start in a FRESH chat.
 
 ## Session 171 — Interactive: the founder's own first-run test — COMPLETE
 

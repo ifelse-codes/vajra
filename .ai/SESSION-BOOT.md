@@ -1,7 +1,7 @@
 # Session Boot
 
 ## Next Session
-- **S172 — the founder picks from S171's three candidates** — `sessions/session-171-summary.md` lists them (crew dispatch that happens rather than is advised · finish the 0.2.0 release · keep testing rudra). Write `prompts/172-task-<slug>.md` from his pick.
+- **S172 — Keep testing rudra, fix what it finds** — `prompts/172-task-keep-testing.md` (**Status: DRAFT** — the founder runs rudra session 03, pastes what he hits, each finding fixed in a short loop). Carried in: the belt-split test (S171 pass-3 rec 7) and a third watch on F31.
   Start in a FRESH chat.
 
 ## Current Session
