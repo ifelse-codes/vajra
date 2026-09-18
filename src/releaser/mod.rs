@@ -172,6 +172,29 @@ fn current_branch(root: &Path) -> Option<String> {
     }
 }
 
+/// Has the human already shipped session `nn`'s close? True when its summary
+/// (`sessions/session-NN-summary.md`, padded or not) is committed on the main branch — the
+/// summary is written at the session's own close, so it reaches main only when the human merges
+/// that close. Returns what was found, for the message. Derived from git, never recorded.
+///
+/// Why it matters (S172, F39): `--advance` runs AFTER the previous session merged. Grading that
+/// merged session again — possibly by rules synced in after it merged — made the agent go back and
+/// rewrite the old session's paperwork. Once the human merged it, the checks report, not block;
+/// the blocking check is `verify-closeout.sh`, before the merge.
+pub fn shipped_close(root: &Path, nn: u32) -> Option<String> {
+    let main = main_branch(root)?;
+    [
+        format!("sessions/session-{nn:02}-summary.md"),
+        format!("sessions/session-{nn}-summary.md"),
+    ]
+    .into_iter()
+    .find(|path| {
+        let spec = format!("{main}:{path}");
+        matches!(git_out(root, &["cat-file", "-e", &spec]), Some((0, _)))
+    })
+    .map(|path| format!("{path} is already on {main}"))
+}
+
 /// The target session's branch ship state, derived live from ancestry.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BranchShip {
@@ -406,11 +429,26 @@ pub fn release_gate(root: &Path, nn: u32) -> ReleaseVerdict {
                  judged from local refs only",
                 state.main
             )),
-            MainSync::Ahead(a) => warnings.push(format!(
-                "{} is ahead of origin/{} by {a} commit(s) — local merges not pushed; not \
-                 blocked (publishing is a human act), but the ship is not on origin yet",
-                state.main, state.main
-            )),
+            MainSync::Ahead(a) => {
+                // S172 F43: name the commits. rudra's agent guessed "S02's local merge" for what
+                // was the founder's own Vajra-sync commit, and told him so.
+                let range = format!("origin/{m}..{m}", m = state.main);
+                let subjects = git_out(root, &["log", "--format=%h %s", &range])
+                    .filter(|(code, _)| *code == 0)
+                    .map(|(_, out)| out.lines().collect::<Vec<_>>().join(" · "))
+                    .unwrap_or_default();
+                warnings.push(format!(
+                    "{} is ahead of origin/{} by {a} commit(s){} — not pushed; not blocked \
+                     (publishing is a human act), but the ship is not on origin yet",
+                    state.main,
+                    state.main,
+                    if subjects.is_empty() {
+                        String::new()
+                    } else {
+                        format!(": {subjects}")
+                    }
+                ));
+            }
             MainSync::Behind(b) => reasons.push(format!(
                 "{} is behind origin/{} by {b} commit(s) — sync main (checkout {} + pull) \
                  before closing (the S37 return-to-main step)",
@@ -589,6 +627,39 @@ release:
             git_in(root, &["merge", "-q", "--no-ff", &name, "-m", "merge"]);
         }
         name
+    }
+
+    #[test]
+    fn shipped_close_needs_the_summary_on_main_not_just_on_a_branch() {
+        let tmp = repo();
+        let root = tmp.path();
+        assert_eq!(shipped_close(root, 2), None, "no summary anywhere");
+
+        // Summary committed on the session branch only: not shipped.
+        git_in(root, &["checkout", "-qb", "session-02-x"]);
+        fs::create_dir_all(root.join("sessions")).unwrap();
+        fs::write(root.join("sessions/session-02-summary.md"), "# S02\n").unwrap();
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", "s02 close"]);
+        assert_eq!(
+            shipped_close(root, 2),
+            None,
+            "branch-only summary is not shipped"
+        );
+
+        // The human merges it: shipped.
+        git_in(root, &["checkout", "-q", "main"]);
+        git_in(
+            root,
+            &["merge", "-q", "--no-ff", "session-02-x", "-m", "merge"],
+        );
+        let got = shipped_close(root, 2).expect("merged summary counts");
+        assert!(got.contains("sessions/session-02-summary.md"), "{got}");
+        assert_eq!(
+            shipped_close(root, 3),
+            None,
+            "another session is unaffected"
+        );
     }
 
     #[test]

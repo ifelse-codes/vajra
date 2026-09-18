@@ -1482,6 +1482,15 @@ fn run_advance() -> Result<()> {
         }
     }
 
+    // S172 (F39): has the human already merged the session being closed? Then the closing
+    // checks below REPORT and do not block — the blocking run is `verify-closeout.sh`, before
+    // the merge. Grading a merged session again (possibly by rules synced in after it merged)
+    // made the agent rewrite old paperwork before new work could start.
+    let shipped = releaser::shipped_close(&root, current);
+    if let Some(why) = &shipped {
+        eprintln!("  session {current:02} is already merged ({why}) — its checks below report, they do not block.");
+    }
+
     // Options gate (S62 / J2): closing `current` requires its summary to record EXACTLY 3 ranked
     // next candidates (end_of_session.must_present_n_options). A wrong count BLOCKS — a non-author
     // cannot close a session on 2 or 4 options; a wholly absent section only WARNS (legacy compat).
@@ -1497,6 +1506,8 @@ fn run_advance() -> Result<()> {
         }
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
+        } else if let Some(why) = &shipped {
+            eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
         } else if env::var("VAJRA_SKIP_ANALYST_GATE").is_ok() {
             eprintln!("  (VAJRA_SKIP_ANALYST_GATE set — advancing anyway.)");
         } else {
@@ -1526,6 +1537,8 @@ fn run_advance() -> Result<()> {
         }
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
+        } else if let Some(why) = &shipped {
+            eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
         } else if env::var("VAJRA_SKIP_CODER_GATE").is_ok() {
             eprintln!("  (VAJRA_SKIP_CODER_GATE set — advancing anyway.)");
         } else {
@@ -1559,6 +1572,8 @@ fn run_advance() -> Result<()> {
         }
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
+        } else if let Some(why) = &shipped {
+            eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
         } else if env::var("VAJRA_SKIP_ADVICE_GATE").is_ok() {
             eprintln!("  (VAJRA_SKIP_ADVICE_GATE set — advancing anyway.)");
         } else {
@@ -1596,6 +1611,8 @@ fn run_advance() -> Result<()> {
         }
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
+        } else if let Some(why) = &shipped {
+            eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
         } else if env::var("VAJRA_SKIP_FIDELITY_GATE").is_ok() {
             eprintln!("  (VAJRA_SKIP_FIDELITY_GATE set — advancing anyway.)");
         } else {
@@ -1637,6 +1654,8 @@ fn run_advance() -> Result<()> {
         }
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
+        } else if let Some(why) = &shipped {
+            eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
         } else {
             bail!(
                 "refusing to advance: session {current:02} has neither a provable design-advisor \
@@ -1668,6 +1687,8 @@ fn run_advance() -> Result<()> {
         }
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
+        } else if let Some(why) = &shipped {
+            eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
         } else {
             bail!(
                 "refusing to advance: session {current:02} has no binding tech-lead crew decision, \
@@ -1698,6 +1719,8 @@ fn run_advance() -> Result<()> {
         }
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
+        } else if let Some(why) = &shipped {
+            eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
         } else if env::var("VAJRA_SKIP_OBEYED_GATE").is_ok() {
             eprintln!("  (VAJRA_SKIP_OBEYED_GATE set — advancing anyway.)");
         } else {
@@ -1718,7 +1741,12 @@ fn run_advance() -> Result<()> {
     // session's verify (cargo build/test — slow, on purpose: live evidence). A missing script
     // (NO-CODE ground-truth / legacy) WARNS at most, the dodge named. `VAJRA_SKIP_QA_GATE=1`
     // is the documented override (distinct from the other stages', so each overrides alone).
-    if env::var("VAJRA_SKIP_QA_GATE").is_ok() {
+    if let Some(why) = &shipped {
+        eprintln!(
+            "  [vajra qa] session {current:02} is already merged ({why}) — its verify ran at \
+             close; not re-running it here."
+        );
+    } else if env::var("VAJRA_SKIP_QA_GATE").is_ok() {
         // The one gate where the override skips the CHECK itself, not just the block: a live
         // re-run is slow and side-effectful, and the author explicitly opted out.
         eprintln!("  ⚠ [vajra qa] VAJRA_SKIP_QA_GATE set — live verify re-run skipped.");
@@ -1737,6 +1765,8 @@ fn run_advance() -> Result<()> {
             }
             if maturity == MaturityLevel::L1 {
                 eprintln!("  (L1 advise — advancing anyway.)");
+            } else if let Some(why) = &shipped {
+                eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
             } else {
                 bail!(
                     "refusing to advance: session {current:02}'s verify script does not pass a \
@@ -1756,7 +1786,12 @@ fn run_advance() -> Result<()> {
     // `VAJRA_SKIP_DEMOER_GATE=1` is the documented override (distinct from the other stages',
     // so each overrides alone) — like QA's it skips the slow live run ITSELF, disclosed: an
     // opted-out close records no live demo evidence.
-    if env::var("VAJRA_SKIP_DEMOER_GATE").is_ok() {
+    if let Some(why) = &shipped {
+        eprintln!(
+            "  [vajra demoer] session {current:02} is already merged ({why}) — its demo ran at \
+             close; not re-running it here (after a merge, main IS the after-state)."
+        );
+    } else if env::var("VAJRA_SKIP_DEMOER_GATE").is_ok() {
         eprintln!("  ⚠ [vajra demoer] VAJRA_SKIP_DEMOER_GATE set — live demo re-run skipped.");
     } else {
         eprintln!(
@@ -1776,6 +1811,8 @@ fn run_advance() -> Result<()> {
             }
             if maturity == MaturityLevel::L1 {
                 eprintln!("  (L1 advise — advancing anyway.)");
+            } else if let Some(why) = &shipped {
+                eprintln!("  (already merged by you — {why}; reporting, not blocking.)");
             } else {
                 bail!(
                     "refusing to advance: session {current:02}'s demo does not pass a live \
@@ -1957,6 +1994,12 @@ fn confirm(question: &str) -> Result<bool> {
         .read_line(&mut line)
         .context("failed to read input")?;
     if bytes == 0 {
+        // S172 F41: an agent's shell has no keyboard, so an empty stdin used to abort silently.
+        eprintln!();
+        eprintln!(
+            "  (no answer — stdin is empty. Without a keyboard, confirm by piping one in: \
+             `echo y | vajra next --advance`.)"
+        );
         return Ok(false);
     }
     Ok(matches!(
