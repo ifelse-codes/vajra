@@ -268,7 +268,8 @@ propose, the author records. You have no Write or Edit tool, by design.\n\
 `yes` = a new or changed interface, a new module, or a deviation from a locked record; `no` = a \
 pure fix. The gate READS that marker and never guesses, so leaving it unrecorded is not a \
 neutral omission.\n\
-- Cite a design record that EXISTS in this repo's spine — `docs/adr/` or `docs/decisions/`. Look \
+- Cite a design record that EXISTS in this repo's spine — `docs/adr/` or `docs/decisions/`, in \
+any case (`docs/ADR/ADR-010-title.md` counts). Look \
 for the file before you cite it: the gate blocks a citation that resolves to no file, and an \
 invented id is worse than an honest 'no record covers this yet'.\n\
 - Propose real rationale text, never the template `<placeholder>` shape — an angle-bracketed \

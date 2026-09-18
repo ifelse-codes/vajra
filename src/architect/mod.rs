@@ -262,8 +262,24 @@ fn strip_list_marker(line: &str) -> &str {
 /// Missing directories degrade to an empty spine (a fresh project), never an error.
 pub fn locked_design_spine(root: &Path) -> Vec<DesignRecord> {
     let mut out = Vec::new();
-    collect_records(root, "docs/adr", DesignRefKind::Adr, &mut out);
-    collect_records(root, "docs/decisions", DesignRefKind::Decision, &mut out);
+    // S172 (F35): match the folder name in any case. rudra keeps its ADRs in `docs/ADR/`; on a
+    // case-sensitive disk the exact `docs/adr` lookup found nothing and silently waived the
+    // citation check. Reading `docs/` once also avoids a double count on a case-insensitive disk.
+    let docs = fs::read_dir(root.join("docs"))
+        .map(|rd| {
+            rd.filter_map(Result::ok)
+                .map(|e| e.file_name().to_string_lossy().to_string())
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    for name in &docs {
+        let kind = match name.to_ascii_lowercase().as_str() {
+            "adr" => DesignRefKind::Adr,
+            "decisions" => DesignRefKind::Decision,
+            _ => continue,
+        };
+        collect_records(root, &format!("docs/{name}"), kind, &mut out);
+    }
     out.sort_by_key(|r| (r.kind, r.num));
     out
 }
@@ -303,7 +319,14 @@ fn collect_records(root: &Path, dir: &str, kind: DesignRefKind, out: &mut Vec<De
 /// `DECISION-002-fidelity…` (decision). `None` for non-record files.
 fn record_number(stem: &str, kind: DesignRefKind) -> Option<u32> {
     let digits = match kind {
-        DesignRefKind::Adr => stem.split('-').next()?,
+        // `0010-title` (Vajra's own) or `ADR-010-title` (rudra's, F35) — any case of the prefix.
+        DesignRefKind::Adr => {
+            let bare = match stem.get(..4) {
+                Some(p) if p.eq_ignore_ascii_case("adr-") => &stem[4..],
+                _ => stem,
+            };
+            bare.split('-').next()?
+        }
         DesignRefKind::Decision => stem
             .strip_prefix("DECISION-")
             .or_else(|| stem.strip_prefix("decision-"))?
@@ -669,6 +692,47 @@ Do one thing.
         // A repo with no spine degrades to empty, not an error.
         let bare = tempfile::tempdir().unwrap();
         assert!(locked_design_spine(bare.path()).is_empty());
+    }
+
+    #[test]
+    fn spine_reads_rudras_layout_capital_folder_and_adr_prefix() {
+        // S172 F35: rudra keeps `docs/ADR/ADR-010-foundation.md`. The old lookup (`docs/adr`,
+        // number-first names) saw none of them and waived the citation check.
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("docs/ADR")).unwrap();
+        fs::write(
+            tmp.path().join("docs/ADR/ADR-010-foundation.md"),
+            "# ADR-010: Foundation scope\n",
+        )
+        .unwrap();
+        fs::write(
+            tmp.path().join("docs/ADR/ADR-009-evidence.md"),
+            "# ADR-009\n",
+        )
+        .unwrap();
+        let spine = locked_design_spine(tmp.path());
+        let ids: Vec<&str> = spine.iter().map(|r| r.id.as_str()).collect();
+        assert_eq!(ids, vec!["ADR-0009", "ADR-0010"]);
+        assert_eq!(spine[1].path, "docs/ADR/ADR-010-foundation.md");
+
+        // And the gate now checks citations there: a real one passes, a made-up one blocks.
+        fs::create_dir_all(tmp.path().join("prompts")).unwrap();
+        let rel = tmp.path().join("prompts/03-task-x.md");
+        fs::write(
+            &rel,
+            with_design("- design-significant: yes\n- rests on ADR-010."),
+        )
+        .unwrap();
+        assert!(!design_gate(tmp.path(), 3).blocked());
+        fs::write(
+            &rel,
+            with_design("- design-significant: yes\n- rests on ADR-077."),
+        )
+        .unwrap();
+        assert!(
+            design_gate(tmp.path(), 3).blocked(),
+            "a made-up ADR must block"
+        );
     }
 
     #[test]
