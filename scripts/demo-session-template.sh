@@ -65,7 +65,7 @@ slide_story() {
 slide_before_after() {
   dk_section before_after "the change · two real runs · same input"
   dk_h2 "Before → After"
-  dk_todo before_after "Run the SAME input through the old code and the new, both live. Old code out of git: git show <sha>:<path> > \"\$DK_TMP/old.sh\". Then dk_run_v <old>; before=\"\$_DK_OUT\"; brc=\$_DK_RC; dk_run_v <new>; dk_compare \"BEFORE|at <sha> · exit \$brc\" \"\$before\" \"AFTER|today · exit \$_DK_RC\" \"\$_DK_OUT\"; then check the difference with a command: dk_check \"old passed, new blocks\" test \"\$brc\" = 0."
+  dk_todo before_after "Run the SAME input through the old code and the new, both live. Old code out of git: git show <sha>:<path> > \"\$DK_TMP/old.sh\" — <sha> is the commit this session STARTED from (write the real sha in; never `main`: after the merge main IS the new code, and the demo flips red). Then dk_run_v <old>; before=\"\$_DK_OUT\"; brc=\$_DK_RC; dk_run_v <new>; dk_compare \"BEFORE|at <sha> · exit \$brc\" \"\$before\" \"AFTER|today · exit \$_DK_RC\" \"\$_DK_OUT\"; then check the difference with a command: dk_check \"old passed, new blocks\" test \"\$brc\" = 0."
 }
 
 slide_rule() {
