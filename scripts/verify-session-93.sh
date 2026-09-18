@@ -62,8 +62,11 @@ l2_expect() {  # <block|allow> <branch> <marker>
     git config core.hooksPath .githooks
     echo hi > f.txt; git add f.txt
     set +e
-    if [ -n "$mk" ]; then VAJRA_ALLOW_COMMIT="$mk" git commit -q -m t >/dev/null 2>&1
-    else git commit -q -m t >/dev/null 2>&1; fi
+    # S172 (QA rec 3): these cases are about the AGENT. Since S171 a person commits without a
+    # marker, so say "agent" here instead of inheriting it from whoever runs this script.
+    local as_agent=(env -u CLAUDE_CODE_ENTRYPOINT -u CURSOR_TRACE_ID -u VAJRA_AGENT -u VAJRA_ALLOW_COMMIT CLAUDECODE=1)
+    if [ -n "$mk" ]; then "${as_agent[@]}" VAJRA_ALLOW_COMMIT="$mk" git commit -q -m t >/dev/null 2>&1
+    else "${as_agent[@]}" git commit -q -m t >/dev/null 2>&1; fi
     rc=$?
     set -e
     if [ "$want" = block ]; then [ "$rc" -ne 0 ]; else [ "$rc" -eq 0 ]; fi
