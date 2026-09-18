@@ -52,6 +52,11 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
     let options = analyst::options_gate(root, session);
     let options_ready = options.summary_path.is_some() && !options.blocked();
     let next_prompt = prompt_exists(root, session + 1);
+    // S172 F37: the counter in `.ai/SESSION` only moves on `--advance`, and nothing said when.
+    let counter_moved = std::fs::read_to_string(root.join(".ai/SESSION"))
+        .ok()
+        .and_then(|s| s.trim().parse::<u32>().ok())
+        .is_some_and(|n| n >= session);
 
     vec![
         Step::new(
@@ -77,6 +82,14 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             passed("Planner"),
             "every acceptance item is covered by a plan step",
             format!("mark each step `covers: N`, then: vajra next --check-plan {nn}"),
+        ),
+        Step::new(
+            counter_moved,
+            "the session number in .ai/SESSION says this session",
+            "once the prompt, design and plan above are done: echo y | vajra next --advance \
+             (it checks them and moves the number; the previous session, if already merged, is \
+             only reported on)"
+                .to_string(),
         ),
         Step::new(
             passed("Coder"),
@@ -125,8 +138,10 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         Step::new(
             passed("Releaser"),
             "the work is merged and the branch is gone",
-            "open the pull request, merge it, prune the branch, then: scripts/verify-closeout.sh"
-                .to_string(),
+            "open the pull request, merge it, prune the branch, then: scripts/verify-closeout.sh. \
+             If main has commits GitHub lacks, `vajra next --release NN` names them — tell the \
+             human which ones (e.g. a Vajra sync); only the human pushes main"
+                .replace("NN", &nn),
         ),
     ]
 }
@@ -265,6 +280,25 @@ mod tests {
 
     /// The checklist names the two things the agent skipped until asked: the demo, and the three
     /// ranked options plus the next prompt (F7, F8, F18, F25).
+    #[test]
+    fn the_session_number_step_is_done_only_once_the_counter_reaches_the_session() {
+        // S172 F37: rudra booted session 03 with `.ai/SESSION` still at 02 and no step said so.
+        let d = repo();
+        fs::create_dir_all(d.path().join(".ai")).unwrap();
+        let step = |root: &std::path::Path| {
+            steps(root, 3)
+                .into_iter()
+                .find(|s| s.what.contains(".ai/SESSION"))
+                .expect("the checklist names the session number")
+        };
+        fs::write(d.path().join(".ai/SESSION"), "02\n").unwrap();
+        let s = step(d.path());
+        assert!(!s.done);
+        assert!(s.how.contains("vajra next --advance"), "{}", s.how);
+        fs::write(d.path().join(".ai/SESSION"), "03\n").unwrap();
+        assert!(step(d.path()).done);
+    }
+
     #[test]
     fn the_checklist_names_the_demo_the_options_and_the_next_prompt() {
         let d = repo();

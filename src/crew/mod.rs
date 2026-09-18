@@ -356,7 +356,10 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
             v.blocked = true;
             v.reasons.push(format!(
                 "the tech-lead must record a verdict for all nine specialists — missing: {}. Every \
-                 role is either `required` or `deferred-budget`; none is silently skipped.",
+                 role is either `required` or `deferred-budget`; none is silently skipped. Each \
+                 verdict is ONE plain line: `crew <role> — required — budget: <N> tokens — <reason>` \
+                 (or `deferred-budget`). A markdown table, or lines inside a ``` code fence, are \
+                 not read.",
                 missing.join(", ")
             ));
             v.cause = Some(CrewCause::Unparseable(CrewParse::MissingRoles(missing)));
