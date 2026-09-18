@@ -14,6 +14,9 @@ echo ""
 echo "┌─ SPEAKING SKILL · DARSHAN (default human output, every reply) ─┐"
 echo "│ ONE RULE: render the richest visual this surface can handle ·  │"
 echo "│ always glanceable · never drop meaning.                       │"
+echo "│ PLAIN WORDS: the words beside any box are everyday English a  │"
+echo "│ non-coder gets — no project jargon; say what it means for     │"
+echo "│ them. Session results come this way FIRST, never on request.  │"
 echo "│ Tiers: rich chat (HTML/SVG) · terminal (ANSI/box) · plain md.  │"
 echo "│ Full skill: darshan/SKILL.md                                   │"
 echo "│ ▶ ACK NOW: open your FIRST reply in Darshan form (a glance /   │"
@@ -30,6 +33,16 @@ for f in .ai/SESSION .ai/SESSION-BOOT.md .ai/TASK.md .ai/STATE.md .ai/CONSTRAINT
     echo "[hook warn] missing: $f" >&2
   fi
 done
+
+# S172 F38: the handover names the next prompt by hand, and rudra's said `prompts/03-execution-…`
+# for a file saved as `prompts/03-task-execution-…`. Say so at boot instead of letting the agent
+# find out mid-session. Only the pointer files' top (the "next" part), and only a warning.
+{ cat "$ROOT/.ai/SESSION-BOOT.md" 2>/dev/null || true; head -15 "$ROOT/.ai/TASK.md" 2>/dev/null || true; } \
+  | grep -oE 'prompts/[0-9]+-[A-Za-z0-9._-]+\.md' | sort -u | while read -r p; do
+    [ -f "$ROOT/$p" ] && continue
+    near=$(ls "$ROOT/prompts/" 2>/dev/null | grep -E "^$(echo "$p" | grep -oE '[0-9]+' | head -1)-task-" | head -1 || true)
+    echo "[hook warn] the handover names $p — no such file.${near:+ Did it mean prompts/$near?}"
+  done
 
 BRANCH=$(cd "$ROOT" && git branch --show-current 2>/dev/null || echo "?")
 echo "Current branch: $BRANCH"

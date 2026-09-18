@@ -30,6 +30,18 @@ CONSTRAINTS="$ROOT/.ai/CONSTRAINTS.yaml"
 FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.notebook_path // ""' 2>/dev/null || echo "")
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "nosession")
+TRANSCRIPT=$(echo "$INPUT" | jq -r '.transcript_path // ""' 2>/dev/null || echo "")
+
+# S172 (F36): was `f` already read this session? The pause exists to put the file in front of
+# the agent; if it is already there, pausing costs a round trip and teaches nothing. "Read" =
+# a Read tool call on that exact file, or the boot hook's `----- <file> -----` dump of it.
+# No transcript (older hosts, tests) = nothing counts as read, the old behavior.
+already_read() {
+  local f="$1"
+  [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ] || return 1
+  grep -qF -e "\"file_path\":\"$ROOT/$f\"" -e "\"file_path\": \"$ROOT/$f\"" \
+    -e "----- $f -----" "$TRANSCRIPT" 2>/dev/null
+}
 
 # Repo-relative path, so rules can be written relative to the project root.
 REL="$FILE"
@@ -58,9 +70,12 @@ fire() {
   local OLDIFS="$IFS"; IFS=','
   for f in $includes; do
     f="$(echo "$f" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
-    [ -n "$f" ] && list="${list}    - ${f}"$'\n'
+    [ -n "$f" ] || continue
+    already_read "$f" && continue
+    list="${list}    - ${f}"$'\n'
   done
   IFS="$OLDIFS"
+  [ -n "$list" ] || return 0             # every file is already in front of the agent
 
   if [ "$MATURITY" = "L1" ]; then
     echo "[vajra] before this step ($pattern), it is worth reading:"
