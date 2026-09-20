@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S171 complete (interactive, the founder's own first-run test)
+## Between Sessions — S172 complete (interactive, the founder's own rudra session 03)
 
-**Next: Session 172 — keep testing rudra, fix what it finds** (founder's pick, candidate 3). Brief: `prompts/172-task-keep-testing.md` — **Status: DRAFT**, filled in live from his run. Carried in by name: an executable test for the commit/push belt split (S171 pass-3 rec 7) and a third watch on F31. Start in a FRESH chat.
+**Next: Session 173 — the founder picks** from `sessions/session-172-summary.md`: (1) rudra session 04 with the nine fixes synced in; (2) finish the 0.2.0 release (crates.io still 0.1.0 — his own installed `vajra` is older than this session's build); (3) close the approval gap on non-`session-NN-` branches + the end-to-end falsifiability case the design-advisor asked for. Write `prompts/173-task-<slug>.md` from the pick. Start in a FRESH chat.
+
+## Session 172 — Interactive: keep testing rudra, fix what it finds — COMPLETE
+
+- Brief: `prompts/172-task-keep-testing.md` (findings F35–F43 from his own rudra session 03). Summary: `sessions/session-172-summary.md`. Review: `sessions/session-172-review.md`.
+- Shipped: a merged session is reported on, never re-graded (F39) · the closing checks moved into the pre-merge close check · design records found in `docs/ADR/ADR-NNN-*.md` (F35) · demo "before" pinned to the start commit (F40) · three confusing messages now say how (F41) · the reading pause skips what was read (F36) · boot warns on a handover naming a missing prompt (F38) · plain words demanded at boot (F42) · unpushed commits named (F43) · `tests/commit_belt.rs` (the carried S171 rec 7).
+- Open: the branch-approval gap (an agent may commit without approval on a non-`session-NN-` branch) was put to the founder twice and is unanswered; DECISION-007's S172 addendum names the lost backstop.
 
 ## Session 171 — Interactive: the founder's own first-run test — COMPLETE
 
