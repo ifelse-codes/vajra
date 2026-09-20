@@ -117,6 +117,28 @@ the merge, not deferred:
 - **rec 10** — "the demo cannot rot at merge" downgraded to what shipped: it is warned against.
 - **rec 3** — was already fixed before the review landed (the close check caught it first).
 
+## What the independent judge changed
+
+Every `obeyed:` answer in this session was checked against its commit by a role that neither gave
+the advice nor built the fix. Four things came back that I had got wrong:
+
+1. **One MISMATCH.** I recorded the tech-lead's rec 5 as obeyed because the design-advisor was
+   dispatched. The rec asked for the role to be MOVED to `required` with the founder's yes — the
+   crew row still says `deferred-budget` and no approval was sought. Corrected to a `refused:` that
+   says exactly that.
+2. **The verify script was driving a stale binary** — `target/release/vajra` predated the fixes it
+   was checking, and still printed 30/30. It now refuses to run against a binary older than `src/`.
+3. **The header's new count was wrong** (three source-reading checks, actually seven), and nothing
+   bound the eleven belt cases to the test file once the old count check was deleted. Both fixed.
+4. **A wording downgrade was half-applied** — the deliverable still said the demo "cannot" rot.
+
+Left open, flagged by the judge and not fixed here: `scripts/verify-session-93.sh` is RED on two
+`e2e-*-byte-identical` checks. They compare a fresh scaffold against this repo's files and are
+stale, not broken — the scaffolded hook now carries a render stamp the repo copy does not, and the
+guard path they check (`.ai/hooks/hook-commit-guard.sh`) does not exist here at all. Pre-existing,
+unrelated to this session's commits, and an instance of the "old records under new rules" class
+already on the board.
+
 ## Cost
 
 Three specialist dispatches (tech-lead, qa-specialist, design-advisor) plus one cold review at

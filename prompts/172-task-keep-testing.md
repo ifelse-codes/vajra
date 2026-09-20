@@ -159,7 +159,7 @@ turned out to move a locked clause — its own rec 5 said to).
 - tech-lead rec 2 — obeyed: bf3b515 — the qa-specialist got the three files and settled the count before the test was written (11 cases, not 6 or 8)
 - tech-lead rec 3 — obeyed: da508e1 (one fidelity-reviewer pass at close, on the session diff and the findings table; ACCEPT with nine recommendations, no re-review loop)
 - tech-lead rec 4 — obeyed: 4f1ce0f (the tech-lead was dispatched before any planning here; F31 did NOT recur in rudra S03, recorded in the findings table; no gate built)
-- tech-lead rec 5 — obeyed: 4f1ce0f (the F39 fix moved a locked clause, so the design-advisor was dispatched before the close — `.ai/handoffs/session-172-design-advisor.md`)
+- tech-lead rec 5 — refused: the design-advisor WAS dispatched before the close (`.ai/handoffs/session-172-design-advisor.md`, 4f1ce0f) and its advice rewrote the design record — but the rec asked to MOVE the role from `deferred-budget` to `required` with the founder's yes, and neither happened: the crew row still reads `deferred-budget` and no approval was sought. The independent judge called the earlier `obeyed:` a mismatch; recording the dispatch honestly instead of claiming the mandate change
 
 **qa-specialist** (`.ai/handoffs/session-172-qa-specialist.md`):
 - qa-specialist rec 1 — obeyed: bf3b515 (`BELT_VARS` removed from every `Command` in `tests/commit_belt.rs`; each case sets only its own)
