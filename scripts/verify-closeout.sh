@@ -386,7 +386,7 @@ check_live_gate() {
   local NAME="$1" FLAG="$2" HEADER="$3" FIX="$4"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not found — this check cannot run." >> "$LOG"
     if waiver_ok; then
@@ -398,6 +398,15 @@ check_live_gate() {
   fi
   local out code
   out="$("$BIN" next "$FLAG" "$N" 2>&1)" && code=0 || code=$?
+  # S172 cold review rec 8: an installed `vajra` older than this check falls through to the packet
+  # dump and exits 0. When a locally built binary carries the flag, use that rather than failing a
+  # close over a stale install — and say which binary answered.
+  if ! grep -q "$HEADER" <<<"$out" && [ -x "target/release/vajra" ] && [ "$BIN" != "target/release/vajra" ]; then
+    echo "NOTE: $BIN does not carry $FLAG — retrying with target/release/vajra." >> "$LOG"
+    BIN="target/release/vajra"
+    out="$("$BIN" next "$FLAG" "$N" 2>&1)" && code=0 || code=$?
+  fi
+  echo "binary: $BIN" >> "$LOG"
   echo "$out" >> "$LOG"
   echo "exit=$code" >> "$LOG"
   if ! grep -q "$HEADER" <<<"$out"; then
@@ -405,7 +414,7 @@ check_live_gate() {
     if waiver_ok; then
       echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
     else
-      echo "FAIL: update vajra, or record a founder waiver." >> "$LOG"; bad "$NAME"
+      echo "FAIL: update vajra (cargo install --path . / brew upgrade) so it carries $FLAG, or record a founder waiver." >> "$LOG"; bad "$NAME"
     fi
     return
   fi
@@ -635,7 +644,7 @@ check_obeyed_judgments() {
   local NAME="obeyed-judgments"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     # S69, and the S132 cold review's rec 10: a check that CANNOT EVALUATE fails. The first draft
     # of this branch called `ok`, so a missing binary counted as a pass — the gate greened by not
@@ -701,7 +710,7 @@ check_design_advisor_mandate() {
   local NAME="design-advisor-mandate"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not built — this check cannot evaluate the Mandate gate." >> "$LOG"
     if waiver_ok; then
@@ -776,7 +785,7 @@ check_required_crew() {
   local NAME="required-crew"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not built — this check cannot evaluate the Crew gate." >> "$LOG"
     if waiver_ok; then
@@ -926,7 +935,7 @@ check_release_coordinator() {
   local NAME="release-coordinator"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not built — this check cannot evaluate the Releaser gate." >> "$LOG"
     if waiver_ok; then
@@ -1272,6 +1281,7 @@ check_demo_markers
 check_fidelity_review
 check_next_options
 check_obeyed_judgments
+check_live_gate fidelity-handoff --check-fidelity-handoff "=== fidelity: fidelity-reviewer handoff for session" "dispatch the cold review and run \`vajra next --role fidelity-reviewer --from <findings>\` — the review FILE is a different artifact from the provenance-verified handoff."
 check_live_gate advice-answered --check-advice "=== advice: dispositions for session" "answer every recommendation in the prompt's ## Advice: obeyed: <sha> / refused: <reason> / deferred: <path>. See \`vajra next --advice $N\`."
 check_live_gate verify-passes-live --check-qa "=== qa: verify for session" "the session's verify script does not pass — fix it until \`vajra next --check-qa $N\` is green."
 check_design_advisor_mandate

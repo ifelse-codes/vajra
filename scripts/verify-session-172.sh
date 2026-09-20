@@ -2,7 +2,8 @@
 # Session 172 verify — the findings from the founder's own rudra session 03 (F35–F43), plus the
 # carried belt-split test. Every check RUNS the real thing: the real binary against a real git
 # fixture, the real hooks with a real transcript file, the real close-gate function out of the
-# scaffold. No check greens by grepping source.
+# scaffold. Three checks DO read source, and say so in their names (`*-wires-*`): they prove the
+# new close gates are CALLED, which running the helper alone cannot show. Everything else executes.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 PASS=0; FAIL=0
@@ -70,6 +71,9 @@ run_live_gate() { # run_live_gate <scaffold|own> <fake-vajra-body>   -> RESULT=P
   mkdir -p "$d/bin"
   cp "$ROOT/scripts/verify-closeout$([ "$which" = scaffold ] && echo -scaffold).sh" "$d/gate.sh"
   printf '#!/bin/sh\n%s\n' "$body" > "$d/bin/vajra"; chmod +x "$d/bin/vajra"
+  # The fake `vajra` must be the one that answers: both copies resolve PATH-first, and a missing
+  # binary would green this check on the cannot-evaluate branch instead of the branch it names
+  # (S172 cold review, the FAKEST GREEN).
   ( cd "$d" && PATH="$d/bin:/usr/bin:/bin:/usr/sbin:/sbin" bash -c '
       source /dev/stdin <<<"$(sed -n "/^check_live_gate()/,/^}/p" gate.sh)"
       N=72; ARTIFACTS=.
@@ -77,6 +81,7 @@ run_live_gate() { # run_live_gate <scaffold|own> <fake-vajra-body>   -> RESULT=P
       bad() { echo "RESULT=FAIL"; }
       waiver_ok() { false; }
       check_live_gate advice-answered --check-advice "=== advice: dispositions for session" "fix it"
+      cat advice-answered.log
     ' )
 }
 OUT="$(run_live_gate scaffold 'echo "=== advice: dispositions for session 72 ==="; exit 0')"
@@ -89,13 +94,18 @@ OUT="$(run_live_gate scaffold 'echo "=== vajra: handoff packet ==="; exit 0')"
 grep -q "RESULT=FAIL" <<<"$OUT" && ok "AC2 close-check-fails-on-a-build-that-cannot-evaluate" \
   || bad "AC2 close-check-fails-on-a-build-that-cannot-evaluate — $OUT"
 OUT="$(run_live_gate own 'echo "=== advice: dispositions for session 72 ==="; exit 1')"
-grep -q "RESULT=FAIL" <<<"$OUT" && ok "AC2 same-check-in-vajras-own-gate" \
-  || bad "AC2 same-check-in-vajras-own-gate — $OUT"
-for flag in --check-advice --check-qa; do
+if grep -q "RESULT=FAIL" <<<"$OUT" && grep -q "binary: .*/bin/vajra" <<<"$OUT"; then
+  ok "AC2 same-check-in-vajras-own-gate"
+elif grep -q "RESULT=FAIL" <<<"$OUT"; then
+  bad "AC2 same-check-in-vajras-own-gate — FAILED on the wrong branch (the gate never ran the binary)"
+else
+  bad "AC2 same-check-in-vajras-own-gate — $OUT"
+fi
+for flag in --check-advice --check-qa --check-fidelity-handoff; do
   grep -q -- "check_live_gate .* $flag " "$ROOT/scripts/verify-closeout.sh" \
     && ok "AC2 own-gate-wires $flag" || bad "AC2 own-gate-wires $flag"
 done
-for flag in --check-advice --check-qa --check-demo; do
+for flag in --check-advice --check-qa --check-demo --check-fidelity-handoff; do
   grep -q -- "check_live_gate .* $flag " "$ROOT/scripts/verify-closeout-scaffold.sh" \
     && ok "AC2 project-gate-wires $flag" || bad "AC2 project-gate-wires $flag"
 done
@@ -126,9 +136,21 @@ if cargo test -q --test commit_belt >"$T/belt.log" 2>&1; then
 else
   bad "AC4 commit-belt-tests-pass — $(tail -3 "$T/belt.log")"
 fi
-grep -c '#\[test\]' tests/commit_belt.rs | grep -q '^6$' \
-  && ok "AC4 six-test-functions-cover-the-eleven-cases" \
-  || bad "AC4 six-test-functions-cover-the-eleven-cases"
+# Negative control (S172 cold review rec 5): with agent detection disabled in a COPY of the real
+# hook, the agent cases must stop blocking — otherwise the tests prove nothing about the hook.
+MUT="$T/mut"; mkdir -p "$MUT/.githooks"
+sed 's/^  agent_shell=1$/  agent_shell=0/' .githooks/pre-commit > "$MUT/.githooks/pre-commit"
+chmod +x "$MUT/.githooks/pre-commit"
+grep -q "agent_shell=0" "$MUT/.githooks/pre-commit" || bad "AC4 mutation-applied"
+git_fx "$MUT" init -q -b main >/dev/null 2>&1
+git_fx "$MUT" add -A >/dev/null; git_fx "$MUT" commit -qm seed >/dev/null
+git_fx "$MUT" config core.hooksPath .githooks; git_fx "$MUT" checkout -qb session-07-x
+echo x > "$MUT/f.txt"; git_fx "$MUT" add f.txt >/dev/null
+if ( cd "$MUT" && env -u VAJRA_ALLOW_COMMIT CLAUDECODE=1 git -c user.email=v@v -c user.name=v commit -qm t >/dev/null 2>&1 ); then
+  ok "AC4 the-tests-would-go-red-if-agent-detection-were-removed (mutant lets an unapproved agent commit)"
+else
+  bad "AC4 the-tests-would-go-red-if-agent-detection-were-removed — the mutant still blocked, so the cases do not bind on that code"
+fi
 B="$T/belt"; mkdir -p "$B/.githooks"
 git_fx "$B" init -q -b main >/dev/null 2>&1
 cp .githooks/pre-commit "$B/.githooks/"; chmod +x "$B/.githooks/pre-commit"
@@ -204,8 +226,8 @@ if [ -d "$RUDRA/.git" ]; then
     bad "AC7 sync-fleet-upgrades-a-real-project-cleanly — $(tail -2 <<<"$OUT")"
   fi
 else
-  echo "N/A: no project at $RUDRA — the sync check needs one (set VAJRA_SYNC_TARGET)."
-  ok "AC7 sync-fleet-upgrades-a-real-project-cleanly (N/A, named)"
+  # A check that cannot evaluate FAILS (this repo's own rule, applied to itself — cold review rec 7).
+  bad "AC7 sync-fleet-upgrades-a-real-project-cleanly — no project at $RUDRA to sync into; set VAJRA_SYNC_TARGET"
 fi
 
 echo ""
