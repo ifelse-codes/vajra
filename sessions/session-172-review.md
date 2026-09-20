@@ -175,3 +175,8 @@ No. Nine findings, nine fixes, each with a live check behind it, plus the carrie
 **Verdict:** ACCEPT
 
 Files that carry the load, all absolute: `/Users/suman/playground/vajra/src/releaser/mod.rs`, `/Users/suman/playground/vajra/src/cli/next.rs`, `/Users/suman/playground/vajra/src/architect/mod.rs`, `/Users/suman/playground/vajra/src/nextstep/mod.rs`, `/Users/suman/playground/vajra/src/advice/mod.rs`, `/Users/suman/playground/vajra/scripts/verify-closeout.sh`, `/Users/suman/playground/vajra/scripts/verify-closeout-scaffold.sh`, `/Users/suman/playground/vajra/scripts/verify-session-172.sh`, `/Users/suman/playground/vajra/scripts/hook-copilot-loader.sh`, `/Users/suman/playground/vajra/scripts/hook-session-start.sh`, `/Users/suman/playground/vajra/scripts/hook-commit-guard.sh`, `/Users/suman/playground/vajra/scripts/hook-pre-bash.sh`, `/Users/suman/playground/vajra/.githooks/pre-commit`, `/Users/suman/playground/vajra/tests/commit_belt.rs`, `/Users/suman/playground/vajra/docs/decisions/DECISION-007-agent-fleet.md`, `/Users/suman/playground/vajra/sessions/session-172-summary.md`.
+
+**Review-Inputs-SHA:** `35ca5cb471757873fc4f86fc0f162a7d68e714a5a121ea95c08d073c9d3a0838`
+(sha256 of the prompt at HEAD plus the committed diff outside `sessions/`, `prompts/` and the
+synced `.ai/` files — computed LAST, after every code and handoff commit, per this session's own
+F41 fix. Recomputed by `scripts/verify-closeout.sh --inputs-sha 172`.)
