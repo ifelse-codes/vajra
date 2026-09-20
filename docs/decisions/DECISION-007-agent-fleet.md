@@ -1388,9 +1388,14 @@ not begin until session 02's paperwork had been rewritten, and session 02 had sh
 is REPORTED on at `--advance`, never blocked; the closing gates bind before the merge, at
 `scripts/verify-closeout.sh`.
 
-Mechanics: `releaser::shipped_close()` asks git whether that summary is on main — a fact the agent
-cannot set, because the belt stops it committing on main and the publish guard stops it pushing
-there. When it is, the Options/Coder/Advice/Fidelity/Mandate/Crew/Obeyed gates print
+Mechanics: `releaser::shipped_close()` asks git whether that summary is on the integration branch.
+It asks `origin/<main>` when that ref exists — pushing there is guarded, so a merge the agent
+performs locally does not count — and falls back to LOCAL main when there is no remote, saying so in
+its own message. **Corrected by this session's cold review (rec 1):** an earlier draft of this
+addendum claimed the agent "cannot set" that fact. It can, in a repo with no `origin/<main>`:
+`git checkout main && git merge <branch>` runs no pre-commit hook (git would run `pre-merge-commit`,
+which Vajra does not ship) and no PreToolUse guard (`hook-pre-bash.sh` lists `git commit`, `git
+push`, `git reset --hard`, `git branch -D` — not `git merge`). Disclosed, not fenced. When it is, the Options/Coder/Advice/Fidelity/Mandate/Crew/Obeyed gates print
 `already merged by you — …; reporting, not blocking`, and the slow live QA and demo re-runs are
 skipped entirely (after a merge, `main` IS the after-state, so a demo comparing against it inverts —
 the same F40 the demo template now warns about). The teeth move earlier, not away: `check_live_gate`
@@ -1419,10 +1424,12 @@ never that the citation is apt.
    `--advance`. It is not caught anywhere now. `scripts/verify-closeout.sh` must run on the session
    branch before the merge (the S83 rule) — and this repo's own S171 finding is that text rules get
    skipped while gates do not. Named, not fenced.
-2. **`shipped_close()` keys on one file.** Landing the summary on main early downgrades those gates
-   to reporting while the session is still live — self-granted jurisdiction, the S69 class,
-   disclosed.
-3. **Rejected alternatives:** a session-number threshold (S134 proved the threshold is unknowable in
+2. **`shipped_close()` keys on one file, and on a ref.** Landing that summary early — or, with no
+   remote, merging locally by any route that puts it there — downgrades those gates to reporting
+   while the session is still live: self-granted jurisdiction, the S69 class, disclosed.
+3. **The demo template WARNS against comparing with `main`; nothing enforces it.** Older demo
+   scripts in this repo still read `git show main:` (cold review rec 10).
+4. **Rejected alternatives:** a session-number threshold (S134 proved the threshold is unknowable in
    a brownfield repo); versioning the rule set per session (a new store and a clock for n=1
    evidence); deleting the closing re-runs and adding nothing (removes teeth instead of relocating
    them); an ADR path setting in `CONSTRAINTS.yaml` (a second setting that drifts from the folder it

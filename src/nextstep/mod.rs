@@ -138,9 +138,10 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         Step::new(
             passed("Releaser"),
             "the work is merged and the branch is gone",
-            "open the pull request, merge it, prune the branch, then: scripts/verify-closeout.sh. \
-             If main has commits GitHub lacks, `vajra next --release NN` names them — tell the \
-             human which ones (e.g. a Vajra sync); only the human pushes main"
+            "run scripts/verify-closeout.sh ON THE BRANCH first — since S172 nothing re-checks \
+             it after the merge — then open the pull request, merge it, prune the branch. If main \
+             has commits GitHub lacks, `vajra next --release NN` names them — tell the human \
+             which ones (e.g. a Vajra sync); only the human pushes main"
                 .replace("NN", &nn),
         ),
     ]
