@@ -373,6 +373,61 @@ check_verify_demo_scripts() {
   fi
 }
 
+# --- Checks that used to run only at the NEXT session's --advance (S172, F39) ------
+# `vajra next --advance` runs after this session merged, and from S172 it only REPORTS on a
+# session the human already merged. So anything it used to block on must block HERE, before the
+# merge: the Advice answers, and the live verify / demo re-runs (a demo compared against `main`
+# also only works before the merge — after it, main IS the after-state).
+#
+# check_live_gate <name> <vajra-next-flag> <header-grep> <what to do when it fails>
+# Runs the REAL binary read-only. A missing binary, or a build without the flag (an unknown flag
+# falls through to the packet dump and exits 0), cannot evaluate — that FAILS, never greens.
+check_live_gate() {
+  local NAME="$1" FLAG="$2" HEADER="$3" FIX="$4"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  : > "$LOG"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
+  if [ ! -x "$BIN" ]; then
+    echo "BLOCK: $BIN not found — this check cannot run." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: install or build vajra so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  local out code
+  out="$("$BIN" next "$FLAG" "$N" 2>&1)" && code=0 || code=$?
+  # S172 cold review rec 8: an installed `vajra` older than this check falls through to the packet
+  # dump and exits 0. When a locally built binary carries the flag, use that rather than failing a
+  # close over a stale install — and say which binary answered.
+  if ! grep -q "$HEADER" <<<"$out" && [ -x "target/release/vajra" ] && [ "$BIN" != "target/release/vajra" ]; then
+    echo "NOTE: $BIN does not carry $FLAG — retrying with target/release/vajra." >> "$LOG"
+    BIN="target/release/vajra"
+    out="$("$BIN" next "$FLAG" "$N" 2>&1)" && code=0 || code=$?
+  fi
+  echo "binary: $BIN" >> "$LOG"
+  echo "$out" >> "$LOG"
+  echo "exit=$code" >> "$LOG"
+  if ! grep -q "$HEADER" <<<"$out"; then
+    echo "BLOCK: \`vajra next $FLAG $N\` did not run the check — this vajra build is too old." >> "$LOG"
+    if waiver_ok; then
+      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    else
+      echo "FAIL: update vajra (cargo install --path . / brew upgrade) so it carries $FLAG, or record a founder waiver." >> "$LOG"; bad "$NAME"
+    fi
+    return
+  fi
+  if [ "$code" -eq 0 ]; then
+    echo "OK: \`vajra next $FLAG $N\` passed." >> "$LOG"; ok "$NAME"; return
+  fi
+  if waiver_ok; then
+    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: $FIX" >> "$LOG"; bad "$NAME"
+  fi
+}
+
 # --- The handover to the human (S171, founder's call) ------------------------
 # The founder's rudra sessions 00-02 each ended without him being offered the three ranked
 # options the constitution promises — twice the agent simply announced what came next, and
@@ -589,7 +644,7 @@ check_obeyed_judgments() {
   local NAME="obeyed-judgments"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     # S69, and the S132 cold review's rec 10: a check that CANNOT EVALUATE fails. The first draft
     # of this branch called `ok`, so a missing binary counted as a pass — the gate greened by not
@@ -655,7 +710,7 @@ check_design_advisor_mandate() {
   local NAME="design-advisor-mandate"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not built — this check cannot evaluate the Mandate gate." >> "$LOG"
     if waiver_ok; then
@@ -730,7 +785,7 @@ check_required_crew() {
   local NAME="required-crew"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not built — this check cannot evaluate the Crew gate." >> "$LOG"
     if waiver_ok; then
@@ -880,7 +935,7 @@ check_release_coordinator() {
   local NAME="release-coordinator"; local LOG="$ARTIFACTS/${NAME}.log"
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
-  local BIN="target/release/vajra"
+  local BIN; BIN="$(command -v vajra 2>/dev/null || echo "target/release/vajra")"
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not built — this check cannot evaluate the Releaser gate." >> "$LOG"
     if waiver_ok; then
@@ -1010,7 +1065,11 @@ check_review_attestation() {
   [ -z "$claimed" ]   && echo "BLOCK: ACCEPT with no **Review-Inputs-SHA:** attestation." >> "$LOG"
   [ -z "$expected" ]  && echo "BLOCK: canonical input hash uncomputable (a check that cannot evaluate FAILS)." >> "$LOG"
   { [ -n "$claimed" ] && [ -n "$expected" ] && [ "$claimed" != "$expected" ]; } \
-    && echo "BLOCK: attestation MISMATCH — the ACCEPT is stale/recycled/decoupled from the delivered diff." >> "$LOG"
+    && { echo "BLOCK: attestation MISMATCH — the ACCEPT is stale/recycled/decoupled from the delivered diff." >> "$LOG"
+         echo "HOW (S172 F41): the hash covers the prompt plus every committed change outside sessions/, prompts/ and" >> "$LOG"
+         echo "     the synced .ai/ files — .ai/handoffs/ IS covered. Commit all code AND handoffs first, compute the" >> "$LOG"
+         echo "     hash LAST (\`bash scripts/verify-closeout.sh --inputs-sha $N\`), paste it in the review. Any later" >> "$LOG"
+         echo "     commit outside those folders moves it." >> "$LOG"; }
   if waiver_ok; then
     echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
   else
@@ -1222,6 +1281,9 @@ check_demo_markers
 check_fidelity_review
 check_next_options
 check_obeyed_judgments
+check_live_gate fidelity-handoff --check-fidelity-handoff "=== fidelity: fidelity-reviewer handoff for session" "dispatch the cold review and run \`vajra next --role fidelity-reviewer --from <findings>\` — the review FILE is a different artifact from the provenance-verified handoff."
+check_live_gate advice-answered --check-advice "=== advice: dispositions for session" "answer every recommendation in the prompt's ## Advice: obeyed: <sha> / refused: <reason> / deferred: <path>. See \`vajra next --advice $N\`."
+check_live_gate verify-passes-live --check-qa "=== qa: verify for session" "the session's verify script does not pass — fix it until \`vajra next --check-qa $N\` is green."
 check_design_advisor_mandate
 check_required_crew
 check_claimed_evidence

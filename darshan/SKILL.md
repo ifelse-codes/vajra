@@ -22,6 +22,12 @@ Three words, three jobs:
 - **glanceable** — a person should *get it in one look*, before reading word-by-word. Lead with the answer.
 - **never drop meaning** — Darshan compresses **presentation**, never the decision, the number, or the caveat. A glance must carry the same truth as the paragraph. If shrinking it loses a fact, keep the fact.
 
+## Plain words — the boxes are not the explanation
+
+A box shows the result; it does not explain it. Next to every box, one or two sentences in **everyday English a non-programmer understands** — no project jargon (lease, gate, reconcile, attestation…), no abbreviations, an everyday comparison where it helps. Say what it means *for the person*, and the one thing they should do next.
+
+This applies most at the **end of a session**: the "what we did · what it achieved · what's next" report comes in plain words the first time. If the human has to ask "explain that simply", Darshan failed. (Found in S172: the founder had to ask for plain English three sessions running.)
+
 ## The boot ritual — do this once, at the start
 
 1. **READ** this skill. Note your current surface (see the tier table).

@@ -1371,3 +1371,66 @@ invisible as any unplanned work.
 still passes `execution-shas-filled`, so a `NO-DONE` step and a made-up sha remain waivable. A plan
 written as `1)` or indented is invisible to the step parser, so it records no steps to check. And
 `git cat-file -e` proves a sha names SOME commit, not one of this session's (rec 3 — carried to S171).
+
+---
+
+## S172 addendum — a session the human already merged is never re-graded
+
+**What changed.** The closing gates moved from post-merge to pre-merge. Two clauses in this record
+placed them at the wrong moment: the S127 addendum wired the Advice gate "into `--advance` on the
+CLOSING session", and the S131 addendum said the fidelity gate "binds on the session being CLOSED",
+"exactly like the Coder/Advice/QA/Demo gates". But `vajra next --advance` runs at the START of the
+next session, i.e. AFTER the closing session merged. So merged work was re-graded — sometimes by
+rules that reached the project after it merged. In the founder's own `rudra` (F39), session 03 could
+not begin until session 02's paperwork had been rewritten, and session 02 had shipped days earlier.
+
+**The new rule, in one line:** a session whose `sessions/session-NN-summary.md` is on the main branch
+is REPORTED on at `--advance`, never blocked; the closing gates bind before the merge, at
+`scripts/verify-closeout.sh`.
+
+Mechanics: `releaser::shipped_close()` asks git whether that summary is on the integration branch.
+It asks `origin/<main>` when that ref exists — pushing there is guarded, so a merge the agent
+performs locally does not count — and falls back to LOCAL main when there is no remote, saying so in
+its own message. **Corrected by this session's cold review (rec 1):** an earlier draft of this
+addendum claimed the agent "cannot set" that fact. It can, in a repo with no `origin/<main>`:
+`git checkout main && git merge <branch>` runs no pre-commit hook (git would run `pre-merge-commit`,
+which Vajra does not ship) and no PreToolUse guard (`hook-pre-bash.sh` lists `git commit`, `git
+push`, `git reset --hard`, `git branch -D` — not `git merge`). Disclosed, not fenced. When it is, the Options/Coder/Advice/Fidelity/Mandate/Crew/Obeyed gates print
+`already merged by you — …; reporting, not blocking`, and the slow live QA and demo re-runs are
+skipped entirely (after a merge, `main` IS the after-state, so a demo comparing against it inverts —
+the same F40 the demo template now warns about). The teeth move earlier, not away: `check_live_gate`
+in `scripts/verify-closeout.sh` and in the scaffold copy every project gets runs
+`vajra next --check-advice` / `--check-qa` / (projects) `--check-demo`, and FAILS when the binary is
+missing or too old to evaluate them.
+
+**This restores DECISION-010's own rule** ("the gate binds only on the session being closed; old
+demos are never re-graded at close"), which the `--advance` wiring had quietly broken for every
+other gate.
+
+**DEVIATION, stated plainly.** This session MOVES the moment the S127 and S131 addenda lock. The
+Architect gate checks the FORM of a citation, never whether the design obeys the record it cites —
+so nothing but this sentence marks it. Not "extends", not "clarifies": moved.
+
+**Also in S172 — record discovery widens (F35).** `src/architect` accepts `docs/adr/` and
+`docs/ADR/` (any case), and record names `0010-title.md` and `ADR-010-title.md` (any case of the
+prefix); decisions stay `DECISION-NNN-title.md`. rudra's ten real ADRs were invisible to the old
+lookup, so the citation requirement was silently WAIVED and a made-up id would have passed. The
+S126 addendum's sentence (the design-advisor cites a record under `docs/adr/` or `docs/decisions/`)
+now reads "in any case" in `fleet::ROLES`. Honest limit unchanged: discovery proves a record EXISTS,
+never that the citation is apt.
+
+**What this does NOT claim.**
+1. **The backstop is gone.** Before S172 a skipped closeout was still caught at the next
+   `--advance`. It is not caught anywhere now. `scripts/verify-closeout.sh` must run on the session
+   branch before the merge (the S83 rule) — and this repo's own S171 finding is that text rules get
+   skipped while gates do not. Named, not fenced.
+2. **`shipped_close()` keys on one file, and on a ref.** Landing that summary early — or, with no
+   remote, merging locally by any route that puts it there — downgrades those gates to reporting
+   while the session is still live: self-granted jurisdiction, the S69 class, disclosed.
+3. **The demo template WARNS against comparing with `main`; nothing enforces it.** Older demo
+   scripts in this repo still read `git show main:` (cold review rec 10).
+4. **Rejected alternatives:** a session-number threshold (S134 proved the threshold is unknowable in
+   a brownfield repo); versioning the rule set per session (a new store and a clock for n=1
+   evidence); deleting the closing re-runs and adding nothing (removes teeth instead of relocating
+   them); an ADR path setting in `CONSTRAINTS.yaml` (a second setting that drifts from the folder it
+   describes).

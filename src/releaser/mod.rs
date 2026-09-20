@@ -172,6 +172,54 @@ fn current_branch(root: &Path) -> Option<String> {
     }
 }
 
+/// Has the human already shipped session `nn`'s close? True when its summary
+/// (`sessions/session-NN-summary.md`, padded or not) is committed on the integration branch — the
+/// summary is written at the session's own close, so it reaches that branch with the merge.
+/// `origin/<main>` is asked FIRST when the ref exists: pushing there is guarded, so a merge the
+/// agent performs locally does not count. Returns what was found, for the message.
+///
+/// Why it matters (S172, F39): `--advance` runs AFTER the previous session merged. Grading that
+/// merged session again — possibly by rules synced in after it merged — made the agent go back and
+/// rewrite the old session's paperwork. Once the close is shipped, the checks report, not block;
+/// the blocking check is `verify-closeout.sh`, before the merge.
+///
+/// HONEST LIMIT (S172 cold review, rec 1): when there is no `origin/<main>` ref, this falls back to
+/// LOCAL main, and a local `git checkout main && git merge <branch>` runs no pre-commit hook and no
+/// PreToolUse guard. In a repo with no remote, an agent can therefore put itself in the "already
+/// shipped" state. Disclosed, not fenced.
+pub fn shipped_close(root: &Path, nn: u32) -> Option<String> {
+    let main = main_branch(root)?;
+    let remote = format!("origin/{main}");
+    let refs: Vec<(String, bool)> = match git_out(
+        root,
+        &[
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            &format!("refs/remotes/{remote}"),
+        ],
+    ) {
+        Some((0, _)) => vec![(remote, true)],
+        _ => vec![(main.clone(), false)],
+    };
+    for (r, pushed) in refs {
+        for path in [
+            format!("sessions/session-{nn:02}-summary.md"),
+            format!("sessions/session-{nn}-summary.md"),
+        ] {
+            let spec = format!("{r}:{path}");
+            if matches!(git_out(root, &["cat-file", "-e", &spec]), Some((0, _))) {
+                return Some(if pushed {
+                    format!("{path} is on {r}")
+                } else {
+                    format!("{path} is on {r} — no origin/{main} ref to check against")
+                });
+            }
+        }
+    }
+    None
+}
+
 /// The target session's branch ship state, derived live from ancestry.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BranchShip {
@@ -406,11 +454,26 @@ pub fn release_gate(root: &Path, nn: u32) -> ReleaseVerdict {
                  judged from local refs only",
                 state.main
             )),
-            MainSync::Ahead(a) => warnings.push(format!(
-                "{} is ahead of origin/{} by {a} commit(s) — local merges not pushed; not \
-                 blocked (publishing is a human act), but the ship is not on origin yet",
-                state.main, state.main
-            )),
+            MainSync::Ahead(a) => {
+                // S172 F43: name the commits. rudra's agent guessed "S02's local merge" for what
+                // was the founder's own Vajra-sync commit, and told him so.
+                let range = format!("origin/{m}..{m}", m = state.main);
+                let subjects = git_out(root, &["log", "--format=%h %s", &range])
+                    .filter(|(code, _)| *code == 0)
+                    .map(|(_, out)| out.lines().collect::<Vec<_>>().join(" · "))
+                    .unwrap_or_default();
+                warnings.push(format!(
+                    "{} is ahead of origin/{} by {a} commit(s){} — not pushed; not blocked \
+                     (publishing is a human act), but the ship is not on origin yet",
+                    state.main,
+                    state.main,
+                    if subjects.is_empty() {
+                        String::new()
+                    } else {
+                        format!(": {subjects}")
+                    }
+                ));
+            }
             MainSync::Behind(b) => reasons.push(format!(
                 "{} is behind origin/{} by {b} commit(s) — sync main (checkout {} + pull) \
                  before closing (the S37 return-to-main step)",
@@ -589,6 +652,77 @@ release:
             git_in(root, &["merge", "-q", "--no-ff", &name, "-m", "merge"]);
         }
         name
+    }
+
+    #[test]
+    fn shipped_close_needs_the_summary_on_main_not_just_on_a_branch() {
+        let tmp = repo();
+        let root = tmp.path();
+        assert_eq!(shipped_close(root, 2), None, "no summary anywhere");
+
+        // Summary committed on the session branch only: not shipped.
+        git_in(root, &["checkout", "-qb", "session-02-x"]);
+        fs::create_dir_all(root.join("sessions")).unwrap();
+        fs::write(root.join("sessions/session-02-summary.md"), "# S02\n").unwrap();
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", "s02 close"]);
+        assert_eq!(
+            shipped_close(root, 2),
+            None,
+            "branch-only summary is not shipped"
+        );
+
+        // Merged into local main, with no remote at all: counts, and SAYS it could not check a
+        // remote (S172 cold review rec 1 — a local merge runs no hook, so this is the weak case).
+        git_in(root, &["checkout", "-q", "main"]);
+        git_in(
+            root,
+            &["merge", "-q", "--no-ff", "session-02-x", "-m", "merge"],
+        );
+        let got = shipped_close(root, 2).expect("merged summary counts");
+        assert!(got.contains("sessions/session-02-summary.md"), "{got}");
+        assert!(
+            got.contains("no origin/main ref"),
+            "the weak case must say so: {got}"
+        );
+        assert_eq!(
+            shipped_close(root, 3),
+            None,
+            "another session is unaffected"
+        );
+    }
+
+    #[test]
+    fn shipped_close_prefers_origin_so_a_local_merge_does_not_count() {
+        // With an origin/<main> ref present, only what is PUSHED counts — the agent cannot push.
+        let tmp = repo();
+        let root = tmp.path();
+        let bare = tempfile::tempdir().unwrap();
+        git_in(bare.path(), &["init", "-q", "--bare", "-b", "main"]);
+        git_in(
+            root,
+            &[
+                "remote",
+                "add",
+                "origin",
+                &bare.path().display().to_string(),
+            ],
+        );
+        git_in(root, &["push", "-q", "origin", "main"]);
+
+        fs::create_dir_all(root.join("sessions")).unwrap();
+        fs::write(root.join("sessions/session-02-summary.md"), "# S02\n").unwrap();
+        git_in(root, &["add", "-A"]);
+        git_in(root, &["commit", "-qm", "s02 close on main"]);
+        assert_eq!(
+            shipped_close(root, 2),
+            None,
+            "on local main but not pushed: not shipped"
+        );
+
+        git_in(root, &["push", "-q", "origin", "main"]);
+        let got = shipped_close(root, 2).expect("pushed summary counts");
+        assert!(got.contains("origin/main"), "{got}");
     }
 
     #[test]

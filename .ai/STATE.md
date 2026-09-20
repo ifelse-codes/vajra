@@ -3,20 +3,21 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-171-interactive` — merged at close (S171 complete).**
+**`session-172-keep-testing` — S172 complete; PR open at close.**
 
-## What was done this session (S171 — interactive, the founder's own first-run test)
+## What was done this session (S172 - interactive, the founder's own rudra session 03)
 
-- The founder installed 0.2.0 into `rudra` and ran the normal path (init → S00 → S01 → S02), pasting what he hit. 34 findings, F1–F34, recorded in `prompts/171-task-interactive.md`.
-- Fixed, in the order he hit them: padded session names (F19/F23) · the guards stop the AGENT, not the human (F1–F3, F6, F10, F13b, F15) · a derived next-step checklist at boot (`vajra next --steps`, `src/nextstep/`) (F7, F8, F18, F20, F22, F25) · one charge per message + plain-word receipt (F14, F16, F17, F21) · the fixes reach EXISTING projects (F26–F28) · the handover: numbered rankings count, the candidates print, and `three-next-options` refuses a close that offered nothing (F32–F34).
-- Measured: receipt was 2.3× high (rudra S00 $19.33 vs Claude Code $8.38); now 1.6% off on rudra S02 ($19.25 vs $19.56). Record: `sessions/session-171-artifacts/cost-check.md`.
-- Three cold reviews: REJECT → REJECT → ACCEPT. Pass 2 caught the suite being green only on this machine (an untracked fixture); pass 3 caught the awk fallback false-blocking a correct handover.
-- Light close, by the founder's choice: no `verify-session-171.sh`, no `demo-session-171.sh`, no crew handoffs for this session — waived, not green.
+- He ran his own project's session 03 end to end under Vajra and pasted the run. Nine findings, F35-F44, recorded with severities in `prompts/172-task-keep-testing.md` BEFORE anything was fixed.
+- **F39, the structural one:** the advance step re-graded the session it closes, but it runs AFTER that session merged - in rudra it made him rewrite session 02's paperwork days after it shipped. `releaser::shipped_close()` now asks git whether `sessions/session-NN-summary.md` is on main; if it is, the closing gates REPORT and the live QA/demo re-runs are skipped. The teeth moved earlier: `check_live_gate` in `scripts/verify-closeout.sh` + the scaffold copy runs the advice, verify and (projects) demo checks before the merge. DECISION-007, S172 addendum.
+- **F35:** `src/architect` reads `docs/ADR/` and `ADR-010-title.md` names - rudra's ten real ADRs were invisible, so the citation check silently waived itself.
+- F40 (demo "before" = the session's start commit, never main) - F41 (three messages say how: the advance confirmation with no keyboard, the `crew <role> - ...` line format, the review-hash order) - F36 (the reading pause names only unread files, read from the transcript) - F38 (boot warns when the handover names a prompt file that does not exist) - F42 (plain words demanded at boot + `darshan/SKILL.md`) - F43 (unpushed commits listed by name).
+- **Carried S171 rec 7 built:** `tests/commit_belt.rs` - 6 tests over the qa-specialist's 11 cases, driving the real `.githooks` files; disabling agent detection turns 3 red. The same role found `verify-session-93.sh` was passing only because it ran inside an agent shell.
+- **F31 did not recur** - rudra's session 03 dispatched the tech-lead before any planning. No gate built (founder's call, untaken).
+- Verify 28/0 - demo 14 live checks - 527 lib tests + the belt suite.
 
-## Previous session (S170 — NO-CODE Ground Truth over S166–S169)
+## Previous session (S171 - interactive, the founder's own first-run test)
 
-- Report: `sessions/session-170-ground-truth.md`. 🔴 off course: 66% of changed lines paperwork, 5 gate overrides, 0 outside users, crates.io 0.1.0.
-- Founder decision: he tests Vajra himself; sessions from S171 are interactive.
+- 34 findings, five groups, all fixed; receipt 2.3x high -> 1.6%. Light close by founder's choice (no verify/demo/crew handoffs). `sessions/session-171-summary.md`.
 
 ## What Currently Works
 
@@ -31,8 +32,13 @@
 - **🟡 Release 0.2.0 half done** — tag `v0.2.0` + GitHub release out; **crates.io still 0.1.0** (founder types `cargo publish`); brew tap formula is at 0.2.0 but install-smoke not run (ROADMAP `S168-release`). A stranger's `cargo install` gets none of S167–S169. Founder's own installed `vajra` is 0.1.0.
 - **🟡 S169 fakest green:** the claim match is words only; claimed-evidence proves files exist, not that they are real; a made-up `done:` sha is still waivable; `git cat-file -e` accepts any old commit → **parked — policing** (ROADMAP `S171-parked`).
 - **🟢 FIXED S171:** the close gate and the demo facts read the padded session names; `find_summary_for` accepts the unpadded spelling old repos carry.
-- **🔴 F31 (open, from the founder's own run):** the boot checklist names the tech-lead as the first move and the agent still plans first. Telling moved it; it did not close it. → S172 candidate 1.
-- **🟡 No test executes the commit/push belt** — the human-vs-agent split (S171's riskiest change) was run by hand only. → S172 (pass-3 rec 7).
+- **🟢 F31 did not recur (S172):** rudra session 03 dispatched the tech-lead first. One clean run after two failures; watch it again rather than calling it closed.
+- **🟢 FIXED S172:** the commit/push belt split is executable (`tests/commit_belt.rs`, 6 tests over 11 cases, red when agent detection is removed).
+- **🔴 The backstop is gone (S172, disclosed):** a skipped `verify-closeout.sh` used to be caught at the next session's start; it is caught nowhere now. Running the close check on the branch before the merge is the whole enforcement story, and it is a text rule. DECISION-007 S172 addendum.
+- **🟡 `shipped_close()` keys on one file** — landing a summary on main early downgrades the closing gates to reporting while a session is live (self-granted jurisdiction, disclosed).
+- **🟡 F44 (S172, open):** the session guard reads a command's PROSE — a closeout note quoting the advance command in backticks armed the boundary and blocked the write. Quoted text is stripped; backticked text is not.
+- **🟡 Open question, put to the founder twice and unanswered:** an agent may commit without approval on a branch not named `session-NN-...`.
+- **🟡 Unexplained mid-session changes (S172):** `.claude/settings.json`, `.gitignore` and a stray `.ai/hooks/` appeared in this repo, consistent with a scaffold run inside Vajra itself; not reproduced by the suite or `verify-session-93.sh`. Kept in `git stash` + the scratch dir, not deleted.
 - **🟡 `--sync-fleet` cannot upgrade a belt installed from an arbitrary main commit** (only release-tag renders are listed) — such a project needs `--overwrite-drifted`.
 - **🟡 `vajra next --advance` into S168 AND S169 used `VAJRA_SKIP_CODER_GATE=1`** (a pending release step). S169's plan has no post-merge step, so S170's advance should need none.
 - **🟡 Old records under new rules:** closed S167/S168 prompts fail `--check-exec-shas`; `verify-session-166.sh` AC3 is red (non-git fixture). Old sessions are never re-graded; nothing re-runs old verify scripts.
@@ -42,16 +48,17 @@
 
 ## What Is In Progress
 
-- Nothing. S170 GT complete on `session-170-closeout` (uncommitted until founder approves). Founder is testing Vajra in his other project; S171 prompt gets written with him.
+- Nothing. S172 closes with a PR; the next brief gets written from the founder's pick of its three candidates.
 
 ## Active PRs
 
-- None. S169 merged as #205.
+- S172's PR, opened at this close. S171 merged as #207.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S172 | $0 | No paid run; the founder's own rudra run supplied the findings. 4 fleet dispatches (tech-lead, qa-specialist, design-advisor, fidelity-reviewer) |
 | S169 | $0 | No paid run; bash gate + scripts + fleet subagents only |
 | S168 | $0 | No paid run; code + scripts + fleet subagents only |
 | S167 | $0 | No paid run; code + scripts + fleet subagents only |
