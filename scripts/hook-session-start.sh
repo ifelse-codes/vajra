@@ -38,7 +38,9 @@ done
 # for a file saved as `prompts/03-task-execution-…`. Say so at boot instead of letting the agent
 # find out mid-session. Only the pointer files' top (the "next" part), and only a warning.
 { cat "$ROOT/.ai/SESSION-BOOT.md" 2>/dev/null || true; head -15 "$ROOT/.ai/TASK.md" 2>/dev/null || true; } \
-  | grep -oE 'prompts/[0-9]+-[A-Za-z0-9._-]+\.md' | sort -u | while read -r p; do
+  | grep -oE 'prompts/[0-9]+-[A-Za-z0-9._<>-]+\.md' | sort -u | while read -r p; do
+    case "$p" in *'<'*|*'>'*) continue ;; esac   # `prompts/173-task-<slug>.md` is a shape, not a file
+
     [ -f "$ROOT/$p" ] && continue
     near=$(ls "$ROOT/prompts/" 2>/dev/null | grep -E "^$(echo "$p" | grep -oE '[0-9]+' | head -1)-task-" | head -1 || true)
     echo "[hook warn] the handover names $p — no such file.${near:+ Did it mean prompts/$near?}"

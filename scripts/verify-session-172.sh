@@ -178,8 +178,11 @@ grep -q "the handover names prompts/03-execution-oms-ems.md" <<<"$OUT" \
   && ok "AC6 missing-prompt-warned-with-the-right-suggestion" \
   || bad "AC6 missing-prompt-warned-with-the-right-suggestion — $OUT"
 OUT="$(bash scripts/hook-session-start.sh 2>&1)"
-grep -q "the handover names" <<<"$OUT" \
-  && bad "AC6 no-false-warning-on-this-repo" || ok "AC6 no-false-warning-on-this-repo"
+# Match the warning LINE, not the words: boot dumps STATE.md, which describes this very check.
+# A placeholder like `prompts/173-task-<slug>.md` is a shape, not a missing file, and must not warn.
+grep -q "^\[hook warn\] the handover names" <<<"$OUT" \
+  && bad "AC6 no-false-warning-on-this-repo — $(grep -m1 '^\[hook warn\] the handover' <<<"$OUT")" \
+  || ok "AC6 no-false-warning-on-this-repo"
 grep -q "PLAIN WORDS" <<<"$OUT" && ok "AC6 boot-demands-plain-words (F42)" \
   || bad "AC6 boot-demands-plain-words (F42)"
 

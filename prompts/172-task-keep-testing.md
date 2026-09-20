@@ -154,26 +154,27 @@ tech-lead) and `design-advisor` (the tech-lead deferred it; dispatched anyway on
 turned out to move a locked clause — its own rec 5 said to).
 
 **tech-lead** (`.ai/handoffs/session-172-tech-lead.md`):
-- tech-lead rec 1 — obeyed: exactly qa-specialist + fidelity-reviewer were dispatched as required; the other seven are recorded `deferred-budget`
+- tech-lead rec 1 — obeyed: ff8145a (the crew decision recorded; qa-specialist + fidelity-reviewer dispatched, the other seven `deferred-budget`)
 - tech-lead rec 2 — obeyed: bf3b515 — the qa-specialist got the three files and settled the count before the test was written (11 cases, not 6 or 8)
-- tech-lead rec 3 — obeyed: one fidelity-reviewer pass at close on the session diff and the findings table
-- tech-lead rec 4 — obeyed: the tech-lead was dispatched before any planning here, and F31 did NOT recur in rudra S03 (recorded in the findings table); no gate was built
-- tech-lead rec 5 — obeyed: the F39 fix moved a locked clause, so design-advisor was moved from deferred to dispatched before the close (`.ai/handoffs/session-172-design-advisor.md`)
+- tech-lead rec 3 — obeyed: PENDING_REVIEW (one fidelity-reviewer pass at close, on the session diff and the findings table)
+- tech-lead rec 4 — obeyed: 4f1ce0f (the tech-lead was dispatched before any planning here; F31 did NOT recur in rudra S03, recorded in the findings table; no gate built)
+- tech-lead rec 5 — obeyed: 4f1ce0f (the F39 fix moved a locked clause, so the design-advisor was dispatched before the close — `.ai/handoffs/session-172-design-advisor.md`)
 
 **qa-specialist** (`.ai/handoffs/session-172-qa-specialist.md`):
-- qa-specialist rec 1 — obeyed: bf3b515 — `BELT_VARS` is removed from every `Command` in `tests/commit_belt.rs`; each case sets only its own
+- qa-specialist rec 1 — obeyed: bf3b515 (`BELT_VARS` removed from every `Command` in `tests/commit_belt.rs`; each case sets only its own)
 - qa-specialist rec 2 — refused: the hooks stay inside the temp work tree and are COMMITTED before `core.hooksPath` is set, which solves the same problem (a failed case's `git clean` cannot remove them either — that bug did bite, and this is the fix that survived it)
-- qa-specialist rec 3 — obeyed: bf3b515 — `verify-session-93.sh` now marks itself as the agent; it was passing only because it ran inside an agent shell
-- qa-specialist rec 4 — deferred: prompts/172-task-keep-testing.md — an agent may still commit without approval on a branch not named `session-NN-`; put to the founder in chat as a two-option choice, unanswered at close, so nothing was locked in either direction
+- qa-specialist rec 3 — obeyed: bf3b515 (`verify-session-93.sh` marks itself as the agent; it was passing only because it ran inside an agent shell)
+- qa-specialist rec 4 — deferred: prompts/172-task-keep-testing.md
+  (the branch question: an agent may still commit without approval on a branch not named `session-NN-`. Put to the founder in chat as a two-option choice, unanswered at close, so nothing was locked in either direction — it is in the findings table and in the summary's open list)
 
 **design-advisor** (`.ai/handoffs/session-172-design-advisor.md`):
-- design-advisor rec 1 — obeyed: `design-significant: yes`, reason recorded as "a locked clause moves"
-- design-advisor rec 2 — obeyed: the `## Design` body above is its text, trimmed
-- design-advisor rec 3 — obeyed: one `## S172 addendum` in DECISION-007, no new DECISION record
-- design-advisor rec 4 — obeyed: the word DEVIATION is in the `## Design` body, unsoftened
-- design-advisor rec 5 — obeyed: the addendum's "does NOT claim" section names the lost backstop first
-- design-advisor rec 6 — obeyed: the addendum lists the record shapes now accepted, and `fleet::ROLES` says "in any case"
-- design-advisor rec 7 — obeyed in part: `scripts/verify-session-172.sh` AC2 runs the REAL `check_live_gate` out of both close scripts against a failing gate and asserts it goes red, plus the cannot-evaluate case. What it does not do is run the whole `verify-closeout.sh` end to end on a fixture; disclosed here rather than claimed
+- design-advisor rec 1 — obeyed: 4f1ce0f (`design-significant: yes`, reason recorded as "a locked clause moves")
+- design-advisor rec 2 — obeyed: 4f1ce0f (the `## Design` body above is its text, trimmed)
+- design-advisor rec 3 — obeyed: 53601d2 (one `## S172 addendum` in DECISION-007; no new DECISION record)
+- design-advisor rec 4 — obeyed: 4f1ce0f (the word DEVIATION is in the `## Design` body, unsoftened)
+- design-advisor rec 5 — obeyed: 53601d2 (the addendum's "does NOT claim" section names the lost backstop first)
+- design-advisor rec 6 — obeyed: 53601d2 (the addendum lists the record shapes now accepted; `fleet::ROLES` says "in any case" as of fb8b043)
+- design-advisor rec 7 — obeyed: 53601d2 (in part, disclosed: `scripts/verify-session-172.sh` AC2 runs the REAL `check_live_gate` out of BOTH close scripts against a failing gate and against a build that cannot evaluate, and asserts it goes red. What it does not do is run the whole `verify-closeout.sh` end to end on a fixture — named here rather than claimed)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human (like S171's
