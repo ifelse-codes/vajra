@@ -41,6 +41,7 @@ real summary.
 | F41 | close | Closeout took real trial and error (session 52m): `--advance` needs a `y` (agent piped `yes \|`), crew rows must be `crew <role> — …` lines (a table parses as zero), the review sha must be computed after handoffs are committed. The agent saved these as a memory because Vajra's messages did not say them. | 🟡 medium |
 | F42 | end of session | The founder had to ask for plain English again (twice in S02, once in S03). The close report is boxes and jargon; the plain version only came on request. | 🟡 medium |
 | F43 | close | Agent said origin/main is behind because of "S02's local merge"; the extra commit is actually the founder's `Sync Vajra` commit made on main by the S171 upgrade. Wrong explanation told to the human. | ⚪ low |
+| F44 | this close | The session guard reads a command's PROSE. Writing a closeout note that quoted the advance command in backticks armed the session boundary and blocked the write ("this chat already owns session 172"). Quoted strings are stripped before the scan; backticked text is not. Worked around by writing the file another way; not fixed. | 🟡 medium (open) |
 | F31 | watch #3 | **Did not recur.** Tech-lead dispatched before any planning. | ✓ |
 | + | fleet | The advice changed the work: plan-advisor caught a 22-vs-23 event-count error in a LOCKED spec (founder ruled 23); design-advisor corrected the tech-lead twice. | ✓ positive |
 
