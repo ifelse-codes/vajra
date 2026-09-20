@@ -156,7 +156,7 @@ turned out to move a locked clause — its own rec 5 said to).
 **tech-lead** (`.ai/handoffs/session-172-tech-lead.md`):
 - tech-lead rec 1 — obeyed: ff8145a (the crew decision recorded; qa-specialist + fidelity-reviewer dispatched, the other seven `deferred-budget`)
 - tech-lead rec 2 — obeyed: bf3b515 — the qa-specialist got the three files and settled the count before the test was written (11 cases, not 6 or 8)
-- tech-lead rec 3 — obeyed: PENDING_REVIEW (one fidelity-reviewer pass at close, on the session diff and the findings table)
+- tech-lead rec 3 — obeyed: da508e1 (one fidelity-reviewer pass at close, on the session diff and the findings table; ACCEPT with nine recommendations, no re-review loop)
 - tech-lead rec 4 — obeyed: 4f1ce0f (the tech-lead was dispatched before any planning here; F31 did NOT recur in rudra S03, recorded in the findings table; no gate built)
 - tech-lead rec 5 — obeyed: 4f1ce0f (the F39 fix moved a locked clause, so the design-advisor was dispatched before the close — `.ai/handoffs/session-172-design-advisor.md`)
 
@@ -175,6 +175,18 @@ turned out to move a locked clause — its own rec 5 said to).
 - design-advisor rec 5 — obeyed: 53601d2 (the addendum's "does NOT claim" section names the lost backstop first)
 - design-advisor rec 6 — obeyed: 53601d2 (the addendum lists the record shapes now accepted; `fleet::ROLES` says "in any case" as of fb8b043)
 - design-advisor rec 7 — obeyed: 53601d2 (in part, disclosed: `scripts/verify-session-172.sh` AC2 runs the REAL `check_live_gate` out of BOTH close scripts against a failing gate and against a build that cannot evaluate, and asserts it goes red. What it does not do is run the whole `verify-closeout.sh` end to end on a fixture — named here rather than claimed)
+
+**fidelity-reviewer** (`.ai/handoffs/session-172-fidelity-reviewer.md`, ACCEPT — 8 SHIPPED, 5 PARTIAL, 0 NOT-BUILT):
+- fidelity-reviewer rec 1 — obeyed: 2261cae (`shipped_close()` asks `origin/<main>` first, where the agent cannot push, and says so when it falls back to local main; the false "the agent cannot set this" claim is corrected in DECISION-007, in the code comment and in the summary)
+- fidelity-reviewer rec 2 — obeyed: ccd1b21 (the fidelity-handoff gate had the merged-session bypass and no pre-merge mirror — `check_live_gate fidelity-handoff --check-fidelity-handoff` now runs in BOTH close scripts)
+- fidelity-reviewer rec 3 — obeyed: 36c5725 (the eleven prose dispositions were rewritten to name resolvable commits, and rec 7 given a parseable word — the new close check caught this before the review landed)
+- fidelity-reviewer rec 4 — obeyed: ccd1b21 (the fakest green: the `own` case passed on the binary-not-found branch; both copies now resolve the binary the same way and the check requires the log line naming which binary answered)
+- fidelity-reviewer rec 5 — obeyed: ccd1b21 (the negative control AC4 promised: a mutated copy of the real hook with `agent_shell=0` must let an unapproved agent commit)
+- fidelity-reviewer rec 6 — obeyed: 2261cae (the checklist's ship step said merge then verify; it now says run the close check on the branch first, since nothing re-checks after the merge)
+- fidelity-reviewer rec 7 — obeyed: ccd1b21 (no project to sync into now FAILS instead of passing N/A — a check that cannot evaluate fails)
+- fidelity-reviewer rec 8 — obeyed: ccd1b21 (one resolution in both scripts, a retry on the locally built binary when the installed one lacks the flag, and a FAIL message saying how to update)
+- fidelity-reviewer rec 9 — obeyed: ccd1b21 (the header no longer claims no check greens by grepping source; the three that do are named `*-wires-*`. The end-to-end `verify-closeout.sh` red is still not built — see the summary's open list)
+- fidelity-reviewer rec 10 — obeyed: 2261cae ("the demo cannot rot at merge" downgraded to what shipped: the template warns against `git show main:`; older demo scripts in this repo still do it)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human (like S171's
