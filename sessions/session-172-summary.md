@@ -132,6 +132,11 @@ the advice nor built the fix. Four things came back that I had got wrong:
    bound the eleven belt cases to the test file once the old count check was deleted. Both fixed.
 4. **A wording downgrade was half-applied** — the deliverable still said the demo "cannot" rot.
 
+A second judge (implementation-advisor) had to be brought in for the qa-specialist's own two
+recommendations, because the Obeyed gate correctly refuses a role grading its own advice. That role
+has no shell, so its two judgments are from reading the files, not from running them — it said so
+itself, and this session did not re-run those cases under a third pair of eyes.
+
 Left open, flagged by the judge and not fixed here: `scripts/verify-session-93.sh` is RED on two
 `e2e-*-byte-identical` checks. They compare a fresh scaffold against this repo's files and are
 stale, not broken — the scaffolded hook now carries a render stamp the repo copy does not, and the
