@@ -2,8 +2,8 @@
 # Session 172 verify — the findings from the founder's own rudra session 03 (F35–F43), plus the
 # carried belt-split test. Every check RUNS the real thing: the real binary against a real git
 # fixture, the real hooks with a real transcript file, the real close-gate function out of the
-# scaffold. Three checks DO read source, and say so in their names (`*-wires-*`): they prove the
-# new close gates are CALLED, which running the helper alone cannot show. Everything else executes.
+# scaffold. Seven checks DO read source, and say so in their names (`*-wires-*`): they prove the new
+# close gates are CALLED by each script, which running the helper alone cannot show. The rest execute.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 PASS=0; FAIL=0
@@ -12,6 +12,10 @@ bad() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 BIN="${VAJRA_BIN:-$ROOT/target/release/vajra}"
 [ -x "$BIN" ] || { echo "FAIL: $BIN not built — run cargo build --release"; exit 1; }
+# The S172 judge caught this script driving a binary built BEFORE the code it checks: the
+# binary-driven cases then exercise a pre-fix build and still print 30/30. Refuse a stale binary.
+NEWER="$(find src Cargo.toml -newer "$BIN" -name '*' -print -quit 2>/dev/null || true)"
+[ -z "$NEWER" ] || { echo "FAIL: $BIN is older than $NEWER — run: cargo build --release"; exit 1; }
 # A caller's own markers must not decide any case (the S172 qa-specialist's rec 1).
 unset VAJRA_ALLOW_COMMIT VAJRA_CLOSEOUT_WAIVER VAJRA_SKIP_QA_GATE VAJRA_SKIP_DEMOER_GATE
 
@@ -135,6 +139,24 @@ if cargo test -q --test commit_belt >"$T/belt.log" 2>&1; then
   ok "AC4 commit-belt-tests-pass ($(grep -oE '[0-9]+ passed' "$T/belt.log" | head -1))"
 else
   bad "AC4 commit-belt-tests-pass — $(tail -3 "$T/belt.log")"
+fi
+# Bind the qa-specialist's eleven cases to named tests: the mutation control below proves the hook
+# is really consulted, but it would stay green if every test body were emptied (S172 judge, obs 4).
+cargo test -q --test commit_belt -- --list >"$T/belt.list" 2>&1 || true
+MISSING=""
+for t in main_is_closed_to_the_human_and_the_agent_alike \
+         a_human_commits_on_a_session_branch_without_any_marker \
+         every_agent_marker_is_stopped_without_approval \
+         the_agent_commits_only_with_this_sessions_approval \
+         the_three_file_cap_binds_the_agent_not_the_human \
+         pushing_main_stops_the_agent_and_notes_the_human; do
+  grep -q "$t" "$T/belt.list" || MISSING="$MISSING $t"
+done
+ASSERTS="$(grep -c 'assert!' tests/commit_belt.rs)"
+if [ -z "$MISSING" ] && [ "$ASSERTS" -ge 11 ]; then
+  ok "AC4 the-eleven-cases-are-bound-to-named-tests (6 tests, $ASSERTS assertions)"
+else
+  bad "AC4 the-eleven-cases-are-bound-to-named-tests — missing:$MISSING asserts=$ASSERTS (need >= 11)"
 fi
 # Negative control (S172 cold review rec 5): with agent detection disabled in a COPY of the real
 # hook, the agent cases must stop blocking — otherwise the tests prove nothing about the hook.

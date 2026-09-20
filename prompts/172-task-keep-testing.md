@@ -65,8 +65,9 @@ test.
    `--advance`: advice answered, verify live, demo live (projects' copy).
 2. **The design check sees real ADR folders (F35)** — `docs/ADR/ADR-010-x.md` as well as
    `docs/adr/0010-x.md`; a made-up id still blocks; the design-advisor's own text says so.
-3. **The demo cannot rot at merge (F40)** — the template pins "before" to the session's start
-   commit, never `main`.
+3. **The demo is warned against rotting at merge (F40)** — the template tells the author to pin
+   "before" to the session's start commit, never `main`. Prose, not enforcement: older demo scripts
+   in this repo still read `git show main:` (cold review rec 10, judge obs 4).
 4. **The messages say what to do (F41)** — the advance question when there is no keyboard, the
    `crew <role> — …` line format, and when to compute `Review-Inputs-SHA`.
 5. **Less friction, plainer words (F36, F37, F38, F42, F43)** — the reading pause skips files
