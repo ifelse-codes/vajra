@@ -33,7 +33,7 @@ that.
 |---|---|---|
 | F39 🔴 | A merged session's paperwork blocked the next session | `releaser::shipped_close()`; closing gates report once the summary is on main; the close check gained advice + live verify (+ live demo for projects) |
 | F35 🔴 | rudra's ten ADRs were invisible, so the citation check silently waived itself | `src/architect` reads `docs/ADR/` and `ADR-010-title.md`; a made-up id blocks; the role text agrees |
-| F40 🟡 | Demos compared against `main` and inverted after the merge | the template pins "before" to the session's start commit; no demo re-run for a merged session |
+| F40 🟡 | Demos compared against `main` and inverted after the merge | the template WARNS against it (prose, unenforced — cold review rec 10) and pins "before" to the session's start commit; no demo re-run for a merged session |
 | F41 🟡 | Closing took ~52 minutes of trial and error | the advance question when there is no keyboard, the `crew <role> — …` line format (a table reads as zero), and when to compute `Review-Inputs-SHA` |
 | F36 🟡 | The agent was paused to re-read files it had already read | the loader reads the transcript and names only what is unread |
 | F42 🟡 | The founder had to ask for plain English, three sessions running | the boot banner and `darshan/SKILL.md` demand plain words, results first |
@@ -56,12 +56,14 @@ case list corrected the brief's own "six cases" to eleven.
 
 ## What this does NOT claim
 
-1. **The backstop is gone.** A skipped closeout used to be caught at the next `--advance`. It is not
-   caught anywhere now. `scripts/verify-closeout.sh` must run on the branch before the merge — and
+1. **The backstop is gone.** A skipped closeout used to be caught at the next session's start. It is
+   not caught anywhere now. `scripts/verify-closeout.sh` must run on the branch before the merge — and
    this repo's own S171 finding is that text rules get skipped while gates do not. Named, not
    fenced (DECISION-007, S172 addendum).
-2. **`shipped_close()` keys on one file.** Landing a summary on main early downgrades those gates to
-   reporting while the session is still live — self-granted jurisdiction, disclosed.
+2. **`shipped_close()` keys on one file, and on a ref.** It asks `origin/<main>` when that ref
+   exists (the agent cannot push there) and falls back to local main when it does not — and a
+   local merge runs no hook. Landing that summary early still downgrades the gates while a session
+   is live. Self-granted jurisdiction, disclosed.
 3. **Wider ADR discovery proves a record exists, never that the citation is apt.** The form floor
    from S67 is unchanged.
 4. **One question is still open and was put to the founder twice:** an agent can commit without
@@ -77,12 +79,43 @@ case list corrected the brief's own "six cases" to eleven.
 
 ## The fakest green here
 
-`shipped_close()` decides by one file being on main, and the founder is the only one who can put it
-there — but nothing checks that the *close* which produced that summary was ever verified. A session
-merged without running `verify-closeout.sh` now sails through every closing check at the next
-advance with a cheerful "reporting, not blocking". The enforcement is real only for people who run
-the close check before merging; the gate that used to catch them afterwards is the thing this
-session deliberately removed.
+Named by the cold review, not by me: `AC2 same-check-in-vajras-own-gate` claimed to prove Vajra's
+own close script blocks on a failing advice gate, and it was passing on the "binary not found"
+branch instead — the fake `vajra` it set up was never consulted. It would have stayed green if the
+blocking code were deleted. Fixed in this session: the check now requires the log line naming which
+binary answered.
+
+The runner-up is more consequential. The first draft of this session wrote into a LOCKED record that
+an agent "cannot set" the shipped state. It can: with no `origin/<main>`, `git checkout main &&
+git merge <branch>` fires no hook and no guard. The code now asks `origin/<main>` first, where
+pushing is guarded, and the claim is corrected in the record. A locked record that overstates a
+security property is worse than an unfenced risk, because the next session builds on it.
+
+And the structural one stands: nothing checks that the close which produced a summary was ever
+verified. A session merged without running `verify-closeout.sh` sails through every closing check
+afterwards with a cheerful "reporting, not blocking".
+
+## What the cold review changed
+
+The review said ACCEPT and then handed over nine recommendations, two of them serious. Fixed before
+the merge, not deferred:
+
+- **rec 1** — the un-forgeability claim was false and sat in a locked record. `shipped_close()` now
+  prefers `origin/<main>`; the claim is corrected in the record, the code comment and here.
+- **rec 2** — the fidelity-handoff gate had the merged-session bypass and NO pre-merge mirror, so it
+  was enforced nowhere. Wired into both close scripts.
+- **rec 4** — the fakest green above.
+- **rec 5** — the negative control the acceptance promised: a mutated copy of the real hook with
+  agent detection disabled must let an unapproved agent commit, proving the cases bind on that code.
+- **rec 6** — the checklist's last step told the agent to merge and THEN run the close check. Since
+  this session that order is load-bearing; it now says branch first.
+- **rec 7** — the sync check self-passed when no project existed to sync into. It fails now.
+- **rec 8** — one binary resolution in both close scripts, with a fallback to the local build when
+  the installed `vajra` is too old, and a FAIL message that says how to update.
+- **rec 9** — the verify header claimed no check greens by grepping source; three do, and they now
+  say so in their names.
+- **rec 10** — "the demo cannot rot at merge" downgraded to what shipped: it is warned against.
+- **rec 3** — was already fixed before the review landed (the close check caught it first).
 
 ## Cost
 
