@@ -89,6 +89,11 @@ elif [ -z "$_SESS" ] || [ "${VAJRA_ALLOW_COMMIT}" = "$_SESS" ]; then
   echo "[commit approval] PRE-GRANTED — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT} is set at launch."
   echo "  That marker IS the founder's approval token for this session (S93); commits may proceed"
   echo "  without a chat token. Advisory line — the L3 commit-guard remains the enforcing check."
+  # S173 F55 (founder pick B): the same launch approval ships this session's own branch.
+  if [ -n "$_SESS" ]; then
+    echo "  It also lets you push THIS session's branch and open its pull request (S173). Merging,"
+    echo "  and pushing main, stay with the human."
+  fi
 else
   echo "[commit approval] NOT VALID HERE — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT} is scoped to"
   echo "  session ${VAJRA_ALLOW_COMMIT}, but this branch is session ${_SESS}. The guard will BLOCK."

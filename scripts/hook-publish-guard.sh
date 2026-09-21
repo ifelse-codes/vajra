@@ -62,8 +62,12 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 # (`git commit -m "…git push…"`, `--body "…gh pr create…"`, `echo "gh pr merge"`). A real
 # invocation always places the command name OUTSIDE quotes, so stripping quoted spans can
 # never hide a genuine push/PR — fail-safe: anything unquoted still matches and blocks.
-# Unbalanced quotes / heredocs leave text in place -> over-block, the safe direction.
-SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
+# Unbalanced quotes leave text in place -> over-block, the safe direction.
+# S173: heredoc bodies and multi-line quotes stripped too (same as the session guard, F50).
+SCAN=$(perl -0777 -pe '
+  s/<<-?[ \t]*([\x27"]?)(\w+)\1[^\n]*\n.*?\n[ \t]*\2[ \t]*(?=\n|$)/ /gs;
+  s/\x27[^\x27]*\x27//gs; s/"[^"]*"//gs; s/`[^`]*`//gs;
+' <<<"$CMD")
 
 # Classify the command as an outward/irreversible action. Here-strings (not pipes) so a
 # short-circuiting `grep -q` can never SIGPIPE a producer under `set -o pipefail` (S32 gotcha).
@@ -85,6 +89,35 @@ fi
 if [ "${VAJRA_ALLOW_PUBLISH:-}" = "1" ]; then
   echo "[vajra publish-guard] ALLOWED ($ACTION) — VAJRA_ALLOW_PUBLISH=1."
   exit 0
+fi
+
+# S173 F55 (founder pick B, 2026-09-22): the session's launch approval also covers SHIPPING that
+# session's own branch. In rudra S04 the founder chose "push + open PR" in chat, the guard blocked
+# both, and he hand-typed `git push` and a long `gh pr create`. With VAJRA_ALLOW_COMMIT=NN set at
+# launch, on branch session-NN-*, the agent may push THAT branch and open its PR. Still blocked
+# without VAJRA_ALLOW_PUBLISH=1: any merge, a push naming main/master, force, delete, tags, --all,
+# --mirror, and a push from any other branch. The env var is read from THIS hook's launch
+# environment, so an agent typing `VAJRA_ALLOW_COMMIT=NN git push` inline changes nothing.
+BRANCH=$(git -C "$ROOT" branch --show-current 2>/dev/null || echo "")
+SESS=""
+[[ "$BRANCH" =~ ^session-([0-9]+)- ]] && SESS="${BASH_REMATCH[1]}"
+# A merge anywhere in the command (e.g. `git push && gh pr merge`) is never covered.
+if [ -n "$SESS" ] && [ "${VAJRA_ALLOW_COMMIT:-}" = "$SESS" ] \
+   && ! grep -qE '(^|[^[:alnum:]_])(gh[[:space:]]+pr|glab[[:space:]]+mr)[[:space:]]+merge([^[:alnum:]]|$)' <<<"$SCAN"; then
+  SHIP_OK=""
+  case "$ACTION" in
+    "git push"*)
+      if ! grep -qE '(^|[[:space:]])(-f|-d|--force[a-z-]*|--delete|--tags|--all|--mirror|--prune)([[:space:]=]|$)|(^|[[:space:]:+/])(main|master)([[:space:]]|$)|(^|[[:space:]])\+' <<<"$SCAN"; then
+        # Any explicit branch named must be this session's own.
+        OTHER=$(grep -oE '(^|[[:space:]])session-[0-9]+-[A-Za-z0-9._/-]+' <<<"$SCAN" | tr -d ' ' | grep -vxF "$BRANCH" || true)
+        [ -z "$OTHER" ] && SHIP_OK=1
+      fi ;;
+    "gh pr create"*|"glab mr create"*) SHIP_OK=1 ;;
+  esac
+  if [ -n "$SHIP_OK" ]; then
+    echo "[vajra publish-guard] ALLOWED ($ACTION) — session $SESS's own branch; VAJRA_ALLOW_COMMIT=$SESS was given at launch. Merging stays with the human."
+    exit 0
+  fi
 fi
 
 MATURITY="${VAJRA_GUARD_MATURITY:-$(grep -m1 '^maturity:' "$CONSTRAINTS" 2>/dev/null | awk '{print $2}' || echo "L2")}"
