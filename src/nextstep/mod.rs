@@ -13,7 +13,7 @@
 
 use std::path::Path;
 
-use crate::{analyst, stations};
+use crate::{analyst, releaser, stations};
 
 /// One step of the session, and how to finish it.
 #[derive(Debug, Clone)]
@@ -52,6 +52,16 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
     let options = analyst::options_gate(root, session);
     let options_ready = options.summary_path.is_some() && !options.blocked();
     let next_prompt = prompt_exists(root, session + 1);
+    // S173 F46: once the close is merged, the attested hash can no longer be rebuilt from the diff
+    // (the branch is gone into main), so the Reviewer station reads ABSENT forever and rudra's boot
+    // told the agent to redo session 03's ACCEPTed review. A merged session is reported on, never
+    // re-graded (S172, F39): after the merge, an ACCEPT verdict on file is enough for this list.
+    let reviewed = passed("Reviewer")
+        || (releaser::shipped_close(root, session).is_some()
+            && std::fs::read_to_string(root.join(format!("sessions/session-{nn}-review.md")))
+                .ok()
+                .and_then(|t| stations::review_verdict_accept(&t))
+                == Some(true));
     // S172 F37: the counter in `.ai/SESSION` only moves on `--advance`, and nothing said when.
     let counter_moved = std::fs::read_to_string(root.join(".ai/SESSION"))
         .ok()
@@ -86,7 +96,8 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         Step::new(
             counter_moved,
             "the session number in .ai/SESSION says this session",
-            "once the prompt, design and plan above are done: echo y | vajra next --advance \
+            "once the prompt, design and plan above are done, and the human has OK'd the plan: \
+             vajra next --advance \
              (it checks them and moves the number; the previous session, if already merged, is \
              only reported on)"
                 .to_string(),
@@ -119,7 +130,7 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             ),
         ),
         Step::new(
-            passed("Reviewer"),
+            reviewed,
             "an independent review has read the work and said ACCEPT",
             format!(
                 "dispatch the fidelity-reviewer on the prompt + the diff, write its verdict to \
@@ -298,6 +309,63 @@ mod tests {
         assert!(s.how.contains("vajra next --advance"), "{}", s.how);
         fs::write(d.path().join(".ai/SESSION"), "03\n").unwrap();
         assert!(step(d.path()).done);
+    }
+
+    /// S173 F46: rudra's boot said "dispatch the fidelity-reviewer" for session 03 — merged, with
+    /// an ACCEPT on file — because the attested hash cannot be rebuilt after the merge.
+    #[test]
+    fn a_merged_session_with_an_accept_on_file_is_not_sent_back_for_review() {
+        let d = repo();
+        let root = d.path();
+        let git = |args: &[&str]| {
+            let ok = std::process::Command::new("git")
+                .args([
+                    "-c",
+                    "user.name=t",
+                    "-c",
+                    "user.email=t@t",
+                    "-c",
+                    "commit.gpgsign=false",
+                ])
+                .args(args)
+                .current_dir(root)
+                .output()
+                .unwrap()
+                .status
+                .success();
+            assert!(ok, "git {args:?}");
+        };
+        let review_step = || {
+            steps(root, 3)
+                .into_iter()
+                .find(|s| s.what.contains("independent review"))
+                .unwrap()
+        };
+        git(&["init", "-q", "-b", "main"]);
+        fs::write(
+            root.join("sessions/session-03-review.md"),
+            "**Verdict:** ACCEPT\n",
+        )
+        .unwrap();
+        assert!(
+            !review_step().done,
+            "not merged yet: the attested gate still decides"
+        );
+
+        fs::write(root.join("sessions/session-03-summary.md"), "# S03\n").unwrap();
+        git(&["add", "-A"]);
+        git(&["commit", "-qm", "s03 close"]);
+        assert!(
+            review_step().done,
+            "merged with an ACCEPT on file: not re-graded"
+        );
+
+        fs::write(
+            root.join("sessions/session-03-review.md"),
+            "**Verdict:** REJECT\n",
+        )
+        .unwrap();
+        assert!(!review_step().done, "a REJECT is never read as done");
     }
 
     #[test]

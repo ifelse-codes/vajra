@@ -1,7 +1,7 @@
 use anyhow::{bail, Context, Result};
 use std::env;
 use std::fs;
-use std::io::{self, BufRead, Read as _, Write as _};
+use std::io::{self, BufRead, IsTerminal as _, Read as _, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -1490,20 +1490,22 @@ fn run_advance() -> Result<()> {
     if let Some(why) = &shipped {
         eprintln!("  session {current:02} is already merged ({why}) — its checks below report, they do not block.");
     }
+    // S173 F51: after a merge these are a record, not a to-do — say so in the heading.
+    let closes = if shipped.is_some() {
+        "was merged; for the record"
+    } else {
+        "cannot close"
+    };
 
     // Options gate (S62 / J2): closing `current` requires its summary to record EXACTLY 3 ranked
     // next candidates (end_of_session.must_present_n_options). A wrong count BLOCKS — a non-author
     // cannot close a session on 2 or 4 options; a wholly absent section only WARNS (legacy compat).
     // Same fail-closed-at-L2/L3, advise-at-L1, VAJRA_SKIP_ANALYST_GATE override as the prompt gate.
     let opts = analyst::options_gate(&root, current);
-    for w in &opts.warnings {
-        eprintln!("  ⚠ {w}");
-    }
+    print_warnings(&opts.warnings, shipped.is_some());
     if opts.blocked() {
-        eprintln!("[vajra analyst] session {current:02} cannot close — its options are not ready:");
-        for r in &opts.reasons {
-            eprintln!("    ✗ {r}");
-        }
+        eprintln!("[vajra analyst] session {current:02} {closes} — its options are not ready:");
+        print_reasons(&opts.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
         } else if let Some(why) = &shipped {
@@ -1525,16 +1527,12 @@ fn run_advance() -> Result<()> {
     // prompt (no `## Execution`) WARNS at most. `VAJRA_SKIP_CODER_GATE=1` is the documented
     // override (distinct from the other stages', so each stage overrides alone).
     let exec_verdict = coder::exec_gate(&root, current);
-    for w in &exec_verdict.warnings {
-        eprintln!("  ⚠ {w}");
-    }
+    print_warnings(&exec_verdict.warnings, shipped.is_some());
     if exec_verdict.blocked() {
         eprintln!(
-            "[vajra coder] session {current:02} cannot close — its execution trace is not recorded:"
+            "[vajra coder] session {current:02} {closes} — its execution trace is not recorded:"
         );
-        for r in &exec_verdict.reasons {
-            eprintln!("    ✗ {r}");
-        }
+        print_reasons(&exec_verdict.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
         } else if let Some(why) = &shipped {
@@ -1560,16 +1558,12 @@ fn run_advance() -> Result<()> {
     // It does NOT enforce obedience. `refused: <reason>` passes. What it makes impossible is the
     // silent drop — the failure that cost S126 twice in its own record.
     let advice_verdict = advice::advice_gate(&root, current);
-    for w in &advice_verdict.warnings {
-        eprintln!("  ⚠ {w}");
-    }
+    print_warnings(&advice_verdict.warnings, shipped.is_some());
     if advice_verdict.blocked() {
         eprintln!(
-            "[vajra advice] session {current:02} cannot close — advice it asked for is unanswered:"
+            "[vajra advice] session {current:02} {closes} — advice it asked for is unanswered:"
         );
-        for r in &advice_verdict.reasons {
-            eprintln!("    ✗ {r}");
-        }
+        print_reasons(&advice_verdict.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
         } else if let Some(why) = &shipped {
@@ -1598,17 +1592,13 @@ fn run_advance() -> Result<()> {
     // `VAJRA_SKIP_FIDELITY_GATE=1` is the documented override (distinct from the others', so each
     // stage overrides alone).
     let fidelity_verdict = fidelity::fidelity_gate(&root, current);
-    for w in &fidelity_verdict.warnings {
-        eprintln!("  ⚠ {w}");
-    }
+    print_warnings(&fidelity_verdict.warnings, shipped.is_some());
     if fidelity_verdict.blocked() {
         eprintln!(
-            "[vajra fidelity] session {current:02} cannot close — its fidelity-reviewer handoff \
+            "[vajra fidelity] session {current:02} {closes} — its fidelity-reviewer handoff \
              is missing or unprovable:"
         );
-        for r in &fidelity_verdict.reasons {
-            eprintln!("    ✗ {r}");
-        }
+        print_reasons(&fidelity_verdict.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
         } else if let Some(why) = &shipped {
@@ -1641,17 +1631,13 @@ fn run_advance() -> Result<()> {
     if let Some(line) = mandate_verdict.skip_line() {
         eprintln!("  ⚠ [vajra mandate] {line}");
     }
-    for w in &mandate_verdict.warnings {
-        eprintln!("  ⚠ {w}");
-    }
+    print_warnings(&mandate_verdict.warnings, shipped.is_some());
     if mandate_verdict.blocked() {
         eprintln!(
-            "[vajra mandate] session {current:02} cannot close — no design-advisor was consulted \
+            "[vajra mandate] session {current:02} {closes} — no design-advisor was consulted \
              and no reason for skipping is on the record:"
         );
-        for r in &mandate_verdict.reasons {
-            eprintln!("    ✗ {r}");
-        }
+        print_reasons(&mandate_verdict.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
         } else if let Some(why) = &shipped {
@@ -1674,17 +1660,13 @@ fn run_advance() -> Result<()> {
     // gate, it has NO `VAJRA_SKIP_*` escape, on purpose: a crew decided by an un-forgeable handoff
     // cannot carry an agent-settable bypass. L1 still advises (uniform with every other gate).
     let crew_verdict = crew::crew_gate(&root, current);
-    for w in &crew_verdict.warnings {
-        eprintln!("  ⚠ {w}");
-    }
+    print_warnings(&crew_verdict.warnings, shipped.is_some());
     if crew_verdict.blocked() {
         eprintln!(
-            "[vajra crew] session {current:02} cannot close — the tech-lead's crew decision is \
+            "[vajra crew] session {current:02} {closes} — the tech-lead's crew decision is \
              missing, forged, or unsatisfied:"
         );
-        for r in &crew_verdict.reasons {
-            eprintln!("    ✗ {r}");
-        }
+        print_reasons(&crew_verdict.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
         } else if let Some(why) = &shipped {
@@ -1706,17 +1688,13 @@ fn run_advance() -> Result<()> {
     // like the Coder and Advice gates. `VAJRA_SKIP_OBEYED_GATE=1` is the documented override
     // (distinct from the others', so each stage overrides alone).
     let obeyed_verdict = obeyed::obeyed_gate(&root, current);
-    for w in &obeyed_verdict.warnings {
-        eprintln!("  ⚠ {w}");
-    }
+    print_warnings(&obeyed_verdict.warnings, shipped.is_some());
     if obeyed_verdict.blocked() {
         eprintln!(
-            "[vajra obeyed] session {current:02} cannot close — an `obeyed:` disposition is \
+            "[vajra obeyed] session {current:02} {closes} — an `obeyed:` disposition is \
              unjudged, or judged a mismatch:"
         );
-        for r in &obeyed_verdict.reasons {
-            eprintln!("    ✗ {r}");
-        }
+        print_reasons(&obeyed_verdict.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
             eprintln!("  (L1 advise — advancing anyway.)");
         } else if let Some(why) = &shipped {
@@ -1753,16 +1731,10 @@ fn run_advance() -> Result<()> {
     } else {
         eprintln!("  [vajra qa] re-running session {current:02}'s verify LIVE (slow, on purpose):");
         let qa_verdict = qa::qa_gate(&root, current);
-        for w in &qa_verdict.warnings {
-            eprintln!("  ⚠ {w}");
-        }
+        print_warnings(&qa_verdict.warnings, shipped.is_some());
         if qa_verdict.blocked() {
-            eprintln!(
-                "[vajra qa] session {current:02} cannot close — its verify does not pass live:"
-            );
-            for r in &qa_verdict.reasons {
-                eprintln!("    ✗ {r}");
-            }
+            eprintln!("[vajra qa] session {current:02} {closes} — its verify does not pass live:");
+            print_reasons(&qa_verdict.reasons, shipped.is_some());
             if maturity == MaturityLevel::L1 {
                 eprintln!("  (L1 advise — advancing anyway.)");
             } else if let Some(why) = &shipped {
@@ -1798,17 +1770,13 @@ fn run_advance() -> Result<()> {
             "  [vajra demoer] re-running session {current:02}'s demo LIVE (real seconds, on purpose):"
         );
         let demo_verdict = demoer::demo_gate(&root, current);
-        for w in &demo_verdict.warnings {
-            eprintln!("  ⚠ {w}");
-        }
+        print_warnings(&demo_verdict.warnings, shipped.is_some());
         if demo_verdict.blocked() {
             eprintln!(
-                "[vajra demoer] session {current:02} cannot close — its sprint demo does not \
+                "[vajra demoer] session {current:02} {closes} — its sprint demo does not \
                  show live:"
             );
-            for r in &demo_verdict.reasons {
-                eprintln!("    ✗ {r}");
-            }
+            print_reasons(&demo_verdict.reasons, shipped.is_some());
             if maturity == MaturityLevel::L1 {
                 eprintln!("  (L1 advise — advancing anyway.)");
             } else if let Some(why) = &shipped {
@@ -1985,23 +1953,57 @@ fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<()> {
     Ok(())
 }
 
+/// Print a gate's reasons. S173 F51: for a session the human already merged, rudra's advance
+/// printed 38 `✗ … Record … in the prompt's ## Advice` lines — a wall that read as failure and
+/// told the agent to go edit finished work. After a merge, one line with the count is the report.
+fn print_reasons(reasons: &[String], merged: bool) {
+    if merged {
+        eprintln!(
+            "    {} item(s) — nothing to fix now: the session is merged. `vajra next --stations` \
+             shows the record.",
+            reasons.len()
+        );
+        return;
+    }
+    for r in reasons {
+        eprintln!("    ✗ {r}");
+    }
+}
+
+/// Same as `print_reasons` for warnings (S173 F51): a merged session's 25 `⚠ … no independent
+/// judgment` notes are a record, so after the merge they collapse to one counted line.
+fn print_warnings(warnings: &[String], merged: bool) {
+    if merged && !warnings.is_empty() {
+        eprintln!(
+            "  ⚠ {} note(s) on the merged session — nothing to fix now.",
+            warnings.len()
+        );
+        return;
+    }
+    for w in warnings {
+        eprintln!("  ⚠ {w}");
+    }
+}
+
 fn confirm(question: &str) -> Result<bool> {
+    // S173 F52: in rudra the agent answered this question itself — the old empty-stdin message
+    // told it to pipe `echo y`, and the checklist said the same. A question only an agent can see
+    // asks nobody. So: a person at a terminal is asked; with no terminal there is nobody to ask,
+    // and the advance says so instead of pretending. The human's approval is the plan they OK'd.
+    if !io::stdin().is_terminal() {
+        eprintln!(
+            "{question} — not asked: no one is at a keyboard here (an agent's shell). Advancing; \
+             the human's approval is the plan they OK'd."
+        );
+        return Ok(true);
+    }
     eprint!("{question} [y/N] ");
     io::stderr().flush()?;
     let mut line = String::new();
-    let bytes = io::stdin()
+    io::stdin()
         .lock()
         .read_line(&mut line)
         .context("failed to read input")?;
-    if bytes == 0 {
-        // S172 F41: an agent's shell has no keyboard, so an empty stdin used to abort silently.
-        eprintln!();
-        eprintln!(
-            "  (no answer — stdin is empty. Without a keyboard, confirm by piping one in: \
-             `echo y | vajra next --advance`.)"
-        );
-        return Ok(false);
-    }
     Ok(matches!(
         line.trim().to_ascii_lowercase().as_str(),
         "y" | "yes"
