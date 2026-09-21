@@ -171,6 +171,28 @@ fn the_three_file_cap_binds_the_agent_not_the_human() {
     assert!(ok, "a human's 4-file commit: {out}");
 }
 
+/// Founder decision, 2026-09-21 (DECISION-007): a branch NOT named `session-NN-…` is ungoverned
+/// ad-hoc work, by design. The per-session approval does not apply there; the 3-file cap and the
+/// ban on `main` still do. This test locks the decision — change it only on purpose.
+#[test]
+fn an_agent_on_a_non_session_branch_commits_without_approval_by_design() {
+    let d = repo();
+    for branch in ["quick-fix", "session-7"] {
+        assert!(git(d.path(), &["checkout", "-qb", branch]).status.success());
+        let (ok, out) = commit(d.path(), 1, &[CLAUDE]);
+        assert!(
+            ok,
+            "agent on '{branch}', no approval — ungoverned by design: {out}"
+        );
+        let (ok, out) = commit(d.path(), 4, &[CLAUDE]);
+        assert!(
+            !ok && out.contains("an agent commits at most 3"),
+            "the 3-file cap still binds on '{branch}': {out}"
+        );
+        assert!(git(d.path(), &["checkout", "-q", "main"]).status.success());
+    }
+}
+
 /// Feed the pre-push hook one ref line, the way git does, with exactly `env` set.
 fn push(remote_ref: &str, env: &[(&str, &str)]) -> (bool, String) {
     let mut cmd = Command::new("bash");

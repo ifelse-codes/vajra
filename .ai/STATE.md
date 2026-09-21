@@ -3,7 +3,7 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-172-keep-testing` — S172 complete; PR open at close.**
+**`session-172-keep-testing` — merged as #208 (S172 complete).**
 
 ## What was done this session (S172 - interactive, the founder's own rudra session 03)
 
@@ -37,7 +37,7 @@
 - **🔴 The backstop is gone (S172, disclosed):** a skipped `verify-closeout.sh` used to be caught at the next session's start; it is caught nowhere now. Running the close check on the branch before the merge is the whole enforcement story, and it is a text rule. DECISION-007 S172 addendum.
 - **🟡 `shipped_close()` keys on one file** — landing a summary on main early downgrades the closing gates to reporting while a session is live (self-granted jurisdiction, disclosed).
 - **🟡 F44 (S172, open):** the session guard reads a command's PROSE — a closeout note quoting the advance command in backticks armed the boundary and blocked the write. Quoted text is stripped; backticked text is not.
-- **🟡 Open question, put to the founder twice and unanswered:** an agent may commit without approval on a branch not named `session-NN-...`.
+- **🟢 DECIDED 2026-09-21 (founder):** a branch not named `session-NN-…` is ungoverned ad-hoc work, BY DESIGN — the per-session approval does not apply there; the 3-file cap and the ban on `main` still do. DECISION-007, locked by `tests/commit_belt.rs`.
 - **🟡 Unexplained mid-session changes (S172):** `.claude/settings.json`, `.gitignore` and a stray `.ai/hooks/` appeared in this repo, consistent with a scaffold run inside Vajra itself; not reproduced by the suite or `verify-session-93.sh`. Kept in `git stash` + the scratch dir, not deleted.
 - **🟡 `--sync-fleet` cannot upgrade a belt installed from an arbitrary main commit** (only release-tag renders are listed) — such a project needs `--overwrite-drifted`.
 - **🟡 `vajra next --advance` into S168 AND S169 used `VAJRA_SKIP_CODER_GATE=1`** (a pending release step). S169's plan has no post-merge step, so S170's advance should need none.
@@ -48,11 +48,11 @@
 
 ## What Is In Progress
 
-- Nothing. S172 closes with a PR; the next brief gets written from the founder's pick of its three candidates.
+- Nothing. S172 merged as #208. S173 = keep using Vajra in rudra (founder's pick), brief drafted at `prompts/173-task-keep-testing.md`.
 
 ## Active PRs
 
-- S172's PR, opened at this close. S171 merged as #207.
+- None open. S172 merged as #208.
 
 ## Cost Tracking
 
