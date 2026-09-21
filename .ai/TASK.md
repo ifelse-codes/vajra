@@ -2,9 +2,11 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S172 complete (interactive, the founder's own rudra session 03)
+## Between Sessions — S172 complete; S173 picked
 
-**Next: Session 173 — the founder picks** from `sessions/session-172-summary.md`: (1) rudra session 04 with the nine fixes synced in; (2) finish the 0.2.0 release (crates.io still 0.1.0 — his own installed `vajra` is older than this session's build); (3) close the approval gap on non-`session-NN-` branches + the end-to-end falsifiability case the design-advisor asked for. Write `prompts/173-task-<slug>.md` from the pick. Start in a FRESH chat.
+**Next: Session 173 — keep using Vajra in rudra, fix what it finds** (founder's pick 2026-09-21: "continue like s171 and 172"). Brief: `prompts/173-task-keep-testing.md` — **Status: DRAFT**, filled in live from his rudra session 04. Before he starts: reinstall `vajra` from source and `vajra init --sync-fleet` in rudra. Start in a FRESH chat.
+
+**Founder decision 2026-09-21 (DECISION-007):** a branch not named `session-NN-…` is ungoverned ad-hoc work, by design — locked by a test in `tests/commit_belt.rs`.
 
 ## Session 172 — Interactive: keep testing rudra, fix what it finds — COMPLETE
 

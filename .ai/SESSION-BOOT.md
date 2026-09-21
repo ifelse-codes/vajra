@@ -1,7 +1,7 @@
 # Session Boot
 
 ## Next Session
-- **S173 — the founder picks from S172's three candidates** — `sessions/session-172-summary.md` lists them (rudra session 04 with the fixes in · finish the 0.2.0 release · close the approval gap + the end-to-end falsifiability case). Write `prompts/173-task-<slug>.md` from his pick.
+- **S173 — Keep using Vajra in rudra, fix what it finds** — `prompts/173-task-keep-testing.md` (**Status: DRAFT** — the founder's pick 2026-09-21: continue like S171/S172 in rudra; he runs rudra session 04, pastes what he hits, each finding fixed in a short loop, full close at the end). Carried in: F44, the S172 unexplained file changes, a fourth watch on F31.
   Start in a FRESH chat.
 
 ## Current Session
