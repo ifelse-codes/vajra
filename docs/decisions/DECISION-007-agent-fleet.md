@@ -1434,3 +1434,27 @@ never that the citation is apt.
    evidence); deleting the closing re-runs and adding nothing (removes teeth instead of relocating
    them); an ADR path setting in `CONSTRAINTS.yaml` (a second setting that drifts from the folder it
    describes).
+
+### Founder decision, 2026-09-21 — a branch not named `session-NN-…` is ungoverned work, on purpose
+
+**The question** (S172 qa-specialist rec 4, put to the founder twice): an agent may commit WITHOUT
+the `VAJRA_ALLOW_COMMIT` approval on any branch that does not match `^session-[0-9]+-`
+(`feature-x`, `spike`, `session-7` with no trailing dash). Close it, or keep it?
+
+**His answer: keep it, as a feature.** "If you want ungoverned ad-hoc work, name the branch
+something else and carry out the work." Governance binds on session branches; a differently-named
+branch is the documented way to step outside it for quick, unplanned work.
+
+**What still holds on such a branch:** nobody commits on `main`/`master` (human or agent); an agent
+still commits at most 3 files at a time; the `.ai/` drift checks still run; an agent still may not
+push `main`. **What does not:** the per-session commit approval, and every session gate (no prompt,
+plan, review or close check applies — there is no session).
+
+**Locked by a test** so it cannot drift silently: `tests/commit_belt.rs`
+`an_agent_on_a_non_session_branch_commits_without_approval_by_design`. If this ever changes, that
+test changes with it, on purpose.
+
+**Honest limit:** the door is the branch NAME, and the agent picks branch names. An agent that wants
+to skip governance can name its branch `quick-fix`. That is the feature working as designed, not a
+loophole — the human sees the branch name in every PR, and nothing done there is presented as a
+governed session.
