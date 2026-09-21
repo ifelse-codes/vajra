@@ -13,7 +13,7 @@
 
 use std::path::Path;
 
-use crate::{analyst, releaser, stations};
+use crate::{advice, analyst, releaser, stations};
 
 /// One step of the session, and how to finish it.
 #[derive(Debug, Clone)]
@@ -56,12 +56,17 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
     // (the branch is gone into main), so the Reviewer station reads ABSENT forever and rudra's boot
     // told the agent to redo session 03's ACCEPTed review. A merged session is reported on, never
     // re-graded (S172, F39): after the merge, an ACCEPT verdict on file is enough for this list.
-    let reviewed = passed("Reviewer")
-        || (releaser::shipped_close(root, session).is_some()
-            && std::fs::read_to_string(root.join(format!("sessions/session-{nn}-review.md")))
-                .ok()
-                .and_then(|t| stations::review_verdict_accept(&t))
-                == Some(true));
+    let accepted = std::fs::read_to_string(root.join(format!("sessions/session-{nn}-review.md")))
+        .ok()
+        .and_then(|t| stations::review_verdict_accept(&t))
+        == Some(true);
+    let stamped =
+        passed("Reviewer") || (releaser::shipped_close(root, session).is_some() && accepted);
+    // S173 F54: nothing on this list said the advisors' recommendations need an answer, so rudra
+    // met all 38 at the close check — and failed it twice on format.
+    // Only once the review exists: its recommendations are the last to arrive, and with no
+    // handoffs at all the gate passes vacuously.
+    let answered = (accepted || stamped) && !advice::advice_gate(root, session).blocked();
     // S172 F37: the counter in `.ai/SESSION` only moves on `--advance`, and nothing said when.
     let counter_moved = std::fs::read_to_string(root.join(".ai/SESSION"))
         .ok()
@@ -105,7 +110,9 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         Step::new(
             passed("Coder"),
             "each plan step names the commit that landed it",
-            "record `step N — done: <sha>` under `## Execution` as the work lands".to_string(),
+            "right after each step's commit, add `step N — done: <sha>` under the prompt's \
+             `## Execution` — the close check refuses a plan step without one"
+                .to_string(),
         ),
         Step::new(
             passed("QA"),
@@ -130,11 +137,11 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             ),
         ),
         Step::new(
-            reviewed,
+            accepted || stamped,
             "an independent review has read the work and said ACCEPT",
             format!(
                 "dispatch the fidelity-reviewer on the prompt + the diff, write its verdict to \
-                 sessions/session-{nn}-review.md"
+                 sessions/session-{nn}-review.md (leave its stamp for the last step)"
             ),
         ),
         Step::new(
@@ -144,6 +151,27 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
                 "print the three candidates from the summary in the chat, ask which one, then \
                  write prompts/{:02}-task-<slug>.md from the pick",
                 session + 1
+            ),
+        ),
+        Step::new(
+            answered,
+            "every advisor recommendation has an answer in the prompt's `## Advice`",
+            format!(
+                "one line per rec, exactly: `- <role> rec N — obeyed: <sha>` (a real commit) / \
+                 `refused: <reason>` / `deferred: <path>` (an existing file, bare path). \
+                 Check: vajra next --advice {nn}"
+            ),
+        ),
+        // S173 F53: the stamp hashes the prompt AND every committed handoff, so each later
+        // `## Advice` line or handoff moved it — rudra re-stamped four times. Say LAST, up front.
+        Step::new(
+            stamped,
+            "the review's stamp matches the finished work (do this LAST)",
+            format!(
+                "after `## Advice`, `## Execution` and every handoff are committed: \
+                 bash scripts/verify-closeout.sh --inputs-sha {nn} — paste it into the review as \
+                 `**Review-Inputs-SHA:** <hash>`. Any later prompt edit or commit outside \
+                 sessions/ and prompts/ moves it"
             ),
         ),
         Step::new(
@@ -338,7 +366,7 @@ mod tests {
         let review_step = || {
             steps(root, 3)
                 .into_iter()
-                .find(|s| s.what.contains("independent review"))
+                .find(|s| s.what.contains("stamp"))
                 .unwrap()
         };
         git(&["init", "-q", "-b", "main"]);
@@ -366,6 +394,28 @@ mod tests {
         )
         .unwrap();
         assert!(!review_step().done, "a REJECT is never read as done");
+    }
+
+    /// S173 F53/F54: rudra met 38 unanswered recs and a stamp that moved four times only at the
+    /// close check. The list now names both, with the exact format, and the stamp comes LAST.
+    #[test]
+    fn advice_and_the_stamp_are_steps_and_the_stamp_is_last_before_merge() {
+        let d = repo();
+        let steps = steps(d.path(), 1);
+        let pos = |needle: &str| steps.iter().position(|s| s.what.contains(needle)).unwrap();
+        let advice = &steps[pos("advisor recommendation")];
+        assert!(advice.how.contains("obeyed: <sha>"), "{}", advice.how);
+        assert!(advice.how.contains("deferred: <path>"), "{}", advice.how);
+        let stamp = &steps[pos("stamp")];
+        assert!(stamp.what.contains("LAST"), "{}", stamp.what);
+        assert!(stamp.how.contains("--inputs-sha 01"), "{}", stamp.how);
+        assert!(pos("advisor recommendation") < pos("stamp"));
+        assert!(pos("next session's prompt") < pos("stamp"));
+        assert_eq!(
+            pos("stamp") + 1,
+            pos("merged"),
+            "only the merge comes after the stamp"
+        );
     }
 
     #[test]
