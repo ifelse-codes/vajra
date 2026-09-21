@@ -498,6 +498,16 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
         unresolved.len(),
         needs_boundary.len()
     )?;
+    // S173 F49: rudra's sync upgraded one hook and it sat uncommitted on main through a whole
+    // session — the agent called it "your change" and left it out of every commit. Say whose it is.
+    let written = created + upgraded + refreshed;
+    if !opts.dry_run && written > 0 {
+        writeln!(
+            out,
+            "The {written} file(s) written are Vajra's, not your edits. Commit them with your next \
+             session's first commit — an agent should include them, not leave them out."
+        )?;
+    }
 
     // S143: the constitution migration is a DIFFERENT fix from a drifted render — paste the sentinel,
     // don't `--overwrite-drifted` (which would refuse anyway, and must, to protect the filled header).
