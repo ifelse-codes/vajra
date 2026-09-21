@@ -55,7 +55,15 @@ SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "no
 # Scan a QUOTED-SPAN-STRIPPED copy so a trigger phrase inside a message/arg (e.g.
 # git commit -m "…checkout -b session-40…") can't false-arm the boundary — same fix as the
 # S39 publish-guard. Real checkout/advance commands are unquoted, so nothing real is hidden.
-SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
+#
+# S173 F50/F44: `sed` stripped quotes LINE BY LINE, so a multi-line commit message — a heredoc
+# (`-m "$(cat <<'EOF' … EOF)"`) — kept its body, and rudra's "S04 setup: … vajra next --advance"
+# message blocked its own commit. Strip heredoc bodies first, then quoted and backticked spans
+# across the WHOLE command (perl -0777 reads it as one string).
+SCAN=$(perl -0777 -pe '
+  s/<<-?[ \t]*([\x27"]?)(\w+)\1[^\n]*\n.*?\n[ \t]*\2[ \t]*(?=\n|$)/ /gs;
+  s/\x27[^\x27]*\x27//gs; s/"[^"]*"//gs; s/`[^`]*`//gs;
+' <<<"$CMD")
 
 # Fire on a session ADVANCE — two shapes, one meaning ("this chat crosses N -> N+1"):
 #   1. checkout of the next branch: git checkout -b session-NN-<slug>   (NN = the new session).
