@@ -3,7 +3,7 @@
 **Type:** CODE, interactive (the founder's own run; findings collected after it closed, all fixed —
 his call: "fix all of it").
 **Branch:** `session-174-keep-testing`. **Brief:** `prompts/174-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-174.sh` — 19 pass, 0 fail. **Demo:** `scripts/demo-session-174.sh`
+**Verify:** `scripts/verify-session-174.sh` — 20 pass, 0 fail. **Demo:** `scripts/demo-session-174.sh`
 — 9 live checks, all green.
 
 ## What happened
@@ -51,7 +51,7 @@ push (the `cwd` check).
 | 4 | F61 | SHIPPED | verify AC4 |
 | 5 | F63 | SHIPPED | verify AC5 (block + unit test) |
 | 6 | Carried items kept | SHIPPED | verify AC7 |
-| — | No check looser | SHIPPED | verify AC6: the pre-S174 hooks (`f170e1c`) and today's, 77 decisions, all identical |
+| — | No check looser | SHIPPED | verify AC6: the pre-S174 hooks (`f170e1c`) and today's, 593 decisions (39 commands × 3 approvals × every maturity, publish approval, guard off; plus pre-commit), all identical |
 
 ## What this does NOT claim
 
@@ -65,7 +65,7 @@ push (the `cwd` check).
 
 ## The fakest green here
 
-AC6's "77 of 77 identical" is only as good as its list of commands: a loosening in a spelling not on
+AC6's "593 of 593 identical" is only as good as its list of commands: a loosening in a spelling not on
 the list would not show. The allow path's code was not touched (only a flag set before it and a
 message after it), which is the stronger argument.
 

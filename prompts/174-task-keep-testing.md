@@ -87,11 +87,13 @@ Not exercised: the advance (F51/F52), `cd` into a worktree then push (the `cwd` 
 4. A 5-file agent commit is blocked with "STILL STAGED — unstage first: git reset -q".
 5. `.ai/SESSION`=05 with SESSION-BOOT at 04 is blocked with the `- **Number:** 05` line to set.
 6. No check got looser: a listed set of commands gets the same exit code from the publish guard and
-   pre-commit before S174 (`f170e1c`) and after.
+   pre-commit before S174 (`f170e1c`) and after — at every maturity, with and without the publish
+   approval, and with the guard switched off.
 7. The findings table still lists F47, F56, F57 and F64 with a severity.
 
 ## Design
 - design-significant: no
+- design-advisor: skipped — no design choice to advise on: five message changes and a which-session choice inside an existing read-only list, reusing `releaser::shipped_close`; the tech-lead marked the role deferred-budget for the same reason (`.ai/handoffs/session-174-tech-lead.md`)
 
 Five message changes and one choice of which session a read-only advice list describes. No new
 component, gate, store or command; "merged" reuses `releaser::shipped_close` (S172, DECISION-007).
@@ -109,6 +111,7 @@ Every block keeps its exact allow/deny decision — only the words after a decis
 - step 2 — done: ccb3169
 - step 3 — done: bc1cc5a
 - step 4 — done: 77d2e33
+- step 5 — done: 1102840 / b46a413 / 2571ec0 / 8901b68
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
