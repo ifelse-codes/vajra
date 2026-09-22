@@ -56,6 +56,34 @@ if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
   echo "[REMINDER] On $BRANCH. Branch session-NN-<slug> before any work."
 fi
 
+# S174 F60: after `vajra init --sync-fleet`, rudra S05's agent saw 3 changed hooks, filtered them out
+# all session, and told the human `git checkout .ai/hooks/` would "revert" them — S173's fixes. A file
+# Vajra renders carries a `vajra-render-sha:` trailer; that trailer, not a path list, says whose it is.
+# The trailer is sha256 of the body above it, so a match proves the bytes are Vajra's untouched
+# render; a mismatch is a hand edit and is named as one — never called Vajra's.
+VAJRA_CHANGED=""; HAND_EDITED=""
+while IFS= read -r f; do
+  [ -n "$f" ] && [ -f "$ROOT/$f" ] || continue
+  want=$(tail -n 1 "$ROOT/$f" | sed -nE 's/^# vajra-render-sha: ([0-9a-f]{64})$/\1/p')
+  [ -n "$want" ] || continue
+  have=$(sed '$d' "$ROOT/$f" | { shasum -a 256 2>/dev/null || sha256sum; } | cut -d' ' -f1)
+  if [ "$have" = "$want" ]; then VAJRA_CHANGED="$VAJRA_CHANGED$f"$'\n'; else HAND_EDITED="$HAND_EDITED$f"$'\n'; fi
+done <<<"$(cd "$ROOT" && git diff --name-only HEAD 2>/dev/null || true)"
+if [ -n "$VAJRA_CHANGED" ]; then
+  echo ""
+  echo "[vajra update] These changed files are Vajra's own update (vajra init --sync-fleet), not the"
+  echo "  human's edits and not this session's work:"
+  printf '%s' "$VAJRA_CHANGED" | sed 's/^/    /'
+  echo "  Commit them FIRST, on the session branch, in their own commit(s) (\"Sync Vajra\", at most 3"
+  echo "  files each). Never revert or \`git checkout\` them — that undoes Vajra's fixes."
+fi
+if [ -n "$HAND_EDITED" ]; then
+  echo ""
+  echo "[vajra update] These Vajra files were changed by hand since Vajra wrote them — ask the human"
+  echo "  what to do; do not commit or revert them on your own:"
+  printf '%s' "$HAND_EDITED" | sed 's/^/    /'
+fi
+
 case "$BRANCH" in
   *-closeout|*-enforcement) : ;;
   *)
