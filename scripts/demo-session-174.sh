@@ -126,8 +126,9 @@ slide_cases() {
     dk_check "start-up names the synced files as Vajra's update: commit, never revert" \
       bash -c 'printf "%s" "$1" | grep -q "Vajra.s own update" && printf "%s" "$1" | grep -q "Never revert"' _ "$s"
     dk_run_v env PATH="$DK_TMP/bin:$PATH" CLAUDE_PROJECT_DIR="$RC" bash "$OLD/hook-session-start.sh"
-    dk_check "the old start-up said nothing about them" \
-      bash -c '! printf "%s" "$1" | grep -q "vajra update"' _ "$_DK_OUT"
+    # QA rec 3: a crashed or silent old hook must not pass this.
+    dk_check "the old start-up ran fine (exit 0, its to-do list printed) and said nothing about them" \
+      bash -c '[ "$2" = 0 ] && printf "%s" "$1" | grep -q "what is left in session" && ! printf "%s" "$1" | grep -q "vajra update"' _ "$_DK_OUT" "$_DK_RC"
   fi
   # 2 — the 3-file block.
   local C="$DK_TMP/c"; mkdir -p "$C/.ai"; gx "$C" init -q -b main; gx "$C" commit -q --allow-empty -m i; gx "$C" checkout -q -b session-05-x

@@ -25,6 +25,7 @@ git show f170e1c:.githooks/pre-commit > "$OLD/pre-commit"
 
 # rudra, pinned at the merge of its session 05 — the run these findings came from.
 RUDRA="${VAJRA_SYNC_TARGET:-$HOME/playground/rudra}"
+RUDRA_BEFORE="$(git -C "$RUDRA" rev-parse HEAD 2>/dev/null; git -C "$RUDRA" status --short 2>/dev/null)"
 PIN=512c71a
 RC="$T/rudra"
 if [ -d "$RUDRA/.git" ] && git clone -q "$RUDRA" "$RC" 2>/dev/null && git_fx "$RC" checkout -q -B main "$PIN" 2>/dev/null; then
@@ -143,12 +144,32 @@ CMDS=(
   "gh pr create --head other --body-file b" "gh pr create -R x/y --body-file b" "gh pr merge 6" "gh pr merge --squash"
   "git push && gh pr merge 6" "$HEREDOC_PR" 'gh pr create --title x --body "$(id)"' "git push; rm -rf /"
   "echo gh pr create" "git commit -m 'gh pr create'" "glab mr create" "glab mr merge 1"
+  # QA rec 1: the allow-path spellings earlier cold reviews found holes in.
+  "gh pr create --head=session-05-x --body-file b" "gh pr create -H session-05-x --body-file b"
+  "gh pr create -Hsession-05-y --body-file b" "gh pr create --head session-05-x --head other --body-file b"
+  "cd $P && git push" "cd /tmp && git push" "cd $P && gh pr create --body-file b"
+  "git push origin session-05-x:main" "git push origin +session-05-x" "git push origin '+session-05-x'"
+  "gh pr create --repo x/y --body-file b" 'gh pr create --title `id` --body-file b' "git push 2>&1 | tail -3"
+  "gh pr create --body-file b | tail -5" "git push -uf origin session-05-x" "git -c x=y push"
 )
-for appr in 05 "" 06; do
-  for c in "${CMDS[@]}"; do
-    pg "$OLD/publish-guard.sh" "$c" "$appr" >/dev/null; a=$?
-    pg scripts/hook-publish-guard.sh "$c" "$appr" >/dev/null; b=$?
-    if [ "$a" = "$b" ]; then SAME=$((SAME+1)); else DIFF=$((DIFF+1)); LIST="$LIST [$appr] $c: $a→$b;"; fi
+# QA rec 2: every maturity, the explicit publish approval, and the guard switched off.
+POFF="$T/proj-off"; mkdir -p "$POFF/.ai"; printf 'maturity: L3\npublish_guard: off\n' > "$POFF/.ai/CONSTRAINTS.yaml"
+git_fx "$POFF" init -q -b main; git_fx "$POFF" commit -q --allow-empty -m i; git_fx "$POFF" checkout -q -b session-05-x
+pgx() { # $1 mode, $2 hook, $3 command, $4 approval → exit code
+  # `${e[@]+…}`: macOS bash 3.2 calls an empty array unbound under set -u; the failing pipeline
+  # subshell then ran the EXIT trap and deleted $T mid-run.
+  local d="$P" e=()
+  case "$1" in L1|L2) e=(VAJRA_GUARD_MATURITY="$1") ;; PUB) e=(VAJRA_ALLOW_PUBLISH=1) ;; OFF) d="$POFF" ;; esac
+  jq -n --arg c "$3" --arg d "$d" '{tool_input:{command:$c},cwd:$d}' \
+    | env ${e[@]+"${e[@]}"} CLAUDE_PROJECT_DIR="$d" VAJRA_ALLOW_COMMIT="$4" bash "$2" >/dev/null 2>&1
+}
+for mode in L3 L2 L1 PUB OFF; do
+  for appr in 05 "" 06; do
+    for c in "${CMDS[@]}"; do
+      pgx "$mode" "$OLD/publish-guard.sh" "$c" "$appr"; a=$?
+      pgx "$mode" scripts/hook-publish-guard.sh "$c" "$appr"; b=$?
+      if [ "$a" = "$b" ]; then SAME=$((SAME+1)); else DIFF=$((DIFF+1)); LIST="$LIST [$mode/$appr] $c: $a→$b;"; fi
+    done
   done
 done
 for n in 1 3 4 8; do
@@ -160,7 +181,7 @@ for n in 1 3 4 8; do
     if [ "$a" = "$b" ]; then SAME=$((SAME+1)); else DIFF=$((DIFF+1)); LIST="$LIST pre-commit n=$n boot=$sb: $a→$b;"; fi
   done
 done
-[ "$DIFF" -eq 0 ] && [ "$SAME" -ge 70 ] && ok "AC6 old vs new: $SAME of $SAME decisions identical (publish guard ×3 approvals, pre-commit)" \
+[ "$DIFF" -eq 0 ] && [ "$SAME" -ge 500 ] && ok "AC6 old vs new: $SAME of $SAME decisions identical (publish guard: ${#CMDS[@]} commands × 3 approvals × L3/L2/L1/ALLOW_PUBLISH/off; pre-commit)" \
   || bad "AC6 $DIFF decisions changed:$LIST"
 
 # ==============================================================================================
@@ -169,6 +190,13 @@ done
 P174="prompts/174-task-keep-testing.md"
 MISS=""; for f in F47 F56 F57 F64; do grep -qE "^\| $f \|.*\| (⚪|🟡|🔴)" "$P174" || MISS="$MISS $f"; done
 [ -z "$MISS" ] && ok "AC7 F47, F56, F57, F64 each in the findings table with a severity" || bad "AC7 missing:$MISS"
+
+# QA rec 4: every rudra run above used a clone — prove the real one is as it was.
+if [ "$HAVE_RUDRA" = 1 ]; then
+  RUDRA_AFTER="$(git -C "$RUDRA" rev-parse HEAD 2>/dev/null; git -C "$RUDRA" status --short 2>/dev/null)"
+  [ "$RUDRA_BEFORE" = "$RUDRA_AFTER" ] && ok "the real rudra is untouched (same HEAD, same git status)" \
+    || bad "the real rudra changed during verify"
+fi
 
 echo ""
 echo "=== session 174 verify: $PASS pass, $FAIL fail ==="
