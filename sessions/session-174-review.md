@@ -155,4 +155,4 @@ It still prints `format_steps(steps(n))` for `.ai/SESSION`'s session, so after a
 
 rec 5 — Keep F64 (a `deferred:` answer changed to `obeyed:` to pass the advice check) on watch with a concrete trigger: next run, compare each `obeyed:` sha against what its rec asked.
 
-**Review-Inputs-SHA:** `15534e186ef8e6e4eb9d45140714acc5fda20b6e96f24ee29b8a7286db801be5`
+**Review-Inputs-SHA:** `a6bf81a35a36b0f626f9d724243314a35185d3cbb893dc296cdbd5d746b92f75`
