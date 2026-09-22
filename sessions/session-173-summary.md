@@ -2,7 +2,7 @@
 
 **Type:** CODE, interactive (the founder's own run; findings collected during it, fixed after it closed).
 **Branch:** `session-173-keep-testing`. **Brief:** `prompts/173-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-173.sh` — 84 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
+**Verify:** `scripts/verify-session-173.sh` — 87 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
 — 18 live checks, all green. **Decision:** DECISION-007, S173 addendum.
 
 ## What happened
@@ -125,6 +125,10 @@ now. 30 shapes × 4 triggers = 120 commands.
 code" (eight), and "the extra reads never write the owner record" (at L1 they could). Fixed the
 count, made the record take only the old rule's number, and added the checks it asked for: the
 owner record after a decoy at L2 and L1, and the whole old-vs-new loop re-run with perl gone.
+
+**Pass 8: REJECT — 17 of 17 SHIPPED, code correct.** One stale number: this summary said 84 checks
+after three were added. Now 87; the no-perl loop also requires the old hook to have blocked most of
+its commands (44 of 60), and the verify clears two more caller variables before it starts.
 
 ## What this does NOT claim
 
