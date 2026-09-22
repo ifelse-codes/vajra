@@ -9,6 +9,13 @@ session:
   max_stories_per_session: 1
   cap_hours_per_session: 2
   ground_truth_every_n_sessions: 5
+  # S175: the next review-only session, explicit. Read by scripts/hook-session-start.sh and
+  # scripts/verify-closeout.sh — when present it OVERRIDES the every-5th default below (the
+  # founder can move the next ground truth without touching either script). Absent → the
+  # every-5th rule applies unchanged, so a project without this key (every other project, and
+  # this repo before S175) behaves exactly as before. Founder, 2026-09-22: rudra keeps testing
+  # through S179; the next ground truth is S180 (DECISION-007 S175 addendum).
+  ground_truth_next_session: 180
   one_session_per_chat: true   # new vajra-session = new chat (AGENTS.md step 10). Agent-followed today; Vajra-enforced is roadmapped.
 
 branch:
