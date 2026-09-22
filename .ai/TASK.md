@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S173 complete; S174 drafted (founder's pick pending)
+## Between Sessions — S174 complete; S175 drafted (founder's pick pending)
 
-**Next: Session 174 — rudra session 05 with S173's fixes in** (drafted from S173's recommended candidate 1; the founder has not picked — options 2 and 3 are in `sessions/session-173-summary.md`). Brief: `prompts/174-task-keep-testing.md` — **Status: DRAFT**. Before he starts: reinstall `vajra`, sync rudra, launch with `VAJRA_ALLOW_COMMIT=05 vajra claude`. Start in a FRESH chat.
+**Next: Session 175 — mandatory NO-CODE Ground Truth, with rudra session 06 as its evidence** (drafted from S174's recommended candidate 1; options 2 and 3 are in `sessions/session-174-summary.md`). Brief: `prompts/175-task-ground-truth.md` — **Status: DRAFT**. Before he starts: reinstall `vajra`, sync rudra (never revert what it changes), launch with `VAJRA_ALLOW_COMMIT=06 vajra claude`. Start in a FRESH chat.
+
+## Session 174 — Interactive: rudra session 05 — COMPLETE
+
+- Brief: `prompts/174-task-keep-testing.md` (findings F58–F64 from his rudra session 05). Summary: `sessions/session-174-summary.md`. Review: `sessions/session-174-review.md`.
+- Shipped: an approved agent is told how to open its PR (F58) · a merged session hands the to-do list to the next one's start (F59/F62) · boot names Vajra's own uncommitted update: commit, never revert (F60) · two commit blocks say how to get past them (F61/F63). No check loosened (593/593 old-vs-new).
 
 ## Session 173 — Interactive: keep using Vajra in rudra — COMPLETE
 

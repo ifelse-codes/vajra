@@ -3,20 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-173-keep-testing` — S173 complete; PR to open (the founder merges).**
+**`session-174-keep-testing` — S174 complete on its branch; PR to open (the founder merges).**
 
-## What was done this session (S173 - interactive, the founder's own rudra session 04)
+## What was done this session (S174 - interactive, the founder's rudra session 05)
 
-- He ran rudra's session 04 end to end under Vajra (plan, build, review ACCEPT, merged as rudra #5). His new rule: collect every finding during the run, fix them only after it closes. Read from rudra's transcript on disk, not pasted.
-- **Fixed in code (8):** F45 boot died on a handover naming no prompt · F46 the to-do list sent the agent back to redo merged S03's ACCEPTed review · F51 a merged session printed ~70 lines under "cannot close" → one counted line per check · F52 a `y/N` only the agent saw → asked only at a real terminal, a piped `n` still stops · F53/F54 the to-do list names the advice answers (exact format) and the review stamp, LAST · F55 the launch approval lets the agent push its own session branch and open its PR (allow-list, the command's own checkout, merge stays human) · F49 the sync says whose files it wrote.
-- **F50 not fixed in code:** four ways of hiding commit-message text from the guards were built and each broken by the next cold review (the last on macOS `/bin/bash` 3.2, confirmed here). The guards read exactly as before S173, plus `$( )`/backtick/`eval`/`sh -c` bodies kept apart so they only add block reasons; no perl → the old rule alone. The block names `git commit -F <file>`.
-- **F48** resolved by the new step order (rudra wrote S05's prompt before S04 merged). **Parked LOW:** F47 (copied jargon), F56 (the guard cannot tell a command runs in another project), F57 (the Coder check reads only `1. …` plan steps).
-- **F31, fourth watch: clean** — tech-lead first in rudra S04.
-- Verify 87/0 (old rule vs new on 120 listed commands, with and without perl) · demo 18 live checks · review: 8 REJECT passes, then ACCEPT.
+- He ran rudra's session 05 under `VAJRA_ALLOW_COMMIT=05 vajra claude` (ACCEPT 7/7, merged as rudra #6; 4h15m, ~3h of it a Claude outage). Findings read from rudra's transcript after it closed; he said "fix all of it".
+- **Fixed:** F58 an approved agent's inline-text PR was blocked with "relaunch with VAJRA_ALLOW_PUBLISH" and handed back → the block says "You ARE approved" and names `--body-file` · F59/F62 the to-do list at boot described merged S04 and was never re-read; after S05 merged it re-graded S05 → a merged session hands the list over to the next one's start, and every list says re-run it · F60 Vajra's synced files left uncommitted and nearly reverted → boot proves them Vajra's (body re-hashes to the trailer): commit first, never revert · F61 the 3-file block left files staged → says so · F63 the SESSION/SESSION-BOOT block names the line.
+- **No check loosened:** the pre-S174 hooks and today's agree on 593 of 593 listed decisions.
+- **F31, fifth watch: clean.** F50 did not bite rudra; it bit S174's own edit script and the "use a file" hint worked first try.
+- Verify 22/0 · demo 9 live checks.
 
-## Previous session (S172 - interactive, the founder's own rudra session 03)
+## Previous session (S173 - interactive, the founder's rudra session 04)
 
-- F35–F43 fixed; a merged session is never re-graded — the closing checks moved pre-merge. `sessions/session-172-summary.md`.
+- F45–F57: eight fixed; the agent may push its own branch and open its PR (F55); F50 not fixed in code. `sessions/session-173-summary.md`.
 
 ## What Currently Works
 
@@ -31,12 +30,13 @@
 - **🟡 Release 0.2.0 half done** — tag `v0.2.0` + GitHub release out; **crates.io still 0.1.0** (founder types `cargo publish`); brew tap formula is at 0.2.0 but install-smoke not run (ROADMAP `S168-release`). A stranger's `cargo install` gets none of S167–S169. Founder's own installed `vajra` is 0.1.0.
 - **🟡 S169 fakest green:** the claim match is words only; claimed-evidence proves files exist, not that they are real; a made-up `done:` sha is still waivable; `git cat-file -e` accepts any old commit → **parked — policing** (ROADMAP `S171-parked`).
 - **🟢 FIXED S171:** the close gate and the demo facts read the padded session names; `find_summary_for` accepts the unpadded spelling old repos carry.
-- **🟢 F31 clean twice (S172, S173):** rudra sessions 03 and 04 dispatched the tech-lead first. Watch a fifth time.
+- **🟢 F31 clean five times (S171–S174):** rudra dispatched the tech-lead first every run.
 - **🟢 FIXED S172:** the commit/push belt split is executable (`tests/commit_belt.rs`, 6 tests over 11 cases, red when agent detection is removed).
 - **🔴 The backstop is gone (S172, disclosed):** a skipped `verify-closeout.sh` used to be caught at the next session's start; it is caught nowhere now. Running the close check on the branch before the merge is the whole enforcement story, and it is a text rule. DECISION-007 S172 addendum.
 - **🟡 `shipped_close()` keys on one file** — landing a summary on main early downgrades the closing gates to reporting while a session is live (self-granted jurisdiction, disclosed).
 - **🟡 F50/F44 — not fixed in code (S173, by decision):** a commit message that mentions a guarded command still blocks, as before S173; the block names `git commit -F <file>` / `--body-file`. Every hiding rule tried hid something a shell runs.
-- **🟡 F55's `cwd` assumption (S173):** the push permission reads the hook input's `cwd`, assuming Claude Code reports the Bash tool's current directory there — unverified live; S174 checks it.
+- **🟡 F55's `cwd` assumption (S173):** the push permission reads the hook input's `cwd` — still unverified live (rudra S05 never used a worktree).
+- **🟡 S174 is text, not a gate:** the list says re-run it, the PR block names the passing shape — whether the agent acts on either is rudra 06's test. F64 (an advice answer switched to pass) watched.
 - **🟡 The guards' old-vs-new check is a list (S173):** 30 named shapes × 4 triggers; a spelling nobody listed is not covered. Pre-S173 limits still stand: `git -c … push`, aliases, config/upstream redirects, `gh api …/merge`.
 - **🟡 Parked LOW (S173):** F47 copied jargon · F56 the session guard cannot tell a command runs in another project · F57 the Coder check reads only `1. …` plan steps, so this repo's `- step N —` plans pass with nothing to check.
 - **🟢 DECIDED 2026-09-21 (founder):** a branch not named `session-NN-…` is ungoverned ad-hoc work, BY DESIGN — the per-session approval does not apply there; the 3-file cap and the ban on `main` still do. DECISION-007, locked by `tests/commit_belt.rs`.
@@ -50,11 +50,11 @@
 
 ## What Is In Progress
 
-- Nothing. S173 closed on its branch; PR to open. S174 drafted (`prompts/174-task-keep-testing.md`, DRAFT) — the founder's pick is pending.
+- Nothing. S174 closed on its branch; PR to open. S175 = mandatory NO-CODE Ground Truth, drafted from candidate 1 (`prompts/175-task-ground-truth.md`, DRAFT) — the founder's pick is pending.
 
 ## Active PRs
 
-- S173's, once opened. S172 merged as #208.
+- S174's, once opened. S173 merged as #210.
 
 ## Cost Tracking
 

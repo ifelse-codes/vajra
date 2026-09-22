@@ -103,8 +103,9 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             "the session number in .ai/SESSION says this session",
             "once the prompt, design and plan above are done, and the human has OK'd the plan: \
              vajra next --advance \
-             (it checks them and moves the number; the previous session, if already merged, is \
-             only reported on)"
+             (it checks them and moves .ai/SESSION and SESSION-BOOT's Number together — never one \
+             by hand without the other; the previous session, if already merged, is only reported \
+             on)"
                 .to_string(),
         ),
         Step::new(
@@ -229,6 +230,11 @@ pub fn format_steps(steps: &[Step], session: u32) -> String {
             out.push_str(
                 "  Do it without being asked — this list is the session, not a menu for the human.\n",
             );
+            // S174 F59: rudra S05's agent read this list once, at boot, and never again — every
+            // later step on it (next prompt, `## Advice` format, stamp LAST) was missed.
+            out.push_str(
+                "  Re-run `vajra next --steps` after each step — this list is the session.\n",
+            );
             // S171 cold review rec 5: every ✓ above is a FILE existing. A demo written and never
             // run, or options written and never shown, still ticks. Say so rather than let the
             // wording imply the human was there.
@@ -238,6 +244,73 @@ pub fn format_steps(steps: &[Step], session: u32) -> String {
         }
     }
     out
+}
+
+/// S174 F59/F62: the session this list should be about. A session whose close (its summary) is
+/// already on main is finished — reported on, never re-graded — so step past it, and past any
+/// further merged ones (a counter can lag by more than one). Returns the session to show and, when
+/// it rolled forward, the last merged one. "Merged" is read from git (`releaser::shipped_close`),
+/// never from `.ai/SESSION`.
+pub fn session_to_show(root: &Path, session: u32) -> (u32, Option<u32>) {
+    let mut n = session;
+    while releaser::shipped_close(root, n).is_some() {
+        n += 1;
+    }
+    (n, (n != session).then(|| n - 1))
+}
+
+/// The two steps a new session has before its normal list: its own branch and its prompt.
+fn start_steps(root: &Path, next: u32, branch: &str) -> Vec<Step> {
+    let slug = prompt_slug(root, next).unwrap_or_else(|| "<slug>".to_string());
+    vec![
+        Step::new(
+            releaser::session_number_of(branch) == Some(next),
+            "you are on this session's own branch",
+            format!("git checkout -b session-{next:02}-{slug} main"),
+        ),
+        Step::new(
+            prompt_exists(root, next),
+            "this session's prompt exists",
+            format!(
+                "show the human the three options below, ask which one, then write \
+                 prompts/{next:02}-task-<slug>.md from the pick"
+            ),
+        ),
+    ]
+}
+
+/// The `<slug>` of `prompts/NN-task-<slug>.md`, when that prompt exists.
+fn prompt_slug(root: &Path, session: u32) -> Option<String> {
+    let prefix = format!("{session:02}-task-");
+    std::fs::read_dir(root.join("prompts"))
+        .ok()?
+        .flatten()
+        .filter_map(|e| e.file_name().to_str().map(str::to_string))
+        .filter(|n| n.starts_with(&prefix) && n.ends_with(".md"))
+        .min()
+        .map(|n| n[prefix.len()..n.len() - 3].to_string())
+}
+
+/// What `vajra next --steps` prints (and the boot hook shows first). S174 F59/F62: rudra's boot,
+/// on main after session 04 merged, said "nothing left — close the session"; the agent branched
+/// for 05 and never read the list again. After 05 merged, the same list re-graded 05 with ✗ lines.
+/// Once a session is merged this hands over to the next one's start instead.
+pub fn render(root: &Path, session: u32, branch: &str) -> String {
+    let (show, merged) = session_to_show(root, session);
+    let Some(done) = merged else {
+        return format!(
+            "{}{}",
+            format_steps(&steps(root, session), session),
+            format_options(root, session)
+        );
+    };
+    let mut all = start_steps(root, show, branch);
+    all.extend(steps(root, show));
+    format!(
+        "----- session {done:02} is merged — session {show:02} starts here -----\n{}{}",
+        format_steps(&all, show),
+        format_options(root, done)
+    )
 }
 
 /// The three ranked candidates, ready to paste into the chat (S171). The founder's session 02 wrote
@@ -482,5 +555,130 @@ mod tests {
         assert!(!step(1));
         fs::write(d.path().join("prompts/02-task-risk.md"), "# 02").unwrap();
         assert!(step(1));
+    }
+
+    /// Runs git in `root` with a throwaway identity; panics on failure.
+    fn git_in(root: &std::path::Path, args: &[&str]) {
+        let ok = std::process::Command::new("git")
+            .args([
+                "-c",
+                "user.name=t",
+                "-c",
+                "user.email=t@t",
+                "-c",
+                "commit.gpgsign=false",
+            ])
+            .args(args)
+            .current_dir(root)
+            .output()
+            .unwrap()
+            .status
+            .success();
+        assert!(ok, "git {args:?}");
+    }
+
+    /// A repo on main whose listed sessions' summaries are committed (= their closes merged).
+    fn merged(sessions: &[u32]) -> TempDir {
+        let d = repo();
+        git_in(d.path(), &["init", "-q", "-b", "main"]);
+        for n in sessions {
+            fs::write(
+                d.path().join(format!("sessions/session-{n:02}-summary.md")),
+                "# s\n",
+            )
+            .unwrap();
+        }
+        fs::write(d.path().join("README"), "x").unwrap();
+        git_in(d.path(), &["add", "-A"]);
+        git_in(d.path(), &["commit", "-qm", "merged"]);
+        d
+    }
+
+    /// S174 F59/F62: rudra's boot on main after S04 merged said "nothing left — close the session";
+    /// after S05 merged it re-graded 05 with ✗ lines. A merged session hands over to the next start.
+    #[test]
+    fn a_merged_session_hands_over_to_the_next_ones_start() {
+        let d = merged(&[5]);
+        let out = render(d.path(), 5, "main");
+        assert!(
+            out.contains("session 05 is merged — session 06 starts here"),
+            "{out}"
+        );
+        assert!(
+            out.contains("YOUR NEXT STEP: you are on this session's own branch"),
+            "{out}"
+        );
+        assert!(out.contains("session-06-<slug> main"), "{out}");
+        assert!(out.contains("Re-run `vajra next --steps`"), "{out}");
+        assert!(!out.contains("what is left in session 05"), "{out}");
+        assert!(!out.contains("nothing left — close the session"), "{out}");
+
+        fs::write(d.path().join("prompts/06-task-foo.md"), "# 06").unwrap();
+        let out = render(d.path(), 5, "main");
+        assert!(out.contains("session-06-foo main"), "{out}");
+        assert!(out.contains("✓ this session's prompt exists"), "{out}");
+    }
+
+    /// A counter that lags by two still lands on the first unmerged session.
+    #[test]
+    fn a_lagging_counter_rolls_past_every_merged_session() {
+        let d = merged(&[4, 5]);
+        let out = render(d.path(), 4, "main");
+        assert!(
+            out.contains("session 05 is merged — session 06 starts here"),
+            "{out}"
+        );
+    }
+
+    /// A green close still on its branch is not merged: its own list, unchanged.
+    #[test]
+    fn a_green_but_unmerged_close_keeps_its_own_list() {
+        let d = merged(&[]);
+        git_in(d.path(), &["checkout", "-q", "-b", "session-05-x"]);
+        fs::write(d.path().join("sessions/session-05-summary.md"), "# s\n").unwrap();
+        git_in(d.path(), &["add", "-A"]);
+        git_in(d.path(), &["commit", "-qm", "close"]);
+        git_in(d.path(), &["checkout", "-q", "main"]);
+        let out = render(d.path(), 5, "main");
+        assert!(out.contains("what is left in session 05"), "{out}");
+        assert!(!out.contains("is merged —"), "{out}");
+    }
+
+    /// On the new session's own branch there is no hand-over header; the tech-lead comes first.
+    #[test]
+    fn the_new_sessions_branch_gets_the_normal_list() {
+        let d = merged(&[5]);
+        let out = render(d.path(), 6, "session-06-x");
+        assert!(!out.contains("is merged —"), "{out}");
+        assert!(out.contains("YOUR NEXT STEP: the tech-lead"), "{out}");
+    }
+
+    /// S174 F63: rudra S05 (and Vajra S174) moved `.ai/SESSION` and hit the pre-commit drift block.
+    #[test]
+    fn the_counter_step_says_session_and_boot_move_together() {
+        let d = repo();
+        let step = steps(d.path(), 1)
+            .into_iter()
+            .find(|s| s.what.contains("session number"))
+            .unwrap();
+        assert!(
+            step.how.contains("SESSION-BOOT's Number together"),
+            "{}",
+            step.how
+        );
+    }
+
+    /// Outside git nothing rolls over: the same list as before S174.
+    #[test]
+    fn no_git_means_no_rollover() {
+        let d = repo();
+        assert_eq!(
+            render(d.path(), 1, "?"),
+            format!(
+                "{}{}",
+                format_steps(&steps(d.path(), 1), 1),
+                format_options(d.path(), 1)
+            )
+        );
     }
 }

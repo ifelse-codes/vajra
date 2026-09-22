@@ -73,6 +73,9 @@ staged="$(git diff --cached --name-only --diff-filter=ACMR | sed '/^$/d' | wc -l
 if [ "$agent_shell" = 1 ] && [ "${staged:-0}" -gt 3 ]; then
   echo "Vajra stopped this commit: $staged files at once; an agent commits at most 3."
   echo "  Commit them in smaller, related groups."
+  # S174 F61: rudra S05's agent re-ran `git add` on 3 files and hit this three times — the 8 from
+  # the failed commit were still staged. Say so.
+  echo "  All $staged are STILL STAGED — unstage first: git reset -q, then git add at most 3 and commit."
   exit 1
 fi
 
@@ -81,6 +84,8 @@ if [ -f .ai/SESSION ] && [ -f .ai/SESSION-BOOT.md ]; then
   boot="$(grep -m1 -E '\*\*Number:\*\*' .ai/SESSION-BOOT.md | grep -oE '[0-9]+' | head -1)"
   if [ -n "$n" ] && [ -n "$boot" ] && [ "$((10#$n))" -ne "$((10#$boot))" ]; then
     echo "[pre-commit BLOCK] .ai/ drift: .ai/SESSION=$n but SESSION-BOOT Number=$boot."
+    # S174 F63: rudra S05 and Vajra S174 both hit this on their first commit.
+    echo "  They move together: set \`- **Number:** $n\` under \`## Current Session\` in .ai/SESSION-BOOT.md and commit both."
     exit 1
   fi
 fi
