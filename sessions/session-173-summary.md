@@ -70,6 +70,9 @@ in the verify script.
 
 ## What the cold review changed
 
+Nine cold passes in all — eight REJECT, then ACCEPT. Each REJECT was a real finding, and each pass
+after pass 5 was scoped to the last fix only.
+
 **Pass 1: REJECT** (13 SHIPPED · 4 PARTIAL). My F50 fix taught both guards to ignore message text,
 but it ignored too much: with no approval at all, `cat <<EOF >/dev/null; git push -f --no-verify
 origin HEAD:main` got through — blocked before this session. One of my own verify checks
@@ -129,6 +132,9 @@ owner record after a decoy at L2 and L1, and the whole old-vs-new loop re-run wi
 **Pass 8: REJECT — 17 of 17 SHIPPED, code correct.** One stale number: this summary said 84 checks
 after three were added. Now 87; the no-perl loop also requires the old hook to have blocked most of
 its commands (44 of 60), and the verify clears two more caller variables before it starts.
+
+**Pass 9: ACCEPT — 17 of 17 SHIPPED.** Its two optional recs were taken: the no-perl minimum is pinned
+at 40 (the fixture produces 44), and the full verify was re-run on the branch: 87 pass, 0 fail.
 
 ## What this does NOT claim
 
