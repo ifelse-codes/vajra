@@ -35,8 +35,10 @@ B="$T/boot"; mkdir -p "$B/.ai"
 printf '# Session Boot\n\n## Next Session\n- author the next prompt from the summary\n' > "$B/.ai/SESSION-BOOT.md"
 printf '# Task\n\nNothing named here.\n' > "$B/.ai/TASK.md"
 git_fx "$B" init -q -b main
-OUT="$(CLAUDE_PROJECT_DIR="$B" bash scripts/hook-session-start.sh 2>&1)"; RCODE=$?
-if [ "$RCODE" -eq 0 ] && grep -q "^Current branch: main" <<<"$OUT" && grep -q "^\[commit approval\]" <<<"$OUT"; then
+mkdir -p "$T/bin"; ln -sf "$BIN" "$T/bin/vajra"; echo 01 > "$B/.ai/SESSION"
+OUT="$(PATH="$T/bin:$PATH" CLAUDE_PROJECT_DIR="$B" bash scripts/hook-session-start.sh 2>&1)"; RCODE=$?
+if [ "$RCODE" -eq 0 ] && grep -q "^Current branch: main" <<<"$OUT" && grep -q "^\[commit approval\]" <<<"$OUT" \
+   && grep -q "what is left in session" <<<"$OUT"; then
   ok "AC1 boot-runs-to-the-end-with-no-prompt-named"
 else
   bad "AC1 boot-runs-to-the-end-with-no-prompt-named — exit $RCODE, tail: $(tail -2 <<<"$OUT")"
@@ -83,6 +85,13 @@ if [ "$HAVE_RUDRA" = 1 ]; then
   else
     bad "AC4 no-keyboard-advance-says-nobody-was-asked — $(tail -3 <<<"$OUT")"
   fi
+fi
+if [ "$HAVE_RUDRA" = 1 ]; then
+  C3="$T/rudra3"; git clone -q "$RUDRA" "$C3" && git_fx "$C3" checkout -q "$PIN" && git_fx "$C3" checkout -q -b session-05-directive-monitors
+  sed -i.bak 's/Status:\*\* DRAFT/Status:** APPROVED/' "$C3/prompts/05-task-directive-monitors.md"
+  OUT="$(cd "$C3" && echo n | VAJRA_SKIP_ARCHITECT_GATE=1 VAJRA_SKIP_PLANNER_GATE=1 "$BIN" next --advance 2>&1)"
+  [ "$(cat "$C3/.ai/SESSION")" = 04 ] && grep -q "Aborted" <<<"$OUT" \
+    && ok "AC4 a-piped-n-still-stops-the-advance" || bad "AC4 a-piped-n-still-stops-the-advance — $(tail -2 <<<"$OUT")"
 fi
 cargo test -q --lib no_step_tells_the_agent_to_answer_the_advance_question >"$T/ac4.log" 2>&1 \
   && grep -q "1 passed" "$T/ac4.log" \
@@ -188,7 +197,7 @@ pg 2 NONE=1 'echo "$(git push -f origin main)"'
 pg 0 NONE=1 'git commit -m "we will git push later"'
 
 # ==============================================================================================
-# AC5 + AC7, the PROPERTY (cold review pass 2, rec 5): nothing bash would RUN that the guard blocked
+# AC5 + AC7, old rule vs new on a LIST of shapes (cold review pass 2 rec 5; relabelled pass 4 rec 5): nothing bash would RUN that the guard blocked
 # before S173 gets through now. Every form the two reviews found × every trigger, with NO approval,
 # through the hook as it was at f02d8e1 and as it is today. A list of known cases can be patched
 # example by example; this compares the two rules on all of them at once.
@@ -217,8 +226,15 @@ forms() { # forms <trigger> — each line of output is one command (NUL-separate
     "$(printf "echo 'x \"\$(cat <<'EOF'\n'; %s; echo '\nEOF\n)\"'" "$t")" \
     "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nmsg\nEOF\n%s\nEOF\n)"' "$t")" \
     "$(printf 'git commit -m "$(cat <<-'"'"'EOF'"'"'\nmsg\n\tEOF\n%s\nEOF\n)"' "$t")" \
-    "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nmsg\n  EOF\n%s\nEOF\n)"' "$t")"
+    "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nmsg\n  EOF\n%s\nEOF\n)"' "$t")" \
+    "$(printf 'echo "it'"'"'s" && git commit -m "$(cat <<'"'"'EOF'"'"'\n'"'"'; %s; echo '"'"'\nEOF\n)"' "$t")" \
+    "$(printf 'echo \\'"'"' ; git commit -m "$(cat <<'"'"'EOF'"'"'\n'"'"'; %s; echo '"'"'\nEOF\n)"' "$t")" \
+    "$(printf "echo 'abc\ngit commit -m \"\$(cat <<'EOF'\n'; %s; echo '\nEOF\n)\"'" "$t")" \
+    "$(printf 'cat <<EOF\nit'"'"'s\nEOF\ngit commit -m "$(cat <<'"'"'EOF'"'"'\n'"'"'; %s; echo '"'"'\nEOF\n)"' "$t")" \
+    "$(printf 'echo "it'"'"'s" '"'"'x git commit -m "$(cat <<'"'"'EOF'"'"'\n'"'"'; %s; echo '"'"'\nEOF\n)"' "$t")"
 }
+# (The last shape is cold review pass 4's: quote marks count EVEN while bash is inside a quote.
+# The 3bad781 exception hid it — exit 0 — and today's keeps it visible.)
 prop() { # prop <old-hook> <new-hook> <fixture-root> <trigger> [session-owner-line]
   local old="$1" new="$2" root="$3" t="$4" own="${5:-}" c o n
   while IFS= read -r -d '' c; do
@@ -234,8 +250,8 @@ prop "$OLDH/pub.sh" scripts/hook-publish-guard.sh "$P" 'git push -f origin HEAD:
 prop "$OLDH/pub.sh" scripts/hook-publish-guard.sh "$P" 'gh pr merge 5 --admin'
 prop "$OLDH/ses.sh" scripts/hook-session-guard.sh "$G" 'vajra next --advance' "$(printf '4\tSID\n')"
 prop "$OLDH/ses.sh" scripts/hook-session-guard.sh "$G" 'git checkout -b session-05-x' "$(printf '4\tSID\n')"
-[ "$PROP_BAD" = 0 ] && ok "AC5+AC7 property: 0 of $PROP_N executed forms went from blocked to allowed (no approval)" \
-  || bad "AC5+AC7 property: $PROP_BAD of $PROP_N executed forms went from blocked to allowed"
+[ "$PROP_BAD" = 0 ] && ok "AC5+AC7 old-vs-new: 0 of $PROP_N listed commands went from blocked to allowed (no approval)" \
+  || bad "AC5+AC7 old-vs-new: $PROP_BAD of $PROP_N listed commands went from blocked to allowed"
 
 # The same forms WITH the launch approval: the agent may push its own branch only in plain shapes —
 # none of these (each also runs a merge or a push to main) may ride the F55 permission.
@@ -252,11 +268,15 @@ EOF
     done
   done < <(forms "$t")
 done
-[ "$APPROVED_BAD" = 0 ] && ok "AC7 property: 0 of $APPROVED_N merge/main forms ride the launch approval" \
-  || bad "AC7 property: $APPROVED_BAD of $APPROVED_N merge/main forms rode the launch approval"
+[ "$APPROVED_BAD" = 0 ] && ok "AC7 old-vs-new: 0 of $APPROVED_N listed merge/main commands ride the launch approval" \
+  || bad "AC7 old-vs-new: $APPROVED_BAD of $APPROVED_N listed merge/main commands rode the launch approval"
 # ...and the shapes an agent really writes still go through with it.
-pg 0 $A "$(printf 'gh pr create --title "S04" --body "$(cat <<'"'"'EOF'"'"'\n## Summary\n- runs gh pr merge later, by hand\nEOF\n)"')"
+pg 0 $A "$(printf 'gh pr create --title S04 --body "$(cat <<'"'"'EOF'"'"'\n## Summary\n- runs gh pr merge later, by hand\nEOF\n)"')"
 pg 2 $A 'gh pr create -R other/repo --title x'
+pg 2 $A 'gh pr create -Rother/repo --title x'
+pg 2 $A 'gh pr create -dR other/repo --title x'
+pg 2 $A 'gh pr create --repo=other/repo --title x'
+pg 0 $A 'gh pr create --title "S04: x" --body-file sessions/session-04-summary.md'
 # rudra S04's agent's own shapes (from its transcript): `cd <project>; …` with the output tail.
 pg 0 $A "cd $P; git push -u origin session-04-partial-fill 2>&1 | tail -8"
 pg 0 $A "cd $P; gh pr create --base main --head session-04-partial-fill --title \"S04: x\" --body \"Session 04 — (RETRANSMIT_GREEN, transmit_events==2)\""

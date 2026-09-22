@@ -62,28 +62,41 @@ SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "no
 # S173 (F50, after two cold-review REJECTs): what a guard READS is the pre-S173 rule — quoted spans
 # stripped LINE BY LINE — plus ONE narrow exception. Cleverer readers were tried twice and each hid
 # something bash runs. The exception: a commit message / PR body in the exact shape agents write,
-#     "$(cat <<'EOF'            (a QUOTED delimiter: bash expands nothing in the body)
+#     git commit -q -m "$(cat <<'EOF'      (a QUOTED delimiter: bash expands nothing in the body)
 #     …
 #     EOF
 #     )"
-# is text, and hidden — only when everything before it has balanced quotes, so a quote opened
-# earlier cannot turn it into something else. rudra's F50 commit was this shape.
+# is text, and hidden — only when the text before it is a plain `git commit … -m` or
+# `gh pr create … --body` with no quoting at all, and only up to the first delimiter line. rudra's
+# F50 commit was this shape.
 # vajra_heredoc [1] prints the command with that shape removed (1 = replaced by the placeholder Q);
 # vajra_scan then strips quoted spans line by line, as before S173 —
 vajra_heredoc() { VQ="${1:-0}" perl -0777 -pe '
   my $q = ($ENV{VQ} // "") eq "1";
-  my $src = $_;
   # Bash ends a heredoc at the FIRST line that is the delimiter. So no body line may even look
   # like one (any leading/trailing blanks): the hidden span then ends where bash ends it, or
   # earlier — never later (cold review pass 3: a lazy body ran past an early delimiter and hid
   # the lines bash runs after it). A plain << must end on the bare delimiter; <<- may indent it
   # with tabs. Anything that does not fit stays visible.
-  s{"\$\(\s*cat\s+<<(-?)[ \t]*([\x27"])(\w+)\2[ \t]*\n((?:(?![ \t]*\3[ \t]*\n)[^\n]*\n)*)(\t*)\3\n\s*\)"}{
-    my ($dash, $tabs, $all) = ($1, $5, $&);
-    my $pre = substr($src, 0, $-[0]);
-    ((($pre =~ tr/\x27//) % 2 == 0) && (($pre =~ tr/"//) % 2 == 0) && ($dash eq "-" || $tabs eq ""))
-      ? ($q ? "Q" : "") : $all
-  }gse;
+  # The START is pinned too (cold review pass 4: counting quote marks is not bash quoting). The
+  # span must open a line as a plain `git commit … -m ` or `gh pr create … --body `, and NOTHING
+  # between the start of the command (or the end of the last hidden span) and it may hold a quote,
+  # backslash, `$`, backtick or `<` — so bash cannot be inside a quote or a heredoc when it gets
+  # there. Anything that does not fit stays visible and the pre-S173 rule decides.
+  my $w = qr{[^\s\x27"\\\$`#;|&<>()]+};
+  my $re = qr{^((?:cd $w && )?(?:git commit(?: -[A-Za-z]+)*|gh pr create(?: --?[a-z][a-z-]*(?: $w)?)*) (?:-m|--message|--body|-b) )"\$\(\s*cat\s+<<(-?)[ \t]*([\x27"])(\w+)\3[ \t]*\n((?:(?![ \t]*\4[ \t]*\n)[^\n]*\n)*)(\t*)\4\n\s*\)"}m;
+  my ($out, $rest) = ("", $_);
+  while ($rest =~ $re) {
+    my ($before, $all, $after, $pre, $dash, $tabs) = ($`, $&, $'"'"', $1, $2, $6);
+    if ($before !~ /[\x27"\\\$`<]/ && ($dash eq "-" || $tabs eq "")) {
+      $out .= $before . $pre . ($q ? "Q" : "");
+    } else {
+      $out .= $before . $all;       # kept visible — and it now poisons every later span
+      $out .= $after; $rest = ""; last;
+    }
+    $rest = $after;
+  }
+  $_ = $out . $rest;
 '; }
 # ...and then ADDS what bash runs from inside quotes — every `$( … )` and backtick body, and every
 # `eval` / `sh -c` string — so a push hidden there is seen. Adding text can only block MORE, never
