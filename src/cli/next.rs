@@ -456,9 +456,8 @@ fn run_steps(nn: Option<&String>) -> Result<()> {
     };
     print!(
         "{}",
-        nextstep::format_steps(&nextstep::steps(&root, session), session)
+        nextstep::render(&root, session, &current_branch(&root))
     );
-    print!("{}", nextstep::format_options(&root, session));
     Ok(())
 }
 
