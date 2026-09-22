@@ -62,8 +62,22 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 # (`git commit -m "…git push…"`, `--body "…gh pr create…"`, `echo "gh pr merge"`). A real
 # invocation always places the command name OUTSIDE quotes, so stripping quoted spans can
 # never hide a genuine push/PR — fail-safe: anything unquoted still matches and blocks.
-# Unbalanced quotes / heredocs leave text in place -> over-block, the safe direction.
-SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
+# S173 (F50; five cold-review passes): what a guard READS is the pre-S173 rule — quoted spans
+# stripped LINE BY LINE — PLUS extra reads: every `$( … )` and backtick body and every `eval` /
+# `sh -c` string, taken from the RAW command. Adding text can only block more, so nothing blocked
+# before S173 can pass now. An exception that hid commit-message heredocs was tried and removed:
+# each version hid something a shell runs (pass 5: macOS /bin/bash 3.2 ends `$( )` at a `)"` line
+# inside the heredoc). A commit message that mentions a guarded command is written to a file
+# instead: `git commit -F <file>` (the block message says so).
+vajra_scan() {
+  sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$1"
+  perl -0777 -ne '
+    while (/\$\(((?:[^()]++|\((?1)\))*)\)/g) { print "\n$1" }
+    while (/`([^`]*)`/g) { print "\n$1" }
+    while (/(?:^|[^\w])(?:eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)\s+(["\x27])(.*?)\1/gs) { print "\n$2" }
+  ' <<<"$1" 2>/dev/null || true   # no perl → the pre-S173 rule alone (pass 6: it used to exit 127)
+}
+SCAN=$(vajra_scan "$CMD")
 
 # Classify the command as an outward/irreversible action. Here-strings (not pipes) so a
 # short-circuiting `grep -q` can never SIGPIPE a producer under `set -o pipefail` (S32 gotcha).
@@ -87,6 +101,70 @@ if [ "${VAJRA_ALLOW_PUBLISH:-}" = "1" ]; then
   exit 0
 fi
 
+# S173 F55 (founder pick B, 2026-09-22): the session's launch approval also covers SHIPPING that
+# session's own branch. In rudra S04 the founder chose "push + open PR" in chat, the guard blocked
+# both, and he hand-typed `git push` and a long `gh pr create`. With VAJRA_ALLOW_COMMIT=NN set at
+# launch, on branch session-NN-*, the agent may run EXACTLY one of these shapes and nothing else:
+#     git push [-u|--set-upstream] [origin [HEAD|<this branch>]]
+#     gh pr create …            (no --head, or --head <this branch>; any --base)
+# optionally after `cd <this project> && ` and followed by `2>&1` and one `| head`/`| tail`. An ALLOW-list, not a block-list: the
+# S173 design-advisor found a dozen push spellings a block-list missed (colon refspecs to other
+# branches, `-uf`, quoted `+`, `--no-verify`, push options, URLs, `git -c … push`). Anything not on
+# the list falls back to the human, as before S173. The env var is read from THIS hook's launch
+# environment, so an agent typing `VAJRA_ALLOW_COMMIT=NN git push` inline changes nothing.
+# The branch is read from the directory the command RUNS in (the hook input's `cwd`), and that
+# directory must be this project's own checkout — cold review pass 5: reading $ROOT let an agent
+# whose shell sat in a worktree or nested clone push THAT directory's branch. No `cwd`, no
+# permission.
+CWD=$(echo "$INPUT" | jq -r '.cwd // ""' 2>/dev/null || echo "")
+ROOT_REAL=$(cd "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")
+TOP=""; BRANCH=""
+if [ -n "$CWD" ]; then
+  TOP=$(git -C "$CWD" rev-parse --show-toplevel 2>/dev/null || echo "")
+  TOP=$(cd "$TOP" 2>/dev/null && pwd -P || echo "")
+  [ -n "$TOP" ] && [ "$TOP" = "$ROOT_REAL" ] && BRANCH=$(git -C "$CWD" branch --show-current 2>/dev/null || echo "")
+fi
+SESS=""
+[[ "$BRANCH" =~ ^session-([0-9]+)- ]] && SESS="${BASH_REMATCH[1]}"
+# A merge anywhere in the command (e.g. `git push && gh pr merge`) is never covered.
+if [ -n "$SESS" ] && [ "${VAJRA_ALLOW_COMMIT:-}" = "$SESS" ] \
+   && ! grep -qE '(^|[^[:alnum:]_])(gh[[:space:]]+pr|glab[[:space:]]+mr)[[:space:]]+merge([^[:alnum:]]|$)' <<<"$SCAN"; then
+  # The allow path reads the RAW command: any `$`, backtick, backslash or line break means bash
+  # could run something the shape check cannot see, so it falls back to the human. (A PR body goes
+  # in a file: `gh pr create --title "…" --body-file <file>`.)
+  RAW1="$CMD"
+  if grep -q '[$`\\]' <<<"$RAW1" || [ "$(printf '%s' "$RAW1" | wc -l | tr -d ' ')" != 0 ]; then
+    RAW1=""
+  fi
+  QSCAN=$(sed -E "s/'[^']*'/Q/g; s/\"[^\"]*\"/Q/g" <<<"$RAW1")
+  ONE=$(sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//; s/ \| (head|tail)( -n)?( -?[0-9]+)?$//; s/ 2>&1$//' <<<"$QSCAN")
+  B_RE=$(printf '%s' "$BRANCH" | sed -E 's/[].[^$*+?(){}|\\/]/\\&/g')
+  # A leading `cd <this project> && ` or `cd <this project>; ` (rudra's agent writes one on every
+  # command) — this project only.
+  ROOT_REAL=$(cd "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")
+  for R in "$ROOT" "$ROOT_REAL"; do
+    [ "${ONE#cd $R && }" != "$ONE" ] && ONE="${ONE#cd $R && }"
+    [ "${ONE#cd $R; }" != "$ONE" ] && ONE="${ONE#cd $R; }"
+  done
+  SHIP_OK=""
+  if [[ "$ONE" =~ ^git\ push(\ (-u|--set-upstream))?(\ origin(\ (HEAD|$B_RE))?)?$ ]]; then
+    SHIP_OK=1
+  # gh pr create: no shell syntax, no backslash, and either no head flag or exactly ONE, spelled
+  # `--head <this branch>` / `--head=<this branch>` / `-H <this branch>` (cold review rec 4: a joined
+  # `-Hsession-03-y`, a repeated `--head`, and `--he\ad` all got past the first cut).
+  elif [[ "$ONE" =~ ^gh\ pr\ create(\ |$) ]] && ! grep -qE '[][;&|<>$`(){}\\]' <<<"$ONE" \
+       && ! grep -qE -- '(^| )(-[A-Za-z]*R|--repo)' <<<"$ONE" \
+       && HEADS=$({ grep -oE -- '(^| )(-H[^ ]*|--he[a-z]*[^ ]*)' <<<"$ONE" || true; } | wc -l | tr -d ' ') \
+       && { [ "$HEADS" = 0 ] \
+            || { [ "$HEADS" = 1 ] && grep -qE -- "(^| )(--head[ =]|-H )$B_RE( |$)" <<<"$ONE"; }; }; then
+    SHIP_OK=1
+  fi
+  if [ -n "$SHIP_OK" ]; then
+    echo "[vajra publish-guard] ALLOWED ($ACTION) — session $SESS's own branch; VAJRA_ALLOW_COMMIT=$SESS was given at launch. Merging stays with the human."
+    exit 0
+  fi
+fi
+
 MATURITY="${VAJRA_GUARD_MATURITY:-$(grep -m1 '^maturity:' "$CONSTRAINTS" 2>/dev/null | awk '{print $2}' || echo "L2")}"
 
 if [ "$MATURITY" = "L1" ]; then
@@ -101,5 +179,7 @@ fi
   echo "  To allow this launch: relaunch with VAJRA_ALLOW_PUBLISH=1"
   echo "    (e.g. VAJRA_ALLOW_PUBLISH=1 vajra claude)."
   echo "  To downgrade to advice: set maturity: L1 in .ai/CONSTRAINTS.yaml."
+  echo "  If the command only MENTIONS it (a commit message, a PR body), put that text in a file:"
+  echo "  git commit -F <file> / gh pr create --body-file <file>."
 } 1>&2
 exit 2

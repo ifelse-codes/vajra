@@ -1458,3 +1458,96 @@ test changes with it, on purpose.
 to skip governance can name its branch `quick-fix`. That is the feature working as designed, not a
 loophole — the human sees the branch name in every PR, and nothing done there is presented as a
 governed session.
+
+## S173 addendum — the session's launch approval ships its own branch; the fake question goes
+
+**What changed (founder pick B, 2026-09-22).** In rudra session 04 the founder chose "push + open
+PR" in chat; the publish guard blocked both (a chat yes never reaches a guard — S171), so he
+hand-typed `git push` and a long `gh pr create` (F55). Now the launch approval that already covers
+commits — `VAJRA_ALLOW_COMMIT=NN`, set when the human starts the agent, on branch `session-NN-*`,
+the door the 2026-09-21 decision above names — also covers shipping that session's OWN branch.
+The agent may run exactly `git push [-u|--set-upstream] [origin [HEAD|<this branch>]]` and
+`gh pr create …` (no `--head`, or `--head <this branch>`), optionally after `cd <this project> &&`
+and before `2>&1` / one `| head`/`| tail`. Anything else falls back to the human, as before.
+Merging stays the human's.
+
+**It is an allow-list because a block-list failed review.** The first cut listed forbidden forms;
+the design-advisor found a dozen spellings it missed — `HEAD:session-05-y` and `:session-05-y`
+(another session's branch, and a delete), `-uf`, a quoted `+refspec`, `--no-verify`, GitLab
+`-o merge_request.*` push options (a merge through the push), a URL remote, `cd ../other &&`. Each is
+now a failing case in `scripts/verify-session-173.sh`. Quoted text is read as a placeholder, not
+deleted, so a quote cannot hide a `+`.
+
+**What a guard reads: the old rule, plus more — no exception (F50; seven cold-review REJECTs).**
+Both guards strip quoted text line by line, so a multi-line commit message quoting a guarded
+command blocks its own commit (F50). Four ways of hiding that message text were built and each was
+broken by the next independent review: whole-command stripping; a bash-like left-to-right scanner;
+an exception for the `"$(cat <<'EOF' … EOF)"` shape bounded where bash ends the heredoc; the same
+exception with its start pinned to a plain unquoted `git commit`/`gh pr create`. Pass 5 showed the
+last one hid a push that macOS `/bin/bash` 3.2 runs (it ends the `$( )` at a `)"` line inside the
+heredoc) — confirmed on this machine. So the exception was REMOVED. The shipped rule:
+1. **the pre-S173 line-by-line quote strip, unchanged;**
+2. **plus** every `$( … )` and backtick body and every `eval` / `sh -c` string, read from the raw
+   command and kept APART: in the session guard they may only ADD a reason to block and never
+   change the session number or the owner record (pass 6: a decoy `$(echo checkout -b session-01-a)`
+   displaced the real number); with no `perl` on the host the extra reads are skipped and the
+   pre-S173 rule still blocks (pass 6: it had exited 127, which is not a block). It closes holes
+   that predate S173 (`echo "$(git push -f origin main)"` was unguarded before).
+F50 is therefore **not fixed in code**. The block now says the way out: put the message in a file,
+`git commit -F <file>` / `gh pr create --body-file <file>`. The F55 allow path reads the RAW command
+— any `$`, backtick, backslash or line break sends it to the human — and the branch is read from the
+directory the command RUNS in (the hook input's `cwd`), which must be this project's own checkout
+(pass 5: reading `$ROOT` let an agent in a worktree push that worktree's branch). The verify script
+compares the old rule with the new on **30 named shapes × 4 triggers** (120 commands) — none may go
+from blocked to allowed, none that runs a merge or a push to main may ride the approval. A list of
+examples, not a proof over bash's grammar.
+
+**The fake question goes (F52).** `vajra next --advance` asked `Advance to next session? [y/N]`, and
+the checklist told the agent to pipe `echo y` — the agent answered a question dressed as the
+human's. Now it asks only when stdin is a terminal; otherwise it says it did not ask. In a chat the
+control is the session guard (it blocks a second session starting), not the question.
+
+**Cites** DECISION-005 only for "guards ON for real runs" and for the `VAJRA_ALLOW_COMMIT`
+env-marker commit path. **DEVIATION, stated plainly:** DECISION-005 named that marker a COMMIT
+path; it now also publishes. That overrides the S37 publish guard's own rule (publishing only with
+`VAJRA_ALLOW_PUBLISH=1`), which lived in the hook, not in a record.
+
+**What this does NOT claim.**
+1. **The push allow-list is still a text match.** It closes the forms listed above, not every way
+   to reach a remote. Forms the guard never classifies as a push at all — `git -c k=v push`,
+   `git -C . push`, a quoted `"git"`, a variable (`$G push`), a git alias — were open before S173
+   and still are; they get neither the new permission nor a block. (`eval`/`sh -c` strings and
+   `$( )`/backtick bodies are now read too, so a push inside them IS classified — tighter than
+   before.) A heredoc fed to a shell (`cat <<EOF | bash`) is read line by line, as before S173.
+2. **An upstream or config redirect is invisible to it.** `git branch -u origin/main` or
+   `remote.origin.push HEAD:refs/heads/main` set earlier makes a plain `git push` land on main. The
+   pre-push hook (`.githooks/pre-push`) blocks an agent pushing `main` as a second lock — only when
+   `core.hooksPath` points at `.githooks`, and never under `--no-verify` (which the allow-list
+   refuses, but which an unclassified form above could carry).
+3. **`gh pr create` is allowed with any `--base`** (never another repo: `-R`, glued or clustered, and `--repo` are refused). Opening a PR is not a merge; `gh api …/merge`
+   was never guarded and still is not.
+4. **An unreviewed branch becomes visible to others** once the agent pushes it — the cost of the
+   founder's choice, named.
+5. **This repo does not exercise it.** `publish_guard: off` in Vajra's own CONSTRAINTS means the
+   guard exits before this code; it runs in scaffolded projects (rudra), and in the verify script.
+6. **With no terminal, `--advance` now proceeds for CI and scripts too**, not only for agents. The
+   earlier message's "the human's approval is the plan they OK'd" was dropped: nothing checks it.
+
+
+7. **The before/after check is 120 named commands, not bash's grammar.** It covers the shapes
+   six reviews found; a 31st spelling nobody has tried is not covered.
+8. **F50 is not fixed in code; the addition over-blocks on purpose.** A commit message that
+   mentions a guarded command still blocks, as before S173 — the block says to use `git commit -F`. A heredoc written to a FILE whose text shows a Vajra
+   command in backticks (markdown) now trips the session guard — this session hit it writing its
+   own records. The way around is to write files with the agent's file tool, not a shell heredoc.
+
+9. **Other directories and config.** The F55 permission needs the command's directory to be this
+   project's checkout — read from the hook input's `cwd`, on the UNVERIFIED assumption that Claude
+   Code reports the Bash tool's current directory there (to be checked live in S174); config set earlier — `remote.origin.mirror`, `git remote set-url`,
+   `gh repo set-default`, a redirected upstream — can still change where a plain push goes.
+   `alias git=eval` set earlier can run text a guard reads as a message; that was true before S173.
+
+**Rejected:** `vajra ship NN` for the human to run (keeps one typed command a session); leaving it
+(option C); dropping the prompt and handoffs from the review hash to stop the F53 re-stamp loop (it
+would break verification of every past attested review — the checklist now says "stamp LAST"
+instead).

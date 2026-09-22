@@ -2,11 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S172 complete; S173 picked
+## Between Sessions — S173 complete; S174 drafted (founder's pick pending)
 
-**Next: Session 173 — keep using Vajra in rudra, fix what it finds** (founder's pick 2026-09-21: "continue like s171 and 172"). Brief: `prompts/173-task-keep-testing.md` — **Status: DRAFT**, filled in live from his rudra session 04. Before he starts: reinstall `vajra` from source and `vajra init --sync-fleet` in rudra. Start in a FRESH chat.
+**Next: Session 174 — rudra session 05 with S173's fixes in** (drafted from S173's recommended candidate 1; the founder has not picked — options 2 and 3 are in `sessions/session-173-summary.md`). Brief: `prompts/174-task-keep-testing.md` — **Status: DRAFT**. Before he starts: reinstall `vajra`, sync rudra, launch with `VAJRA_ALLOW_COMMIT=05 vajra claude`. Start in a FRESH chat.
 
-**Founder decision 2026-09-21 (DECISION-007):** a branch not named `session-NN-…` is ungoverned ad-hoc work, by design — locked by a test in `tests/commit_belt.rs`.
+## Session 173 — Interactive: keep using Vajra in rudra — COMPLETE
+
+- Brief: `prompts/173-task-keep-testing.md` (findings F45–F57 from his rudra session 04, collected during the run and fixed after it). Summary: `sessions/session-173-summary.md`. Review: `sessions/session-173-review.md` (8 REJECT passes, then ACCEPT).
+- Shipped: boot survives a handover naming no prompt (F45) · a merged ACCEPT is not sent back (F46) · a merged session reports as counted lines (F51) · no fake y/N (F52) · the to-do list names the advice answers and the stamp, LAST (F53/F54) · the launch approval lets the agent push its own session branch and open its PR, from its own checkout, by an allow-list (F55) · the sync says whose files it wrote (F49).
+- **Not fixed in code:** F50 — every way of hiding commit-message text from the guards hid something a shell runs; the guards read exactly as before plus more, and the block names `git commit -F <file>`.
 
 ## Session 172 — Interactive: keep testing rudra, fix what it finds — COMPLETE
 

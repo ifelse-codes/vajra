@@ -13,7 +13,7 @@
 
 use std::path::Path;
 
-use crate::{analyst, stations};
+use crate::{advice, analyst, releaser, stations};
 
 /// One step of the session, and how to finish it.
 #[derive(Debug, Clone)]
@@ -52,6 +52,21 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
     let options = analyst::options_gate(root, session);
     let options_ready = options.summary_path.is_some() && !options.blocked();
     let next_prompt = prompt_exists(root, session + 1);
+    // S173 F46: once the close is merged, the attested hash can no longer be rebuilt from the diff
+    // (the branch is gone into main), so the Reviewer station reads ABSENT forever and rudra's boot
+    // told the agent to redo session 03's ACCEPTed review. A merged session is reported on, never
+    // re-graded (S172, F39): after the merge, an ACCEPT verdict on file is enough for this list.
+    let accepted = std::fs::read_to_string(root.join(format!("sessions/session-{nn}-review.md")))
+        .ok()
+        .and_then(|t| stations::review_verdict_accept(&t))
+        == Some(true);
+    let stamped =
+        passed("Reviewer") || (releaser::shipped_close(root, session).is_some() && accepted);
+    // S173 F54: nothing on this list said the advisors' recommendations need an answer, so rudra
+    // met all 38 at the close check — and failed it twice on format.
+    // Only once the review exists: its recommendations are the last to arrive, and with no
+    // handoffs at all the gate passes vacuously.
+    let answered = (accepted || stamped) && !advice::advice_gate(root, session).blocked();
     // S172 F37: the counter in `.ai/SESSION` only moves on `--advance`, and nothing said when.
     let counter_moved = std::fs::read_to_string(root.join(".ai/SESSION"))
         .ok()
@@ -86,7 +101,8 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         Step::new(
             counter_moved,
             "the session number in .ai/SESSION says this session",
-            "once the prompt, design and plan above are done: echo y | vajra next --advance \
+            "once the prompt, design and plan above are done, and the human has OK'd the plan: \
+             vajra next --advance \
              (it checks them and moves the number; the previous session, if already merged, is \
              only reported on)"
                 .to_string(),
@@ -94,7 +110,9 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         Step::new(
             passed("Coder"),
             "each plan step names the commit that landed it",
-            "record `step N — done: <sha>` under `## Execution` as the work lands".to_string(),
+            "right after each step's commit, add `step N — done: <sha>` under the prompt's \
+             `## Execution` — the close check refuses a plan step without one"
+                .to_string(),
         ),
         Step::new(
             passed("QA"),
@@ -119,11 +137,11 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             ),
         ),
         Step::new(
-            passed("Reviewer"),
+            accepted || stamped,
             "an independent review has read the work and said ACCEPT",
             format!(
                 "dispatch the fidelity-reviewer on the prompt + the diff, write its verdict to \
-                 sessions/session-{nn}-review.md"
+                 sessions/session-{nn}-review.md (leave its stamp for the last step)"
             ),
         ),
         Step::new(
@@ -136,12 +154,35 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             ),
         ),
         Step::new(
+            answered,
+            "every advisor recommendation has an answer in the prompt's `## Advice`",
+            format!(
+                "one line per rec, exactly: `- <role> rec N — obeyed: <sha>` (a real commit) / \
+                 `refused: <reason>` / `deferred: <path>` (an existing file, bare path). \
+                 Check: vajra next --advice {nn}"
+            ),
+        ),
+        // S173 F53: the stamp hashes the prompt AND every committed handoff, so each later
+        // `## Advice` line or handoff moved it — rudra re-stamped four times. Say LAST, up front.
+        Step::new(
+            stamped,
+            "the review's stamp matches the finished work (do this LAST)",
+            format!(
+                "after `## Advice`, `## Execution` and every handoff are committed: \
+                 bash scripts/verify-closeout.sh --inputs-sha {nn} — paste it into the review as \
+                 `**Review-Inputs-SHA:** <hash>`. Any later prompt edit or commit outside \
+                 sessions/ and prompts/ moves it"
+            ),
+        ),
+        Step::new(
             passed("Releaser"),
             "the work is merged and the branch is gone",
             "run scripts/verify-closeout.sh ON THE BRANCH first — since S172 nothing re-checks \
-             it after the merge — then open the pull request, merge it, prune the branch. If main \
-             has commits GitHub lacks, `vajra next --release NN` names them — tell the human \
-             which ones (e.g. a Vajra sync); only the human pushes main"
+             it after the merge — then push the branch and open the pull request yourself when the \
+             launch gave VAJRA_ALLOW_COMMIT=NN (S173) — `git push -u origin <branch>`, then \
+             `gh pr create --title \"…\" --body-file sessions/session-NN-summary.md` — ask the human to merge it, then prune the \
+             branch. If main has commits GitHub lacks, `vajra next --release NN` names them — tell \
+             the human which ones (e.g. a Vajra sync); only the human pushes main"
                 .replace("NN", &nn),
         ),
     ]
@@ -298,6 +339,95 @@ mod tests {
         assert!(s.how.contains("vajra next --advance"), "{}", s.how);
         fs::write(d.path().join(".ai/SESSION"), "03\n").unwrap();
         assert!(step(d.path()).done);
+    }
+
+    /// S173 F46: rudra's boot said "dispatch the fidelity-reviewer" for session 03 — merged, with
+    /// an ACCEPT on file — because the attested hash cannot be rebuilt after the merge.
+    #[test]
+    fn a_merged_session_with_an_accept_on_file_is_not_sent_back_for_review() {
+        let d = repo();
+        let root = d.path();
+        let git = |args: &[&str]| {
+            let ok = std::process::Command::new("git")
+                .args([
+                    "-c",
+                    "user.name=t",
+                    "-c",
+                    "user.email=t@t",
+                    "-c",
+                    "commit.gpgsign=false",
+                ])
+                .args(args)
+                .current_dir(root)
+                .output()
+                .unwrap()
+                .status
+                .success();
+            assert!(ok, "git {args:?}");
+        };
+        let review_step = || {
+            steps(root, 3)
+                .into_iter()
+                .find(|s| s.what.contains("stamp"))
+                .unwrap()
+        };
+        git(&["init", "-q", "-b", "main"]);
+        fs::write(
+            root.join("sessions/session-03-review.md"),
+            "**Verdict:** ACCEPT\n",
+        )
+        .unwrap();
+        assert!(
+            !review_step().done,
+            "not merged yet: the attested gate still decides"
+        );
+
+        fs::write(root.join("sessions/session-03-summary.md"), "# S03\n").unwrap();
+        git(&["add", "-A"]);
+        git(&["commit", "-qm", "s03 close"]);
+        assert!(
+            review_step().done,
+            "merged with an ACCEPT on file: not re-graded"
+        );
+
+        fs::write(
+            root.join("sessions/session-03-review.md"),
+            "**Verdict:** REJECT\n",
+        )
+        .unwrap();
+        assert!(!review_step().done, "a REJECT is never read as done");
+    }
+
+    /// S173 F53/F54: rudra met 38 unanswered recs and a stamp that moved four times only at the
+    /// close check. The list now names both, with the exact format, and the stamp comes LAST.
+    #[test]
+    fn advice_and_the_stamp_are_steps_and_the_stamp_is_last_before_merge() {
+        let d = repo();
+        let steps = steps(d.path(), 1);
+        let pos = |needle: &str| steps.iter().position(|s| s.what.contains(needle)).unwrap();
+        let advice = &steps[pos("advisor recommendation")];
+        assert!(advice.how.contains("obeyed: <sha>"), "{}", advice.how);
+        assert!(advice.how.contains("deferred: <path>"), "{}", advice.how);
+        let stamp = &steps[pos("stamp")];
+        assert!(stamp.what.contains("LAST"), "{}", stamp.what);
+        assert!(stamp.how.contains("--inputs-sha 01"), "{}", stamp.how);
+        assert!(pos("advisor recommendation") < pos("stamp"));
+        assert!(pos("next session's prompt") < pos("stamp"));
+        assert_eq!(
+            pos("stamp") + 1,
+            pos("merged"),
+            "only the merge comes after the stamp"
+        );
+    }
+
+    /// S173 F52: the checklist told the agent to pipe `echo y` into the advance question, so the
+    /// agent answered a question meant for the human. No step may say it again.
+    #[test]
+    fn no_step_tells_the_agent_to_answer_the_advance_question() {
+        let d = repo();
+        for s in steps(d.path(), 1) {
+            assert!(!s.how.contains("echo y"), "{}: {}", s.what, s.how);
+        }
     }
 
     #[test]

@@ -37,8 +37,10 @@ done
 # S172 F38: the handover names the next prompt by hand, and rudra's said `prompts/03-execution-…`
 # for a file saved as `prompts/03-task-execution-…`. Say so at boot instead of letting the agent
 # find out mid-session. Only the pointer files' top (the "next" part), and only a warning.
+# S173 F45: a handover naming NO prompt makes grep exit 1; under `set -euo pipefail` that killed
+# the whole boot here — branch, commit approval and the checklist never printed. `|| true`.
 { cat "$ROOT/.ai/SESSION-BOOT.md" 2>/dev/null || true; head -15 "$ROOT/.ai/TASK.md" 2>/dev/null || true; } \
-  | grep -oE 'prompts/[0-9]+-[A-Za-z0-9._<>-]+\.md' | sort -u | while read -r p; do
+  | { grep -oE 'prompts/[0-9]+-[A-Za-z0-9._<>-]+\.md' || true; } | sort -u | while read -r p; do
     case "$p" in *'<'*|*'>'*) continue ;; esac   # `prompts/173-task-<slug>.md` is a shape, not a file
 
     [ -f "$ROOT/$p" ] && continue
@@ -87,6 +89,11 @@ elif [ -z "$_SESS" ] || [ "${VAJRA_ALLOW_COMMIT}" = "$_SESS" ]; then
   echo "[commit approval] PRE-GRANTED — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT} is set at launch."
   echo "  That marker IS the founder's approval token for this session (S93); commits may proceed"
   echo "  without a chat token. Advisory line — the L3 commit-guard remains the enforcing check."
+  # S173 F55 (founder pick B): the same launch approval ships this session's own branch.
+  if [ -n "$_SESS" ]; then
+    echo "  It also lets you push THIS session's branch and open its pull request (S173). Merging,"
+    echo "  and pushing main, stay with the human."
+  fi
 else
   echo "[commit approval] NOT VALID HERE — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT} is scoped to"
   echo "  session ${VAJRA_ALLOW_COMMIT}, but this branch is session ${_SESS}. The guard will BLOCK."
