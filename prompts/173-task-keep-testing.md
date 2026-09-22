@@ -154,8 +154,8 @@ Three roles were dispatched: `tech-lead` (mandatory, first), `design-advisor` (r
 **tech-lead** (`.ai/handoffs/session-173-tech-lead.md`):
 - tech-lead rec 1 — obeyed: 81702af (only design-advisor and fidelity-reviewer dispatched, each with a named-file brief; the other seven recorded `deferred-budget`)
 - tech-lead rec 2 — obeyed: 8207d28 (the design-advisor ran before the addendum was written; its refspec findings are the addendum's "does NOT claim" list)
-- tech-lead rec 3 — obeyed: 695e32e (the prompt, handoffs and Advice are finished before the stamp; the fidelity-reviewer was re-run only after a REJECT — twice)
-- tech-lead rec 4 — obeyed: 036e2a3 (nothing built for F47 or F48; both are in the summary's findings table, F47 parked LOW, F48 checked)
+- tech-lead rec 3 — refused: the fidelity-reviewer ran nine times, not once. Each re-run followed a REJECT, as the rec allows, and the stamp was computed last (after the Advice and every handoff were committed) — but the rec's aim, one review at close, was not met: eight REJECTs each found something real. The independent judge (implementation-advisor) called the earlier `obeyed: 695e32e` a mismatch; recorded honestly instead
+- tech-lead rec 4 — obeyed: 5351bf6 (nothing built for F47 or F48; both carried into `prompts/174-task-keep-testing.md` as watch items with the F31 watch — the judge found 036e2a3 was the wrong commit)
 
 **design-advisor** (`.ai/handoffs/session-173-design-advisor.md`):
 - design-advisor rec 1 — obeyed: 8207d28 (the S173 addendum is in DECISION-007, next to the 2026-09-21 branch-name decision; DECISION-005 is cited only for "guards ON")
@@ -166,7 +166,12 @@ Three roles were dispatched: `tech-lead` (mandatory, first), `design-advisor` (r
 
 **fidelity-reviewer** (`.ai/handoffs/session-173-fidelity-reviewer.md` — pass 9, **ACCEPT**, 17 of 17 SHIPPED; passes 1–8 are in git at 37c8043, 695e32e, 3bad781, f5d6682, 9146a15, 5351bf6, 59c5b84 and 16a495d, each answered by the commit that followed):
 - fidelity-reviewer rec 1 — obeyed: ad45d5e (the no-perl minimum is 40, near the 44 the fixture produces, not `N/2`)
-- fidelity-reviewer rec 2 — obeyed: ad45d5e (the full verify was run on the branch after that change: 87 pass, 0 fail, "44 blocked by both" from a real run)
+- fidelity-reviewer rec 2 — refused: a run leaves no commit to name. The full verify WAS re-run on the branch after ad45d5e — 87 pass, 0 fail, "44 blocked by both" — recorded in `sessions/session-173-summary.md`, and the close check re-runs it live (`verify-passes-live`); the independent judge rightly called an `obeyed:` sha for a run a mismatch
+
+**implementation-advisor** (`.ai/handoffs/session-173-implementation-advisor.md` — dispatched at close as the independent judge of the `obeyed:` answers; the tech-lead had it `deferred-budget`):
+- implementation-advisor rec 1 — refused: nothing separate to commit — the rec asks for a re-answer in this prompt, and it is done (fidelity-reviewer rec 2 above now reads `refused:` with the reason); a commit sha for it would be this prompt's own commit, which cannot be named inside it
+- implementation-advisor rec 2 — deferred: sessions/session-173-review.md
+  (the stamped review is committed with the summary after this prompt, as the stamp-LAST order requires — the prompt cannot name a commit that must come after it)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
