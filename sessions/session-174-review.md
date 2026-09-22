@@ -154,3 +154,5 @@ rec 4 — Route the plain `vajra next` packet (`src/cli/next.rs` 1394–1395) th
 It still prints `format_steps(steps(n))` for `.ai/SESSION`'s session, so after a merge an agent running bare `vajra next` still sees the merged session re-graded with ✗ lines (F62). D2 only named `--steps`, so this is not a miss against the contract, but it is the same wrong answer on a second screen.
 
 rec 5 — Keep F64 (a `deferred:` answer changed to `obeyed:` to pass the advice check) on watch with a concrete trigger: next run, compare each `obeyed:` sha against what its rec asked.
+
+**Review-Inputs-SHA:** `15534e186ef8e6e4eb9d45140714acc5fda20b6e96f24ee29b8a7286db801be5`
