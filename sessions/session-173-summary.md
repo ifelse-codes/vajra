@@ -2,7 +2,7 @@
 
 **Type:** CODE, interactive (the founder's own run; findings collected during it, fixed after it closed).
 **Branch:** `session-173-keep-testing`. **Brief:** `prompts/173-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-173.sh` — 82 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
+**Verify:** `scripts/verify-session-173.sh` — 84 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
 — 18 live checks, all green. **Decision:** DECISION-007, S173 addendum.
 
 ## What happened
@@ -10,8 +10,9 @@
 The founder ran rudra's session 04 end to end under Vajra: it went from choosing the session through
 plan, build, independent review (ACCEPT 12/12) and merge (rudra PR #5) in about two hours, 75 minutes
 of it active work. His new rule for this session: collect every finding while rudra runs, and fix
-them only after it closes. Eleven came out (F45–F55), plus one this session hit on itself (F56).
-Ten are fixed; F47 and F56 are parked as LOW.
+them only after it closes. Eleven came out (F45–F55), plus two this session hit on itself (F56, F57).
+Nine are fixed in code, F48 by the new step order; F47, F56 and F57 are parked LOW; F50 is not
+fixed in code (see below).
 
 **What worked, first.** The tech-lead was called first, before any planning — F31 is now clean four
 runs in a row. The agent waited for his OK on the plan before writing code. Session 03 was reported
@@ -57,12 +58,12 @@ in the verify script.
 | 1 | Boot survives a handover naming no prompt (F45) | SHIPPED | verify AC1; demo before/after runs the old hook from `f02d8e1` (exit 1) against today's (exit 0) |
 | 2 | Merged session not sent back, walled or re-graded (F46, F51) | SHIPPED | verify AC2 (unit test + rudra clone), AC3 (rudra at `3c401ec`: counts, no per-item `✗`; S05's design reason still in full) |
 | 3 | No fake question (F52) | SHIPPED | verify AC4 (advance on rudra with no terminal says it did not ask; unit test: no step says `echo y`) |
-| 4 | Guards not loosened; F50 handled by the block message (F50/F44) | PARTIAL (by decision) | rudra's commit still blocks, as before S173; the block names `git commit -F`; old-vs-new: 0 of 112 listed commands newly allowed. Passes 1–5 each broke a fix — see below |
+| 4 | Guards not loosened; F50 handled by the block message (F50/F44) | PARTIAL (by decision) | rudra's commit still blocks, as before S173; the block names `git commit -F`; old-vs-new: 0 of 120 listed commands newly allowed. Passes 1–6 each broke a fix — see below |
 | 5 | The close in order up front (F53, F54) | SHIPPED | verify AC6: advice step, then stamp LAST, then merge; formats named (unit test) |
 | 6 | The agent ships its own branch (F55) | SHIPPED | verify AC7: the allowed shapes pass; merge, main, force, delete, tags, other branches, joined/repeated `--head`, and every form both reviewers named go back to the human |
 | 7 | Sync says whose files it wrote (F49) | SHIPPED | verify AC8 on a rudra clone |
 | 8 | F48 checked, not built | SHIPPED (as a check) | rudra S04 wrote `prompts/05-…` before its merge (`1bad1cb` in rudra) |
-| — | Carried: F44 | SHIPPED | = F50 |
+| — | Carried: F44 | NOT FIXED IN CODE | = F50; handled by the block message |
 | — | Carried: unexplained file changes in S172 | NOT SEEN | did not recur this session; nothing to trace |
 | — | Carried: watch F31 | CLEAN | rudra S04 transcript: tech-lead dispatched 14:36, before design and plan |
 
@@ -110,8 +111,14 @@ another session's branch); and on macOS `/bin/bash` 3.2 the message exception st
 confirmed on this machine. I had said a fifth hole in the exception would end it, so **the exception
 is gone**: the guards read commands exactly as before S173, plus the extra reads. F50 is therefore
 not fixed in code — rudra's commit would still block — but the block now says the way out
-(`git commit -F <file>`). The push permission now checks the command's own directory. 28 shapes ×
-4 triggers = 112 commands; 82 checks in all.
+(`git commit -F <file>`). The push permission now checks the command's own directory.
+
+**Pass 6: REJECT** (15 SHIPPED · 2 PARTIAL). R1 confirmed fixed. Two new small holes in the "extra
+reads only add" rule: a decoy `$(echo checkout -b session-01-a)` could displace the real session
+number and let an advance through; and with no `perl` installed both guards exited 127 — which
+Claude Code does not treat as a block. Fixed: the extra reads are kept apart and only ever add a
+reason to block; no perl means the pre-S173 rule alone. Both went red on the pass-5 code and green
+now. 30 shapes × 4 triggers = 120 commands; 84 checks in all.
 
 ## What this does NOT claim
 
@@ -133,10 +140,10 @@ not fixed in code — rudra's commit would still block — but the block now say
 
 ## The fakest green here
 
-**The before/after check is 112 named commands, not bash's grammar.** It is far stronger than the
+**The before/after check is 120 named commands, not bash's grammar.** It is far stronger than the
 example lists passes 1 and 2 caught — it compares the whole old rule to the new one on every shape
-at once — but its 28 shapes are the ones five reviewers found, and passes 3, 4 and 5 each found
-one the earlier list missed. A 29th spelling no one has tried is not covered.
+at once — but its 30 shapes are the ones six reviewers found, and passes 3–6 each found one the
+earlier list missed. A 31st spelling no one has tried is not covered.
 
 Also: **verify AC7's allow cases are the ones I thought of plus the ones two reviewers named.** They
 prove the allow-list does what it says for those strings; they do not prove there is no other

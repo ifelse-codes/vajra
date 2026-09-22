@@ -1478,7 +1478,7 @@ the design-advisor found a dozen spellings it missed — `HEAD:session-05-y` and
 now a failing case in `scripts/verify-session-173.sh`. Quoted text is read as a placeholder, not
 deleted, so a quote cannot hide a `+`.
 
-**What a guard reads: the old rule, plus more — no exception (F50; five cold-review REJECTs).**
+**What a guard reads: the old rule, plus more — no exception (F50; six cold-review REJECTs).**
 Both guards strip quoted text line by line, so a multi-line commit message quoting a guarded
 command blocks its own commit (F50). Four ways of hiding that message text were built and each was
 broken by the next independent review: whole-command stripping; a bash-like left-to-right scanner;
@@ -1488,14 +1488,17 @@ last one hid a push that macOS `/bin/bash` 3.2 runs (it ends the `$( )` at a `)"
 heredoc) — confirmed on this machine. So the exception was REMOVED. The shipped rule:
 1. **the pre-S173 line-by-line quote strip, unchanged;**
 2. **plus** every `$( … )` and backtick body and every `eval` / `sh -c` string, read from the raw
-   command. Adding text can only block more, so nothing blocked before S173 passes now; it closes
-   holes that predate S173 (`echo "$(git push -f origin main)"` was unguarded before).
+   command and kept APART: in the session guard they may only ADD a reason to block and never
+   change the session number or the owner record (pass 6: a decoy `$(echo checkout -b session-01-a)`
+   displaced the real number); with no `perl` on the host the extra reads are skipped and the
+   pre-S173 rule still blocks (pass 6: it had exited 127, which is not a block). It closes holes
+   that predate S173 (`echo "$(git push -f origin main)"` was unguarded before).
 F50 is therefore **not fixed in code**. The block now says the way out: put the message in a file,
 `git commit -F <file>` / `gh pr create --body-file <file>`. The F55 allow path reads the RAW command
 — any `$`, backtick, backslash or line break sends it to the human — and the branch is read from the
 directory the command RUNS in (the hook input's `cwd`), which must be this project's own checkout
 (pass 5: reading `$ROOT` let an agent in a worktree push that worktree's branch). The verify script
-compares the old rule with the new on **28 named shapes × 4 triggers** (112 commands) — none may go
+compares the old rule with the new on **30 named shapes × 4 triggers** (120 commands) — none may go
 from blocked to allowed, none that runs a merge or a push to main may ride the approval. A list of
 examples, not a proof over bash's grammar.
 
@@ -1531,15 +1534,16 @@ path; it now also publishes. That overrides the S37 publish guard's own rule (pu
    earlier message's "the human's approval is the plan they OK'd" was dropped: nothing checks it.
 
 
-7. **The before/after check is 112 named commands, not bash's grammar.** It covers the shapes
-   five reviews found; a 29th spelling nobody has tried is not covered.
+7. **The before/after check is 120 named commands, not bash's grammar.** It covers the shapes
+   six reviews found; a 31st spelling nobody has tried is not covered.
 8. **F50 is not fixed in code; the addition over-blocks on purpose.** A commit message that
    mentions a guarded command still blocks, as before S173 — the block says to use `git commit -F`. A heredoc written to a FILE whose text shows a Vajra
    command in backticks (markdown) now trips the session guard — this session hit it writing its
    own records. The way around is to write files with the agent's file tool, not a shell heredoc.
 
 9. **Other directories and config.** The F55 permission needs the command's directory to be this
-   project's checkout; config set earlier — `remote.origin.mirror`, `git remote set-url`,
+   project's checkout — read from the hook input's `cwd`, on the UNVERIFIED assumption that Claude
+   Code reports the Bash tool's current directory there (to be checked live in S174); config set earlier — `remote.origin.mirror`, `git remote set-url`,
    `gh repo set-default`, a redirected upstream — can still change where a plain push goes.
    `alias git=eval` set earlier can run text a guard reads as a message; that was true before S173.
 
