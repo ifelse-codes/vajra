@@ -11,7 +11,7 @@ The founder ran rudra's session 04 end to end under Vajra: it went from choosing
 plan, build, independent review (ACCEPT 12/12) and merge (rudra PR #5) in about two hours, 75 minutes
 of it active work. His new rule for this session: collect every finding while rudra runs, and fix
 them only after it closes. Eleven came out (F45–F55), plus two this session hit on itself (F56, F57).
-Nine are fixed in code, F48 by the new step order; F47, F56 and F57 are parked LOW; F50 is not
+Eight are fixed in code, F48 by the new step order; F47, F56 and F57 are parked LOW; F50 is not
 fixed in code (see below).
 
 **What worked, first.** The tech-lead was called first, before any planning — F31 is now clean four
@@ -42,6 +42,7 @@ typed `git push` and a long `gh pr create` by hand (F55).
 | F54 | 38 advisor answers met only at the close check, failed twice on format | 🟡 MED | fixed `5e2c2b7` — a step with the exact format |
 | F55 | He hand-typed push and PR every session | 🟡 MED | fixed `00fdca9`, `c222516` — his pick B |
 | F56 | Vajra's own session guard, in THIS repo, blocked a command that ran an advance inside a *copy of rudra*: it cannot tell a command runs in another project | ⚪ LOW | **parked** (found at close) |
+| F57 | The Coder check reads only `1. …` plan steps; this repo writes `- step N — …`, so "every plan step names its commit" passed with nothing to check (S172 and S173) | ⚪ LOW | **parked** — a loophole in Vajra's own paperwork, under the founder's "no more policing" rule |
 
 **F55, the one that changed a rule.** Given three options, he picked B: the launch approval
 `VAJRA_ALLOW_COMMIT=NN`, which already lets the agent commit on `session-NN-*`, now also lets it push
@@ -118,7 +119,12 @@ reads only add" rule: a decoy `$(echo checkout -b session-01-a)` could displace 
 number and let an advance through; and with no `perl` installed both guards exited 127 — which
 Claude Code does not treat as a block. Fixed: the extra reads are kept apart and only ever add a
 reason to block; no perl means the pre-S173 rule alone. Both went red on the pass-5 code and green
-now. 30 shapes × 4 triggers = 120 commands; 84 checks in all.
+now. 30 shapes × 4 triggers = 120 commands.
+
+**Pass 7: REJECT — but 17 of 17 SHIPPED.** No code regression; two false claims: "nine fixed in
+code" (eight), and "the extra reads never write the owner record" (at L1 they could). Fixed the
+count, made the record take only the old rule's number, and added the checks it asked for: the
+owner record after a decoy at L2 and L1, and the whole old-vs-new loop re-run with perl gone.
 
 ## What this does NOT claim
 

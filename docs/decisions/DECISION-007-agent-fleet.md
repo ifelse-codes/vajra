@@ -1478,7 +1478,7 @@ the design-advisor found a dozen spellings it missed — `HEAD:session-05-y` and
 now a failing case in `scripts/verify-session-173.sh`. Quoted text is read as a placeholder, not
 deleted, so a quote cannot hide a `+`.
 
-**What a guard reads: the old rule, plus more — no exception (F50; six cold-review REJECTs).**
+**What a guard reads: the old rule, plus more — no exception (F50; seven cold-review REJECTs).**
 Both guards strip quoted text line by line, so a multi-line commit message quoting a guarded
 command blocks its own commit (F50). Four ways of hiding that message text were built and each was
 broken by the next independent review: whole-command stripping; a bash-like left-to-right scanner;
