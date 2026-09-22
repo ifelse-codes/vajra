@@ -11,7 +11,7 @@
 - **Fixed:** F58 an approved agent's inline-text PR was blocked with "relaunch with VAJRA_ALLOW_PUBLISH" and handed back → the block says "You ARE approved" and names `--body-file` · F59/F62 the to-do list at boot described merged S04 and was never re-read; after S05 merged it re-graded S05 → a merged session hands the list over to the next one's start, and every list says re-run it · F60 Vajra's synced files left uncommitted and nearly reverted → boot proves them Vajra's (body re-hashes to the trailer): commit first, never revert · F61 the 3-file block left files staged → says so · F63 the SESSION/SESSION-BOOT block names the line.
 - **No check loosened:** the pre-S174 hooks and today's agree on 593 of 593 listed decisions.
 - **F31, fifth watch: clean.** F50 did not bite rudra; it bit S174's own edit script and the "use a file" hint worked first try.
-- Verify 20/0 · demo 9 live checks.
+- Verify 22/0 · demo 9 live checks.
 
 ## Previous session (S173 - interactive, the founder's rudra session 04)
 
