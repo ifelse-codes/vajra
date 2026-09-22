@@ -326,6 +326,39 @@ printf '4\tSID\n' > "$G/.ai/.session-owner"
 [ "$(np scripts/hook-session-guard.sh "vajra next --adv""ance" "$G")" = 2 ] \
   && ok "AC5 no-perl-still-blocks-an-advance" || bad "AC5 no-perl-still-blocks-an-advance"
 
+# Cold review pass 7 rec 3: the owner record — only the old rule's number is ever written. After a
+# decoy the record stays 4 at L2 (blocked) and at L1 (advised); the pre-S173 hook agrees.
+decoy="echo \"\$(echo checkout -b session-05-a)\""
+for lvl in L2 L1; do
+  for h in "$OLDH/ses.sh" scripts/hook-session-guard.sh; do
+    printf '4\tSID\n' > "$G/.ai/.session-owner"
+    jq -n --arg c "$decoy" '{session_id:"SID",tool_input:{command:$c}}' \
+      | VAJRA_GUARD_MATURITY=$lvl CLAUDE_PROJECT_DIR="$G" bash "$h" >/dev/null 2>&1
+    eval "OWN_$( [ "$h" = scripts/hook-session-guard.sh ] && echo new || echo old )=$(cut -f1 "$G/.ai/.session-owner")"
+  done
+  [ "$OWN_new" = 4 ] && [ "$OWN_new" = "$OWN_old" ] \
+    && ok "AC5 decoy-leaves-the-owner-record-alone at $lvl (old $OWN_old, new $OWN_new)" \
+    || bad "AC5 decoy-leaves-the-owner-record-alone at $lvl (old $OWN_old, new $OWN_new)"
+done
+
+# Cold review pass 7 rec 4: with no perl, today's hooks equal the pre-S173 rule on every listed
+# command — the same old-vs-new loop, run with perl gone from PATH, must find no difference at all.
+NOPERL_DIFF=0; NOPERL_N=0
+for pair in "$OLDH/pub.sh|scripts/hook-publish-guard.sh|$P|git push -f origin HEAD:main" \
+            "$OLDH/ses.sh|scripts/hook-session-guard.sh|$G|vajra next --adv""ance"; do
+  IFS='|' read -r oh nh root t <<<"$pair"
+  while IFS= read -r -d '' c; do
+    NOPERL_N=$((NOPERL_N+1))
+    printf '4\tSID\n' > "$G/.ai/.session-owner"
+    o=$(jq -n --arg c "$c" --arg d "$root" '{session_id:"SID",cwd:$d,tool_input:{command:$c}}' | PATH="$NP" CLAUDE_PROJECT_DIR="$root" "$NP/bash" "$oh" >/dev/null 2>&1; echo $?)
+    printf '4\tSID\n' > "$G/.ai/.session-owner"
+    n=$(jq -n --arg c "$c" --arg d "$root" '{session_id:"SID",cwd:$d,tool_input:{command:$c}}' | PATH="$NP" CLAUDE_PROJECT_DIR="$root" "$NP/bash" "$nh" >/dev/null 2>&1; echo $?)
+    [ "$o" = "$n" ] || { NOPERL_DIFF=$((NOPERL_DIFF+1)); echo "  no-perl differs (old $o, new $n): $(printf '%s' "$c" | tr '\n' '⏎')"; }
+  done < <(forms "$t")
+done
+[ "$NOPERL_DIFF" = 0 ] && ok "AC5+AC7 no-perl: today's hooks equal the pre-S173 rule on all $NOPERL_N listed commands" \
+  || bad "AC5+AC7 no-perl: $NOPERL_DIFF of $NOPERL_N listed commands differ from the pre-S173 rule"
+
 # ==============================================================================================
 # AC8 + AC9 (F49) — sync says whose files it wrote; the suite and formatter; a clean sync.
 # ==============================================================================================

@@ -119,7 +119,9 @@ if [ -f "$OWNER_FILE" ]; then
   [ -n "$OWNER_NN" ] && OWNER_NN=$((10#$OWNER_NN))
 fi
 
-record() { printf '%s\t%s\n' "$NN" "$SID" > "$OWNER_FILE"; }
+# Only the OLD rule's number is ever recorded (cold review pass 7: at L1 the extra text used to be).
+OLD_NN="$NN"
+record() { [ -n "$OLD_NN" ] && printf '%s\t%s\n' "$OLD_NN" "$SID" > "$OWNER_FILE"; return 0; }
 
 # Block only the N->N+1 boundary FROM THE SAME CHAT that owned N — whether the old rule's number or
 # any number the extra text would start crosses it.
@@ -129,8 +131,8 @@ if [ -n "$OWNER_NN" ] && [ "$SID" = "$OWNER_SID" ]; then
 fi
 # The extra text alone never records an owner (a decoy must not claim a session).
 if [ -z "$HIT" ] && [ -z "$NN" ]; then exit 0; fi
-[ -n "$HIT" ] && NN=$HIT
 if [ -n "$HIT" ]; then
+  NN=$HIT   # for the message only; record() writes OLD_NN
   if [ "$MATURITY" = "L1" ]; then
     echo "[vajra session-guard] one-session-per-chat: this chat owns session $OWNER_NN. Governing $GOVERNS."
     echo "  Starting session $NN here breaks the rule — open a NEW chat. (L1 advise, not blocking.)"
