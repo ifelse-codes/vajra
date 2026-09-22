@@ -105,7 +105,7 @@ if [ "$HAVE_RUDRA" = 1 ]; then
   # Review rec 3: the exact set the sync changed, not "at least one".
   WANT="$(git -C "$RC" diff --name-only HEAD | while read -r g; do tail -n 1 "$RC/$g" | grep -qE '^# vajra-render-sha: [0-9a-f]{64}$' && echo "$g"; done | sort)"
   GOT="$(sed -n "/Vajra's own update/,/Never revert/p" <<<"$OUT" | sed -nE 's/^ +(\.[^ ]+)$/\1/p' | sort)"
-  [ -n "$WANT" ] && [ "$WANT" = "$GOT" ] && ok "AC3 the notice names exactly the $(wc -l <<<"$WANT" | tr -d ' ') stamped files the sync changed" \
+  [ -n "$WANT" ] && [ "$WANT" = "$GOT" ] && ok "AC3 the notice names exactly the $(wc -l <<<"$WANT" | tr -d ' ') shell-stamped files the sync changed (role files: not covered, review rec 2)" \
     || bad "AC3 exact set: want [$WANT] got [$GOT]"
   # Review rec 3: a line appended AFTER the stamp is a hand edit too (named, not skipped).
   A="$RC/.ai/hooks/hook-publish-guard.sh"; echo "# appended by hand" >> "$A"
