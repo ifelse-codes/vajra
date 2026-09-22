@@ -126,9 +126,11 @@ if [ -n "$CWD" ]; then
 fi
 SESS=""
 [[ "$BRANCH" =~ ^session-([0-9]+)- ]] && SESS="${BASH_REMATCH[1]}"
+APPROVED_HERE=""
 # A merge anywhere in the command (e.g. `git push && gh pr merge`) is never covered.
 if [ -n "$SESS" ] && [ "${VAJRA_ALLOW_COMMIT:-}" = "$SESS" ] \
    && ! grep -qE '(^|[^[:alnum:]_])(gh[[:space:]]+pr|glab[[:space:]]+mr)[[:space:]]+merge([^[:alnum:]]|$)' <<<"$SCAN"; then
+  APPROVED_HERE=1
   # The allow path reads the RAW command: any `$`, backtick, backslash or line break means bash
   # could run something the shape check cannot see, so it falls back to the human. (A PR body goes
   # in a file: `gh pr create --title "…" --body-file <file>`.)
@@ -171,6 +173,23 @@ if [ "$MATURITY" = "L1" ]; then
   echo "[vajra publish-guard] $ACTION — L1 advise (not blocking)."
   echo "  Outward/irreversible action; confirm explicit founder approval per .ai/AGENTS.md."
   exit 0
+fi
+
+# S174 F58: rudra S05's agent HAD the launch approval, wrote `gh pr create --body "$(cat <<EOF …)"`,
+# was blocked, read "relaunch with VAJRA_ALLOW_PUBLISH=1" first, and handed the PR back to the
+# human. When the approval covers this branch, say so first and give the one shape that passes.
+# Message only: the allow-list above is unchanged.
+if [ -n "$APPROVED_HERE" ]; then
+  {
+    echo "[vajra publish-guard] NOT THIS SPELLING: $ACTION"
+    echo "  You ARE approved to push session $SESS's branch and open its pull request (VAJRA_ALLOW_COMMIT=$SESS"
+    echo "  at launch). Only plain one-line shapes pass — no \$( ), heredoc, backslash or line break."
+    echo "  Write the PR text to a file first, then run exactly:"
+    echo "    gh pr create --title \"<title>\" --body-file <file>"
+    echo "    git push -u origin $BRANCH"
+    echo "  Do not hand this back to the human — retry in that shape. Merging and pushing main stay with them."
+  } 1>&2
+  exit 2
 fi
 
 {

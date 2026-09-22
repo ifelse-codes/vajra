@@ -93,6 +93,9 @@ elif [ -z "$_SESS" ] || [ "${VAJRA_ALLOW_COMMIT}" = "$_SESS" ]; then
   if [ -n "$_SESS" ]; then
     echo "  It also lets you push THIS session's branch and open its pull request (S173). Merging,"
     echo "  and pushing main, stay with the human."
+    # S174 F58: rudra S05's agent wrote its PR body inline and gave the PR back to the human.
+    echo "  Plain one-line shapes only: write the PR text to a file, then"
+    echo "  \`gh pr create --title \"…\" --body-file <file>\` — never \$( ) or a heredoc."
   fi
 else
   echo "[commit approval] NOT VALID HERE — VAJRA_ALLOW_COMMIT=${VAJRA_ALLOW_COMMIT} is scoped to"
