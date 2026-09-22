@@ -111,9 +111,14 @@ sg() { # sg <want-exit> <label> <command>
   local got=$?; [ "$got" = "$1" ] && ok "AC5 $2" || bad "AC5 $2 — exit $got, want $1"
 }
 RUDRA_MSG="$(printf 'git commit -q -m "$(cat <<'"'"'EOF'"'"'\nS04 setup: advance session pointer 03 → 04\n\nvajra next --advance: .ai/SESSION=04, boot + task pointers synced.\nEOF\n)"')"
-sg 0 "rudra's-own-heredoc-commit-passes" "$RUDRA_MSG"
+# F50, after five review passes: no exception. rudra's heredoc message blocks again (as before
+# S173); the one-line quoted mention passes (as before S173); the block message names the way out.
+sg 2 "rudra's-own-heredoc-commit-blocks-as-before-S173" "$RUDRA_MSG"
 sg 0 "quoted-mention-passes" 'git commit -m "note: run vajra next --advance in the next chat"'
-sg 0 "quoted-heredoc-message-passes" "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nthen vajra next --advance\nEOF\n)"')"
+sg 0 "message-from-a-file-passes" 'git commit -F /tmp/msg.txt'
+printf '4\tSID\n' > "$G/.ai/.session-owner"
+MSG="$(jq -n --arg c "$RUDRA_MSG" '{session_id:"SID",tool_input:{command:$c}}' | CLAUDE_PROJECT_DIR="$G" bash scripts/hook-session-guard.sh 2>&1 >/dev/null)"
+grep -q "git commit -F <file>" <<<"$MSG" && ok "AC5 the-block-names-git-commit-F" || bad "AC5 the-block-names-git-commit-F"
 # The cold review's fakest green, reversed: bash RUNS backticks and $( ) — those are commands.
 sg 2 "backticked-advance-blocked" 'echo x `vajra next --advance` >/dev/null'
 sg 2 "advance-inside-dollar-paren-in-quotes-blocked" 'echo "$(vajra next --advance)"'
@@ -148,8 +153,8 @@ cargo test -q --lib advice_and_the_stamp_are_steps_and_the_stamp_is_last_before_
 # ==============================================================================================
 P="$T/pg"; mkdir -p "$P/.ai"; printf 'maturity: L2\n' > "$P/.ai/CONSTRAINTS.yaml"
 git_fx "$P" init -q -b main; git_fx "$P" checkout -qb session-04-partial-fill
-pg() { # pg <want-exit> <env> <command>
-  jq -n --arg c "$3" '{tool_input:{command:$c}}' \
+pg() { # pg <want-exit> <env> <command> [cwd] — the hook gets `cwd` as Claude Code sends it
+  jq -n --arg c "$3" --arg d "${4:-$P}" '{cwd:$d,tool_input:{command:$c}}' \
     | env $2 CLAUDE_PROJECT_DIR="$P" bash scripts/hook-publish-guard.sh >/dev/null 2>&1
   local got=$?; [ "$got" = "$1" ] && ok "AC7 [$2] $3" || bad "AC7 [$2] $3 — exit $got, want $1"
 }
@@ -187,6 +192,18 @@ pg 2 $A 'gh pr create -Hsession-03-y --title x'
 pg 2 $A 'gh pr create --head session-04-partial-fill --head session-03-y --title x'
 pg 2 $A 'gh pr create --he\\ad session-03-y --title x'
 pg 0 $A 'gh pr create --head session-04-partial-fill --title x'
+# Cold review pass 5 R1: the shell's directory, not the project's, decides. A worktree on another
+# session's branch, a nested clone, or no cwd at all gets no permission.
+git_fx "$P" commit -q --allow-empty -m seed
+git_fx "$P" branch session-03-y
+git_fx "$P" worktree add -q "$P/.wt/s03" session-03-y 2>/dev/null
+mkdir -p "$P/nested"; git_fx "$P/nested" init -q -b main; git_fx "$P/nested" checkout -qb session-04-partial-fill
+pg 2 $A 'git push -u origin HEAD' "$P/.wt/s03"
+pg 2 $A 'gh pr create --title x' "$P/.wt/s03"
+pg 2 $A 'git push -u origin HEAD' "$P/nested"
+pg 2 $A 'git push' "/tmp"
+jq -n --arg c 'git push' '{tool_input:{command:$c}}' | env $A CLAUDE_PROJECT_DIR="$P" bash scripts/hook-publish-guard.sh >/dev/null 2>&1
+[ $? = 2 ] && ok "AC7 no-cwd-no-permission" || bad "AC7 no-cwd-no-permission"
 pg 2 VAJRA_ALLOW_COMMIT=05 'git push'
 pg 2 NONE=1 'git push'
 # ...and with NO approval at all, what bash would run is still seen (the S173 regression, rec 3).
@@ -231,8 +248,15 @@ forms() { # forms <trigger> — each line of output is one command (NUL-separate
     "$(printf 'echo \\'"'"' ; git commit -m "$(cat <<'"'"'EOF'"'"'\n'"'"'; %s; echo '"'"'\nEOF\n)"' "$t")" \
     "$(printf "echo 'abc\ngit commit -m \"\$(cat <<'EOF'\n'; %s; echo '\nEOF\n)\"'" "$t")" \
     "$(printf 'cat <<EOF\nit'"'"'s\nEOF\ngit commit -m "$(cat <<'"'"'EOF'"'"'\n'"'"'; %s; echo '"'"'\nEOF\n)"' "$t")" \
-    "$(printf 'echo "it'"'"'s" '"'"'x git commit -m "$(cat <<'"'"'EOF'"'"'\n'"'"'; %s; echo '"'"'\nEOF\n)"' "$t")"
+    "$(printf 'echo "it'"'"'s" '"'"'x git commit -m "$(cat <<'"'"'EOF'"'"'\n'"'"'; %s; echo '"'"'\nEOF\n)"' "$t")" \
+    "$(printf 'echo a \\\n; %s' "$t")" \
+    "$(printf 'echo a\r\n%s\r' "$t")" \
+    "$(printf 'cat <<<"x"; %s' "$t")" \
+    "$(printf '(( 1 )) && %s' "$t")" \
+    "$(printf 'git commit -m "$(cat <<'"'"'D'"'"'\n)"\n%s\nD\n)"' "$t")"
 }
+# (The last is cold review pass 5's R2: macOS /bin/bash 3.2 ends the `$( )` at the body's `)"`
+# line and RUNS the next line — confirmed on this machine.)
 # (The last shape is cold review pass 4's: quote marks count EVEN while bash is inside a quote.
 # The 3bad781 exception hid it — exit 0 — and today's keeps it visible.)
 prop() { # prop <old-hook> <new-hook> <fixture-root> <trigger> [session-owner-line]
@@ -263,7 +287,7 @@ for t in 'gh pr merge 5 --admin' 'git push -f origin HEAD:main'; do
 EOF
 )\"" "$c"; do
       APPROVED_N=$((APPROVED_N+1))
-      n=$(jq -n --arg c "$wrap" '{tool_input:{command:$c}}' | env VAJRA_ALLOW_COMMIT=04 CLAUDE_PROJECT_DIR="$P" bash scripts/hook-publish-guard.sh >/dev/null 2>&1; echo $?)
+      n=$(jq -n --arg c "$wrap" --arg d "$P" '{cwd:$d,tool_input:{command:$c}}' | env VAJRA_ALLOW_COMMIT=04 CLAUDE_PROJECT_DIR="$P" bash scripts/hook-publish-guard.sh >/dev/null 2>&1; echo $?)
       [ "$n" = 2 ] || { APPROVED_BAD=$((APPROVED_BAD+1)); echo "  let through: $(printf '%s' "$wrap" | tr '\n' '⏎')"; }
     done
   done < <(forms "$t")
@@ -271,7 +295,7 @@ done
 [ "$APPROVED_BAD" = 0 ] && ok "AC7 old-vs-new: 0 of $APPROVED_N listed merge/main commands ride the launch approval" \
   || bad "AC7 old-vs-new: $APPROVED_BAD of $APPROVED_N listed merge/main commands rode the launch approval"
 # ...and the shapes an agent really writes still go through with it.
-pg 0 $A "$(printf 'gh pr create --title S04 --body "$(cat <<'"'"'EOF'"'"'\n## Summary\n- runs gh pr merge later, by hand\nEOF\n)"')"
+pg 2 $A "$(printf 'gh pr create --title S04 --body "$(cat <<'"'"'EOF'"'"'\n## Summary\nEOF\n)"')"
 pg 2 $A 'gh pr create -R other/repo --title x'
 pg 2 $A 'gh pr create -Rother/repo --title x'
 pg 2 $A 'gh pr create -dR other/repo --title x'

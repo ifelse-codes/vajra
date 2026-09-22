@@ -62,58 +62,22 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 # (`git commit -m "…git push…"`, `--body "…gh pr create…"`, `echo "gh pr merge"`). A real
 # invocation always places the command name OUTSIDE quotes, so stripping quoted spans can
 # never hide a genuine push/PR — fail-safe: anything unquoted still matches and blocks.
-# S173 (F50, after two cold-review REJECTs): what a guard READS is the pre-S173 rule — quoted spans
-# stripped LINE BY LINE — plus ONE narrow exception. Cleverer readers were tried twice and each hid
-# something bash runs. The exception: a commit message / PR body in the exact shape agents write,
-#     git commit -q -m "$(cat <<'EOF'      (a QUOTED delimiter: bash expands nothing in the body)
-#     …
-#     EOF
-#     )"
-# is text, and hidden — only when the text before it is a plain `git commit … -m` or
-# `gh pr create … --body` with no quoting at all, and only up to the first delimiter line. rudra's
-# F50 commit was this shape.
-# vajra_heredoc [1] prints the command with that shape removed (1 = replaced by the placeholder Q);
-# vajra_scan then strips quoted spans line by line, as before S173 —
-vajra_heredoc() { VQ="${1:-0}" perl -0777 -pe '
-  my $q = ($ENV{VQ} // "") eq "1";
-  # Bash ends a heredoc at the FIRST line that is the delimiter. So no body line may even look
-  # like one (any leading/trailing blanks): the hidden span then ends where bash ends it, or
-  # earlier — never later (cold review pass 3: a lazy body ran past an early delimiter and hid
-  # the lines bash runs after it). A plain << must end on the bare delimiter; <<- may indent it
-  # with tabs. Anything that does not fit stays visible.
-  # The START is pinned too (cold review pass 4: counting quote marks is not bash quoting). The
-  # span must open a line as a plain `git commit … -m ` or `gh pr create … --body `, and NOTHING
-  # between the start of the command (or the end of the last hidden span) and it may hold a quote,
-  # backslash, `$`, backtick or `<` — so bash cannot be inside a quote or a heredoc when it gets
-  # there. Anything that does not fit stays visible and the pre-S173 rule decides.
-  my $w = qr{[^\s\x27"\\\$`#;|&<>()]+};
-  my $re = qr{^((?:cd $w && )?(?:git commit(?: -[A-Za-z]+)*|gh pr create(?: --?[a-z][a-z-]*(?: $w)?)*) (?:-m|--message|--body|-b) )"\$\(\s*cat\s+<<(-?)[ \t]*([\x27"])(\w+)\3[ \t]*\n((?:(?![ \t]*\4[ \t]*\n)[^\n]*\n)*)(\t*)\4\n\s*\)"}m;
-  my ($out, $rest) = ("", $_);
-  while ($rest =~ $re) {
-    my ($before, $all, $after, $pre, $dash, $tabs) = ($`, $&, $'"'"', $1, $2, $6);
-    if ($before !~ /[\x27"\\\$`<]/ && ($dash eq "-" || $tabs eq "")) {
-      $out .= $before . $pre . ($q ? "Q" : "");
-    } else {
-      $out .= $before . $all;       # kept visible — and it now poisons every later span
-      $out .= $after; $rest = ""; last;
-    }
-    $rest = $after;
-  }
-  $_ = $out . $rest;
-'; }
-# ...and then ADDS what bash runs from inside quotes — every `$( … )` and backtick body, and every
-# `eval` / `sh -c` string — so a push hidden there is seen. Adding text can only block MORE, never
-# less, so this part cannot regress anything (it closes holes that predate S173).
+# S173 (F50; five cold-review passes): what a guard READS is the pre-S173 rule — quoted spans
+# stripped LINE BY LINE — PLUS extra reads: every `$( … )` and backtick body and every `eval` /
+# `sh -c` string, taken from the RAW command. Adding text can only block more, so nothing blocked
+# before S173 can pass now. An exception that hid commit-message heredocs was tried and removed:
+# each version hid something a shell runs (pass 5: macOS /bin/bash 3.2 ends `$( )` at a `)"` line
+# inside the heredoc). A commit message that mentions a guarded command is written to a file
+# instead: `git commit -F <file>` (the block message says so).
 vajra_scan() {
-  local h; h=$(vajra_heredoc 0)
-  sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$h"
+  sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$1"
   perl -0777 -ne '
     while (/\$\(((?:[^()]++|\((?1)\))*)\)/g) { print "\n$1" }
     while (/`([^`]*)`/g) { print "\n$1" }
     while (/(?:^|[^\w])(?:eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)\s+(["\x27])(.*?)\1/gs) { print "\n$2" }
-  ' <<<"$h"
+  ' <<<"$1"
 }
-SCAN=$(vajra_scan <<<"$CMD")
+SCAN=$(vajra_scan "$CMD")
 
 # Classify the command as an outward/irreversible action. Here-strings (not pipes) so a
 # short-circuiting `grep -q` can never SIGPIPE a producer under `set -o pipefail` (S32 gotcha).
@@ -148,14 +112,27 @@ fi
 # branches, `-uf`, quoted `+`, `--no-verify`, push options, URLs, `git -c … push`). Anything not on
 # the list falls back to the human, as before S173. The env var is read from THIS hook's launch
 # environment, so an agent typing `VAJRA_ALLOW_COMMIT=NN git push` inline changes nothing.
-BRANCH=$(git -C "$ROOT" branch --show-current 2>/dev/null || echo "")
+# The branch is read from the directory the command RUNS in (the hook input's `cwd`), and that
+# directory must be this project's own checkout — cold review pass 5: reading $ROOT let an agent
+# whose shell sat in a worktree or nested clone push THAT directory's branch. No `cwd`, no
+# permission.
+CWD=$(echo "$INPUT" | jq -r '.cwd // ""' 2>/dev/null || echo "")
+ROOT_REAL=$(cd "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")
+TOP=""; BRANCH=""
+if [ -n "$CWD" ]; then
+  TOP=$(git -C "$CWD" rev-parse --show-toplevel 2>/dev/null || echo "")
+  TOP=$(cd "$TOP" 2>/dev/null && pwd -P || echo "")
+  [ -n "$TOP" ] && [ "$TOP" = "$ROOT_REAL" ] && BRANCH=$(git -C "$CWD" branch --show-current 2>/dev/null || echo "")
+fi
 SESS=""
 [[ "$BRANCH" =~ ^session-([0-9]+)- ]] && SESS="${BASH_REMATCH[1]}"
-if [ -n "$SESS" ] && [ "${VAJRA_ALLOW_COMMIT:-}" = "$SESS" ]; then
-  # The allow path reads the RAW command (only the quoted-heredoc message shape removed): any `$`,
-  # backtick, backslash or line break left means bash could run something the shape check cannot
-  # see, so it falls back to the human (cold review pass 2: a merge rode in a PR body's `$( )`).
-  RAW1=$(vajra_heredoc 1 <<<"$CMD")
+# A merge anywhere in the command (e.g. `git push && gh pr merge`) is never covered.
+if [ -n "$SESS" ] && [ "${VAJRA_ALLOW_COMMIT:-}" = "$SESS" ] \
+   && ! grep -qE '(^|[^[:alnum:]_])(gh[[:space:]]+pr|glab[[:space:]]+mr)[[:space:]]+merge([^[:alnum:]]|$)' <<<"$SCAN"; then
+  # The allow path reads the RAW command: any `$`, backtick, backslash or line break means bash
+  # could run something the shape check cannot see, so it falls back to the human. (A PR body goes
+  # in a file: `gh pr create --title "…" --body-file <file>`.)
+  RAW1="$CMD"
   if grep -q '[$`\\]' <<<"$RAW1" || [ "$(printf '%s' "$RAW1" | wc -l | tr -d ' ')" != 0 ]; then
     RAW1=""
   fi
@@ -202,5 +179,7 @@ fi
   echo "  To allow this launch: relaunch with VAJRA_ALLOW_PUBLISH=1"
   echo "    (e.g. VAJRA_ALLOW_PUBLISH=1 vajra claude)."
   echo "  To downgrade to advice: set maturity: L1 in .ai/CONSTRAINTS.yaml."
+  echo "  If the command only MENTIONS it (a commit message, a PR body), put that text in a file:"
+  echo "  git commit -F <file> / gh pr create --body-file <file>."
 } 1>&2
 exit 2

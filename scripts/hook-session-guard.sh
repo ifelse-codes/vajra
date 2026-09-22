@@ -59,58 +59,22 @@ SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "no
 # S173 F50/F44: `sed` stripped quotes LINE BY LINE, so a multi-line commit message — a heredoc
 # (`-m "$(cat <<'EOF' … EOF)"`) — kept its body, and rudra's "S04 setup: … vajra next --advance"
 # message blocked its own commit.
-# S173 (F50, after two cold-review REJECTs): what a guard READS is the pre-S173 rule — quoted spans
-# stripped LINE BY LINE — plus ONE narrow exception. Cleverer readers were tried twice and each hid
-# something bash runs. The exception: a commit message / PR body in the exact shape agents write,
-#     git commit -q -m "$(cat <<'EOF'      (a QUOTED delimiter: bash expands nothing in the body)
-#     …
-#     EOF
-#     )"
-# is text, and hidden — only when the text before it is a plain `git commit … -m` or
-# `gh pr create … --body` with no quoting at all, and only up to the first delimiter line. rudra's
-# F50 commit was this shape.
-# vajra_heredoc [1] prints the command with that shape removed (1 = replaced by the placeholder Q);
-# vajra_scan then strips quoted spans line by line, as before S173 —
-vajra_heredoc() { VQ="${1:-0}" perl -0777 -pe '
-  my $q = ($ENV{VQ} // "") eq "1";
-  # Bash ends a heredoc at the FIRST line that is the delimiter. So no body line may even look
-  # like one (any leading/trailing blanks): the hidden span then ends where bash ends it, or
-  # earlier — never later (cold review pass 3: a lazy body ran past an early delimiter and hid
-  # the lines bash runs after it). A plain << must end on the bare delimiter; <<- may indent it
-  # with tabs. Anything that does not fit stays visible.
-  # The START is pinned too (cold review pass 4: counting quote marks is not bash quoting). The
-  # span must open a line as a plain `git commit … -m ` or `gh pr create … --body `, and NOTHING
-  # between the start of the command (or the end of the last hidden span) and it may hold a quote,
-  # backslash, `$`, backtick or `<` — so bash cannot be inside a quote or a heredoc when it gets
-  # there. Anything that does not fit stays visible and the pre-S173 rule decides.
-  my $w = qr{[^\s\x27"\\\$`#;|&<>()]+};
-  my $re = qr{^((?:cd $w && )?(?:git commit(?: -[A-Za-z]+)*|gh pr create(?: --?[a-z][a-z-]*(?: $w)?)*) (?:-m|--message|--body|-b) )"\$\(\s*cat\s+<<(-?)[ \t]*([\x27"])(\w+)\3[ \t]*\n((?:(?![ \t]*\4[ \t]*\n)[^\n]*\n)*)(\t*)\4\n\s*\)"}m;
-  my ($out, $rest) = ("", $_);
-  while ($rest =~ $re) {
-    my ($before, $all, $after, $pre, $dash, $tabs) = ($`, $&, $'"'"', $1, $2, $6);
-    if ($before !~ /[\x27"\\\$`<]/ && ($dash eq "-" || $tabs eq "")) {
-      $out .= $before . $pre . ($q ? "Q" : "");
-    } else {
-      $out .= $before . $all;       # kept visible — and it now poisons every later span
-      $out .= $after; $rest = ""; last;
-    }
-    $rest = $after;
-  }
-  $_ = $out . $rest;
-'; }
-# ...and then ADDS what bash runs from inside quotes — every `$( … )` and backtick body, and every
-# `eval` / `sh -c` string — so a push hidden there is seen. Adding text can only block MORE, never
-# less, so this part cannot regress anything (it closes holes that predate S173).
+# S173 (F50; five cold-review passes): what a guard READS is the pre-S173 rule — quoted spans
+# stripped LINE BY LINE — PLUS extra reads: every `$( … )` and backtick body and every `eval` /
+# `sh -c` string, taken from the RAW command. Adding text can only block more, so nothing blocked
+# before S173 can pass now. An exception that hid commit-message heredocs was tried and removed:
+# each version hid something a shell runs (pass 5: macOS /bin/bash 3.2 ends `$( )` at a `)"` line
+# inside the heredoc). A commit message that mentions a guarded command is written to a file
+# instead: `git commit -F <file>` (the block message says so).
 vajra_scan() {
-  local h; h=$(vajra_heredoc 0)
-  sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$h"
+  sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$1"
   perl -0777 -ne '
     while (/\$\(((?:[^()]++|\((?1)\))*)\)/g) { print "\n$1" }
     while (/`([^`]*)`/g) { print "\n$1" }
     while (/(?:^|[^\w])(?:eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)\s+(["\x27])(.*?)\1/gs) { print "\n$2" }
-  ' <<<"$h"
+  ' <<<"$1"
 }
-SCAN=$(vajra_scan <<<"$CMD")
+SCAN=$(vajra_scan "$CMD")
 
 # Fire on a session ADVANCE — two shapes, one meaning ("this chat crosses N -> N+1"):
 #   1. checkout of the next branch: git checkout -b session-NN-<slug>   (NN = the new session).
@@ -161,6 +125,8 @@ if [ -n "$OWNER_NN" ] && [ "$NN" -eq "$((OWNER_NN + 1))" ] && [ "$SID" = "$OWNER
     echo "  One vajra-session per chat (AGENTS.md step 10). Start session $NN in a NEW chat:"
     echo "    open a fresh chat, then run: git checkout -b session-$NN-<slug>"
     echo "  (Set one_session_per_chat: false or maturity: L1 in CONSTRAINTS.yaml to override.)"
+    echo "  If the command only MENTIONS it — a commit message, a note — write that text to a file"
+    echo "  first and use it from there (git commit -F <file>); this guard reads commands, not files."
   } 1>&2
   exit 2
 fi
