@@ -103,7 +103,14 @@ sg() { # sg <want-exit> <label> <command>
 }
 RUDRA_MSG="$(printf 'git commit -q -m "$(cat <<'"'"'EOF'"'"'\nS04 setup: advance session pointer 03 → 04\n\nvajra next --advance: .ai/SESSION=04, boot + task pointers synced.\nEOF\n)"')"
 sg 0 "rudra's-own-heredoc-commit-passes" "$RUDRA_MSG"
-sg 0 "backticked-mention-passes" 'echo x `vajra next --advance` >/dev/null'
+sg 0 "quoted-mention-passes" 'git commit -m "note: run vajra next --advance in the next chat"'
+sg 0 "heredoc-body-passes" "$(printf 'cat <<EOF > notes.md\nthen vajra next --advance\nEOF')"
+# The cold review's fakest green, reversed: bash RUNS backticks and $( ) — those are commands.
+sg 2 "backticked-advance-blocked" 'echo x `vajra next --advance` >/dev/null'
+sg 2 "advance-inside-dollar-paren-in-quotes-blocked" 'echo "$(vajra next --advance)"'
+sg 2 "advance-on-the-heredoc-opening-line-blocked" "$(printf 'cat <<EOF >n.md && vajra next --advance\nx\nEOF')"
+sg 2 "advance-inside-bash-c-blocked" "$(printf 'bash -c "\nvajra next --advance\n"')"
+sg 2 "advance-in-a-heredoc-fed-to-bash-blocked" "$(printf 'bash <<EOF\nvajra next --advance\nEOF')"
 sg 2 "real-advance-blocked" 'vajra next --advance'
 sg 2 "piped-advance-blocked" 'echo y | vajra next --advance 2>&1 | tail'
 sg 2 "next-branch-blocked" 'git checkout -b session-05-x'
@@ -166,8 +173,19 @@ pg 2 $A 'git push --follow-tags'
 pg 2 $A 'cd ../other-repo && git push'
 pg 2 $A 'gh pr create --head session-05-y --title x'
 pg 2 $A 'gh pr create --title x && gh api -X PUT repos/o/r/pulls/5/merge'
+# Cold review recs 3-4: forms the first S173 cut let through — each must reach the human.
+pg 2 $A 'gh pr create -Hsession-03-y --title x'
+pg 2 $A 'gh pr create --head session-04-partial-fill --head session-03-y --title x'
+pg 2 $A 'gh pr create --he\\ad session-03-y --title x'
+pg 0 $A 'gh pr create --head session-04-partial-fill --title x'
 pg 2 VAJRA_ALLOW_COMMIT=05 'git push'
 pg 2 NONE=1 'git push'
+# ...and with NO approval at all, what bash would run is still seen (the S173 regression, rec 3).
+pg 2 NONE=1 'echo `git push -f --no-verify origin HEAD:main`'
+pg 2 NONE=1 "$(printf 'cat <<EOF >/dev/null; git push -f --no-verify origin HEAD:main\nx\nEOF')"
+pg 2 NONE=1 "$(printf 'bash -c "\ngit push -f origin main\n"')"
+pg 2 NONE=1 'echo "$(git push -f origin main)"'
+pg 0 NONE=1 'git commit -m "we will git push later"'
 
 # ==============================================================================================
 # AC8 + AC9 (F49) — sync says whose files it wrote; the suite and formatter; a clean sync.

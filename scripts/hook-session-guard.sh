@@ -58,12 +58,55 @@ SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "no
 #
 # S173 F50/F44: `sed` stripped quotes LINE BY LINE, so a multi-line commit message — a heredoc
 # (`-m "$(cat <<'EOF' … EOF)"`) — kept its body, and rudra's "S04 setup: … vajra next --advance"
-# message blocked its own commit. Strip heredoc bodies first, then quoted and backticked spans
-# across the WHOLE command (perl -0777 reads it as one string).
-SCAN=$(perl -0777 -pe '
-  s/<<-?[ \t]*([\x27"]?)(\w+)\1[^\n]*\n.*?\n[ \t]*\2[ \t]*(?=\n|$)/ /gs;
-  s/\x27[^\x27]*\x27//gs; s/"[^"]*"//gs; s/`[^`]*`//gs;
-' <<<"$CMD")
+# message blocked its own commit.
+# S173 (F50/F44, cold review recs 1-3): what a guard READS. Prose — quoted text, a heredoc body —
+# is hidden; anything bash would RUN stays visible: backticks and $( ) (even inside double quotes),
+# the rest of the line a heredoc opens on, and the whole of a `bash -c` / `eval` string. The first
+# S173 cut hid all of those and let `cat <<EOF >x; git push -f origin HEAD:main` through unapproved.
+# vajra_scan [1] — with 1, each quoted span becomes the placeholder Q instead of vanishing.
+vajra_scan() { VQ="${1:-0}" perl -0777 -pe '
+# VAJRA_SCAN (S173): what a guard reads. Prose is hidden; anything bash would RUN stays visible.
+my $q = ($ENV{VQ} // "") eq "1";   # 1 = each quoted span becomes the placeholder Q
+my $s = $_;
+# The BODY of a heredoc is text — unless it is fed to a shell (bash <<EOF runs it). The rest of
+# the line the heredoc opens on is still command, and stays.
+$s =~ s{(^|\n)([^\n]*?)<<-?[ \t]*([\x27"]?)(\w+)\3([^\n]*)\n.*?\n[ \t]*\4[ \t]*(?=\n|$)}{
+  my ($p, $pre, $rest, $all) = ($1, $2, $5, $&);
+  $pre =~ /(^|[^\w])((?:ba|z|da|k)?sh|eval|source)\s*$/ ? $all : "$p$pre H $rest" }gse;
+$s =~ s/\$\(\s*cat\s+H\s*\)/ /g;   # "$(cat <<EOF … EOF)" — a heredoc fed to cat is text
+# A `-c` / eval string IS a command: past this point hide nothing (over-block is the safe side).
+unless ($s =~ /(^|[^\w])(eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)(\s|$)/) {
+  # Left to right, as bash reads it: single-quoted text is literal; "…" is text except $( … ) and `…` inside,
+  # which bash runs and so stay visible; outside quotes everything stays.
+  my ($o, $i, $n) = ("", 0, length $s);
+  while ($i < $n) {
+    my $c = substr($s, $i, 1);
+    if ($c eq "\\") { $o .= substr($s, $i, 2); $i += 2; next; }
+    if ($c eq "\x27") { my $j = index($s, "\x27", $i + 1); $j = $n if $j < 0;
+                        $o .= $q ? "Q" : ""; $i = $j + 1; next; }
+    if ($c eq "\"") {
+      my @keep; $i++;
+      while ($i < $n && substr($s, $i, 1) ne "\"") {
+        my $d = substr($s, $i, 1);
+        if ($d eq "\\") { $i += 2; next; }
+        if ($d eq "`") { my $j = index($s, "`", $i + 1); $j = $n if $j < 0;
+                         push @keep, substr($s, $i + 1, $j - $i - 1); $i = $j + 1; next; }
+        if (substr($s, $i, 2) eq "\$(") { my ($j, $depth) = ($i + 2, 1);
+          while ($j < $n && $depth) { my $e = substr($s, $j, 1); $depth++ if $e eq "("; $depth-- if $e eq ")"; $j++; }
+          push @keep, substr($s, $i + 2, $j - $i - 3); $i = $j; next; }
+        $i++;
+      }
+      $i++;
+      $o .= @keep ? " " . join(" ; ", @keep) . " " : ($q ? "Q" : "");
+      next;
+    }
+    $o .= $c; $i++;
+  }
+  $s = $o;
+}
+$_ = $s;
+'; }
+SCAN=$(vajra_scan 0 <<<"$CMD")
 
 # Fire on a session ADVANCE — two shapes, one meaning ("this chat crosses N -> N+1"):
 #   1. checkout of the next branch: git checkout -b session-NN-<slug>   (NN = the new session).
