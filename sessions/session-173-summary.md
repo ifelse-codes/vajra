@@ -2,7 +2,7 @@
 
 **Type:** CODE, interactive (the founder's own run; findings collected during it, fixed after it closed).
 **Branch:** `session-173-keep-testing`. **Brief:** `prompts/173-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-173.sh` — 63 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
+**Verify:** `scripts/verify-session-173.sh` — 71 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
 — 17 live checks, all green. **Decision:** DECISION-007, S173 addendum.
 
 ## What happened
@@ -57,7 +57,7 @@ in the verify script.
 | 1 | Boot survives a handover naming no prompt (F45) | SHIPPED | verify AC1; demo before/after runs the old hook from `f02d8e1` (exit 1) against today's (exit 0) |
 | 2 | Merged session not sent back, walled or re-graded (F46, F51) | SHIPPED | verify AC2 (unit test + rudra clone), AC3 (rudra at `3c401ec`: counts, no per-item `✗`; S05's design reason still in full) |
 | 3 | No fake question (F52) | SHIPPED | verify AC4 (advance on rudra with no terminal says it did not ask; unit test: no step says `echo y`) |
-| 4 | Guards read commands, not prose (F50/F44) | SHIPPED (pass 2) | verify AC5: rudra's exact heredoc commit and a quoted mention pass; real, piped, backticked, `$( )`-in-quotes, heredoc-opening-line, `bash -c` and heredoc-fed-to-bash advances blocked. Pass 1 was PARTIAL — see below |
+| 4 | Guards read commands, not prose (F50/F44) | SHIPPED (after pass 2) | verify AC5: rudra's exact heredoc commit and a quoted mention pass; the property check (0 of 60 executed forms newly allowed) against the f02d8e1 hooks. Passes 1 and 2 were PARTIAL — see below |
 | 5 | The close in order up front (F53, F54) | SHIPPED | verify AC6: advice step, then stamp LAST, then merge; formats named (unit test) |
 | 6 | The agent ships its own branch (F55) | SHIPPED | verify AC7: the allowed shapes pass; merge, main, force, delete, tags, other branches, joined/repeated `--head`, and every form both reviewers named go back to the human |
 | 7 | Sync says whose files it wrote (F49) | SHIPPED | verify AC8 on a rudra clone |
@@ -68,20 +68,25 @@ in the verify script.
 
 ## What the cold review changed
 
-**Pass 1: REJECT** (13 SHIPPED · 4 PARTIAL · 0 NOT-BUILT). The finding that mattered: my F50 fix
-taught both guards to ignore message text, but it ignored too much. It hid backticks, `$( … )`, the
-rest of a heredoc's first line and multi-line `bash -c` strings — all things bash RUNS. With no
-approval at all, `cat <<EOF >/dev/null; git push -f --no-verify origin HEAD:main` now got through,
-and it had been blocked before this session. And one of my own verify checks
-("backticked-mention-passes") recorded exactly that hole as a PASS — its fakest green.
+**Pass 1: REJECT** (13 SHIPPED · 4 PARTIAL). My F50 fix taught both guards to ignore message text,
+but it ignored too much: with no approval at all, `cat <<EOF >/dev/null; git push -f --no-verify
+origin HEAD:main` got through — blocked before this session. One of my own verify checks
+("backticked-mention-passes") recorded that hole as a PASS.
 
-What changed: both guards now read a command left to right the way bash does (single quotes and a
-heredoc's body are prose; everything bash would execute stays visible); `bash -c` and `eval`
-strings are read whole; the `gh pr create --head` rule takes exactly one plainly spelled head; the
-fakest-green check now expects a block. The review's forms are 15 new verify cases — 63 in all.
-Fixing it tripped Vajra's own guard in this repo twice (a heredoc mentioning `bash -c`), which is
-the new rule over-blocking on the safe side; the second time led to one more refinement (a
-heredoc's body is hidden BEFORE the `-c` rule looks, unless the heredoc is fed to a shell).
+**Pass 2: REJECT** (14 SHIPPED · 3 PARTIAL). I had patched pass 1's examples with a cleverer,
+bash-like scanner; a fresh reviewer found new spellings of the same hole (an unquoted heredoc whose
+body runs `$( )`, `cat <<EOF | bash`, an empty heredoc, an apostrophe in a comment) and a merge that
+rode the new push permission inside a PR body's `$( )`. Its point was the real one: fixing the named
+examples, pass after pass, is the loop.
+
+**What changed after pass 2 — the approach, not the examples.** The guards read commands the way
+they did BEFORE this session (so nothing can newly slip through), plus one narrow exception — the
+`"$(cat <<'EOF' … EOF)"` message shape, in which bash runs nothing — plus an addition that only
+ever blocks more (they also read `$( )`, backticks and `eval`/`sh -c` strings, closing holes that
+predate S173). The push permission reads the raw command: any `$`, backtick, backslash or line
+break sends it to the human. And the verify script now tests the PROPERTY: 15 shapes × 4 triggers
+through the old hooks and today's — 0 of 60 went from blocked to allowed, 0 of 60 merge/main forms
+rode the approval. rudra S04's four real push/PR commands pass with the approval. 71 checks in all.
 
 ## What this does NOT claim
 
@@ -103,7 +108,11 @@ heredoc's body is hidden BEFORE the `-c` rule looks, unless the heredoc is fed t
 
 ## The fakest green here
 
-**Verify AC7's cases are the ones I thought of plus the ones two reviewers named.** They
+**The property check is 60 commands, not bash's grammar.** It is far stronger than the example
+lists passes 1 and 2 caught — it compares the whole old rule to the new one — but its 15 shapes are
+the ones two reviewers found. A 16th spelling no one has tried is not covered.
+
+Also: **verify AC7's allow cases are the ones I thought of plus the ones two reviewers named.** They
 prove the allow-list does what it says for those strings; they do not prove there is no other
 string that reaches a remote. The honest claim is "the forms we know about go back to the human",
 not "the agent can only push its own branch".

@@ -1478,16 +1478,22 @@ the design-advisor found a dozen spellings it missed — `HEAD:session-05-y` and
 now a failing case in `scripts/verify-session-173.sh`. Quoted text is read as a placeholder, not
 deleted, so a quote cannot hide a `+`.
 
-**What a guard reads, fixed twice (F50, cold review pass 1 REJECT).** Both guards used to strip
-quoted text line by line, so a multi-line commit message quoting `vajra next --advance` blocked its
-own commit. The first S173 cut hid heredocs, multi-line quotes and backticks across the whole
-command — and the cold review showed it also hid what bash RUNS: with no approval at all,
-`cat <<EOF >/dev/null; git push -f --no-verify origin HEAD:main` got through, and a backticked push
-did too. Both were blocked before S173. The fix reads a command the way bash does, left to right:
-single-quoted text and a heredoc's body are prose; backticks and `$( … )` (even inside double
-quotes), the rest of the line a heredoc opens on, a heredoc fed to a shell, and the whole of a
-`bash -c` / `eval` string stay visible. Each of the review's forms is a failing case in the verify
-script, with and without the approval.
+**What a guard reads: back to the old rule, plus one exception and one addition (F50; cold
+review passes 1 and 2 both REJECT).** Both guards strip quoted text line by line, so a multi-line
+commit message quoting `vajra next --advance` blocked its own commit (F50). Two cleverer readers
+were tried — whole-command stripping, then a bash-like left-to-right scanner — and each review found
+commands bash RUNS that it hid (an unquoted heredoc's `$( )`, `cat <<EOF | bash`, an empty heredoc,
+an apostrophe in a comment), all blocked before S173. The shipped rule is deliberately dull:
+1. **the pre-S173 line-by-line quote strip, unchanged;**
+2. **one exception:** the exact shape `"$(cat <<'EOF' … EOF)"` — a QUOTED delimiter, in which bash
+   expands nothing — is hidden as text, and only when every quote before it is balanced;
+3. **one addition:** the guard also reads every `$( … )` and backtick body and every `eval` /
+   `sh -c` string. Adding text can only block more, so this cannot regress anything; it closes
+   holes that predate S173 (`echo "$(git push -f origin main)"` was unguarded before).
+The allow path for F55 reads the RAW command with only that exception removed: any `$`, backtick,
+backslash or line break left sends it to the human. The verify script checks the PROPERTY, not a
+list: 15 command shapes × 4 triggers, through the f02d8e1 hooks and today's — none may go from
+blocked to allowed, and none that runs a merge or a push to main may ride the approval.
 
 **The fake question goes (F52).** `vajra next --advance` asked `Advance to next session? [y/N]`, and
 the checklist told the agent to pipe `echo y` — the agent answered a question dressed as the
@@ -1503,8 +1509,14 @@ path; it now also publishes. That overrides the S37 publish guard's own rule (pu
 1. **The push allow-list is still a text match.** It closes the forms listed above, not every way
    to reach a remote. Forms the guard never classifies as a push at all — `git -c k=v push`,
    `git -C . push`, a quoted `"git"`, a variable (`$G push`), a git alias — were open before S173
-   and still are; they get neither the new permission nor a block. (`eval` and `sh -c` strings are
-   now read whole, so a push inside them IS classified — tighter than before.)
+   and still are; they get neither the new permission nor a block. (`eval`/`sh -c` strings and
+   `$( )`/backtick bodies are now read too, so a push inside them IS classified — tighter than
+   before.) A heredoc fed to a shell (`cat <<EOF | bash`) is read line by line, as before S173.
+7. **The property test covers the shapes two reviews found, not every shape.** "No regression"
+   is proven for 60 commands, not for bash's grammar.
+8. **The addition over-blocks on purpose.** A heredoc written to a FILE whose text shows a Vajra
+   command in backticks (markdown) now trips the session guard — this session hit it writing its
+   own records. The way around is to write files with the agent's file tool, not a shell heredoc.
 2. **An upstream or config redirect is invisible to it.** `git branch -u origin/main` or
    `remote.origin.push HEAD:refs/heads/main` set earlier makes a plain `git push` land on main. The
    pre-push hook (`.githooks/pre-push`) blocks an agent pushing `main` as a second lock — only when
