@@ -1478,6 +1478,17 @@ the design-advisor found a dozen spellings it missed — `HEAD:session-05-y` and
 now a failing case in `scripts/verify-session-173.sh`. Quoted text is read as a placeholder, not
 deleted, so a quote cannot hide a `+`.
 
+**What a guard reads, fixed twice (F50, cold review pass 1 REJECT).** Both guards used to strip
+quoted text line by line, so a multi-line commit message quoting `vajra next --advance` blocked its
+own commit. The first S173 cut hid heredocs, multi-line quotes and backticks across the whole
+command — and the cold review showed it also hid what bash RUNS: with no approval at all,
+`cat <<EOF >/dev/null; git push -f --no-verify origin HEAD:main` got through, and a backticked push
+did too. Both were blocked before S173. The fix reads a command the way bash does, left to right:
+single-quoted text and a heredoc's body are prose; backticks and `$( … )` (even inside double
+quotes), the rest of the line a heredoc opens on, a heredoc fed to a shell, and the whole of a
+`bash -c` / `eval` string stay visible. Each of the review's forms is a failing case in the verify
+script, with and without the approval.
+
 **The fake question goes (F52).** `vajra next --advance` asked `Advance to next session? [y/N]`, and
 the checklist told the agent to pipe `echo y` — the agent answered a question dressed as the
 human's. Now it asks only when stdin is a terminal; otherwise it says it did not ask. In a chat the
@@ -1491,8 +1502,9 @@ path; it now also publishes. That overrides the S37 publish guard's own rule (pu
 **What this does NOT claim.**
 1. **The push allow-list is still a text match.** It closes the forms listed above, not every way
    to reach a remote. Forms the guard never classifies as a push at all — `git -c k=v push`,
-   `git -C . push`, a quoted `"git"`, `eval`/`sh -c`, a git alias — were open before S173 and still
-   are; they get neither the new permission nor a block.
+   `git -C . push`, a quoted `"git"`, a variable (`$G push`), a git alias — were open before S173
+   and still are; they get neither the new permission nor a block. (`eval` and `sh -c` strings are
+   now read whole, so a push inside them IS classified — tighter than before.)
 2. **An upstream or config redirect is invisible to it.** `git branch -u origin/main` or
    `remote.origin.push HEAD:refs/heads/main` set earlier makes a plain `git push` land on main. The
    pre-push hook (`.githooks/pre-push`) blocks an agent pushing `main` as a second lock — only when

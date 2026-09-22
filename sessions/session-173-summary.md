@@ -2,7 +2,7 @@
 
 **Type:** CODE, interactive (the founder's own run; findings collected during it, fixed after it closed).
 **Branch:** `session-173-keep-testing`. **Brief:** `prompts/173-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-173.sh` — 48 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
+**Verify:** `scripts/verify-session-173.sh` — 63 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
 — 17 live checks, all green. **Decision:** DECISION-007, S173 addendum.
 
 ## What happened
@@ -57,25 +57,42 @@ in the verify script.
 | 1 | Boot survives a handover naming no prompt (F45) | SHIPPED | verify AC1; demo before/after runs the old hook from `f02d8e1` (exit 1) against today's (exit 0) |
 | 2 | Merged session not sent back, walled or re-graded (F46, F51) | SHIPPED | verify AC2 (unit test + rudra clone), AC3 (rudra at `3c401ec`: counts, no per-item `✗`; S05's design reason still in full) |
 | 3 | No fake question (F52) | SHIPPED | verify AC4 (advance on rudra with no terminal says it did not ask; unit test: no step says `echo y`) |
-| 4 | Guards read commands, not prose (F50/F44) | SHIPPED | verify AC5: rudra's exact heredoc commit passes; real, piped and heredoc-then-real advances blocked |
+| 4 | Guards read commands, not prose (F50/F44) | SHIPPED (pass 2) | verify AC5: rudra's exact heredoc commit and a quoted mention pass; real, piped, backticked, `$( )`-in-quotes, heredoc-opening-line, `bash -c` and heredoc-fed-to-bash advances blocked. Pass 1 was PARTIAL — see below |
 | 5 | The close in order up front (F53, F54) | SHIPPED | verify AC6: advice step, then stamp LAST, then merge; formats named (unit test) |
-| 6 | The agent ships its own branch (F55) | SHIPPED | verify AC7: 29 cases, 4 allowed, 25 back to the human |
+| 6 | The agent ships its own branch (F55) | SHIPPED | verify AC7: the allowed shapes pass; merge, main, force, delete, tags, other branches, joined/repeated `--head`, and every form both reviewers named go back to the human |
 | 7 | Sync says whose files it wrote (F49) | SHIPPED | verify AC8 on a rudra clone |
 | 8 | F48 checked, not built | SHIPPED (as a check) | rudra S04 wrote `prompts/05-…` before its merge (`1bad1cb` in rudra) |
 | — | Carried: F44 | SHIPPED | = F50 |
 | — | Carried: unexplained file changes in S172 | NOT SEEN | did not recur this session; nothing to trace |
 | — | Carried: watch F31 | CLEAN | rudra S04 transcript: tech-lead dispatched 14:36, before design and plan |
 
+## What the cold review changed
+
+**Pass 1: REJECT** (13 SHIPPED · 4 PARTIAL · 0 NOT-BUILT). The finding that mattered: my F50 fix
+taught both guards to ignore message text, but it ignored too much. It hid backticks, `$( … )`, the
+rest of a heredoc's first line and multi-line `bash -c` strings — all things bash RUNS. With no
+approval at all, `cat <<EOF >/dev/null; git push -f --no-verify origin HEAD:main` now got through,
+and it had been blocked before this session. And one of my own verify checks
+("backticked-mention-passes") recorded exactly that hole as a PASS — its fakest green.
+
+What changed: both guards now read a command left to right the way bash does (single quotes and a
+heredoc's body are prose; everything bash would execute stays visible); `bash -c` and `eval`
+strings are read whole; the `gh pr create --head` rule takes exactly one plainly spelled head; the
+fakest-green check now expects a block. The review's forms are 15 new verify cases — 63 in all.
+Fixing it tripped Vajra's own guard in this repo twice (a heredoc mentioning `bash -c`), which is
+the new rule over-blocking on the safe side; the second time led to one more refinement (a
+heredoc's body is hidden BEFORE the `-c` rule looks, unless the heredoc is fed to a shell).
+
 ## What this does NOT claim
 
 1. **The push permission is a text match.** It closes the forms the design-advisor listed, not every
-   way to reach a remote. Forms the guard never recognises as a push at all (`git -c k=v push`, an
-   alias, `eval`) were open before this session and still are — they get neither the new permission
+   way to reach a remote. Forms the guard never recognises as a push at all (`git -c k=v push`, a
+   git alias, a variable like `$G push`) were open before this session and still are — they get neither the new permission
    nor a block. An upstream pointed at main earlier makes a plain `git push` land on main; the
    pre-push hook blocks an agent pushing main as a second lock, except under `--no-verify` (which the
    allow-list refuses, but an unrecognised form could carry). All in DECISION-007's S173 addendum.
 2. **It was never exercised by a real rudra run.** F55 was built after rudra S04 closed. The verify
-   script drives the real hook with 29 commands; the next rudra session is the first real use.
+   script drives the real hook with every listed command; the next rudra session is the first real use.
 3. **With no terminal, `--advance` now proceeds for CI and scripts too**, not only agents. In a chat
    the session guard is the control; nothing checks that the human OK'd a plan.
 4. **The 38 answers are still 38.** F54 made them easier to get right, not fewer. Cutting how many
@@ -86,7 +103,7 @@ in the verify script.
 
 ## The fakest green here
 
-**Verify AC7's 29 cases are the cases I thought of plus the ones the design-advisor named.** They
+**Verify AC7's cases are the ones I thought of plus the ones two reviewers named.** They
 prove the allow-list does what it says for those strings; they do not prove there is no other
 string that reaches a remote. The honest claim is "the forms we know about go back to the human",
 not "the agent can only push its own branch".
