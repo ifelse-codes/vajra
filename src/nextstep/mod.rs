@@ -419,6 +419,16 @@ mod tests {
         );
     }
 
+    /// S173 F52: the checklist told the agent to pipe `echo y` into the advance question, so the
+    /// agent answered a question meant for the human. No step may say it again.
+    #[test]
+    fn no_step_tells_the_agent_to_answer_the_advance_question() {
+        let d = repo();
+        for s in steps(d.path(), 1) {
+            assert!(!s.how.contains("echo y"), "{}: {}", s.what, s.how);
+        }
+    }
+
     #[test]
     fn the_checklist_names_the_demo_the_options_and_the_next_prompt() {
         let d = repo();

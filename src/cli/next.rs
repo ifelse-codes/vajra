@@ -1988,12 +1988,12 @@ fn print_warnings(warnings: &[String], merged: bool) {
 fn confirm(question: &str) -> Result<bool> {
     // S173 F52: in rudra the agent answered this question itself — the old empty-stdin message
     // told it to pipe `echo y`, and the checklist said the same. A question only an agent can see
-    // asks nobody. So: a person at a terminal is asked; with no terminal there is nobody to ask,
-    // and the advance says so instead of pretending. The human's approval is the plan they OK'd.
+    // asks nobody. So: a person at a terminal is asked; with no terminal (an agent, CI, a script)
+    // there is nobody to ask, and the advance says so instead of pretending.
     if !io::stdin().is_terminal() {
         eprintln!(
-            "{question} — not asked: no one is at a keyboard here (an agent's shell). Advancing; \
-             the human's approval is the plan they OK'd."
+            "{question} — not asked: no terminal to ask on. Advancing. (In a chat, the session \
+             guard is what stops a second session starting; this question never did.)"
         );
         return Ok(true);
     }
