@@ -31,6 +31,7 @@
 Output: `sessions/session-175-ground-truth.md`. New findings are listed with a severity for S176.
 
 ## Carried in
+- **S174 review, deferred:** rec 2 — the boot notice does not name synced role files (`.claude/agents/*.md`, stamp in the header) as Vajra's update; rec 6 — build AC3's expected set from everything the sync changed, not the hook's own rule; rec 7 — also look at untracked files a sync adds; rec 5 — F64 watch with a trigger: compare each `obeyed:` sha against what its rec asked. Written down here for S176, not built in a NO-CODE session.
 - F47, F56, F57 (LOW, parked) · F64 (watch: an advice answer switched to pass) · F50 (not fixed in
   code) · the `cwd` check (never exercised live).
 

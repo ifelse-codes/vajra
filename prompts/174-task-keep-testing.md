@@ -111,7 +111,44 @@ Every block keeps its exact allow/deny decision — only the words after a decis
 - step 2 — done: ccb3169
 - step 3 — done: bc1cc5a
 - step 4 — done: 77d2e33
-- step 5 — done: 1102840 / b46a413 / 2571ec0 / 8901b68
+- step 5 — done: 1102840 / b46a413 / 2571ec0 / 8901b68 / 5e509bb
+
+## Advice
+
+Four roles were dispatched: `tech-lead` (mandatory, first), `implementation-advisor`, `qa-specialist`
+and `fidelity-reviewer` (the three it marked required). The other six: `deferred-budget`.
+
+**tech-lead** (`.ai/handoffs/session-174-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 537cc48 (only implementation-advisor, qa-specialist and fidelity-reviewer dispatched; the handoff records the other six as deferred-budget)
+- tech-lead rec 2 — obeyed: ccb3169 (the implementation-advisor was briefed on the `--steps` path only; "merged" is read from git via `releaser::shipped_close`, never from `.ai/SESSION`)
+- tech-lead rec 3 — obeyed: 5d2ae17 (F58 stays a block, exit 2; only a message was added; AC6 shows 593/593 decisions unchanged)
+- tech-lead rec 4 — obeyed: bc1cc5a (the notice says commit them FIRST, in their own commits because of the 3-file cap, and "Never revert or `git checkout` them"; files are identified by the trailer re-hash, not a path list)
+- tech-lead rec 5 — refused: QA did not keep its own before/after transcript; the demo (1102840) draws each changed message's before/after as a live run of the old hook from git against today's, and QA ran and classified it — the record is the demo, not a separate QA file
+- tech-lead rec 6 — obeyed: 58b9162 (F64 is in the findings table as "watch, not fixed"; no code for it)
+
+**implementation-advisor** (`.ai/handoffs/session-174-implementation-advisor.md`):
+- implementation-advisor rec 1 — obeyed: ccb3169 (`nextstep::session_to_show` loops over `releaser::shipped_close`)
+- implementation-advisor rec 2 — obeyed: ccb3169 (`nextstep::render(root, session, branch)`; `run_steps` prints it; `releaser::session_number_of` for the branch)
+- implementation-advisor rec 3 — obeyed: ccb3169 (header, branch + prompt start steps, then `steps(N+1)`; never `steps(N)` on rollover)
+- implementation-advisor rec 4 — obeyed: ccb3169 (no new bump step; the counter step's how-text names SESSION-BOOT)
+- implementation-advisor rec 5 — obeyed: ccb3169 (`format_options(root, done)` for the merged session)
+- implementation-advisor rec 6 — obeyed: ccb3169 (the five tests named, all passing)
+- implementation-advisor rec 7 — refused: the change landed as one commit over exactly those two files (ccb3169), but the plan step was written after it (b46a413), not before — the plan followed the fixes this session
+
+**qa-specialist** (`.ai/handoffs/session-174-qa-specialist.md`):
+- qa-specialist rec 1 — obeyed: 8901b68 (16 allow-path spellings added to AC6's list)
+- qa-specialist rec 2 — obeyed: 8901b68 (AC6 runs at L3, L2, L1, with VAJRA_ALLOW_PUBLISH=1 and with the guard off: 593 decisions, all identical)
+- qa-specialist rec 3 — obeyed: 8901b68 (the demo's old-hook check needs exit 0 and its to-do list printed)
+- qa-specialist rec 4 — obeyed: 8901b68 (verify ends by checking the real rudra's HEAD and git status are unchanged)
+
+**fidelity-reviewer** (`.ai/handoffs/session-174-fidelity-reviewer.md` — pass 2, ACCEPT; pass 1's recs are in `sessions/session-174-review.md`):
+- fidelity-reviewer rec 1 — obeyed: 5e509bb (a stamp moved off the last line, or deleted where the committed copy had one, is named a hand edit)
+- fidelity-reviewer rec 2 — deferred: prompts/175-task-ground-truth.md
+- fidelity-reviewer rec 3 — obeyed: 5e509bb (AC3 asserts the exact set, plus a live append-after-stamp case)
+- fidelity-reviewer rec 4 — obeyed: 5e509bb (bare `vajra next` calls `nextstep::render`; checked live on rudra)
+- fidelity-reviewer rec 5 — deferred: prompts/175-task-ground-truth.md
+- fidelity-reviewer rec 6 — deferred: prompts/175-task-ground-truth.md
+- fidelity-reviewer rec 7 — deferred: prompts/175-task-ground-truth.md
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.

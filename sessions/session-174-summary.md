@@ -3,7 +3,7 @@
 **Type:** CODE, interactive (the founder's own run; findings collected after it closed, all fixed —
 his call: "fix all of it").
 **Branch:** `session-174-keep-testing`. **Brief:** `prompts/174-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-174.sh` — 20 pass, 0 fail. **Demo:** `scripts/demo-session-174.sh`
+**Verify:** `scripts/verify-session-174.sh` — 22 pass, 0 fail. **Demo:** `scripts/demo-session-174.sh`
 — 9 live checks, all green.
 
 ## What happened
@@ -47,7 +47,7 @@ push (the `cwd` check).
 |---|---|---|---|
 | 1 | F58 — approved agent told how | SHIPPED | verify AC1 (6 checks: rudra's exact command still exit 2 + new text; `--body-file` passes; merge, unapproved, wrong-session keep the old text; boot note) |
 | 2 | F59/F62 — list hands over | SHIPPED | verify AC2 (rudra clone at `512c71a`: "session 05 is merged — session 06 starts here"; 5 unit tests by name) |
-| 3 | F60 — Vajra's update named | SHIPPED | verify AC3 (real `--sync-fleet` into a rudra clone, then a hand-edited hook) |
+| 3 | F60 — Vajra's update named | PARTIAL | verify AC3 (real `--sync-fleet` into a rudra clone: the exact set named; a hand edit inside, after or removing the stamp named as one). Not covered: synced role files (`.claude/agents/*.md`, stamp in the header) — review rec 2, carried to S175/S176 |
 | 4 | F61 | SHIPPED | verify AC4 |
 | 5 | F63 | SHIPPED | verify AC5 (block + unit test) |
 | 6 | Carried items kept | SHIPPED | verify AC7 |
@@ -68,6 +68,10 @@ push (the `cwd` check).
 AC6's "593 of 593 identical" is only as good as its list of commands: a loosening in a spelling not on
 the list would not show. The allow path's code was not touched (only a flag set before it and a
 message after it), which is the stronger argument.
+
+## Review
+
+Cold review: pass 1 ACCEPT 12/13; recs 1, 3, 4 fixed in `5e509bb` (also: bare `vajra next` now hands over too, so F62 holds on both screens); pass 2 ACCEPT 12/13, D3 PARTIAL. Recs 2, 5, 6, 7 deferred into `prompts/175-task-ground-truth.md`. `sessions/session-174-review.md`.
 
 ## Cost
 
