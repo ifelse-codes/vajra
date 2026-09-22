@@ -94,26 +94,40 @@ fi
 # S173 F55 (founder pick B, 2026-09-22): the session's launch approval also covers SHIPPING that
 # session's own branch. In rudra S04 the founder chose "push + open PR" in chat, the guard blocked
 # both, and he hand-typed `git push` and a long `gh pr create`. With VAJRA_ALLOW_COMMIT=NN set at
-# launch, on branch session-NN-*, the agent may push THAT branch and open its PR. Still blocked
-# without VAJRA_ALLOW_PUBLISH=1: any merge, a push naming main/master, force, delete, tags, --all,
-# --mirror, and a push from any other branch. The env var is read from THIS hook's launch
+# launch, on branch session-NN-*, the agent may run EXACTLY one of these shapes and nothing else:
+#     git push [-u|--set-upstream] [origin [HEAD|<this branch>]]
+#     gh pr create …            (no --head, or --head <this branch>; any --base)
+# optionally after `cd <this project> && ` and followed by `2>&1` and one `| head`/`| tail`. An ALLOW-list, not a block-list: the
+# S173 design-advisor found a dozen push spellings a block-list missed (colon refspecs to other
+# branches, `-uf`, quoted `+`, `--no-verify`, push options, URLs, `git -c … push`). Anything not on
+# the list falls back to the human, as before S173. The env var is read from THIS hook's launch
 # environment, so an agent typing `VAJRA_ALLOW_COMMIT=NN git push` inline changes nothing.
 BRANCH=$(git -C "$ROOT" branch --show-current 2>/dev/null || echo "")
 SESS=""
 [[ "$BRANCH" =~ ^session-([0-9]+)- ]] && SESS="${BASH_REMATCH[1]}"
-# A merge anywhere in the command (e.g. `git push && gh pr merge`) is never covered.
-if [ -n "$SESS" ] && [ "${VAJRA_ALLOW_COMMIT:-}" = "$SESS" ] \
-   && ! grep -qE '(^|[^[:alnum:]_])(gh[[:space:]]+pr|glab[[:space:]]+mr)[[:space:]]+merge([^[:alnum:]]|$)' <<<"$SCAN"; then
+if [ -n "$SESS" ] && [ "${VAJRA_ALLOW_COMMIT:-}" = "$SESS" ]; then
+  # One line, single spaces, the optional output tail removed.
+  # Quoted spans become a placeholder `Q`, not nothing: deleting them turned
+  # `git push origin "+session-NN-x"` (a force-push) into a plain `git push origin`.
+  QSCAN=$(perl -0777 -pe '
+    s/<<-?[ \t]*([\x27"]?)(\w+)\1[^\n]*\n.*?\n[ \t]*\2[ \t]*(?=\n|$)/ H /gs;
+    s/\x27[^\x27]*\x27/Q/gs; s/"[^"]*"/Q/gs; s/`[^`]*`/Q/gs;
+  ' <<<"$CMD")
+  ONE=$(tr '\n' ' ' <<<"$QSCAN" | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//; s/ 2>&1//; s/ \| (head|tail)( -n)?( -?[0-9]+)?$//')
+  B_RE=$(printf '%s' "$BRANCH" | sed -E 's/[].[^$*+?(){}|\\/]/\\&/g')
+  # A leading `cd <this project> && ` (rudra's agent writes one on every command) — this project only.
+  ROOT_REAL=$(cd "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")
+  for R in "$ROOT" "$ROOT_REAL"; do
+    [ "${ONE#cd $R && }" != "$ONE" ] && ONE="${ONE#cd $R && }"
+  done
   SHIP_OK=""
-  case "$ACTION" in
-    "git push"*)
-      if ! grep -qE '(^|[[:space:]])(-f|-d|--force[a-z-]*|--delete|--tags|--all|--mirror|--prune)([[:space:]=]|$)|(^|[[:space:]:+/])(main|master)([[:space:]]|$)|(^|[[:space:]])\+' <<<"$SCAN"; then
-        # Any explicit branch named must be this session's own.
-        OTHER=$(grep -oE '(^|[[:space:]])session-[0-9]+-[A-Za-z0-9._/-]+' <<<"$SCAN" | tr -d ' ' | grep -vxF "$BRANCH" || true)
-        [ -z "$OTHER" ] && SHIP_OK=1
-      fi ;;
-    "gh pr create"*|"glab mr create"*) SHIP_OK=1 ;;
-  esac
+  if [[ "$ONE" =~ ^git\ push(\ (-u|--set-upstream))?(\ origin(\ (HEAD|$B_RE))?)?$ ]]; then
+    SHIP_OK=1
+  elif [[ "$ONE" =~ ^gh\ pr\ create(\ |$) ]] && ! grep -qE '[;&|<>$`(){}]' <<<"$ONE" \
+       && { ! grep -qE -- '(^| )(--head|-H)( |=|$)' <<<"$ONE" \
+            || grep -qE -- "(^| )(--head|-H)[ =]$B_RE( |$)" <<<"$ONE"; }; then
+    SHIP_OK=1
+  fi
   if [ -n "$SHIP_OK" ]; then
     echo "[vajra publish-guard] ALLOWED ($ACTION) — session $SESS's own branch; VAJRA_ALLOW_COMMIT=$SESS was given at launch. Merging stays with the human."
     exit 0
