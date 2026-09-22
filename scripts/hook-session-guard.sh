@@ -59,54 +59,38 @@ SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "no
 # S173 F50/F44: `sed` stripped quotes LINE BY LINE, so a multi-line commit message — a heredoc
 # (`-m "$(cat <<'EOF' … EOF)"`) — kept its body, and rudra's "S04 setup: … vajra next --advance"
 # message blocked its own commit.
-# S173 (F50/F44, cold review recs 1-3): what a guard READS. Prose — quoted text, a heredoc body —
-# is hidden; anything bash would RUN stays visible: backticks and $( ) (even inside double quotes),
-# the rest of the line a heredoc opens on, and the whole of a `bash -c` / `eval` string. The first
-# S173 cut hid all of those and let `cat <<EOF >x; git push -f origin HEAD:main` through unapproved.
-# vajra_scan [1] — with 1, each quoted span becomes the placeholder Q instead of vanishing.
-vajra_scan() { VQ="${1:-0}" perl -0777 -pe '
-# VAJRA_SCAN (S173): what a guard reads. Prose is hidden; anything bash would RUN stays visible.
-my $q = ($ENV{VQ} // "") eq "1";   # 1 = each quoted span becomes the placeholder Q
-my $s = $_;
-# The BODY of a heredoc is text — unless it is fed to a shell (bash <<EOF runs it). The rest of
-# the line the heredoc opens on is still command, and stays.
-$s =~ s{(^|\n)([^\n]*?)<<-?[ \t]*([\x27"]?)(\w+)\3([^\n]*)\n.*?\n[ \t]*\4[ \t]*(?=\n|$)}{
-  my ($p, $pre, $rest, $all) = ($1, $2, $5, $&);
-  $pre =~ /(^|[^\w])((?:ba|z|da|k)?sh|eval|source)\s*$/ ? $all : "$p$pre H $rest" }gse;
-$s =~ s/\$\(\s*cat\s+H\s*\)/ /g;   # "$(cat <<EOF … EOF)" — a heredoc fed to cat is text
-# A `-c` / eval string IS a command: past this point hide nothing (over-block is the safe side).
-unless ($s =~ /(^|[^\w])(eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)(\s|$)/) {
-  # Left to right, as bash reads it: single-quoted text is literal; "…" is text except $( … ) and `…` inside,
-  # which bash runs and so stay visible; outside quotes everything stays.
-  my ($o, $i, $n) = ("", 0, length $s);
-  while ($i < $n) {
-    my $c = substr($s, $i, 1);
-    if ($c eq "\\") { $o .= substr($s, $i, 2); $i += 2; next; }
-    if ($c eq "\x27") { my $j = index($s, "\x27", $i + 1); $j = $n if $j < 0;
-                        $o .= $q ? "Q" : ""; $i = $j + 1; next; }
-    if ($c eq "\"") {
-      my @keep; $i++;
-      while ($i < $n && substr($s, $i, 1) ne "\"") {
-        my $d = substr($s, $i, 1);
-        if ($d eq "\\") { $i += 2; next; }
-        if ($d eq "`") { my $j = index($s, "`", $i + 1); $j = $n if $j < 0;
-                         push @keep, substr($s, $i + 1, $j - $i - 1); $i = $j + 1; next; }
-        if (substr($s, $i, 2) eq "\$(") { my ($j, $depth) = ($i + 2, 1);
-          while ($j < $n && $depth) { my $e = substr($s, $j, 1); $depth++ if $e eq "("; $depth-- if $e eq ")"; $j++; }
-          push @keep, substr($s, $i + 2, $j - $i - 3); $i = $j; next; }
-        $i++;
-      }
-      $i++;
-      $o .= @keep ? " " . join(" ; ", @keep) . " " : ($q ? "Q" : "");
-      next;
-    }
-    $o .= $c; $i++;
-  }
-  $s = $o;
-}
-$_ = $s;
+# S173 (F50, after two cold-review REJECTs): what a guard READS is the pre-S173 rule — quoted spans
+# stripped LINE BY LINE — plus ONE narrow exception. Cleverer readers were tried twice and each hid
+# something bash runs. The exception: a commit message / PR body in the exact shape agents write,
+#     "$(cat <<'EOF'            (a QUOTED delimiter: bash expands nothing in the body)
+#     …
+#     EOF
+#     )"
+# is text, and hidden — only when everything before it has balanced quotes, so a quote opened
+# earlier cannot turn it into something else. rudra's F50 commit was this shape.
+# vajra_heredoc [1] prints the command with that shape removed (1 = replaced by the placeholder Q);
+# vajra_scan then strips quoted spans line by line, as before S173 —
+vajra_heredoc() { VQ="${1:-0}" perl -0777 -pe '
+  my $q = ($ENV{VQ} // "") eq "1";
+  my $src = $_;
+  s{"\$\(\s*cat\s+<<-?[ \t]*([\x27"])(\w+)\1[ \t]*\n(?:.*?\n)??\t*\2[ \t]*\n\s*\)"}{
+    my $pre = substr($src, 0, $-[0]);
+    ((($pre =~ tr/\x27//) % 2 == 0) && (($pre =~ tr/"//) % 2 == 0)) ? ($q ? "Q" : "") : $&
+  }gse;
 '; }
-SCAN=$(vajra_scan 0 <<<"$CMD")
+# ...and then ADDS what bash runs from inside quotes — every `$( … )` and backtick body, and every
+# `eval` / `sh -c` string — so a push hidden there is seen. Adding text can only block MORE, never
+# less, so this part cannot regress anything (it closes holes that predate S173).
+vajra_scan() {
+  local h; h=$(vajra_heredoc 0)
+  sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$h"
+  perl -0777 -ne '
+    while (/\$\(((?:[^()]++|\((?1)\))*)\)/g) { print "\n$1" }
+    while (/`([^`]*)`/g) { print "\n$1" }
+    while (/(?:^|[^\w])(?:eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)\s+(["\x27])(.*?)\1/gs) { print "\n$2" }
+  ' <<<"$h"
+}
+SCAN=$(vajra_scan <<<"$CMD")
 
 # Fire on a session ADVANCE — two shapes, one meaning ("this chat crosses N -> N+1"):
 #   1. checkout of the next branch: git checkout -b session-NN-<slug>   (NN = the new session).

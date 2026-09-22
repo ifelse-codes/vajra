@@ -104,7 +104,7 @@ sg() { # sg <want-exit> <label> <command>
 RUDRA_MSG="$(printf 'git commit -q -m "$(cat <<'"'"'EOF'"'"'\nS04 setup: advance session pointer 03 → 04\n\nvajra next --advance: .ai/SESSION=04, boot + task pointers synced.\nEOF\n)"')"
 sg 0 "rudra's-own-heredoc-commit-passes" "$RUDRA_MSG"
 sg 0 "quoted-mention-passes" 'git commit -m "note: run vajra next --advance in the next chat"'
-sg 0 "heredoc-body-passes" "$(printf 'cat <<EOF > notes.md\nthen vajra next --advance\nEOF')"
+sg 0 "quoted-heredoc-message-passes" "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nthen vajra next --advance\nEOF\n)"')"
 # The cold review's fakest green, reversed: bash RUNS backticks and $( ) — those are commands.
 sg 2 "backticked-advance-blocked" 'echo x `vajra next --advance` >/dev/null'
 sg 2 "advance-inside-dollar-paren-in-quotes-blocked" 'echo "$(vajra next --advance)"'
@@ -158,7 +158,7 @@ pg 2 $A 'git push origin --delete session-04-partial-fill'
 pg 2 $A 'git push --tags'
 pg 2 $A 'git push origin session-03-old'
 pg 0 $A "cd $P && git push -u origin session-04-partial-fill 2>&1 | tail -5"
-pg 0 $A "$(printf 'gh pr create --title S04 --body "$(cat <<EOF\nruns gh pr merge later\nEOF\n)"')"
+pg 2 $A "$(printf 'gh pr create --title S04 --body "$(cat <<EOF\nruns gh pr merge later\nEOF\n)"')"
 # The S173 design-advisor's forms a block-list missed — each must fall back to the human.
 pg 2 $A 'git push origin HEAD:session-05-y'
 pg 2 $A 'git push origin :session-05-y'
@@ -186,6 +186,79 @@ pg 2 NONE=1 "$(printf 'cat <<EOF >/dev/null; git push -f --no-verify origin HEAD
 pg 2 NONE=1 "$(printf 'bash -c "\ngit push -f origin main\n"')"
 pg 2 NONE=1 'echo "$(git push -f origin main)"'
 pg 0 NONE=1 'git commit -m "we will git push later"'
+
+# ==============================================================================================
+# AC5 + AC7, the PROPERTY (cold review pass 2, rec 5): nothing bash would RUN that the guard blocked
+# before S173 gets through now. Every form the two reviews found × every trigger, with NO approval,
+# through the hook as it was at f02d8e1 and as it is today. A list of known cases can be patched
+# example by example; this compares the two rules on all of them at once.
+# ==============================================================================================
+OLDH="$T/oldhooks"; mkdir -p "$OLDH"
+git show f02d8e1:scripts/hook-publish-guard.sh > "$OLDH/pub.sh"
+git show f02d8e1:scripts/hook-session-guard.sh > "$OLDH/ses.sh"
+PROP_BAD=0; PROP_N=0
+forms() { # forms <trigger> — each line of output is one command (NUL-separated), all of which RUN <trigger>
+  local t="$1"
+  printf '%s\0' \
+    "$t" \
+    "echo x; $t" \
+    "echo \`$t\`" \
+    "echo \"\$($t)\"" \
+    "$(printf 'cat <<EOF > n.md\n$(%s)\nEOF' "$t")" \
+    "$(printf 'cat <<EOF | bash\n%s\nEOF' "$t")" \
+    "$(printf 'bash -s <<EOF\n%s\nEOF' "$t")" \
+    "$(printf 'cat <<EOF\nEOF\n%s\nEOF' "$t")" \
+    "$(printf "echo '<<EOF'\n%s\nEOF" "$t")" \
+    "$(printf "# don't push yet\n%s\necho 'done'" "$t")" \
+    "$(printf 'cat <<EOF >/dev/null; %s\nx\nEOF' "$t")" \
+    "$(printf 'bash -c "\n%s\n"' "$t")" \
+    "eval \"$t\"" \
+    "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nmsg\nEOF\n)" && %s' "$t")" \
+    "$(printf "echo 'x \"\$(cat <<'EOF'\n'; %s; echo '\nEOF\n)\"'" "$t")"
+}
+prop() { # prop <old-hook> <new-hook> <fixture-root> <trigger> [session-owner-line]
+  local old="$1" new="$2" root="$3" t="$4" own="${5:-}" c o n
+  while IFS= read -r -d '' c; do
+    PROP_N=$((PROP_N+1))
+    [ -n "$own" ] && printf '%s' "$own" > "$root/.ai/.session-owner"
+    o=$(jq -n --arg c "$c" '{session_id:"SID",tool_input:{command:$c}}' | CLAUDE_PROJECT_DIR="$root" bash "$old" >/dev/null 2>&1; echo $?)
+    [ -n "$own" ] && printf '%s' "$own" > "$root/.ai/.session-owner"
+    n=$(jq -n --arg c "$c" '{session_id:"SID",tool_input:{command:$c}}' | CLAUDE_PROJECT_DIR="$root" bash "$new" >/dev/null 2>&1; echo $?)
+    if [ "$o" = 2 ] && [ "$n" != 2 ]; then PROP_BAD=$((PROP_BAD+1)); echo "  regressed: $(printf '%s' "$c" | tr '\n' '⏎')"; fi
+  done < <(forms "$t")
+}
+prop "$OLDH/pub.sh" scripts/hook-publish-guard.sh "$P" 'git push -f origin HEAD:main'
+prop "$OLDH/pub.sh" scripts/hook-publish-guard.sh "$P" 'gh pr merge 5 --admin'
+prop "$OLDH/ses.sh" scripts/hook-session-guard.sh "$G" 'vajra next --advance' "$(printf '4\tSID\n')"
+prop "$OLDH/ses.sh" scripts/hook-session-guard.sh "$G" 'git checkout -b session-05-x' "$(printf '4\tSID\n')"
+[ "$PROP_BAD" = 0 ] && ok "AC5+AC7 property: 0 of $PROP_N executed forms went from blocked to allowed (no approval)" \
+  || bad "AC5+AC7 property: $PROP_BAD of $PROP_N executed forms went from blocked to allowed"
+
+# The same forms WITH the launch approval: the agent may push its own branch only in plain shapes —
+# none of these (each also runs a merge or a push to main) may ride the F55 permission.
+APPROVED_BAD=0; APPROVED_N=0
+for t in 'gh pr merge 5 --admin' 'git push -f origin HEAD:main'; do
+  while IFS= read -r -d '' c; do
+    for wrap in "gh pr create --title x --body \"\$(cat <<EOF
+\$($t)
+EOF
+)\"" "$c"; do
+      APPROVED_N=$((APPROVED_N+1))
+      n=$(jq -n --arg c "$wrap" '{tool_input:{command:$c}}' | env VAJRA_ALLOW_COMMIT=04 CLAUDE_PROJECT_DIR="$P" bash scripts/hook-publish-guard.sh >/dev/null 2>&1; echo $?)
+      [ "$n" = 2 ] || { APPROVED_BAD=$((APPROVED_BAD+1)); echo "  let through: $(printf '%s' "$wrap" | tr '\n' '⏎')"; }
+    done
+  done < <(forms "$t")
+done
+[ "$APPROVED_BAD" = 0 ] && ok "AC7 property: 0 of $APPROVED_N merge/main forms ride the launch approval" \
+  || bad "AC7 property: $APPROVED_BAD of $APPROVED_N merge/main forms rode the launch approval"
+# ...and the shapes an agent really writes still go through with it.
+pg 0 $A "$(printf 'gh pr create --title "S04" --body "$(cat <<'"'"'EOF'"'"'\n## Summary\n- runs gh pr merge later, by hand\nEOF\n)"')"
+pg 2 $A 'gh pr create -R other/repo --title x'
+# rudra S04's agent's own shapes (from its transcript): `cd <project>; …` with the output tail.
+pg 0 $A "cd $P; git push -u origin session-04-partial-fill 2>&1 | tail -8"
+pg 0 $A "cd $P; gh pr create --base main --head session-04-partial-fill --title \"S04: x\" --body \"Session 04 — (RETRANSMIT_GREEN, transmit_events==2)\""
+pg 2 $A "cd /tmp; git push -u origin session-04-partial-fill"
+pg 2 $A "$(printf 'gh pr create --title x --body "$(cat <<EOF\nSummary\n$(gh pr merge 5 --admin)\nEOF\n)"')"
 
 # ==============================================================================================
 # AC8 + AC9 (F49) — sync says whose files it wrote; the suite and formatter; a clean sync.
