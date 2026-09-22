@@ -116,7 +116,7 @@ Every block keeps its exact allow/deny decision — only the words after a decis
 ## Advice
 
 Four roles were dispatched: `tech-lead` (mandatory, first), `implementation-advisor`, `qa-specialist`
-and `fidelity-reviewer` (the three it marked required). The other six: `deferred-budget`.
+and `fidelity-reviewer` (the three it marked required). The other six: `deferred-budget`. Every `obeyed:` below was judged by an independent role (`release-coordinator`, not an advisor or the builder this session): 18 of 18 implemented, 0 mismatches — `.ai/handoffs/session-174-release-coordinator.md`.
 
 **tech-lead** (`.ai/handoffs/session-174-tech-lead.md`):
 - tech-lead rec 1 — obeyed: 537cc48 (only implementation-advisor, qa-specialist and fidelity-reviewer dispatched; the handoff records the other six as deferred-budget)
