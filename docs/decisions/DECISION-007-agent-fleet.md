@@ -1478,28 +1478,26 @@ the design-advisor found a dozen spellings it missed — `HEAD:session-05-y` and
 now a failing case in `scripts/verify-session-173.sh`. Quoted text is read as a placeholder, not
 deleted, so a quote cannot hide a `+`.
 
-**What a guard reads: back to the old rule, plus one exception and one addition (F50; cold
-review passes 1–4 all REJECT).** Both guards strip quoted text line by line, so a multi-line
-commit message quoting `vajra next --advance` blocked its own commit (F50). Two cleverer readers
-were tried — whole-command stripping, then a bash-like left-to-right scanner — and each review found
-commands bash RUNS that it hid, all blocked before S173. The shipped rule is deliberately dull:
+**What a guard reads: the old rule, plus more — no exception (F50; five cold-review REJECTs).**
+Both guards strip quoted text line by line, so a multi-line commit message quoting a guarded
+command blocks its own commit (F50). Four ways of hiding that message text were built and each was
+broken by the next independent review: whole-command stripping; a bash-like left-to-right scanner;
+an exception for the `"$(cat <<'EOF' … EOF)"` shape bounded where bash ends the heredoc; the same
+exception with its start pinned to a plain unquoted `git commit`/`gh pr create`. Pass 5 showed the
+last one hid a push that macOS `/bin/bash` 3.2 runs (it ends the `$( )` at a `)"` line inside the
+heredoc) — confirmed on this machine. So the exception was REMOVED. The shipped rule:
 1. **the pre-S173 line-by-line quote strip, unchanged;**
-2. **one exception:** the exact shape `git commit … -m "$(cat <<'EOF' … EOF)"` (or
-   `gh pr create … --body "$(cat <<'EOF' …`) — a QUOTED delimiter, in which bash expands nothing —
-   is hidden as text. Its END is where bash ends the heredoc (no line inside may even look like the
-   delimiter — pass 3). Its START is pinned too (pass 4: counting quote marks is not bash quoting):
-   the span must open a line as a plain `git commit`/`gh pr create` with no quoting in its own
-   arguments, and nothing between the start of the command (or the last hidden span) and it may
-   hold a quote, backslash, `$`, backtick or `<` — so bash cannot be inside a quote or heredoc there.
-3. **one addition:** the guard also reads every `$( … )` and backtick body and every `eval` /
-   `sh -c` string. It reads them from the command with only the exception's span removed — a span
-   which, by (2), holds nothing but `cat` and literal text. That closes holes that predate S173
-   (`echo "$(git push -f origin main)"` was unguarded before).
-The allow path for F55 reads the RAW command with only that exception removed: any `$`, backtick,
-backslash or line break left sends it to the human. The verify script compares the old rule with
-the new on **23 named command shapes × 4 triggers** (92 commands) through the f02d8e1 hooks and
-today's — none may go from blocked to allowed, and none that runs a merge or a push to main may ride
-the approval. It is a longer list of examples, not a proof over bash's grammar.
+2. **plus** every `$( … )` and backtick body and every `eval` / `sh -c` string, read from the raw
+   command. Adding text can only block more, so nothing blocked before S173 passes now; it closes
+   holes that predate S173 (`echo "$(git push -f origin main)"` was unguarded before).
+F50 is therefore **not fixed in code**. The block now says the way out: put the message in a file,
+`git commit -F <file>` / `gh pr create --body-file <file>`. The F55 allow path reads the RAW command
+— any `$`, backtick, backslash or line break sends it to the human — and the branch is read from the
+directory the command RUNS in (the hook input's `cwd`), which must be this project's own checkout
+(pass 5: reading `$ROOT` let an agent in a worktree push that worktree's branch). The verify script
+compares the old rule with the new on **28 named shapes × 4 triggers** (112 commands) — none may go
+from blocked to allowed, none that runs a merge or a push to main may ride the approval. A list of
+examples, not a proof over bash's grammar.
 
 **The fake question goes (F52).** `vajra next --advance` asked `Advance to next session? [y/N]`, and
 the checklist told the agent to pipe `echo y` — the agent answered a question dressed as the
@@ -1533,11 +1531,17 @@ path; it now also publishes. That overrides the S37 publish guard's own rule (pu
    earlier message's "the human's approval is the plan they OK'd" was dropped: nothing checks it.
 
 
-7. **The before/after check is 92 named commands, not bash's grammar.** It covers the shapes
-   four reviews found; a 24th spelling nobody has tried is not covered.
-8. **The addition over-blocks on purpose.** A heredoc written to a FILE whose text shows a Vajra
+7. **The before/after check is 112 named commands, not bash's grammar.** It covers the shapes
+   five reviews found; a 29th spelling nobody has tried is not covered.
+8. **F50 is not fixed in code; the addition over-blocks on purpose.** A commit message that
+   mentions a guarded command still blocks, as before S173 — the block says to use `git commit -F`. A heredoc written to a FILE whose text shows a Vajra
    command in backticks (markdown) now trips the session guard — this session hit it writing its
    own records. The way around is to write files with the agent's file tool, not a shell heredoc.
+
+9. **Other directories and config.** The F55 permission needs the command's directory to be this
+   project's checkout; config set earlier — `remote.origin.mirror`, `git remote set-url`,
+   `gh repo set-default`, a redirected upstream — can still change where a plain push goes.
+   `alias git=eval` set earlier can run text a guard reads as a message; that was true before S173.
 
 **Rejected:** `vajra ship NN` for the human to run (keeps one typed command a session); leaving it
 (option C); dropping the prompt and handoffs from the review hash to stop the F53 re-stamp loop (it

@@ -44,7 +44,7 @@ RUDRA_MSG="$(printf 'git commit -q -m "$(cat <<'"'"'EOF'"'"'\nS04 setup: advance
 # The publish guard's fixture: on session-04-*, launched with VAJRA_ALLOW_COMMIT=04.
 PG="$DK_TMP/pg"; mkdir -p "$PG/.ai"; printf 'maturity: L2\n' > "$PG/.ai/CONSTRAINTS.yaml"
 gx "$PG" init -q -b main; gx "$PG" checkout -qb session-04-partial-fill
-ship() { jq -n --arg c "$1" '{tool_input:{command:$c}}' \
+ship() { jq -n --arg c "$1" --arg d "$PG" '{cwd:$d,tool_input:{command:$c}}' \
   | env VAJRA_ALLOW_COMMIT=04 CLAUDE_PROJECT_DIR="$PG" bash "$ROOT/scripts/hook-publish-guard.sh" >/dev/null 2>&1; echo $?; }
 
 # rudra at its merged session 04, about to start session 05.
@@ -56,12 +56,12 @@ fi
 
 slide_headline() {
   dk_section headline "session $SESSION · the founder used Vajra on his own project again · 2026-09-22"
-  dk_h1 "Vajra stops " "tripping over its own words" "."
+  dk_h1 "Vajra stops " "tripping over its own words" " — mostly."
   dk_p "The founder ran rudra's session 04 end to end under Vajra — plan, build, review, merge — and we collected everything it hit before fixing any of it. Eleven problems. The worst: Vajra's start-up crashed halfway on his project, a guard read a commit MESSAGE as a command, and he typed git commands by hand at the end of every session."
   dk_vajra_tiles "$SESSION"
   dk_verdict "WHAT CHANGED, IN ONE BREATH" \
     "Old: start-up died on a handover naming no plan file; the guard blocked a commit whose message mentioned 'vajra next --advance'; Vajra asked 'y/N' and the agent answered itself; he pushed and opened every PR himself." \
-    "New: start-up runs to the end; guards read commands, not prose; nobody is asked a fake question; with the launch approval the agent pushes its OWN branch and opens its PR — merging stays his."
+    "New: start-up runs to the end; nobody is asked a fake question; the close says what to do in order; with the launch approval the agent pushes its OWN branch and opens its PR — merging stays his. The guard still blocks a commit message that mentions a Vajra command, and now says how to avoid it."
   dk_caption "live = ran just now · recorded = measured at close, not re-run here · filled in by Vajra = derived, never typed"
 }
 
@@ -71,7 +71,7 @@ slide_story() {
   dk_bullets \
     "He ran it; we only watched.|His rule this time: collect every finding while rudra's session runs, fix them all after it closes. Eleven findings, F45 to F55, each with how bad it was." \
     "Start-up survives his project.|Last session's 'missing plan file' warning crashed when the handover named no file at all — rudra's case — and took the branch, commit and to-do lines with it." \
-    "Guards read commands, not sentences.|A multi-line commit message quoting a Vajra command was read as the command. Now message text is ignored; a real command is still caught." \
+    "The guards were NOT loosened.|Five independent reviews broke every way of hiding commit-message text from them — each hid something a shell runs. So they read commands exactly as before, plus more; a message that mentions a Vajra command goes in a file (git commit -F)." \
     "Less paperwork, in the right order.|A merged session's leftovers print as one counted line, not 38. The to-do list now names the advisor answers and says: stamp the review LAST." \
     "He stops typing git commands.|His pick: the launch approval now lets the agent push its own session branch and open the PR — by a list of exact allowed shapes, after the design check broke the first version a dozen ways."
   dk_caption "stamp = the review's Review-Inputs-SHA, a hash of the plan and the work. Any later edit moves it; rudra re-did it four times."
@@ -110,7 +110,7 @@ slide_rule() {
     if [ "$r" = 0 ]; then rows+=("$2|${C_YES}✓ AGENT${C_0}|$3"); else rows+=("$2|${C_NO}✗ HUMAN${C_0}|$3"); fi
   }
   row 0 'git push -u origin session-04-partial-fill' "its own branch"
-  row 0 'gh pr create --base main --title "S04" --body "…"' "opening a PR is not a merge"
+  row 0 'gh pr create --base main --title "S04" --body-file notes.md' "opening a PR is not a merge"
   row 2 'gh pr merge 5 --merge' "merging stays the human's"
   row 2 'git push origin HEAD:main' "main, by any spelling"
   row 2 'git push origin HEAD:session-05-y' "another session's branch (the first cut let this through)"
@@ -118,20 +118,24 @@ slide_rule() {
   row 2 'git push origin "+session-04-partial-fill"' "a force hidden in quotes (same)"
   row 2 'git push -o merge_request.create -o merge_request.target=main' "a merge smuggled in as a push option (same)"
   dk_table "The agent types…|Who|Why" "${rows[@]}"
-  dk_caption "AGENT = the guard lets it through · HUMAN = blocked, the person does it. Each row ran just now. The full list is 29 cases in scripts/verify-session-173.sh."
+  dk_caption "AGENT = the guard lets it through · HUMAN = blocked, the person does it. Each row ran just now. scripts/verify-session-173.sh compares the old guard with the new on 112 commands."
 }
 
 slide_cases() {
   dk_section cases "the cases · live"
   dk_h2 "Four things to see for yourself"
-  # 1 — rudra's own commit, old guard vs new.
-  local o n
+  # 1 — rudra's own commit: still blocked (as before S173), and now the block says the way out.
+  local o n msg
   o="$(guard "$OLD/hook-session-guard.sh" "$RUDRA_MSG")"; n="$(guard "$ROOT/scripts/hook-session-guard.sh" "$RUDRA_MSG")"
-  dk_term "1 · rudra's own commit (message mentions 'vajra next --advance') — old guard exit $o, today's exit $n" \
-    "$(printf '%s\n' "$RUDRA_MSG" | head -4 | cut -c1-96)"
-  dk_check "the old guard blocked his commit, today's lets it through" bash -c '[ "$1" = 2 ] && [ "$2" = 0 ]' _ "$o" "$n"
-  dk_check "a real advance in the same chat is still blocked" \
-    bash -c '[ "$1" = 2 ]' _ "$(guard "$ROOT/scripts/hook-session-guard.sh" 'vajra next --advance')"
+  printf '4\tSID\n' > "$SG/.ai/.session-owner"
+  msg="$(jq -n --arg c "$RUDRA_MSG" '{session_id:"SID",tool_input:{command:$c}}' | CLAUDE_PROJECT_DIR="$SG" bash "$ROOT/scripts/hook-session-guard.sh" 2>&1 >/dev/null)"
+  dk_term "1 · rudra's own commit (its message mentions the advance) — old guard exit $o, today's exit $n" \
+    "$(printf '%s\n' "$msg" | tail -3 | cut -c1-100)"
+  dk_check "both block it — the guards were not loosened" bash -c '[ "$1" = 2 ] && [ "$2" = 2 ]' _ "$o" "$n"
+  dk_check "today's block names the way out: git commit -F <file>" \
+    bash -c 'printf "%s" "$1" | grep -q "git commit -F"' _ "$msg"
+  dk_check "and the same message from a file passes" \
+    bash -c '[ "$1" = 0 ]' _ "$(guard "$ROOT/scripts/hook-session-guard.sh" 'git commit -F /tmp/msg.txt')"
   # 2 — the advance on rudra after its merged session 04.
   if [ "$HAVE_RUDRA" = 1 ]; then
     gx "$RC" checkout -q -b session-05-directive-monitors
@@ -176,7 +180,7 @@ slide_next() {
   dk_section next "what is next"
   dk_h2 "Where this leaves us"
   dk_bullets \
-    "The push permission is a text match, and says so.|Plain pushes of the session's own branch go through; a dozen tricky spellings go back to you. A few exotic ones were never recognised as a push at all — listed in DECISION-007, S173 addendum." \
+    "The push permission is a text match, and says so.|Plain pushes of the session's own branch, from the project's own checkout, go through; every tricky spelling five reviews found goes back to you. A few exotic ones were never recognised as a push at all — listed in DECISION-007, S173 addendum." \
     "One thing parked.|F47: options copied from a summary keep its jargon. Low; carried to the next session." \
     "The next test is rudra session 05.|Sync the fixes in, launch with VAJRA_ALLOW_COMMIT=05, and see whether the agent now ships its own PR and the close runs in order."
   dk_caption "Every limit above is written in the session summary too, not only said here."

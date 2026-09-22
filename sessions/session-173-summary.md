@@ -2,8 +2,8 @@
 
 **Type:** CODE, interactive (the founder's own run; findings collected during it, fixed after it closed).
 **Branch:** `session-173-keep-testing`. **Brief:** `prompts/173-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-173.sh` — 76 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
-— 17 live checks, all green. **Decision:** DECISION-007, S173 addendum.
+**Verify:** `scripts/verify-session-173.sh` — 82 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
+— 18 live checks, all green. **Decision:** DECISION-007, S173 addendum.
 
 ## What happened
 
@@ -34,7 +34,7 @@ typed `git push` and a long `gh pr create` by hand (F55).
 | F47 | Options copied from a summary keep its jargon; the plain-words rule reaches only the agent's own sentences | ⚪ LOW | **parked** |
 | F48 | The next plan was written on `main` after the merge, costing a chat and a hand-typed commit | 🟡 MED | resolved by the new step order — seen working in rudra S04 |
 | F49 | A sync left a file uncommitted on main through a whole session, called "your change" | ⚪ LOW | fixed `8b43a27` |
-| F50 | The session guard read a heredoc commit message as a command (F44, live) | 🟡 MED | fixed `5e30be9` |
+| F50 | The session guard read a heredoc commit message as a command (F44, live) | 🟡 MED | **not fixed in code** — four fixes each failed review; the block now says `git commit -F <file>` |
 | F51 | A merged session's leftovers printed as ~70 lines under "cannot close" | 🟡 MED | fixed `c28b4f1` — one counted line per check |
 | F52 | A `y/N` only the agent saw; the to-do list told it to pipe `y` | 🟡 MED | fixed `c28b4f1`, `0593349` |
 | F53 | The review stamp redone four times — nothing said "last" | 🟡 MED | fixed `5e2c2b7` — its own step, LAST |
@@ -57,7 +57,7 @@ in the verify script.
 | 1 | Boot survives a handover naming no prompt (F45) | SHIPPED | verify AC1; demo before/after runs the old hook from `f02d8e1` (exit 1) against today's (exit 0) |
 | 2 | Merged session not sent back, walled or re-graded (F46, F51) | SHIPPED | verify AC2 (unit test + rudra clone), AC3 (rudra at `3c401ec`: counts, no per-item `✗`; S05's design reason still in full) |
 | 3 | No fake question (F52) | SHIPPED | verify AC4 (advance on rudra with no terminal says it did not ask; unit test: no step says `echo y`) |
-| 4 | Guards read commands, not prose (F50/F44) | SHIPPED (after pass 4) | verify AC5: rudra's exact heredoc commit and a quoted mention pass; the before/after check (0 of 92 listed commands newly allowed) against the f02d8e1 hooks. Passes 1–4 were PARTIAL — see below |
+| 4 | Guards not loosened; F50 handled by the block message (F50/F44) | PARTIAL (by decision) | rudra's commit still blocks, as before S173; the block names `git commit -F`; old-vs-new: 0 of 112 listed commands newly allowed. Passes 1–5 each broke a fix — see below |
 | 5 | The close in order up front (F53, F54) | SHIPPED | verify AC6: advice step, then stamp LAST, then merge; formats named (unit test) |
 | 6 | The agent ships its own branch (F55) | SHIPPED | verify AC7: the allowed shapes pass; merge, main, force, delete, tags, other branches, joined/repeated `--head`, and every form both reviewers named go back to the human |
 | 7 | Sync says whose files it wrote (F49) | SHIPPED | verify AC8 on a rudra clone |
@@ -102,7 +102,16 @@ but not the glued `-Rother/repo`. Fixed: the exception now needs a plain `git co
 opening its line with nothing quoted before it at all; `-R` in any spelling is refused. Both
 reviewer cases went red on the pass-4 code (exit 0) and green now. Also: the boot check now proves
 the to-do list printed, the check is labelled "old vs new on a listed set" rather than a property,
-and a piped `n` stops an advance again. 23 shapes × 4 triggers = 92 commands; 76 checks in all.
+and a piped `n` stops an advance again.
+
+**Pass 5: REJECT** (15 SHIPPED · 2 PARTIAL). Two things: the push permission read the project
+folder's branch, not the branch of the folder the command runs in (an agent in a worktree could push
+another session's branch); and on macOS `/bin/bash` 3.2 the message exception still hid a push —
+confirmed on this machine. I had said a fifth hole in the exception would end it, so **the exception
+is gone**: the guards read commands exactly as before S173, plus the extra reads. F50 is therefore
+not fixed in code — rudra's commit would still block — but the block now says the way out
+(`git commit -F <file>`). The push permission now checks the command's own directory. 28 shapes ×
+4 triggers = 112 commands; 82 checks in all.
 
 ## What this does NOT claim
 
@@ -124,10 +133,10 @@ and a piped `n` stops an advance again. 23 shapes × 4 triggers = 92 commands; 7
 
 ## The fakest green here
 
-**The before/after check is 92 named commands, not bash's grammar.** It is far stronger than the
+**The before/after check is 112 named commands, not bash's grammar.** It is far stronger than the
 example lists passes 1 and 2 caught — it compares the whole old rule to the new one on every shape
-at once — but its 23 shapes are the ones four reviewers found, and passes 3 and 4 each found one
-the earlier list missed. A 24th spelling no one has tried is not covered.
+at once — but its 28 shapes are the ones five reviewers found, and passes 3, 4 and 5 each found
+one the earlier list missed. A 29th spelling no one has tried is not covered.
 
 Also: **verify AC7's allow cases are the ones I thought of plus the ones two reviewers named.** They
 prove the allow-list does what it says for those strings; they do not prove there is no other
