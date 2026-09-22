@@ -26,7 +26,11 @@ case "$BRANCH" in
   *-closeout|*-enforcement) GT_PW=0 ;;
   *)
     if [ -n "$SESSION_NUM" ] && [ "$((10#$SESSION_NUM))" -gt 0 ]; then
-      if [ "$((10#$SESSION_NUM % 5))" -eq 0 ]; then
+      # S175: .ai/CONSTRAINTS.yaml#ground_truth_next_session overrides the every-5th default.
+      GT_NEXT=$(grep -E '^[[:space:]]*ground_truth_next_session:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)
+      if [ -n "$GT_NEXT" ]; then
+        if [ "$((10#$SESSION_NUM))" -eq "$((10#$GT_NEXT))" ]; then GT_PW=1; else GT_PW=0; fi
+      elif [ "$((10#$SESSION_NUM % 5))" -eq 0 ]; then
         GT_PW=1
       else
         GT_PW=0
