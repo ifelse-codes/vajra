@@ -75,7 +75,7 @@ vajra_scan() {
     while (/\$\(((?:[^()]++|\((?1)\))*)\)/g) { print "\n$1" }
     while (/`([^`]*)`/g) { print "\n$1" }
     while (/(?:^|[^\w])(?:eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)\s+(["\x27])(.*?)\1/gs) { print "\n$2" }
-  ' <<<"$1"
+  ' <<<"$1" 2>/dev/null || true   # no perl → the pre-S173 rule alone (pass 6: it used to exit 127)
 }
 SCAN=$(vajra_scan "$CMD")
 

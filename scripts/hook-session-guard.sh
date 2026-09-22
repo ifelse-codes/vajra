@@ -61,20 +61,23 @@ SID=$(echo "$INPUT" | jq -r '.session_id // "nosession"' 2>/dev/null || echo "no
 # message blocked its own commit.
 # S173 (F50; five cold-review passes): what a guard READS is the pre-S173 rule — quoted spans
 # stripped LINE BY LINE — PLUS extra reads: every `$( … )` and backtick body and every `eval` /
-# `sh -c` string, taken from the RAW command. Adding text can only block more, so nothing blocked
-# before S173 can pass now. An exception that hid commit-message heredocs was tried and removed:
+# `sh -c` string, taken from the RAW command. The extra text is kept APART and may only add a
+# reason to block (pass 6), so nothing blocked before S173 can pass now. An exception that hid commit-message heredocs was tried and removed:
 # each version hid something a shell runs (pass 5: macOS /bin/bash 3.2 ends `$( )` at a `)"` line
 # inside the heredoc). A commit message that mentions a guarded command is written to a file
 # instead: `git commit -F <file>` (the block message says so).
-vajra_scan() {
-  sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$1"
+# The extra reads live apart from the old rule (cold review pass 6): the pre-S173 SCAN alone decides
+# the session number and what is recorded; the extra text may only ADD a reason to block, so a
+# decoy inside `$( )` can no longer displace the real number.
+vajra_extra() {
   perl -0777 -ne '
     while (/\$\(((?:[^()]++|\((?1)\))*)\)/g) { print "\n$1" }
     while (/`([^`]*)`/g) { print "\n$1" }
     while (/(?:^|[^\w])(?:eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)\s+(["\x27])(.*?)\1/gs) { print "\n$2" }
-  ' <<<"$1"
+  ' <<<"$1" 2>/dev/null || true   # no perl → the pre-S173 rule alone (pass 6: it used to exit 127)
 }
-SCAN=$(vajra_scan "$CMD")
+SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
+EXTRA=$(vajra_extra "$CMD")
 
 # Fire on a session ADVANCE — two shapes, one meaning ("this chat crosses N -> N+1"):
 #   1. checkout of the next branch: git checkout -b session-NN-<slug>   (NN = the new session).
@@ -91,8 +94,15 @@ if [ -z "$NN" ] && grep -qE '(^|[^[:alnum:]_])next[[:space:]]+--advance([^[:alnu
   CUR=$(tr -dc '0-9' < "$ROOT/.ai/SESSION" 2>/dev/null || true)
   [ -n "$CUR" ] && NN=$((10#$CUR + 1))
 fi
-[ -n "$NN" ] || exit 0
-NN=$((10#$NN))
+# Every session number the EXTRA text would start: each `checkout -b session-N-`, and CUR+1 for an
+# advance. These can only block (below); they are never recorded as the owner.
+EXTRA_NN=$(printf '%s' "$EXTRA" | grep -oE 'checkout +-b +session-[0-9]+-' | grep -oE '[0-9]+' || true)
+if grep -qE '(^|[^[:alnum:]_])next[[:space:]]+--advance([^[:alnum:]]|$)' <<<"$EXTRA"; then
+  CUR=$(tr -dc '0-9' < "$ROOT/.ai/SESSION" 2>/dev/null || true)
+  [ -n "$CUR" ] && EXTRA_NN="$EXTRA_NN $((10#$CUR + 1))"
+fi
+[ -n "$NN" ] || [ -n "$(tr -d ' \n' <<<"$EXTRA_NN")" ] || exit 0
+[ -n "$NN" ] && NN=$((10#$NN))
 
 # Gate: rule must be enabled.
 ENABLED=$(grep -E '^[[:space:]]*one_session_per_chat:' "$CONSTRAINTS" 2>/dev/null | grep -oE 'true|false' | head -1 || echo "false")
@@ -111,8 +121,16 @@ fi
 
 record() { printf '%s\t%s\n' "$NN" "$SID" > "$OWNER_FILE"; }
 
-# Block only the N->N+1 boundary FROM THE SAME CHAT that owned N.
-if [ -n "$OWNER_NN" ] && [ "$NN" -eq "$((OWNER_NN + 1))" ] && [ "$SID" = "$OWNER_SID" ]; then
+# Block only the N->N+1 boundary FROM THE SAME CHAT that owned N — whether the old rule's number or
+# any number the extra text would start crosses it.
+HIT=""
+if [ -n "$OWNER_NN" ] && [ "$SID" = "$OWNER_SID" ]; then
+  for x in $NN $EXTRA_NN; do [ "$((10#$x))" -eq "$((OWNER_NN + 1))" ] && HIT=$((10#$x)); done
+fi
+# The extra text alone never records an owner (a decoy must not claim a session).
+if [ -z "$HIT" ] && [ -z "$NN" ]; then exit 0; fi
+[ -n "$HIT" ] && NN=$HIT
+if [ -n "$HIT" ]; then
   if [ "$MATURITY" = "L1" ]; then
     echo "[vajra session-guard] one-session-per-chat: this chat owns session $OWNER_NN. Governing $GOVERNS."
     echo "  Starting session $NN here breaks the rule — open a NEW chat. (L1 advise, not blocking.)"

@@ -253,8 +253,12 @@ forms() { # forms <trigger> — each line of output is one command (NUL-separate
     "$(printf 'echo a\r\n%s\r' "$t")" \
     "$(printf 'cat <<<"x"; %s' "$t")" \
     "$(printf '(( 1 )) && %s' "$t")" \
-    "$(printf 'git commit -m "$(cat <<'"'"'D'"'"'\n)"\n%s\nD\n)"' "$t")"
+    "$(printf 'git commit -m "$(cat <<'"'"'D'"'"'\n)"\n%s\nD\n)"' "$t")" \
+    "$t && echo \"\$(echo checkout -b session-01-a)\"" \
+    "echo \"\$(echo checkout -b session-01-a)\" && $t"
 }
+# (The last two are cold review pass 6's decoy: a second trigger inside `$( )` that, under the
+# pass-5 code, displaced the real session number and let the advance through.)
 # (The last is cold review pass 5's R2: macOS /bin/bash 3.2 ends the `$( )` at the body's `)"`
 # line and RUNS the next line — confirmed on this machine.)
 # (The last shape is cold review pass 4's: quote marks count EVEN while bash is inside a quote.
@@ -306,6 +310,21 @@ pg 0 $A "cd $P; git push -u origin session-04-partial-fill 2>&1 | tail -8"
 pg 0 $A "cd $P; gh pr create --base main --head session-04-partial-fill --title \"S04: x\" --body \"Session 04 — (RETRANSMIT_GREEN, transmit_events==2)\""
 pg 2 $A "cd /tmp; git push -u origin session-04-partial-fill"
 pg 2 $A "$(printf 'gh pr create --title x --body "$(cat <<EOF\nSummary\n$(gh pr merge 5 --admin)\nEOF\n)"')"
+
+# Cold review pass 6 rec 2: with no perl on PATH the guards fall back to the pre-S173 rule — they
+# still block — instead of exiting 127 (which Claude Code does not treat as a block).
+NP="$T/noperl"; mkdir -p "$NP"
+for tool in bash sh jq sed grep git awk tr cat head tail wc dirname pwd env printf mktemp; do
+  w=$(command -v "$tool" 2>/dev/null) && ln -sf "$w" "$NP/$tool"
+done
+np() { jq -n --arg c "$2" --arg d "$P" '{session_id:"SID",cwd:$d,tool_input:{command:$c}}' \
+  | PATH="$NP" CLAUDE_PROJECT_DIR="$3" "$NP/bash" "$1" >/dev/null 2>&1; echo $?; }
+printf '4\tSID\n' > "$G/.ai/.session-owner"
+[ "$(np scripts/hook-publish-guard.sh 'git push origin main' "$P")" = 2 ] \
+  && ok "AC7 no-perl-still-blocks-a-push-to-main" || bad "AC7 no-perl-still-blocks-a-push-to-main"
+printf '4\tSID\n' > "$G/.ai/.session-owner"
+[ "$(np scripts/hook-session-guard.sh "vajra next --adv""ance" "$G")" = 2 ] \
+  && ok "AC5 no-perl-still-blocks-an-advance" || bad "AC5 no-perl-still-blocks-an-advance"
 
 # ==============================================================================================
 # AC8 + AC9 (F49) — sync says whose files it wrote; the suite and formatter; a clean sync.
