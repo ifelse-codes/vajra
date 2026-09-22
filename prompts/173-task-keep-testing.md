@@ -47,6 +47,7 @@
 | F54 | rudra S04 close | 38 advisor recs to answer in `## Advice`; the first pass failed the gate on format (`obeyed:` needs a sha, `deferred:` needs a bare existing path), and `## Execution` was written only when the close check demanded it, not as work landed. Two more fix-and-rerun rounds. | MEDIUM |
 | F55 | rudra S04 ship | The founder chose "push + open PR" in chat; the publish guard blocked both (by design), so he hand-typed `git push` and a long `gh pr create`. With F48, a session now ends with the human hand-typing 2–3 git commands. | MEDIUM |
 | F56 | S173 close (this repo) | Vajra's own session guard blocked a command that ran `vajra next --advance` inside a CLONE of rudra: it reads the words, and cannot tell the command runs in another project. Worked around with a script file. | LOW — parked |
+| F57 | S173 close (this repo) | The Coder check (`src/coder/mod.rs` `numbered_item`) only reads plan steps written `1. …`; this repo's prompts write `- step 1 — … covers: N`, which the Planner accepts. So for S172 and S173 the "every plan step names its commit" check had nothing to check and passed with a WARN. A loophole in Vajra's checks on its own paperwork — parked, per the founder's "no more policing" rule. | LOW — parked |
 | — | watch | **F31, fourth watch: CLEAN** — tech-lead dispatched first, before design and plan. Timeline: start 14:35 → plan approved 14:48 → build → close green 15:49 (~75 min); 38 min of that was close paperwork. S05's prompt was written in-session this time (DRAFT for his approval), so F48's extra chat may not recur. | — |
 
 ## Goal
@@ -63,8 +64,11 @@ fixed with it. F31 was watched a fourth time: clean.
    instead of one line per item, under "was merged; for the record".
 3. **No fake question (F52)** — `--advance` asks `[y/N]` only at a real terminal; with none it says
    nobody was asked. The checklist no longer tells the agent to pipe `echo y`.
-4. **The guards read commands, not prose (F50/F44)** — session and publish guards strip heredoc
-   bodies, multi-line quotes and backticked text before matching.
+4. **The guards read commands, not prose (F50/F44)** — session and publish guards keep the
+   pre-S173 line-by-line quote strip, hide ONE extra shape (a quoted-delimiter
+   `"$(cat <<'EOF' … EOF)"` message, bounded exactly where bash ends it), and additionally read
+   `$( )`, backtick and `eval`/`sh -c` bodies. (Restated at close after three cold-review REJECTs:
+   the first cut stripped backticks and multi-line quotes, which hid commands bash runs.)
 5. **The close is in order up front (F53, F54)** — the checklist names answering every advisor
    recommendation (with the exact line format) and the review stamp as its own step, LAST.
 6. **The agent ships its own branch (F55, founder pick B)** — with `VAJRA_ALLOW_COMMIT=NN` at
@@ -139,7 +143,25 @@ listed in the DECISION-007 S173 addendum.
 - step 4 — done: 5e2c2b7
 - step 5 — done: 00fdca9
 - step 6 — done: 8b43a27
-- step 7 — done: <sha>
+- step 7 — done: 8207d28 / 036e2a3 / 56add04 / 695e32e
+
+## Advice
+
+Three roles were dispatched: `tech-lead` (mandatory, first), `design-advisor` (required) and
+`fidelity-reviewer` (required; three passes — REJECT, REJECT, then pass 3).
+
+**tech-lead** (`.ai/handoffs/session-173-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 81702af (only design-advisor and fidelity-reviewer dispatched, each with a named-file brief; the other seven recorded `deferred-budget`)
+- tech-lead rec 2 — obeyed: 8207d28 (the design-advisor ran before the addendum was written; its refspec findings are the addendum's "does NOT claim" list)
+- tech-lead rec 3 — obeyed: 695e32e (the prompt, handoffs and Advice are finished before the stamp; the fidelity-reviewer was re-run only after a REJECT — twice)
+- tech-lead rec 4 — obeyed: 036e2a3 (nothing built for F47 or F48; both are in the summary's findings table, F47 parked LOW, F48 checked)
+
+**design-advisor** (`.ai/handoffs/session-173-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 8207d28 (the S173 addendum is in DECISION-007, next to the 2026-09-21 branch-name decision; DECISION-005 is cited only for "guards ON")
+- design-advisor rec 2 — obeyed: 0925f45 (the `## Design` DEVIATION sentence now says the env-marker COMMIT path also publishes, overriding the S37 hook's rule — not a DECISION-005 clause)
+- design-advisor rec 3 — obeyed: c222516 (the push permission is an allow-list of exact shapes; everything else falls back to the human)
+- design-advisor rec 4 — obeyed: 8207d28 (`HEAD:session-05-y`, `:session-05-y` and the other listed forms are failing cases in `scripts/verify-session-173.sh`)
+- design-advisor rec 5 — obeyed: 0593349 (the no-terminal message says only "not asked: no terminal to ask on"; the six disclosures are in the addendum, 8207d28)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
