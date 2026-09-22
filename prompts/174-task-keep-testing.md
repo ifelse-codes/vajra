@@ -49,24 +49,66 @@ Run: rudra session 05, 2026-09-22, `VAJRA_ALLOW_COMMIT=05 vajra claude`, transcr
 | F62 | after merge | The list now re-grades merged S05: "✗ the design is recorded" (its `## Design` cites no ADR) and "✗ next prompt" — while the close said 21/21 green. S06's boot would tell the agent to fix a merged session. | 🟡 MED |
 | F63 | start | First commit blocked: `.ai/SESSION`=05 but SESSION-BOOT still 04. The message was clear; one retry. | ⚪ LOW |
 | F64 | close | To pass the advice check the agent changed a `deferred:` answer to `obeyed:`. It may be true — watch, not fixed. | ⚪ LOW (watch) |
+| F47 | carried | Options copied from a summary keep their jargon. | ⚪ LOW (parked) |
+| F56 | carried | The session guard cannot tell a command runs in another project. | ⚪ LOW (parked) |
+| F50 | carried | Hit in S174 itself: the session guard blocked an edit script whose heredoc TEXT held a branch command. The block's "write it to a file" hint got through in one try — the message fix works. | 🟡 MED (not fixed in code, by S173 decision) |
+| F57 | carried | The Coder check reads only `1. …` plan steps. | ⚪ LOW (parked, "no more policing") |
 
 Went right: tech-lead first (F31, fifth time ✓) · the agent's own `git push` allowed ✓ · a commit message quoting `vajra next --role` was not blocked (F50 did not bite) ✓ · post-merge sync + prune ✓.
 Not exercised: the advance (F51/F52), `cd` into a worktree then push (the `cwd` check).
 
 ## Goal
-1. _From the founder's run._
+1. Fix what the founder's rudra session 05 run surfaced (F58–F63), all of it (his call, 2026-09-22):
+   the agent could not open its own PR, never saw the to-do list after boot, was told to revert
+   Vajra's own update, and lost three tries to two unclear commit blocks.
 
 ## Deliverables
-1. _From the founder's run, plus the carried items above._
+1. F58 — an approved agent whose PR command falls off the allow-list is told it IS approved and
+   given the one shape that passes (`--body-file`); the boot note says the same.
+2. F59/F62 — once a session's close is on main, `vajra next --steps` shows the next session's start
+   (its branch, its prompt, then the normal list), never the merged one's ✗ lines; every open list
+   says to re-run it after each step.
+3. F60 — boot names Vajra's own uncommitted update (proved by its `vajra-render-sha` trailer) as
+   "commit first, never revert"; a hand-edited Vajra file is named as a hand edit.
+4. F61 — the 3-file block says the files are still staged: `git reset -q` first.
+5. F63 — the SESSION vs SESSION-BOOT block names the line to set; the counter step says both move
+   together.
+6. Carried, not fixed: F47, F56, F57 (parked LOW), F64 (watch) — each stays in the findings table.
 
 ## Acceptance
-1. _Each item something he can check himself._
+1. With `VAJRA_ALLOW_COMMIT=05` on `session-05-x`, `gh pr create --body "$(cat <<EOF …)"` is still
+   blocked (exit 2) and the message starts "NOT THIS SPELLING" and names `--body-file`; the
+   `--body-file` form passes; a merge and an unapproved launch print the old message.
+2. `vajra next --steps` on rudra's `main` (S05 merged) prints "session 05 is merged — session 06
+   starts here" with the branch as the next step and no "what is left in session 05"; a green close
+   still on its branch keeps its own list.
+3. Boot on rudra lists its 3 changed hooks as Vajra's update with "Never revert"; a copy with one
+   hook hand-edited names that one as a hand edit instead.
+4. A 5-file agent commit is blocked with "STILL STAGED — unstage first: git reset -q".
+5. `.ai/SESSION`=05 with SESSION-BOOT at 04 is blocked with the `- **Number:** 05` line to set.
+6. No check got looser: a listed set of commands gets the same exit code from the publish guard and
+   pre-commit before S174 (`f170e1c`) and after.
+7. The findings table still lists F47, F56, F57 and F64 with a severity.
 
 ## Design
-- design-significant: <yes|no — decided from the findings>
+- design-significant: no
+
+Five message changes and one choice of which session a read-only advice list describes. No new
+component, gate, store or command; "merged" reuses `releaser::shipped_close` (S172, DECISION-007).
+Every block keeps its exact allow/deny decision — only the words after a decision grew.
 
 ## Plan
-1. <filled in from the findings>
+- step 1 — F58: publish-guard names the passing shape when the launch approval covers the branch; boot note too. covers: 1
+- step 2 — F59/F62: `--steps` hands a merged session over to the next start; re-run line; counter step names SESSION-BOOT. covers: 2, 5
+- step 3 — F60: boot proves and names Vajra's own uncommitted update. covers: 3
+- step 4 — F61/F63: the two commit blocks say how to get past them. covers: 4, 5
+- step 5 — verify (incl. old-vs-new decisions), demo, summary, carried items. covers: 1, 2, 3, 4, 5, 6, 7
+
+## Execution
+- step 1 — done: 5d2ae17
+- step 2 — done: ccb3169
+- step 3 — done: bc1cc5a
+- step 4 — done: 77d2e33
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.

@@ -653,6 +653,21 @@ mod tests {
         assert!(out.contains("YOUR NEXT STEP: the tech-lead"), "{out}");
     }
 
+    /// S174 F63: rudra S05 (and Vajra S174) moved `.ai/SESSION` and hit the pre-commit drift block.
+    #[test]
+    fn the_counter_step_says_session_and_boot_move_together() {
+        let d = repo();
+        let step = steps(d.path(), 1)
+            .into_iter()
+            .find(|s| s.what.contains("session number"))
+            .unwrap();
+        assert!(
+            step.how.contains("SESSION-BOOT's Number together"),
+            "{}",
+            step.how
+        );
+    }
+
     /// Outside git nothing rolls over: the same list as before S174.
     #[test]
     fn no_git_means_no_rollover() {
