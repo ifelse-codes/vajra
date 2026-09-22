@@ -5,7 +5,7 @@
   Start in a FRESH chat.
 
 ## Current Session
-- **Number:** 172 — CLOSED. CODE, interactive: the founder's own `rudra` session 03 run produced nine findings (F35–F43); all nine fixed, plus the carried belt-split test. Summary: `sessions/session-172-summary.md`. Review: `sessions/session-172-review.md`.
+- **Number:** 173 — CLOSED. CODE, interactive: the founder's own `rudra` session 03 run produced nine findings (F35–F43); all nine fixed, plus the carried belt-split test. Summary: `sessions/session-173-summary.md`. Review: `sessions/session-173-review.md`.
   Verify: `scripts/verify-session-172.sh` (28/0). Demo: `scripts/demo-session-172.sh` (14 live checks).
   Decision: DECISION-007, S172 addendum — a session the human already merged is never re-graded; the closing gates bind pre-merge, at closeout.
 
