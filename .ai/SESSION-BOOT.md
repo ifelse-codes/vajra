@@ -1,7 +1,8 @@
 # Session Boot
 
 ## Next Session
-- **S175 — mandatory NO-CODE Ground Truth, with rudra session 06 as its evidence** — `prompts/175-task-ground-truth.md` (**Status: DRAFT** — drafted from S174's recommended candidate 1; the founder has not picked yet — if he picks 2 (GT on the 0.2.0 release) or 3 (GT on the close's paperwork), rewrite it from that pick). Before he starts: reinstall `vajra`, `vajra init --sync-fleet` in rudra (never revert what it changes), launch with `VAJRA_ALLOW_COMMIT=06 vajra claude`.
+- **S175 — rudra session 06 with S174's fixes in** — `prompts/175-task-keep-testing.md` (**APPROVED**, founder 2026-09-22: same rudra test, and **no review-only session until S180**). Its deliverable 0 comes first: the every-5th ground-truth cadence becomes config (`ground_truth_next_session: 180`), because today S175 would announce itself as ground truth and its close would skip the CODE checks.
+  Before he starts: rudra is already synced — **4 Vajra files wait there to be committed, never reverted**. Launch: `VAJRA_ALLOW_COMMIT=06 vajra claude`.
   Start in a FRESH chat.
 
 ## Current Session

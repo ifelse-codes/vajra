@@ -2,9 +2,9 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S174 complete; S175 drafted (founder's pick pending)
+## Between Sessions — S174 merged (#211); S175 approved
 
-**Next: Session 175 — mandatory NO-CODE Ground Truth, with rudra session 06 as its evidence** (drafted from S174's recommended candidate 1; options 2 and 3 are in `sessions/session-174-summary.md`). Brief: `prompts/175-task-ground-truth.md` — **Status: DRAFT**. Before he starts: reinstall `vajra`, sync rudra (never revert what it changes), launch with `VAJRA_ALLOW_COMMIT=06 vajra claude`. Start in a FRESH chat.
+**Next: Session 175 — rudra session 06 with S174's fixes in** (founder, 2026-09-22: the same rudra test continues; the next review-only session is **S180**, not 175). Brief: `prompts/175-task-keep-testing.md` — **APPROVED**. Deliverable 0: move the ground-truth cadence into `.ai/CONSTRAINTS.yaml` (`ground_truth_next_session: 180`) so a non-GT session still gets the full CODE close checks. The S180 ground-truth brief is parked at `prompts/180-task-ground-truth.md`.
 
 ## Session 174 — Interactive: rudra session 05 — COMPLETE
 
