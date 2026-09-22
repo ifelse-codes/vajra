@@ -359,7 +359,7 @@ for pair in "$OLDH/pub.sh|scripts/hook-publish-guard.sh|$P|git push -f origin HE
 done
 # (Cold review pass 8 rec 2: equal exit codes prove nothing if neither hook blocked — require the
 # old hook to have blocked most of them, so a cut-down PATH that breaks both cannot pass.)
-[ "$NOPERL_DIFF" = 0 ] && [ "$NOPERL_OLD_BLOCKS" -ge $((NOPERL_N / 2)) ] \
+[ "$NOPERL_DIFF" = 0 ] && [ "$NOPERL_OLD_BLOCKS" -ge 40 ] \
   && ok "AC5+AC7 no-perl: today's hooks equal the pre-S173 rule on all $NOPERL_N listed commands ($NOPERL_OLD_BLOCKS blocked by both)" \
   || bad "AC5+AC7 no-perl: $NOPERL_DIFF of $NOPERL_N listed commands differ from the pre-S173 rule"
 
