@@ -1,19 +1,19 @@
-# Session 175 — Ground Truth, with rudra session 06 as its evidence
+# Session 180 — Ground Truth, with the rudra runs since S173 as its evidence
 
-> **Status:** DRAFT — drafted at the S174 close from its summary's recommended candidate 1. The
-> founder has not picked yet; if he picks 2 (the 0.2.0 release) or 3 (the close's paperwork), this
-> file is rewritten from that pick.
+> **Status:** DRAFT — moved here from S175 by the founder, 2026-09-22: the rudra test sessions
+> continue through S179 and the next review-only session is **S180**. Rewrite its Goal from the runs
+> S175–S179 actually produce.
 
 ## Type
-- **NO-CODE. Mandatory (175 % 5 == 0).** No Vajra source edits · no Vajra commits except the GT report
+- **NO-CODE. The founder's next review-only session (S180).** No Vajra source edits · no Vajra commits except the GT report
   on a housekeeping branch · no Vajra PRs besides that one.
-- The founder runs rudra's session 06 under today's Vajra. rudra's own code is rudra's session, not
+- The founder runs the rudra sessions since S174 under today's Vajra. rudra's own code is rudra's session, not
   Vajra's; Vajra is only watched.
 
 ## Before he starts
 1. `cargo install --path /Users/suman/playground/vajra` (S174's fixes).
 2. `cd ~/playground/rudra && vajra init --sync-fleet` — do NOT revert anything it changes.
-3. `VAJRA_ALLOW_COMMIT=06 vajra claude`.
+3. `VAJRA_ALLOW_COMMIT=NN vajra claude`.
 
 ## Goal
 1. **Did S174 land?** From rudra 06's record, answer yes/no with the line that shows it:
@@ -28,10 +28,10 @@
 3. **Point at the user:** the shortest path from here to a stranger getting value (the 0.2.0 release
    is still unpublished).
 
-Output: `sessions/session-175-ground-truth.md`. New findings are listed with a severity for S176.
+Output: `sessions/session-180-ground-truth.md`. New findings are listed with a severity for S181.
 
 ## Carried in
-- **S174 review, deferred:** rec 2 — the boot notice does not name synced role files (`.claude/agents/*.md`, stamp in the header) as Vajra's update; rec 6 — build AC3's expected set from everything the sync changed, not the hook's own rule; rec 7 — also look at untracked files a sync adds; rec 5 — F64 watch with a trigger: compare each `obeyed:` sha against what its rec asked. Written down here for S176, not built in a NO-CODE session.
+- **S174 review, deferred:** rec 2 — the boot notice does not name synced role files (`.claude/agents/*.md`, stamp in the header) as Vajra's update; rec 6 — build AC3's expected set from everything the sync changed, not the hook's own rule; rec 7 — also look at untracked files a sync adds; rec 5 — F64 watch with a trigger: compare each `obeyed:` sha against what its rec asked. Written down here for S181, not built in a NO-CODE session.
 - F47, F56, F57 (LOW, parked) · F64 (watch: an advice answer switched to pass) · F50 (not fixed in
   code) · the `cwd` check (never exercised live).
 
@@ -40,6 +40,6 @@ Output: `sessions/session-175-ground-truth.md`. New findings are listed with a s
 - The founder signs off the report before code resumes.
 
 ## Delta
-- `+` `sessions/session-175-ground-truth.md`
+- `+` `sessions/session-180-ground-truth.md`
 - `~` S174's fixes checked against a real run
 - `-` nothing removed
