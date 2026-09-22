@@ -214,7 +214,10 @@ forms() { # forms <trigger> — each line of output is one command (NUL-separate
     "$(printf 'bash -c "\n%s\n"' "$t")" \
     "eval \"$t\"" \
     "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nmsg\nEOF\n)" && %s' "$t")" \
-    "$(printf "echo 'x \"\$(cat <<'EOF'\n'; %s; echo '\nEOF\n)\"'" "$t")"
+    "$(printf "echo 'x \"\$(cat <<'EOF'\n'; %s; echo '\nEOF\n)\"'" "$t")" \
+    "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nmsg\nEOF\n%s\nEOF\n)"' "$t")" \
+    "$(printf 'git commit -m "$(cat <<-'"'"'EOF'"'"'\nmsg\n\tEOF\n%s\nEOF\n)"' "$t")" \
+    "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nmsg\n  EOF\n%s\nEOF\n)"' "$t")"
 }
 prop() { # prop <old-hook> <new-hook> <fixture-root> <trigger> [session-owner-line]
   local old="$1" new="$2" root="$3" t="$4" own="${5:-}" c o n

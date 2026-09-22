@@ -76,9 +76,16 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 vajra_heredoc() { VQ="${1:-0}" perl -0777 -pe '
   my $q = ($ENV{VQ} // "") eq "1";
   my $src = $_;
-  s{"\$\(\s*cat\s+<<-?[ \t]*([\x27"])(\w+)\1[ \t]*\n(?:.*?\n)??\t*\2[ \t]*\n\s*\)"}{
+  # Bash ends a heredoc at the FIRST line that is the delimiter. So no body line may even look
+  # like one (any leading/trailing blanks): the hidden span then ends where bash ends it, or
+  # earlier — never later (cold review pass 3: a lazy body ran past an early delimiter and hid
+  # the lines bash runs after it). A plain << must end on the bare delimiter; <<- may indent it
+  # with tabs. Anything that does not fit stays visible.
+  s{"\$\(\s*cat\s+<<(-?)[ \t]*([\x27"])(\w+)\2[ \t]*\n((?:(?![ \t]*\3[ \t]*\n)[^\n]*\n)*)(\t*)\3\n\s*\)"}{
+    my ($dash, $tabs, $all) = ($1, $5, $&);
     my $pre = substr($src, 0, $-[0]);
-    ((($pre =~ tr/\x27//) % 2 == 0) && (($pre =~ tr/"//) % 2 == 0)) ? ($q ? "Q" : "") : $&
+    ((($pre =~ tr/\x27//) % 2 == 0) && (($pre =~ tr/"//) % 2 == 0) && ($dash eq "-" || $tabs eq ""))
+      ? ($q ? "Q" : "") : $all
   }gse;
 '; }
 # ...and then ADDS what bash runs from inside quotes — every `$( … )` and backtick body, and every
