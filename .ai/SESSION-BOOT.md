@@ -5,11 +5,12 @@
   Start in a FRESH chat.
 
 ## Current Session
+- **Number:** 174 — IN PROGRESS. CODE, interactive: the founder's rudra session 05 run (PR #6, merged by him). Findings F58–F64 in `prompts/174-task-keep-testing.md`; fixing all of them (his call), small commits.
+
+## Prior Session
 - **Number:** 173 — CLOSED. CODE, interactive: the founder's own rudra session 04 run; findings collected during it and fixed after (his S173 rule). F45–F57: eight fixed in code, F48 by the new step order, F47/F56/F57 parked LOW, **F50 not fixed in code** (the block message names `git commit -F`). The agent may now push its own session branch and open its PR under the launch approval (F55, founder pick B). Summary: `sessions/session-173-summary.md`. Review: `sessions/session-173-review.md` (passes 1–8 REJECT, then ACCEPT).
   Verify: `scripts/verify-session-173.sh` (87/0). Demo: `scripts/demo-session-173.sh` (18 live checks).
   Decision: DECISION-007, S173 addendum.
 
-## Prior Session
-- **Number:** 172 — CLOSED. Interactive: rudra session 03's nine findings (F35–F43) fixed; a merged session is never re-graded (`sessions/session-172-summary.md`).
 
 **New chat.**
