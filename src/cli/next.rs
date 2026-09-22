@@ -1391,8 +1391,8 @@ fn run_dump() -> Result<()> {
         // S171: the checklist, and the one move to make next. The founder's first-run test had the
         // agent stop and ASK him what came next — the demo, the ranked options, the next prompt and
         // the whole crew were skipped because they lived in prose nobody was forced to read.
-        print!("{}", nextstep::format_steps(&nextstep::steps(&root, n), n));
-        print!("{}", nextstep::format_options(&root, n));
+        // S174 review rec 4: the same hand-over as `--steps` — a merged session is never re-graded here.
+        print!("{}", nextstep::render(&root, n, &current_branch(&root)));
         println!();
     }
 

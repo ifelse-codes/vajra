@@ -102,8 +102,17 @@ if [ "$HAVE_RUDRA" = 1 ]; then
      && grep -q "hook-session-start.sh" <<<"$(sed -n "/Vajra's own update/,/Never revert/p" <<<"$OUT")"; then
     ok "AC3 real sync into rudra ($CH hooks changed): boot names them Vajra's update, 'Never revert'"
   else bad "AC3 sync notice ($CH changed): $(grep -A6 'vajra update' <<<"$OUT")"; fi
+  # Review rec 3: the exact set the sync changed, not "at least one".
+  WANT="$(git -C "$RC" diff --name-only HEAD | while read -r g; do tail -n 1 "$RC/$g" | grep -qE '^# vajra-render-sha: [0-9a-f]{64}$' && echo "$g"; done | sort)"
+  GOT="$(sed -n "/Vajra's own update/,/Never revert/p" <<<"$OUT" | sed -nE 's/^ +(\.[^ ]+)$/\1/p' | sort)"
+  [ -n "$WANT" ] && [ "$WANT" = "$GOT" ] && ok "AC3 the notice names exactly the $(wc -l <<<"$WANT" | tr -d ' ') stamped files the sync changed" \
+    || bad "AC3 exact set: want [$WANT] got [$GOT]"
+  # Review rec 3: a line appended AFTER the stamp is a hand edit too (named, not skipped).
+  A="$RC/.ai/hooks/hook-publish-guard.sh"; echo "# appended by hand" >> "$A"
+  OUT="$(PATH="$T/bin:$PATH" CLAUDE_PROJECT_DIR="$RC" bash scripts/hook-session-start.sh 2>&1)"
+  grep -q "hook-publish-guard.sh" <<<"$(sed -n '/changed by hand/,/^$/p' <<<"$OUT")" \
+    && ok "AC3 a line appended after the stamp is named as a hand edit" || bad "AC3 append after stamp: $(grep -A8 'vajra update' <<<"$OUT")"
   F="$RC/.ai/hooks/hook-session-guard.sh"
-  if git -C "$RC" diff --quiet -- .ai/hooks/hook-session-guard.sh; then printf '\n' >> "$F"; fi
   sed -i.bak '2i\
 # a hand edit
 ' "$F" && rm -f "$F.bak"

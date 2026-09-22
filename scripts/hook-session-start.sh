@@ -65,7 +65,15 @@ VAJRA_CHANGED=""; HAND_EDITED=""
 while IFS= read -r f; do
   [ -n "$f" ] && [ -f "$ROOT/$f" ] || continue
   want=$(tail -n 1 "$ROOT/$f" | sed -nE 's/^# vajra-render-sha: ([0-9a-f]{64})$/\1/p')
-  [ -n "$want" ] || continue
+  if [ -z "$want" ]; then
+    # S174 review rec 1: a stamp that moved off the last line, or was deleted, is a hand edit of a
+    # Vajra file (the file carries a stamp, or its committed copy did) — named, never skipped.
+    if grep -qE '^# vajra-render-sha: [0-9a-f]{64}$' "$ROOT/$f" 2>/dev/null \
+       || (cd "$ROOT" && git show "HEAD:$f" 2>/dev/null | grep -qE '^# vajra-render-sha: [0-9a-f]{64}$'); then
+      HAND_EDITED="$HAND_EDITED$f"$'\n'
+    fi
+    continue
+  fi
   have=$(sed '$d' "$ROOT/$f" | { shasum -a 256 2>/dev/null || sha256sum; } | cut -d' ' -f1)
   if [ "$have" = "$want" ]; then VAJRA_CHANGED="$VAJRA_CHANGED$f"$'\n'; else HAND_EDITED="$HAND_EDITED$f"$'\n'; fi
 done <<<"$(cd "$ROOT" && git diff --name-only HEAD 2>/dev/null || true)"
