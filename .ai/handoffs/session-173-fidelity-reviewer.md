@@ -1,32 +1,33 @@
 ---
 role: fidelity-reviewer
 session: 173
-agent: claude-code-subagent (verified: toolu_015kYaEhdRkd83Ws8VBR8Emd)
-source-sha: 9d5bc9dee5e2b20498217bf13a664cb91452260ef415fb9a3738fe8118fb8436
-captured: 2026-09-22T03:39:54Z
+agent: claude-code-subagent (verified: toolu_01Kcu9zaTDsM8cDyyfT9dBQW)
+source-sha: a67fac564fa59604039fe8b6ca6301e6c3467cb4c68ed30fd28746dcc784e6ec
+captured: 2026-09-22T03:53:11Z
 cost_usd: null
 ---
 
 # Fidelity-reviewer handoff — session 173
 
-# Fidelity review, pass 2 — session 173 (fresh cold reviewer, read-only)
+# Fidelity review, pass 3 — session 173 (fresh cold reviewer, from scratch, read-only)
 
-**Verdict:** REJECT — 14 SHIPPED · 3 PARTIAL · 0 NOT-BUILT.
+**Verdict:** REJECT — 12 SHIPPED · 5 PARTIAL · 0 NOT-BUILT.
 
-PARTIAL: D4 (the bash-like `vajra_scan` still hides code bash runs: an unquoted heredoc body's `$( )`/backticks; a heredoc fed to a shell as `cat <<EOF | bash`, `bash -s <<EOF`, `sh /dev/stdin <<EOF`, `source /dev/stdin <<EOF`; an empty heredoc whose regex end skips to a later EOF; `<<` inside quotes/comments/here-strings opening a fake heredoc; an apostrophe in a `#` comment read as a quote — all blocked by the pre-S173 sed), D6 and A7 (with VAJRA_ALLOW_COMMIT, `gh pr create --body "$(cat <<EOF … $(gh pr merge 5 --admin) … EOF)"` is ALLOWED because `$(cat H)` is deleted before the shape check; `-R other/repo` allowed).
+The flaw, as a rule: the one exception in `vajra_heredoc` hides `"$(cat <<'EOF' … EOF … )"`, but its body pattern is lazy and spans lines and is accepted only where the closing line is followed by `)"`. Bash ends a heredoc at the FIRST delimiter line; when that line is not followed by `)"`, the pattern runs on to a later one and hides everything between — lines bash runs inside the `$( )`. With no approval the pre-S173 guard blocked those lines; today they vanish. The additions extractor reads the already-stripped text, so "adding text can only block more" is false for this case. With VAJRA_ALLOW_COMMIT=NN the same span becomes `Q` before the `$`/backtick/newline checks, so a merge or a force-push to main can ride a `gh pr create` body of that shape.
 
-Fakest green: the "S173 regression, rec 3" block in verify-session-173.sh plus the addendum sentence "anything bash would RUN stays visible" — it proves pass 1's four named examples were patched, not the property.
+PARTIAL: D4, D6, AC5, AC7, AC9 (step 7 was still `done: <sha>` at the time read).
+
+Fakest green: the "property" check — 15 hand-picked shapes, none with a mid-body delimiter; it would stay green with the regression live.
 
 ## Recommendations
-1. Hide a heredoc body only when its end marker is quoted; for an unquoted `<<EOF` keep `$( )` and backticks in the body visible.
-2. Keep a heredoc body visible whenever the line sends it to a shell in any form (`| bash`, `bash -s`, `/dev/stdin`, `source`).
-3. Move heredoc detection into the left-to-right scanner, drop `#` comments, and match end markers exactly as bash does.
-4. In the F55 allow path, stop deleting `$(cat H)` to nothing; refuse anything whose raw command holds an unquoted heredoc or a newline outside a quoted heredoc; refuse `-R`/`--repo` on `gh pr create`.
-5. Add a before/after property fixture: every hole × git push, gh pr merge, vajra next --advance, git checkout -b session-05-x, with no approval, through the f02d8e1 hook and today's; fail if anything goes from blocked to allowed.
-6. Correct the DECISION-007 S173 addendum: drop "anything bash would RUN stays visible" until rec 5 proves it; list the heredoc and comment limits that remain.
-7. Before stamping, replace `step 7 — done: <sha>` with a real commit and add the prompt's `## Advice` answers for the tech-lead and design-advisor handoffs.
-8. Once recs 1-4 land, run a fresh cold review against the new diff, not a patch-check of this list.
+rec 1 — Fix the heredoc exception so it ends where bash ends: the body must not contain a line equal to the delimiter, and the match is accepted only if that first closing line is followed by `)"`; otherwise leave the text visible.
+rec 2 — Run the "additions" extractor (`$( )`, backticks, `eval`/`sh -c`) on the ORIGINAL command, not on the text the exception has already stripped.
+rec 3 — On the F55 allow path, replace a heredoc span with `Q` only after checking that its body has no line equal to the delimiter; otherwise send the command to the human.
+rec 4 — Add a mid-body-delimiter shape to `forms()` in both loops, and confirm it goes red on the current hooks before the fix and green after.
+rec 5 — Reword the DECISION-007 S173 addendum: drop "cannot regress anything", describe the property check as "N named shapes", and fix the out-of-order list numbering.
+rec 6 — Fill `## Execution` step 7 with the real commit sha before closing.
+rec 7 — Restate Deliverable 4 in the prompt to match what shipped, or else build what it says.
 
 ## Handoff Delta
-- `~` re-run: fidelity-reviewer handoff replaced (2245 bytes now vs 1654 bytes prior)
+- `~` re-run: fidelity-reviewer handoff replaced (2220 bytes now vs 2147 bytes prior)
 - prior stage: this session's earlier fidelity-reviewer handoff

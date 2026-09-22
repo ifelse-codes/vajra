@@ -2,8 +2,8 @@
 role: tech-lead
 session: 173
 agent: claude-code-subagent (verified: toolu_01AgeL9nrLyueSoXz64MVcsd)
-source-sha: 9dd76e9c28115a9f583200d1a4c649a8b4cba0c970d97b1e998d5a74c1408329
-captured: 2026-09-21T19:13:17Z
+source-sha: 1742fc754cfaa7d2c701fa260baf82088bf2a992765a513f4bc7b7f00da55001
+captured: 2026-09-22T03:46:51Z
 cost_usd: null
 ---
 
@@ -24,11 +24,11 @@ crew release-coordinator — deferred-budget — budget: 80000 tokens — nothin
 crew fidelity-reviewer — required — budget: 400000 tokens — mandatory under DECISION-007; one pass at close on the prompt plus `git diff f02d8e1..HEAD`, checking especially AC7's block list and AC5 (the two places a guard got looser).
 
 ## Recommendations
-1. Dispatch only design-advisor and fidelity-reviewer this session, each with a named-file brief, and record the other seven as deferred-budget.
-2. Dispatch design-advisor BEFORE writing the DECISION-005 S173 addendum, and put its answer on the refspec question into the addendum's "honest risk" text.
-3. Follow the new F53 order in this session's own close: finish the prompt (step 7's sha, Advice answers) and all handoffs, THEN stamp the review with `--inputs-sha 173` LAST; run the fidelity-reviewer once, re-run only on a REJECT.
-4. Build nothing for F47 (LOW, parked) or F48 (checked) at close; carry both into S174's prompt as watch items with the F31 watch.
+rec 1 — Dispatch only design-advisor and fidelity-reviewer this session, each with a named-file brief, and record the other seven as deferred-budget.
+rec 2 — Dispatch design-advisor BEFORE writing the DECISION-005 S173 addendum, and put its answer on the refspec question into the addendum's "honest risk" text.
+rec 3 — Follow the new F53 order in this session's own close: finish the prompt (step 7's sha, Advice answers) and all handoffs, THEN stamp the review with `--inputs-sha 173` LAST; run the fidelity-reviewer once, re-run only on a REJECT.
+rec 4 — Build nothing for F47 (LOW, parked) or F48 (checked) at close; carry both into S174's prompt as watch items with the F31 watch.
 
 ## Handoff Delta
-- `+` new: first tech-lead handoff for this session (3157 bytes of findings)
-- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
+- `~` re-run: tech-lead handoff replaced (3185 bytes now vs 3061 bytes prior)
+- prior stage: this session's earlier tech-lead handoff
