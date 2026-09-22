@@ -179,7 +179,8 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             "the work is merged and the branch is gone",
             "run scripts/verify-closeout.sh ON THE BRANCH first — since S172 nothing re-checks \
              it after the merge — then push the branch and open the pull request yourself when the \
-             launch gave VAJRA_ALLOW_COMMIT=NN (S173), ask the human to merge it, then prune the \
+             launch gave VAJRA_ALLOW_COMMIT=NN (S173) — `git push -u origin <branch>`, then \
+             `gh pr create --title \"…\" --body-file sessions/session-NN-summary.md` — ask the human to merge it, then prune the \
              branch. If main has commits GitHub lacks, `vajra next --release NN` names them — tell \
              the human which ones (e.g. a Vajra sync); only the human pushes main"
                 .replace("NN", &nn),

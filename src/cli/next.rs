@@ -1991,6 +1991,12 @@ fn confirm(question: &str) -> Result<bool> {
     // asks nobody. So: a person at a terminal is asked; with no terminal (an agent, CI, a script)
     // there is nobody to ask, and the advance says so instead of pretending.
     if !io::stdin().is_terminal() {
+        // Cold review pass 4 rec 6: a piped answer is still an answer — `echo n |` stops.
+        let mut piped = String::new();
+        let _ = io::stdin().lock().read_line(&mut piped);
+        if matches!(piped.trim().to_ascii_lowercase().as_str(), "n" | "no") {
+            return Ok(false);
+        }
         eprintln!(
             "{question} — not asked: no terminal to ask on. Advancing. (In a chat, the session \
              guard is what stops a second session starting; this question never did.)"
