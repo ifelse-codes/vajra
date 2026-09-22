@@ -53,8 +53,10 @@
 ## Goal
 Keep Vajra honest against a real project. The founder ran rudra's session 04 end to end under
 `vajra claude` (build, review ACCEPT, merged as rudra PR #5). Eleven problems came out of it
-(F45–F55); ten are fixed, F47 is parked LOW. F44, carried from S172, was hit live as F50 and is
-fixed with it. F31 was watched a fourth time: clean.
+(F45–F55), plus F56–F57 found at close. Eight are fixed in code; F48 was resolved by the new step
+order; F47, F56 and F57 are parked LOW; F50 (F44, carried from S172, hit live) is NOT fixed in code —
+every way of hiding commit-message text from the guards failed review, so the block message now
+names the way out. F31 was watched a fourth time: clean.
 
 ## Deliverables
 1. **Boot survives a handover that names no prompt (F45)** — the S172 F38 check no longer kills
@@ -64,11 +66,10 @@ fixed with it. F31 was watched a fourth time: clean.
    instead of one line per item, under "was merged; for the record".
 3. **No fake question (F52)** — `--advance` asks `[y/N]` only at a real terminal; with none it says
    nobody was asked. The checklist no longer tells the agent to pipe `echo y`.
-4. **The guards read commands, not prose (F50/F44)** — session and publish guards keep the
-   pre-S173 line-by-line quote strip, hide ONE extra shape (a quoted-delimiter
-   `"$(cat <<'EOF' … EOF)"` message, bounded exactly where bash ends it), and additionally read
-   `$( )`, backtick and `eval`/`sh -c` bodies. (Restated at close after three cold-review REJECTs:
-   the first cut stripped backticks and multi-line quotes, which hid commands bash runs.)
+4. **The guards are not loosened (F50/F44)** — both keep the pre-S173 line-by-line quote strip and
+   additionally read `$( )`, backtick and `eval`/`sh -c` bodies. F50 is NOT fixed in code: after
+   five cold-review REJECTs, every way of hiding commit-message text hid something a shell runs,
+   so the block message now names the way out (`git commit -F <file>`). (Restated at close.)
 5. **The close is in order up front (F53, F54)** — the checklist names answering every advisor
    recommendation (with the exact line format) and the review stamp as its own step, LAST.
 6. **The agent ships its own branch (F55, founder pick B)** — with `VAJRA_ALLOW_COMMIT=NN` at
@@ -86,8 +87,8 @@ fixed with it. F31 was watched a fourth time: clean.
 3. `vajra next --advance` on a clone of rudra after its merged S04 prints no per-item `✗` for S04,
    and still prints the next session's design/plan reasons in full.
 4. With no terminal, `--advance` does not ask and says so; nothing in the checklist says `echo y`.
-5. The session guard lets rudra's exact heredoc commit through and still blocks a real
-   `vajra next --advance`, a piped one, and `git checkout -b session-05-…`.
+5. The session guard allows nothing it blocked before S173 (old rule vs new on a listed set), still blocks a real, piped, backticked and `bash -c` advance and `git checkout -b
+   session-05-…`, and its block names `git commit -F <file>`; a message from a file passes.
 6. The checklist has an advice step naming `obeyed: <sha>` / `deferred: <path>`, and a stamp step
    marked LAST with `--inputs-sha NN`; only the merge comes after it.
 7. With `VAJRA_ALLOW_COMMIT=04` on `session-04-*`, the publish guard allows `git push` of that
@@ -129,7 +130,7 @@ listed in the DECISION-007 S173 addendum.
 
 ## Plan
 - step 1 — F45: boot survives a handover with no prompt. covers: 1
-- step 2 — F50/F44: session guard strips heredocs, multi-line quotes, backticks. covers: 5
+- step 2 — F50/F44: the guards keep the pre-S173 rule and read MORE (`$( )`, backticks, `bash -c`); F50 handled by the block message. covers: 5
 - step 3 — F46/F51/F52: merged session not re-graded or walled; no fake question. covers: 2, 3, 4
 - step 4 — F53/F54: advice and stamp-LAST steps in the checklist. covers: 6
 - step 5 — F55: launch approval ships the session's own branch. covers: 7
@@ -143,12 +144,12 @@ listed in the DECISION-007 S173 addendum.
 - step 4 — done: 5e2c2b7
 - step 5 — done: 00fdca9
 - step 6 — done: 8b43a27
-- step 7 — done: 8207d28 / 036e2a3 / 56add04 / 695e32e
+- step 7 — done: 8207d28 / 036e2a3 / 56add04 / 695e32e / 61855d1 / 75c97a8 / dbb82bd / 9146a15 / 9f80324 / 5351bf6 / 38aa003 / 59c5b84 / 16a495d / ad45d5e
 
 ## Advice
 
 Three roles were dispatched: `tech-lead` (mandatory, first), `design-advisor` (required) and
-`fidelity-reviewer` (required; three passes — REJECT, REJECT, then pass 3).
+`fidelity-reviewer` (required; passes 1–8 REJECT, each followed by a fix; pass 9 ACCEPT).
 
 **tech-lead** (`.ai/handoffs/session-173-tech-lead.md`):
 - tech-lead rec 1 — obeyed: 81702af (only design-advisor and fidelity-reviewer dispatched, each with a named-file brief; the other seven recorded `deferred-budget`)
@@ -162,6 +163,10 @@ Three roles were dispatched: `tech-lead` (mandatory, first), `design-advisor` (r
 - design-advisor rec 3 — obeyed: c222516 (the push permission is an allow-list of exact shapes; everything else falls back to the human)
 - design-advisor rec 4 — obeyed: 8207d28 (`HEAD:session-05-y`, `:session-05-y` and the other listed forms are failing cases in `scripts/verify-session-173.sh`)
 - design-advisor rec 5 — obeyed: 0593349 (the no-terminal message says only "not asked: no terminal to ask on"; the six disclosures are in the addendum, 8207d28)
+
+**fidelity-reviewer** (`.ai/handoffs/session-173-fidelity-reviewer.md` — pass 9, **ACCEPT**, 17 of 17 SHIPPED; passes 1–8 are in git at 37c8043, 695e32e, 3bad781, f5d6682, 9146a15, 5351bf6, 59c5b84 and 16a495d, each answered by the commit that followed):
+- fidelity-reviewer rec 1 — obeyed: ad45d5e (the no-perl minimum is 40, near the 44 the fixture produces, not `N/2`)
+- fidelity-reviewer rec 2 — obeyed: ad45d5e (the full verify was run on the branch after that change: 87 pass, 0 fail, "44 blocked by both" from a real run)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
