@@ -2,7 +2,7 @@
 
 **Type:** CODE, interactive (the founder's own run; findings collected during it, fixed after it closed).
 **Branch:** `session-173-keep-testing`. **Brief:** `prompts/173-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-173.sh` — 71 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
+**Verify:** `scripts/verify-session-173.sh` — 76 pass, 0 fail. **Demo:** `scripts/demo-session-173.sh`
 — 17 live checks, all green. **Decision:** DECISION-007, S173 addendum.
 
 ## What happened
@@ -57,7 +57,7 @@ in the verify script.
 | 1 | Boot survives a handover naming no prompt (F45) | SHIPPED | verify AC1; demo before/after runs the old hook from `f02d8e1` (exit 1) against today's (exit 0) |
 | 2 | Merged session not sent back, walled or re-graded (F46, F51) | SHIPPED | verify AC2 (unit test + rudra clone), AC3 (rudra at `3c401ec`: counts, no per-item `✗`; S05's design reason still in full) |
 | 3 | No fake question (F52) | SHIPPED | verify AC4 (advance on rudra with no terminal says it did not ask; unit test: no step says `echo y`) |
-| 4 | Guards read commands, not prose (F50/F44) | SHIPPED (after pass 3) | verify AC5: rudra's exact heredoc commit and a quoted mention pass; the before/after check (0 of 72 executed forms newly allowed) against the f02d8e1 hooks. Passes 1–3 were PARTIAL — see below |
+| 4 | Guards read commands, not prose (F50/F44) | SHIPPED (after pass 4) | verify AC5: rudra's exact heredoc commit and a quoted mention pass; the before/after check (0 of 92 listed commands newly allowed) against the f02d8e1 hooks. Passes 1–4 were PARTIAL — see below |
 | 5 | The close in order up front (F53, F54) | SHIPPED | verify AC6: advice step, then stamp LAST, then merge; formats named (unit test) |
 | 6 | The agent ships its own branch (F55) | SHIPPED | verify AC7: the allowed shapes pass; merge, main, force, delete, tags, other branches, joined/repeated `--head`, and every form both reviewers named go back to the human |
 | 7 | Sync says whose files it wrote (F49) | SHIPPED | verify AC8 on a rudra clone |
@@ -93,7 +93,16 @@ one exception: its body pattern could run past an early `EOF` line and hide the 
 after it — with no approval, and inside an approved `gh pr create` body. Fixed the rule (no line
 inside the hidden span may look like the delimiter, so it ends where bash ends it or earlier), and
 added the shape to the before/after check first: it went red on 12 commands with the old exception,
-green after. 18 shapes × 4 triggers = 72 commands now; 71 checks in all.
+green after.
+
+**Pass 4: REJECT** (13 SHIPPED · 4 PARTIAL). Two gaps: the exception's "everything before it is
+properly quoted" test only COUNTED quote marks, so a prefix with an even count while bash was still
+inside a quote let the span hide a line bash runs; and the new allow path refused `-R other/repo`
+but not the glued `-Rother/repo`. Fixed: the exception now needs a plain `git commit`/`gh pr create`
+opening its line with nothing quoted before it at all; `-R` in any spelling is refused. Both
+reviewer cases went red on the pass-4 code (exit 0) and green now. Also: the boot check now proves
+the to-do list printed, the check is labelled "old vs new on a listed set" rather than a property,
+and a piped `n` stops an advance again. 23 shapes × 4 triggers = 92 commands; 76 checks in all.
 
 ## What this does NOT claim
 
@@ -115,10 +124,10 @@ green after. 18 shapes × 4 triggers = 72 commands now; 71 checks in all.
 
 ## The fakest green here
 
-**The before/after check is 72 named commands, not bash's grammar.** It is far stronger than the
+**The before/after check is 92 named commands, not bash's grammar.** It is far stronger than the
 example lists passes 1 and 2 caught — it compares the whole old rule to the new one on every shape
-at once — but its 18 shapes are the ones three reviewers found, and pass 3 found one the first 15
-missed. A 19th spelling no one has tried is not covered.
+at once — but its 23 shapes are the ones four reviewers found, and passes 3 and 4 each found one
+the earlier list missed. A 24th spelling no one has tried is not covered.
 
 Also: **verify AC7's allow cases are the ones I thought of plus the ones two reviewers named.** They
 prove the allow-list does what it says for those strings; they do not prove there is no other

@@ -1479,23 +1479,25 @@ now a failing case in `scripts/verify-session-173.sh`. Quoted text is read as a 
 deleted, so a quote cannot hide a `+`.
 
 **What a guard reads: back to the old rule, plus one exception and one addition (F50; cold
-review passes 1, 2 and 3 all REJECT).** Both guards strip quoted text line by line, so a multi-line
+review passes 1–4 all REJECT).** Both guards strip quoted text line by line, so a multi-line
 commit message quoting `vajra next --advance` blocked its own commit (F50). Two cleverer readers
 were tried — whole-command stripping, then a bash-like left-to-right scanner — and each review found
 commands bash RUNS that it hid, all blocked before S173. The shipped rule is deliberately dull:
 1. **the pre-S173 line-by-line quote strip, unchanged;**
-2. **one exception:** the exact shape `"$(cat <<'EOF' … EOF)"` — a QUOTED delimiter, in which bash
-   expands nothing — is hidden as text, only when every quote before it is balanced, and only when
-   no line inside it even looks like the delimiter. Pass 3 found the first version's body pattern
-   could run past an early delimiter line and hide the commands bash runs after it; now the hidden
-   span ends where bash ends the heredoc, or earlier, never later;
+2. **one exception:** the exact shape `git commit … -m "$(cat <<'EOF' … EOF)"` (or
+   `gh pr create … --body "$(cat <<'EOF' …`) — a QUOTED delimiter, in which bash expands nothing —
+   is hidden as text. Its END is where bash ends the heredoc (no line inside may even look like the
+   delimiter — pass 3). Its START is pinned too (pass 4: counting quote marks is not bash quoting):
+   the span must open a line as a plain `git commit`/`gh pr create` with no quoting in its own
+   arguments, and nothing between the start of the command (or the last hidden span) and it may
+   hold a quote, backslash, `$`, backtick or `<` — so bash cannot be inside a quote or heredoc there.
 3. **one addition:** the guard also reads every `$( … )` and backtick body and every `eval` /
    `sh -c` string. It reads them from the command with only the exception's span removed — a span
    which, by (2), holds nothing but `cat` and literal text. That closes holes that predate S173
    (`echo "$(git push -f origin main)"` was unguarded before).
 The allow path for F55 reads the RAW command with only that exception removed: any `$`, backtick,
 backslash or line break left sends it to the human. The verify script compares the old rule with
-the new on **18 named command shapes × 4 triggers** (72 commands) through the f02d8e1 hooks and
+the new on **23 named command shapes × 4 triggers** (92 commands) through the f02d8e1 hooks and
 today's — none may go from blocked to allowed, and none that runs a merge or a push to main may ride
 the approval. It is a longer list of examples, not a proof over bash's grammar.
 
@@ -1521,7 +1523,7 @@ path; it now also publishes. That overrides the S37 publish guard's own rule (pu
    pre-push hook (`.githooks/pre-push`) blocks an agent pushing `main` as a second lock — only when
    `core.hooksPath` points at `.githooks`, and never under `--no-verify` (which the allow-list
    refuses, but which an unclassified form above could carry).
-3. **`gh pr create` is allowed with any `--base`.** Opening a PR is not a merge; `gh api …/merge`
+3. **`gh pr create` is allowed with any `--base`** (never another repo: `-R`, glued or clustered, and `--repo` are refused). Opening a PR is not a merge; `gh api …/merge`
    was never guarded and still is not.
 4. **An unreviewed branch becomes visible to others** once the agent pushes it — the cost of the
    founder's choice, named.
@@ -1531,8 +1533,8 @@ path; it now also publishes. That overrides the S37 publish guard's own rule (pu
    earlier message's "the human's approval is the plan they OK'd" was dropped: nothing checks it.
 
 
-7. **The before/after check is 72 named commands, not bash's grammar.** It covers the shapes
-   three reviews found; an 19th spelling nobody has tried is not covered.
+7. **The before/after check is 92 named commands, not bash's grammar.** It covers the shapes
+   four reviews found; a 24th spelling nobody has tried is not covered.
 8. **The addition over-blocks on purpose.** A heredoc written to a FILE whose text shows a Vajra
    command in backticks (markdown) now trips the session guard — this session hit it writing its
    own records. The way around is to write files with the agent's file tool, not a shell heredoc.
