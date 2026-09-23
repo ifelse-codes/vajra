@@ -2,9 +2,14 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S175 complete on its branch; S176 pending the founder's pick
+## Between Sessions — S175 complete on its branch; S176 approved
 
-**Next: Session 176** — 3 ranked candidates in `sessions/session-175-summary.md`; brief not yet written, waiting on the founder's pick.
+**Next: Session 176 — rudra session 07 with S175's fixes in** (founder picked candidate A,
+2026-09-23: same rudra test continues). Brief: `prompts/176-task-keep-testing.md` — **APPROVED**.
+Before he starts: `cargo install --path` is NOT yet done for S175's fixes — `hook-publish-guard.sh`
+and `hook-session-start.sh` are binary-embedded, so the F65 merge fix isn't in rudra until a
+rebuild + `vajra init --sync-fleet`. Launch: `VAJRA_ALLOW_COMMIT=07 vajra claude` (no
+`VAJRA_ALLOW_PUBLISH` unless he wants it — merge stays strictly hand-typed, his call last session).
 
 ## Session 175 — Interactive: rudra session 06 — COMPLETE
 

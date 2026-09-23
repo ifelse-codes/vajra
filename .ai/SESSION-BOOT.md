@@ -1,7 +1,13 @@
 # Session Boot
 
 ## Next Session
-- **S176 — pending the founder's pick.** 3 ranked candidates in `sessions/session-175-summary.md`; brief not yet written.
+- **S176 — rudra session 07 with S175's fixes in** — `prompts/176-task-keep-testing.md`
+  (**APPROVED**, founder 2026-09-23: candidate A, same rudra test continues).
+  Before he starts: `cargo install --path` is **not yet done** for S175's fixes —
+  `hook-publish-guard.sh` (the merge exclusion, F65) and `hook-session-start.sh` are BINARY-EMBEDDED,
+  so a rebuild + `cd ~/playground/rudra && vajra init --sync-fleet` is required before this run, or
+  rudra still carries the old bug. Launch: `VAJRA_ALLOW_COMMIT=07 vajra claude` — no
+  `VAJRA_ALLOW_PUBLISH` unless he wants it (merge stays strictly hand-typed, his call last session).
   Start in a FRESH chat.
 
 ## Current Session
