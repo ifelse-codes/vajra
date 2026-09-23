@@ -428,7 +428,8 @@ pub fn plan_gate(root: &Path, session: u32) -> PlanVerdict {
                             format!(
                                 "{rel} `## Plan` cites acceptance item(s) {nums}, but the prompt has \
                                  no `## Acceptance` section — was it deleted? Restore it from git \
-                                 (`git log -p -- {rel}`)"
+                                 (`git log -p -- {rel}`). If the items are there under another \
+                                 heading, name it `## Acceptance` so the check can read them"
                             )
                         });
                     }
@@ -744,6 +745,12 @@ Do one thing.
         assert!(
             gone.contains("no `## Acceptance` section — was it deleted?"),
             "{gone}"
+        );
+        // S176 judge (design-advisor rec 4): a list under another heading is the second cause.
+        let renamed = msg("# S\n## Success criteria\n1. a\n## Plan\n1. x — covers: 1\n");
+        assert!(
+            renamed.contains("under another heading, name it `## Acceptance`"),
+            "{renamed}"
         );
     }
 
