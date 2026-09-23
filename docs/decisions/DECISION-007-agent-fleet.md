@@ -1589,3 +1589,29 @@ across a listed set of session numbers (1, 4, 5, 10, 25, 60, 90, 120, 165, 170, 
    each self-contained (no sourcing between them, by design — see their own headers), so introducing
    one now would be a bigger change than the founder asked for. If a seventh site needs this same
    check, extracting a `scripts/lib-ground-truth.sh` becomes the right call.
+
+**Same session, a second gap — found live, not planned.** The founder ran rudra session 06 under
+today's fix, launched as `VAJRA_ALLOW_PUBLISH=1 VAJRA_ALLOW_COMMIT=06 vajra claude`. Reading the
+transcript back (the paste he shared was only the cost receipt): `VAJRA_ALLOW_PUBLISH=1` allowed
+**all five** guarded actions with no distinction — `git push`, `gh pr create`, `gh pr merge`,
+`glab mr create`, `glab mr merge` — so the agent ran `gh pr merge 7 --merge --delete-branch` and
+`gh pr merge 8 …` itself, unsupervised. F55 (S173, above) built a *narrower* mechanism
+(`VAJRA_ALLOW_COMMIT=NN`) specifically to keep "merging stays with the human" — its allow-list
+already excludes any command containing `merge` — but the older, blanket `VAJRA_ALLOW_PUBLISH=1`
+bypass in `hook-publish-guard.sh` was never revisited when F55 shipped, so setting it silently
+overrode the rule the narrower path was built to keep.
+
+**The fix.** `hook-publish-guard.sh`'s `VAJRA_ALLOW_PUBLISH=1` bypass now excludes `gh pr merge` /
+`glab mr merge` (`IS_MERGE`, checked before the bypass). Those two actions fall through to the
+normal maturity-gated block (L2/L3 → exit 2; L1 → advise, same as every other guard here) with a
+message naming the founder as the one who runs the merge, and stating plainly that no env var
+enables it — not even `VAJRA_ALLOW_PUBLISH=1`. `git push` and `gh pr create` are untouched.
+Confirmed against the founder's own command (`gh pr merge 7 --merge --delete-branch`) and an
+old-vs-new diff over 10 commands: exactly the 2 merge actions tightened, 0 unexpected changes
+(`scripts/verify-session-175.sh` AC2/AC3).
+
+**Asked plainly, answered plainly.** This was surfaced as a question, not assumed as a bug — the
+founder had typed the flag himself, and the flag did exactly what its own comment said. His answer:
+"no, merge should stay human — fix it." Recorded here because it resolves, in the founder's own
+words, which of the two "merge stays human" mechanisms (F55's allow-list vs. the blanket publish
+bypass) governs when they conflict: the narrower one wins, always.
