@@ -133,20 +133,20 @@ independent role, not the builder this session.
   fixed — no new gate on Vajra's own paperwork without the founder's yes)
 
 **qa-specialist** (`.ai/handoffs/session-175-qa-specialist.md`):
-- qa rec 1 — obeyed: 93dec6b (AC1h/i/j: live-execute the 3 previously-untested sites)
-- qa rec 2 — obeyed: 50027f1 (rec offered "replace or supplement" — the cold review's rec 3 pushed
+- qa-specialist rec 1 — obeyed: 93dec6b (AC1h/i/j: live-execute the 3 previously-untested sites)
+- qa-specialist rec 2 — obeyed: 50027f1 (rec offered "replace or supplement" — the cold review's rec 3 pushed
   past the session's first pass of "supplement" to the stronger option: AC1a/b are now retired and
   rebuilt as a live sweep of the real `hook-session-start.sh`, not a self-only model)
-- qa rec 3 — obeyed: 4cf1d8d (the publish-guard fix committed before this session's close)
-- qa rec 4 — obeyed: 93dec6b (AC1k: the structural marker-presence floor across all 6 sites)
+- qa-specialist rec 3 — obeyed: 4cf1d8d (the publish-guard fix committed before this session's close)
+- qa-specialist rec 4 — obeyed: 93dec6b (AC1k: the structural marker-presence floor across all 6 sites)
 
 **fidelity-reviewer** (`.ai/handoffs/session-175-fidelity-reviewer.md`, `sessions/session-175-review.md`, ACCEPT 11/11 SHIPPED):
-- reviewer rec 1 — obeyed: 50027f1 (the overclaiming header banner corrected)
-- reviewer rec 2 — obeyed: 613ac3b (DECISION-007 addendum now describes the live sweep, not a model)
-- reviewer rec 3 — obeyed: 50027f1 (AC1a/b retired and rebuilt against the real file — this also
+- fidelity-reviewer rec 1 — obeyed: 50027f1 (the overclaiming header banner corrected)
+- fidelity-reviewer rec 2 — obeyed: 613ac3b (DECISION-007 addendum now describes the live sweep, not a model)
+- fidelity-reviewer rec 3 — obeyed: 50027f1 (AC1a/b retired and rebuilt against the real file — this also
   surfaced and fixed a second, unrelated real bug in AC3: it compared `HEAD`'s publish guard
   against itself once this session's own fix had landed there, silently zeroing its own count)
-- reviewer rec 4 — obeyed: (this file)
+- fidelity-reviewer rec 4 — obeyed: a23f019 (this file)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
