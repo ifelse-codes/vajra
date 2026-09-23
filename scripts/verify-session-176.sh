@@ -6,7 +6,7 @@
 # HEAD-drift lesson: a relative ref stops meaning "before" once the fix lands on main).
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
-PASS=0; FAIL=0
+PASS=0; FAIL=0; SKIP=0
 ok()  { echo "PASS: $1"; PASS=$((PASS+1)); }
 bad() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
 T="$(mktemp -d)"; trap 'git worktree remove --force "$T/old" >/dev/null 2>&1; rm -rf "$T"' EXIT
@@ -27,14 +27,15 @@ plan() { ( cd "$1" && "$2" next --check-plan "$3" 2>&1 ); }
 # --- AC1: whole Acceptance section gone, plan still cites --------------------------------------
 printf '# S20\n## Goal\ng\n## Plan\n1. a — covers: 1, 2\n2. b — covers: 3\n' > "$T/gone.md"
 P=$(proj 20 "$T/gone.md"); OUT=$(plan "$P" "$NEW" 20); RC=$?
-if [ "$RC" -ne 0 ] && grep -q "verdict: NOT READY" <<<"$OUT" && grep -q "cites acceptance item(s) 1, 2, 3" <<<"$OUT"; then
+if [ "$RC" -ne 0 ] && grep -q "verdict: NOT READY" <<<"$OUT" && grep -q "cites acceptance item(s) 1, 2, 3" <<<"$OUT" \
+   && grep -q "no \`## Acceptance\` section — was it deleted?" <<<"$OUT"; then
   ok "AC1 no Acceptance + plan cites 1,2,3 → NOT READY, names 1, 2, 3, exit $RC"
 else bad "AC1 (exit $RC): $OUT"; fi
 
 # --- AC2: list cut short -----------------------------------------------------------------------
 printf '# S21\n## Acceptance\n1. x\n2. y\n3. z\n## Plan\n1. a — covers: 1, 2, 3\n2. b — covers: 4, 5\n' > "$T/cut.md"
 P=$(proj 21 "$T/cut.md"); OUT=$(plan "$P" "$NEW" 21); RC=$?
-if [ "$RC" -ne 0 ] && grep -q "cites acceptance item(s) 4, 5" <<<"$OUT" && grep -q "(3 numbered item(s)" <<<"$OUT"; then
+if [ "$RC" -ne 0 ] && grep -q "cites acceptance item(s) 4, 5" <<<"$OUT" && grep -q "has only 3 numbered item(s) — was the list cut?" <<<"$OUT"; then
   ok "AC2 list cut to 1–3, plan cites 4,5 → NOT READY, names 4, 5, exit $RC"
 else bad "AC2 (exit $RC): $OUT"; fi
 
@@ -75,7 +76,7 @@ RUDRA="$HOME/playground/rudra"
 if [ -d "$RUDRA/prompts" ]; then
   R=$(sweep "$RUDRA" 9); FL=${R%|*}; CNT=${R#*|}
   [ -z "$FL" ] && ok "AC4 rudra: $CNT prompts (00–09), 0 flips" || bad "AC4 rudra flips = [$FL]"
-else echo "NOTE: $RUDRA absent — rudra sweep not run (machine-local evidence)"; fi
+else SKIP=$((SKIP+1)); echo "SKIP: AC4 rudra — $RUDRA absent, sweep NOT run (counted, never a silent pass)"; fi
 
 # --- AC5: stations counter + --steps read Dangling as not passed ------------------------------
 P=$(proj 08 tests/fixtures/f70-rudra-s08-wiped.md)
@@ -91,8 +92,14 @@ grep -q "✓ every acceptance item is covered by a plan step" <<<"$SO" \
   || bad "AC5 steps old=[$(grep 'acceptance item' <<<"$SO")] new=[$(grep 'acceptance item' <<<"$SN")]"
 
 # --- unit tests (the edge fixtures, dangling-wins, table rows, adds-only no-criteria) ---------
-UT=$(cargo test --release -q --lib planner 2>&1); grep -q "test result: ok. 22 passed" <<<"$UT" \
-  && ok "unit: planner 22/22 (dangling, cut, dangling-wins, edge a/b/c, AC tables, gate message)" || bad "unit planner"
+UT=$(cargo test --release -q --lib planner 2>&1); grep -q "test result: ok. 25 passed" <<<"$UT" \
+  && ok "unit: planner 25/25 (dangling, cut, dangling-wins, edge a/b/c, AC tables any case, sub-headings + fences, cause-specific message)" || bad "unit planner"
 
-echo; echo "=== verify-session-176: $PASS pass, $FAIL fail ==="
+# --- QA rec 1: the freeform shapes that falsely blocked are READY, live, on the binary --------
+printf '# S23\n## Acceptance\n### Core\n1. a\n```\n# a comment\n```\n### Edge\n2. b\n## Plan\n1. x — covers: 1, 2\n' > "$T/sub.md"
+P=$(proj 23 "$T/sub.md"); OUT=$(plan "$P" "$NEW" 23)
+grep -q "verdict: READY" <<<"$OUT" && ok "QA rec 1: ### sub-headings + a code fence inside Acceptance → READY (no false block)" \
+  || bad "QA rec 1 false block: $OUT"
+
+echo; echo "=== verify-session-176: $PASS pass, $FAIL fail, $SKIP skipped ==="
 [ "$FAIL" -eq 0 ]

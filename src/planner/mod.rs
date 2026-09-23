@@ -83,12 +83,30 @@ impl PlanState {
 /// prompts (S156–S168) wrote acceptance that way, so this parser found zero criteria in them and the
 /// Planner passed their plans without checking one citation — the F70 blind spot, found by the
 /// old-vs-new sweep when the new dangling-citation rule flipped them.
+///
+/// Two shapes no longer close the block early (S176, qa-specialist rec 1 — each was a false block
+/// once a cited-but-unfound number began to BLOCK): a deeper sub-heading (`### Edge cases` under
+/// `## Acceptance`) stays inside it, and a fenced code block is skipped whole, so its `# comment`
+/// lines are not headings and its lines are not criteria.
 pub fn acceptance_criteria(content: &str) -> Vec<Criterion> {
     let mut in_block = false;
+    let mut block_level = 0usize;
+    let mut in_fence = false;
     let mut out = Vec::new();
     for line in content.lines() {
         let t = line.trim();
+        if is_fence(t) {
+            in_fence = !in_fence;
+            continue;
+        }
+        if in_fence {
+            continue;
+        }
         if t.starts_with('#') {
+            let level = heading_level(t);
+            if in_block && level > block_level && !is_plan_heading(t) {
+                continue; // a sub-heading of the acceptance section, not its end
+            }
             // Entering the acceptance section, or leaving it at the next heading.
             //
             // A `## Plan` heading NEVER opens the acceptance block, even when it names the word
@@ -99,6 +117,7 @@ pub fn acceptance_criteria(content: &str) -> Vec<Criterion> {
             // Present in every prompt since the heading was adopted; nobody had run `--check-plan`
             // against one until S129 did. The plan heading is the more specific match, so it wins.
             in_block = is_acceptance_heading(t) && !is_plan_heading(t);
+            block_level = level;
             continue;
         }
         if in_block {
@@ -108,6 +127,30 @@ pub fn acceptance_criteria(content: &str) -> Vec<Criterion> {
         }
     }
     out
+}
+
+/// True when the prompt has an acceptance heading at all (outside code fences) — lets the Dangling
+/// message say "the section is gone" vs "the section is there but unnumbered" (S176, QA rec 1).
+pub fn has_acceptance_section(content: &str) -> bool {
+    let mut in_fence = false;
+    for line in content.lines() {
+        let t = line.trim();
+        if is_fence(t) {
+            in_fence = !in_fence;
+        } else if !in_fence && t.starts_with('#') && is_acceptance_heading(t) && !is_plan_heading(t)
+        {
+            return true;
+        }
+    }
+    false
+}
+
+fn is_fence(t: &str) -> bool {
+    t.starts_with("```") || t.starts_with("~~~")
+}
+
+fn heading_level(t: &str) -> usize {
+    t.chars().take_while(|c| *c == '#').count()
 }
 
 /// A heading opens the acceptance block if it names acceptance (the same synonyms the Analyst's
@@ -139,15 +182,16 @@ fn numbered_item(line: &str) -> Option<(u32, String)> {
     (!rest.is_empty()).then(|| (number, rest.to_string()))
 }
 
-/// If `line` is an acceptance table row whose first cell is `ACn` (case-insensitive), return
-/// `(n, second cell)`. The header (`| AC | Criterion |`) and separator rows carry no digits and yield
-/// `None`; so does a sub-labelled `AC1a` (not a whole number — never guessed into criterion 1).
+/// If `line` is an acceptance table row whose first cell is `ACn` (any case; `**AC1**`, `AC 1`,
+/// `AC-1` too), return `(n, second cell)`. The header (`| AC | Criterion |`) and separator rows carry
+/// no digits and yield `None`; so does a sub-labelled `AC1a` (not a whole number — never guessed
+/// into criterion 1).
 fn ac_table_row(line: &str) -> Option<(u32, String)> {
     let mut cells = line.strip_prefix('|')?.split('|').map(str::trim);
-    let label = cells.next()?;
+    let label = cells.next()?.trim_matches('*').trim().to_ascii_uppercase();
     let digits = label
-        .strip_prefix("AC")
-        .or_else(|| label.strip_prefix("ac"))?;
+        .strip_prefix("AC")?
+        .trim_start_matches([' ', '-', '_']);
     let number: u32 = digits.parse().ok()?;
     let text = cells.next().unwrap_or("").to_string();
     Some((number, text))
@@ -356,14 +400,31 @@ pub fn plan_gate(root: &Path, session: u32) -> PlanVerdict {
                         join_nums(missing),
                         join_nums(missing),
                     )),
-                    PlanState::Dangling(cited) => reasons.push(format!(
-                        "{rel} `## Plan` cites acceptance item(s) {} that the prompt does not have \
-                         ({} numbered item(s) found under `## Acceptance`). Either the acceptance \
-                         list was cut or deleted — restore it from git (`git log -p -- {rel}`) — or \
-                         its items are not written as `N.` lines",
-                        join_nums(cited),
-                        criteria.len(),
-                    )),
+                    PlanState::Dangling(cited) => {
+                        let nums = join_nums(cited);
+                        reasons.push(if !criteria.is_empty() {
+                            format!(
+                                "{rel} `## Plan` cites acceptance item(s) {nums}, but `## Acceptance` \
+                                 has only {} numbered item(s) — was the list cut? Restore it from git \
+                                 (`git log -p -- {rel}`), or number the missing items as `N.` lines \
+                                 or `| ACn |` rows",
+                                criteria.len()
+                            )
+                        } else if has_acceptance_section(&content) {
+                            format!(
+                                "{rel} `## Plan` cites acceptance item(s) {nums}, but no item under \
+                                 `## Acceptance` is numbered — write them as `N.` lines or `| ACn |` \
+                                 rows so the check can read them (or restore the list from git if it \
+                                 was cut: `git log -p -- {rel}`)"
+                            )
+                        } else {
+                            format!(
+                                "{rel} `## Plan` cites acceptance item(s) {nums}, but the prompt has \
+                                 no `## Acceptance` section — was it deleted? Restore it from git \
+                                 (`git log -p -- {rel}`)"
+                            )
+                        });
+                    }
                 }
                 plan = Some(state);
             }
@@ -613,6 +674,62 @@ Do one thing.
         assert!(acceptance_criteria("## Delta\n| AC1 | x |\n").is_empty());
     }
 
+    // S176 QA rec 1: shapes that falsely blocked once dangling citations began to block.
+    #[test]
+    fn subheadings_and_code_fences_stay_inside_acceptance() {
+        let sub =
+            "# S\n## Acceptance\n### Core\n1. a\n### Edge\n2. b\n## Plan\n1. x — covers: 1, 2\n";
+        assert_eq!(plan_coverage(sub), PlanState::Covered);
+        let fence =
+            "# S\n## Acceptance\n1. a\n```\n# not a heading\n9. not a criterion\n```\n2. b\n\
+                     ## Plan\n1. x — covers: 1, 2\n";
+        assert_eq!(
+            acceptance_criteria(fence)
+                .iter()
+                .map(|c| c.number)
+                .collect::<Vec<_>>(),
+            vec![1, 2]
+        );
+        assert_eq!(plan_coverage(fence), PlanState::Covered);
+        // A same-level heading still ends the section.
+        let next =
+            "# S\n## Acceptance\n1. a\n## Notes\n2. not a criterion\n## Plan\n1. x — covers: 1\n";
+        assert_eq!(plan_coverage(next), PlanState::Covered);
+    }
+
+    #[test]
+    fn ac_labels_read_in_any_case_and_common_spellings() {
+        for label in ["ac2", "Ac2", "**AC2**", "AC 2", "AC-2", "AC02"] {
+            let p = format!("# S\n## Acceptance\n| {label} | x |\n## Plan\n1. a — covers: 2\n");
+            assert_eq!(plan_coverage(&p), PlanState::Covered, "label {label}");
+        }
+    }
+
+    #[test]
+    fn dangling_message_names_the_actual_cause() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("prompts")).unwrap();
+        let msg = |body: &str| {
+            fs::write(tmp.path().join("prompts/30-task-x.md"), body).unwrap();
+            plan_gate(tmp.path(), 30).reasons.join("\n")
+        };
+        let cut = msg("# S\n## Acceptance\n1. a\n## Plan\n1. x — covers: 1, 2\n");
+        assert!(
+            cut.contains("has only 1 numbered item(s) — was the list cut?"),
+            "{cut}"
+        );
+        let unnumbered = msg("# S\n## Acceptance\n- a\n## Plan\n1. x — covers: 1\n");
+        assert!(
+            unnumbered.contains("no item under `## Acceptance` is numbered"),
+            "{unnumbered}"
+        );
+        let gone = msg("# S\n## Plan\n1. x — covers: 1\n");
+        assert!(
+            gone.contains("no `## Acceptance` section — was it deleted?"),
+            "{gone}"
+        );
+    }
+
     #[test]
     fn gate_blocks_dangling_and_names_numbers_and_causes() {
         let tmp = tempfile::tempdir().unwrap();
@@ -627,7 +744,7 @@ Do one thing.
         let r = v.reasons.join("\n");
         assert!(r.contains("cites acceptance item(s) 1, 2"), "{r}");
         assert!(
-            r.contains("cut or deleted") && r.contains("`N.` lines"),
+            r.contains("no `## Acceptance` section — was it deleted?"),
             "{r}"
         );
         let out = format_plan_checklist(&v);

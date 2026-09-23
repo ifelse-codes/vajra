@@ -79,7 +79,7 @@ slide_rule() {
     "Plan misses an item AND cites a gone one|✗ names the gone one first|the list itself is the problem" \
     "Acceptance written as an AC1-table|reads it now|11 old briefs used that shape" \
     "No acceptance, plan cites nothing|✓ READY, as before|nothing changed here (adds only)"
-  dk_caption "The message also says the other cause: the items might just not be written as \`1.\` lines."
+  dk_caption "The message names the cause it sees: the section is gone, the list was cut, or its items are not numbered."
 }
 
 slide_cases() {
