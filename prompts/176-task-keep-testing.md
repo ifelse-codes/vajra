@@ -135,7 +135,7 @@ Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (mandatory), 
 independent role, not the builder.
 
 **tech-lead** (`.ai/handoffs/session-176-tech-lead.md`):
-- tech-lead rec 1 — obeyed: 2495780 (only qa-specialist + fidelity-reviewer required; design-advisor dispatched anyway because the close gate mandates it; the other six deferred-budget)
+- tech-lead rec 1 — refused: partly followed — qa-specialist and fidelity-reviewer were the required set as advised, but design-advisor was also dispatched because the close gate mandates it every session (design-advisor-mandate), and release-coordinator was dispatched as the independent obeyed-judge; the other five stayed deferred-budget
 - tech-lead rec 2 — obeyed: 88901e0 (`Dangling` added to `PlanState::blocks()`; `plan_citing_a_deleted_acceptance_list_is_dangling` asserts `blocks()` directly)
 - tech-lead rec 3 — obeyed: 88901e0 (dangling wins; `dangling_wins_over_uncovered` locks it)
 - tech-lead rec 4 — obeyed: 88901e0 (edge fixtures a/b/c in `edge_fixtures_non_numbered_list_prose_and_citing_nothing`; the sweep flipped 12 real prompts of shape (a) — fixed by teaching the parser `| ACn |` rows, never by hiding them; 3 real flips remain)
@@ -145,7 +145,7 @@ independent role, not the builder.
 - design-advisor rec 1 — obeyed: 7a70d35 (`design-significant: yes` recorded)
 - design-advisor rec 2 — obeyed: 7a70d35 (cites DECISION-007's S116 `covers: N` addendum; says the S64 Planner has no record of its own; no new decision file)
 - design-advisor rec 3 — obeyed: 88901e0 (same as tech-lead rec 3 — `Dangling` checked before `Uncovered`, test-locked)
-- design-advisor rec 4 — obeyed: 100095a (the message names the cause it sees — section gone, list cut, or items unnumbered; `dangling_message_names_the_actual_cause` asserts all three; first landed in 88901e0 as one two-cause message)
+- design-advisor rec 4 — obeyed: 18b212e (the no-section message now names both causes — deleted, or the list sits under another heading — with a `## Success criteria` test; the cut/unnumbered causes landed in 100095a)
 - design-advisor rec 5 — obeyed: 7a70d35 (known limit written into `## Design`)
 
 **qa-specialist** (`.ai/handoffs/session-176-qa-specialist.md`):
@@ -159,8 +159,8 @@ independent role, not the builder.
 
 **fidelity-reviewer** (`.ai/handoffs/session-176-fidelity-reviewer.md`, `sessions/session-176-review.md`, ACCEPT):
 - fidelity-reviewer rec 1 — obeyed: d4c1e29 (sub-headings nest only under a `##`-or-deeper Acceptance; a `# Title` naming "acceptance" is not a section for the message either; unit `a_title_naming_acceptance_does_not_swallow_the_document` + a live verify check; `--plan 56` checklist now byte-identical to the old build)
-- fidelity-reviewer rec 2 — obeyed: 4b1df85 (tech-lead rec 5's line now cites the commit that wrote the findings row)
-- fidelity-reviewer rec 3 — obeyed: aedaf3d (F73 row added to the Findings table with severity; the summary the deferrals point at exists)
+- fidelity-reviewer rec 2 — obeyed: aedaf3d (the commit that re-pointed tech-lead rec 5 at 4b1df85, the commit that wrote the F70-residual row)
+- fidelity-reviewer rec 3 — obeyed: 4dddcb3 (commits `sessions/session-176-summary.md`, which the four `deferred:` lines point at; the F73 findings row with severity landed in aedaf3d)
 - fidelity-reviewer rec 4 — obeyed: d4c1e29 (demo scorecard: 26/26 planner, 594/594 all tests, "173 session numbers")
 - fidelity-reviewer rec 5 — obeyed: aedaf3d (DECISION-007-agent-fleet.md: S176 addendum under the S116 `covers: N` contract)
 

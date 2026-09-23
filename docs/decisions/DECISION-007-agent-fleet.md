@@ -1633,7 +1633,8 @@ the closest spine record for its coverage contract.
   leave nothing "missing".
 - **Now:** every number a plan cites must be a criterion the prompt has. Otherwise
   `PlanState::Dangling(numbers)` blocks — checked before `Uncovered` (a wrong list is the root
-  cause) — with a message naming the cause it sees: no `##` Acceptance section (deleted?), fewer
+  cause) — with a message naming the cause it sees: no `##` Acceptance section (deleted, or the list
+  sits under another heading?), fewer
   items than cited (cut?), or items not numbered.
 - **The parser reads more (adds only):** `| ACn | … |` table rows are criteria (11 prompts,
   S156–S168, used that shape and were never coverage-checked); `###` sub-headings and fenced code
