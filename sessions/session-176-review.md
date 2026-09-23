@@ -2,7 +2,7 @@
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** <pending>
+**Review-Inputs-SHA:** fe9c19e439d367669a030e76d21ac3fd8e5ca0bb5185fd87d7d5ecb076245df1 (`scripts/verify-closeout.sh --inputs-sha 176`, run by the orchestrator against the final diff — the reviewer's pass cannot execute code)
 
 10 SHIPPED · 1 PARTIAL (Guardrails) · 0 NOT-BUILT. One cold pass (`fidelity-reviewer`), read-only. Its
 recs 1–5 were applied AFTER this pass (d4c1e29 and the closeout commits) and were not re-reviewed —
