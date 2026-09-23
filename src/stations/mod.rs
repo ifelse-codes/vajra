@@ -251,6 +251,11 @@ fn planner_status(root: &Path, session: u32) -> StationStatus {
             L,
             format!("plan misses criteria {}", join_nums(&missing)),
         ),
+        Some(PlanState::Dangling(cited)) => StationStatus::absent(
+            N,
+            L,
+            format!("plan cites missing criteria {}", join_nums(&cited)),
+        ),
         None => StationStatus::absent(N, L, "no prompt"),
     }
 }

@@ -1620,3 +1620,30 @@ founder had typed the flag himself, and the flag did exactly what its own commen
 "no, merge should stay human — fix it." Recorded here because it resolves, in the founder's own
 words, which of the two "merge stays human" mechanisms (F55's allow-list vs. the blanket publish
 bypass) governs when they conflict: the narrower one wins, always.
+
+## S176 addendum — the Planner checks the `covers: N` contract in both directions
+
+Extends the S116 "`covers: N` contract" section above (that section's "the station's gate is not
+touched" was S116's scope, not a lock). The S64 Planner has no decision record of its own; this is
+the closest spine record for its coverage contract.
+
+- **The gap (F70, rudra S08, live):** the agent's own edit deleted `## Acceptance` (and four other
+  sections) from its approved brief mid-session. The plan still cited `covers: 1 … 7`, and
+  `vajra next --check-plan` said READY — it only checked criteria → citations, and zero criteria
+  leave nothing "missing".
+- **Now:** every number a plan cites must be a criterion the prompt has. Otherwise
+  `PlanState::Dangling(numbers)` blocks — checked before `Uncovered` (a wrong list is the root
+  cause) — with a message naming the cause it sees: no `##` Acceptance section (deleted, or the list
+  sits under another heading?), fewer
+  items than cited (cut?), or items not numbered.
+- **The parser reads more (adds only):** `| ACn | … |` table rows are criteria (11 prompts,
+  S156–S168, used that shape and were never coverage-checked); `###` sub-headings and fenced code
+  stay inside a `##` Acceptance section; a `# Title` naming "acceptance" never opens one that
+  swallows the document.
+- **Kept:** no criteria + a plan citing nothing is still `Covered`.
+- **Evidence:** old (pinned `cd4302b`) vs new over every prompt here (173 session numbers) and in
+  rudra (10): 3 flips, each a real defect in a closed session (155 cites `covers: 1` with no
+  Acceptance; 157 never cites AC5; 166 never cites AC1). `scripts/verify-session-176.sh`.
+- **Not built (founder's yes needed — a new gate):** nothing at close re-runs the Planner, so a
+  mid-session wipe is caught only when someone runs `--check-plan`/`--steps`/`--stations`. And an
+  edit that also deletes the `covers:` markers, or the whole `## Plan`, still passes (S68 class).

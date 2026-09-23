@@ -2,14 +2,17 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S175 complete on its branch; S176 approved
+## Between Sessions — S176 complete on its branch; S177 approved
 
-**Next: Session 176 — rudra session 07 with S175's fixes in** (founder picked candidate A,
-2026-09-23: same rudra test continues). Brief: `prompts/176-task-keep-testing.md` — **APPROVED**.
-Before he starts: `cargo install --path` is NOT yet done for S175's fixes — `hook-publish-guard.sh`
-and `hook-session-start.sh` are binary-embedded, so the F65 merge fix isn't in rudra until a
-rebuild + `vajra init --sync-fleet`. Launch: `VAJRA_ALLOW_COMMIT=07 vajra claude` (no
-`VAJRA_ALLOW_PUBLISH` unless he wants it — merge stays strictly hand-typed, his call last session).
+**Next: Session 177 — rudra session 09 with S176's fix in** (founder picked candidate A, 2026-09-23).
+Brief: `prompts/177-task-keep-testing.md` — **APPROVED**. Before he starts: `cargo install --path`
+(the F70 fix is in the binary; no `--sync-fleet` needed). Launch: `VAJRA_ALLOW_COMMIT=09 vajra claude`.
+
+## Session 176 — Interactive: rudra sessions 07 + 08 — COMPLETE
+
+- Brief: `prompts/176-task-keep-testing.md` (findings F65–F73 from his rudra sessions 07 and 08). Summary: `sessions/session-176-summary.md`. Review: `sessions/session-176-review.md` (ACCEPT).
+- Shipped: F70 — a plan citing acceptance items the brief lacks is NOT READY (`PlanState::Dangling`, cause-specific message) · F72 — `| ACn |` acceptance tables are read (11 briefs were never coverage-checked) · no false blocks on sub-headings, code fences, label spellings, or an "acceptance" title.
+- **Parked:** F67 (receipt misprices Opus 5.5), F71 (remote branch after a GitHub merge). **Disclosed:** F70-residual, F73.
 
 ## Session 175 — Interactive: rudra session 06 — COMPLETE
 

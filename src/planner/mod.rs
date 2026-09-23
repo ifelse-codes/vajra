@@ -51,15 +51,24 @@ pub enum PlanState {
     /// Real plan steps exist, but these acceptance-criterion numbers are cited by no step. BLOCKS —
     /// the plan does not cover the contract. Carries the missing criterion numbers (sorted).
     Uncovered(Vec<u32>),
+    /// Real plan steps cite (`covers: N`) criterion numbers the prompt's acceptance list does NOT
+    /// have (S176, F70). BLOCKS — the contract the plan was written against has been cut: rudra S08's
+    /// agent deleted its own `## Acceptance` mid-session and the plan still read "covered" because
+    /// zero criteria left nothing missing. Carries the cited-but-absent numbers (sorted, deduped).
+    /// Checked BEFORE `Uncovered`: a wrong list is the root cause; re-run once it is fixed.
+    Dangling(Vec<u32>),
     /// Every acceptance criterion is cited by at least one real step. Passes.
     Covered,
 }
 
 impl PlanState {
-    /// A blocking state refuses the advance at L2/L3 (placeholder or uncovered). Absent/Covered do
-    /// not block.
+    /// A blocking state refuses the advance at L2/L3 (placeholder, uncovered, or dangling).
+    /// Absent/Covered do not block.
     pub fn blocks(&self) -> bool {
-        matches!(self, PlanState::Placeholder | PlanState::Uncovered(_))
+        matches!(
+            self,
+            PlanState::Placeholder | PlanState::Uncovered(_) | PlanState::Dangling(_)
+        )
     }
 }
 
@@ -69,12 +78,38 @@ impl PlanState {
 /// heading, so numbered lists in later sections (or the Deliverables/Delta) are never captured.
 /// Each top-level `N.` item becomes one `Criterion`; continuation lines (which do not start with a
 /// number) extend nothing — only the first line's text is kept for the surface checklist.
+///
+/// A table row whose first cell is `ACn` (`| AC3 | criterion |`) is criterion `n` too (S176): eleven
+/// prompts (S156–S168) wrote acceptance that way, so this parser found zero criteria in them and the
+/// Planner passed their plans without checking one citation — the F70 blind spot, found by the
+/// old-vs-new sweep when the new dangling-citation rule flipped them.
+///
+/// Two shapes no longer close the block early (S176, qa-specialist rec 1 — each was a false block
+/// once a cited-but-unfound number began to BLOCK): a deeper sub-heading (`### Edge cases` under
+/// `## Acceptance`) stays inside it, and a fenced code block is skipped whole, so its `# comment`
+/// lines are not headings and its lines are not criteria.
 pub fn acceptance_criteria(content: &str) -> Vec<Criterion> {
     let mut in_block = false;
+    let mut block_level = 0usize;
+    let mut in_fence = false;
     let mut out = Vec::new();
     for line in content.lines() {
         let t = line.trim();
+        if is_fence(t) {
+            in_fence = !in_fence;
+            continue;
+        }
+        if in_fence {
+            continue;
+        }
         if t.starts_with('#') {
+            let level = heading_level(t);
+            // Only a block opened at `##` or deeper has sub-headings: a `# Title — acceptance gate`
+            // title must not swallow every `##` section after it (S176 fidelity rec 1 — that
+            // widening re-opened F70 for a title naming "acceptance", e.g. prompts/56).
+            if in_block && block_level >= 2 && level > block_level && !is_plan_heading(t) {
+                continue; // a sub-heading of the acceptance section, not its end
+            }
             // Entering the acceptance section, or leaving it at the next heading.
             //
             // A `## Plan` heading NEVER opens the acceptance block, even when it names the word
@@ -85,15 +120,44 @@ pub fn acceptance_criteria(content: &str) -> Vec<Criterion> {
             // Present in every prompt since the heading was adopted; nobody had run `--check-plan`
             // against one until S129 did. The plan heading is the more specific match, so it wins.
             in_block = is_acceptance_heading(t) && !is_plan_heading(t);
+            block_level = level;
             continue;
         }
         if in_block {
-            if let Some((number, text)) = numbered_item(t) {
+            if let Some((number, text)) = numbered_item(t).or_else(|| ac_table_row(t)) {
                 out.push(Criterion { number, text });
             }
         }
     }
     out
+}
+
+/// True when the prompt has an acceptance SECTION (a `##`-or-deeper heading, outside code fences —
+/// a `# Title` naming "acceptance" is not one) — lets the Dangling message say "the section is gone"
+/// vs "the section is there but unnumbered" (S176, QA rec 1 / fidelity rec 1).
+pub fn has_acceptance_section(content: &str) -> bool {
+    let mut in_fence = false;
+    for line in content.lines() {
+        let t = line.trim();
+        if is_fence(t) {
+            in_fence = !in_fence;
+        } else if !in_fence
+            && heading_level(t) >= 2
+            && is_acceptance_heading(t)
+            && !is_plan_heading(t)
+        {
+            return true;
+        }
+    }
+    false
+}
+
+fn is_fence(t: &str) -> bool {
+    t.starts_with("```") || t.starts_with("~~~")
+}
+
+fn heading_level(t: &str) -> usize {
+    t.chars().take_while(|c| *c == '#').count()
 }
 
 /// A heading opens the acceptance block if it names acceptance (the same synonyms the Analyst's
@@ -123,6 +187,21 @@ fn numbered_item(line: &str) -> Option<(u32, String)> {
     let number: u32 = num.trim().parse().ok()?;
     let rest = rest.trim();
     (!rest.is_empty()).then(|| (number, rest.to_string()))
+}
+
+/// If `line` is an acceptance table row whose first cell is `ACn` (any case; `**AC1**`, `AC 1`,
+/// `AC-1` too), return `(n, second cell)`. The header (`| AC | Criterion |`) and separator rows carry
+/// no digits and yield `None`; so does a sub-labelled `AC1a` (not a whole number — never guessed
+/// into criterion 1).
+fn ac_table_row(line: &str) -> Option<(u32, String)> {
+    let mut cells = line.strip_prefix('|')?.split('|').map(str::trim);
+    let label = cells.next()?.trim_matches('*').trim().to_ascii_uppercase();
+    let digits = label
+        .strip_prefix("AC")?
+        .trim_start_matches([' ', '-', '_']);
+    let number: u32 = digits.parse().ok()?;
+    let text = cells.next().unwrap_or("").to_string();
+    Some((number, text))
 }
 
 /// The human description of a plan step: the line with its `N.` / `-` / `*` marker stripped.
@@ -195,11 +274,13 @@ fn push_citations(line: &str, cited: &mut Vec<u32>) {
 ///
 /// - No `## Plan` heading                              → `Absent`   (WARN — legacy compat)
 /// - heading present, every step a placeholder/empty   → `Placeholder` (BLOCK)
+/// - real steps citing a number the prompt lacks        → `Dangling`  (BLOCK, S176 — wins)
 /// - real steps, some criteria cited by no step        → `Uncovered` (BLOCK)
 /// - every criterion cited by ≥1 real step             → `Covered`  (PASS)
 ///
-/// A prompt with no numbered acceptance criteria has nothing to cover: a substantive plan is
-/// `Covered`, an all-placeholder plan is still `Placeholder`.
+/// A prompt with no numbered acceptance criteria has nothing to cover: a substantive plan that
+/// cites nothing is `Covered`, an all-placeholder plan is still `Placeholder` — but a plan that
+/// still cites `covers: N` against an empty list is `Dangling` (S176, F70).
 pub fn plan_coverage(content: &str) -> PlanState {
     let criteria = acceptance_criteria(content);
     plan_coverage_against(content, &criteria)
@@ -243,6 +324,16 @@ fn plan_coverage_against(content: &str, criteria: &[Criterion]) -> PlanState {
     }
     if !saw_real_step {
         return PlanState::Placeholder;
+    }
+    let mut dangling: Vec<u32> = cited
+        .iter()
+        .copied()
+        .filter(|n| !criteria.iter().any(|c| c.number == *n))
+        .collect();
+    if !dangling.is_empty() {
+        dangling.sort_unstable();
+        dangling.dedup();
+        return PlanState::Dangling(dangling);
     }
     let mut missing: Vec<u32> = criteria
         .iter()
@@ -316,6 +407,32 @@ pub fn plan_gate(root: &Path, session: u32) -> PlanVerdict {
                         join_nums(missing),
                         join_nums(missing),
                     )),
+                    PlanState::Dangling(cited) => {
+                        let nums = join_nums(cited);
+                        reasons.push(if !criteria.is_empty() {
+                            format!(
+                                "{rel} `## Plan` cites acceptance item(s) {nums}, but `## Acceptance` \
+                                 has only {} numbered item(s) — was the list cut? Restore it from git \
+                                 (`git log -p -- {rel}`), or number the missing items as `N.` lines \
+                                 or `| ACn |` rows",
+                                criteria.len()
+                            )
+                        } else if has_acceptance_section(&content) {
+                            format!(
+                                "{rel} `## Plan` cites acceptance item(s) {nums}, but no item under \
+                                 `## Acceptance` is numbered — write them as `N.` lines or `| ACn |` \
+                                 rows so the check can read them (or restore the list from git if it \
+                                 was cut: `git log -p -- {rel}`)"
+                            )
+                        } else {
+                            format!(
+                                "{rel} `## Plan` cites acceptance item(s) {nums}, but the prompt has \
+                                 no `## Acceptance` section — was it deleted? Restore it from git \
+                                 (`git log -p -- {rel}`). If the items are there under another \
+                                 heading, name it `## Acceptance` so the check can read them"
+                            )
+                        });
+                    }
                 }
                 plan = Some(state);
             }
@@ -353,6 +470,12 @@ pub fn format_plan_checklist(verdict: &PlanVerdict) -> String {
     ));
     if verdict.criteria.is_empty() {
         s.push_str("no numbered acceptance criteria found — nothing to plan against yet.\n");
+        if let Some(PlanState::Dangling(d)) = &verdict.plan {
+            s.push_str(&format!(
+                "current `## Plan`: cites missing item(s) → {} (was `## Acceptance` deleted?)\n",
+                join_nums(d)
+            ));
+        }
         return s;
     }
     s.push_str(
@@ -372,6 +495,10 @@ pub fn format_plan_checklist(verdict: &PlanVerdict) -> String {
         Some(PlanState::Uncovered(m)) => s.push_str(&format!(
             "current `## Plan`: uncovered → {}\n",
             join_nums(m)
+        )),
+        Some(PlanState::Dangling(d)) => s.push_str(&format!(
+            "current `## Plan`: cites missing item(s) → {} (was the list cut?)\n",
+            join_nums(d)
         )),
         Some(PlanState::Placeholder) => {
             s.push_str("current `## Plan`: placeholder (replace the `<...>` steps)\n")
@@ -498,6 +625,154 @@ Do one thing.
         // But an all-placeholder plan is still a placeholder, criteria or not.
         let ph = "# S\n## Goal\ng\n## Plan\n1. <replace me>\n";
         assert_eq!(plan_coverage(ph), PlanState::Placeholder);
+    }
+
+    // S176 (F70): rudra S08's agent deleted its own `## Acceptance` (plus Deliverables, Guardrails,
+    // Delta, Assumptions) mid-session. The plan still said `covers: 1..7` and the Planner said READY:
+    // zero criteria → nothing "missing". A cited number the prompt lacks now BLOCKS.
+    #[test]
+    fn plan_citing_a_deleted_acceptance_list_is_dangling() {
+        let wiped =
+            "# S08\n## Goal\ng\n## Design\nd\n## Plan\n1. a — covers: 1, 2\n2. b — covers: 3\n";
+        assert_eq!(plan_coverage(wiped), PlanState::Dangling(vec![1, 2, 3]));
+        assert!(
+            PlanState::Dangling(vec![1]).blocks(),
+            "Dangling must block (rec 2)"
+        );
+    }
+
+    #[test]
+    fn plan_citing_past_a_cut_list_is_dangling() {
+        // PROMPT has criteria 1–3; the plan cites 4 and 5 as well.
+        let cut = format!("{PROMPT}## Plan\n1. a — covers: 1, 2, 3\n2. b — covers: 5, 4, 5\n");
+        assert_eq!(plan_coverage(&cut), PlanState::Dangling(vec![4, 5]));
+    }
+
+    #[test]
+    fn dangling_wins_over_uncovered() {
+        // Criteria 1–3; the plan covers 1 only and cites a missing 7: the list is the root cause.
+        let both = format!("{PROMPT}## Plan\n1. a — covers: 1, 7\n");
+        assert_eq!(plan_coverage(&both), PlanState::Dangling(vec![7]));
+    }
+
+    #[test]
+    fn edge_fixtures_non_numbered_list_prose_and_citing_nothing() {
+        // (a) acceptance written as bullets: no numbered criteria, so `covers: 1` dangles — and the
+        //     gate message names that second cause (items not written as `N.` lines).
+        let bullets = "# S\n## Acceptance\n- it works\n## Plan\n1. build — covers: 1\n";
+        assert_eq!(plan_coverage(bullets), PlanState::Dangling(vec![1]));
+        // (b) a `covers:` on a wrapped continuation line is a citation like any other.
+        let wrapped = format!("{PROMPT}## Plan\n1. build the thing\n   covers: 1, 2, 3, 9\n");
+        assert_eq!(plan_coverage(&wrapped), PlanState::Dangling(vec![9]));
+        // (c) adds only (S173): no criteria + a plan citing nothing stays Covered.
+        let none = "# S\n## Goal\ng\n## Plan\n1. do a real thing\n";
+        assert_eq!(plan_coverage(none), PlanState::Covered);
+    }
+
+    #[test]
+    fn ac_table_rows_are_criteria() {
+        let table = "# S\n## Acceptance (EARS)\n\n| AC | Criterion |\n|----|-----------|\n\
+                     | AC1 | it works |\n| AC2 | it blocks |\n| AC3a | sub-label, not a number |\n\
+                     ## Plan\n1. a — covers: 1\n2. b — covers: 2\n";
+        let c = acceptance_criteria(table);
+        assert_eq!(c.iter().map(|x| x.number).collect::<Vec<_>>(), vec![1, 2]);
+        assert_eq!(c[0].text, "it works");
+        assert_eq!(plan_coverage(table), PlanState::Covered);
+        // A table row outside the acceptance section is never a criterion.
+        assert!(acceptance_criteria("## Delta\n| AC1 | x |\n").is_empty());
+    }
+
+    // S176 QA rec 1: shapes that falsely blocked once dangling citations began to block.
+    #[test]
+    fn subheadings_and_code_fences_stay_inside_acceptance() {
+        let sub =
+            "# S\n## Acceptance\n### Core\n1. a\n### Edge\n2. b\n## Plan\n1. x — covers: 1, 2\n";
+        assert_eq!(plan_coverage(sub), PlanState::Covered);
+        let fence =
+            "# S\n## Acceptance\n1. a\n```\n# not a heading\n9. not a criterion\n```\n2. b\n\
+                     ## Plan\n1. x — covers: 1, 2\n";
+        assert_eq!(
+            acceptance_criteria(fence)
+                .iter()
+                .map(|c| c.number)
+                .collect::<Vec<_>>(),
+            vec![1, 2]
+        );
+        assert_eq!(plan_coverage(fence), PlanState::Covered);
+        // A same-level heading still ends the section.
+        let next =
+            "# S\n## Acceptance\n1. a\n## Notes\n2. not a criterion\n## Plan\n1. x — covers: 1\n";
+        assert_eq!(plan_coverage(next), PlanState::Covered);
+    }
+
+    #[test]
+    fn a_title_naming_acceptance_does_not_swallow_the_document() {
+        // Title opens the block at level 1; `## Goal` must END it, not nest in it — else Goal's
+        // numbered items become criteria and a plan citing them passes with no `## Acceptance`.
+        let titled =
+            "# Session X — acceptance gate\n## Goal\n1. a\n2. b\n## Plan\n1. x — covers: 1, 2\n";
+        assert!(acceptance_criteria(titled).is_empty());
+        assert_eq!(plan_coverage(titled), PlanState::Dangling(vec![1, 2]));
+    }
+
+    #[test]
+    fn ac_labels_read_in_any_case_and_common_spellings() {
+        for label in ["ac2", "Ac2", "**AC2**", "AC 2", "AC-2", "AC02"] {
+            let p = format!("# S\n## Acceptance\n| {label} | x |\n## Plan\n1. a — covers: 2\n");
+            assert_eq!(plan_coverage(&p), PlanState::Covered, "label {label}");
+        }
+    }
+
+    #[test]
+    fn dangling_message_names_the_actual_cause() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("prompts")).unwrap();
+        let msg = |body: &str| {
+            fs::write(tmp.path().join("prompts/30-task-x.md"), body).unwrap();
+            plan_gate(tmp.path(), 30).reasons.join("\n")
+        };
+        let cut = msg("# S\n## Acceptance\n1. a\n## Plan\n1. x — covers: 1, 2\n");
+        assert!(
+            cut.contains("has only 1 numbered item(s) — was the list cut?"),
+            "{cut}"
+        );
+        let unnumbered = msg("# S\n## Acceptance\n- a\n## Plan\n1. x — covers: 1\n");
+        assert!(
+            unnumbered.contains("no item under `## Acceptance` is numbered"),
+            "{unnumbered}"
+        );
+        let gone = msg("# S\n## Plan\n1. x — covers: 1\n");
+        assert!(
+            gone.contains("no `## Acceptance` section — was it deleted?"),
+            "{gone}"
+        );
+        // S176 judge (design-advisor rec 4): a list under another heading is the second cause.
+        let renamed = msg("# S\n## Success criteria\n1. a\n## Plan\n1. x — covers: 1\n");
+        assert!(
+            renamed.contains("under another heading, name it `## Acceptance`"),
+            "{renamed}"
+        );
+    }
+
+    #[test]
+    fn gate_blocks_dangling_and_names_numbers_and_causes() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("prompts")).unwrap();
+        fs::write(
+            tmp.path().join("prompts/08-task-wiped.md"),
+            "# S08\n## Goal\ng\n## Plan\n1. a — covers: 1, 2\n",
+        )
+        .unwrap();
+        let v = plan_gate(tmp.path(), 8);
+        assert!(v.blocked());
+        let r = v.reasons.join("\n");
+        assert!(r.contains("cites acceptance item(s) 1, 2"), "{r}");
+        assert!(
+            r.contains("no `## Acceptance` section — was it deleted?"),
+            "{r}"
+        );
+        let out = format_plan_checklist(&v);
+        assert!(out.contains("cites missing item(s) → 1, 2"), "{out}");
     }
 
     #[test]
