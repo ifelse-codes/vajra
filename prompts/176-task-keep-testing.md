@@ -160,9 +160,9 @@ independent role, not the builder.
 **fidelity-reviewer** (`.ai/handoffs/session-176-fidelity-reviewer.md`, `sessions/session-176-review.md`, ACCEPT):
 - fidelity-reviewer rec 1 — obeyed: d4c1e29 (sub-headings nest only under a `##`-or-deeper Acceptance; a `# Title` naming "acceptance" is not a section for the message either; unit `a_title_naming_acceptance_does_not_swallow_the_document` + a live verify check; `--plan 56` checklist now byte-identical to the old build)
 - fidelity-reviewer rec 2 — obeyed: 4b1df85 (tech-lead rec 5's line now cites the commit that wrote the findings row)
-- fidelity-reviewer rec 3 — obeyed: sessions/session-176-summary.md (F73 row added to the Findings table with severity; the summary the deferrals point at exists)
+- fidelity-reviewer rec 3 — obeyed: aedaf3d (F73 row added to the Findings table with severity; the summary the deferrals point at exists)
 - fidelity-reviewer rec 4 — obeyed: d4c1e29 (demo scorecard: 26/26 planner, 594/594 all tests, "173 session numbers")
-- fidelity-reviewer rec 5 — obeyed: docs/decisions/DECISION-007-agent-fleet.md (S176 addendum under the S116 `covers: N` contract)
+- fidelity-reviewer rec 5 — obeyed: aedaf3d (DECISION-007-agent-fleet.md: S176 addendum under the S116 `covers: N` contract)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
