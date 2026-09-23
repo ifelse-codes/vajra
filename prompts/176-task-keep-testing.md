@@ -123,10 +123,10 @@
 4. `scripts/verify-session-176.sh` + `scripts/demo-session-176.sh` run the above live. covers: 1, 2, 3, 4, 5
 
 ## Execution
-- step 1 — done: 88901e0
+- step 1 — done: 88901e0 / 100095a
 - step 2 — done: 88901e0
 - step 3 — done: b31d7bd
-- step 4 — done: b31d7bd / 70d76a3
+- step 4 — done: b31d7bd / 70d76a3 / 100095a
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (mandatory), `qa-specialist`
@@ -146,6 +146,15 @@ independent role, not the builder.
 - design-advisor rec 3 — obeyed: 88901e0 (same as tech-lead rec 3 — `Dangling` checked before `Uncovered`, test-locked)
 - design-advisor rec 4 — obeyed: 88901e0 (the gate message names both causes: list cut/deleted, or items not written as `N.` lines; `gate_blocks_dangling_and_names_numbers_and_causes` asserts both)
 - design-advisor rec 5 — obeyed: 7a70d35 (known limit written into `## Design`)
+
+**qa-specialist** (`.ai/handoffs/session-176-qa-specialist.md`):
+- qa-specialist rec 1 — obeyed: 100095a (`###` sub-headings and code fences stay inside Acceptance; the Dangling message names the cause it sees — gone / cut / unnumbered; unit-tested + a live verify check)
+- qa-specialist rec 2 — obeyed: 100095a (`ac_table_row` upper-cases the label and accepts `**AC1**`, `AC 1`, `AC-1`; `ac_labels_read_in_any_case_and_common_spellings` kills M7)
+- qa-specialist rec 3 — deferred: sessions/session-176-summary.md
+- qa-specialist rec 4 — deferred: sessions/session-176-summary.md
+- qa-specialist rec 5 — obeyed: 100095a (rudra-absent is a counted SKIP in the verify total)
+- qa-specialist rec 6 — deferred: sessions/session-176-summary.md
+- qa-specialist rec 7 — deferred: sessions/session-176-summary.md
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
