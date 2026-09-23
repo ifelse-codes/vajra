@@ -104,7 +104,10 @@ pub fn acceptance_criteria(content: &str) -> Vec<Criterion> {
         }
         if t.starts_with('#') {
             let level = heading_level(t);
-            if in_block && level > block_level && !is_plan_heading(t) {
+            // Only a block opened at `##` or deeper has sub-headings: a `# Title — acceptance gate`
+            // title must not swallow every `##` section after it (S176 fidelity rec 1 — that
+            // widening re-opened F70 for a title naming "acceptance", e.g. prompts/56).
+            if in_block && block_level >= 2 && level > block_level && !is_plan_heading(t) {
                 continue; // a sub-heading of the acceptance section, not its end
             }
             // Entering the acceptance section, or leaving it at the next heading.
@@ -129,15 +132,19 @@ pub fn acceptance_criteria(content: &str) -> Vec<Criterion> {
     out
 }
 
-/// True when the prompt has an acceptance heading at all (outside code fences) — lets the Dangling
-/// message say "the section is gone" vs "the section is there but unnumbered" (S176, QA rec 1).
+/// True when the prompt has an acceptance SECTION (a `##`-or-deeper heading, outside code fences —
+/// a `# Title` naming "acceptance" is not one) — lets the Dangling message say "the section is gone"
+/// vs "the section is there but unnumbered" (S176, QA rec 1 / fidelity rec 1).
 pub fn has_acceptance_section(content: &str) -> bool {
     let mut in_fence = false;
     for line in content.lines() {
         let t = line.trim();
         if is_fence(t) {
             in_fence = !in_fence;
-        } else if !in_fence && t.starts_with('#') && is_acceptance_heading(t) && !is_plan_heading(t)
+        } else if !in_fence
+            && heading_level(t) >= 2
+            && is_acceptance_heading(t)
+            && !is_plan_heading(t)
         {
             return true;
         }
@@ -695,6 +702,16 @@ Do one thing.
         let next =
             "# S\n## Acceptance\n1. a\n## Notes\n2. not a criterion\n## Plan\n1. x — covers: 1\n";
         assert_eq!(plan_coverage(next), PlanState::Covered);
+    }
+
+    #[test]
+    fn a_title_naming_acceptance_does_not_swallow_the_document() {
+        // Title opens the block at level 1; `## Goal` must END it, not nest in it — else Goal's
+        // numbered items become criteria and a plan citing them passes with no `## Acceptance`.
+        let titled =
+            "# Session X — acceptance gate\n## Goal\n1. a\n2. b\n## Plan\n1. x — covers: 1, 2\n";
+        assert!(acceptance_criteria(titled).is_empty());
+        assert_eq!(plan_coverage(titled), PlanState::Dangling(vec![1, 2]));
     }
 
     #[test]

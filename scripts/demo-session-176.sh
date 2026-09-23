@@ -116,9 +116,9 @@ slide_scorecard() {
   dk_vajra_scorecard "$SESSION"
   dk_scorecard "LIVE — ran while you watched"
   dk_table "Recorded at close — not re-run here|Result" \
-    "old vs new over every brief (verify-session-176.sh)|173 Vajra + 10 rudra · 3 flips, all real (155 157 166)" \
-    "planner unit tests|22 / 22" \
-    "lib tests|542 / 542"
+    "old vs new over every brief (verify-session-176.sh)|173 Vajra session numbers + 10 rudra · 3 flips, all real (155 157 166)" \
+    "planner unit tests|26 / 26" \
+    "all tests (cargo test)|594 / 594"
   dk_verdict "HONEST NOTES" \
     "Fakest green: an edit that ALSO deletes the covers: markers, or the whole ## Plan, still passes — same known limit as S68." \
     "Nothing at close re-runs the plan check. A wipe is caught only if someone runs --check-plan or --steps (a close re-run needs the founder's yes)." \

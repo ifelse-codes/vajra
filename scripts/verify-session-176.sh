@@ -92,14 +92,22 @@ grep -q "✓ every acceptance item is covered by a plan step" <<<"$SO" \
   || bad "AC5 steps old=[$(grep 'acceptance item' <<<"$SO")] new=[$(grep 'acceptance item' <<<"$SN")]"
 
 # --- unit tests (the edge fixtures, dangling-wins, table rows, adds-only no-criteria) ---------
-UT=$(cargo test --release -q --lib planner 2>&1); grep -q "test result: ok. 25 passed" <<<"$UT" \
-  && ok "unit: planner 25/25 (dangling, cut, dangling-wins, edge a/b/c, AC tables any case, sub-headings + fences, cause-specific message)" || bad "unit planner"
+UT=$(cargo test --release -q --lib planner 2>&1); grep -q "test result: ok. 26 passed" <<<"$UT" \
+  && ok "unit: planner 26/26 (dangling, cut, dangling-wins, edge a/b/c, AC tables any case, sub-headings + fences, cause-specific message)" || bad "unit planner"
 
 # --- QA rec 1: the freeform shapes that falsely blocked are READY, live, on the binary --------
 printf '# S23\n## Acceptance\n### Core\n1. a\n```\n# a comment\n```\n### Edge\n2. b\n## Plan\n1. x — covers: 1, 2\n' > "$T/sub.md"
 P=$(proj 23 "$T/sub.md"); OUT=$(plan "$P" "$NEW" 23)
 grep -q "verdict: READY" <<<"$OUT" && ok "QA rec 1: ### sub-headings + a code fence inside Acceptance → READY (no false block)" \
   || bad "QA rec 1 false block: $OUT"
+
+# --- fidelity rec 1: the opposite direction — a `# … acceptance …` title must not swallow the
+# document and mask a real Dangling (the shape of prompts/56-task-fidelity-gate.md's title).
+printf '# Session 24 — the acceptance gate\n## Goal\n1. a\n2. b\n## Plan\n1. x — covers: 1, 2\n' > "$T/title.md"
+P=$(proj 24 "$T/title.md"); OUT=$(plan "$P" "$NEW" 24)
+grep -q "verdict: NOT READY" <<<"$OUT" && grep -q "no \`## Acceptance\` section" <<<"$OUT" \
+  && ok "fidelity rec 1: an 'acceptance' title does not swallow ## Goal — the missing section still blocks" \
+  || bad "fidelity rec 1: title widening masks Dangling: $OUT"
 
 echo; echo "=== verify-session-176: $PASS pass, $FAIL fail, $SKIP skipped ==="
 [ "$FAIL" -eq 0 ]
