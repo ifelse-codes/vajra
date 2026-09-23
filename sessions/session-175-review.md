@@ -4,6 +4,8 @@
 
 **Verdict:** ACCEPT
 
+**Review-Inputs-SHA:** 88838384aba92d69364a3eff2e953c2490407469c5910bc323902be86702b6b0 (`scripts/verify-closeout.sh --inputs-sha 175`, run by the orchestrator against the delivered diff, as the reviewer's own pass could not execute code to compute it)
+
 ---
 
 ## Per-requirement table
@@ -56,4 +58,5 @@ rec 4 — Once this review lands, resolve tech-lead rec 4's disposition (current
 
 ---
 
-**Review-Inputs-SHA:** *not computed — this pass has no code-execution capability (Read/Grep/Glob only) and the reviewer role forbids running code regardless. The orchestrator must run `scripts/verify-closeout.sh --inputs-sha 175` against the landed diff to produce the attestation line before this ACCEPT can close the gate.*
+**Review-Inputs-SHA (orchestrator, attested LAST, after every code/paperwork commit landed):**
+88838384aba92d69364a3eff2e953c2490407469c5910bc323902be86702b6b0
