@@ -108,15 +108,15 @@ exactly where we want them.
 
 ## Execution
 - step 1 — done: 59e1079 / 3eb3af6 / 76f6df9 / e8b23d9
-- step 2 — done: (this file — findings recorded from the transcript)
+- step 2 — done: e8b5d53
 - step 3 — done: 4cf1d8d
 - step 4 — done: 93dec6b / 32851f3
-- step 5 — done: (this file — Findings table row F66)
+- step 5 — done: e8b5d53
 
 ## Advice
-Two roles were dispatched beyond the mandatory `fidelity-reviewer`: `tech-lead` (mandatory, first)
-and `qa-specialist` (the one role it marked required). Every `obeyed:` below will be judged by an
-independent role, not the builder this session.
+Roles dispatched: `tech-lead` (mandatory, first), `qa-specialist` (the one role it marked required),
+`fidelity-reviewer` (mandatory regardless), and `design-advisor` (mandatory once `design-significant:
+yes` was self-assessed). Every `obeyed:` below is judged by an independent role, not the builder.
 
 **tech-lead** (`.ai/handoffs/session-175-tech-lead.md`):
 - tech-lead rec 1 — obeyed: 93dec6b / 32851f3 (only qa-specialist and fidelity-reviewer dispatched;
@@ -147,6 +147,15 @@ independent role, not the builder this session.
   surfaced and fixed a second, unrelated real bug in AC3: it compared `HEAD`'s publish guard
   against itself once this session's own fix had landed there, silently zeroing its own count)
 - fidelity-reviewer rec 4 — obeyed: a23f019 (this file)
+
+**design-advisor** (`.ai/handoffs/session-175-design-advisor.md`) — confirmed `design-significant: yes`
+correct and the DECISION-007 S175 addendum a real, apt citation, factually verified against the diff:
+All three carried into `prompts/180-task-ground-truth.md`'s "Carried in" section — not built this
+session (a bash-only config fix was deliberately kept small; S180's own audit is the natural place
+to weigh the shared-lib debt, the post-S180 dead-cadence trip-wire, and the scaffold-drift owner).
+- design-advisor rec 1 — deferred: prompts/180-task-ground-truth.md
+- design-advisor rec 2 — deferred: prompts/180-task-ground-truth.md
+- design-advisor rec 3 — deferred: prompts/180-task-ground-truth.md
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.

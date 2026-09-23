@@ -34,6 +34,18 @@ Output: `sessions/session-180-ground-truth.md`. New findings are listed with a s
 - **S174 review, deferred:** rec 2 — the boot notice does not name synced role files (`.claude/agents/*.md`, stamp in the header) as Vajra's update; rec 6 — build AC3's expected set from everything the sync changed, not the hook's own rule; rec 7 — also look at untracked files a sync adds; rec 5 — F64 watch with a trigger: compare each `obeyed:` sha against what its rec asked. Written down here for S181, not built in a NO-CODE session.
 - F47, F56, F57 (LOW, parked) · F64 (watch: an advice answer switched to pass) · F50 (not fixed in
   code) · the `cwd` check (never exercised live).
+- **S175 design-advisor, 3 recs, none built (bash-only config fix, deliberately kept small):**
+  rec 1 — the six-copies-no-shared-lib `ground_truth_next_session` check has no tracked extraction
+  trigger; rec 2 — the cadence override is a single integer, not a schedule: once S180 passes,
+  `ground_truth_next_session: 180` silently disables the every-5th default forever unless someone
+  edits it — a boot-time trip-wire once `session > ground_truth_next_session` would surface this;
+  rec 3 — `scripts/verify-closeout-scaffold.sh` keeps lagging the live gate (S154, S175) with no
+  named owner. Audit whether S180 itself needs to name the next `ground_truth_next_session` value
+  (this row is the live proof rec 2 describes) before recommending a fix for rec 2.
+- **F66 (S175, disclosed, not fixed):** `vajra next --check-crew`/`read_handoff` checks a handoff's
+  disk-presence, never git-tracked-ness — cost rudra a same-morning fixup PR (2/8 required handoffs
+  uncommitted at close). No new gate on Vajra's own paperwork without the founder's yes (S175's own
+  guardrails) — his call is still open.
 
 ## Guardrails
 - No Vajra code. A finding is written down, not fixed.
