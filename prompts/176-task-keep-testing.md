@@ -68,6 +68,8 @@
 | F70 | plan | The agent's own python edit of its prompt deleted Deliverables, Acceptance, Guardrails, Delta, Assumptions; it noticed 7 min later, restored from git, disclosed it. Re-created: `--check-plan 08` says **READY** on the wiped prompt (zero criteria → "all covered"); `--validate` says NOT READY; no close check re-runs either. **Founder: FIX.** | MED |
 | F71 | ship | After a GitHub-button merge, `origin/session-08-…` stayed, plus 3 stale S04/S05 remote branches; the release check's `pruned` looks at locals only. Agent noticed, founder asked, agent deleted. **Founder: PARKED.** | LOW |
 | F67 | receipt | $62.71 shown again (same unpriced opus-5-5). Still parked. | parked |
+| F70-residual | close | After the fix, `--check-plan`/`--steps`/`--stations` say NOT READY on a cut brief — but nothing at CLOSE re-runs the Planner (or the Analyst's `--validate`). A mid-session self-wipe is caught only if someone looks. A close re-run is a new gate → needs the founder's explicit yes (tech-lead rec 5). Also: an edit that deletes the `covers:` markers or the whole `## Plan` still passes (S68 class). | MED, disclosed, not built |
+| F72 | history | The F70 sweep found 11 prompts (S156–S168) writing Acceptance as `\| ACn \|` tables the Planner never parsed — it passed their plans without checking one citation (12 sessions incl. S155, which has no Acceptance at all but cites `covers: 1`). Fixed in the same change (the parser reads the table rows). 3 closed sessions now read NOT READY, each real: 155 (no list), 157 (AC5 never cited), 166 (AC1 never cited). History, not reopened. | fixed (with F70) |
 
 ## Goal
 1. Fix F70 (founder pick, 2026-09-23): the Planner check must not say READY when the `## Plan`
@@ -119,6 +121,31 @@
 3. Old-vs-new sweep (saved pre-change binary vs rebuilt) over every prompt here and in rudra, plus the
    re-created rudra S08 wipe; flipped verdicts listed in the verify artifacts. covers: 3, 4
 4. `scripts/verify-session-176.sh` + `scripts/demo-session-176.sh` run the above live. covers: 1, 2, 3, 4, 5
+
+## Execution
+- step 1 — done: 88901e0
+- step 2 — done: 88901e0
+- step 3 — done: b31d7bd
+- step 4 — done: b31d7bd / 70d76a3
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (mandatory), `qa-specialist`
+(required by the tech-lead), `fidelity-reviewer` (mandatory). Every `obeyed:` is judged by an
+independent role, not the builder.
+
+**tech-lead** (`.ai/handoffs/session-176-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 2495780 (only qa-specialist + fidelity-reviewer required; design-advisor dispatched anyway because the close gate mandates it; the other six deferred-budget)
+- tech-lead rec 2 — obeyed: 88901e0 (`Dangling` added to `PlanState::blocks()`; `plan_citing_a_deleted_acceptance_list_is_dangling` asserts `blocks()` directly)
+- tech-lead rec 3 — obeyed: 88901e0 (dangling wins; `dangling_wins_over_uncovered` locks it)
+- tech-lead rec 4 — obeyed: 88901e0 (edge fixtures a/b/c in `edge_fixtures_non_numbered_list_prose_and_citing_nothing`; the sweep flipped 12 real prompts of shape (a) — fixed by teaching the parser `| ACn |` rows, never by hiding them; 3 real flips remain)
+- tech-lead rec 5 — obeyed: 70d76a3 (F70-residual recorded in the Findings table and in the demo's honest notes; not built)
+
+**design-advisor** (`.ai/handoffs/session-176-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 7a70d35 (`design-significant: yes` recorded)
+- design-advisor rec 2 — obeyed: 7a70d35 (cites DECISION-007's S116 `covers: N` addendum; says the S64 Planner has no record of its own; no new decision file)
+- design-advisor rec 3 — obeyed: 88901e0 (same as tech-lead rec 3 — `Dangling` checked before `Uncovered`, test-locked)
+- design-advisor rec 4 — obeyed: 88901e0 (the gate message names both causes: list cut/deleted, or items not written as `N.` lines; `gate_blocks_dangling_and_names_numbers_and_causes` asserts both)
+- design-advisor rec 5 — obeyed: 7a70d35 (known limit written into `## Design`)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
