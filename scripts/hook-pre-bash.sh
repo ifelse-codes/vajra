@@ -37,7 +37,11 @@ case "$BRANCH" in
   *)
     SNUM=$(echo "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
     if [[ "$SNUM" =~ ^[0-9]+$ ]] && [ "$((10#$SNUM))" -gt 0 ]; then
-      if [ "$((10#$SNUM % 5))" -eq 0 ]; then
+      # S175: .ai/CONSTRAINTS.yaml#ground_truth_next_session overrides the every-5th default.
+      GT_NEXT=$(grep -E '^[[:space:]]*ground_truth_next_session:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)
+      if [ -n "$GT_NEXT" ]; then
+        [ "$((10#$SNUM))" -eq "$((10#$GT_NEXT))" ] && { GT=1; GT_NUM="$SNUM"; }
+      elif [ "$((10#$SNUM % 5))" -eq 0 ]; then
         GT=1; GT_NUM="$SNUM"
       fi
     fi

@@ -1551,3 +1551,72 @@ path; it now also publishes. That overrides the S37 publish guard's own rule (pu
 (option C); dropping the prompt and handoffs from the review hash to stop the F53 re-stamp loop (it
 would break verification of every past attested review — the checklist now says "stamp LAST"
 instead).
+
+---
+
+## S175 addendum — the ground-truth cadence becomes config; the founder moves it to S180
+
+**What changed.** Founder, 2026-09-22: "session 175 is the same rudra test, and keep going — no
+review-only session until 180." Before this session, `N % 5 == 0` was hardcoded in SIX places —
+`scripts/hook-session-start.sh` (boot reminder), `scripts/verify-closeout.sh` (`is_code_session` and
+the verify/demo-script-presence guard), and the three live enforcement hooks
+`scripts/hook-pre-bash.sh` / `hook-pre-write.sh` / `hook-stop.sh`, plus the advisory
+`hook-prompt-submit.sh`. Session 175 is itself a multiple of 5 — so under the old rule this very
+session would have announced itself as ground truth, its `verify-closeout.sh` close would have
+skipped the CODE checks (`is_code_session` → false), and `hook-pre-bash.sh` would have exited 2 on
+its first `git commit`. That last one is not a paperwork gap; it is a live block this session would
+have hit.
+
+**The fix.** `.ai/CONSTRAINTS.yaml#ground_truth_next_session` (default: absent) names the next
+review-only session explicitly. All six sites now check it first and fall back to the untouched
+`N % 5 == 0` rule when the key is absent — so a project without the key (every scaffolded project,
+and this repo before today) behaves byte-for-byte as before. Set here to `180`. Verified by live-
+executing the real `hook-session-start.sh` across a listed set of session numbers (1, 4, 5, 10, 25,
+60, 90, 120, 165, 170, 174, 175, 176, 179, 180, 181, 185, 200): identical with the key absent; with
+the key present, GT fires only at 180, and 175 (and every other former multiple of 5) is a plain
+CODE session. (Cold review, S175: an earlier draft of `verify-session-175.sh` swept this same
+18-number set against a bash model of the rule *reimplemented inside the verify script itself* —
+an assertion that would have passed even if the real fix were deleted. Retired in favor of the live
+sweep this sentence now describes; the other 5 sites get their own live execution at a narrower
+number set, AC1c–j.)
+
+**What this does NOT claim.**
+1. **`scripts/verify-closeout-scaffold.sh` — the template `vajra init` embeds in new projects — was
+   NOT touched.** It still reads the plain `N % 5 == 0` rule and has no `ground_truth_next_session`
+   support. A new project has no reason to move its first ground truth on day one, and this file
+   already lags the live gate by several sessions (S154's tightened execution-sha check, the
+   cargo-fmt check — a tracked, pre-existing scaffold-drift gap, not something this addendum closes).
+2. **The override is a single global integer, not a schedule.** Moving the cadence again (say, to
+   S185) means editing the key again; there is no "every 5th after S180" resumption rule. The
+   founder's stated intent (S175: "the rudra test sessions continue... S175-S179 stay rudra test
+   sessions") is a one-time move, not a new cadence, so this was not built.
+3. **Six sites, six copies of the same ~6-line check** — no shared lib file. The existing hooks are
+   each self-contained (no sourcing between them, by design — see their own headers), so introducing
+   one now would be a bigger change than the founder asked for. If a seventh site needs this same
+   check, extracting a `scripts/lib-ground-truth.sh` becomes the right call.
+
+**Same session, a second gap — found live, not planned.** The founder ran rudra session 06 under
+today's fix, launched as `VAJRA_ALLOW_PUBLISH=1 VAJRA_ALLOW_COMMIT=06 vajra claude`. Reading the
+transcript back (the paste he shared was only the cost receipt): `VAJRA_ALLOW_PUBLISH=1` allowed
+**all five** guarded actions with no distinction — `git push`, `gh pr create`, `gh pr merge`,
+`glab mr create`, `glab mr merge` — so the agent ran `gh pr merge 7 --merge --delete-branch` and
+`gh pr merge 8 …` itself, unsupervised. F55 (S173, above) built a *narrower* mechanism
+(`VAJRA_ALLOW_COMMIT=NN`) specifically to keep "merging stays with the human" — its allow-list
+already excludes any command containing `merge` — but the older, blanket `VAJRA_ALLOW_PUBLISH=1`
+bypass in `hook-publish-guard.sh` was never revisited when F55 shipped, so setting it silently
+overrode the rule the narrower path was built to keep.
+
+**The fix.** `hook-publish-guard.sh`'s `VAJRA_ALLOW_PUBLISH=1` bypass now excludes `gh pr merge` /
+`glab mr merge` (`IS_MERGE`, checked before the bypass). Those two actions fall through to the
+normal maturity-gated block (L2/L3 → exit 2; L1 → advise, same as every other guard here) with a
+message naming the founder as the one who runs the merge, and stating plainly that no env var
+enables it — not even `VAJRA_ALLOW_PUBLISH=1`. `git push` and `gh pr create` are untouched.
+Confirmed against the founder's own command (`gh pr merge 7 --merge --delete-branch`) and an
+old-vs-new diff over 10 commands: exactly the 2 merge actions tightened, 0 unexpected changes
+(`scripts/verify-session-175.sh` AC2/AC3).
+
+**Asked plainly, answered plainly.** This was surfaced as a question, not assumed as a bug — the
+founder had typed the flag himself, and the flag did exactly what its own comment said. His answer:
+"no, merge should stay human — fix it." Recorded here because it resolves, in the founder's own
+words, which of the two "merge stays human" mechanisms (F55's allow-list vs. the blanket publish
+bypass) governs when they conflict: the narrower one wins, always.

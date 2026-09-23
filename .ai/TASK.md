@@ -2,9 +2,20 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S174 complete; S175 drafted (founder's pick pending)
+## Between Sessions — S175 complete on its branch; S176 approved
 
-**Next: Session 175 — mandatory NO-CODE Ground Truth, with rudra session 06 as its evidence** (drafted from S174's recommended candidate 1; options 2 and 3 are in `sessions/session-174-summary.md`). Brief: `prompts/175-task-ground-truth.md` — **Status: DRAFT**. Before he starts: reinstall `vajra`, sync rudra (never revert what it changes), launch with `VAJRA_ALLOW_COMMIT=06 vajra claude`. Start in a FRESH chat.
+**Next: Session 176 — rudra session 07 with S175's fixes in** (founder picked candidate A,
+2026-09-23: same rudra test continues). Brief: `prompts/176-task-keep-testing.md` — **APPROVED**.
+Before he starts: `cargo install --path` is NOT yet done for S175's fixes — `hook-publish-guard.sh`
+and `hook-session-start.sh` are binary-embedded, so the F65 merge fix isn't in rudra until a
+rebuild + `vajra init --sync-fleet`. Launch: `VAJRA_ALLOW_COMMIT=07 vajra claude` (no
+`VAJRA_ALLOW_PUBLISH` unless he wants it — merge stays strictly hand-typed, his call last session).
+
+## Session 175 — Interactive: rudra session 06 — COMPLETE
+
+- Brief: `prompts/175-task-keep-testing.md` (deliverable 0 + findings F58–F66 from his rudra session 06). Summary: `sessions/session-175-summary.md`. Review: `sessions/session-175-review.md` (ACCEPT, 11/11 SHIPPED).
+- Shipped: the ground-truth cadence reads from `.ai/CONSTRAINTS.yaml#ground_truth_next_session` in all 6 sites that hardcoded `N % 5 == 0` (2 named in the brief, 4 found while fixing it — one would have blocked this session's own first commit) · `VAJRA_ALLOW_PUBLISH=1` no longer covers merge (F65, found live, founder-confirmed) · F59/F62/F60 confirmed fixed by the real run.
+- **Not fixed in code:** F66 — `--check-crew` checks a handoff's disk-presence, never git-tracked-ness (disclosed, watch-only per guardrails).
 
 ## Session 174 — Interactive: rudra session 05 — COMPLETE
 

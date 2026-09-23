@@ -47,6 +47,22 @@ spath() {   # spath <prefix> <suffix>  ->  the session-numbered path to use
 
 bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); }
 
+# --- ground-truth session test (S175) ------------------------------------------------
+# .ai/CONSTRAINTS.yaml#ground_truth_next_session, when present, names the next review-only
+# session explicitly and OVERRIDES the every-5th default — the founder can move the next
+# ground truth without touching this script. Absent -> the old N % 5 == 0 rule, unchanged,
+# so a project without this key (every other project, and this repo before S175) behaves
+# exactly as before. Requires $N set (check_session_file).
+is_ground_truth_session() {
+  local gt_next
+  gt_next="$(grep -E '^[[:space:]]*ground_truth_next_session:' .ai/CONSTRAINTS.yaml 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)"
+  if [ -n "$gt_next" ]; then
+    [ "$((10#$gt_next))" -eq "$N" ]
+  else
+    [ "$((N % 5))" -eq 0 ]
+  fi
+}
+
 N=""
 check_session_file() {
   local NAME="session-file-valid"; local LOG="$ARTIFACTS/${NAME}.log"
@@ -295,7 +311,7 @@ check_execution_shas() {
 # DOCUMENT, NO-CODE, DOGFOOD, and GROUND-TRUTH type lines return 1 (false).
 is_code_session() {
   [ -n "$N" ] || return 1
-  [ "$((N % 5))" -ne 0 ] || return 1
+  ! is_ground_truth_session || return 1
   local padded; padded="$(printf '%02d' "$N")"
   shopt -s nullglob
   local prompts=(prompts/${padded}-task-*.md)
@@ -333,8 +349,8 @@ check_verify_demo_scripts() {
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
 
-  if [ "$((N % 5))" -eq 0 ]; then
-    echo "N/A: session $N is a NO-CODE ground-truth (N % 5 == 0) — no session scripts expected." >> "$LOG"
+  if is_ground_truth_session; then
+    echo "N/A: session $N is a NO-CODE ground-truth — no session scripts expected." >> "$LOG"
     ok "$NAME"; return
   fi
 
