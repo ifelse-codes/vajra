@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Session 175 verify — deliverable 0 (the ground-truth cadence becomes config) + the
 # publish-guard merge fix found live in rudra session 06 (VAJRA_ALLOW_PUBLISH=1 let the agent
-# merge its own PRs; F55/S173 said "merge stays human"). Every check RUNS the real hook or
-# script; nothing here greps source to decide a pass. AC3 diffs old vs new hook output on a
+# merge its own PRs; F55/S173 said "merge stays human"). Every check but one RUNS a real hook,
+# script, or the binary: AC1k is a deliberate, disclosed structural grep (a marker-presence floor,
+# never the only evidence for a site — see its own comment). AC3 diffs old vs new hook output on a
 # listed command/mode grid — the only allowed difference is the one intentional tightening.
+# (Cold review, S175: an earlier version of this banner claimed "nothing here greps source to
+# decide a pass," which was false for AC1k and for AC1a/b's original reimplemented-model sweep —
+# fixed here and in the code both.)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 PASS=0; FAIL=0
@@ -18,29 +22,6 @@ git_fx() { git -C "$1" -c user.email=v@v -c user.name=v -c commit.gpgsign=false 
 WITH="$T/with.yaml"; printf 'ground_truth_next_session: 180\n' > "$WITH"
 WITHOUT="$T/without.yaml"; : > "$WITHOUT"
 
-is_gt_new() { # $1 constraints-file $2 N
-  local n; n="$(grep -E '^[[:space:]]*ground_truth_next_session:' "$1" 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)"
-  if [ -n "$n" ]; then [ "$((10#$n))" -eq "$((10#$2))" ]; else [ "$((10#$2 % 5))" -eq 0 ]; fi
-}
-is_gt_old() { [ "$((10#$1 % 5))" -eq 0 ]; }
-
-DIFF=0
-for N in 1 4 5 10 25 60 90 120 165 170 174 175 176 179 180 181 185 200; do
-  o=$(is_gt_old "$N" && echo 1 || echo 0); n=$(is_gt_new "$WITHOUT" "$N" && echo 1 || echo 0)
-  [ "$o" = "$n" ] || { DIFF=$((DIFF+1)); echo "  DIFF (key absent) N=$N old=$o new=$n"; }
-done
-[ "$DIFF" -eq 0 ] && ok "AC1a key absent: identical to the old N % 5 rule across 18 session numbers" \
-  || bad "AC1a key absent: $DIFF difference(s) from the old rule"
-
-AC1B_FAIL=0
-for N in 5 10 175 176 179 180; do
-  is_gt_new "$WITH" "$N" && g=GT || g=code
-  want=code; [ "$N" = 180 ] && want=GT
-  [ "$g" = "$want" ] || { AC1B_FAIL=$((AC1B_FAIL+1)); echo "  N=$N want=$want got=$g"; }
-done
-[ "$AC1B_FAIL" -eq 0 ] && ok "AC1b key=180: GT fires only at 180; 5/10/175/176/179 (former or would-be multiples of 5) are plain CODE" \
-  || bad "AC1b key=180: $AC1B_FAIL wrong verdict(s)"
-
 # The real hooks, invoked for real (not grepped) — one representative per branch, both keys.
 fixture() { # $1 constraints-file $2 branch -> prints project dir
   local P="$T/fx-$RANDOM$RANDOM"; mkdir -p "$P/.ai"; cp "$1" "$P/.ai/CONSTRAINTS.yaml"
@@ -48,6 +29,33 @@ fixture() { # $1 constraints-file $2 branch -> prints project dir
   git_fx "$P" init -q -b main; git_fx "$P" commit -q --allow-empty -m i; git_fx "$P" checkout -q -b "$2"
   printf '%s' "$P"
 }
+
+# AC1a/b (fidelity-reviewer rec 3, retiring a fakest-green the review named): these used to
+# compare two bash functions REIMPLEMENTED inside this script against each other — an assertion
+# that would still pass even if the real fix were deleted entirely. Retired in favor of qa-
+# specialist rec 2's "replace" option: both now sweep the REAL `hook-session-start.sh`, live,
+# the same predicate AC1h proves correct at 3 points, widened to the full 18/6-number set.
+AC1A_FAIL=0
+for N in 1 4 5 10 25 60 90 120 165 170 174 175 176 179 180 181 185 200; do
+  P=$(fixture "$WITHOUT" "session-${N}-x")
+  OUT="$(CLAUDE_PROJECT_DIR="$P" bash scripts/hook-session-start.sh 2>&1)"
+  HAS_GT=0; grep -q "\[REMINDER\] Session $N is GROUND TRUTH" <<<"$OUT" && HAS_GT=1
+  want=0; [ "$((N % 5))" -eq 0 ] && want=1
+  [ "$HAS_GT" = "$want" ] || { AC1A_FAIL=$((AC1A_FAIL+1)); echo "  N=$N want=$want got=$HAS_GT"; }
+done
+[ "$AC1A_FAIL" -eq 0 ] && ok "AC1a key absent: hook-session-start.sh, live, matches the old N % 5 rule across 18 session numbers" \
+  || bad "AC1a key absent: $AC1A_FAIL wrong case(s)"
+
+AC1B_FAIL=0
+for N in 5 10 175 176 179 180; do
+  P=$(fixture "$WITH" "session-${N}-x")
+  OUT="$(CLAUDE_PROJECT_DIR="$P" bash scripts/hook-session-start.sh 2>&1)"
+  HAS_GT=0; grep -q "\[REMINDER\] Session $N is GROUND TRUTH" <<<"$OUT" && HAS_GT=1
+  want=0; [ "$N" = 180 ] && want=1
+  [ "$HAS_GT" = "$want" ] || { AC1B_FAIL=$((AC1B_FAIL+1)); echo "  N=$N want=$want got=$HAS_GT"; }
+done
+[ "$AC1B_FAIL" -eq 0 ] && ok "AC1b key=180: hook-session-start.sh, live, fires only at 180; 5/10/175/176/179 are plain CODE" \
+  || bad "AC1b key=180: $AC1B_FAIL wrong case(s)"
 
 P175=$(fixture "$WITH" session-175-x)
 OUT="$(CLAUDE_PROJECT_DIR="$P175" bash scripts/hook-prompt-submit.sh 2>&1)"
@@ -177,7 +185,10 @@ OUT="$(jq -n --arg c 'gh pr merge 6' '{tool_input:{command:$c},cwd:$d}' --arg d 
 # ==============================================================================================
 # AC3 — old vs new: the ONLY behavior change is merge-under-VAJRA_ALLOW_PUBLISH flipping to BLOCK.
 # ==============================================================================================
-OLD="$T/old-publish-guard.sh"; git show HEAD:scripts/hook-publish-guard.sh > "$OLD"
+# 4bd8b00 = main before this session (the merge of S174) — NOT HEAD, which by now already
+# carries this session's own fix (caught live: an earlier version read HEAD here and silently
+# diffed the fix against itself once its own commit landed, printing "0 expected tightenings").
+OLD="$T/old-publish-guard.sh"; git show 4bd8b00:scripts/hook-publish-guard.sh > "$OLD"
 CMDS=("git push" "git push -u origin session-06-x" "gh pr create --title x --body-file b" \
       "gh pr merge 7" "gh pr merge 7 --merge --delete-branch" "glab mr create" "glab mr merge 1" \
       "git push && gh pr merge 6" "echo gh pr merge" "git commit -m 'gh pr merge'")
