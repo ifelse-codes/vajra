@@ -70,6 +70,7 @@
 | F67 | receipt | $62.71 shown again (same unpriced opus-5-5). Still parked. | parked |
 | F70-residual | close | After the fix, `--check-plan`/`--steps`/`--stations` say NOT READY on a cut brief — but nothing at CLOSE re-runs the Planner (or the Analyst's `--validate`). A mid-session self-wipe is caught only if someone looks. A close re-run is a new gate → needs the founder's explicit yes (tech-lead rec 5). Also: an edit that deletes the `covers:` markers or the whole `## Plan` still passes (S68 class). | MED, disclosed, not built |
 | F72 | history | The F70 sweep found 11 prompts (S156–S168) writing Acceptance as `\| ACn \|` tables the Planner never parsed — it passed their plans without checking one citation (12 sessions incl. S155, which has no Acceptance at all but cites `covers: 1`). Fixed in the same change (the parser reads the table rows). 3 closed sessions now read NOT READY, each real: 155 (no list), 157 (AC5 never cited), 166 (AC1 never cited). History, not reopened. | fixed (with F70) |
+| F73 | plan | QA §4, not fixed: acceptance items written as `1)`, `**1.**`, a numeric `\| 1 \| x \|` table, or `- AC1: x` are not read as criteria — a plan citing them now BLOCKS (before: passed unchecked). The message names the right cause ("no item under `## Acceptance` is numbered — write them as `N.` lines or `\| ACn \|` rows"). None occur in this repo or rudra. Also `covers: 99999999999` overflows and is silently dropped. | LOW, disclosed |
 
 ## Goal
 1. Fix F70 (founder pick, 2026-09-23): the Planner check must not say READY when the `## Plan`
@@ -138,13 +139,13 @@ independent role, not the builder.
 - tech-lead rec 2 — obeyed: 88901e0 (`Dangling` added to `PlanState::blocks()`; `plan_citing_a_deleted_acceptance_list_is_dangling` asserts `blocks()` directly)
 - tech-lead rec 3 — obeyed: 88901e0 (dangling wins; `dangling_wins_over_uncovered` locks it)
 - tech-lead rec 4 — obeyed: 88901e0 (edge fixtures a/b/c in `edge_fixtures_non_numbered_list_prose_and_citing_nothing`; the sweep flipped 12 real prompts of shape (a) — fixed by teaching the parser `| ACn |` rows, never by hiding them; 3 real flips remain)
-- tech-lead rec 5 — obeyed: 70d76a3 (F70-residual recorded in the Findings table and in the demo's honest notes; not built)
+- tech-lead rec 5 — obeyed: 4b1df85 (F70-residual row, with severity, in the Findings table; also 70d76a3, the demo's honest notes; not built)
 
 **design-advisor** (`.ai/handoffs/session-176-design-advisor.md`):
 - design-advisor rec 1 — obeyed: 7a70d35 (`design-significant: yes` recorded)
 - design-advisor rec 2 — obeyed: 7a70d35 (cites DECISION-007's S116 `covers: N` addendum; says the S64 Planner has no record of its own; no new decision file)
 - design-advisor rec 3 — obeyed: 88901e0 (same as tech-lead rec 3 — `Dangling` checked before `Uncovered`, test-locked)
-- design-advisor rec 4 — obeyed: 88901e0 (the gate message names both causes: list cut/deleted, or items not written as `N.` lines; `gate_blocks_dangling_and_names_numbers_and_causes` asserts both)
+- design-advisor rec 4 — obeyed: 100095a (the message names the cause it sees — section gone, list cut, or items unnumbered; `dangling_message_names_the_actual_cause` asserts all three; first landed in 88901e0 as one two-cause message)
 - design-advisor rec 5 — obeyed: 7a70d35 (known limit written into `## Design`)
 
 **qa-specialist** (`.ai/handoffs/session-176-qa-specialist.md`):
@@ -155,6 +156,13 @@ independent role, not the builder.
 - qa-specialist rec 5 — obeyed: 100095a (rudra-absent is a counted SKIP in the verify total)
 - qa-specialist rec 6 — deferred: sessions/session-176-summary.md
 - qa-specialist rec 7 — deferred: sessions/session-176-summary.md
+
+**fidelity-reviewer** (`.ai/handoffs/session-176-fidelity-reviewer.md`, `sessions/session-176-review.md`, ACCEPT):
+- fidelity-reviewer rec 1 — obeyed: d4c1e29 (sub-headings nest only under a `##`-or-deeper Acceptance; a `# Title` naming "acceptance" is not a section for the message either; unit `a_title_naming_acceptance_does_not_swallow_the_document` + a live verify check; `--plan 56` checklist now byte-identical to the old build)
+- fidelity-reviewer rec 2 — obeyed: 4b1df85 (tech-lead rec 5's line now cites the commit that wrote the findings row)
+- fidelity-reviewer rec 3 — obeyed: sessions/session-176-summary.md (F73 row added to the Findings table with severity; the summary the deferrals point at exists)
+- fidelity-reviewer rec 4 — obeyed: d4c1e29 (demo scorecard: 26/26 planner, 594/594 all tests, "173 session numbers")
+- fidelity-reviewer rec 5 — obeyed: docs/decisions/DECISION-007-agent-fleet.md (S176 addendum under the S116 `covers: N` contract)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
