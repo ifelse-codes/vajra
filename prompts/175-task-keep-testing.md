@@ -126,18 +126,27 @@ independent role, not the builder this session.
 - tech-lead rec 3 — obeyed: 93dec6b (qa-specialist independently replayed rudra's exact
   `gh pr merge 7 --merge --delete-branch` against old vs new `hook-publish-guard.sh`, in its own
   fresh fixture, not trusting this script's self-report)
-- tech-lead rec 4 — obeyed: <pending — fidelity-reviewer dispatch, briefed on qa-specialist's evidence
-  and the AC1a/b reimplementation caveat, before it reads anything else>
+- tech-lead rec 4 — obeyed: 5640a2a (fidelity-reviewer dispatched, briefed on qa-specialist's live
+  evidence and the AC1a/b reimplementation caveat before reading anything else — see the dispatch
+  prompt quoted in `.ai/handoffs/session-175-fidelity-reviewer.md`'s source)
 - tech-lead rec 5 — obeyed: 32851f3 (F66 recorded in the Findings table above as disclosed, not
   fixed — no new gate on Vajra's own paperwork without the founder's yes)
 
 **qa-specialist** (`.ai/handoffs/session-175-qa-specialist.md`):
 - qa rec 1 — obeyed: 93dec6b (AC1h/i/j: live-execute the 3 previously-untested sites)
-- qa rec 2 — obeyed: 93dec6b (rec offered "replace or supplement" — chose supplement: AC1a/b's
-  reimplemented 18-number sweep is kept as a cheap broad check, AC1g/h/i/j add real execution
-  against the actual files, so a real-file typo can no longer diverge from the model undetected)
+- qa rec 2 — obeyed: 50027f1 (rec offered "replace or supplement" — the cold review's rec 3 pushed
+  past the session's first pass of "supplement" to the stronger option: AC1a/b are now retired and
+  rebuilt as a live sweep of the real `hook-session-start.sh`, not a self-only model)
 - qa rec 3 — obeyed: 4cf1d8d (the publish-guard fix committed before this session's close)
 - qa rec 4 — obeyed: 93dec6b (AC1k: the structural marker-presence floor across all 6 sites)
+
+**fidelity-reviewer** (`.ai/handoffs/session-175-fidelity-reviewer.md`, `sessions/session-175-review.md`, ACCEPT 11/11 SHIPPED):
+- reviewer rec 1 — obeyed: 50027f1 (the overclaiming header banner corrected)
+- reviewer rec 2 — obeyed: 613ac3b (DECISION-007 addendum now describes the live sweep, not a model)
+- reviewer rec 3 — obeyed: 50027f1 (AC1a/b retired and rebuilt against the real file — this also
+  surfaced and fixed a second, unrelated real bug in AC3: it compared `HEAD`'s publish guard
+  against itself once this session's own fix had landed there, silently zeroing its own count)
+- reviewer rec 4 — obeyed: (this file)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
