@@ -51,29 +51,93 @@ exactly where we want them.
 ## Findings (filled in live)
 | # | Step | What happened | Severity |
 |---|---|---|---|
-| _ | _ | _ | _ |
+| Deliverable 0 | boot | `N % 5 == 0` was hardcoded in **6** places, not the 2 named above: also `hook-pre-bash.sh` (would have blocked S175's first `git commit` — a live self-block, not paperwork), `hook-pre-write.sh`, `hook-prompt-submit.sh`, `hook-stop.sh`. All 6 fixed. | HIGH (would have blocked this session) |
+| F59/F62 | rudra S06 run | Boot said "session 05 is merged — session 06 starts here"; `vajra next --steps` re-run 3× during the session (not 0). Fix holds. | fixed, confirmed |
+| F60 | rudra S06 run | Boot named all 4 waiting Vajra files by path, said commit-first-never-revert; agent committed them first. Fix holds. | fixed, confirmed |
+| F58 | rudra S06 run | Both `gh pr create` calls succeeded first try — no block, nothing to retry. Not exercised this run. | untestable this run |
+| F61/F63 | rudra S06 run | 15 commits, zero blocked — nothing to retry. Not exercised this run. | untestable this run |
+| cwd/worktree | rudra S06 run | No worktree used. Still never tested live. | unchanged, watch |
+| **F65 (new)** | rudra S06 run | He launched with `VAJRA_ALLOW_PUBLISH=1` (new, not in "before he starts"). That gate allowed ALL FIVE guarded actions with no distinction — the agent ran `gh pr merge` on both its own PRs, itself, unsupervised. Contradicts F55 (S173): "merging stays with the human." Founder, asked plainly: "no, merge should stay human — fix it." | HIGH — fixed this session |
+| **F66 (new)** | rudra S06 run, transcript-mined | `vajra next --check-crew` (required-crew gate) checks a handoff file exists ON DISK, never that it is git-tracked — rudra S06 closed with 2 of 8 required handoffs uncommitted, missing the PR, needing a same-morning fixup PR. Same bug family as F60, different target (crew handoffs, not Vajra's own sync files). | MEDIUM — **not fixed** (Guardrails: no new gate on Vajra's own paperwork without the founder's explicit yes; tech-lead rec 5 concurs: watch-only) |
 
 ## Goal
 1. Deliverable 0 above.
-2. _From the founder's run._
+2. Read back what the founder's rudra session 06 run actually exercised (the paste he shared was
+   only the cost receipt — the substance came from mining the transcript himself gave access to),
+   and fix what it found that needed fixing.
 
 ## Deliverables
 1. The ground-truth cadence reads from config; next one is S180; a non-GT session gets the full CODE
-   close checks.
-2. _From the founder's run, plus the carried items._
+   close checks. **All 6 sites fixed** (not the 2 named in the brief).
+2. `VAJRA_ALLOW_PUBLISH=1` no longer allows a merge (`gh pr merge` / `glab mr merge`) — merge stays
+   human, always, no env var, matching the rule F55 already built for `VAJRA_ALLOW_COMMIT`.
+3. F66 (required-crew checks disk-presence, not git-tracked-ness) recorded as a disclosed, unfixed
+   finding — not built, by the guardrails' own rule.
 
 ## Acceptance
 1. With `ground_truth_next_session: 180`, boot on a `session-175-*` branch does NOT announce ground
    truth, and `verify-closeout.sh` treats S175 as a CODE session (verify + demo scripts required).
+   — **Met.** `scripts/verify-session-175.sh` AC1c–AC1k, all 6 sites live-executed.
 2. With the key absent, every 5th session behaves exactly as it does today (a listed set of session
-   numbers, old script vs new, same verdict).
-3. _Each item something he can check himself._
+   numbers, old script vs new, same verdict). — **Met.** AC1a/b (18 numbers, model-consistency) +
+   AC1h–j (3 sites × 3 numbers × with/without key, real execution) + AC1k (structural floor).
+3. `VAJRA_ALLOW_PUBLISH=1` blocks `gh pr merge`/`glab mr merge` (exit 2, "Merging stays with the
+   human"); `git push`/`gh pr create` unaffected; the pre-existing `VAJRA_ALLOW_COMMIT` merge
+   exclusion (F55) is untouched. — **Met.** AC2a–e, AC3 (old-vs-new diff, 0 unexpected changes),
+   independently re-run by qa-specialist against a fresh fixture, not just this script's own report.
 
 ## Design
-- design-significant: <yes|no — decided from the findings>
+- design-significant: **yes** — both fixes change enforcement/advisory guard behavior (a
+  commit-blocking hook's ground-truth test; a publish guard's escape hatch), the highest-scrutiny
+  change class this repo tracks (S173 needed 9 cold-review passes for the same class). Cites
+  `docs/decisions/DECISION-007-agent-fleet.md`'s "## S175 addendum" (both halves — the cadence
+  config, and the merge-stays-human tightening found live).
 
 ## Plan
-1. <filled in from the findings>
+1. Deliverable 0: read `.ai/CONSTRAINTS.yaml#ground_truth_next_session` in all 6 hardcoded sites,
+   falling back to `N % 5 == 0` when absent. — covers Acceptance 1, 2.
+2. Dig into rudra session 06's actual transcript (the founder's paste was cost-receipt only) to find
+   what it exercised, since findings are collected live per his S173 rule. — covers Goal 2.
+3. Fix F65: exclude merge actions from `VAJRA_ALLOW_PUBLISH=1`'s bypass in `hook-publish-guard.sh`,
+   confirmed with the founder before fixing. — covers Acceptance 3.
+4. tech-lead dispatch (required by this repo's own constitution) finds `verify-session-175.sh` only
+   live-executed 3 of 6 fixed sites; qa-specialist (required) live-executes the other 3 plus an
+   independent replay of rudra's exact merge command, and adds a structural floor. — covers
+   Acceptance 1, 2, 3 with real evidence, not self-report.
+5. Record F66 as disclosed, not fixed, per the guardrails. — covers Deliverable 3.
+
+## Execution
+- step 1 — done: 59e1079 / 3eb3af6 / 76f6df9 / e8b23d9
+- step 2 — done: (this file — findings recorded from the transcript)
+- step 3 — done: 4cf1d8d
+- step 4 — done: 93dec6b / 32851f3
+- step 5 — done: (this file — Findings table row F66)
+
+## Advice
+Two roles were dispatched beyond the mandatory `fidelity-reviewer`: `tech-lead` (mandatory, first)
+and `qa-specialist` (the one role it marked required). Every `obeyed:` below will be judged by an
+independent role, not the builder this session.
+
+**tech-lead** (`.ai/handoffs/session-175-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 93dec6b / 32851f3 (only qa-specialist and fidelity-reviewer dispatched;
+  the other seven roles recorded as deferred-budget in the handoff, with real money reasoning each)
+- tech-lead rec 2 — obeyed: 93dec6b (qa-specialist live-executed `hook-session-start.sh`,
+  `hook-pre-write.sh`, `hook-stop.sh` against fixtures at N=170/175/180 × key with/without — AC1h/i/j)
+- tech-lead rec 3 — obeyed: 93dec6b (qa-specialist independently replayed rudra's exact
+  `gh pr merge 7 --merge --delete-branch` against old vs new `hook-publish-guard.sh`, in its own
+  fresh fixture, not trusting this script's self-report)
+- tech-lead rec 4 — obeyed: <pending — fidelity-reviewer dispatch, briefed on qa-specialist's evidence
+  and the AC1a/b reimplementation caveat, before it reads anything else>
+- tech-lead rec 5 — obeyed: 32851f3 (F66 recorded in the Findings table above as disclosed, not
+  fixed — no new gate on Vajra's own paperwork without the founder's yes)
+
+**qa-specialist** (`.ai/handoffs/session-175-qa-specialist.md`):
+- qa rec 1 — obeyed: 93dec6b (AC1h/i/j: live-execute the 3 previously-untested sites)
+- qa rec 2 — obeyed: 93dec6b (rec offered "replace or supplement" — chose supplement: AC1a/b's
+  reimplemented 18-number sweep is kept as a cheap broad check, AC1g/h/i/j add real execution
+  against the actual files, so a real-file typo can no longer diverge from the model undetected)
+- qa rec 3 — obeyed: 4cf1d8d (the publish-guard fix committed before this session's close)
+- qa rec 4 — obeyed: 93dec6b (AC1k: the structural marker-presence floor across all 6 sites)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
