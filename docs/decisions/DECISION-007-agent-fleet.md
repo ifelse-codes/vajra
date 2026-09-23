@@ -1570,10 +1570,15 @@ have hit.
 **The fix.** `.ai/CONSTRAINTS.yaml#ground_truth_next_session` (default: absent) names the next
 review-only session explicitly. All six sites now check it first and fall back to the untouched
 `N % 5 == 0` rule when the key is absent — so a project without the key (every scaffolded project,
-and this repo before today) behaves byte-for-byte as before. Set here to `180`. Verified old-vs-new
-across a listed set of session numbers (1, 4, 5, 10, 25, 60, 90, 120, 165, 170, 174, 175, 176, 179,
-180, 181, 185, 200): identical with the key absent; with the key present, GT fires only at 180, and
-175 (and every other former multiple of 5) is a plain CODE session.
+and this repo before today) behaves byte-for-byte as before. Set here to `180`. Verified by live-
+executing the real `hook-session-start.sh` across a listed set of session numbers (1, 4, 5, 10, 25,
+60, 90, 120, 165, 170, 174, 175, 176, 179, 180, 181, 185, 200): identical with the key absent; with
+the key present, GT fires only at 180, and 175 (and every other former multiple of 5) is a plain
+CODE session. (Cold review, S175: an earlier draft of `verify-session-175.sh` swept this same
+18-number set against a bash model of the rule *reimplemented inside the verify script itself* —
+an assertion that would have passed even if the real fix were deleted. Retired in favor of the live
+sweep this sentence now describes; the other 5 sites get their own live execution at a narrower
+number set, AC1c–j.)
 
 **What this does NOT claim.**
 1. **`scripts/verify-closeout-scaffold.sh` — the template `vajra init` embeds in new projects — was
