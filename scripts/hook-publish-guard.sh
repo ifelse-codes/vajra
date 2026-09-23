@@ -95,8 +95,18 @@ elif grep -qE '(^|[^[:alnum:]_])glab[[:space:]]+mr[[:space:]]+merge([^[:alnum:]]
 fi
 [ -n "$ACTION" ] || exit 0
 
-# Explicit founder approval for this launch — allow through.
-if [ "${VAJRA_ALLOW_PUBLISH:-}" = "1" ]; then
+# S175 (rudra session 06, live): merge stays human — no exception, no env var. Before this fix,
+# VAJRA_ALLOW_PUBLISH=1 allowed ALL FIVE actions with no distinction, so the agent ran
+# `gh pr merge 7 --merge --delete-branch` and `gh pr merge 8 …` itself, unsupervised — silently
+# overriding the rule the narrower VAJRA_ALLOW_COMMIT path (F55, S173) was built to keep: "merging
+# stays with the human." IS_MERGE gates the ONLY bypass below that didn't already exclude it.
+IS_MERGE=""
+case "$ACTION" in
+  *"merging a pull request"*|*"merging a merge request"*) IS_MERGE=1 ;;
+esac
+
+# Explicit founder approval for this launch — allow through, EXCEPT merging.
+if [ "${VAJRA_ALLOW_PUBLISH:-}" = "1" ] && [ -z "$IS_MERGE" ]; then
   echo "[vajra publish-guard] ALLOWED ($ACTION) — VAJRA_ALLOW_PUBLISH=1."
   exit 0
 fi
@@ -188,6 +198,16 @@ if [ -n "$APPROVED_HERE" ]; then
     echo "    gh pr create --title \"<title>\" --body-file <file>"
     echo "    git push -u origin $BRANCH"
     echo "  Do not hand this back to the human — retry in that shape. Merging and pushing main stay with them."
+  } 1>&2
+  exit 2
+fi
+
+if [ -n "$IS_MERGE" ]; then
+  {
+    echo "[vajra publish-guard] BLOCKED: $ACTION"
+    echo "  Merging stays with the human — always. No env var enables it, not even"
+    echo "  VAJRA_ALLOW_PUBLISH=1 (S175: it used to; that was the gap)."
+    echo "  Hand this back: the founder runs the merge themselves, in their own terminal."
   } 1>&2
   exit 2
 fi
