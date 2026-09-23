@@ -301,3 +301,9 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **A `## Plan` step must land before the merge** (S169, DECISION-007 addendum): closeout blocks any real plan step without an existing `done:` sha, `pending:` included. A release goes in its own ROADMAP row, never a plan step.
 - **A guard's reading rule may only ever ADD what it reads (S173).** Four attempts to hide commit-message text from the Bash guards (whole-command stripping, a bash-like scanner, a bounded heredoc exception, the same with a pinned start) were each broken by the next cold review — each hid something a shell runs (macOS `/bin/bash` 3.2 ends `$( )` at a `)"` line inside a heredoc). The rule that held: keep the pre-S173 line-by-line quote strip, and let extra reads only add block reasons, never change a decided number or record. Prove it old-vs-new on a listed set, with and without the tools the hook shells out to (`perl` missing made it exit 127 — not a block).
 
+## S176 — permanent facts
+
+- The Planner checks the `covers: N` contract both ways (DECISION-007 S176 addendum): a cited number the prompt's Acceptance lacks → `PlanState::Dangling` blocks. It reads `N.` lines and `| ACn |` table rows (any case/spelling) as criteria; `###` sub-headings and code fences stay inside a `##` Acceptance; a `# Title` never opens one.
+- A guard that says READY because it found ZERO things to check is the F70 shape (S129 "registered ≠ run" again): when a check finds nothing, ask whether it could read what was there. The old-vs-new sweep over every real prompt is what surfaced 11 never-checked briefs.
+- In this repo the pre-commit belt needs `VAJRA_ALLOW_COMMIT=<NN>` on each `git commit` unless the chat was launched with it; heredocs that MENTION the session-advance command are blocked by the session guard — write such text with the file tool.
+
