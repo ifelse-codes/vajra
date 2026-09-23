@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S174 merged (#211); S175 approved
+## Between Sessions — S175 complete on its branch; S176 pending the founder's pick
 
-**Next: Session 175 — rudra session 06 with S174's fixes in** (founder, 2026-09-22: the same rudra test continues; the next review-only session is **S180**, not 175). Brief: `prompts/175-task-keep-testing.md` — **APPROVED**. Deliverable 0: move the ground-truth cadence into `.ai/CONSTRAINTS.yaml` (`ground_truth_next_session: 180`) so a non-GT session still gets the full CODE close checks. The S180 ground-truth brief is parked at `prompts/180-task-ground-truth.md`.
+**Next: Session 176** — 3 ranked candidates in `sessions/session-175-summary.md`; brief not yet written, waiting on the founder's pick.
+
+## Session 175 — Interactive: rudra session 06 — COMPLETE
+
+- Brief: `prompts/175-task-keep-testing.md` (deliverable 0 + findings F58–F66 from his rudra session 06). Summary: `sessions/session-175-summary.md`. Review: `sessions/session-175-review.md` (ACCEPT, 11/11 SHIPPED).
+- Shipped: the ground-truth cadence reads from `.ai/CONSTRAINTS.yaml#ground_truth_next_session` in all 6 sites that hardcoded `N % 5 == 0` (2 named in the brief, 4 found while fixing it — one would have blocked this session's own first commit) · `VAJRA_ALLOW_PUBLISH=1` no longer covers merge (F65, found live, founder-confirmed) · F59/F62/F60 confirmed fixed by the real run.
+- **Not fixed in code:** F66 — `--check-crew` checks a handoff's disk-presence, never git-tracked-ness (disclosed, watch-only per guardrails).
 
 ## Session 174 — Interactive: rudra session 05 — COMPLETE
 
