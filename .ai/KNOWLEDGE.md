@@ -307,3 +307,10 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - A guard that says READY because it found ZERO things to check is the F70 shape (S129 "registered ≠ run" again): when a check finds nothing, ask whether it could read what was there. The old-vs-new sweep over every real prompt is what surfaced 11 never-checked briefs.
 - In this repo the pre-commit belt needs `VAJRA_ALLOW_COMMIT=<NN>` on each `git commit` unless the chat was launched with it; heredocs that MENTION the session-advance command are blocked by the session guard — write such text with the file tool.
 
+
+## S177 — permanent facts
+
+- **A fix to a live gate must ask "does the scaffold carry it?"** S175 fixed the ground-truth cadence in Vajra's own close gate but left `scripts/verify-closeout-scaffold.sh` on purpose; the first project to move its GT (rudra, 3 sessions later) got a CODE session silently treated as review-only. The scaffold now reads `ground_truth_next_session` too (DECISION-007 S177 addendum).
+- **Classifiers keyed on a spelling drift with the author.** The scaffold's `is_code_session` matched only `**CODE**`; rudra's agent writes `**CODE.**` in every brief, so 8 CODE sessions skipped the tech-lead check with `N/A` in a log no one reads. It now accepts `**CODE[.:,]**`; Vajra's own gate still matches exactly (10 old Vajra prompts say `**CODE.**`).
+- **An `N/A` in a gate log is where a skipped check hides** — the summary line says PASS. When a finding says "the gate passed", read the per-check logs for `N/A`.
+- **A role may not grade its own recs** — the fidelity-reviewer refuses to write `obeyed-check` lines for its own advice; dispatch a second role (release-coordinator) as the judge.

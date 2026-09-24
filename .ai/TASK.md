@@ -2,11 +2,16 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S176 complete on its branch; S177 approved
+## Between Sessions — S177 complete on its branch; S178 approved
 
-**Next: Session 177 — rudra session 09 with S176's fix in** (founder picked candidate A, 2026-09-23).
-Brief: `prompts/177-task-keep-testing.md` — **APPROVED**. Before he starts: `cargo install --path`
-(the F70 fix is in the binary; no `--sync-fleet` needed). Launch: `VAJRA_ALLOW_COMMIT=09 vajra claude`.
+**Next: Session 178 — rudra session 10, the first run with its full close checks** (founder picked candidate 1, 2026-09-24).
+Brief: `prompts/178-task-keep-testing.md` — **APPROVED**. Nothing to install. Launch: `VAJRA_ALLOW_COMMIT=10 vajra claude`.
+
+## Session 177 — Interactive: rudra session 09 — COMPLETE
+
+- Brief: `prompts/177-task-keep-testing.md` (findings F74–F76 from his rudra session 09). Summary: `sessions/session-177-summary.md`. Review: `sessions/session-177-review.md` (ACCEPT, 8/8).
+- Shipped: F74 — the scaffold close gate reads `ground_truth_next_session` (rudra moved its GT to S15; S10 would have skipped its CODE checks) · F76 — it reads `**CODE.**` as CODE (every rudra brief; its tech-lead check never ran) · synced into rudra before its S10.
+- **Parked again:** F67 (3rd), F71 (2nd). **Disclosed:** the key is agent-writable (a named session loses its CODE checks); Vajra's own gate keeps the exact `**CODE**` match.
 
 ## Session 176 — Interactive: rudra sessions 07 + 08 — COMPLETE
 

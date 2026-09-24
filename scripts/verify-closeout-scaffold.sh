@@ -47,6 +47,22 @@ spath() {   # spath <prefix> <suffix>  ->  the session-numbered path to use
 
 bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); }
 
+# --- ground-truth session test (S175 in Vajra's own gate; carried here S177, F74) ----------
+# .ai/CONSTRAINTS.yaml#ground_truth_next_session, when present, names the next review-only
+# session explicitly and OVERRIDES the every-5th default — the same key the session-start hook
+# already reads. Without it a moved ground truth split the two: the start said "S10 is CODE",
+# this gate still skipped S10's CODE-only checks as N/A (rudra S09, 2026-09-24). Absent -> the
+# old N % 5 == 0 rule, unchanged. Requires $N set (check_session_file).
+is_ground_truth_session() {
+  local gt_next
+  gt_next="$(grep -E '^[[:space:]]*ground_truth_next_session:' .ai/CONSTRAINTS.yaml 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)"
+  if [ -n "$gt_next" ]; then
+    [ "$((10#$gt_next))" -eq "$N" ]
+  else
+    [ "$((N % 5))" -eq 0 ]
+  fi
+}
+
 N=""
 check_session_file() {
   local NAME="session-file-valid"; local LOG="$ARTIFACTS/${NAME}.log"
@@ -267,10 +283,10 @@ check_execution_shas() {
 
 # Returns 0 (true) if the current session is a CODE session (carried from Vajra's own gate, S169).
 # Reads the ## Type section of the prompt file; defaults to CODE when absent.
-# GT (N % 5 == 0) is always non-CODE; a prompt whose ## Type has no **CODE** marker is non-CODE.
+# GT (is_ground_truth_session) is always non-CODE; a prompt whose ## Type has no **CODE** marker is non-CODE.
 is_code_session() {
   [ -n "$N" ] || return 1
-  [ "$((N % 5))" -ne 0 ] || return 1
+  ! is_ground_truth_session || return 1
   local padded; padded="$(printf '%02d' "$N")"
   shopt -s nullglob
   local prompts=(prompts/${padded}-task-*.md)
@@ -282,7 +298,10 @@ is_code_session() {
     fi
     if [ "$in_type" -eq 1 ]; then
       echo "$line" | grep -qE '^#' && break
-      if echo "$line" | grep -qF '**CODE**'; then return 0; fi
+      # S177 (F76): `**CODE.**` counts too — every rudra CODE prompt (S02-S10) writes the period
+      # inside the bold, and the exact `**CODE**` match read all of them as non-CODE, so the
+      # tech-lead check below never ran there. `**NO-CODE.**` still does not match (`-` before CODE).
+      if echo "$line" | grep -qE '\*\*CODE[.:,]?\*\*'; then return 0; fi
     fi
   done < "$F"
   return 1
@@ -360,7 +379,7 @@ fi
 # the session's OWN scripts, at its own close.
 #
 # Exempt (both mirror how the exec-sha + fidelity gates already treat non-CODE work):
-#   * NO-CODE ground-truth (N % 5 == 0) — no code, no scripts — passes N/A.
+#   * NO-CODE ground-truth (is_ground_truth_session) — no code, no scripts — passes N/A.
 #   * DOGFOOD / founder-waived (VAJRA_CLOSEOUT_WAIVER=N) — a dogfood produces no
 #     session scripts; the same escape hatch the other gates use — passes WAIVED.
 # Everything else is a CODE session and must have BOTH scripts (non-empty).
@@ -369,8 +388,8 @@ check_verify_demo_scripts() {
   if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
   : > "$LOG"
 
-  if [ "$((N % 5))" -eq 0 ]; then
-    echo "N/A: session $N is a NO-CODE ground-truth (N % 5 == 0) — no session scripts expected." >> "$LOG"
+  if is_ground_truth_session; then
+    echo "N/A: session $N is a NO-CODE ground-truth — no session scripts expected." >> "$LOG"
     ok "$NAME"; return
   fi
 

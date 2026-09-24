@@ -39,22 +39,76 @@
 ## Findings (filled in live)
 | # | Step | What happened | Severity |
 |---|---|---|---|
-| _ | _ | _ | _ |
+| F74 | close | rudra's close check (`scripts/verify-closeout.sh`, synced from `scripts/verify-closeout-scaffold.sh`) still hard-codes `N % 5 == 0` as a no-code session. The founder moved rudra's ground truth to S15 at the S09 close (`ground_truth_next_session: 15`); the start hook obeys it, but the close check does not, so rudra S10 (CODE) will pass "verify/demo scripts exist" and "tech-lead recorded" as N/A. Already happened at rudra S05 (a CODE session, logged `N/A: session 5 is a NO-CODE ground-truth`). The agent saw it, could not fix it (Vajra-owned), and wrote it into S10's prompt + its memory. S175 left the scaffold out on purpose ("no reason to move the first ground truth on day one"); it took 3 sessions to be wrong | HIGH |
+| F76 | close (found fixing F74) | The same close check decides "is this a CODE session?" by an exact `**CODE**` match. rudra writes `- **CODE.** Max 2…` in every brief (S02–S10), so all of them read as non-CODE: its "tech-lead recorded" check never ran (S09 log: `N/A: session 9 is not a CODE session`). Same bug family as F74 — a CODE session's close quietly skips CODE checks | HIGH |
+| F71 (again) | merge | Remote session branch left after the GitHub-button merge; the agent called it "harmless, the checks don't require removing it"; the founder deleted it by hand in the GitHub UI. Second time (rudra S08, S09) | MEDIUM (parked) |
+| F67 (again) | exit receipt | `~$118.69 estimated` for 287 replies, opus-5-5 priced at the unknown-model ceiling (~5× over → roughly $24). Third run in a row | HIGH (parked — permanent fix wanted) |
+| F75 | design | The design-advisor proposed "record a 4-file Plan exception"; no agent can pass the ≤3-file pre-commit hook, so the plan-advisor overruled it. The ≤3 rule then forced a split where `proofs/VERDICT_GREEN.json` sat stale for one commit (founder asked, approved) | LOW |
+| ✓ | whole run | F31 clean 9th time (tech-lead first, 05:45) · F66: all 7 handoffs git-tracked · F58: agent pushed + opened PR #11 itself under `VAJRA_ALLOW_PUBLISH=1`, merge stayed his · close check ran ON the branch before the PR (21/21) · F70 had nothing to catch (brief intact, `--check-plan` READY) · F73 not hit (Acceptance uses `1.`) · worktree/`cwd` still never exercised | — |
+| ⏱ | whole run | 3h20m in chat: ~1h50m waiting on his answers (plan questions 54 min, S10 pick 40 min); code steps 1–13 took 25 min; Vajra's advisors + reviews + the 6-min close check ≈ 50 min | info |
 
 ## Goal
-1. _From the founder's run._
+1. A CODE session in a Vajra project gets its full close checks, even after the founder moves the
+   next ground truth, and even when its brief writes `**CODE.**` (F74 + F76; founder: "yes fix it").
 
 ## Deliverables
-1. _From the founder's run, plus whatever the carried items resolve to._
+1. `scripts/verify-closeout-scaffold.sh` reads `ground_truth_next_session` (the S175 helper) at both
+   sites, and accepts `**CODE.**` as CODE.
+2. `tests/scaffold_gt_cadence.rs` runs the real scaffold functions on fixture projects.
+3. rudra gets the fixed gate before its S10 (rebuild + `vajra init --sync-fleet`).
 
 ## Acceptance
-1. _Each item something he can check himself._
+1. With `ground_truth_next_session: 15`, session 10 (no scripts) is a CODE session and its
+   "verify + demo scripts" check BLOCKS; session 15 passes it as N/A.
+2. Without the key, every session number answers exactly as before (old vs new, a listed spread).
+3. `**CODE.**`, `**CODE**`, `**CODE**,` read as CODE; `**NO-CODE.**`, `**DOCUMENT.**` do not. Old vs new
+   over every prompt in both repos: nothing moves from CODE to non-CODE.
+4. rudra's own `scripts/verify-closeout.sh`, after the sync, says S10 is a CODE session.
 
 ## Design
-- design-significant: <yes|no — decided from the findings>
+- design-significant: yes
+- Record: `docs/decisions/DECISION-007-agent-fleet.md` — S177 addendum (reverses the S175
+  addendum's "NOT claimed" item 1, on rudra evidence).
+- design-advisor: skipped — the change copies S175's existing, reviewed `is_ground_truth_session`
+  helper verbatim into the scaffold, plus a one-line widening of an exact-match grep; no new design
+  choice exists to advise on (tech-lead rec 2).
 
 ## Plan
-1. <filled in from the findings>
+1. Port `is_ground_truth_session` into the scaffold at both sites; accept `**CODE.**`. covers: 1, 3
+2. `tests/scaffold_gt_cadence.rs` — S10/S15 with the key, the old rule without it, the Type spellings. covers: 1, 2, 3
+3. `scripts/verify-session-177.sh` + `scripts/demo-session-177.sh` — old (main) vs new sweeps over a
+   session-number spread and every prompt in both repos, run live. covers: 1, 2, 3, 4
+4. Rebuild, `vajra init --sync-fleet` in rudra, and show rudra's own gate calling S10 CODE. covers: 4
+
+## Execution
+- step 1 — done: 2053bb7
+- step 2 — done: a803ec3
+- step 3 — done: f9b3387
+- step 4 — done: f9b3387 (rebuild + `cargo install` + `vajra init --sync-fleet` in rudra are not commits here; verify AC4 in this commit proves rudra's synced gate)
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `fidelity-reviewer` (required), and
+`release-coordinator` as the independent judge of the reviewer's own recs (a role may not grade its
+own advice) plus the ship steps. `design-advisor` skipped with a recorded reason (`## Design`), as
+tech-lead rec 2 advised. Every `obeyed:` is judged by an independent role, never the builder.
+
+**tech-lead** (`.ai/handoffs/session-177-tech-lead.md`):
+- tech-lead rec 1 — refused: partly followed — fidelity-reviewer was the only required role as advised and six roles stayed unused, but release-coordinator was also dispatched because the fidelity-reviewer may not judge its own recs and the obeyed gate needs an independent judge (the S176 precedent)
+- tech-lead rec 2 — obeyed: 0de77a7 (`design-advisor: skipped — <reason>` in `## Design`, naming DECISION-007's S175 addendum as the record reversed; the S177 addendum itself landed in 2053bb7)
+- tech-lead rec 3 — obeyed: f9b3387 (verify AC1 key 15 → S10 CODE + blocks, S15 N/A; AC2 no key → old = new at 16 session numbers; AC4 runs rudra's own synced gate in rudra's tree)
+- tech-lead rec 4 — obeyed: 75ec337 (one fidelity-reviewer pass planned; a second only on REJECT)
+
+**fidelity-reviewer** (`.ai/handoffs/session-177-fidelity-reviewer.md`, `sessions/session-177-review.md`, ACCEPT):
+- fidelity-reviewer rec 1 — obeyed: 8bacfee (DECISION-007 S177 addendum drops "Adds only" and discloses the key=N loosening; verify key=17 row; demo caption states the trade)
+- fidelity-reviewer rec 2 — obeyed: 8bacfee (verify AC4: rudra's gate body `cmp`-identical to the scaffold, render stamp aside; rudra's real entry point `--check-claimed 10` under its own `set -euo pipefail`)
+- fidelity-reviewer rec 3 — deferred: sessions/session-177-summary.md
+
+**release-coordinator** (`.ai/handoffs/session-177-release-coordinator.md`):
+- release-coordinator rec 1 — obeyed: 4676488 (ROADMAP, both handoffs; KNOWLEDGE + summary in 69f3145; and these answers committed by path; the four unrelated untracked files left out)
+- release-coordinator rec 2 — deferred: sessions/session-177-summary.md
+- release-coordinator rec 3 — deferred: sessions/session-177-summary.md
+- release-coordinator rec 4 — deferred: sessions/session-177-summary.md
+- release-coordinator rec 5 — obeyed: 69f3145 (fidelity-reviewer rec 3 answered `deferred:` with a real path — the summary's `## Deferred` section names it)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
