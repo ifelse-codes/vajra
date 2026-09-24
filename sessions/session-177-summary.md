@@ -2,7 +2,7 @@
 
 **Type:** CODE, interactive. The founder ran rudra session 09 under Vajra; this session fixed what it
 found. **Branch:** `session-177-keep-testing`. **Brief:** `prompts/177-task-keep-testing.md`.
-**Verify:** `scripts/verify-session-177.sh` — 9 pass, 0 fail, 0 skipped. **Demo:**
+**Verify:** `scripts/verify-session-177.sh` — 12 pass, 0 fail, 0 skipped. **Demo:**
 `scripts/demo-session-177.sh` — 6 live checks, complete.
 
 ## What happened
@@ -44,7 +44,7 @@ found. **Branch:** `session-177-keep-testing`. **Brief:** `prompts/177-task-keep
 | AC1 | key 15: S10 CODE + blocks; S15 N/A | SHIPPED | verify AC1 (old `code=no PASS` → new `code=yes FAIL`) |
 | AC2 | no key: old = new | SHIPPED | verify AC2, 16 session numbers |
 | AC3 | spellings; nothing CODE → non-CODE | SHIPPED | verify AC3: 134 same · 17 non-CODE → CODE · 0 CODE → non-CODE |
-| AC4 | rudra's own gate calls S10 CODE | SHIPPED | verify AC4, in rudra's tree |
+| AC4 | rudra's own gate calls S10 CODE | SHIPPED | verify AC4: functions in rudra's tree, body `cmp`-identical to the scaffold, rudra's real `--check-claimed 10` → `CODE session 10` |
 
 ## What this does NOT claim
 
@@ -54,6 +54,11 @@ found. **Branch:** `session-177-keep-testing`. **Brief:** `prompts/177-task-keep
 - rudra's upgraded gate is uncommitted in rudra's tree; its S10 agent commits it first (the sync
   message tells it to). A stranger gets the fix only after `cargo install` from source + `--sync-fleet`
   (crates.io still serves 0.1.0).
+- **It checks LESS in one place (cold review rec 1):** a key naming a session that is not a multiple of
+  5 (say 17) makes that session review-only, so it loses the scripts + tech-lead checks the old gate
+  ran. That is what the key means when the founder sets it; but `.ai/CONSTRAINTS.yaml` is
+  agent-writable and nothing guards the key — the same exposure Vajra's own gate has had since S175.
+  Parked, not guarded (founder directive 2026-09-15). Verify shows the key-17 row.
 - rudra S10's close will now check more. If S10 skips its scripts or the tech-lead, the close BLOCKS
   where it used to pass — that is the point, but it is new friction.
 
@@ -64,14 +69,31 @@ found. **Branch:** `session-177-keep-testing`. **Brief:** `prompts/177-task-keep
 spellings seen, not closed. Runner-up: AC4 proves rudra's gate *classifies* S10 as CODE; nothing has
 yet run a real rudra close under it.
 
+## Deferred
+
+- fidelity-reviewer rec 3 (LOW) — the key is read as the first digits on its line, so
+  `ground_truth_next_session: TBD  # after S10` reads as 10. Same in Vajra's own gate. Parked.
+
+## Ship steps (release-coordinator recs 2–4)
+
+- rec 2 — the full `scripts/verify-closeout.sh` runs on this branch, exit 0, BEFORE the PR (S83).
+- rec 3 — after the founder merges: `git checkout main && git pull --ff-only && git fetch --prune`,
+  `git branch -d session-177-keep-testing`, `git push origin --delete session-177-keep-testing` (F71
+  for this session).
+- rec 4 — older `origin/session-*` branches are deleted only after `git branch -r --merged
+  origin/main` confirms each one, never in bulk.
+
 ## Review
 
-Cold review (fidelity-reviewer, fed only the prompt and the diff): pending.
+Cold review (fidelity-reviewer, fed only the prompt and the diff): **ACCEPT, 8 of 8 numbered items
+SHIPPED · the only-add guardrail PARTIAL** (the key=N loosening, since disclosed). Its recs 1–2 were
+applied after the pass (8bacfee) and judged `implemented` by the release-coordinator; the reviewer
+confirmed 8bacfee does not change its ACCEPT. `sessions/session-177-review.md`.
 
 ## Cost
 
 Interactive; no metered paid run in this repo. The founder's rudra S09 run read `~$118.69 estimated`
-(F67-overstated ~5×). Fleet dispatches: tech-lead, fidelity-reviewer.
+(F67-overstated ~5×). Fleet dispatches: tech-lead, fidelity-reviewer, release-coordinator (judge + ship steps).
 
 ## 3 ranked next candidates
 
