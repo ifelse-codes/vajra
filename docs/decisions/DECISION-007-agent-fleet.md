@@ -1647,3 +1647,26 @@ the closest spine record for its coverage contract.
 - **Not built (founder's yes needed — a new gate):** nothing at close re-runs the Planner, so a
   mid-session wipe is caught only when someone runs `--check-plan`/`--steps`/`--stations`. And an
   edit that also deletes the `covers:` markers, or the whole `## Plan`, still passes (S68 class).
+
+## S177 addendum — the scaffold close gate reads the moved ground truth (reverses S175 "NOT claimed" 1)
+
+**What changed.** S175 left `scripts/verify-closeout-scaffold.sh` on the plain `N % 5 == 0` rule
+because "a new project has no reason to move its first ground truth on day one." Three sessions later
+the founder did exactly that in rudra (S09 close, 2026-09-24: `ground_truth_next_session: 15`). The
+start hook obeyed; the close gate did not — rudra S10, a CODE session, would have passed
+"verify + demo scripts exist" and "tech-lead recorded" as N/A (rudra S05 already had, logged
+`N/A: session 5 is a NO-CODE ground-truth`). **F74.** The scaffold now carries the same
+`is_ground_truth_session` helper as the live gate, at both sites. Key absent → the old rule, unchanged.
+
+**Found while fixing it — F76.** The scaffold's `is_code_session` matched only the exact `**CODE**`.
+Every rudra CODE prompt (S02–S10) writes `- **CODE.** Max 2 assumptions …`, so every one read as
+non-CODE and the close gate's tech-lead check never ran in rudra (S09's log: `N/A: session 9 is not a
+CODE session`). The scaffold now accepts `**CODE**`, `**CODE.**`, `**CODE:**`, `**CODE,**`;
+`**NO-CODE.**` still reads as non-CODE. Old-vs-new sweep over every prompt in both repos (188):
+17 non-CODE → CODE, 0 CODE → non-CODE. Adds only.
+
+**What this does NOT claim.**
+1. Vajra's OWN `scripts/verify-closeout.sh` keeps the exact `**CODE**` match (10 old Vajra prompts,
+   e.g. S171, write `**CODE.**`). Current Vajra prompts write `**CODE**`; changing Vajra's own gate
+   is a check on its own paperwork (founder directive 2026-09-15) — not done.
+2. A project picks the fix up only after `cargo install` + `vajra init --sync-fleet`.
