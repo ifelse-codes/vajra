@@ -2,8 +2,8 @@
 role: fidelity-reviewer
 session: 177
 agent: claude-code-subagent (verified: toolu_018j3ts3pxmFkySDHFTUNJ5U)
-source-sha: 7a089f95df9136a5a610231a72204e2cfa31c7c489fc03fc37f1796d2f780c46
-captured: 2026-09-24T11:59:01Z
+source-sha: ef9c11aa7d709b3ce6a68eeeee2661105544d924337969a78263e5f4f64c6d81
+captured: 2026-09-24T12:09:32Z
 cost_usd: null
 ---
 
@@ -54,12 +54,14 @@ cost_usd: null
 
 ## Obeyed checks
 
-For all four recs the commit named in the disposition exists in `.git/logs/HEAD` between 8061a52 and HEAD. The rec 1 and rec 4 dispositions cite the tech-lead's own handoff commit. The actual evidence that they were obeyed is what the tree shows: only `session-177-tech-lead.md` exists under `.ai/handoffs`, and this is a single pass.
+For all four tech-lead recs the commit named in the disposition exists in `.git/logs/HEAD` between 8061a52 and HEAD. The rec 1 and rec 4 dispositions cite the tech-lead's own handoff commit. The actual evidence that they were obeyed is what the tree shows: only `session-177-tech-lead.md` exists under `.ai/handoffs`, and this is a single pass.
 
 obeyed-check tech-lead rec 1 — implemented: 75ec337 — commits the tech-lead handoff naming only fidelity-reviewer as required, eight deferred-budget; no other session-177 role handoff exists in `.ai/handoffs/`
 obeyed-check tech-lead rec 2 — implemented: 0de77a7 — the start commit carries the prompt's `## Design` with `design-advisor: skipped — <reason>` and cites DECISION-007; the addendum the rec asks for if design-significant landed in 2053bb7 (`DECISION-007:1651-1672`)
 obeyed-check tech-lead rec 3 — implemented: f9b3387 — `verify-session-177.sh` proves key 15 + S10 → CODE + FAIL, key 15 + S15 → N/A, and no key → old = new over 16 numbers; rudra's synced copy is only checked for S10 (and S09) CODE, with no byte-equality check to the scaffold
 obeyed-check tech-lead rec 4 — implemented: 75ec337 — a single fidelity-reviewer pass was dispatched (this one); no second pass unless REJECT
+obeyed-check release-coordinator rec 1 — implemented: 4676488 — per its log subject it commits the ROADMAP row and both the fidelity-reviewer and release-coordinator handoffs (both paths are in `.git/index`); none of first-mate.html, .claude/launch.json, session-137-scatter-render.html or vajra-cto-audit-2026-07-22.html is in the index or any S177 commit subject; caveat: the `## Advice` answers cannot be inside the commit they cite (the release-coordinator lines cite the later 69f3145, the last logged commit), so the prompt must still be committed by path before the push
+obeyed-check release-coordinator rec 5 — implemented: 69f3145 — adds the tracked `sessions/session-177-summary.md`, whose `## Deferred` section (lines 72-75) records fidelity-reviewer rec 3 (the key-parse flaw, parked); prompt line 104 answers it `deferred: sessions/session-177-summary.md`, a real path, not a bare note
 
 ## Recommendations
 
@@ -77,10 +79,11 @@ rec 3 — (LOW, parkable) Tie the key's number to the value itself, not to the f
 - `+` fakest green named: "Adds only / 0 CODE → non-CODE" is true by construction on the Type axis and never swept on the key axis (key = N, N not a multiple of 5, loses checks).
 - `+` 4 obeyed-checks, all `implemented:`. Rec 3 carries a note: rudra's copy has no byte-equality check.
 - `+` 3 recs: correct the only-add claim, make AC4 end to end, a LOW key-parse fix.
+- `+` 2 release-coordinator obeyed-checks, both `implemented:` (rec 1 at 4676488, rec 5 at 69f3145). Caveat on rec 1: the `## Advice` answers are not in any logged commit yet (HEAD = 69f3145), so the prompt still needs a commit by path before the push.
 - prior stage: `.ai/handoffs/session-177-tech-lead.md` (4 recs, 1 required role). This review answers its rec 3 brief (scaffold diff, fixture, rudra sync proof).
 
 Files: `/Users/suman/playground/vajra/scripts/verify-closeout-scaffold.sh`, `/Users/suman/playground/vajra/tests/scaffold_gt_cadence.rs`, `/Users/suman/playground/vajra/scripts/verify-session-177.sh`, `/Users/suman/playground/vajra/scripts/demo-session-177.sh`, `/Users/suman/playground/vajra/docs/decisions/DECISION-007-agent-fleet.md`, `/Users/suman/playground/rudra/scripts/verify-closeout.sh`
 
 ## Handoff Delta
-- `+` new: first fidelity-reviewer handoff for this session (9240 bytes of findings)
-- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
+- `~` re-run: fidelity-reviewer handoff replaced (10410 bytes now vs 7945 bytes prior)
+- prior stage: this session's earlier fidelity-reviewer handoff

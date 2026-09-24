@@ -87,15 +87,28 @@
 - step 4 — done: f9b3387 (rebuild + `cargo install` + `vajra init --sync-fleet` in rudra are not commits here; verify AC4 in this commit proves rudra's synced gate)
 
 ## Advice
-Roles dispatched: `tech-lead` (mandatory, first), `fidelity-reviewer` (required). `design-advisor`
-skipped with a recorded reason (`## Design`), as tech-lead rec 2 advised. Every `obeyed:` is judged
-by the fidelity-reviewer, not the builder.
+Roles dispatched: `tech-lead` (mandatory, first), `fidelity-reviewer` (required), and
+`release-coordinator` as the independent judge of the reviewer's own recs (a role may not grade its
+own advice) plus the ship steps. `design-advisor` skipped with a recorded reason (`## Design`), as
+tech-lead rec 2 advised. Every `obeyed:` is judged by an independent role, never the builder.
 
 **tech-lead** (`.ai/handoffs/session-177-tech-lead.md`):
-- tech-lead rec 1 — obeyed: 75ec337 (only fidelity-reviewer required; the other eight stayed deferred-budget — no other role was dispatched)
+- tech-lead rec 1 — refused: partly followed — fidelity-reviewer was the only required role as advised and six roles stayed unused, but release-coordinator was also dispatched because the fidelity-reviewer may not judge its own recs and the obeyed gate needs an independent judge (the S176 precedent)
 - tech-lead rec 2 — obeyed: 0de77a7 (`design-advisor: skipped — <reason>` in `## Design`, naming DECISION-007's S175 addendum as the record reversed; the S177 addendum itself landed in 2053bb7)
 - tech-lead rec 3 — obeyed: f9b3387 (verify AC1 key 15 → S10 CODE + blocks, S15 N/A; AC2 no key → old = new at 16 session numbers; AC4 runs rudra's own synced gate in rudra's tree)
 - tech-lead rec 4 — obeyed: 75ec337 (one fidelity-reviewer pass planned; a second only on REJECT)
+
+**fidelity-reviewer** (`.ai/handoffs/session-177-fidelity-reviewer.md`, `sessions/session-177-review.md`, ACCEPT):
+- fidelity-reviewer rec 1 — obeyed: 8bacfee (DECISION-007 S177 addendum drops "Adds only" and discloses the key=N loosening; verify key=17 row; demo caption states the trade)
+- fidelity-reviewer rec 2 — obeyed: 8bacfee (verify AC4: rudra's gate body `cmp`-identical to the scaffold, render stamp aside; rudra's real entry point `--check-claimed 10` under its own `set -euo pipefail`)
+- fidelity-reviewer rec 3 — deferred: sessions/session-177-summary.md
+
+**release-coordinator** (`.ai/handoffs/session-177-release-coordinator.md`):
+- release-coordinator rec 1 — obeyed: 4676488 (ROADMAP, both handoffs; KNOWLEDGE + summary in 69f3145; and these answers committed by path; the four unrelated untracked files left out)
+- release-coordinator rec 2 — deferred: sessions/session-177-summary.md
+- release-coordinator rec 3 — deferred: sessions/session-177-summary.md
+- release-coordinator rec 4 — deferred: sessions/session-177-summary.md
+- release-coordinator rec 5 — obeyed: 69f3145 (fidelity-reviewer rec 3 answered `deferred:` with a real path — the summary's `## Deferred` section names it)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
