@@ -81,10 +81,21 @@
 4. Rebuild, `vajra init --sync-fleet` in rudra, and show rudra's own gate calling S10 CODE. covers: 4
 
 ## Execution
-- step 1 — done: <sha>
-- step 2 — done: <sha>
-- step 3 — done: <sha>
-- step 4 — done: <sha>
+- step 1 — done: 2053bb7
+- step 2 — done: a803ec3
+- step 3 — done: f9b3387
+- step 4 — done: f9b3387 (rebuild + `cargo install` + `vajra init --sync-fleet` in rudra are not commits here; verify AC4 in this commit proves rudra's synced gate)
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `fidelity-reviewer` (required). `design-advisor`
+skipped with a recorded reason (`## Design`), as tech-lead rec 2 advised. Every `obeyed:` is judged
+by the fidelity-reviewer, not the builder.
+
+**tech-lead** (`.ai/handoffs/session-177-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 75ec337 (only fidelity-reviewer required; the other eight stayed deferred-budget — no other role was dispatched)
+- tech-lead rec 2 — obeyed: 0de77a7 (`design-advisor: skipped — <reason>` in `## Design`, naming DECISION-007's S175 addendum as the record reversed; the S177 addendum itself landed in 2053bb7)
+- tech-lead rec 3 — obeyed: f9b3387 (verify AC1 key 15 → S10 CODE + blocks, S15 N/A; AC2 no key → old = new at 16 session numbers; AC4 runs rudra's own synced gate in rudra's tree)
+- tech-lead rec 4 — obeyed: 75ec337 (one fidelity-reviewer pass planned; a second only on REJECT)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
