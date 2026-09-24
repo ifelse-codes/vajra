@@ -1662,8 +1662,16 @@ start hook obeyed; the close gate did not — rudra S10, a CODE session, would h
 Every rudra CODE prompt (S02–S10) writes `- **CODE.** Max 2 assumptions …`, so every one read as
 non-CODE and the close gate's tech-lead check never ran in rudra (S09's log: `N/A: session 9 is not a
 CODE session`). The scaffold now accepts `**CODE**`, `**CODE.**`, `**CODE:**`, `**CODE,**`;
-`**NO-CODE.**` still reads as non-CODE. Old-vs-new sweep over every prompt in both repos (188):
-17 non-CODE → CODE, 0 CODE → non-CODE. Adds only.
+`**NO-CODE.**` still reads as non-CODE. Old-vs-new sweep over every prompt in both repos (151
+non-multiples of 5): 17 non-CODE → CODE, 0 CODE → non-CODE — true by construction (the new regex is a
+superset of the exact match).
+
+**The one place it checks LESS (cold review rec 1, disclosed).** With the key set to a session that is
+not a multiple of 5 (say 17), that session is now review-only and loses the scripts + tech-lead checks
+the old gate ran. That is the key's meaning when the founder sets it; but `.ai/CONSTRAINTS.yaml` is
+agent-writable and nothing guards the key, so an agent could name its own session — the same exposure
+Vajra's own gate has had since S175. Parked, not guarded (founder directive 2026-09-15).
+`scripts/verify-session-177.sh` shows the key-17 row.
 
 **What this does NOT claim.**
 1. Vajra's OWN `scripts/verify-closeout.sh` keeps the exact `**CODE**` match (10 old Vajra prompts,

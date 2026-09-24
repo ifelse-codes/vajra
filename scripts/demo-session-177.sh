@@ -89,7 +89,7 @@ slide_rule() {
     "nothing (no setting)|10, 15, 20…|review-only, exactly as before" \
     "brief says **CODE.**|any|coding (new)" \
     "brief says **NO-CODE.**|any|not coding, as before"
-  dk_caption "Only ever adds checks: 17 old briefs move from not-code to code; none move the other way."
+  dk_caption "17 old briefs move from not-code to code; none move back. One trade: the session the setting names loses its code checks — that is what the setting means."
 }
 
 slide_cases() {

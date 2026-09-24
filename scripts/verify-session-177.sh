@@ -47,6 +47,14 @@ N=$(cls "$T/new.sh" "$(fx 15 15 '- **NO-CODE** ground truth.')" 15)
 N=$(cls "$T/new.sh" "$(fx 11 15 '- **CODE**, one story.')" 11)
 [ "$N" = "code=yes scripts=FAIL" ] && ok "AC1 key=15, S11 is CODE: [$N]" || bad "AC1 S11: [$N]"
 
+# The one place the new gate checks LESS (review rec 1, disclosed): a key naming a session that is
+# not a multiple of 5 makes THAT session review-only. Intended when the founder sets it — shown, not hidden.
+O=$(cls "$T/old.sh" "$(fx 17 17 '- **CODE**, one story.')" 17)
+N=$(cls "$T/new.sh" "$(fx 17 17 '- **CODE**, one story.')" 17)
+[ "$O" = "code=yes scripts=FAIL" ] && [ "$N" = "code=no scripts=PASS" ] \
+  && ok "AC1 key=17 (disclosed loosening): S17 OLD [$O] → NEW [$N] — the named session loses its CODE checks, by design" \
+  || bad "AC1 key=17: old [$O] new [$N]"
+
 # --- AC2: no key → old rule, byte-for-byte, across a listed spread ------------------------------
 diffs=""
 for n in 1 4 5 6 9 10 11 14 15 20 25 99 100 175 180 181; do
@@ -93,6 +101,15 @@ if [ -f "$RUDRA/scripts/verify-closeout.sh" ]; then
   grep -q '^is_ground_truth_session()' "$RUDRA/scripts/verify-closeout.sh" && [ "$R10" = code=yes ] && [ "$R9" = code=yes ] \
     && ok "AC4 rudra's own gate (synced) in rudra's tree: S10 $R10 · S09 $R9 (its **CODE.** brief)" \
     || bad "AC4 rudra gate: S10 $R10 · S09 $R9 (synced? $(grep -c '^is_ground_truth_session()' "$RUDRA/scripts/verify-closeout.sh"))"
+  # review rec 2: the synced file IS the scaffold (body byte-identical, trailer aside), and rudra's
+  # REAL gate entry point — under its own set -euo pipefail — classifies S10 as a CODE session.
+  sed '$d' "$RUDRA/scripts/verify-closeout.sh" | cmp -s - scripts/verify-closeout-scaffold.sh \
+    && ok "AC4 rudra's gate body is byte-identical to the scaffold ($(tail -1 "$RUDRA/scripts/verify-closeout.sh" | cut -c1-36)…)" \
+    || bad "AC4 rudra's gate differs from the scaffold"
+  OUT=$(cd "$RUDRA" && bash scripts/verify-closeout.sh --check-claimed 10 2>&1)
+  grep -qE "(OK|BLOCK): CODE session 10 has" <<<"$OUT" \
+    && ok "AC4 rudra's real entry point (--check-claimed 10): $(grep -oE '(OK|BLOCK): CODE session 10 has[^—]*' <<<"$OUT" | head -1)" \
+    || bad "AC4 rudra --check-claimed 10: $OUT"
 else echo "SKIP: AC4 — no rudra checkout at $RUDRA"; SKIP=$((SKIP+1)); fi
 
 # --- the Rust tests run the same functions ------------------------------------------------------
