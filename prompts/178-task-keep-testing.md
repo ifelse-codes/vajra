@@ -120,6 +120,7 @@ evidence. The founder caught it.
 
 ## Design
 - design-significant: no
+- design-advisor: skipped — wording only: three block messages and one template line change; no check is added, loosened or removed, and no design choice exists to advise on (tech-lead: deferred-budget, `.ai/handoffs/session-178-tech-lead.md`)
 
 ## Plan
 1. Fill this brief from the founder's findings (table, correction, decisions). covers: 1
@@ -130,6 +131,14 @@ evidence. The founder caught it.
 5. F83: the tech-lead template line in `src/fleet/mod.rs`; re-render `.claude/agents/tech-lead.md`. covers: 4
 6. `scripts/verify-session-178.sh` + `scripts/demo-session-178.sh`: old (main) vs new on rudra's and
    Vajra's real records, run live; rebuild, install, `vajra init --sync-fleet` in rudra. covers: 4, 5, 6
+
+## Execution
+- step 1 — done: 301cdf5 (first recorded in 8a01833; S12/S13 rows added in 301cdf5)
+- step 2 — done: 8a01833 (S180 Goal 0; the Jev note and F84–F87 pointer in 301cdf5)
+- step 3 — done: 301cdf5
+- step 4 — done: 75d0fdc (F86 note + mandate sentence in 72f39aa; crew sentence in 8a84b6a; made precise in 75d0fdc)
+- step 5 — done: 9ca3736
+- step 6 — done: a98e61a (rebuild + `cargo install` + `vajra init --sync-fleet` in rudra are not commits here; verify AC4 proves rudra's synced file)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
