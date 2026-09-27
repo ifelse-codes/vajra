@@ -41,7 +41,7 @@ slide_headline() {
   dk_h1 "Vajra's end-of-session messages now " "tell the truth" "."
   dk_verdict "WHAT CHANGED, IN ONE BREATH" \
     "Old: under OpenCode, Vajra said 'this looks hand-typed — run the helper again', and the agent tried ~30 times. It also said nothing could get past the check — but the founder's override did." \
-    "New: it says a helper that ran outside Claude Code can't be confirmed, re-running won't help, and only the founder's override closes it. Same verdicts; only the words changed."
+    "New: it says a helper that ran outside Claude Code can't be confirmed, re-running on the same notes won't help, and names the two ways through: run the helpers again in Claude Code, or the founder's override. Same verdicts; only the words changed."
 }
 
 slide_story() {
@@ -77,10 +77,10 @@ slide_rule() {
   dk_section rule "the rule, in plain words"
   dk_h2 "What each message says now"
   dk_table "Situation|Vajra now says" \
-    "a helper can't be confirmed|its old reason, PLUS: if the helpers ran outside Claude Code this can't pass; re-running won't help; only the founder's override closes it" \
-    "no tech-lead at all|no setting changes the answer; the override can waive this check — but a coding session still needs the tech-lead file, which no override replaces" \
+    "a helper can't be confirmed|its old reason, PLUS: if the helpers ran outside Claude Code this can't pass as they are; re-running on the same notes won't help; ways through: run them again in Claude Code, or the founder's override" \
+    "no tech-lead at all|no skip flag turns the check off; the override can waive this check — but a coding session still needs the tech-lead file, which no override replaces" \
     "the tech-lead writes its crew|as plain lines — a code box is read as an example and skipped"
-  dk_caption "Nothing got easier or harder to pass: every verdict and exit code is the same (old vs new on 21 real checks)."
+  dk_caption "Nothing got easier or harder to pass: every verdict and exit code is the same (old vs new on 15 real checks)."
 }
 
 slide_cases() {
@@ -111,7 +111,7 @@ slide_scorecard() {
   dk_vajra_scorecard "$SESSION"
   dk_scorecard "LIVE — ran while you watched"
   dk_table "Recorded at close — not re-run here|Result" \
-    "old vs new, 21 real checks in rudra (S11, S12, S13) and Vajra (S176, S177) — verify-session-178.sh|same verdict + exit; only the wording differs" \
+    "old vs new, 15 real checks in rudra (S11, S12, S13) and Vajra (S176, S177) — verify-session-178.sh|same verdict + exit; only the wording differs" \
     "lib tests (cargo test --lib)|550 / 550"
   dk_verdict "HONEST NOTES" \
     "This only fixes the WORDS. Vajra still cannot confirm a helper that ran outside Claude Code (F80) — that, and the agent being able to type the founder's controls (F77–F79, F84, F85), is session 180's first item." \
