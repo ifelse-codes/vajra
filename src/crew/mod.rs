@@ -298,7 +298,9 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
         v.reasons.push(format!(
             "session {session:02} records no real tech-lead handoff — the tech-lead is the FIRST \
              and MANDATORY dispatch of every session. Dispatch it and run `vajra next --role \
-             tech-lead --from <crew>`. (No environment variable can satisfy or bypass this gate.)"
+             tech-lead --from <crew>`. (No environment variable changes this check's answer. At \
+             close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can waive it, and the \
+             close log records the waiver.)"
         ));
         for r in tl.reasons {
             v.reasons.push(format!("  (mandate ladder: {r})"));
@@ -678,6 +680,18 @@ mod tests {
         let v = crew_gate(&root, 135);
         assert!(v.blocked());
         assert_eq!(v.cause, Some(CrewCause::TechLeadMissing));
+    }
+
+    // S178 F87: the block no longer claims nothing can get past it (the close waiver can).
+    #[test]
+    fn the_tech_lead_block_names_the_close_waiver_truthfully() {
+        let root = tmp_root();
+        write_prompt(&root, 135, "# fixture\n");
+        let v = crew_gate(&root, 135);
+        assert!(v.blocked());
+        let text = v.reasons.join("\n");
+        assert!(!text.contains("can satisfy or bypass"), "{text}");
+        assert!(text.contains("VAJRA_CLOSEOUT_WAIVER"), "{text}");
     }
 
     // The S135 threshold decision, proven: NO exemption below any session number — a session 5
