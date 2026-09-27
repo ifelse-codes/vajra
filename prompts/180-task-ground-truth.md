@@ -35,6 +35,13 @@
      check (full 7-role process in order, all 21 commits ≤3 files, end check 15→18/21 with real
      fixes, a forced human decision) and did nothing as live guards, receipt, provenance, or a stop
      on text-level faking. Is the portable product the written process + the end check?
+   **Founder direction (2026-09-27, S178 chat):** problem 1 — the agent must not be able to write the
+   approval itself; brainstorm HOW here. Problem 3 (paperwork vs thinking) — brainstorm here too.
+   **Considered and dropped:** Jev (TypeSafe's "System One" typed-question model) as the judge of
+   session type or of sound thinking — a probability over agent-written text is text guessing again,
+   the agent can reword until it passes, it cannot say why it blocked, and it sends briefs off-machine.
+   Also from rudra S12/S13 (see S178's table): F84 (a verified stamp survives an edit of the record's
+   text), F85 (a DRAFT brief ran — the counter was edited by hand), F86/F87 (non-Claude close messages).
    Also on the table (recorded, MED): F81 — step→commit records written after the review, files
    changed after it with only the stamp refreshed; F82 — cost: main agent ~70% of tokens
    (≈270k context × 299 replies), spend limit hit mid-run.

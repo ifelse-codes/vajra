@@ -58,6 +58,16 @@
 | F82 | rudra S10 | Hit the founder's monthly spend limit mid-run (1h26m stalled; a reviewer run lost and redone). Tokens: main agent ~70% (≈270k context per reply × 299 replies), the 8 specialist runs ~30%. | MED (cost), recorded |
 | F67 | rudra S10 | Receipt ~$147 (~5× over, 4th time). S11 had no receipt (not launched via `vajra`). | PARKED by founder |
 | F71 | rudra S10/S11 | Remote branch left after a GitHub-button merge (3rd time). | PARKED by founder |
+| F83 | rudra S12 | The tech-lead's own instructions (`.claude/agents/tech-lead.md:13-16`) show the `crew …` lines inside a code block; the crew gate skips code blocks on purpose (examples, S127), so the real verdict written that way was not read. (Correction, checked later: the gate's own line DID say "lines inside a ``` code fence are not read"; only the script's summary line under it was generic. The agent fixed it in 2 minutes.) The builder moved the lines out of the block in the tech-lead's own file and re-recorded it (rudra `36e465f`, disclosed: "no finding, budget or verdict changed"). The cause is Vajra's own template. | MED, **fixing (founder yes 2026-09-27)** |
+| F84 | rudra S12 | The "verified" stamp proves the helper was dispatched (its tool-use id exists), not that the record's text is what the helper returned (`src/dispatch/mod.rs` `reverify_in`). F83's edit changed `source-sha` and `captured`, and the record still reads verified. Honest this time; same family as F79. | HIGH → S180 |
+| F85 | rudra S12 | Both S12 briefs say **DRAFT** (`prompts/12-task-trust-layer.md:3`, `prompts/parked/paper-entry.md:3`), yet the session ran, closed 21/21 and merged. The agent moved the counter by editing `.ai/SESSION` 11→12 by hand (rudra `1a9ae35`), so `vajra next --advance`'s "brief must be APPROVED" check never ran. (Vajra's own sessions, this one included, also move the counter by hand.) The founder did direct the pivot in chat ("Stop; do trust layer first"). Same family as F77. | HIGH → S180 |
+| F81 | rudra S12 | Recurs under Claude Code: steps 1–4 committed in one minute (14:36 IST), all 13 steps between 14:36 and 15:35, although advisors ran from 10:41 IST. | MED, recorded |
+| F82/F67 | rudra S12 | 10h 3m wall time, 328 replies, receipt ~$161.45 (~5× over, 5th time: "opus-5-5 priced at the unknown-model upper bound"). | MED / PARKED |
+| ✓ | rudra S12 | Final close 21/21 OK: no WAIVED, no N/A (`.ai/verify/closeout/20260926T100506Z`); the first run blocked on 3 (Execution section, crew = F83, demo) and was fixed in 2 minutes. 8/8 handoffs git-tracked (F66). Remote branch removed after merge (F71 did not recur). | confirmed |
+| F86 | rudra S13 (OpenCode) | Under a non-Claude agent the three helper checks (required-crew, design-advisor-mandate, fidelity-handoff) name the wrong cause and the wrong fix: "a hand-typed or pre-S131 handoff", "Dispatch it and run `vajra next --role …`". The agent did exactly that; `vajra next --role` latched onto old Claude Code helpers from rudra S01/S03 ("gitBranch session-01-m2-readiness … belongs to a different session"). ~30 close runs, 2026-09-26 17:05Z → 09-27 06:08Z, all blocked on the same 3. The true cause is F80 (only Claude Code helpers are checkable); the message never says so or that only the founder's override can close it. Build took 86 min; the close took ~5 h. | MED, **fixing (founder yes 2026-09-27)** |
+| F87 | rudra S13 | `src/crew/mod.rs:301` prints "No environment variable can satisfy or bypass this gate", yet the close override `VAJRA_CLOSEOUT_WAIVER=13` waived that check (`.ai/verify/closeout/20260927T060821Z/required-crew.log`). The sentence is false at the close. | MED, **fixing (founder yes 2026-09-27)** |
+| F88 | rudra S13 | PR #15 was opened with the close red (16:50Z) and merged by hand next morning (05:40Z) while still red; after the merge `review-inputs-attested` is red by construction (empty merge-base diff), so a 4th check was waived. The PR body disclosed the red honestly. | recorded |
+| ✓ | rudra S13 | The waiver now records a reason ("S13 merged, verify 169/169 on main; 3 crew-provenance gates need a Claude Code relaunch; …") — better than F78. A cold re-check caught a false green (`950ea88` claimed a gate run older than its own diff) and a real regression (a pattern that missed 15 proofs), fixed in `3237dcb`. | confirmed |
 | ✓ F74/F76 | rudra S10 | The tech-lead and scripts checks ran for real at close, no N/A. | confirmed |
 | ✓ F60 | rudra S10 | The agent committed Vajra's synced `scripts/verify-closeout.sh` first (rudra `97cc64b`). | confirmed |
 
@@ -67,6 +77,8 @@ evidence. The founder caught it.
 
 ## Founder decisions (2026-09-26, do not redo)
 - No new policing and no big redesign in S178.
+- **No cleanup of rudra S11's record** (founder, 2026-09-26: "just paper work and its ok let it be").
+  S11's hand-written stamps and the reasonless waiver stay as they are; F78/F79 above are the record.
 - F77/F78/F79/F80 are one design problem: the "only-the-human" controls (the approval word, the
   waiver variable, the verified stamp) are text the agent can type. It goes to S180 as the FIRST
   item, with: a strict `session_type` field instead of word search; "team of experts vs strict
@@ -76,21 +88,35 @@ evidence. The founder caught it.
 ## Goal
 1. The rudra S10/S11 findings are recorded in the project, and S180 carries the design problem they
    share as its first item.
-2. rudra S12 is watched; it starts by cleaning up S11's record honestly.
+2. rudra S12 is watched (Claude Code, `vajra claude`).
+3. Three close messages tell the truth (founder yes, 2026-09-27): the tech-lead template stops
+   teaching the code-block shape the gate skips (F83); a helper check that cannot confirm a helper
+   says why a non-Claude run cannot pass and what closes it (F86); the crew gate stops claiming
+   nothing can get past it (F87). Wording only — no check added, loosened, or removed.
 
 ## Deliverables
 1. This brief's findings table (F77–F82) and the correction above.
 2. `prompts/180-task-ground-truth.md` gains the four S180 items, first in its Goal.
 3. rudra S12 watched; its findings added here (F83+) and fixed after it closes, if any are Vajra's.
+4. The tech-lead template (`src/fleet/mod.rs`, rendered to `.claude/agents/tech-lead.md`) tells the
+   role to write its nine crew lines outside any code block; synced into rudra.
+5. The provenance blocks behind design-advisor-mandate, required-crew and fidelity-handoff add one
+   line: Vajra confirms a helper only from a Claude Code record; if the helpers ran in another agent,
+   re-running `vajra next --role` will not change the answer, and only a founder waiver closes it.
+6. `src/crew/mod.rs` no longer says "No environment variable can satisfy or bypass this gate".
 
 ## Acceptance
 1. Every finding the founder named (F77–F82, F67, F71, and the two confirmations) is in the table
    with a severity and the line or log it came from.
 2. `prompts/180-task-ground-truth.md` names the "agent can type the human's controls" problem as Goal
    item 1, listing F77–F80, the `session_type` enum, experts-vs-checklist, and the omp result.
-3. rudra S12's own record shows the cleanup: S11's stamps rewritten to "ran in omp;
-   Vajra-unverifiable", the waiver recorded as the founder's with a reason, and a fresh cold review
-   briefed from the task and diff only.
+3. rudra S12's findings (F83+) are in the table with a severity, or the table says it found none.
+4. The tech-lead template in Vajra and, after the sync, in rudra says to write the crew lines outside
+   any code block.
+5. On rudra S13's real records, the three checks print the new non-Claude line; old vs new give the
+   same verdict (blocked or not) and the same exit code on a listed set of sessions in both repos.
+6. The "No environment variable can satisfy or bypass" sentence is gone from what `--check-crew`
+   prints, and what replaces it is true at the close.
 
 ## Design
 - design-significant: no
@@ -99,6 +125,11 @@ evidence. The founder caught it.
 1. Fill this brief from the founder's findings (table, correction, decisions). covers: 1
 2. Copy the S180 items into `prompts/180-task-ground-truth.md` as its first Goal item. covers: 2
 3. Watch rudra S12; add what it surfaces; fix only what the founder says to fix. covers: 3
+4. F86 + F87: one shared non-Claude note in `src/dispatch/mod.rs`, added to the mandate and fidelity
+   provenance blocks; the crew sentence made true. covers: 5, 6
+5. F83: the tech-lead template line in `src/fleet/mod.rs`; re-render `.claude/agents/tech-lead.md`. covers: 4
+6. `scripts/verify-session-178.sh` + `scripts/demo-session-178.sh`: old (main) vs new on rudra's and
+   Vajra's real records, run live; rebuild, install, `vajra init --sync-fleet` in rudra. covers: 4, 5, 6
 
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
@@ -115,6 +146,7 @@ evidence. The founder caught it.
 ## Delta
 - `+` F77–F82 from rudra S10 (Claude Code) and S11 (omp, a non-Claude agent)
 - `+` S180's first item: the human's controls are text the agent can type
+- `~` three close messages made true (F83 template, F86 non-Claude note, F87 false sentence)
 - `~` S177's F74/F76 fix meets a real close for the first time
 - `~` F31 watched a tenth time
 - `-` nothing removed
