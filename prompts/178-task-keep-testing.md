@@ -167,6 +167,7 @@ sources) → c0b22ad. The new unit tests were then rebound to cause + constant (
 - fidelity-reviewer rec 3 — deferred: sessions/session-178-summary.md
 - fidelity-reviewer rec 4 — deferred: sessions/session-178-summary.md
 - fidelity-reviewer rec 5 — deferred: sessions/session-178-summary.md
+- fidelity-reviewer rec 6 — obeyed: dd4e610 (pass 1's seven recs answered in `## Advice`, each with its commit)
 - fidelity-reviewer rec 7 — deferred: sessions/session-178-summary.md
 
 ## Guardrails
