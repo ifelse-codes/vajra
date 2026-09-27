@@ -405,8 +405,8 @@ pub fn mandate_gate(
             SkipMarker::Absent => {
                 let how = format!(
                     "dispatch the role and run `vajra next --role {} --from <findings>`, or record \
-                     `{}: skipped — <reason>` in {} (no environment variable changes this check's \
-                     answer; at close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can \
+                     `{}: skipped — <reason>` in {} (no `VAJRA_SKIP_*` flag turns this check off; \
+                     at close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can \
                      waive it, and the close log records the waiver)",
                     role.name,
                     role.name,

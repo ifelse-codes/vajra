@@ -86,10 +86,11 @@ pub fn claimed_tool_use_id(agent_field: &str) -> Option<String> {
 /// rudra S13 (OpenCode) re-ran `vajra next --role` through ~30 close runs that could never pass.
 /// One shared text so the mandate, crew and fidelity blocks cannot drift apart.
 pub const NON_CLAUDE_NOTE: &str = "if this session's helpers ran in an agent other than Claude \
-    Code (omp, OpenCode, …), this check cannot pass: Vajra confirms a helper only from a Claude \
-    Code record, and re-running `vajra next --role` will not change that. At close, \
-    `VAJRA_CLOSEOUT_WAIVER=<NN>` with `VAJRA_CLOSEOUT_WAIVER_REASON` — meant for the founder — is \
-    the only way through, and the close log records it";
+    Code (omp, OpenCode, …), this check cannot pass as they are: Vajra confirms a helper only from a \
+    Claude Code record, so re-running `vajra next --role` on the same findings will not change \
+    that. Two ways through: run the helpers again under Claude Code and record each with `vajra \
+    next --role`; or, at close, `VAJRA_CLOSEOUT_WAIVER=<NN>` with `VAJRA_CLOSEOUT_WAIVER_REASON` — \
+    meant for the founder, and recorded in the close log";
 
 /// The evidentiary shape S111/S117/S123 hand-assembled for a cold reviewer, made a pure,
 /// unit-testable check: does `tool_use_id` name a `role_name` dispatch that BOTH

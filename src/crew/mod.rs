@@ -298,7 +298,7 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
         v.reasons.push(format!(
             "session {session:02} records no real tech-lead handoff — the tech-lead is the FIRST \
              and MANDATORY dispatch of every session. Dispatch it and run `vajra next --role \
-             tech-lead --from <crew>`. (No environment variable changes this check's answer. At \
+             tech-lead --from <crew>`. (No `VAJRA_SKIP_*` flag turns this check off. At \
              close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can waive this check \
              and the close log records it; a CODE session still needs its tech-lead file on \
              disk, which no waiver replaces.)"
@@ -376,6 +376,7 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
     // passes the ladder on rung 3, but a required role's skip is a contradiction the crew gate
     // refuses).
     let mut missing_required = vec![];
+    let mut unverifiable_required = false;
     for name in v.required_roles() {
         let role = fleet::resolve_role(name)
             .expect("a parsed crew role is a registered specialist by construction");
@@ -384,6 +385,13 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
             !sub.blocked() && sub.skipped.is_none() && sub.handoff_path.is_some();
         if !has_real_handoff {
             missing_required.push(name.to_string());
+            if matches!(
+                sub.cause,
+                Some(mandate::MandateCause::ProvenanceMissingId)
+                    | Some(mandate::MandateCause::ProvenanceUnverifiable)
+            ) {
+                unverifiable_required = true;
+            }
         }
     }
     if !missing_required.is_empty() {
@@ -396,6 +404,11 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
              arithmetic (never upgrade an un-dispatched role to a pass).",
             missing_required.join(", ")
         ));
+        // S178 rec 3: a required role that DID run but cannot be confirmed (the rudra S13 shape)
+        // gets the same non-Claude note the mandate and fidelity blocks carry.
+        if unverifiable_required {
+            v.reasons.push(crate::dispatch::NON_CLAUDE_NOTE.to_string());
+        }
     }
     v
 }
