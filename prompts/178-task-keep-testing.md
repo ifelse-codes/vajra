@@ -140,6 +140,35 @@ evidence. The founder caught it.
 - step 5 — done: 9ca3736
 - step 6 — done: a98e61a (rebuild + `cargo install` + `vajra init --sync-fleet` in rudra are not commits here; verify AC4 proves rudra's synced file)
 
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `fidelity-reviewer` (required; pass 1 REJECT, pass 2
+ACCEPT), and `release-coordinator` as the independent judge of the `obeyed:` lines plus the ship
+steps (a role may not grade its own advice — the S176/S177 precedent; the tech-lead had it
+`deferred-budget`, so this is one dispatch beyond its crew, disclosed). `design-advisor` skipped with a
+recorded reason (`## Design`).
+
+**tech-lead** (`.ai/handoffs/session-178-tech-lead.md`):
+- tech-lead rec 1 — obeyed: d2527e3 (the crew + mandate sentence now reads "No `VAJRA_SKIP_*` flag turns this check off", true at `vajra next`; the close waiver is named "meant for the founder", never founder-only; 75d0fdc names the tech-lead file check no waiver replaces)
+- tech-lead rec 2 — obeyed: 72f39aa (one shared `NON_CLAUDE_NOTE` in `src/dispatch/mod.rs`, appended after each block's own reason in mandate + fidelity; crew call site 2 in d2527e3)
+- tech-lead rec 3 — obeyed: c247b07 (old vs new on rudra S11/S12/S13 and Vajra S176/S177, 15 comparisons, full output diffed; the note asserted absent on passing records; rudra S13's WAIVED close log read as evidence)
+- tech-lead rec 4 — obeyed: a98e61a (verify AC4: Vajra's copy, a fresh `vajra init`, an OLD-render control, rudra's synced copy)
+
+**fidelity-reviewer, pass 1 (REJECT — its handoff was replaced by pass 2; answered here in prose):**
+rec 1 (false "no environment variable" sentence) → d2527e3 · rec 2 ("only way through") → d2527e3 ·
+rec 3 (crew call site 2) → d2527e3 + fixture c247b07 · rec 4 (AC6 run, not grep) → c247b07 · rec 5
+("21" → 15) → c0b22ad · rec 6 (`want=no` asserts absence; SKIP counting) → c247b07 · rec 7 (row
+sources) → c0b22ad. The new unit tests were then rebound to cause + constant (4aedf0f), because
+`verify-session-133.sh`'s rename control rewrites message strings. Pass 2 graded all seven "fixed"
+(rec 4 "hollow for (a)").
+
+**fidelity-reviewer, pass 2** (`.ai/handoffs/session-178-fidelity-reviewer.md`, `sessions/session-178-review.md`, ACCEPT):
+- fidelity-reviewer rec 1 — deferred: sessions/session-178-summary.md
+- fidelity-reviewer rec 2 — obeyed: 9a5f2ed (F88 row: LOW, with its source)
+- fidelity-reviewer rec 3 — deferred: sessions/session-178-summary.md
+- fidelity-reviewer rec 4 — deferred: sessions/session-178-summary.md
+- fidelity-reviewer rec 5 — deferred: sessions/session-178-summary.md
+- fidelity-reviewer rec 7 — deferred: sessions/session-178-summary.md
+
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
 - Findings are collected during his run and fixed after it closes; small commits, each fix shown.
