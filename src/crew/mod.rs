@@ -299,8 +299,9 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
             "session {session:02} records no real tech-lead handoff — the tech-lead is the FIRST \
              and MANDATORY dispatch of every session. Dispatch it and run `vajra next --role \
              tech-lead --from <crew>`. (No environment variable changes this check's answer. At \
-             close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can waive it, and the \
-             close log records the waiver.)"
+             close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can waive this check \
+             and the close log records it; a CODE session still needs its tech-lead file on \
+             disk, which no waiver replaces.)"
         ));
         for r in tl.reasons {
             v.reasons.push(format!("  (mandate ladder: {r})"));
