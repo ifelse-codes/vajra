@@ -89,11 +89,14 @@ pub fn fidelity_gate(root: &Path, session: u32) -> FidelityVerdict {
                 handoff_path: Some(h.path.clone()),
                 agent_field: Some(h.agent.clone()),
                 blocked: true,
-                reasons: vec![format!(
+                reasons: vec![
+                    format!(
                     "{}'s provenance ({:?}) carries no verifiable dispatch id — a hand-typed or \
                      pre-S131 handoff is not accepted as fleet evidence",
                     h.path, h.agent
-                )],
+                ),
+                    dispatch::NON_CLAUDE_NOTE.to_string(),
+                ],
                 warnings: vec![],
             },
             Some(tool_use_id) => match dispatch::reverify(root, role.name, session, &tool_use_id) {
@@ -110,12 +113,15 @@ pub fn fidelity_gate(root: &Path, session: u32) -> FidelityVerdict {
                     handoff_path: Some(h.path.clone()),
                     agent_field: Some(h.agent),
                     blocked: true,
-                    reasons: vec![format!(
-                        "{}'s provenance could not be independently re-verified: {reason} — \
+                    reasons: vec![
+                        format!(
+                            "{}'s provenance could not be independently re-verified: {reason} — \
                              a claim this gate cannot re-derive is treated as absent/invalid, not \
                              trusted",
-                        h.path
-                    )],
+                            h.path
+                        ),
+                        dispatch::NON_CLAUDE_NOTE.to_string(),
+                    ],
                     warnings: vec![],
                 },
             },
@@ -190,6 +196,22 @@ mod tests {
             "{:?}",
             v.reasons
         );
+    }
+
+    // S178 F86: the non-Claude note follows the provenance reason, for a missing id and a bad one.
+    #[test]
+    fn a_provenance_block_adds_the_non_claude_note() {
+        for agent in [
+            "claude-code-subagent",
+            "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)",
+        ] {
+            let root = tmp_root();
+            write_handoff(&root, 131, agent);
+            let v = fidelity_gate(&root, 131);
+            assert!(v.blocked());
+            assert!(v.reasons[0].contains("provenance"), "{:?}", v.reasons);
+            assert_eq!(v.reasons.last().unwrap(), dispatch::NON_CLAUDE_NOTE);
+        }
     }
 
     #[test]

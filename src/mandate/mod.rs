@@ -344,6 +344,7 @@ pub fn mandate_gate(
                          reason does not cure it",
                         h.path, h.agent
                     ));
+                    v.reasons.push(dispatch::NON_CLAUDE_NOTE.to_string());
                 }
                 Some(id) => match dispatch::reverify(root, role.name, session, &id) {
                     // Rung 2 — the only way to pass WITH a handoff.
@@ -367,6 +368,7 @@ pub fn mandate_gate(
                              does not cure it",
                             h.path
                         ));
+                        v.reasons.push(dispatch::NON_CLAUDE_NOTE.to_string());
                     }
                 },
             }
@@ -403,8 +405,9 @@ pub fn mandate_gate(
             SkipMarker::Absent => {
                 let how = format!(
                     "dispatch the role and run `vajra next --role {} --from <findings>`, or record \
-                     `{}: skipped — <reason>` in {} (no environment variable can satisfy or bypass \
-                     this gate)",
+                     `{}: skipped — <reason>` in {} (no environment variable changes this check's \
+                     answer; at close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can \
+                     waive it, and the close log records the waiver)",
                     role.name,
                     role.name,
                     prompt_path.as_deref().unwrap_or("the session's prompt"),
@@ -730,6 +733,33 @@ mod tests {
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
         assert_eq!(v.cause, Some(MandateCause::ProvenanceUnverifiable));
+    }
+
+    // S178 F86: both provenance rungs ADD the non-Claude note after their own reason; the block,
+    // its cause and the first reason are unchanged.
+    #[test]
+    fn a_provenance_block_adds_the_non_claude_note_and_keeps_its_reason() {
+        for (agent, cause, first) in [
+            (
+                "claude-code-subagent",
+                MandateCause::ProvenanceMissingId,
+                "carries no verifiable dispatch id",
+            ),
+            (
+                "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)",
+                MandateCause::ProvenanceUnverifiable,
+                "could not be independently re-verified",
+            ),
+        ] {
+            let root = tmp_root();
+            write_prompt(&root, 133, "# fixture\n");
+            write_handoff(&root, 133, agent);
+            let v = design_advisor_gate(&root, 133);
+            assert!(v.blocked());
+            assert_eq!(v.cause, Some(cause));
+            assert!(v.reasons[0].contains(first), "{:?}", v.reasons);
+            assert_eq!(v.reasons.last().unwrap(), dispatch::NON_CLAUDE_NOTE);
+        }
     }
 
     // Rung 1 BEATS rung 3 — the decided conflict. A recorded reason does not launder a forged

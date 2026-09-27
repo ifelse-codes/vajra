@@ -81,6 +81,16 @@ pub fn claimed_tool_use_id(agent_field: &str) -> Option<String> {
     }
 }
 
+/// Added AFTER a provenance block's own reasons, never instead of them (S178, F86): under Claude
+/// Code "hand-typed" is still a real cause; under any other agent it is not, and without this line
+/// rudra S13 (OpenCode) re-ran `vajra next --role` through ~30 close runs that could never pass.
+/// One shared text so the mandate, crew and fidelity blocks cannot drift apart.
+pub const NON_CLAUDE_NOTE: &str = "if this session's helpers ran in an agent other than Claude \
+    Code (omp, OpenCode, …), this check cannot pass: Vajra confirms a helper only from a Claude \
+    Code record, and re-running `vajra next --role` will not change that. At close, \
+    `VAJRA_CLOSEOUT_WAIVER=<NN>` with `VAJRA_CLOSEOUT_WAIVER_REASON` — meant for the founder — is \
+    the only way through, and the close log records it";
+
 /// The evidentiary shape S111/S117/S123 hand-assembled for a cold reviewer, made a pure,
 /// unit-testable check: does `tool_use_id` name a `role_name` dispatch that BOTH
 /// independently-written files agree on, from a session whose recorded git branch is really
