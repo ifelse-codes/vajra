@@ -739,16 +739,13 @@ mod tests {
     // its cause and the first reason are unchanged.
     #[test]
     fn a_provenance_block_adds_the_non_claude_note_and_keeps_its_reason() {
-        for (agent, cause, first) in [
-            (
-                "claude-code-subagent",
-                MandateCause::ProvenanceMissingId,
-                "carries no verifiable dispatch id",
-            ),
+        // Bound to the cause and the shared constant, never to message text (the S133 rename
+        // control rewrites the reason strings and expects this suite to stay green).
+        for (agent, cause) in [
+            ("claude-code-subagent", MandateCause::ProvenanceMissingId),
             (
                 "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)",
                 MandateCause::ProvenanceUnverifiable,
-                "could not be independently re-verified",
             ),
         ] {
             let root = tmp_root();
@@ -757,7 +754,8 @@ mod tests {
             let v = design_advisor_gate(&root, 133);
             assert!(v.blocked());
             assert_eq!(v.cause, Some(cause));
-            assert!(v.reasons[0].contains(first), "{:?}", v.reasons);
+            assert_eq!(v.reasons.len(), 2, "{:?}", v.reasons);
+            assert_ne!(v.reasons[0], dispatch::NON_CLAUDE_NOTE);
             assert_eq!(v.reasons.last().unwrap(), dispatch::NON_CLAUDE_NOTE);
         }
     }

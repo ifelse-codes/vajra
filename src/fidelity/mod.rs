@@ -209,7 +209,8 @@ mod tests {
             write_handoff(&root, 131, agent);
             let v = fidelity_gate(&root, 131);
             assert!(v.blocked());
-            assert!(v.reasons[0].contains("provenance"), "{:?}", v.reasons);
+            assert_eq!(v.reasons.len(), 2, "{:?}", v.reasons);
+            assert_ne!(v.reasons[0], dispatch::NON_CLAUDE_NOTE);
             assert_eq!(v.reasons.last().unwrap(), dispatch::NON_CLAUDE_NOTE);
         }
     }
