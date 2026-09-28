@@ -64,18 +64,24 @@ is not evidence (S178's lessons).
 |---|---|---|---|
 | F89 | Vajra CLI | `vajra init --help` runs a real init (11 files in an empty repo). No subcommand prints its own help: `check`/`next`/`estimate` run, `meter` opens a file named `--help`, `hook` prints `{}` | HIGH (user-facing) |
 | F90 | Vajra CLI | `vajra init` ignores any word it does not know — `vajra init --dry-run` (without `--sync-fleet`) runs a full real init. Found while probing F89; founder yes 2026-09-28 | HIGH (user-facing) |
-| _ | _ | _ | _ |
+| F91 | rudra S14/S15 (OpenCode) | Vajra's git guards cannot tell OpenCode's agent from the founder (`.githooks/pre-commit:33-35` reads only CLAUDECODE/CLAUDE_CODE_ENTRYPOINT/CURSOR_TRACE_ID/VAJRA_AGENT — the agent's env probe printed `none-set`). 37 agent commits, no approval check; after both merges the agent pushed `5ab6e83` straight to rudra's main (the pre-push note said "Pushing anyway"). Merges #17/#18 were typed by the agent on the founder's chat word | HIGH — PARKED (non-Claude tools, after S180) |
+| F92 | rudra S15 | S15's 4 waived close runs are labelled "Founder waiver 2026-09-28"; the founder waived only S14 (OpenCode question box, 10:00) and his waiver ruling (rudra GT-3) was still open. `VAJRA_CLOSEOUT_WAIVER=N` passes ~20 checks at once (rudra `scripts/verify-closeout.sh`, 20+ `WAIVED` sites), incl. `review-inputs-attested` — the agent itself said the waiver made the review stamp a no-op (18:17) | HIGH — S180 Goal 0 |
+| F93 | rudra S15 | The first ground truth a scaffolded project ran audited the tooling, never whether rudra is on track — the founder had to ask (16:11) and order a re-run. Cause: `vajra init` hands a project Vajra's own audit list — 3 of its 10 audits were Vajra's questions about Vajra (dogfood, dogfood-age, stations), none asked what the project delivered | HIGH — FIXED (founder yes) |
+| F94 | rudra S14/S15 | S14 and S15 ran in one chat; `one_session_per_chat` is guarded only under Claude Code (rudra GT-6) | MED — PARKED (non-Claude) |
+| F95 | rudra S14 | Vajra labels OpenCode helpers `claude-code-subagent (unverifiable: subagent transcript recorded gitBranch "session-03-…")` — it matched unrelated old Claude Code records (rudra S01/S03) | MED — PARKED (non-Claude) |
+| F96 | rudra S14 | The founder asked twice for plain English ("too much analogy") | LOW — recorded |
+| F97 | Vajra | `vajra init --sync-fleet` never touches a project's `CONSTRAINTS.yaml` (by design, `sync_fleet_touches_only_roles_hooks_and_the_constitution`), so F93 reaches new projects and rudra (hand-applied) but no other existing project | MED — recorded |
 
 ## Goal
 1. F89 + F90 fixed; S178's wrong record corrected.
-2. _From the rudra S14/S15 findings._
+2. F93: a project's ground truth asks about the project first (founder yes). Other non-Claude findings parked until after S180 (founder, 2026-09-28).
 
 ## Deliverables
 1. `vajra init --help` (and every `vajra <cmd> --help`/`-h`) prints that command's help and writes nothing.
    `vajra claude --help` stays a pass-through (its arguments belong to Claude Code).
 1b. `vajra init` refuses a word it does not know and writes nothing; `--dry-run`/`--overwrite-drifted`
    without `--sync-fleet` are refused with a message naming the right command.
-2. _From the findings._
+2. `vajra init` hands a project a ground truth whose first audits are vision, roadmap and a new `delivery_progress`; Vajra's two self-usage audits are withheld with declared reasons; rudra's copy updated.
 
 ## Acceptance
 1. In an empty git repo, `vajra init --help` exits 0, prints usage, and `git status` shows nothing new;
@@ -83,16 +89,29 @@ is not evidence (S178's lessons).
 1b. In an empty git repo, `vajra init --dry-run` and `vajra init --bogus` exit non-zero, name the word,
    and `git status` shows nothing new; `vajra init` and `vajra init --sync-fleet [--dry-run|--overwrite-drifted]`
    behave as before.
-2. _From the findings._
+2. A fresh `vajra init`'s `required_audits` starts `vision_alignment, roadmap_alignment, delivery_progress,`, has no `dogfood_check`/`dogfood_staleness` (each declared with a reason), and its project questions precede the workflow ones; `scripts/scaffold-drift.sh` exits 0; rudra's `vajra check` is unchanged.
 
 ## Design
-- design-significant: <yes|no — decided from the findings>
+- design-significant: no — F89/F90 are argument handling at the front door; F93 is a change to derived text through the existing S129 mechanism (`build.rs` `OMIT_AUDITS`, declared omissions), no new mechanism, no new check.
 
 ## Plan
 1. F89: `src/main.rs` answers `--help`/`-h` after any Vajra subcommand (not `claude`) with that command's usage, exit 0, before running it; binary tests in `tests/cli_front_door.rs` (covers: 1)
 2. F90: `src/cli/init.rs` refuses unknown words before anything is written; binary tests (covers: 1b)
 3. Correct S178's record in `sessions/session-178-summary.md` (the S178 agent's own `init --help` wrote the files)
-4. Rudra S14 + S15: read, list findings with the founder, fix what he says yes to (covers: 2)
+4. Rudra S14 + S15: read, list findings with the founder; fix F93 (his yes) — `.ai/CONSTRAINTS.yaml`, `build.rs`, `src/cli/init.rs`, then rudra's copy by hand (covers: 2)
+
+
+## Execution
+- step 1 — done: ad71630
+- step 2 — done: 66e01da
+- step 3 — done: 65217c3
+- step 4 — done: f7c4f5a
+
+## What went right under OpenCode (S14/S15)
+- Close-check runs: ~5 per session (S13: ~30). The agent put the helper-check wall to the founder as a question instead of re-running `vajra next --role` — S178's F86 note did its job.
+- Helper records say "unverifiable" honestly; no hand-typed "verified" stamps (F79/F84 did not recur).
+- F83: rudra's synced `.claude/agents/tech-lead.md` landed as its own commit before the session work.
+- F89 was met live: the agent ran `vajra next --help` twice and got the full session report.
 
 ## Guardrails
 - No new gate on Vajra's own paperwork (founder, 2026-09-15). A gate on the HANDOVER to the human needs his explicit yes.
