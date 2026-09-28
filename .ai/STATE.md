@@ -11,7 +11,7 @@
 - **F90 fixed:** `vajra init` refuses a word it does not know before writing anything (`init --dry-run` did a full setup).
 - **F93 fixed (founder yes):** a project's ground truth leads with vision → roadmap → the new `delivery_progress`; `dogfood_check`/`dogfood_staleness` withheld from projects with declared reasons. rudra's copy updated by hand (uncommitted there).
 - **rudra S14/S15 (OpenCode, one chat):** close runs ~30 → ~5 (S178's F86 note worked). Findings F91–F97; non-Claude ones parked until after S180 (founder); F92 → S180 Goal 0. S178's wrong record corrected (summary + PR #215 comment).
-- Verify 35/35 · demo 6/6 · 551 lib tests · review: see `sessions/session-179-review.md`.
+- Verify 37/37 · demo 6/6 · 551 lib tests · review: see `sessions/session-179-review.md`.
 
 ## Previous session (S178 - interactive, the founder's rudra sessions 10–13)
 
