@@ -89,7 +89,7 @@ slide_rule() {
     "vajra claude --help|unchanged: passed to Claude Code, which shows its own help" \
     "vajra init <a word it doesn't know>|refuses, says 'nothing was written', and names the right command when there is one" \
     "vajra init (new project)|the big review's first three questions are about the project: vision, roadmap, and what was delivered"
-  dk_caption "Checked old vs new on 35 live runs (scripts/verify-session-179.sh)."
+  dk_caption "Checked old vs new on 37 live runs (scripts/verify-session-179.sh)."
 }
 
 slide_cases() {
@@ -123,7 +123,7 @@ slide_scorecard() {
   dk_vajra_scorecard "$SESSION"
   dk_scorecard "LIVE — ran while you watched"
   dk_table "Recorded at close — not re-run here|Result" \
-    "old vs new, 35 live runs — verify-session-179.sh|35 / 35" \
+    "old vs new, 37 live runs — verify-session-179.sh|37 / 37" \
     "command-line tests (tests/cli_front_door.rs)|9 / 9" \
     "lib tests (cargo test --lib)|551 / 551"
   dk_verdict "HONEST NOTES" \
