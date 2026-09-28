@@ -146,10 +146,32 @@ judge of the fidelity-reviewer's `obeyed:` lines plus the ship steps (the tech-l
 - fidelity-reviewer rec 2 — obeyed: dd73c80 (F93 row: two self-usage audits, not three; "fixed in the template, unproven until a project's next ground truth"; `pipeline_advance_check` kept with its reason and its Vajra-only wording recorded as F99)
 - fidelity-reviewer rec 3 — obeyed: dd73c80 (`## Answers` section; F98 row for the station counter + execution check on a NO-CODE ground truth, → S180 `session_type`)
 - fidelity-reviewer rec 4 — obeyed: dd73c80 (`## Design` names the S129 reversal; F100 records `demo-session-129.sh` case 5 failing, and case 4 unable to fail)
-- fidelity-reviewer rec 5 — deferred: S181 — the top-level `vajra --help` line "<command> --help  Print that command's help and run nothing" has no exception for `claude`; a code change after the ACCEPT needs a fresh review (F81), and the founder chose to close on one review (2026-09-28, option B)
-- fidelity-reviewer rec 6 — deferred: S181 — make `init_sync_fleet_dry_run_still_works` able to fail (commit the scaffold first) and add `--help` probes after other args (`next --advance --help`, `init --sync-fleet --help`, `--sync-fleet --overwrite-drifted`); code change, same F81 reason, founder option B
+- fidelity-reviewer rec 5 — deferred: .ai/ROADMAP.md
+  - why: → S181 (ROADMAP "S181 — carried from S179"). the top-level `vajra --help` line "<command> --help  Print that command's help and run nothing" has no exception for `claude`; a code change after the ACCEPT needs a fresh review (F81), and the founder chose to close on one review (2026-09-28, option B)
+- fidelity-reviewer rec 6 — deferred: .ai/ROADMAP.md
+  - why: → S181 (ROADMAP "S181 — carried from S179"). make `init_sync_fleet_dry_run_still_works` able to fail (commit the scaffold first) and add `--help` probes after other args (`next --advance --help`, `init --sync-fleet --help`, `--sync-fleet --overwrite-drifted`); code change, same F81 reason, founder option B
 - fidelity-reviewer rec 7 — obeyed: dd73c80 (`## Answers`: PR #215 corrected by a comment, founder yes, the description left as merged)
 - fidelity-reviewer rec 8 — obeyed: dd73c80 (`## Answers` records the edit uncommitted in rudra; verify AC2 proves it is confined to the `ground_truth:` block)
+
+**release-coordinator** (`.ai/handoffs/session-179-release-coordinator.md` — judged all ten `obeyed:` lines above `implemented`, plus ship steps):
+- release-coordinator rec 1 — deferred: sessions/session-179-summary.md
+  - why: done in 66a9289 (reviewer handoff, summary placeholders filled, by path); an `obeyed:` needs a judge other than the release-coordinator and no further dispatch is budgeted, so it is answered here and carried in the summary's ship steps
+- release-coordinator rec 2 — deferred: sessions/session-179-review.md
+  - why: the founder ruled (2026-09-28, option A): check-script checks added because the review asked for them are evidence, not product code; nothing under `src/` changed after the ACCEPT. Recorded in the review file; an `obeyed:` needs a judge other than the release-coordinator and no further dispatch is budgeted, so it is answered here and carried in the summary's ship steps
+- release-coordinator rec 3 — deferred: sessions/session-179-summary.md
+  - why: these lines are that answer; steps 7–9 happen after the merge and carry no sha yet
+- release-coordinator rec 4 — deferred: sessions/session-179-summary.md
+  - why: the full `scripts/verify-closeout.sh` + `scripts/verify-session-179.sh` run on the branch before the PR, logs read for WAIVED/N/A (S83); an `obeyed:` needs a judge other than the release-coordinator and no further dispatch is budgeted, so it is answered here and carried in the summary's ship steps
+- release-coordinator rec 5 — deferred: sessions/session-179-summary.md
+  - why: push + PR after the green close; the PR body names recs 5/6 → S181, rudra's uncommitted edit, F93 unproven until a project's next ground truth
+- release-coordinator rec 6 — deferred: sessions/session-179-summary.md
+  - why: the founder merges by hand, merge commit, not squash
+- release-coordinator rec 7 — deferred: sessions/session-179-summary.md
+  - why: after the merge: `git checkout main && git fetch origin && git pull --ff-only`
+- release-coordinator rec 8 — deferred: sessions/session-179-summary.md
+  - why: `git branch -d session-179-keep-testing` after the merge, never `-D`
+- release-coordinator rec 9 — deferred: sessions/session-179-summary.md
+  - why: rudra's next agent commits its hand-edited `.ai/CONSTRAINTS.yaml` first
 
 ## Guardrails
 - No new gate on Vajra's own paperwork (founder, 2026-09-15). A gate on the HANDOVER to the human needs his explicit yes.
