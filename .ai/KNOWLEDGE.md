@@ -323,3 +323,11 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **Tests on block messages bind to the cause and a shared constant, not message text** — `scripts/verify-session-133.sh`'s rename control rewrites the mandate reason strings and expects the unit suite to stay green.
 - **Vajra outside Claude Code (rudra S11 omp, S13 OpenCode):** the written process + end check travel (roles in order, ≤3-file commits, real fixes forced at close); live guards, the receipt and helper provenance do not. Every non-Claude close needs the waiver today (F80).
 
+
+## S179 — permanent facts
+
+- **A subcommand that takes args must reject what it does not know.** `vajra init` ignored every word it did not recognise, so `init --help` and `init --dry-run` ran a full setup (F89/F90). `--help`/`-h` is now answered in `src/main.rs` before any subcommand runs; `init` refuses unknown words. Other subcommands still swallow unknown flags (read-only ones).
+- **Never run `vajra init …` in Vajra's own tree to probe it** — probe in a fresh `mktemp` git repo. S178's `init --help` merged a duplicate set of guard hooks into Vajra's `.claude/settings.json`.
+- **The scaffold's ground truth is derived from Vajra's own — so Vajra's self-questions leak into projects unless declared out.** `build.rs` `OMIT_AUDITS` now withholds `dogfood_check`/`dogfood_staleness`; a project's list leads with vision → roadmap → `delivery_progress` (F93). `vajra init --sync-fleet` never touches a project's `CONSTRAINTS.yaml`, so existing projects keep the old list (F97).
+- **`build.rs` output can go stale in `target/`** — S179 saw the old scaffold served after `build.rs` and `.ai/CONSTRAINTS.yaml` changed; `cargo clean -p vajractl` fixed it. When a scaffold test disagrees with the source, check `target/*/build/vajractl-*/out/` first.
+- **OpenCode exports:** `opencode session export <ses_id>` → JSON with `info` (model, cost, tokens) and `messages`; the shell tool is named `shell` (older: `bash`), answers to the agent's questions are in `question` tool results. Vajra's git guards see no agent marker in OpenCode's shell (env probe: `none-set`).
