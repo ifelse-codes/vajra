@@ -117,6 +117,31 @@ if [ -f "$RUDRA/.ai/CONSTRAINTS.yaml" ]; then
   else
     bad "AC2 rudra's ground-truth section differs from the new scaffold's"
   fi
+  # review rec 8: the hand edit touched ONLY the ground_truth block — outside it, rudra's file
+  # equals its committed version (the byte-equal check above would also pass if rudra's own
+  # lines elsewhere had been wiped).
+  outside() { awk '/^ground_truth:/{s=1} /^load_order:/{s=0} !s' "$1"; }
+  if [ "$(outside "$RUDRA/.ai/CONSTRAINTS.yaml")" = "$(git -C "$RUDRA" show HEAD:.ai/CONSTRAINTS.yaml | outside /dev/stdin)" ]; then
+    ok "AC2 rudra's edit is confined to the ground_truth block (everything else = rudra HEAD)"
+  else
+    bad "AC2 rudra's edit changed lines outside the ground_truth block"
+  fi
+  # review rec 1: rudra's `vajra check` is unchanged by the edit — two detached copies of rudra's
+  # HEAD, one with the committed file, one with the hand-edited file; never touches rudra itself.
+  RA="$T/rudra-a"; RB="$T/rudra-b"
+  if git -C "$RUDRA" worktree add -q --detach "$RA" HEAD 2>/dev/null && git -C "$RUDRA" worktree add -q --detach "$RB" HEAD 2>/dev/null; then
+    cp "$RUDRA/.ai/CONSTRAINTS.yaml" "$RB/.ai/CONSTRAINTS.yaml"
+    ca="$(cd "$RA" && "$NEW" check 2>&1 | grep -E 'PASS|FAIL|Score' | sed "s#$RA#R#g")"
+    cb="$(cd "$RB" && "$NEW" check 2>&1 | grep -E 'PASS|FAIL|Score' | sed "s#$RB#R#g")"
+    if [ -n "$ca" ] && [ "$ca" = "$cb" ]; then
+      ok "AC2 rudra's \`vajra check\` unchanged by the edit ($(grep Score <<<"$cb"))"
+    else
+      bad "AC2 rudra's \`vajra check\` changed by the edit"; diff <(echo "$ca") <(echo "$cb") | head -6
+    fi
+    git -C "$RUDRA" worktree remove --force "$RA" >/dev/null 2>&1; git -C "$RUDRA" worktree remove --force "$RB" >/dev/null 2>&1
+  else
+    bad "AC2 could not make throwaway copies of rudra to compare \`vajra check\`"
+  fi
 else
   echo "SKIP: rudra not found at $RUDRA"; SKIP=$((SKIP+1))
 fi
