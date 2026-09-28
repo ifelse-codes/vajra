@@ -130,15 +130,26 @@ is not evidence (S178's lessons).
 - F89 was met live: the agent ran `vajra next --help` twice and got the full session report.
 
 ## Advice
-Roles dispatched: `tech-lead` (mandatory, first) and `fidelity-reviewer` (required; it also judges the
-tech-lead's `obeyed:` lines — a role may not grade its own advice; the release-coordinator was
-`deferred-budget`, so no extra dispatch). `design-advisor` skipped with a recorded reason (`## Design`).
+Roles dispatched: `tech-lead` (mandatory, first), `fidelity-reviewer` (required; it also judges the
+tech-lead's `obeyed:` lines — a role may not grade its own advice), and `release-coordinator` as the
+judge of the fidelity-reviewer's `obeyed:` lines plus the ship steps (the tech-lead had it
+`deferred-budget`: one small dispatch beyond its crew, disclosed — the S178 precedent). `design-advisor` skipped with a recorded reason (`## Design`).
 
 **tech-lead** (`.ai/handoffs/session-179-tech-lead.md`):
 - tech-lead rec 1 — obeyed: 20884aa (the reviewer's brief named files only: this prompt, the diff of the six changed files, `scripts/verify-session-179.sh` + its live output, the demo, and rudra's two records; budget given as an instruction)
 - tech-lead rec 2 — obeyed: b3630a6 (Deliverable 1 lists the subcommands and names `claude` the exempt pass-through before any code; `scripts/verify-session-179.sh` grades that exact list, old vs new)
 - tech-lead rec 3 — obeyed: 20884aa (every probe runs in a fresh `mktemp` git repo; nothing runs `init` in Vajra's own tree)
 - tech-lead rec 4 — obeyed: 790758c (`design-significant: no` recorded only after the rudra findings; no rudra fix touched the close path or the handoff format, so the design-advisor was not added)
+
+**fidelity-reviewer** (`.ai/handoffs/session-179-fidelity-reviewer.md`, `sessions/session-179-review.md`, ACCEPT 10/16 SHIPPED · 6 PARTIAL):
+- fidelity-reviewer rec 1 — obeyed: dd73c80 (verify AC2 runs `vajra check` on two throwaway copies of rudra's HEAD, committed vs hand-edited file: same result; verify 37/37)
+- fidelity-reviewer rec 2 — obeyed: dd73c80 (F93 row: two self-usage audits, not three; "fixed in the template, unproven until a project's next ground truth"; `pipeline_advance_check` kept with its reason and its Vajra-only wording recorded as F99)
+- fidelity-reviewer rec 3 — obeyed: dd73c80 (`## Answers` section; F98 row for the station counter + execution check on a NO-CODE ground truth, → S180 `session_type`)
+- fidelity-reviewer rec 4 — obeyed: dd73c80 (`## Design` names the S129 reversal; F100 records `demo-session-129.sh` case 5 failing, and case 4 unable to fail)
+- fidelity-reviewer rec 5 — deferred: S181 — the top-level `vajra --help` line "<command> --help  Print that command's help and run nothing" has no exception for `claude`; a code change after the ACCEPT needs a fresh review (F81), and the founder chose to close on one review (2026-09-28, option B)
+- fidelity-reviewer rec 6 — deferred: S181 — make `init_sync_fleet_dry_run_still_works` able to fail (commit the scaffold first) and add `--help` probes after other args (`next --advance --help`, `init --sync-fleet --help`, `--sync-fleet --overwrite-drifted`); code change, same F81 reason, founder option B
+- fidelity-reviewer rec 7 — obeyed: dd73c80 (`## Answers`: PR #215 corrected by a comment, founder yes, the description left as merged)
+- fidelity-reviewer rec 8 — obeyed: dd73c80 (`## Answers` records the edit uncommitted in rudra; verify AC2 proves it is confined to the `ground_truth:` block)
 
 ## Guardrails
 - No new gate on Vajra's own paperwork (founder, 2026-09-15). A gate on the HANDOVER to the human needs his explicit yes.
