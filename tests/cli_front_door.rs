@@ -206,3 +206,68 @@ fn init_without_help_still_scaffolds() {
     );
     assert!(wrote_ai, "`vajra init` did not write .ai/SESSION");
 }
+
+/// S179 (F90) — `vajra init` refuses a word it does not know, and writes nothing. Before S179 an
+/// unknown word was ignored: `vajra init --dry-run` (the preview flag, which needs `--sync-fleet`)
+/// ran a full scaffold into the repo it was meant to preview.
+#[test]
+fn init_refuses_unknown_words_and_writes_nothing() {
+    for (word, must_name) in [
+        ("--dry-run", "--sync-fleet --dry-run"),
+        ("--overwrite-drifted", "--sync-fleet --overwrite-drifted"),
+        ("--bogus", "--bogus"),
+        ("myproject", "myproject"),
+    ] {
+        let dir = empty_git_repo("init-unknown");
+        let out = vajra()
+            .args(["init", word])
+            .current_dir(&dir)
+            .stdin(std::process::Stdio::null())
+            .output()
+            .unwrap();
+        let err = String::from_utf8_lossy(&out.stderr);
+        let changes = repo_changes(&dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            !out.status.success(),
+            "`vajra init {word}` exited 0; stderr: {err}"
+        );
+        assert!(
+            err.contains(must_name) && err.contains("nothing was written"),
+            "`vajra init {word}` must name `{must_name}` and say nothing was written; stderr: {err}"
+        );
+        assert!(
+            changes.is_empty(),
+            "`vajra init {word}` wrote into the repo:\n{changes}"
+        );
+    }
+}
+
+/// F90's positive anchor: the words `init` does know still work. `--sync-fleet --dry-run` in a
+/// set-up repo exits 0 and still writes nothing (it is a preview).
+#[test]
+fn init_sync_fleet_dry_run_still_works() {
+    let dir = empty_git_repo("sync-dry");
+    let setup = vajra()
+        .arg("init")
+        .current_dir(&dir)
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    assert!(setup.status.success(), "setup `vajra init` failed");
+    let before = repo_changes(&dir);
+    let out = vajra()
+        .args(["init", "--sync-fleet", "--dry-run"])
+        .current_dir(&dir)
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    let after = repo_changes(&dir);
+    let _ = std::fs::remove_dir_all(&dir);
+    assert!(
+        out.status.success(),
+        "`vajra init --sync-fleet --dry-run` failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(before, after, "`--sync-fleet --dry-run` changed the repo");
+}

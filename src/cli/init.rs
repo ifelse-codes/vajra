@@ -55,6 +55,10 @@ fn hook_label(rel: &str) -> String {
 }
 
 pub fn run(args: &[String]) -> Result<()> {
+    // S179 (F90): refuse any word `init` does not know, BEFORE anything is written. Until S179 an
+    // unknown word was ignored and a full scaffold ran — `vajra init --dry-run` (a preview flag
+    // that only works with `--sync-fleet`) wrote 11 files into the repo it was meant to preview.
+    check_init_args(args)?;
     // S136 (DECISION-007 S136 addendum): the UPGRADE path a brownfield adopter needs. `init`
     // scaffolds ~40 entries and prompts for a project name, a first-session goal and a maturity
     // level — all wrong for a project that adopted Vajra ten sessions ago and only wants the
@@ -93,6 +97,29 @@ pub fn run(args: &[String]) -> Result<()> {
 
     scaffold(&root, &project_name, &goal, maturity)?;
     first_run_aha(&root);
+    Ok(())
+}
+
+/// The words `vajra init` accepts (S179, F90). Plain `init` takes none; `--sync-fleet` takes its
+/// two modifiers. Anything else fails closed with nothing written.
+fn check_init_args(args: &[String]) -> Result<()> {
+    const SYNC_MODIFIERS: [&str; 2] = ["--dry-run", "--overwrite-drifted"];
+    let sync = args.iter().any(|a| a == "--sync-fleet");
+    for word in args {
+        if word == "--sync-fleet" || (sync && SYNC_MODIFIERS.contains(&word.as_str())) {
+            continue;
+        }
+        if SYNC_MODIFIERS.contains(&word.as_str()) {
+            anyhow::bail!(
+                "`{word}` only works with --sync-fleet — nothing was written. \
+                 Did you mean `vajra init --sync-fleet {word}`?"
+            );
+        }
+        anyhow::bail!(
+            "vajra init does not know `{word}` — nothing was written. \
+             Run `vajra init --help` for what it accepts."
+        );
+    }
     Ok(())
 }
 
