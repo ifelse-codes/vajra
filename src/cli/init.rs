@@ -1523,9 +1523,12 @@ communication:
   forbid: [greetings, apologies, filler, trailing-summaries]
 
 ground_truth:
-  # Every 5th session is NO-CODE. It must catch BOTH direction drift (vision+roadmap)
-  # and discipline drift (rules+constitution+state). Rules exist to serve the vision —
-  # auditing rule-following without auditing the vision is the trap.
+  # Every 5th session is NO-CODE. PROJECT FIRST: the first three audits ask whether THIS
+  # project is going the right way and delivering on it — vision_alignment, roadmap_alignment,
+  # delivery_progress — and their questions come first below. Answer them before anything
+  # else. Every audit after them checks the workflow (rules, state, cost). Rules exist to
+  # serve the vision — a ground truth that audits the workflow and never asks whether the
+  # project is on track has missed the point.
   forbid_code_changes: true
   forbid_commits: true
   forbid_prs: true
@@ -1945,6 +1948,42 @@ mod tests {
         ] {
             assert!(c.contains(needle), "TPL_CONSTRAINTS missing {needle:?}");
         }
+    }
+
+    /// S179 (F93): a project's ground truth asks about the PROJECT first. rudra S15 — the first
+    /// ground truth a scaffolded project ran — audited the tooling and never asked whether rudra
+    /// was on track, because 3 of its 10 audits were Vajra's questions about Vajra and none asked
+    /// what the project delivered.
+    #[test]
+    fn scaffold_ground_truth_puts_the_project_first() {
+        let dir = scaffold_tmp();
+        let c = fs::read_to_string(dir.path().join(".ai/CONSTRAINTS.yaml")).unwrap();
+        let audits = c
+            .lines()
+            .find_map(|l| l.trim().strip_prefix("required_audits: ["))
+            .expect("scaffold has a required_audits list");
+        assert!(
+            audits.starts_with("vision_alignment, roadmap_alignment, delivery_progress,"),
+            "the project audits must lead the list; got: {audits}"
+        );
+        for withheld in ["dogfood_check", "dogfood_staleness"] {
+            assert!(
+                !audits.contains(withheld),
+                "{withheld} is Vajra's question about Vajra and must not be required of a project"
+            );
+            assert!(
+                c.contains(&format!("scaffold-omits-audit: {withheld} — ")),
+                "withholding {withheld} must be declared with its reason"
+            );
+        }
+        assert!(!c.contains("dogfood_questions:") && !c.contains("dogfood_staleness_questions:"));
+        let pos = |k: &str| c.find(k).unwrap_or_else(|| panic!("scaffold missing {k}"));
+        assert!(
+            pos("vision_questions:") < pos("roadmap_questions:")
+                && pos("roadmap_questions:") < pos("delivery_progress_questions:")
+                && pos("delivery_progress_questions:") < pos("pipeline_advance_questions:"),
+            "the project questions must come before the workflow questions"
+        );
     }
 
     #[test]
