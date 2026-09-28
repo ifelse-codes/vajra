@@ -93,6 +93,7 @@ is not evidence (S178's lessons).
 
 ## Design
 - design-significant: no — F89/F90 are argument handling at the front door; F93 is a change to derived text through the existing S129 mechanism (`build.rs` `OMIT_AUDITS`, declared omissions), no new mechanism, no new check.
+- design-advisor: skipped — the tech-lead deferred it for budget (`.ai/handoffs/session-179-tech-lead.md`, one dispatch affordable after the F82 cap), and nothing here is a design choice: F89/F90 are argument handling, F93 runs through the S129 `OMIT_AUDITS` mechanism unchanged.
 
 ## Plan
 1. F89: `src/main.rs` answers `--help`/`-h` after any Vajra subcommand (not `claude`) with that command's usage, exit 0, before running it; binary tests in `tests/cli_front_door.rs` (covers: 1)
