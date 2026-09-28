@@ -314,3 +314,12 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **Classifiers keyed on a spelling drift with the author.** The scaffold's `is_code_session` matched only `**CODE**`; rudra's agent writes `**CODE.**` in every brief, so 8 CODE sessions skipped the tech-lead check with `N/A` in a log no one reads. It now accepts `**CODE[.:,]**`; Vajra's own gate still matches exactly (10 old Vajra prompts say `**CODE.**`).
 - **An `N/A` in a gate log is where a skipped check hides** — the summary line says PASS. When a finding says "the gate passed", read the per-check logs for `N/A`.
 - **A role may not grade its own recs** — the fidelity-reviewer refuses to write `obeyed-check` lines for its own advice; dispatch a second role (release-coordinator) as the judge.
+
+
+## S178 — permanent facts
+
+- **Read a close log for `WAIVED` and `N/A` before calling it passed, and never count a hand-written `verified:` stamp as evidence.** S178's first read called rudra S11 "passed" from its OK lines; three checks were WAIVED with no reason and all seven stamps were typed by the builder.
+- **A message fix can itself be a new false absolute.** S178 replaced "no environment variable can satisfy or bypass" with "no environment variable changes this check's answer" — also false (`VAJRA_CLAUDE_PROJECTS_DIR`) — and "the waiver is the only way through" (re-running under Claude Code works). Scope the claim to what is proven: "no `VAJRA_SKIP_*` flag turns this check off", "two ways through".
+- **Tests on block messages bind to the cause and a shared constant, not message text** — `scripts/verify-session-133.sh`'s rename control rewrites the mandate reason strings and expects the unit suite to stay green.
+- **Vajra outside Claude Code (rudra S11 omp, S13 OpenCode):** the written process + end check travel (roles in order, ≤3-file commits, real fixes forced at close); live guards, the receipt and helper provenance do not. Every non-Claude close needs the waiver today (F80).
+
