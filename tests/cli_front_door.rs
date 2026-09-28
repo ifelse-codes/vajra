@@ -107,3 +107,102 @@ fn version_flag_prints_the_manifest_version() {
         );
     }
 }
+
+/// A fresh, empty git repo with one commit — the directory a stranger types their first command in.
+fn empty_git_repo(tag: &str) -> std::path::PathBuf {
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!("vajra-s179-{tag}-{}-{nanos}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    for args in [
+        vec!["init", "-q"],
+        vec![
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "commit",
+            "-q",
+            "--allow-empty",
+            "-m",
+            "x",
+        ],
+    ] {
+        let st = Command::new("git")
+            .args(&args)
+            .current_dir(&dir)
+            .status()
+            .unwrap();
+        assert!(st.success(), "git {args:?} failed in {}", dir.display());
+    }
+    dir
+}
+
+/// `git status --porcelain` — empty means the command wrote nothing into the repo.
+fn repo_changes(dir: &std::path::Path) -> String {
+    let out = Command::new("git")
+        .args(["status", "--porcelain"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+/// S179 (F89) — `vajra <command> --help` prints THAT command's help and writes nothing.
+/// Before S179 no subcommand read the flag: `init --help` scaffolded 11 files into an empty repo,
+/// `check`/`next`/`estimate` ran, `meter` opened a file named `--help`, `hook` printed `{}`.
+/// `claude` is not in the list on purpose — its arguments belong to Claude Code.
+#[test]
+fn every_subcommand_help_prints_usage_and_writes_nothing() {
+    for cmd in ["init", "check", "next", "estimate", "hook", "meter"] {
+        for flag in ["--help", "-h"] {
+            let dir = empty_git_repo(cmd);
+            let out = vajra()
+                .args([cmd, flag])
+                .current_dir(&dir)
+                .stdin(std::process::Stdio::null())
+                .output()
+                .unwrap();
+            let err = String::from_utf8_lossy(&out.stderr);
+            let changes = repo_changes(&dir);
+            let _ = std::fs::remove_dir_all(&dir);
+            assert_eq!(
+                out.status.code(),
+                Some(0),
+                "`vajra {cmd} {flag}` should exit 0; stderr: {err}"
+            );
+            assert!(
+                err.contains(&format!("vajra {cmd} —")) && err.contains("usage:"),
+                "`vajra {cmd} {flag}` did not print its own help; stderr: {err}"
+            );
+            assert!(
+                changes.is_empty(),
+                "`vajra {cmd} {flag}` wrote into the repo:\n{changes}"
+            );
+        }
+    }
+}
+
+/// F89's positive anchor: the help check must not swallow the real command. A bare `vajra init`
+/// (no flag) still scaffolds — without this, "writes nothing" would pass on a binary that never
+/// runs init at all.
+#[test]
+fn init_without_help_still_scaffolds() {
+    let dir = empty_git_repo("init-real");
+    let out = vajra()
+        .arg("init")
+        .current_dir(&dir)
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    let wrote_ai = dir.join(".ai/SESSION").is_file();
+    let _ = std::fs::remove_dir_all(&dir);
+    assert!(
+        out.status.success(),
+        "`vajra init` failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(wrote_ai, "`vajra init` did not write .ai/SESSION");
+}
