@@ -98,6 +98,18 @@ cause. The row now says "fixed in the template, unproven until a project's next 
 Runner-up: `init_sync_fleet_dry_run_still_works` compares `git status` in a repo whose scaffold is
 uncommitted, so writes inside `?? .ai/` would not show (rec 6, deferred to S181).
 
+## Ship steps (release-coordinator recs 1–9)
+
+- rec 1 — reviewer handoff + review file recorded, summary filled, staged by path (`.claude/launch.json`, `first-mate.html`, `sessions/session-137-scatter-render.html`, `vajra-cto-audit-2026-07-22.html` stay out).
+- rec 2 — founder ruling (option A): check-script checks the review asked for are evidence, not code; nothing under `src/` changed after the ACCEPT. The stamp is computed after the last prompt commit, never typed.
+- rec 3 — answered in `## Advice`; steps 7–9 come after the merge.
+- rec 4 — `cargo install --path .` from the branch head, then the full `scripts/verify-closeout.sh` on the branch, exit 0, logs read for WAIVED/N/A — BEFORE the PR (S83). If interrupted: `git -C ~/playground/rudra worktree prune`.
+- rec 5 — push + PR; the body names recs 5/6 → S181, rudra's uncommitted edit, F93 unproven until a project's next ground truth.
+- rec 6 — the founder merges by hand, while green, with a merge commit (not squash).
+- rec 7 — after the merge: `git checkout main && git fetch origin && git pull --ff-only`.
+- rec 8 — `git branch -d session-179-keep-testing`, `git push origin --delete session-179-keep-testing` (F71), `git fetch --prune`.
+- rec 9 — rudra's next agent commits the hand-edited `.ai/CONSTRAINTS.yaml` first. Founder's call, raised not scheduled: a crates.io release so strangers get F89/F90/F93.
+
 ## Cost
 
 Interactive. The founder's rudra S14/S15 run: OpenCode reports $1.93 (mostly a free model;
