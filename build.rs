@@ -73,6 +73,17 @@ const OMIT_AUDITS: &[(&str, &str)] = &[
         "scaffold_drift_check",
         "it compares this scaffold against the repo that generates it. A scaffolded project has no scaffold of its own to compare, so the audit has no subject there.",
     ),
+    // S179 (F93): these two measure whether VAJRA is being used on real paid work — Vajra's own
+    // question about itself. In a project they asked the project's ground truth about the tool
+    // instead of the project (rudra S15 audited the tooling until the founder asked).
+    (
+        "dogfood_check",
+        "it asks whether real work ran through `vajra claude` — whether Vajra itself is being used, which is Vajra's question about Vajra. A project's ground truth asks whether the project is delivering (delivery_progress), not whether its tool was used.",
+    ),
+    (
+        "dogfood_staleness",
+        "its evidence is `vajra next --dogfood-age`, the age of Vajra's own last paid run through `vajra claude` — a measure of the tool, not of the project.",
+    ),
 ];
 
 /// Ground-truth drift AXES in `.ai/CONSTRAINTS.yaml` withheld from a scaffolded project.

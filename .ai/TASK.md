@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S178 complete on its branch; S179 = founder's pick
+## Between Sessions — S179 complete on its branch; S180 = ground truth
 
-**Next: Session 179** — the founder picks from `sessions/session-178-summary.md`'s 3 ranked candidates. S180 = ground truth, Goal 0 first (`prompts/180-task-ground-truth.md`).
+**Next: Session 180** — the NO-CODE ground truth, Goal 0 first (`prompts/180-task-ground-truth.md`). Start in a fresh chat.
+
+## Session 179 — Interactive: `--help` that runs nothing + rudra sessions 14–15 (OpenCode) — COMPLETE
+
+- Brief: `prompts/179-task-keep-testing.md` (findings F89–F97). Summary: `sessions/session-179-summary.md`. Review: `sessions/session-179-review.md`.
+- Shipped: F89 `vajra <cmd> --help` runs nothing · F90 `init` refuses unknown words · F93 a project's ground truth leads with the project (`delivery_progress`; rudra updated by hand) · S178's record corrected.
+- **To S180 Goal 0:** F92. **Parked until after S180 (founder):** F91, F94, F95 (other coding tools). **Recorded:** F96, F97.
 
 ## Session 178 — Interactive: rudra sessions 10–13 — COMPLETE
 

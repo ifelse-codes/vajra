@@ -108,7 +108,25 @@ ground_truth:
   # Every GT must catch BOTH direction drift (vision+roadmap) and discipline drift (rules+constitution+state).
   # Rules exist to serve the vision — auditing rule-following without auditing the vision is the trap S20 caught.
   drift_axes: [vision, roadmap, rules, constitution, state, cost, usage]
-  required_audits: [vision_alignment, roadmap_alignment, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check, pipeline_advance_check, dogfood_staleness, stranger_check, scaffold_drift_check]
+  required_audits: [vision_alignment, roadmap_alignment, delivery_progress, state_drift, knowledge_staleness, constraint_violation_review, constitution_review, cost_review, dogfood_check, pipeline_advance_check, dogfood_staleness, stranger_check, scaffold_drift_check]
+  # S179 (F93): PROJECT FIRST. The first three audits ask whether THIS project is going the right
+  # way and delivering on it (vision, roadmap, delivery); every audit after them checks the
+  # workflow. Their question blocks come first below, in that order, for the same reason — a
+  # scaffolded project's first ground truth (rudra S15) audited the tooling and never asked
+  # whether the project was on track, until the founder asked.
+  vision_questions:
+    - Is the north-star still the right destination?
+    - Is current work the shortest path to it, or intellectually-fun scope creep?
+    - What new evidence would make us pivot or abandon this direction?
+  roadmap_questions:
+    - Does each phase still map to the north-star?
+    - Is the next item the highest-leverage one, or just the easiest?
+    - Any item now obsolete, or any the vision now demands but the roadmap lacks?
+  delivery_progress_questions:
+    - What did this project actually deliver since the last ground truth? List each shipped item against the roadmap item it was meant to close — name the commit or PR, not the session title.
+    - Which of the vision's own goals or success measures moved because of that work? Name the evidence, or say NONE.
+    - Is the project on track to finish what the roadmap promises next? If not, what is blocking it, and since when?
+    - What did the delivered work cost (time, money, reviews, re-runs) against what it gave the project? Is that ratio getting better or worse?
   # dogfood_check added S30: 7 audits passed green while the product sat un-dogfooded (~$0 spend since S07).
   # No audit measured USAGE — the S25 false-green finding one level deeper. The cost ledger is the evidence.
   # pipeline_advance_check added S74: no audit measured whether the PIPELINE advances (the S25/S60/S65/S70
@@ -151,14 +169,6 @@ ground_truth:
   pipeline_advance_questions:
     - For each session since the last ground-truth, run `vajra next --stations NN` and read the K-of-8. Is the pipeline advancing (stations demonstrably passed), or is the machinery growing while the payload stalls? (The counter is the proof, not test counts.)
     - Any station ABSENT across many recent sessions is a systemic gap, not per-session noise — name it. A count that never reaches 8/8 in this repo (SHIP needs a synced origin; Reviewer needs an attested ACCEPT) is expected — read the SHAPE, not just the number.
-  vision_questions:
-    - Is the north-star still the right destination?
-    - Is current work the shortest path to it, or intellectually-fun scope creep?
-    - What new evidence would make us pivot or abandon this direction?
-  roadmap_questions:
-    - Does each phase still map to the north-star?
-    - Is the next item the highest-leverage one, or just the easiest?
-    - Any item now obsolete, or any the vision now demands but the roadmap lacks?
   constitution_questions:
     - Is any rule now blocking the vision instead of protecting it?
     - Did this audit's own mechanism have a blind spot? (meta-check)

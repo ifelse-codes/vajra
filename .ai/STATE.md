@@ -3,19 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-178-keep-testing` — S178 complete on its branch; PR to open (the founder merges).**
+**`session-179-keep-testing` — S179 complete on its branch; PR to open (the founder merges).**
 
-## What was done this session (S178 - interactive, the founder's rudra sessions 10–13)
+## What was done this session (S179 - interactive, F89 + the founder's rudra sessions 14–15)
 
-- **Four rudra runs:** S10 (Claude Code, F74/F76 met a real close), S11 (omp, on purpose), S12 (Claude Code, 21/21 clean), S13 (OpenCode: 86 min to build, ~5 h and ~30 runs to close). Findings F77–F88.
-- **The shared design problem (→ S180 Goal 0):** the founder's controls — "APPROVED", the close waiver, the "verified" stamp — are text the agent can type (F77–F79, F84, F85); helpers are checkable only from Claude Code records (F80). Founder: no new policing now; Jev considered and dropped.
-- **Fixed (founder yes), wording only:** F83 the tech-lead template (crew lines outside any code block; synced into rudra) · F86 a shared non-Claude note on the provenance blocks (mandate, fidelity, crew sites 1+2) · F87 the false "no environment variable can satisfy or bypass" → "no `VAJRA_SKIP_*` flag turns this check off" + the waiver named as meant for the founder + the unwaivable tech-lead file.
-- **My correction:** the first read called rudra S11's close "passed" (3 checks were WAIVED); the founder caught it.
-- Verify 26/26 · demo 6/6 · 550 lib tests · review pass 1 REJECT → pass 2 ACCEPT (11/12).
+- **F89 fixed:** `vajra <cmd> --help`/`-h` prints that command's help and runs nothing (`init --help` wrote 11 files; rudra's agent hit `next --help` live). `claude` stays a pass-through.
+- **F90 fixed:** `vajra init` refuses a word it does not know before writing anything (`init --dry-run` did a full setup).
+- **F93 fixed (founder yes):** a project's ground truth leads with vision → roadmap → the new `delivery_progress`; `dogfood_check`/`dogfood_staleness` withheld from projects with declared reasons. rudra's copy updated by hand (uncommitted there).
+- **rudra S14/S15 (OpenCode, one chat):** close runs ~30 → ~5 (S178's F86 note worked). Findings F91–F97; non-Claude ones parked until after S180 (founder); F92 → S180 Goal 0. S178's wrong record corrected (summary + PR #215 comment).
+- Verify 37/37 · demo 6/6 · 551 lib tests · review: see `sessions/session-179-review.md`.
 
-## Previous session (S177 - interactive, the founder's rudra session 09)
+## Previous session (S178 - interactive, the founder's rudra sessions 10–13)
 
-- F74 + F76 fixed (scaffold close gate: moved ground truth, `**CODE.**`). `sessions/session-177-summary.md`.
+- F83/F86/F87 wording fixes; F77–F80, F84, F85 → S180 Goal 0. `sessions/session-178-summary.md`.
 
 ## What Currently Works
 
@@ -27,6 +27,8 @@
 - **The ground-truth cadence is config-driven (S175):** `.ai/CONSTRAINTS.yaml#ground_truth_next_session` overrides the every-5th default in all 6 sites that read it; absent behaves byte-for-byte as before.
 - **The scaffold close gate honours a moved ground truth and `**CODE.**` briefs (S177):** a project's CODE session gets its full close checks after the founder moves the next GT.
 - **The Planner checks `covers: N` both ways (S176):** a plan citing acceptance items the brief lacks blocks; `| ACn |` tables are read.
+- **`vajra <cmd> --help` runs nothing; `vajra init` refuses unknown words (S179, F89/F90).**
+- **A project's ground truth leads with the project (S179, F93):** vision → roadmap → `delivery_progress`; Vajra's two self-usage audits are withheld from projects (`build.rs` `OMIT_AUDITS`).
 - **`VAJRA_ALLOW_PUBLISH=1` no longer covers merge (S175):** `gh pr merge`/`glab mr merge` always fall to the founder, matching the boundary `VAJRA_ALLOW_COMMIT` (F55) already held.
 
 ## What Is Broken / Weak / Disclosed
@@ -49,21 +51,24 @@
 - **🟡 F66 (S175, disclosed, not fixed):** `--check-crew`/`read_handoff` checks a handoff file's presence on disk, never that it's git-tracked — a session's required crew can close with real handoffs left uncommitted. Same bug family as F60 (Vajra's own sync files), different target. No new gate on Vajra's own paperwork without the founder's explicit yes (Guardrails).
 - **🟡 `scripts/verify-closeout-scaffold.sh` (the `vajra init` template) does not carry the S175 cadence-config fix** — deliberate, disclosed (DECISION-007 S175 addendum): a new project has no reason to move its first ground truth on day one, and this file already lags the live gate on other counts (S154's execution-sha tightening, cargo-fmt).
 - **🟡 `.ai/ROADMAP.md`'s "NN % 5 == 0 → mandatory NO-CODE GT" pointer line had gone stale for many cycles** (last hand-updated at S120/S125, corrected at S175 to S170/S180) — a reminder that a hand-maintained "next X" pointer drifts unless something derives it.
+- **🟡 F97 (S179):** `vajra init --sync-fleet` never touches a project's `CONSTRAINTS.yaml`, so existing projects keep the old ground-truth list (rudra updated by hand). Other subcommands still swallow unknown flags (read-only).
+- **🔴 Non-Claude agents (S179, PARKED until after S180 by the founder):** F91 the git guards cannot tell OpenCode's agent from the founder (37 unchecked commits, a push straight to rudra's main) · F94 one chat for two sessions · F95 OpenCode helpers matched to unrelated Claude Code records. F92 (a waiver labelled "founder" he did not give; the waiver passes ~20 checks at once) → S180 Goal 0.
 - **🟡 Not tested:** Windows; a real light-background terminal. **Zero external users**; prove-then-cut-cost arc unstarted; Autopilot Rung 2/3 incomplete.
 - **🟡 Backlog carry-forwards** — D2 inner-session gap + waiver path (S161) · crew advice impact F13 · S154-QA 1–3 · S156-FR r1/r2 · S157-FR r2 · S159-FR r1 · S161-FR 2–4 · S164-QA r1 · verify-158 source grep · no gate against new hollow verify checks · Releaser NoBranch blind spot · init.rs hand-typed scaffold scope · waiver BLOCK paths untested.
 
 ## What Is In Progress
 
-- Nothing. S178 closed on its branch; PR to open. S179 = the founder's pick (see `sessions/session-178-summary.md`'s 3 ranked candidates). S180 = ground truth, Goal 0 first.
+- Nothing. S179 closed on its branch; PR to open. S180 = ground truth, Goal 0 first (`prompts/180-task-ground-truth.md`).
 
 ## Active PRs
 
-- S178's, once opened. S177 merged as #214.
+- S179's, once opened. S178 merged as #215.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S179 | $0 | No paid run in this repo; the founder's rudra S14/S15 ran under OpenCode ($1.93 by OpenCode, no Vajra receipt). 2 fleet dispatches (tech-lead, fidelity-reviewer — also the judge of the tech-lead's obeyed lines) |
 | S178 | $0 | No paid run in this repo; the founder's rudra S10 (~$147) and S12 (~$161.45) receipts are F67-overstated ~5×; S11/S13 ran outside `vajra claude` (no receipt). 4 fleet dispatches (tech-lead, fidelity-reviewer ×2, release-coordinator as judge) |
 | S177 | $0 | No paid run in this repo; the founder's rudra S09 run supplied the findings (its receipt ~$118.69 is F67-overstated ~5×). 3 fleet dispatches (tech-lead, fidelity-reviewer, release-coordinator as judge) |
 | S176 | $0 | No paid run in this repo; the founder's rudra S07/S08 runs supplied the findings (their receipts ~$48.68/~$62.71 are F67-overstated ~5×). 5 fleet dispatches (tech-lead, design-advisor, qa-specialist, fidelity-reviewer, release-coordinator as judge) |

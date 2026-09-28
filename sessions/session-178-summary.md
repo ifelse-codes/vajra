@@ -77,8 +77,11 @@ c247b07, c0b22ad, 4aedf0f. **Pass 2 ACCEPT, 11 of 12 SHIPPED, 1 PARTIAL** (F88's
   failures are not this session's: S133 `k-of-8` failed at the start commit too; S135
   `zero-shared-ladder-lines` compares `src/mandate/mod.rs` to `main`, true only on S135's own branch.
 - rudra's new tech-lead file is uncommitted in rudra; its next agent commits it first.
-- `.claude/settings.json`, `.gitignore` and `.ai/hooks/` were changed at 18:03:15 by something other than
-  this session's commands (a dry run writes nothing — checked in a clean copy). Left alone, not committed.
+- ~~`.claude/settings.json`, `.gitignore` and `.ai/hooks/` were changed at 18:03:15 by something other than
+  this session's commands (a dry run writes nothing — checked in a clean copy). Left alone, not committed.~~
+  **Corrected in S179:** this was wrong. This session's own `./target/release/vajra init --help` wrote
+  them — `init` ignored `--help` and ran a real init (F89; it merged a second set of guard hooks into
+  `.claude/settings.json`). The founder reverted all three on 2026-09-28. F89 + F90 fixed in S179.
 
 ## The fakest green here
 
