@@ -45,6 +45,14 @@
    Also on the table (recorded, MED): F81 — step→commit records written after the review, files
    changed after it with only the stamp refreshed; F82 — cost: main agent ~70% of tokens
    (≈270k context × 299 replies), spend limit hit mid-run.
+   **From rudra S14/S15 (S179, full rows in `prompts/179-task-keep-testing.md`):** F92 — S15's four
+   waived close runs are labelled "Founder waiver" though the founder waived only S14 (a live F78), and
+   `VAJRA_CLOSEOUT_WAIVER=N` passes ~20 checks at once, not only the ones it was asked for — including
+   the review stamp.
+   **Parked until AFTER S180 (founder, 2026-09-28):** everything about coding tools other than Claude
+   Code — F91 (the git guards cannot tell OpenCode's agent from the founder: 37 unchecked commits and a
+   push straight to rudra's main), F94 (one chat for two sessions), F95 (OpenCode helpers matched to
+   unrelated Claude Code records). A separate brainstorm session, not this one.
 1. **Did S174 land?** From rudra 06's record, answer yes/no with the line that shows it:
    - F60 — the agent committed Vajra's synced files first, and did not suggest reverting them.
    - F59 — start-up said "session 05 is merged — session 06 starts here"; the agent re-ran
@@ -53,7 +61,8 @@
    - F48/F53/F54 — S07's prompt written before the merge; the review stamped once; `## Advice`
      passed its format first time.
 2. **Audits, briefly** (the live list: `CONSTRAINTS.yaml#ground_truth.required_audits`), one or two
-   lines each, 🟢/🟡/🔴. A new loophole in Vajra's own paperwork is recorded "parked — policing".
+   lines each, 🟢/🟡/🔴. **New in S179 (F93): the list now leads with `delivery_progress` — answer
+   it first for Vajra: what reached a user since S175, and is Vajra on track?** A new loophole in Vajra's own paperwork is recorded "parked — policing".
 3. **Point at the user:** the shortest path from here to a stranger getting value (the 0.2.0 release
    is still unpublished).
 

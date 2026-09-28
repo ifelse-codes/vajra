@@ -114,6 +114,17 @@ is not evidence (S178's lessons).
 - F83: rudra's synced `.claude/agents/tech-lead.md` landed as its own commit before the session work.
 - F89 was met live: the agent ran `vajra next --help` twice and got the full session report.
 
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first) and `fidelity-reviewer` (required; it also judges the
+tech-lead's `obeyed:` lines — a role may not grade its own advice; the release-coordinator was
+`deferred-budget`, so no extra dispatch). `design-advisor` skipped with a recorded reason (`## Design`).
+
+**tech-lead** (`.ai/handoffs/session-179-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 20884aa (the reviewer's brief named files only: this prompt, the diff of the six changed files, `scripts/verify-session-179.sh` + its live output, the demo, and rudra's two records; budget given as an instruction)
+- tech-lead rec 2 — obeyed: b3630a6 (Deliverable 1 lists the subcommands and names `claude` the exempt pass-through before any code; `scripts/verify-session-179.sh` grades that exact list, old vs new)
+- tech-lead rec 3 — obeyed: 20884aa (every probe runs in a fresh `mktemp` git repo; nothing runs `init` in Vajra's own tree)
+- tech-lead rec 4 — obeyed: 790758c (`design-significant: no` recorded only after the rudra findings; no rudra fix touched the close path or the handoff format, so the design-advisor was not added)
+
 ## Guardrails
 - No new gate on Vajra's own paperwork (founder, 2026-09-15). A gate on the HANDOVER to the human needs his explicit yes.
 - Findings are listed with the founder first; fix only what he says yes to. Small commits.
