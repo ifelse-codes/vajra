@@ -170,6 +170,19 @@ sources) → c0b22ad. The new unit tests were then rebound to cause + constant (
 - fidelity-reviewer rec 6 — obeyed: dd4e610 (pass 1's seven recs answered in `## Advice`, each with its commit)
 - fidelity-reviewer rec 7 — deferred: sessions/session-178-summary.md
 
+**release-coordinator** (`.ai/handoffs/session-178-release-coordinator.md`; judged the six `obeyed:` lines above, all `implemented`):
+- release-coordinator rec 1 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 2 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 3 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 4 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 5 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 6 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 7 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 8 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 9 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 10 — deferred: sessions/session-178-summary.md
+- release-coordinator rec 11 — deferred: sessions/session-178-summary.md
+
 ## Guardrails
 - No new gate on Vajra's own paperwork. A gate on the HANDOVER to the human needs his explicit yes.
 - Findings are collected during his run and fixed after it closes; small commits, each fix shown.

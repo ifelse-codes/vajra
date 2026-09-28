@@ -102,9 +102,19 @@ new note appears above them in the same log.
 - Not done after the ACCEPT on purpose: changing code after the review and refreshing only the stamp is
   F81.
 
-## Ship steps (release-coordinator)
+## Ship steps (release-coordinator recs 1–11)
 
-_Filled from the release-coordinator's handoff._
+- rec 1 — `sessions/session-178-review.md` written (pass 2 ACCEPT, verbatim, with pass 1 summarised).
+- rec 2 — `--inputs-sha 178` computed after the last prompt/handoff commit, run twice, embedded; never typed by hand.
+- rec 3 — these recs answered `deferred:` (an `obeyed:` would need another judge).
+- rec 4 — `cargo install --path .` from the branch head before the full close run.
+- rec 5 — the full `scripts/verify-closeout.sh` on this branch, exit 0, no waiver, logs read for WAIVED/N/A — BEFORE the PR (S83).
+- rec 6 — staged by path only; `.claude/settings.json`, `.gitignore`, `.ai/hooks/`, `.claude/launch.json`, `first-mate.html`, `sessions/session-137-scatter-render.html`, `vajra-cto-audit-2026-07-22.html` stay out.
+- rec 7 — PR body discloses fidelity recs 1, 3, 4, 5, 7 deferred and the release-coordinator dispatch beyond the tech-lead's crew.
+- rec 8 — the founder merges by hand, while green, with a merge commit (not squash).
+- rec 9 — after the merge: `git checkout main && git fetch origin && git pull --ff-only`.
+- rec 10 — `git branch -d session-178-keep-testing`, `git push origin --delete session-178-keep-testing` (F71), `git fetch --prune`.
+- rec 11 — rudra's synced `.claude/agents/tech-lead.md` goes in with rudra's next session's first commit (F60).
 
 ## Cost
 
