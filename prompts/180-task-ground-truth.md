@@ -16,6 +16,35 @@
 3. `VAJRA_ALLOW_COMMIT=NN vajra claude`.
 
 ## Goal
+0. **FIRST ITEM (founder, 2026-09-26, from S178): the human's controls are text the agent can type.**
+   One design problem, four findings (full rows in `prompts/178-task-keep-testing.md`):
+   - F77 — "APPROVED" in a brief is a word the agent can type (rudra S10 tried; Claude Code's
+     classifier stopped it, not Vajra; rudra S04 approved its own brief).
+   - F78 — `VAJRA_CLOSEOUT_WAIVER=N`: Vajra cannot tell the founder's yes from the agent typing it;
+     the waiver log records no reason (rudra S11, three checks waived).
+   - F79 — the `verified:` provenance stamp on a handoff is hand-writable (all 7 rudra S11 handoffs);
+     the builder also wrote `obeyed:` lines into the advisors' own files.
+   - F80 — specialists are verifiable only from Claude Code transcripts, so an honest non-Claude run
+     cannot close without the override.
+   Weigh together with:
+   - **A strict `session_type` field** (enum, fail closed) instead of searching the brief's text for
+     `**CODE**` (S177: the word search survived 8 sessions and every role).
+   - **Team of experts vs strict checklist:** the fleet checked paperwork, not thinking — it missed
+     the word-search design for 8 sessions.
+   - **The omp result (rudra S11):** under a non-Claude agent Vajra still worked as a rulebook + end
+     check (full 7-role process in order, all 21 commits ≤3 files, end check 15→18/21 with real
+     fixes, a forced human decision) and did nothing as live guards, receipt, provenance, or a stop
+     on text-level faking. Is the portable product the written process + the end check?
+   **Founder direction (2026-09-27, S178 chat):** problem 1 — the agent must not be able to write the
+   approval itself; brainstorm HOW here. Problem 3 (paperwork vs thinking) — brainstorm here too.
+   **Considered and dropped:** Jev (TypeSafe's "System One" typed-question model) as the judge of
+   session type or of sound thinking — a probability over agent-written text is text guessing again,
+   the agent can reword until it passes, it cannot say why it blocked, and it sends briefs off-machine.
+   Also from rudra S12/S13 (see S178's table): F84 (a verified stamp survives an edit of the record's
+   text), F85 (a DRAFT brief ran — the counter was edited by hand), F86/F87 (non-Claude close messages).
+   Also on the table (recorded, MED): F81 — step→commit records written after the review, files
+   changed after it with only the stamp refreshed; F82 — cost: main agent ~70% of tokens
+   (≈270k context × 299 replies), spend limit hit mid-run.
 1. **Did S174 land?** From rudra 06's record, answer yes/no with the line that shows it:
    - F60 — the agent committed Vajra's synced files first, and did not suggest reverting them.
    - F59 — start-up said "session 05 is merged — session 06 starts here"; the agent re-ran
@@ -54,4 +83,5 @@ Output: `sessions/session-180-ground-truth.md`. New findings are listed with a s
 ## Delta
 - `+` `sessions/session-180-ground-truth.md`
 - `~` S174's fixes checked against a real run
+- `+` Goal 0: the agent-typeable human controls (F77–F80), `session_type` enum, experts vs checklist, the omp result
 - `-` nothing removed

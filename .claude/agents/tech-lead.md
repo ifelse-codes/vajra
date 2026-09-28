@@ -15,6 +15,8 @@ crew <role-name> — required — budget: <N> tokens — <why this task needs it
 crew <role-name> — deferred-budget — budget: <N> tokens — <the money arithmetic, not a usefulness call>
 ```
 
+- Write your nine real lines as PLAIN lines, NOT inside a ``` code block. The block above only shows the shape: Vajra reads lines inside a code block as examples and skips them, so a crew written inside one is not read (rudra S12 lost its crew decision this way).
+
 - There are ONLY TWO admissible verdicts in this phase (phase 1):
 - `required` — this task genuinely needs this role's work this session.
 - `deferred-budget` — a MONEY fact: the role would help, but the account cannot afford the dispatch this session. Carry the arithmetic (e.g. 'S134 measured ~6M raw tokens/dispatch; three required already the budget; a $20/mo plan hit the cap at 19.2M'). This is NOT a judgement that the role is unworthy — that judgement is phase 2, and this phase does not grant it.

@@ -1,17 +1,16 @@
 # Session Boot
 
 ## Next Session
-- **S178 — rudra session 10, the first run with its full close checks** — `prompts/178-task-keep-testing.md`
-  (**APPROVED**, founder 2026-09-24: candidate 1). Nothing to install (the fix is a synced scaffold file;
-  rudra's upgraded `scripts/verify-closeout.sh` is uncommitted there — its S10 agent commits it).
-  Launch: `VAJRA_ALLOW_COMMIT=10 vajra claude`. Start in a FRESH chat.
+- **S179 — the founder's pick** from `sessions/session-178-summary.md` (3 ranked candidates; recommended: rudra
+  session 14, same pattern). Nothing to install beyond S178's build; rudra's synced `.claude/agents/tech-lead.md`
+  is uncommitted there — its next agent commits it first. Start in a FRESH chat.
 
 ## Current Session
-- **Number:** 177 — CLOSED. CODE, interactive: the founder's rudra session 09. F74 fixed (the scaffold close gate ignored a moved ground truth — rudra S10 would have skipped its CODE checks) + F76 (it read rudra's `**CODE.**` briefs as non-CODE, so the tech-lead check never ran there); synced into rudra. F67/F71 recurred, parked. Summary: `sessions/session-177-summary.md`. Review: `sessions/session-177-review.md` (ACCEPT).
-  Verify: `scripts/verify-session-177.sh` (12/12). Demo: `scripts/demo-session-177.sh` (6 live checks).
+- **Number:** 178 — CLOSED. CODE, interactive: rudra sessions 10–13 (S11 omp, S13 OpenCode, on purpose). Findings F77–F88; F77–F80, F84, F85 → S180 Goal 0. Fixed (wording only): F83, F86, F87; synced into rudra. Summary: `sessions/session-178-summary.md`. Review: `sessions/session-178-review.md` (pass 2 ACCEPT).
+  Verify: `scripts/verify-session-178.sh` (26/26). Demo: `scripts/demo-session-178.sh` (6 live checks).
 
 ## Prior Session
-- **Number:** 176 — CLOSED. CODE, interactive: rudra sessions 07 + 08. F70 fixed (Planner Dangling), F72 (table Acceptance read). Summary: `sessions/session-176-summary.md`. Review: `sessions/session-176-review.md`.
-  Verify: `scripts/verify-session-176.sh` (12/12). Demo: `scripts/demo-session-176.sh` (7 live checks).
+- **Number:** 177 — CLOSED. CODE, interactive: rudra session 09. F74 + F76 fixed (scaffold close gate). Summary: `sessions/session-177-summary.md`. Review: `sessions/session-177-review.md` (ACCEPT).
+  Verify: `scripts/verify-session-177.sh` (12/12). Demo: `scripts/demo-session-177.sh` (6 live checks).
 
 **New chat.**

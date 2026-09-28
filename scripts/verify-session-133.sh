@@ -129,7 +129,7 @@ silence_blocks() {
     || { echo "FAIL: the block does not name the dispatch way out"; rc=1; }
   grep -q "design-advisor: skipped — <reason>" <<<"$OUT" \
     || { echo "FAIL: the block does not name the reasoned-skip way out"; rc=1; }
-  grep -q "no environment variable can satisfy or bypass this gate" <<<"$OUT" \
+  grep -q "no \`VAJRA_SKIP_\*\` flag turns this check off" <<<"$OUT" \
     || { echo "FAIL: the block does not state the no-env-var rule"; rc=1; }
   rm -rf "$TMP"; return $rc
 }

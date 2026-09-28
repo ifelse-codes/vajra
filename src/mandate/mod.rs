@@ -344,6 +344,7 @@ pub fn mandate_gate(
                          reason does not cure it",
                         h.path, h.agent
                     ));
+                    v.reasons.push(dispatch::NON_CLAUDE_NOTE.to_string());
                 }
                 Some(id) => match dispatch::reverify(root, role.name, session, &id) {
                     // Rung 2 — the only way to pass WITH a handoff.
@@ -367,6 +368,7 @@ pub fn mandate_gate(
                              does not cure it",
                             h.path
                         ));
+                        v.reasons.push(dispatch::NON_CLAUDE_NOTE.to_string());
                     }
                 },
             }
@@ -403,8 +405,9 @@ pub fn mandate_gate(
             SkipMarker::Absent => {
                 let how = format!(
                     "dispatch the role and run `vajra next --role {} --from <findings>`, or record \
-                     `{}: skipped — <reason>` in {} (no environment variable can satisfy or bypass \
-                     this gate)",
+                     `{}: skipped — <reason>` in {} (no `VAJRA_SKIP_*` flag turns this check off; \
+                     at close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can \
+                     waive it, and the close log records the waiver)",
                     role.name,
                     role.name,
                     prompt_path.as_deref().unwrap_or("the session's prompt"),
@@ -730,6 +733,31 @@ mod tests {
         let v = design_advisor_gate(&root, 133);
         assert!(v.blocked());
         assert_eq!(v.cause, Some(MandateCause::ProvenanceUnverifiable));
+    }
+
+    // S178 F86: both provenance rungs ADD the non-Claude note after their own reason; the block,
+    // its cause and the first reason are unchanged.
+    #[test]
+    fn a_provenance_block_adds_the_non_claude_note_and_keeps_its_reason() {
+        // Bound to the cause and the shared constant, never to message text (the S133 rename
+        // control rewrites the reason strings and expects this suite to stay green).
+        for (agent, cause) in [
+            ("claude-code-subagent", MandateCause::ProvenanceMissingId),
+            (
+                "claude-code-subagent (verified: toolu_FAKEFAKEFAKE)",
+                MandateCause::ProvenanceUnverifiable,
+            ),
+        ] {
+            let root = tmp_root();
+            write_prompt(&root, 133, "# fixture\n");
+            write_handoff(&root, 133, agent);
+            let v = design_advisor_gate(&root, 133);
+            assert!(v.blocked());
+            assert_eq!(v.cause, Some(cause));
+            assert_eq!(v.reasons.len(), 2, "{:?}", v.reasons);
+            assert_ne!(v.reasons[0], dispatch::NON_CLAUDE_NOTE);
+            assert_eq!(v.reasons.last().unwrap(), dispatch::NON_CLAUDE_NOTE);
+        }
     }
 
     // Rung 1 BEATS rung 3 — the decided conflict. A recorded reason does not launder a forged

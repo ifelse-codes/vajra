@@ -298,7 +298,10 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
         v.reasons.push(format!(
             "session {session:02} records no real tech-lead handoff — the tech-lead is the FIRST \
              and MANDATORY dispatch of every session. Dispatch it and run `vajra next --role \
-             tech-lead --from <crew>`. (No environment variable can satisfy or bypass this gate.)"
+             tech-lead --from <crew>`. (No `VAJRA_SKIP_*` flag turns this check off. At \
+             close, `VAJRA_CLOSEOUT_WAIVER=<NN>` — meant for the founder — can waive this check \
+             and the close log records it; a CODE session still needs its tech-lead file on \
+             disk, which no waiver replaces.)"
         ));
         for r in tl.reasons {
             v.reasons.push(format!("  (mandate ladder: {r})"));
@@ -373,6 +376,7 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
     // passes the ladder on rung 3, but a required role's skip is a contradiction the crew gate
     // refuses).
     let mut missing_required = vec![];
+    let mut unverifiable_required = false;
     for name in v.required_roles() {
         let role = fleet::resolve_role(name)
             .expect("a parsed crew role is a registered specialist by construction");
@@ -381,6 +385,13 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
             !sub.blocked() && sub.skipped.is_none() && sub.handoff_path.is_some();
         if !has_real_handoff {
             missing_required.push(name.to_string());
+            if matches!(
+                sub.cause,
+                Some(mandate::MandateCause::ProvenanceMissingId)
+                    | Some(mandate::MandateCause::ProvenanceUnverifiable)
+            ) {
+                unverifiable_required = true;
+            }
         }
     }
     if !missing_required.is_empty() {
@@ -393,6 +404,11 @@ pub fn crew_gate(root: &Path, session: u32) -> CrewVerdict {
              arithmetic (never upgrade an un-dispatched role to a pass).",
             missing_required.join(", ")
         ));
+        // S178 rec 3: a required role that DID run but cannot be confirmed (the rudra S13 shape)
+        // gets the same non-Claude note the mandate and fidelity blocks carry.
+        if unverifiable_required {
+            v.reasons.push(crate::dispatch::NON_CLAUDE_NOTE.to_string());
+        }
     }
     v
 }
@@ -678,6 +694,18 @@ mod tests {
         let v = crew_gate(&root, 135);
         assert!(v.blocked());
         assert_eq!(v.cause, Some(CrewCause::TechLeadMissing));
+    }
+
+    // S178 F87: the block no longer claims nothing can get past it (the close waiver can).
+    #[test]
+    fn the_tech_lead_block_names_the_close_waiver_truthfully() {
+        let root = tmp_root();
+        write_prompt(&root, 135, "# fixture\n");
+        let v = crew_gate(&root, 135);
+        assert!(v.blocked());
+        let text = v.reasons.join("\n");
+        assert!(!text.contains("can satisfy or bypass"), "{text}");
+        assert!(text.contains("VAJRA_CLOSEOUT_WAIVER"), "{text}");
     }
 
     // The S135 threshold decision, proven: NO exemption below any session number — a session 5

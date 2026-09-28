@@ -434,6 +434,9 @@ crew <role-name> — required — budget: <N> tokens — <why this task needs it
 crew <role-name> — deferred-budget — budget: <N> tokens — <the money arithmetic, not a usefulness call>\n\
 ```\n\
 \n\
+- Write your nine real lines as PLAIN lines, NOT inside a ``` code block. The block above only \
+shows the shape: Vajra reads lines inside a code block as examples and skips them, so a crew \
+written inside one is not read (rudra S12 lost its crew decision this way).\n\
 - There are ONLY TWO admissible verdicts in this phase (phase 1):\n\
   - `required` — this task genuinely needs this role's work this session.\n\
   - `deferred-budget` — a MONEY fact: the role would help, but the account cannot afford the \

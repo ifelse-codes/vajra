@@ -3,19 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-177-keep-testing` — S177 complete on its branch; PR to open (the founder merges).**
+**`session-178-keep-testing` — S178 complete on its branch; PR to open (the founder merges).**
 
-## What was done this session (S177 - interactive, the founder's rudra session 09)
+## What was done this session (S178 - interactive, the founder's rudra sessions 10–13)
 
-- **rudra S09 (3h20m in chat):** close check 21/21 on the branch before the PR; the agent pushed and opened PR #11, the founder merged. F31 clean 9th time; F66 all 7 handoffs tracked; F58 exercised live. ~1h50m of the run was waiting on his answers; the code took 25 min; Vajra's steps ≈ 50 min.
-- **F74 (fixed):** the scaffold close gate (`scripts/verify-closeout-scaffold.sh` → every project's `scripts/verify-closeout.sh`) ignored `ground_truth_next_session`. The founder moved rudra's GT to S15; S10 (CODE) would have skipped "scripts exist" + "tech-lead recorded" as N/A (rudra S05 already had). It now carries S175's helper at both sites.
-- **F76 (fixed with it):** the scaffold's `is_code_session` matched only `**CODE**`; every rudra brief writes `**CODE.**`, so its tech-lead check never ran. Accepts `**CODE[.:,]**` now; old vs new over 151 prompts in both repos: 17 non-CODE → CODE, 0 back.
-- **Disclosed (cold review):** a key naming a non-multiple-of-5 session makes that session review-only (intended; key is agent-writable, parked). Rebuilt, installed, synced into rudra (uncommitted there — its S10 agent commits it).
-- Verify 12/12 · demo 6/6 · 598 tests · review ACCEPT (8/8).
+- **Four rudra runs:** S10 (Claude Code, F74/F76 met a real close), S11 (omp, on purpose), S12 (Claude Code, 21/21 clean), S13 (OpenCode: 86 min to build, ~5 h and ~30 runs to close). Findings F77–F88.
+- **The shared design problem (→ S180 Goal 0):** the founder's controls — "APPROVED", the close waiver, the "verified" stamp — are text the agent can type (F77–F79, F84, F85); helpers are checkable only from Claude Code records (F80). Founder: no new policing now; Jev considered and dropped.
+- **Fixed (founder yes), wording only:** F83 the tech-lead template (crew lines outside any code block; synced into rudra) · F86 a shared non-Claude note on the provenance blocks (mandate, fidelity, crew sites 1+2) · F87 the false "no environment variable can satisfy or bypass" → "no `VAJRA_SKIP_*` flag turns this check off" + the waiver named as meant for the founder + the unwaivable tech-lead file.
+- **My correction:** the first read called rudra S11's close "passed" (3 checks were WAIVED); the founder caught it.
+- Verify 26/26 · demo 6/6 · 550 lib tests · review pass 1 REJECT → pass 2 ACCEPT (11/12).
 
-## Previous session (S176 - interactive, the founder's rudra sessions 07 + 08)
+## Previous session (S177 - interactive, the founder's rudra session 09)
 
-- F70 fixed (Planner Dangling state); F72 (table-style Acceptance read). `sessions/session-176-summary.md`.
+- F74 + F76 fixed (scaffold close gate: moved ground truth, `**CODE.**`). `sessions/session-177-summary.md`.
 
 ## What Currently Works
 
@@ -54,16 +54,17 @@
 
 ## What Is In Progress
 
-- Nothing. S177 closed on its branch; PR to open. S178 = the founder's pick (see `sessions/session-177-summary.md`'s 3 ranked candidates).
+- Nothing. S178 closed on its branch; PR to open. S179 = the founder's pick (see `sessions/session-178-summary.md`'s 3 ranked candidates). S180 = ground truth, Goal 0 first.
 
 ## Active PRs
 
-- S177's, once opened. S176 merged as #213.
+- S178's, once opened. S177 merged as #214.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S178 | $0 | No paid run in this repo; the founder's rudra S10 (~$147) and S12 (~$161.45) receipts are F67-overstated ~5×; S11/S13 ran outside `vajra claude` (no receipt). 4 fleet dispatches (tech-lead, fidelity-reviewer ×2, release-coordinator as judge) |
 | S177 | $0 | No paid run in this repo; the founder's rudra S09 run supplied the findings (its receipt ~$118.69 is F67-overstated ~5×). 3 fleet dispatches (tech-lead, fidelity-reviewer, release-coordinator as judge) |
 | S176 | $0 | No paid run in this repo; the founder's rudra S07/S08 runs supplied the findings (their receipts ~$48.68/~$62.71 are F67-overstated ~5×). 5 fleet dispatches (tech-lead, design-advisor, qa-specialist, fidelity-reviewer, release-coordinator as judge) |
 | S175 | $0 | No paid run in this repo; the founder's own rudra run supplied the findings. 4 fleet dispatches (tech-lead, qa-specialist, fidelity-reviewer, release-coordinator as judge) |

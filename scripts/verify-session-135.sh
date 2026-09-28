@@ -129,7 +129,7 @@ no_handoff_blocks_at_any_session() {
     [ "$code" -eq 1 ] || { echo "FAIL: session $SESS did not block (exit $code) — a threshold leaked?"; rc=1; }
     grep -q "FIRST and MANDATORY dispatch" <<<"$OUT" \
       || { echo "FAIL: the block does not name the tech-lead as first"; rc=1; }
-    grep -q "No environment variable can satisfy or bypass this gate" <<<"$OUT" \
+    grep -q "No \`VAJRA_SKIP_\*\` flag turns this check off" <<<"$OUT" \
       || { echo "FAIL: the block does not state the no-env-var rule"; rc=1; }
     rm -rf "$TMP"
   done
