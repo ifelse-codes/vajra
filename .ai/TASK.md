@@ -2,10 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S177 complete on its branch; S178 approved
+## Between Sessions — S178 complete on its branch; S179 = founder's pick
 
-**Next: Session 178 — rudra session 10, the first run with its full close checks** (founder picked candidate 1, 2026-09-24).
-Brief: `prompts/178-task-keep-testing.md` — **APPROVED**. Nothing to install. Launch: `VAJRA_ALLOW_COMMIT=10 vajra claude`.
+**Next: Session 179** — the founder picks from `sessions/session-178-summary.md`'s 3 ranked candidates. S180 = ground truth, Goal 0 first (`prompts/180-task-ground-truth.md`).
+
+## Session 178 — Interactive: rudra sessions 10–13 — COMPLETE
+
+- Brief: `prompts/178-task-keep-testing.md` (findings F77–F88). Summary: `sessions/session-178-summary.md`. Review: `sessions/session-178-review.md` (pass 1 REJECT → pass 2 ACCEPT, 11/12).
+- Shipped (wording only, founder yes): F83 tech-lead template · F86 non-Claude note · F87 the false "can bypass" sentence. Synced into rudra.
+- **To S180 Goal 0:** F77–F80, F84, F85 — the founder's controls are text the agent can type. **Deferred:** review recs 1, 3, 4, 5, 7.
 
 ## Session 177 — Interactive: rudra session 09 — COMPLETE
 
