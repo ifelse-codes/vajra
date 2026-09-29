@@ -3,7 +3,11 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**`session-179-keep-testing` — S179 complete on its branch; PR to open (the founder merges).**
+**None — between sessions. S180 (NO-CODE ground truth) is on `session-180-closeout` (commit `0b42dfe`); S179 is merged (#216). Next: S181.**
+
+## S180 (NO-CODE ground truth, 🟡 PARTIAL)
+
+- `sessions/session-180-ground-truth.md`. Founder rulings: release/reach not a problem yet; cadence must be smart (S181 Part 2); approvals must be un-typeable by the agent (S181 Parts 3–5); other tools one at a time later. `--dogfood-age` is blind to rudra runs. No code changed.
 
 ## What was done this session (S179 - interactive, F89 + the founder's rudra sessions 14–15)
 
