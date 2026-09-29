@@ -2,9 +2,13 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S179 complete on its branch; S180 = ground truth
+## Between Sessions — S180 (ground truth) complete on `session-180-closeout`; S181 next
 
-**Next: Session 180** — the NO-CODE ground truth, Goal 0 first (`prompts/180-task-ground-truth.md`). Start in a fresh chat.
+**Next: Session 181** — close the loopholes, five parts one by one (`prompts/181-task-close-the-loopholes.md`, DRAFT until the founder approves). Start in a fresh chat.
+
+## Session 180 — NO-CODE ground truth — COMPLETE (🟡 PARTIAL)
+
+- Report: `sessions/session-180-ground-truth.md`. Found: N1 the cadence key would end all future ground truths (→ S181 Part 2, smart rule) · Goal 0 design for approvals the agent cannot type (→ S181 Parts 3–5) · `--dogfood-age` blind to rudra runs · release is NOT a finding (founder: not GTM-ready).
 
 ## Session 179 — Interactive: `--help` that runs nothing + rudra sessions 14–15 (OpenCode) — COMPLETE
 
