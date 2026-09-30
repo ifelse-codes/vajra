@@ -346,7 +346,7 @@ pub fn mandate_gate(
                     ));
                     v.reasons.push(dispatch::NON_CLAUDE_NOTE.to_string());
                 }
-                Some(id) => match dispatch::reverify(root, role.name, session, &id) {
+                Some(_) => match dispatch::reverify_handoff(root, role.name, &h) {
                     // Rung 2 — the only way to pass WITH a handoff.
                     Ok(()) => {
                         if let SkipMarker::Recorded(reason) = &marker {

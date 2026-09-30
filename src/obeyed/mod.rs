@@ -421,14 +421,14 @@ pub fn verify_judge(root: &Path, j: &Judgment) -> Result<(), String> {
         .ok_or_else(|| format!("{} could not be re-read", j.handoff_path))?;
     let role = fleet::resolve_role(&h.role)
         .ok_or_else(|| format!("{} names an unregistered role `{}`", h.path, h.role))?;
-    let id = crate::dispatch::claimed_tool_use_id(&h.agent).ok_or_else(|| {
+    crate::dispatch::claimed_tool_use_id(&h.agent).ok_or_else(|| {
         format!(
             "{}'s provenance ({:?}) carries no verifiable dispatch id — a hand-typed judgment is \
              not an independent one",
             h.path, h.agent
         )
     })?;
-    crate::dispatch::reverify(root, role.name, h.session, &id).map_err(|why| {
+    crate::dispatch::reverify_handoff(root, role.name, h).map_err(|why| {
         format!(
             "{}'s provenance could not be independently re-verified: {why}",
             h.path
