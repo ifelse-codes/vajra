@@ -118,3 +118,19 @@ vajra_waiver_ok() {
   fi
   return 1
 }
+
+# --- where the new rules start (S181, cold review defect A) ------------------------------------------
+# Sessions BELOW `.ai/CONSTRAINTS.yaml` `session_rules_from: N` keep the old readings (session type from
+# prose, approval from the brief's words, stamps without a text hash) through the named, dated
+# fallbacks; N and above must follow the new rules. Absent -> 181, Vajra's own boundary. A project
+# that adopted Vajra earlier (rudra was at S15) never reaches 181, so it stays on the old readings
+# until it sets the key — the gates SAY so, every time, and name the line to add. New scaffolds ship
+# `session_rules_from: 1` (every session follows the rules).
+vajra_rules_from() {
+  local v
+  v="$(grep -E '^[[:space:]]*session_rules_from:' "${1:-.}/.ai/CONSTRAINTS.yaml" 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)"
+  echo "${v:-181}"
+}
+vajra_rules_from_declared() {
+  grep -qE '^[[:space:]]*session_rules_from:[[:space:]]*[0-9]+' "${1:-.}/.ai/CONSTRAINTS.yaml" 2>/dev/null
+}

@@ -33,6 +33,10 @@ type vajra_is_ground_truth >/dev/null 2>&1 || {
   echo "[vajra] lib-ground-truth.sh not found — using every-5th only. Run: vajra init --sync-fleet" >&2
   vajra_is_ground_truth() { [ $((10#${1:-0} % 5)) -eq 0 ] && [ $((10#${1:-0})) -gt 0 ]; }
 }
+# S181 (cold review B): a missing lib must never read as GREEN. The type check FAILS, the waiver helper
+# waives nothing, and an unreadable type is treated as CODE (the stricter reading).
+type vajra_session_type >/dev/null 2>&1 || vajra_session_type() { VAJRA_TYPE=""; VAJRA_TYPE_STATE="libmissing"; }
+type vajra_waiver_ok >/dev/null 2>&1 || vajra_waiver_ok() { WAIVER_NOTE=""; return 1; }
 
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 ARTIFACTS=".ai/verify/closeout/${TS}"
@@ -60,7 +64,13 @@ bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); }
 # `ground_truth_next_session` a one-time override that lapses once its session is reported or passed.
 # Requires $N set (check_session_file).
 is_ground_truth_session() {
-  vajra_is_ground_truth "$N" "$ROOT"
+  local rc=0
+  vajra_is_ground_truth "$N" "$ROOT" || rc=$?
+  # S181: a passed override is TOLD, not silently rolled — once per run, on stderr.
+  if [ -n "${VAJRA_GT_NOTE:-}" ] && [ -z "${_VAJRA_GT_NOTE_SHOWN:-}" ]; then
+    _VAJRA_GT_NOTE_SHOWN=1; echo "[vajra] $VAJRA_GT_NOTE" >&2
+  fi
+  return "$rc"
 }
 
 N=""
@@ -311,7 +321,7 @@ legacy_is_code_session() {
 # treated as CODE (the stricter reading) AND fails `check_session_type`. INTERACTIVE gets the CODE
 # checks too. Briefs for sessions 1-180 that predate the field keep the old reading through
 # `legacy_is_code_session`, and `check_session_type` prints that loudly.
-LEGACY_TYPE_LAST_SESSION=180   # dated 2026-09-30 (S181); sessions above this MUST declare session_type
+LEGACY_TYPE_LAST_SESSION=$(( $(vajra_rules_from "$ROOT" 2>/dev/null || echo 181) - 1 ))   # S181: sessions above this MUST declare session_type; the boundary is session_rules_from in .ai/CONSTRAINTS.yaml (default 181)
 is_code_session() {
   [ -n "$N" ] || return 1
   ! is_ground_truth_session || return 1
@@ -341,12 +351,15 @@ check_session_type() {
     missing)
       if [ "$N" -le "$LEGACY_TYPE_LAST_SESSION" ]; then
         echo "LEGACY FALLBACK (dated 2026-09-30, S181): this brief has no session_type field; its type was read the OLD way (the **CODE** marker under ## Type). Allowed only for sessions 1-$LEGACY_TYPE_LAST_SESSION. Add 'session_type: CODE|DOCUMENT|GROUND_TRUTH|INTERACTIVE'." >> "$LOG"
+        vajra_rules_from_declared "$ROOT" 2>/dev/null || echo "NOTE: .ai/CONSTRAINTS.yaml has no session_rules_from, so EVERY session in this project reads the old way. Add 'session_rules_from: N' (N = the first session that must follow the new rules) to turn it on." >> "$LOG"
         ok "$NAME"
       else
         echo "FAIL: the brief has no 'session_type:' line. Add exactly one line, e.g. 'session_type: CODE', with one of CODE | DOCUMENT | GROUND_TRUTH | INTERACTIVE." >> "$LOG"; bad "$NAME"
       fi ;;
+    libmissing) echo "FAIL: lib-ground-truth.sh was not found (looked next to this script, in scripts/ and .ai/hooks/), so the session type cannot be read. Run: vajra init --sync-fleet" >> "$LOG"; bad "$NAME" ;;
     unknown)  echo "FAIL: session_type '$VAJRA_TYPE' is not one of CODE | DOCUMENT | GROUND_TRUTH | INTERACTIVE." >> "$LOG"; bad "$NAME" ;;
     conflict) echo "FAIL: the brief declares more than one different session_type (first: '$VAJRA_TYPE'). Keep exactly one." >> "$LOG"; bad "$NAME" ;;
+    *)        echo "FAIL: session type state '$VAJRA_TYPE_STATE' is not recognised — a check that cannot evaluate FAILS." >> "$LOG"; bad "$NAME" ;;
   esac
 }
 
