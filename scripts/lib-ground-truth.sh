@@ -74,3 +74,47 @@ vajra_session_type() {
     *) VAJRA_TYPE="$v"; VAJRA_TYPE_STATE="unknown" ;;
   esac
 }
+
+# --- named waivers (S181 Part 5) -----------------------------------------------------------------
+# `VAJRA_WAIVE=check-a,check-b` waives ONLY the checks it names (the log names of the close gate,
+# e.g. fidelity-review-accept), and needs a reason in `VAJRA_WAIVE_REASON` — empty is refused, not
+# waived. The note says whether the waiver was set at LAUNCH (`vajra claude` copies VAJRA_WAIVE into
+# VAJRA_LAUNCH_WAIVE from the founder's own terminal) or set LATER, in the running session.
+# The old `VAJRA_CLOSEOUT_WAIVER=N` (waives every check) still works, loudly, until the founder says
+# remove it.
+#
+# vajra_waiver_ok CHECK SESSION [LOGFILE]  -> 0 = waived, 1 = not. Sets WAIVER_NOTE.
+# LIMIT: bar-raising, not tamper-proof — an agent could set both variables in its own shell.
+vajra_waiver_ok() {
+  local check="$1" n="$2" log="${3:-}" item when listed=0 items
+  WAIVER_NOTE=""
+  if [ -n "${VAJRA_WAIVE:-}" ] && [ -n "$check" ]; then
+    IFS=',' read -ra items <<<"$VAJRA_WAIVE"
+    for item in "${items[@]}"; do
+      item="${item//[[:space:]]/}"
+      [ "$item" = "$check" ] && listed=1
+    done
+    if [ "$listed" -eq 1 ]; then
+      if [ -z "${VAJRA_WAIVE_REASON//[[:space:]]/}" ]; then
+        WAIVER_NOTE="REFUSED: VAJRA_WAIVE names '$check' but VAJRA_WAIVE_REASON is empty — a waiver needs a reason."
+        [ -n "$log" ] && echo "$WAIVER_NOTE" >> "$log"
+        return 1
+      fi
+      when="set later, in the running session"
+      if [ -n "${VAJRA_LAUNCH_WAIVE:-}" ] && [ "$VAJRA_LAUNCH_WAIVE" = "$VAJRA_WAIVE" ]; then
+        when="launch-time — human chose at start"
+      fi
+      WAIVER_NOTE="WAIVED ($when): $check — $VAJRA_WAIVE_REASON"
+      return 0
+    fi
+  fi
+  if [ -n "${VAJRA_CLOSEOUT_WAIVER:-}" ] && [ "${VAJRA_CLOSEOUT_WAIVER}" = "$n" ]; then
+    WAIVER_NOTE="WAIVED (LEGACY VAJRA_CLOSEOUT_WAIVER=$n — waives EVERY check; deprecated, use VAJRA_WAIVE=<check>,... with VAJRA_WAIVE_REASON) — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}"
+    if [ -z "${_VAJRA_LEGACY_WAIVER_WARNED:-}" ]; then
+      _VAJRA_LEGACY_WAIVER_WARNED=1
+      echo "[vajra] WARNING: VAJRA_CLOSEOUT_WAIVER=$n waives every close check. Name what you waive: VAJRA_WAIVE=<check>,<check> VAJRA_WAIVE_REASON='<why>'." >&2
+    fi
+    return 0
+  fi
+  return 1
+}

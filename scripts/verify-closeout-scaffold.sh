@@ -245,7 +245,7 @@ check_execution_shas() {
     if [[ "$has_plan_steps" -eq 1 ]]; then
       echo "BLOCK: $F has real numbered plan steps but no ## Execution section" >> "$LOG"
       if waiver_ok; then
-        echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
+        echo "${WAIVER_NOTE}" >> "$LOG"
         ok "$NAME"; return
       fi
       bad "$NAME"; return
@@ -272,7 +272,7 @@ check_execution_shas() {
   echo "BLOCK: $count problem(s) in $F's ## Execution — prose, a malformed or made-up sha, or a step with no done: (S169)" >> "$LOG"
 
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"
+    echo "${WAIVER_NOTE}" >> "$LOG"
     ok "$NAME"
   else
     echo "FAIL: fill every 'done: <sha>' in ## Execution with the landing commit sha," >> "$LOG"
@@ -449,7 +449,7 @@ check_verify_demo_scripts() {
   for m in ${missing[@]+"${missing[@]}"}; do echo "MISSING: $m" >> "$LOG"; done
   echo "BLOCK: session $N is a CODE session but is missing the step-5 script(s) above." >> "$LOG"
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>} (DOGFOOD / NO-CODE — no scripts)." >> "$LOG"
+    echo "${WAIVER_NOTE} (DOGFOOD / NO-CODE — no scripts)." >> "$LOG"
     ok "$NAME"
   else
     echo "FAIL: add $V + $D (step 5, VERIFY + DEMO)," >> "$LOG"
@@ -462,7 +462,7 @@ check_verify_demo_scripts() {
 # Un-forgeable waiver: a founder-controlled env var, NOT a text marker the agent
 # can Write into a tracked file. Mirrors VAJRA_ALLOW_PUBLISH (S37). Session-scoped:
 # VAJRA_CLOSEOUT_WAIVER must equal N (a stale waiver for another session does not apply).
-waiver_ok() { [ -n "${VAJRA_CLOSEOUT_WAIVER:-}" ] && [ "${VAJRA_CLOSEOUT_WAIVER}" = "$N" ]; }
+waiver_ok() { vajra_waiver_ok "${NAME:-}" "$N" "${LOG:-}"; }   # S181: reads the calling check's NAME/LOG
 
 # Closeout structurally requires an INDEPENDENT fidelity review (reviewer/SKILL.md).
 # It must (1) exist, (2) be real — a per-requirement verdict table (SHIPPED/PARTIAL/
@@ -487,7 +487,7 @@ check_next_options() {
   local S; S="$(spath sessions/session- -summary.md)"
   if [ ! -s "$S" ]; then
     echo "BLOCK: $S absent — no summary, so no options were offered." >> "$LOG"
-    if waiver_ok; then echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N" >> "$LOG"; ok "$NAME"; else
+    if waiver_ok; then echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"; else
       echo "FAIL: write $S ending in exactly 3 ranked next-session candidates." >> "$LOG"; bad "$NAME"; fi
     return
   fi
@@ -539,7 +539,7 @@ check_next_options() {
   fi
   echo "BLOCK: $S records ${count:-0} ranked candidate(s), not 3 — the human was never given the choice." >> "$LOG"
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: end $S with exactly 3 ranked candidates (A/B/C or 1/2/3), show them in the chat," >> "$LOG"
     echo "      and write the next prompt from the one the human picks." >> "$LOG"
@@ -557,7 +557,7 @@ check_fidelity_review() {
   if [ ! -f "$F" ] || [ ! -s "$F" ]; then
     echo "MISSING: $F — an independent fidelity review is required (DECISION-002)." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: supply $F (cold pass) or a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"; bad "$NAME"
     fi
@@ -589,7 +589,7 @@ check_fidelity_review() {
   [ "$complete" -eq 0 ] && echo "BLOCK: review is present but incomplete (not real, only present)." >> "$LOG"
   [ "$overall" = "REJECT" ] && echo "BLOCK: review Verdict=REJECT — delivery does not match the prompt." >> "$LOG"
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: closeout blocked — ship an ACCEPT review (fix the gaps) or record a founder waiver (VAJRA_CLOSEOUT_WAIVER=$N)." >> "$LOG"; bad "$NAME"
   fi
@@ -617,7 +617,7 @@ check_obeyed_judgments() {
     # running, one line below the fix for exactly that class.
     echo "BLOCK: $BIN not built — this check cannot evaluate the Obeyed gate." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: run \`cargo build --release\` so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
     fi
@@ -637,7 +637,7 @@ check_obeyed_judgments() {
   if ! grep -q "=== obeyed: independent judgment on session" <<<"$out"; then
     echo "BLOCK: the binary produced no Obeyed-gate output — this build does not carry the gate." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: \`$BIN next --check-obeyed $N\` did not run the gate (an unknown flag exits 0 via run_dump)." >> "$LOG"; bad "$NAME"
     fi
@@ -649,7 +649,7 @@ check_obeyed_judgments() {
   fi
   echo "BLOCK: session $N records an \`obeyed:\` that is unjudged, judged a MISMATCH, or whose judgment is inadmissible." >> "$LOG"
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: have an independent role record \`obeyed-check <role> rec <N> — implemented: <sha> — <note>\`," >> "$LOG"
     echo "      change the disposition to an honest \`refused: <reason>\`, or record a founder waiver." >> "$LOG"
@@ -681,7 +681,7 @@ check_design_advisor_mandate() {
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not built — this check cannot evaluate the Mandate gate." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: run \`cargo build --release\` so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
     fi
@@ -699,7 +699,7 @@ check_design_advisor_mandate() {
   if ! grep -q "=== mandate: design-advisor for session" <<<"$out"; then
     echo "BLOCK: the binary produced no Mandate-gate output — this build does not carry the gate." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: \`$BIN next --check-design-handoff $N\` did not run the gate (an unknown flag exits 0 via run_dump)." >> "$LOG"; bad "$NAME"
     fi
@@ -723,7 +723,7 @@ check_design_advisor_mandate() {
   fi
   echo "BLOCK: session $N has neither a provable design-advisor handoff nor a recorded reason for skipping one." >> "$LOG"
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: dispatch the role and run \`vajra next --role design-advisor --from <findings>\`," >> "$LOG"
     echo "      or record \`design-advisor: skipped — <reason>\` in the session's prompt." >> "$LOG"
@@ -757,7 +757,7 @@ check_required_crew() {
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not built — this check cannot evaluate the Crew gate." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: run \`cargo build --release\` so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
     fi
@@ -780,7 +780,7 @@ check_required_crew() {
   if ! grep -q "=== crew: tech-lead for session" <<<"$out"; then
     echo "BLOCK: the binary produced no Crew-gate output — this build does not carry the gate." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: \`$BIN next --check-crew $N\` did not run the gate (an unknown flag exits 0 via run_dump)." >> "$LOG"; bad "$NAME"
     fi
@@ -792,7 +792,7 @@ check_required_crew() {
   fi
   echo "BLOCK: session $N is missing its tech-lead handoff, or a role the tech-lead marked \`required\` produced no governed handoff." >> "$LOG"
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: dispatch the tech-lead and each \`required\` role and run \`vajra next --role <name> --from <findings>\`," >> "$LOG"
     echo "      re-run the tech-lead to move an unaffordable role to \`deferred-budget\` with the arithmetic, or record a founder waiver." >> "$LOG"
@@ -893,7 +893,7 @@ check_review_attestation() {
          echo "     hash LAST (\`bash scripts/verify-closeout.sh --inputs-sha $N\`), paste it in the review. Any later" >> "$LOG"
          echo "     commit outside those folders moves it." >> "$LOG"; }
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: re-run the cold review and embed a matching **Review-Inputs-SHA:** (\`verify-closeout.sh --inputs-sha $N\`), or record a founder waiver." >> "$LOG"; bad "$NAME"
   fi
@@ -1094,7 +1094,7 @@ check_live_gate() {
   if [ ! -x "$BIN" ]; then
     echo "BLOCK: $BIN not found — this check cannot run." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: install or build vajra so this check can run, or record a founder waiver." >> "$LOG"; bad "$NAME"
     fi
@@ -1116,7 +1116,7 @@ check_live_gate() {
   if ! grep -q "$HEADER" <<<"$out"; then
     echo "BLOCK: \`vajra next $FLAG $N\` did not run the check — this vajra build is too old." >> "$LOG"
     if waiver_ok; then
-      echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+      echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
     else
       echo "FAIL: update vajra (cargo install --path . / brew upgrade) so it carries $FLAG, or record a founder waiver." >> "$LOG"; bad "$NAME"
     fi
@@ -1126,7 +1126,7 @@ check_live_gate() {
     echo "OK: \`vajra next $FLAG $N\` passed." >> "$LOG"; ok "$NAME"; return
   fi
   if waiver_ok; then
-    echo "WAIVED: VAJRA_CLOSEOUT_WAIVER=$N — ${VAJRA_CLOSEOUT_WAIVER_REASON:-<no reason recorded>}" >> "$LOG"; ok "$NAME"
+    echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: $FIX" >> "$LOG"; bad "$NAME"
   fi
