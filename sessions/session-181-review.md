@@ -2,7 +2,7 @@
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** e8f3bf29f1f39f1ca68e33153b4d14cf942488cdb216e940ff77b1565bd93fe4 (`scripts/verify-closeout.sh --inputs-sha 181`, run by the orchestrator against the final diff after the last prompt/handoff commit — the reviewer's pass cannot execute code)
+**Review-Inputs-SHA:** 8ce9ecb192ac06f1ef720fa700407ebb4177a3da1d45c2a1117b46f8522fdf1f (`scripts/verify-closeout.sh --inputs-sha 181`, run by the orchestrator against the final diff after the last prompt/handoff commit — the reviewer's pass cannot execute code)
 
 Two cold passes (`fidelity-reviewer`, read-only, verified handoff `.ai/handoffs/session-181-fidelity-reviewer.md`). **Pass 1 REJECTed** the first build (3 of 6 SHIPPED, 2 PARTIAL, 1 NOT-BUILT): the scaffold's legacy cutoff was hard-coded at 180 (a project like rudra never got the new rules), a missing lib silently dropped the type check, the hook tests returned early without `jq` and drove 2 of 5 sites, no gate-level stamp test, the passed-override note was not printed in the close gates, and there were no verify/demo scripts. All were fixed and **pass 2 (fresh, below) ACCEPTed: 5 of 6 SHIPPED, 1 PARTIAL, 0 NOT-BUILT.**
 
