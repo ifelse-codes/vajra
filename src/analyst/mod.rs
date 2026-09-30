@@ -41,6 +41,8 @@ pub const PROMPT_TEMPLATE: &str = r#"# Session {{NN}} — {{SLUG}}: <one-line go
 > the same trust model as a commit-approval; tamper-evidence is the later cross-stage ledger).
 
 ## Type
+session_type: CODE
+<!-- exactly one of: CODE | DOCUMENT | GROUND_TRUTH | INTERACTIVE — the close gate FAILS on a missing or unknown value -->
 - **CODE** | **NO-CODE**. Max 2 assumptions · 2 retries · ~2h · 1 story · new chat · approval
   token before any commit.
 
@@ -652,9 +654,32 @@ pub fn gate(root: &Path, session: u32) -> GateVerdict {
                         report.missing_sections.join(", ")
                     ));
                 }
-                if report.approval == Approval::Draft {
-                    reasons.push(format!(
-                        "{rel} is still DRAFT — the Analyst produced it but it is not APPROVED"
+                // S181 Part 4: from session 181 the gate reads an approval RECORD (written by
+                // `vajra approve NN` from the founder's own terminal, or the launch-time yes) —
+                // never the brief's `Status:` words, which the agent can type. Sessions <= 180
+                // keep the words by a named, dated fallback, and the gate says so every time.
+                if session > crate::approval::LEGACY_LAST_SESSION {
+                    match crate::approval::approved(root, session) {
+                        Some(how) => warnings.push(format!(
+                            "session {session} approved via {}",
+                            how.describe()
+                        )),
+                        None => reasons.push(format!(
+                            "session {session} has no approval record — the brief's Status line is not read. \
+                             The founder runs `vajra approve {session}` in their OWN terminal (not the agent's), \
+                             or launches with `VAJRA_APPROVE={session}` / `vajra claude --allow-all`"
+                        )),
+                    }
+                } else {
+                    if report.approval == Approval::Draft {
+                        reasons.push(format!(
+                            "{rel} is still DRAFT — the Analyst produced it but it is not APPROVED"
+                        ));
+                    }
+                    warnings.push(format!(
+                        "LEGACY approval fallback (dated 2026-09-30, S181): session {session} was \
+                         approved by the brief's own Status words; sessions above {} need a record",
+                        crate::approval::LEGACY_LAST_SESSION
                     ));
                 }
                 // S61: a delta must be RECORDED, not merely have its heading present. A
@@ -914,6 +939,59 @@ Do one thing.
         fs::write(&rel, filled).unwrap();
         let v = gate(tmp.path(), 56);
         assert!(!v.blocked(), "reasons: {:?}", v.reasons);
+    }
+
+    /// S181 Part 4: from session 181 an "APPROVED" typed into the brief is nothing; only a record counts.
+    #[test]
+    fn gate_ignores_typed_approved_after_180_and_reads_the_record() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("prompts")).unwrap();
+        let brief = "# S181\n> Status: APPROVED\n## Goal\ng\n## Deliverables\n- d\n\
+                     ## Acceptance\n1. a\n## Guardrails\n- x\n## Delta\n- `+` a real recorded change\n";
+        fs::write(tmp.path().join("prompts/181-task-x.md"), brief).unwrap();
+        let v = gate(tmp.path(), 181);
+        assert!(v.blocked(), "typed APPROVED must not pass after 180");
+        assert!(
+            v.reasons.iter().any(|r| r.contains("no approval record")),
+            "{:?}",
+            v.reasons
+        );
+        // A DRAFT brief WITH a record passes: the words are not read either way.
+        fs::write(
+            tmp.path().join("prompts/181-task-x.md"),
+            brief.replace("APPROVED", "DRAFT"),
+        )
+        .unwrap();
+        crate::approval::approve(tmp.path(), 181, false, true).unwrap();
+        let v = gate(tmp.path(), 181);
+        assert!(!v.blocked(), "reasons: {:?}", v.reasons);
+        assert!(v.warnings.iter().any(|w| w.contains("approved via")));
+        // The record is for one session only.
+        fs::write(
+            tmp.path().join("prompts/182-task-x.md"),
+            brief.replace("181", "182"),
+        )
+        .unwrap();
+        assert!(gate(tmp.path(), 182).blocked());
+    }
+
+    /// Sessions <= 180 keep the words, and the gate says loudly that it used the fallback.
+    #[test]
+    fn gate_legacy_fallback_reads_words_and_says_so() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("prompts")).unwrap();
+        let brief = "# S170\n> Status: APPROVED\n## Goal\ng\n## Deliverables\n- d\n\
+                     ## Acceptance\n1. a\n## Guardrails\n- x\n## Delta\n- `+` a real recorded change\n";
+        fs::write(tmp.path().join("prompts/170-task-x.md"), brief).unwrap();
+        let v = gate(tmp.path(), 170);
+        assert!(!v.blocked(), "{:?}", v.reasons);
+        assert!(
+            v.warnings
+                .iter()
+                .any(|w| w.contains("LEGACY approval fallback")),
+            "{:?}",
+            v.warnings
+        );
     }
 
     #[test]
