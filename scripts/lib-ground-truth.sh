@@ -46,3 +46,31 @@ vajra_is_ground_truth() {
   if [ "$n" -lt "$next5" ]; then return 1; fi
   [ $((n % 5)) -eq 0 ]
 }
+
+# --- session type (S181 Part 3) --------------------------------------------------------------
+# A brief declares its type in ONE strict field, a line that STARTS with the key:
+#     session_type: CODE | DOCUMENT | GROUND_TRUTH | INTERACTIVE
+# Nothing is guessed from the brief's prose (no searching for **CODE**): the field is there and is
+# one of the four, or the close gate says so and fails. Usage: vajra_session_type N [ROOT]
+# Sets VAJRA_TYPE (the enum value, or "") and VAJRA_TYPE_STATE:
+#   declared  one valid value            missing   a brief exists, no field
+#   unknown   a value not in the enum    conflict  two different values
+#   noprompt  no prompts/NN-task-*.md
+vajra_session_type() {
+  local n root padded f vals first v count
+  VAJRA_TYPE=""; VAJRA_TYPE_STATE=""
+  n="$1"; root="${2:-.}"
+  padded="$(printf '%02d' "$((10#$n))")"
+  f="$(ls "$root"/prompts/"${padded}"-task-*.md 2>/dev/null | head -1 || true)"
+  if [ -z "$f" ]; then VAJRA_TYPE_STATE="noprompt"; return 0; fi
+  vals="$(grep -E '^session_type:' "$f" | sed -E 's/^session_type:[[:space:]]*//; s/[[:space:]]+$//' || true)"
+  if [ -z "$vals" ]; then VAJRA_TYPE_STATE="missing"; return 0; fi
+  first="$(printf '%s\n' "$vals" | head -1)"
+  count="$(printf '%s\n' "$vals" | sort -u | wc -l | tr -d ' ')"
+  if [ "$count" -gt 1 ]; then VAJRA_TYPE="$first"; VAJRA_TYPE_STATE="conflict"; return 0; fi
+  v="$first"
+  case "$v" in
+    CODE|DOCUMENT|GROUND_TRUTH|INTERACTIVE) VAJRA_TYPE="$v"; VAJRA_TYPE_STATE="declared" ;;
+    *) VAJRA_TYPE="$v"; VAJRA_TYPE_STATE="unknown" ;;
+  esac
+}

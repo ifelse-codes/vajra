@@ -309,9 +309,8 @@ check_execution_shas() {
 # Reads the ## Type section of the prompt file; defaults to CODE when absent.
 # GT (N % 5 == 0) is always non-CODE regardless of prompt content.
 # DOCUMENT, NO-CODE, DOGFOOD, and GROUND-TRUTH type lines return 1 (false).
-is_code_session() {
+legacy_is_code_session() {
   [ -n "$N" ] || return 1
-  ! is_ground_truth_session || return 1
   local padded; padded="$(printf '%02d' "$N")"
   shopt -s nullglob
   local prompts=(prompts/${padded}-task-*.md)
@@ -328,6 +327,50 @@ is_code_session() {
   done < "$F"
   # prompt exists but no **CODE** marker found in Type section → non-CODE
   return 1
+}
+
+# S181 (N6): the type comes from the brief's ONE strict field `session_type:` (CODE | DOCUMENT |
+# GROUND_TRUTH | INTERACTIVE) — never from searching its prose. Undeclared / unknown / conflicting is
+# treated as CODE (the stricter reading) AND fails `check_session_type`. INTERACTIVE gets the CODE
+# checks too. Briefs for sessions 1-180 that predate the field keep the old reading through
+# `legacy_is_code_session`, and `check_session_type` prints that loudly.
+LEGACY_TYPE_LAST_SESSION=180   # dated 2026-09-30 (S181); sessions above this MUST declare session_type
+is_code_session() {
+  [ -n "$N" ] || return 1
+  ! is_ground_truth_session || return 1
+  vajra_session_type "$N" "$ROOT"
+  case "$VAJRA_TYPE_STATE" in
+    noprompt) return 0 ;;   # no prompt file -> assume CODE (unchanged)
+    declared) case "$VAJRA_TYPE" in CODE|INTERACTIVE) return 0 ;; *) return 1 ;; esac ;;
+    missing)  if [ "$N" -le "$LEGACY_TYPE_LAST_SESSION" ]; then legacy_is_code_session; return; fi; return 0 ;;
+    *)        return 0 ;;
+  esac
+}
+
+# Fails closed: a brief with no/unknown/conflicting `session_type` FAILS. No waiver path.
+check_session_type() {
+  local NAME="session-type-declared"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  vajra_session_type "$N" "$ROOT"
+  : > "$LOG"
+  case "$VAJRA_TYPE_STATE" in
+    noprompt) echo "OK: no prompts/$(printf '%02d' "$N")-task-*.md — the task-ref check owns that." >> "$LOG"; ok "$NAME" ;;
+    declared)
+      if [ "$VAJRA_TYPE" = "GROUND_TRUTH" ] && ! is_ground_truth_session; then
+        echo "FAIL: session_type is GROUND_TRUTH but session $N is not a ground-truth session by the cadence — a session cannot label itself review-only to skip the code checks." >> "$LOG"; bad "$NAME"
+      else
+        echo "OK: session_type: $VAJRA_TYPE" >> "$LOG"; ok "$NAME"
+      fi ;;
+    missing)
+      if [ "$N" -le "$LEGACY_TYPE_LAST_SESSION" ]; then
+        echo "LEGACY FALLBACK (dated 2026-09-30, S181): this brief has no session_type field; its type was read the OLD way (the **CODE** marker under ## Type). Allowed only for sessions 1-$LEGACY_TYPE_LAST_SESSION. Add 'session_type: CODE|DOCUMENT|GROUND_TRUTH|INTERACTIVE'." >> "$LOG"
+        ok "$NAME"
+      else
+        echo "FAIL: the brief has no 'session_type:' line. Add exactly one line, e.g. 'session_type: CODE', with one of CODE | DOCUMENT | GROUND_TRUTH | INTERACTIVE." >> "$LOG"; bad "$NAME"
+      fi ;;
+    unknown)  echo "FAIL: session_type '$VAJRA_TYPE' is not one of CODE | DOCUMENT | GROUND_TRUTH | INTERACTIVE." >> "$LOG"; bad "$NAME" ;;
+    conflict) echo "FAIL: the brief declares more than one different session_type (first: '$VAJRA_TYPE'). Keep exactly one." >> "$LOG"; bad "$NAME" ;;
+  esac
 }
 
 # --- Verify/Demo script-presence guard (S98 follow-up — the step-5 gap) ------
@@ -1292,6 +1335,7 @@ check_roadmap_current
 check_cost_tracking
 check_cargo_fmt
 check_execution_shas
+check_session_type
 check_verify_demo_scripts
 check_demo_markers
 check_fidelity_review
