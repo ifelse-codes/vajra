@@ -213,5 +213,5 @@ fn print_usage() {
     eprintln!("  hook              Claude Code PostToolUse hook entrypoint");
     eprintln!("  meter <jsonl>     Print a receipt for a past Claude Code session");
     eprintln!("  --version, -V     Print the version and exit");
-    eprintln!("  <command> --help  Print that command's help and run nothing");
+    eprintln!("  <command> --help  Print that command's help and run nothing (not `claude`: its arguments go to Claude Code)");
 }
