@@ -45,7 +45,8 @@ fn run_typed(n: u32, gt_next: Option<u32>, type_line: &str) -> (bool, bool, Stri
     let script = format!(
         r#"
       ROOT=.; source '{lib}'
-      for f in is_ground_truth_session is_code_session check_verify_demo_scripts spath waiver_ok; do
+      eval "$(grep -E '^LEGACY_TYPE_LAST_SESSION=' gate.sh | head -1)"
+      for f in is_ground_truth_session legacy_is_code_session is_code_session check_verify_demo_scripts spath waiver_ok; do
         source /dev/stdin <<<"$(sed -n "/^$f()/,/^}}/p" gate.sh)"
       done
       waiver_ok() {{ false; }}
