@@ -23,6 +23,8 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     (".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
     (".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
     (".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
+    // S181: the one shared "is session N ground truth?" the session-start hook and the close gate source.
+    (".ai/hooks/lib-ground-truth.sh", TPL_LIB_GROUND_TRUTH),
     // S146 (DECISION-007 S146 addendum): the close-gate is a ShellComment-stamped pure-render shell
     // script — the same shape as the hooks above. Adding it to SYNC_HOOKS gives adopters the
     // four-state upgrade path (Missing/UpToDate/StaleRender/Drifted) so `--sync-fleet` can push a
@@ -1264,6 +1266,7 @@ fn files(
         fxs(".ai/hooks/hook-session-guard.sh", TPL_HOOK_SESSION_GUARD),
         fxs(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
         fxs(".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
+        fxs(".ai/hooks/lib-ground-truth.sh", TPL_LIB_GROUND_TRUTH),
         // Git-level belt (S43): tracked pre-commit/pre-push, an independent L2 layer
         // (git-native) beneath the L3 .claude/ hooks. Byte-identical to the vajra repo's
         // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
@@ -1680,6 +1683,7 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
 // session guard. This is what surfaces the Darshan speaking skill in every project's boot
 // packet (S32 Darshan enforcement: advised -> enforced). Un-excluded in Cargo.toml so it
 // ships with `cargo install`.
+const TPL_LIB_GROUND_TRUTH: &str = include_str!("../../scripts/lib-ground-truth.sh");
 const TPL_HOOK_SESSION_START: &str = include_str!("../../scripts/hook-session-start.sh");
 
 // Canonical co-pilot loader, embedded verbatim from the real script — one source of

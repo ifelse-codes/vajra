@@ -25,6 +25,14 @@ set -euo pipefail
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT"
+# S181: one shared ground-truth answer (scripts/lib-ground-truth.sh; in a scaffold: .ai/hooks/).
+for _d in "$(dirname "${BASH_SOURCE[0]}")" "$ROOT/scripts" "$ROOT/.ai/hooks"; do
+  [ -f "$_d/lib-ground-truth.sh" ] && { . "$_d/lib-ground-truth.sh"; break; }
+done
+type vajra_is_ground_truth >/dev/null 2>&1 || {
+  echo "[vajra] lib-ground-truth.sh not found — using every-5th only. Run: vajra init --sync-fleet" >&2
+  vajra_is_ground_truth() { [ $((10#${1:-0} % 5)) -eq 0 ] && [ $((10#${1:-0})) -gt 0 ]; }
+}
 
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 ARTIFACTS=".ai/verify/closeout/${TS}"
@@ -48,19 +56,11 @@ spath() {   # spath <prefix> <suffix>  ->  the session-numbered path to use
 bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); }
 
 # --- ground-truth session test (S175 in Vajra's own gate; carried here S177, F74) ----------
-# .ai/CONSTRAINTS.yaml#ground_truth_next_session, when present, names the next review-only
-# session explicitly and OVERRIDES the every-5th default — the same key the session-start hook
-# already reads. Without it a moved ground truth split the two: the start said "S10 is CODE",
-# this gate still skipped S10's CODE-only checks as N/A (rudra S09, 2026-09-24). Absent -> the
-# old N % 5 == 0 rule, unchanged. Requires $N set (check_session_file).
+# S181: the answer comes from the ONE shared helper (lib-ground-truth.sh): every 5th session, with
+# `ground_truth_next_session` a one-time override that lapses once its session is reported or passed.
+# Requires $N set (check_session_file).
 is_ground_truth_session() {
-  local gt_next
-  gt_next="$(grep -E '^[[:space:]]*ground_truth_next_session:' .ai/CONSTRAINTS.yaml 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)"
-  if [ -n "$gt_next" ]; then
-    [ "$((10#$gt_next))" -eq "$N" ]
-  else
-    [ "$((N % 5))" -eq 0 ]
-  fi
+  vajra_is_ground_truth "$N" "$ROOT"
 }
 
 N=""
@@ -284,9 +284,8 @@ check_execution_shas() {
 # Returns 0 (true) if the current session is a CODE session (carried from Vajra's own gate, S169).
 # Reads the ## Type section of the prompt file; defaults to CODE when absent.
 # GT (is_ground_truth_session) is always non-CODE; a prompt whose ## Type has no **CODE** marker is non-CODE.
-is_code_session() {
+legacy_is_code_session() {
   [ -n "$N" ] || return 1
-  ! is_ground_truth_session || return 1
   local padded; padded="$(printf '%02d' "$N")"
   shopt -s nullglob
   local prompts=(prompts/${padded}-task-*.md)
@@ -305,6 +304,50 @@ is_code_session() {
     fi
   done < "$F"
   return 1
+}
+
+# S181 (N6): the type comes from the brief's ONE strict field `session_type:` (CODE | DOCUMENT |
+# GROUND_TRUTH | INTERACTIVE) — never from searching its prose. Undeclared / unknown / conflicting is
+# treated as CODE (the stricter reading) AND fails `check_session_type`. INTERACTIVE gets the CODE
+# checks too. Briefs for sessions 1-180 that predate the field keep the old reading through
+# `legacy_is_code_session`, and `check_session_type` prints that loudly.
+LEGACY_TYPE_LAST_SESSION=180   # dated 2026-09-30 (S181); sessions above this MUST declare session_type
+is_code_session() {
+  [ -n "$N" ] || return 1
+  ! is_ground_truth_session || return 1
+  vajra_session_type "$N" "$ROOT"
+  case "$VAJRA_TYPE_STATE" in
+    noprompt) return 0 ;;   # no prompt file -> assume CODE (unchanged)
+    declared) case "$VAJRA_TYPE" in CODE|INTERACTIVE) return 0 ;; *) return 1 ;; esac ;;
+    missing)  if [ "$N" -le "$LEGACY_TYPE_LAST_SESSION" ]; then legacy_is_code_session; return; fi; return 0 ;;
+    *)        return 0 ;;
+  esac
+}
+
+# Fails closed: a brief with no/unknown/conflicting `session_type` FAILS. No waiver path.
+check_session_type() {
+  local NAME="session-type-declared"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -z "$N" ]; then echo "BLOCK: N unresolved" > "$LOG"; bad "$NAME"; return; fi
+  vajra_session_type "$N" "$ROOT"
+  : > "$LOG"
+  case "$VAJRA_TYPE_STATE" in
+    noprompt) echo "OK: no prompts/$(printf '%02d' "$N")-task-*.md — the task-ref check owns that." >> "$LOG"; ok "$NAME" ;;
+    declared)
+      if [ "$VAJRA_TYPE" = "GROUND_TRUTH" ] && ! is_ground_truth_session; then
+        echo "FAIL: session_type is GROUND_TRUTH but session $N is not a ground-truth session by the cadence — a session cannot label itself review-only to skip the code checks." >> "$LOG"; bad "$NAME"
+      else
+        echo "OK: session_type: $VAJRA_TYPE" >> "$LOG"; ok "$NAME"
+      fi ;;
+    missing)
+      if [ "$N" -le "$LEGACY_TYPE_LAST_SESSION" ]; then
+        echo "LEGACY FALLBACK (dated 2026-09-30, S181): this brief has no session_type field; its type was read the OLD way (the **CODE** marker under ## Type). Allowed only for sessions 1-$LEGACY_TYPE_LAST_SESSION. Add 'session_type: CODE|DOCUMENT|GROUND_TRUTH|INTERACTIVE'." >> "$LOG"
+        ok "$NAME"
+      else
+        echo "FAIL: the brief has no 'session_type:' line. Add exactly one line, e.g. 'session_type: CODE', with one of CODE | DOCUMENT | GROUND_TRUTH | INTERACTIVE." >> "$LOG"; bad "$NAME"
+      fi ;;
+    unknown)  echo "FAIL: session_type '$VAJRA_TYPE' is not one of CODE | DOCUMENT | GROUND_TRUTH | INTERACTIVE." >> "$LOG"; bad "$NAME" ;;
+    conflict) echo "FAIL: the brief declares more than one different session_type (first: '$VAJRA_TYPE'). Keep exactly one." >> "$LOG"; bad "$NAME" ;;
+  esac
 }
 
 # --- Claimed-evidence gate (S169 — carried from Vajra's own gate) -----------
@@ -1098,6 +1141,7 @@ check_session_pair
 check_roadmap_current
 check_cost_tracking
 check_execution_shas
+check_session_type
 check_verify_demo_scripts
 check_fidelity_review
 check_next_options
