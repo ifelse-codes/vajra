@@ -99,9 +99,9 @@ design-significant: yes — Parts 3, 4 and 5 change what the close gate and the 
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required by the tech-lead), `fidelity-reviewer` (required; two cold passes — the first REJECTed and is recorded in `sessions/session-181-review.md`; the handoff is the second, ACCEPT), and `release-coordinator` as the independent judge of the `obeyed:` lines (not in the tech-lead's crew — one small dispatch beyond it, disclosed; the S178/S179 precedent).
 
 **tech-lead** (`.ai/handoffs/session-181-tech-lead.md`):
-- tech-lead rec 1 — obeyed: 6b9a638 (the design-advisor was briefed on the prompt plus a one-line-per-part list of the records each part changes; its settled result is the `## Design` section)
+- tech-lead rec 1 — deferred: .ai/handoffs/session-181-design-advisor.md (the brief given to the advisor is in no commit, so no sha can evidence it; the advisor's own answers — a named record per part — are the evidence, and its settled result is the `## Design` section)
 - tech-lead rec 2 — obeyed: 6b9a638 (`## Plan` and `## Execution` written from the real commits with `covers:` and `step N — done: <sha>`, no plan-advisor)
-- tech-lead rec 3 — obeyed: 6b9a638 (the fidelity-reviewer was briefed with the disclosed limits that DECISION-011 now states: bar-raising not tamper-proof, `VAJRA_CLOSEOUT_WAIVER=N` kept with a warning, and the S181-not-GT / S185-GT proof)
+- tech-lead rec 3 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md (the reviewer's brief is in no commit; DECISION-011 now states the disclosed limits and the S181-not-GT / S185-GT proof the reviewer was asked to grade)
 - tech-lead rec 4 — deferred: sessions/session-181-review.md (the full `verify-closeout.sh` runs on the branch before merge and the attested `Review-Inputs-SHA` lands in that file)
 
 **design-advisor** (`.ai/handoffs/session-181-design-advisor.md`):
@@ -110,7 +110,7 @@ Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required by 
 - design-advisor rec 3 — obeyed: 6b9a638 (Part 2 cites the S175 addendum in DECISION-007 and names the two "NOT claimed" items it reverses)
 - design-advisor rec 4 — obeyed: 6b9a638 (DECISION-005 is not cited for Part 4; DECISION-007's launch approval, DECISION-002 and DECISION-003 are)
 - design-advisor rec 5 — obeyed: 6b9a638 (Part 5 cites the S169 addendum and DECISION-003 and says where it deviates)
-- design-advisor rec 6 — obeyed: 6b9a638 (`docs/decisions/DECISION-011-controls-the-agent-cannot-type.md` written; DECISION-008's Status carries a superseded-in-part note)
+- design-advisor rec 6 — obeyed: 4bc4892 (`docs/decisions/DECISION-011-controls-the-agent-cannot-type.md` written in 6b9a638; DECISION-008's Status carries a superseded-in-part note (6b9a638) and DECISION-007's S169 addendum now carries one too (4bc4892))
 
 **fidelity-reviewer** (`.ai/handoffs/session-181-fidelity-reviewer.md`, `sessions/session-181-review.md`, ACCEPT 5/6 SHIPPED · 1 PARTIAL):
 - fidelity-reviewer rec 1 — deferred: prompts/182-task-finish-s181-gaps.md (the hollow whole-suite verify check; code after an ACCEPT needs a fresh review, F81)
