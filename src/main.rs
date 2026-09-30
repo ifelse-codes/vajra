@@ -19,6 +19,7 @@ enum Subcommand {
     Estimate,
     Hook,
     Init,
+    Approve,
     Claude,
     Meter,
     Next,
@@ -41,6 +42,7 @@ fn main() -> std::process::ExitCode {
         "estimate" => Subcommand::Estimate,
         "hook" => Subcommand::Hook,
         "init" => Subcommand::Init,
+        "approve" => Subcommand::Approve,
         "claude" => Subcommand::Claude,
         "meter" => Subcommand::Meter,
         "next" => Subcommand::Next,
@@ -71,6 +73,10 @@ fn main() -> std::process::ExitCode {
             // S136: `init` takes args now — `--sync-fleet` is the brownfield UPGRADE path.
             let init_args: Vec<String> = args.into_iter().skip(2).collect();
             run_args_subcommand(cli::init::run, &init_args)
+        }
+        Subcommand::Approve => {
+            let approve_args: Vec<String> = args.into_iter().skip(2).collect();
+            run_args_subcommand(vajractl::approval::run, &approve_args)
         }
         Subcommand::Claude => {
             let claude_args: Vec<String> = args.into_iter().skip(2).collect();
@@ -190,6 +196,16 @@ fn subcommand_usage(sub: &Subcommand) -> Option<&'static str> {
              \x20 vajra meter --all [dir]           the obedience baseline across a directory\n\
              \x20 vajra meter --help, -h            print this help and run nothing"
         }
+        Subcommand::Approve => {
+            "vajra approve — record YOUR yes for a session's brief (the agent cannot)\n\
+             \n\
+             usage:\n\
+             \x20 vajra approve NN                  write the approval for session NN\n\
+             \x20 vajra approve --help, -h          print this help and write nothing\n\
+             \n\
+             Works only typed by you at a terminal, outside anything Vajra launched. It refuses\n\
+             inside an agent's shell. Bar-raising, not tamper-proof: see .ai/approvals/."
+        }
         Subcommand::Claude
         | Subcommand::Help
         | Subcommand::Version
@@ -204,6 +220,7 @@ fn print_usage() {
     eprintln!(
         "                    (--dry-run previews; --overwrite-drifted rewrites changed files)"
     );
+    eprintln!("  approve NN        Record the founder's yes for session NN (own terminal only)");
     eprintln!("  claude [args...]  Launch Claude Code with Vajra hook injection");
     eprintln!(
         "  check [--render]   Drift detection + readiness score; --render regenerates vajra.varta"
