@@ -1345,6 +1345,8 @@ design.
 
 ## S169 addendum — the waiver cannot back a claim (supersedes one clause of the S133 addendum)
 
+> **Superseded in part by DECISION-011 (S181):** `VAJRA_CLOSEOUT_WAIVER=N` as ONE switch over every waivable check is replaced by named waivers (`VAJRA_WAIVE=<check>,…` with a required `VAJRA_WAIVE_REASON`, logged launch-time or set-later); the old form still works with a printed warning until the founder says remove it. The rule below — no waiver path for `claimed-evidence-real` — is unchanged.
+
 **What changed.** The S133 addendum (item 3) says `VAJRA_CLOSEOUT_WAIVER` "still applies at
 `verify-closeout.sh`". That stays true for every check EXCEPT the new `check_claimed_evidence`, which has
 no waiver path:

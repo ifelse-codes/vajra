@@ -35,6 +35,14 @@ typed inline, and the session type read from prose.
 5. **Old work keeps working, loudly.** Everything below a project's `session_rules_from` (default 181, new
    scaffolds 1) reads the old way through a dated fallback that prints its name every time it is used.
 
+## Proof recorded for the cadence part
+
+With `.ai/CONSTRAINTS.yaml` still saying `ground_truth_next_session: 180` and `sessions/session-180-ground-truth.md`
+present, session 181 is NOT a review-only session and session 185 IS — with no edit to the key
+(`tests/gt_cadence_shared.rs`, and the old-vs-new Stop-hook check in `scripts/verify-session-181.sh`). A passed
+override with no report rolls forward to the next multiple of 5 and says so at session start, prompt submit,
+the Stop hook and both close gates.
+
 ## Limit — stated where a reader will see it
 
 Bar-raising, **not tamper-proof.** The agent runs as the same OS user. It can strip the mark
