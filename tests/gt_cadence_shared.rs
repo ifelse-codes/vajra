@@ -149,12 +149,50 @@ fn pre_bash_blocks_commit(d: &Path) -> bool {
     c.wait_with_output().unwrap().status.code() == Some(2)
 }
 
+/// hook-prompt-submit.sh / hook-session-start.sh, run for real: do they announce a ground truth?
+fn announces_gt(script: &str, d: &Path) -> (bool, String) {
+    let out = Command::new("bash")
+        .arg(scripts().join(script))
+        .env("CLAUDE_PROJECT_DIR", d)
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    let t = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    (t.to_lowercase().contains("ground truth"), t)
+}
+
+/// hook-pre-write.sh, run for real: an edit of a source file on a ground-truth branch is blocked.
+fn pre_write_blocks(d: &Path) -> bool {
+    use std::io::Write;
+    let mut c = Command::new("bash")
+        .arg(scripts().join("hook-pre-write.sh"))
+        .env("CLAUDE_PROJECT_DIR", d)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    let j = format!(
+        r#"{{"tool_input":{{"file_path":"{}/src/x.rs"}}}}"#,
+        d.display()
+    );
+    c.stdin.take().unwrap().write_all(j.as_bytes()).unwrap();
+    c.wait_with_output().unwrap().status.code() == Some(2)
+}
+
+/// Cold review defect C: every site is driven, and a missing `jq` FAILS the test loudly — the old
+/// version returned early and went green without running anything.
 #[test]
 fn real_sites_agree_with_the_helper() {
-    if Command::new("jq").arg("--version").output().is_err() {
-        return; // pre-bash fails closed without jq; the stop hook + helper cases above still run
-    }
-    // S181 with key 180 reported: NOT ground truth at any site. S185: ground truth at both.
+    assert!(
+        Command::new("jq").arg("--version").output().is_ok(),
+        "jq is required to run the hook tests (the hooks themselves fail closed without it)"
+    );
+    // S181 with key 180 reported: NOT ground truth at any site. S185: ground truth at ALL of them.
     for (n, want) in [(181, false), (185, true)] {
         let d = project(Some(180), &[180], Some(n));
         assert_eq!(stop_hook_says_gt(d.path()), want, "hook-stop at S{n}");
@@ -163,10 +201,34 @@ fn real_sites_agree_with_the_helper() {
             want,
             "hook-pre-bash at S{n}"
         );
+        assert_eq!(pre_write_blocks(d.path()), want, "hook-pre-write at S{n}");
+        let (got, t) = announces_gt("hook-prompt-submit.sh", d.path());
+        assert_eq!(got, want, "hook-prompt-submit at S{n}: {t}");
+        let (got, t) = announces_gt("hook-session-start.sh", d.path());
+        assert_eq!(got, want, "hook-session-start at S{n}: {t}");
     }
-    // A passed override rolls forward at the sites too.
+    // A passed override rolls forward at the sites too — and the sites SAY so.
     let d = project(Some(180), &[], Some(181));
-    assert!(!stop_hook_says_gt(d.path()));
+    for script in ["hook-prompt-submit.sh", "hook-session-start.sh"] {
+        let (_, t) = announces_gt(script, d.path());
+        assert!(
+            t.contains("was passed") && t.contains("185"),
+            "{script}: {t}"
+        );
+    }
+    let out = Command::new("bash")
+        .arg(scripts().join("hook-stop.sh"))
+        .env("CLAUDE_PROJECT_DIR", d.path())
+        .output()
+        .unwrap();
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("was passed"),
+        "hook-stop must tell the founder"
+    );
+    assert!(
+        !pre_write_blocks(d.path()),
+        "S181 is code after a passed override"
+    );
     let d = project(Some(180), &[], Some(185));
-    assert!(stop_hook_says_gt(d.path()));
+    assert!(stop_hook_says_gt(d.path()) && pre_write_blocks(d.path()));
 }

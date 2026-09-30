@@ -126,9 +126,10 @@ fn hook(name: &str, root: &Path, json: &str) -> i32 {
 
 #[test]
 fn the_agents_write_and_shell_tools_are_blocked_from_the_approvals_dir() {
-    if Command::new("jq").arg("--version").output().is_err() {
-        return;
-    }
+    assert!(
+        Command::new("jq").arg("--version").output().is_ok(),
+        "jq is required to run the hook tests (the hooks themselves fail closed without it)"
+    );
     let d = tempfile::tempdir().unwrap();
     fs::create_dir_all(d.path().join(".ai")).unwrap();
     fs::write(d.path().join(".ai/CONSTRAINTS.yaml"), "maturity: L2\n").unwrap();
