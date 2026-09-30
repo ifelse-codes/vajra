@@ -78,9 +78,9 @@ impl Provenance {
     }
 }
 
-/// Handoffs for sessions up to this number were stamped before the text binding existed. They keep
-/// working by a named, dated fallback (2026-09-30, S181) that is printed every time it is used.
-pub const LEGACY_STAMP_LAST_SESSION: u32 = 180;
+// Handoffs for sessions BELOW the project's `session_rules_from` (default 181) were stamped before
+// the text binding existed. They keep working by a named, dated fallback (2026-09-30, S181) that is
+// printed every time it is used.
 
 /// The `text-sha:` a stamp binds, if it has one.
 pub fn claimed_text_sha(agent_field: &str) -> Option<String> {
@@ -106,7 +106,15 @@ pub fn reverify_handoff(
     let id = claimed_tool_use_id(&h.agent)
         .ok_or_else(|| "the stamp carries no dispatch id".to_string())?;
     reverify(repo_root, role_name, h.session, &id)?;
-    check_text_binding(&h.agent, h.session, &h.raw_body, &h.path)
+    let (rules_from, declared) = crate::approval::rules_from(repo_root);
+    check_text_binding(
+        &h.agent,
+        h.session,
+        &h.raw_body,
+        &h.path,
+        rules_from,
+        declared,
+    )
 }
 
 /// The text-binding half of `reverify_handoff` (pure, so it is unit-testable without a machine).
@@ -115,6 +123,8 @@ pub fn check_text_binding(
     session: u32,
     raw_body: &str,
     path: &str,
+    rules_from: u32,
+    declared: bool,
 ) -> Result<(), String> {
     match claimed_text_sha(agent_field) {
         Some(bound) => {
@@ -131,10 +141,11 @@ pub fn check_text_binding(
                 ))
             }
         }
-        None if session <= LEGACY_STAMP_LAST_SESSION => {
+        None if session < rules_from => {
             eprintln!(
                 "[vajra] LEGACY stamp fallback (dated 2026-09-30, S181): {path} has no text-sha \
-                 binding; accepted only because session {session} is <= {LEGACY_STAMP_LAST_SESSION}"
+                 binding; accepted only because session {session} is below {rules_from}.{}",
+                crate::approval::rules_from_hint(declared)
             );
             Ok(())
         }
@@ -835,13 +846,14 @@ mod tests {
         let text = crate::fleet::format_handoff(role, 181, &label, "s", "t", None, body, "d");
         let h = crate::fleet::parse_handoff(&text, 181, "p.md").unwrap();
         assert_eq!(
-            check_text_binding(&h.agent, 181, &h.raw_body, &h.path),
+            check_text_binding(&h.agent, 181, &h.raw_body, &h.path, 181, true),
             Ok(())
         );
         // Edit the findings (even leaving source-sha and captured alone, or rewriting them): dead.
         let edited = text.replace("finding two", "finding two, and everything is fine");
         let h2 = crate::fleet::parse_handoff(&edited, 181, "p.md").unwrap();
-        let err = check_text_binding(&h2.agent, 181, &h2.raw_body, &h2.path).unwrap_err();
+        let err =
+            check_text_binding(&h2.agent, 181, &h2.raw_body, &h2.path, 181, true).unwrap_err();
         assert!(err.contains("changed after it was captured"), "{err}");
     }
 
@@ -850,8 +862,11 @@ mod tests {
     #[test]
     fn a_stamp_without_a_text_binding_is_legacy_only_up_to_180() {
         let old = "claude-code-subagent (verified: toolu_01OLD)";
-        assert_eq!(check_text_binding(old, 179, "any", "p.md"), Ok(()));
-        let err = check_text_binding(old, 181, "any", "p.md").unwrap_err();
+        assert_eq!(
+            check_text_binding(old, 179, "any", "p.md", 181, false),
+            Ok(())
+        );
+        let err = check_text_binding(old, 181, "any", "p.md", 181, false).unwrap_err();
         assert!(err.contains("no text-sha binding"), "{err}");
         let u = Provenance::Unverifiable("nothing".into());
         assert_eq!(u.label_with_text("abc"), u.label());

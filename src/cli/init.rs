@@ -1461,6 +1461,7 @@ session:
   max_stories_per_session: 1
   cap_hours_per_session: 2
   ground_truth_every_n_sessions: 5
+  session_rules_from: 1        # sessions from here follow the strict rules (session_type, approval records, text-bound stamps); lower sessions keep the old readings
   one_session_per_chat: true   # new session = new chat; enforced by .ai/hooks/hook-session-guard.sh
 
 branch:
