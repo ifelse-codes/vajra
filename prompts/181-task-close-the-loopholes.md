@@ -5,6 +5,7 @@
 > Written on `session-180-closeout`; commit it on the S181 branch.
 
 ## Type
+session_type: INTERACTIVE
 - **CODE**, interactive. Founder-directed **exception to "1 story per session / ~2h"**: five parts, done one at a
   time, in order. **Each part ends green and committed before the next starts; the founder can stop after any
   part.** A part that is not green at the end of the session is carried, not rushed.
@@ -56,8 +57,11 @@ agent-set variable — reuse that pattern, do not invent a second one.
 3. Keep `VAJRA_CLOSEOUT_WAIVER=N` working, with a printed warning, until the founder says remove it.
 
 ## Design
-design-significant: _to be decided by the design-advisor_ (Parts 3–5 change gates; cite the existing ADR/DECISION each
-one deviates from).
+design-significant: yes — Parts 3, 4 and 5 change what the close gate and the approval gate accept, and Part 2 replaces a locked cadence contract with a shared helper. Part 1 is a pure fix. Settled by the design-advisor (`.ai/handoffs/session-181-design-advisor.md`, verified); the new mechanism is recorded in `docs/decisions/DECISION-011-controls-the-agent-cannot-type.md`.
+- Part 2 extends `docs/decisions/DECISION-007-agent-fleet.md` (S175 addendum) and deviates from its "NOT claimed" items 2 and 3: the override is now one-time and rolls forward, and the shared helper is extracted now.
+- Part 3 deviates from `docs/decisions/DECISION-008-session-type-detection.md`: a strict `session_type:` field replaces the prose search, which stays only as a dated fallback (DECISION-008 now carries a superseded-in-part note).
+- Part 4 extends `docs/decisions/DECISION-007-agent-fleet.md` (S173 launch approval, `VAJRA_ALLOW_COMMIT`) and `docs/decisions/DECISION-002-fidelity-over-discipline.md`; it deviates because "APPROVED" was words the agent could type. DECISION-005 is not cited (its freeze rule is superseded). Limit: bar-raising, not tamper-proof.
+- Part 5 deviates from the S169 waiver addendum in DECISION-007 and extends `docs/decisions/DECISION-003-verdict-input-attestation.md` (hash binding) to helper stamps.
 
 ## Acceptance
 1. Part 1: the `claude` exception is in `--help`; the dry-run test can fail (fails when the scaffold is uncommitted)
@@ -76,10 +80,20 @@ one deviates from).
    branch before merge.
 
 ## Plan
-_(the agent writes this with the plan-advisor; every step cites `covers: N`.)_
+1. Part 1: the `--help` line names the `claude` exception; the dry-run test commits the scaffold first so it can fail; three `--help`-after-args probes (`src/main.rs`, `tests/cli_front_door.rs`) (covers: 1)
+2. Part 2: one shared helper `scripts/lib-ground-truth.sh`; the six sites and both close gates read it; `tests/gt_cadence_shared.rs` proves S181 is not ground truth, S185 is (key still 180), and a passed override rolls forward and says so (covers: 2)
+3. Part 3: strict `session_type:` field in both close gates, loud dated fallback, fail-closed on missing/unknown/conflict/missing lib (`tests/session_type_gate.rs`) (covers: 3)
+4. Part 4: `vajra approve`, the agent mark, launch-time yes and `--allow-all`, the gate reads records, hooks guard the folder (`src/approval/mod.rs`, `src/cli/launch.rs`, `src/analyst/mod.rs`, `tests/approval_cli.rs`) (covers: 4)
+5. Part 5: named waivers with a required reason and stamps bound to their text, both wired into the gates (`tests/named_waivers.rs`, `tests/stamp_gate.rs`) (covers: 5)
+6. Cold review REJECT fixes (per-project `session_rules_from`, fail closed on a missing lib, every hook site driven, a gate-level stamp test), then `scripts/verify-session-181.sh` and `scripts/demo-session-181.sh` run the real things, and `verify-closeout.sh` exits 0 before merge (covers: 6)
 
 ## Execution
-_(step N — done: <sha> as work lands.)_
+- step 1 — done: 748c96c
+- step 2 — done: de91ded
+- step 3 — done: 263b60e
+- step 4 — done: 9c4e9de
+- step 5 — done: 315cc5a
+- step 6 — done: f43184e
 
 ## Guardrails
 - No autonomous commits: the founder runs them, or launches with `VAJRA_ALLOW_COMMIT=181`. The agent never sets it.
