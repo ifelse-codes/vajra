@@ -1,3 +1,4 @@
+use crate::approval;
 use crate::budget::{self, BudgetVerdict};
 use crate::launcher::{command_exists, merge_hook_settings, TempSettings};
 use crate::meter;
@@ -8,6 +9,50 @@ use std::process::{ChildStdout, Command, Stdio};
 use std::time::SystemTime;
 
 pub fn run(args: &[String]) -> Result<()> {
+    // S181 Part 4 — the founder's launch-time yes. `--allow-all` is Vajra's own flag (stripped; Claude
+    // Code never sees it) and `VAJRA_APPROVE=NN` is the same yes for one session. Both are honoured
+    // ONLY when this launcher is not itself running under an agent (a marked env): an agent that runs
+    // `vajra claude --allow-all` gets a refusal, not an approval.
+    let allow_all = args.iter().any(|a| a == "--allow-all");
+    let args: Vec<String> = args
+        .iter()
+        .filter(|a| *a != "--allow-all")
+        .cloned()
+        .collect();
+    let args = args.as_slice();
+    let launch_approve = std::env::var("VAJRA_APPROVE")
+        .ok()
+        .filter(|v| !v.trim().is_empty());
+    if approval::is_marked() && (allow_all || launch_approve.is_some()) {
+        anyhow::bail!(
+            "refused: --allow-all / VAJRA_APPROVE at launch are the founder's, set from their own \
+             terminal. This process was started by Vajra for an agent (VAJRA_AGENT_MARK is set)."
+        )
+    }
+    let root = std::env::current_dir()?;
+    if let Some(v) = &launch_approve {
+        let n: u32 = v
+            .trim()
+            .parse()
+            .map_err(|_| anyhow::anyhow!("VAJRA_APPROVE must be a session number, got '{v}'"))?;
+        let p = approval::record_launch_env(&root, n)?;
+        eprintln!(
+            "[vajra] approval for session {n} recorded at launch (human chose at start): {}",
+            p.display()
+        );
+    }
+    if allow_all {
+        let p = approval::record_allow_all(&root, std::process::id())?;
+        eprintln!("[vajra] --allow-all recorded (human chose at start; live only while this launch runs): {}", p.display());
+    }
+    let result = run_launch(args);
+    if allow_all {
+        approval::clear_allow_all(&root);
+    }
+    result
+}
+
+fn run_launch(args: &[String]) -> Result<()> {
     if !command_exists("claude") {
         anyhow::bail!("claude not found in PATH; install Claude Code before using vajra claude")
     }
@@ -25,6 +70,20 @@ pub fn run(args: &[String]) -> Result<()> {
 
     let mut command = Command::new("claude");
     command.env("VAJRA_SESSION_STATS", &stats_path);
+    // S181 Part 4: mark everything the agent will start, and do not hand it the founder's launch yes.
+    command.env(approval::AGENT_MARK, "1");
+    command.env_remove("VAJRA_APPROVE");
+    // S181 Part 5: remember what was waived AT LAUNCH, from the founder's own terminal, so the close
+    // gate can tell a launch-time waiver from one set later in the session. A marked launcher (an
+    // agent running `vajra claude`) records nothing.
+    match std::env::var("VAJRA_WAIVE") {
+        Ok(w) if !w.trim().is_empty() && !approval::is_marked() => {
+            command.env("VAJRA_LAUNCH_WAIVE", w);
+        }
+        _ => {
+            command.env_remove("VAJRA_LAUNCH_WAIVE");
+        }
+    }
 
     // A headless `-p`/`--print` run emits the SDK-authoritative cost on its terminal
     // `type:"result"` stdout line (S78); only these runs are tee-captured. Interactive runs have

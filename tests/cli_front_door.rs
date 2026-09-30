@@ -255,7 +255,38 @@ fn init_sync_fleet_dry_run_still_works() {
         .output()
         .unwrap();
     assert!(setup.status.success(), "setup `vajra init` failed");
+    // Commit the scaffold, then edit a scaffolded file. A dry run that wrote anything (restoring the
+    // edit, adding a file) now shows up in `git status`; with the scaffold untracked git collapses it
+    // to `?? .ai/` and no write inside could ever be seen.
+    for args in [
+        vec!["add", "-A"],
+        vec![
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "commit",
+            "-q",
+            "--no-verify",
+            "-m",
+            "scaffold",
+        ],
+    ] {
+        let st = Command::new("git")
+            .args(&args)
+            .current_dir(&dir)
+            .status()
+            .unwrap();
+        assert!(st.success(), "git {args:?} failed");
+    }
+    let mut agents = std::fs::read_to_string(dir.join(".ai/AGENTS.md")).unwrap();
+    agents.push_str("\nlocal edit\n");
+    std::fs::write(dir.join(".ai/AGENTS.md"), agents).unwrap();
     let before = repo_changes(&dir);
+    assert!(
+        before.contains("AGENTS.md"),
+        "setup: the edit is not visible to git status"
+    );
     let out = vajra()
         .args(["init", "--sync-fleet", "--dry-run"])
         .current_dir(&dir)
@@ -263,11 +294,62 @@ fn init_sync_fleet_dry_run_still_works() {
         .output()
         .unwrap();
     let after = repo_changes(&dir);
+    let kept_edit = std::fs::read_to_string(dir.join(".ai/AGENTS.md"))
+        .unwrap()
+        .contains("local edit");
     let _ = std::fs::remove_dir_all(&dir);
-    assert!(
-        out.status.success(),
-        "`vajra init --sync-fleet --dry-run` failed: {}",
+    // A drifted file makes the sync exit non-zero by design ("refused to write"); what matters here
+    // is that the real check ran (it names the drift) and touched nothing.
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)
     );
+    assert!(
+        text.contains("DRY RUN") && text.contains("DRIFT") && text.contains(".ai/AGENTS.md"),
+        "the dry run did not run the real drift check: {text}"
+    );
     assert_eq!(before, after, "`--sync-fleet --dry-run` changed the repo");
+    assert!(
+        kept_edit,
+        "`--sync-fleet --dry-run` overwrote the local edit"
+    );
+}
+
+/// S181 — `--help` placed AFTER other arguments still prints help and writes nothing. These are the
+/// spellings where a flag parser that only looks at the first word would run the real command.
+#[test]
+fn help_after_other_arguments_runs_nothing() {
+    for args in [
+        vec!["next", "--advance", "--help"],
+        vec!["init", "--sync-fleet", "--help"],
+        vec!["init", "--sync-fleet", "--overwrite-drifted", "--help"],
+    ] {
+        let dir = empty_git_repo("help-after");
+        let out = vajra()
+            .args(&args)
+            .current_dir(&dir)
+            .stdin(std::process::Stdio::null())
+            .output()
+            .unwrap();
+        let err = String::from_utf8_lossy(&out.stderr);
+        let changes = repo_changes(&dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(
+            out.status.code(),
+            Some(0),
+            "`vajra {}` should exit 0; stderr: {err}",
+            args.join(" ")
+        );
+        assert!(
+            err.contains("usage:"),
+            "`vajra {}` did not print help; stderr: {err}",
+            args.join(" ")
+        );
+        assert!(
+            changes.is_empty(),
+            "`vajra {}` wrote into the repo:\n{changes}",
+            args.join(" ")
+        );
+    }
 }

@@ -30,20 +30,34 @@ esac
 
 BRANCH=$(cd "$ROOT" && git branch --show-current 2>/dev/null || echo "?")
 
+# S181 Part 4: approval records are the founder's. A command that names .ai/approvals AND writes
+# (redirect, tee, cp, mv, rm, touch, sed -i, an interpreter) is blocked; plain reads and `git add` pass.
+if echo "$CMD" | grep -qE '\.ai/approvals' && \
+   echo "$CMD" | grep -qE '(>|\btee\b|\bcp\b|\bmv\b|\brm\b|\btouch\b|sed[[:space:]]+-i|\bdd\b|\binstall\b|\bln\b|\bpython3?\b|\bperl\b|\bnode\b|\bruby\b)'; then
+  if [ "$MATURITY" = "L1" ]; then
+    echo "[HOOK WARNING] command writes .ai/approvals — approval records are the founder's (L1 report-only)"
+  else
+    echo "[HOOK BLOCK] .ai/approvals holds the founder's approvals. Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there."
+    exit 2
+  fi
+fi
+
 # Ground Truth detection
 GT=0; GT_NUM=""
+# S181: one shared ground-truth answer (scripts/lib-ground-truth.sh; in a scaffold: .ai/hooks/).
+for _d in "$(dirname "${BASH_SOURCE[0]}")" "$ROOT/scripts" "$ROOT/.ai/hooks"; do
+  [ -f "$_d/lib-ground-truth.sh" ] && { . "$_d/lib-ground-truth.sh"; break; }
+done
+type vajra_is_ground_truth >/dev/null 2>&1 || {
+  echo "[vajra] lib-ground-truth.sh not found — using every-5th only. Run: vajra init --sync-fleet" >&2
+  vajra_is_ground_truth() { [ $((10#${1:-0} % 5)) -eq 0 ] && [ $((10#${1:-0})) -gt 0 ]; }
+}
 case "$BRANCH" in
   *-closeout|*-enforcement) GT=0 ;;
   *)
     SNUM=$(echo "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
     if [[ "$SNUM" =~ ^[0-9]+$ ]] && [ "$((10#$SNUM))" -gt 0 ]; then
-      # S175: .ai/CONSTRAINTS.yaml#ground_truth_next_session overrides the every-5th default.
-      GT_NEXT=$(grep -E '^[[:space:]]*ground_truth_next_session:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)
-      if [ -n "$GT_NEXT" ]; then
-        [ "$((10#$SNUM))" -eq "$((10#$GT_NEXT))" ] && { GT=1; GT_NUM="$SNUM"; }
-      elif [ "$((10#$SNUM % 5))" -eq 0 ]; then
-        GT=1; GT_NUM="$SNUM"
-      fi
+      if vajra_is_ground_truth "$SNUM" "$ROOT"; then GT=1; GT_NUM="$SNUM"; fi
     fi
   ;;
 esac

@@ -351,7 +351,23 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
     // reads this field (`--check-fidelity-handoff`) re-derives it again rather than trusting the
     // label written here.
     let provenance = dispatch::derive_provenance(&root, role.name, session);
-    let agent_label = provenance.label();
+    // S181 (F84): bind the stamp to the text. Format once, hash the findings region exactly as the
+    // gates will read it back, then write the stamp with that hash inside it.
+    let captured = utc_now();
+    let draft = fleet::format_handoff(
+        role,
+        session,
+        &provenance.label(),
+        &source_sha,
+        &captured,
+        None,
+        body,
+        &delta,
+    );
+    let text_sha = fleet::handoff_findings_raw(&draft)
+        .and_then(|r| fleet::sha256_hex(r.as_bytes()))
+        .unwrap_or_else(|| "unavailable".to_string());
+    let agent_label = provenance.label_with_text(&text_sha);
     let handoff = fleet::format_handoff(
         role,
         session,
@@ -359,7 +375,7 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
         // honest null), with the session total disclosed in the summary.
         &agent_label,
         &source_sha,
-        &utc_now(),
+        &captured,
         None,
         body,
         &delta,

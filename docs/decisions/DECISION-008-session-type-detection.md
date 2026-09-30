@@ -1,6 +1,6 @@
 # DECISION-008 — Session-Type Detection and CODE-Gate Applicability
 
-**Status:** Accepted  
+**Status:** Accepted — superseded in part by DECISION-011 (S181): the `**CODE**` search below is now only a dated, loudly printed fallback for sessions before a project's `session_rules_from`; the type comes from the strict `session_type:` field.  
 **Date:** 2026-09-10  
 **Session:** S161  
 **Relates to:** DECISION-002 (fidelity-over-discipline motivation)  

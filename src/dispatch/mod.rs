@@ -64,6 +64,95 @@ impl Provenance {
             }
         }
     }
+
+    /// `label()`, with the stamp BOUND to the record's text (S181, F84): a verified stamp carries
+    /// `; text-sha: <sha256 of the findings region as written>`, so editing the text afterwards no
+    /// longer leaves a stamp that still reads verified. An unverifiable label is left as it is.
+    pub fn label_with_text(&self, text_sha: &str) -> String {
+        match self {
+            Provenance::Verified { tool_use_id } => {
+                format!("claude-code-subagent (verified: {tool_use_id}; text-sha: {text_sha})")
+            }
+            other => other.label(),
+        }
+    }
+}
+
+// Handoffs for sessions BELOW the project's `session_rules_from` (default 181) were stamped before
+// the text binding existed. They keep working by a named, dated fallback (2026-09-30, S181) that is
+// printed every time it is used.
+
+/// The `text-sha:` a stamp binds, if it has one.
+pub fn claimed_text_sha(agent_field: &str) -> Option<String> {
+    let after = agent_field.split_once("(verified: ")?.1;
+    let inside = after.split(')').next()?;
+    let sha = inside.split_once("text-sha:")?.1.trim();
+    if sha.is_empty() {
+        None
+    } else {
+        Some(sha.to_string())
+    }
+}
+
+/// `reverify`, PLUS the text binding: the record's findings must still hash to what the stamp
+/// bound at capture. The three gates that trust a handoff (mandate, obeyed, fidelity) call this.
+/// Limit, disclosed: bar-raising — a hand edit is caught, but an agent that recomputes the hash
+/// or re-records through `vajra next --role` gets a fresh stamp for text the helper never wrote.
+pub fn reverify_handoff(
+    repo_root: &Path,
+    role_name: &str,
+    h: &crate::fleet::Handoff,
+) -> Result<(), String> {
+    let id = claimed_tool_use_id(&h.agent)
+        .ok_or_else(|| "the stamp carries no dispatch id".to_string())?;
+    reverify(repo_root, role_name, h.session, &id)?;
+    let (rules_from, declared) = crate::approval::rules_from(repo_root);
+    check_text_binding(
+        &h.agent,
+        h.session,
+        &h.raw_body,
+        &h.path,
+        rules_from,
+        declared,
+    )
+}
+
+/// The text-binding half of `reverify_handoff` (pure, so it is unit-testable without a machine).
+pub fn check_text_binding(
+    agent_field: &str,
+    session: u32,
+    raw_body: &str,
+    path: &str,
+    rules_from: u32,
+    declared: bool,
+) -> Result<(), String> {
+    match claimed_text_sha(agent_field) {
+        Some(bound) => {
+            let now = crate::fleet::sha256_hex(raw_body.as_bytes())
+                .ok_or_else(|| "cannot hash the record's text (no sha256 tool)".to_string())?;
+            if now == bound {
+                Ok(())
+            } else {
+                Err(format!(
+                    "{path}'s text was changed after it was captured (the stamp binds text-sha \
+                     {bound}, the text now hashes to {now}) — a stamp vouches for the text it was \
+                     written with, not for an edited one. Re-record the helper's findings with \
+                     `vajra next --role <name> --from <findings>`"
+                ))
+            }
+        }
+        None if session < rules_from => {
+            eprintln!(
+                "[vajra] LEGACY stamp fallback (dated 2026-09-30, S181): {path} has no text-sha \
+                 binding; accepted only because session {session} is below {rules_from}.{}",
+                crate::approval::rules_from_hint(declared)
+            );
+            Ok(())
+        }
+        None => Err(format!(
+            "{path}'s stamp has no text-sha binding — record it again with `vajra next --role`"
+        )),
+    }
 }
 
 /// Extract the tool-use id a handoff's `agent:` field CLAIMS, if it follows the `(verified: <id>)`
@@ -73,7 +162,7 @@ impl Provenance {
 /// own fail-closed posture, applied to parsing the claim itself).
 pub fn claimed_tool_use_id(agent_field: &str) -> Option<String> {
     let after = agent_field.split_once("(verified: ")?.1;
-    let id = after.split(')').next()?.trim();
+    let id = after.split(')').next()?.split(';').next()?.trim();
     if id.is_empty() {
         None
     } else {
@@ -734,6 +823,53 @@ mod tests {
             }
             other => panic!("expected Unverifiable, got {other:?}"),
         }
+    }
+
+    /// S181 (F84): the stamp is bound to the record's text. Edit the text and it dies; the id parse
+    /// still reads the same id out of the longer label.
+    #[test]
+    fn a_stamp_is_bound_to_the_text_and_dies_when_the_text_is_edited() {
+        let role = crate::fleet::resolve_role("researcher").unwrap();
+        let body = "1. finding one\n2. finding two";
+        let draft = crate::fleet::format_handoff(role, 181, "x", "s", "t", None, body, "d");
+        let raw = crate::fleet::handoff_findings_raw(&draft).unwrap();
+        let sha = crate::fleet::sha256_hex(raw.as_bytes()).unwrap();
+        let p = Provenance::Verified {
+            tool_use_id: "toolu_01BOUND".into(),
+        };
+        let label = p.label_with_text(&sha);
+        assert_eq!(
+            claimed_tool_use_id(&label),
+            Some("toolu_01BOUND".to_string())
+        );
+        assert_eq!(claimed_text_sha(&label), Some(sha.clone()));
+        let text = crate::fleet::format_handoff(role, 181, &label, "s", "t", None, body, "d");
+        let h = crate::fleet::parse_handoff(&text, 181, "p.md").unwrap();
+        assert_eq!(
+            check_text_binding(&h.agent, 181, &h.raw_body, &h.path, 181, true),
+            Ok(())
+        );
+        // Edit the findings (even leaving source-sha and captured alone, or rewriting them): dead.
+        let edited = text.replace("finding two", "finding two, and everything is fine");
+        let h2 = crate::fleet::parse_handoff(&edited, 181, "p.md").unwrap();
+        let err =
+            check_text_binding(&h2.agent, 181, &h2.raw_body, &h2.path, 181, true).unwrap_err();
+        assert!(err.contains("changed after it was captured"), "{err}");
+    }
+
+    /// An old stamp (no text-sha) works through a named, dated fallback up to S180 — and is refused
+    /// after; an unverifiable label is left exactly as it was.
+    #[test]
+    fn a_stamp_without_a_text_binding_is_legacy_only_up_to_180() {
+        let old = "claude-code-subagent (verified: toolu_01OLD)";
+        assert_eq!(
+            check_text_binding(old, 179, "any", "p.md", 181, false),
+            Ok(())
+        );
+        let err = check_text_binding(old, 181, "any", "p.md", 181, false).unwrap_err();
+        assert!(err.contains("no text-sha binding"), "{err}");
+        let u = Provenance::Unverifiable("nothing".into());
+        assert_eq!(u.label_with_text("abc"), u.label());
     }
 
     #[test]

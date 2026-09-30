@@ -99,7 +99,7 @@ pub fn fidelity_gate(root: &Path, session: u32) -> FidelityVerdict {
                 ],
                 warnings: vec![],
             },
-            Some(tool_use_id) => match dispatch::reverify(root, role.name, session, &tool_use_id) {
+            Some(_) => match dispatch::reverify_handoff(root, role.name, &h) {
                 Ok(()) => FidelityVerdict {
                     session,
                     handoff_path: Some(h.path),
