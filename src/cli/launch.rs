@@ -73,6 +73,17 @@ fn run_launch(args: &[String]) -> Result<()> {
     // S181 Part 4: mark everything the agent will start, and do not hand it the founder's launch yes.
     command.env(approval::AGENT_MARK, "1");
     command.env_remove("VAJRA_APPROVE");
+    // S181 Part 5: remember what was waived AT LAUNCH, from the founder's own terminal, so the close
+    // gate can tell a launch-time waiver from one set later in the session. A marked launcher (an
+    // agent running `vajra claude`) records nothing.
+    match std::env::var("VAJRA_WAIVE") {
+        Ok(w) if !w.trim().is_empty() && !approval::is_marked() => {
+            command.env("VAJRA_LAUNCH_WAIVE", w);
+        }
+        _ => {
+            command.env_remove("VAJRA_LAUNCH_WAIVE");
+        }
+    }
 
     // A headless `-p`/`--print` run emits the SDK-authoritative cost on its terminal
     // `type:"result"` stdout line (S78); only these runs are tee-captured. Interactive runs have
