@@ -41,8 +41,10 @@ fn run_typed(n: u32, gt_next: Option<u32>, type_line: &str) -> (bool, bool, Stri
     let gate = Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/verify-closeout-scaffold.sh");
     fs::copy(&gate, root.join("gate.sh")).unwrap();
 
+    let lib = Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/lib-ground-truth.sh");
     let script = format!(
         r#"
+      ROOT=.; source '{lib}'
       for f in is_ground_truth_session is_code_session check_verify_demo_scripts spath waiver_ok; do
         source /dev/stdin <<<"$(sed -n "/^$f()/,/^}}/p" gate.sh)"
       done
@@ -53,7 +55,8 @@ fn run_typed(n: u32, gt_next: Option<u32>, type_line: &str) -> (bool, bool, Stri
       check_verify_demo_scripts
       if is_code_session; then echo "CODE=yes"; else echo "CODE=no"; fi
       cat verify-demo-scripts-present.log
-    "#
+    "#,
+        lib = lib.display()
     );
     let out = Command::new("bash")
         .arg("-c")
