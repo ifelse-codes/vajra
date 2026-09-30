@@ -1,10 +1,13 @@
 # Session Boot
 
 ## Next Session
-- **S181 — close the loopholes, five parts one by one** (`prompts/181-task-close-the-loopholes.md`, DRAFT until the founder writes APPROVED): (1) S179 recs 5/6 · (2) smart ground-truth cadence, no hardcoded number · (3) `session_type` enum · (4) approvals the agent cannot type · (5) named waivers + stamp-to-text. Start in a FRESH chat. rudra's hand-updated `.ai/CONSTRAINTS.yaml` (F93) is still uncommitted there.
+- **S182 — finish S181's own gaps** (`prompts/182-task-finish-s181-gaps.md`, DRAFT until the founder runs `vajra approve 182` in his own terminal): the hollow whole-suite verify check · an obeyed-gate stamp test · ship the approvals guards and a `session_rules_from` report into existing projects · tie `--allow-all` to a session. The founder picks from the S181 summary's three options (A recommended). Start in a FRESH chat. rudra's hand-updated `.ai/CONSTRAINTS.yaml` (F93) is still uncommitted there — and rudra needs `session_rules_from: N` added by hand to turn the S181 rules on.
 
 ## Current Session
-- **Number:** 180 — CLOSED (NO-CODE ground truth, PARTIAL PASS 🟡). Report: `sessions/session-180-ground-truth.md`. Founder rulings: reach/release is fine (not GTM-ready); cadence must be smart; approvals the agent cannot fake; other tools one at a time (OpenCode, omp, a third), building later.
+- **Number:** 181 — CLOSED. CODE, interactive: shared ground-truth helper + smart one-time override · strict `session_type:` · `vajra approve` / launch-time yes / `--allow-all` · named waivers · text-bound stamps · `session_rules_from`. Summary: `sessions/session-181-summary.md`. Review: `sessions/session-181-review.md` (pass 1 REJECT → pass 2 ACCEPT). Decision: DECISION-011. Verify: `scripts/verify-session-181.sh` (13/13). Demo: `scripts/demo-session-181.sh` (6 live checks).
+
+## Prior Session
+- **Number:** 180 — CLOSED (NO-CODE ground truth, PARTIAL PASS). Report: `sessions/session-180-ground-truth.md`. Merged #217.
 
 ## Prior Session
 - **Number:** 179 — CLOSED. CODE, interactive: F89 (`--help` ran the command) + F90 (`init` ignored unknown words) fixed; rudra S14 + S15 (OpenCode) → F91–F97; F93 fixed (a project's ground truth leads with the project). Summary: `sessions/session-179-summary.md`. Review: `sessions/session-179-review.md`.

@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S180 (ground truth) complete on `session-180-closeout`; S181 next
+## Between Sessions — S181 (close the loopholes) complete on `session-181-close-the-loopholes`; S182 next
 
-**Next: Session 181** — close the loopholes, five parts one by one (`prompts/181-task-close-the-loopholes.md`, DRAFT until the founder approves). Start in a fresh chat.
+**Next: Session 182 (draft, founder picks from the S181 summary's three options)** — finish S181's own gaps: ship the approvals guards + `session_rules_from` report into existing projects, tie `--allow-all` to a session, fix the hollow verify check (`prompts/182-task-finish-s181-gaps.md`, DRAFT until `vajra approve 182`). Start in a fresh chat.
+
+## Session 181 — CODE, interactive: close the loopholes — COMPLETE
+
+- Brief: `prompts/181-task-close-the-loopholes.md`. Summary: `sessions/session-181-summary.md`. Review: `sessions/session-181-review.md` (pass 1 REJECT → pass 2 ACCEPT 5/6). Decision: `docs/decisions/DECISION-011-controls-the-agent-cannot-type.md`.
+- Shipped: shared ground-truth helper + a one-time override that lapses (no hardcoded 185) · strict `session_type:` · `vajra approve` / launch-time yes / `--allow-all` (approval is a record) · named waivers with a reason · stamps bound to their text · per-project `session_rules_from`. Verify 13/13 · demo 6/6.
+- **Carried to S182:** hollow whole-suite verify check · obeyed-gate stamp test · ship approvals hooks + `session_rules_from` to existing projects · `--allow-all` per session. **Disclosed:** all bar-raising, not tamper-proof.
 
 ## Session 180 — NO-CODE ground truth — COMPLETE (🟡 PARTIAL)
 
