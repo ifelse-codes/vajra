@@ -23,9 +23,34 @@ use std::process::Command;
 
 /// Env var `vajra claude` sets on the process it spawns (and so on everything the agent starts).
 pub const AGENT_MARK: &str = "VAJRA_AGENT_MARK";
-/// Sessions up to this number predate approval records and keep the brief's `Status:` line — the
-/// named, dated fallback (2026-09-30, S181). The gate prints a LEGACY warning whenever it is used.
-pub const LEGACY_LAST_SESSION: u32 = 180;
+/// Vajra's own boundary: sessions below this keep the old readings (approval from the brief's words,
+/// stamps without a text hash) through named, dated fallbacks (2026-09-30, S181). A project sets its
+/// own with `session_rules_from: N` in `.ai/CONSTRAINTS.yaml` — one that adopted Vajra long before
+/// 181 would otherwise never leave the fallback. New scaffolds ship `session_rules_from: 1`.
+pub const DEFAULT_RULES_FROM: u32 = 181;
+
+/// The first session that must follow the new rules, and whether the project declared it.
+pub fn rules_from(root: &Path) -> (u32, bool) {
+    let text = fs::read_to_string(root.join(".ai/CONSTRAINTS.yaml")).unwrap_or_default();
+    for line in text.lines() {
+        if let Some(rest) = line.trim_start().strip_prefix("session_rules_from:") {
+            if let Ok(n) = rest.split('#').next().unwrap_or("").trim().parse::<u32>() {
+                return (n, true);
+            }
+        }
+    }
+    (DEFAULT_RULES_FROM, false)
+}
+
+/// The note every legacy fallback ends with when the project never set the key.
+pub fn rules_from_hint(declared: bool) -> &'static str {
+    if declared {
+        ""
+    } else {
+        " This project has no `session_rules_from:` in .ai/CONSTRAINTS.yaml, so every session reads \
+         the OLD way — add `session_rules_from: N` (N = the first session that must follow the new rules)."
+    }
+}
 
 pub fn dir(root: &Path) -> PathBuf {
     root.join(".ai/approvals")

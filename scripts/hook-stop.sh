@@ -20,6 +20,7 @@ if [ -z "$SESSION_NUM" ]; then exit 0; fi
 # Ground Truth: check for required output file
 IS_GT=0
 vajra_is_ground_truth "$SESSION_NUM" "$ROOT" && IS_GT=1
+[ -n "${VAJRA_GT_NOTE:-}" ] && echo "[HOOK STOP] $VAJRA_GT_NOTE"
 if [ "$IS_GT" -eq 1 ]; then
   GT="$ROOT/sessions/session-${SESSION_NUM}-ground-truth.md"
   if [ ! -f "$GT" ]; then
