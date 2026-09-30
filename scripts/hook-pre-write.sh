@@ -17,6 +17,14 @@ INPUT=$(cat 2>/dev/null || echo "{}")
 FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.notebook_path // ""' 2>/dev/null || echo "")
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+# S181: one shared ground-truth answer (scripts/lib-ground-truth.sh; in a scaffold: .ai/hooks/).
+for _d in "$(dirname "${BASH_SOURCE[0]}")" "$ROOT/scripts" "$ROOT/.ai/hooks"; do
+  [ -f "$_d/lib-ground-truth.sh" ] && { . "$_d/lib-ground-truth.sh"; break; }
+done
+type vajra_is_ground_truth >/dev/null 2>&1 || {
+  echo "[vajra] lib-ground-truth.sh not found — using every-5th only. Run: vajra init --sync-fleet" >&2
+  vajra_is_ground_truth() { [ $((10#${1:-0} % 5)) -eq 0 ] && [ $((10#${1:-0})) -gt 0 ]; }
+}
 MATURITY=$(grep -m1 '^maturity:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | awk '{print $2}' || echo "L2")
 BRANCH=$(cd "$ROOT" && git branch --show-current 2>/dev/null || echo "?")
 SESSION_NUM=$(echo "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
@@ -26,15 +34,7 @@ case "$BRANCH" in
   *-closeout|*-enforcement) GT_PW=0 ;;
   *)
     if [ -n "$SESSION_NUM" ] && [ "$((10#$SESSION_NUM))" -gt 0 ]; then
-      # S175: .ai/CONSTRAINTS.yaml#ground_truth_next_session overrides the every-5th default.
-      GT_NEXT=$(grep -E '^[[:space:]]*ground_truth_next_session:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)
-      if [ -n "$GT_NEXT" ]; then
-        if [ "$((10#$SESSION_NUM))" -eq "$((10#$GT_NEXT))" ]; then GT_PW=1; else GT_PW=0; fi
-      elif [ "$((10#$SESSION_NUM % 5))" -eq 0 ]; then
-        GT_PW=1
-      else
-        GT_PW=0
-      fi
+      if vajra_is_ground_truth "$SESSION_NUM" "$ROOT"; then GT_PW=1; else GT_PW=0; fi
     else
       GT_PW=0
     fi
