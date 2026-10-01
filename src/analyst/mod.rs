@@ -668,7 +668,7 @@ pub fn gate(root: &Path, session: u32) -> GateVerdict {
                         None => reasons.push(format!(
                             "session {session} has no approval record — the brief's Status line is not read. \
                              The founder runs `vajra approve {session}` in their OWN terminal (not the agent's), \
-                             or launches with `VAJRA_APPROVE={session}` / `vajra claude --allow-all`"
+                             or launches with `VAJRA_APPROVE={session}` / `vajra claude --allow-all={session}`"
                         )),
                     }
                 } else {
