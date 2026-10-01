@@ -1,6 +1,6 @@
 # Session 182 — finish S181's own gaps: ship the controls into existing projects
 
-> **Status:** DRAFT — the founder picks this from S181's three options and approves it with `vajra approve 182` in his own terminal (the gate reads that record, not this line).
+> **Status:** APPROVED — the founder ran `vajra approve 182` in his own terminal (record: the approvals folder, `session-182.json`). The gate reads that record, not this line.
 
 ## Type
 session_type: CODE
@@ -66,6 +66,7 @@ A new hook shipped to every project, `--sync-fleet` now adding Vajra's hook entr
 - step 7 — done: 57542bb (the rudra work is uncommitted in rudra by design; this commit's verify P7 re-checks it live, and the summary records the run)
 - step 8 — done: 233e669 (CLI tests 198d22c)
 - step 9 — done: 57542bb
+- step 10 — done: 4d4839e (summary + DECISION-011 addendum; review pass 1 recorded ec77bf8; pass 2, attestation and the closeout run land in the closeout commits)
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-advisor` (required by the tech-lead), `fidelity-reviewer` (required; the cold close review, and the independent judge of the `obeyed:` lines below).
@@ -97,7 +98,16 @@ Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-adv
 - plan-advisor rec 7 — obeyed: 57542bb (verify P7 prints SKIPPED, never PASS, when rudra is absent)
 - plan-advisor rec 8 — obeyed: 4d4839e (the summary names the absolute branch-build path and rudra HEAD before/after)
 
-Why the one `deferred:` line points where it does: tech-lead rec 5 asks for `verify-closeout.sh` on the branch before merge and the review recorded with `--inputs-sha 182` — both happen at close and land in the review file. Its third ask (scaffold probes in a scratch repo, not Vajra's tree) is met by `tests/approvals_scaffold.rs`, which scaffolds into temp dirs.
+**fidelity-reviewer** (`.ai/handoffs/session-182-fidelity-reviewer.md`, pass 2, ACCEPT 14/15; pass 1 in `sessions/session-182-review.md`):
+- fidelity-reviewer rec 1 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 2 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 3 — deferred: sessions/session-182-summary.md
+- fidelity-reviewer rec 4 — deferred: sessions/session-182-review.md
+- fidelity-reviewer rec 5 — deferred: .ai/ROADMAP.md
+
+Why each fidelity-reviewer `deferred:` line points where it does: recs 1, 2 and 5 are loopholes and edge cases in a guard that is bar-raising by design. Changing the guard or the merge after the second ACCEPT would need a third review. The founder's standing rule (2026-09-15, "no more policing") is to park loopholes, so all three are written into the S182 row of `.ai/ROADMAP.md` as backlog for the S185 ground-truth checklist. Rec 3 (rudra's real output and the re-syncs) is pasted in the summary. Rec 4 (closeout on the branch before merge, attested `--inputs-sha 182`) lands in the review file.
+
+Why the one tech-lead `deferred:` line points where it does: tech-lead rec 5 asks for `verify-closeout.sh` on the branch before merge and the review recorded with `--inputs-sha 182` — both happen at close and land in the review file. Its third ask (scaffold probes in a scratch repo, not Vajra's tree) is met by `tests/approvals_scaffold.rs`, which scaffolds into temp dirs.
 
 ## Guardrails
 - No autonomous commits: the founder runs them, or launches with `VAJRA_ALLOW_COMMIT=182`. The agent never sets it.

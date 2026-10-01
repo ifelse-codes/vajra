@@ -29,13 +29,29 @@ $ /Users/suman/playground/vajra/target/debug/vajra init --sync-fleet
   ACTION  .ai/CONSTRAINTS.yaml has no `session_rules_from:` … add this line under `session:`
               session_rules_from: 16
 added `session_rules_from: 16` by hand, as reported → a re-run prints no ACTION
-rudra's registered guard (matcher Bash|Edit|Write|MultiEdit|NotebookEdit):
-  agent Bash `echo … > .ai/approvals/session-16.json`  → [HOOK BLOCK] … exit 2
-  agent Write .ai/approvals/session-16.json             → [HOOK BLOCK] … exit 2
-  agent Bash `ls .ai/approvals 2>&1`                    → exit 0
+== rudra's settings register the guard for:
+   matcher Bash|Edit|Write|MultiEdit|NotebookEdit  →  bash "$CLAUDE_PROJECT_DIR/.ai/hooks/hook-approvals-guard.sh"
+
+== agent tries: {"command":"echo '{\"approved\":true}' > .ai/approvals/session-16.json"}
+[HOOK BLOCK] .ai/approvals holds the founder's approvals, and this command redirects output while naming it.
+  Only `vajra approve NN`, typed by the founder in their own terminal, writes there. Reading is fine: run the read on its own (cat/ls/jq), without a redirect in the same command.
+   exit: 2
+
+== agent tries: {"file_path":"/Users/suman/playground/rudra/.ai/approvals/session-16.json","content":"{}"}
+[HOOK BLOCK] /Users/suman/playground/rudra/.ai/approvals/session-16.json is an approval record. Only the founder writes it: `vajra approve NN` in their own terminal.
+   exit: 2
+
+== agent tries: {"command":"ls .ai/approvals 2>&1"}
+   exit: 0
+
 == rudra AFTER: 5ab6e83 (unchanged); 6 files changed, uncommitted, for the founder's S16 first commit
 ```
-A second `--sync-fleet` after the close-time guard fix upgraded the one file (`stale render c12e4d65 → f002611a`).
+**Re-syncs after later guard changes** (same branch build, same command, rudra HEAD still `5ab6e83` each time):
+- after 540db79 (backticks): `upgrade .ai/hooks/hook-approvals-guard.sh (stale render c12e4d65 → f002611a)`
+- after 4449ebb (review pass 1 fixes): `upgrade .ai/hooks/hook-approvals-guard.sh (stale render f002611a → 21333991)`
+- after 293796b (key order): `git checkout -- .claude/settings.json` restored rudra's committed settings, then `merge   Vajra's missing hooks into .claude/settings.json (your keys and hooks kept)` — `git diff --stat`: `.claude/settings.json | 9 +++++++++`, the guard group only.
+
+Verify P7 re-runs rudra's registered command live on every run (exit 2).
 
 **Cold review pass 1 (ACCEPT, one `mismatch:`):** found that the guard let one write spelling through that S181 blocked (`>&1/../<folder>/x`). It also found that `--sync-fleet` would list three hooks twice in a pre-S93 project, that an L1 project with no jq was blocked on every edit, and that capitals and quotes reached the folder. All four were fixed with tests that fail without the fix (4449ebb, 2967453). With the founder's yes, the settings rewrite now keeps the project's key order (293796b), so rudra's settings diff is 9 added lines. Pass 2 is a fresh review (`sessions/session-182-review.md`).
 
