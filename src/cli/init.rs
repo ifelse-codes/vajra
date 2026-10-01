@@ -945,7 +945,40 @@ fn merge_claude_settings(existing_json: &str, template_json: &str) -> Result<(St
             if group_already_present(&snapshot, group) {
                 continue;
             }
-            arr.push(group.clone());
+            // S182 review rec 2: a group that is PARTLY wired (an older project's Bash group from
+            // before a hook was added) gets only its missing hook entries, appended to the project's
+            // group with the same matcher. Appending the whole template group made every hook it
+            // already had run twice — reachable from `--sync-fleet` since S182, not only `init`.
+            let missing: Vec<Value> = group
+                .get("hooks")
+                .and_then(Value::as_array)
+                .map(|hs| {
+                    hs.iter()
+                        .filter(|h| {
+                            hook_script_paths(h)
+                                .iter()
+                                .any(|p| !snapshot.iter().any(|e| entry_references(e, p)))
+                        })
+                        .cloned()
+                        .collect()
+                })
+                .unwrap_or_default();
+            let all_missing = missing.len()
+                == group
+                    .get("hooks")
+                    .and_then(Value::as_array)
+                    .map_or(0, |v| v.len());
+            let same_matcher = arr
+                .iter_mut()
+                .find(|g| g.get("matcher") == group.get("matcher") && g.get("hooks").is_some());
+            match same_matcher {
+                Some(g) if !all_missing => {
+                    if let Some(hs) = g.get_mut("hooks").and_then(Value::as_array_mut) {
+                        hs.extend(missing);
+                    }
+                }
+                _ => arr.push(group.clone()),
+            }
             changed = true;
         }
     }

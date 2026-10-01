@@ -118,6 +118,8 @@ fn old_project() -> tempfile::TempDir {
         .unwrap()
         .retain(|g| !g.to_string().contains(GUARD));
     s["model"] = serde_json::json!("the-user's-own-key");
+    // appended LAST, so its place differs from alphabetical — the merge must keep it there (rec 5)
+    s["aaa_user_key"] = serde_json::json!(1);
     fs::write(&p, serde_json::to_string_pretty(&s).unwrap()).unwrap();
     let c = r.join(".ai/CONSTRAINTS.yaml");
     let kept: String = fs::read_to_string(&c)
@@ -180,12 +182,62 @@ fn sync_fleet_guards_an_old_project_through_its_settings() {
         "merged hooks must equal a fresh scaffold's"
     );
     assert_eq!(s["model"], "the-user's-own-key");
+    let keys: Vec<&String> = s.as_object().unwrap().keys().collect();
+    assert_eq!(
+        keys.last().map(|k| k.as_str()),
+        Some("aaa_user_key"),
+        "the user's key order must be kept, not re-sorted: {keys:?}"
+    );
 
     // A second run changes nothing.
     let once = read(r, ".claude/settings.json");
     let text = sync(r, &[]);
     assert!(text.contains("already wired"), "{text}");
     assert_eq!(read(r, ".claude/settings.json"), once);
+}
+
+/// S182 review rec 2: a project from before S93 — its Bash group lacks `hook-commit-guard.sh`. The
+/// merge must add ONLY the missing hooks; appending the whole template group ran the co-pilot loader,
+/// session guard and publish guard twice on every Bash call.
+#[test]
+fn sync_fleet_never_lists_a_hook_twice_in_a_pre_s93_project() {
+    let t = old_project();
+    let r = t.path();
+    let p = r.join(".claude/settings.json");
+    let mut s: serde_json::Value = serde_json::from_str(&read(r, ".claude/settings.json")).unwrap();
+    for g in s["hooks"]["PreToolUse"].as_array_mut().unwrap() {
+        if g["matcher"] == "Bash" {
+            g["hooks"]
+                .as_array_mut()
+                .unwrap()
+                .retain(|h| !h.to_string().contains("hook-commit-guard.sh"));
+        }
+    }
+    fs::write(&p, serde_json::to_string_pretty(&s).unwrap()).unwrap();
+    assert!(registered_for(r, "Bash")
+        .iter()
+        .all(|c| !c.contains("hook-commit-guard.sh")));
+
+    sync(r, &[]);
+    let fresh = new_project();
+    let count = |root: &Path| {
+        let mut all: Vec<String> = ["Bash", "Edit", "Write", "MultiEdit", "NotebookEdit"]
+            .iter()
+            .flat_map(|t| {
+                registered_for(root, t)
+                    .into_iter()
+                    .map(move |c| format!("{t}:{c}"))
+            })
+            .collect();
+        all.sort();
+        all
+    };
+    assert_eq!(
+        count(r),
+        count(fresh.path()),
+        "after the merge each tool must run exactly the hooks a fresh scaffold runs — none twice"
+    );
+    assert_guarded(r);
 }
 
 #[test]

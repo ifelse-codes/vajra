@@ -85,5 +85,13 @@ guard `.ai/approvals/`.~~ (S182: they do — see the addendum.)
    NN only, while that launch runs. A bare `--allow-all` is refused before anything starts; a pre-S182
    record naming no session approves nothing. Not the branch name: the agent usually types it.
 
-**Limit, unchanged in kind:** a folder path assembled at run time (`d=.ai; … $d/appr…`) gets past the
-guard; still bar-raising, not tamper-proof.
+**After the cold review (pass 1, ACCEPT with a mismatch):** the fd-dup strip is anchored on its right
+(`>&1/../<folder>/x` writes a file and was let through), and "only add" is now CHECKED — a test runs every
+listed command through the S181 hook from git and the new one. The folder is matched case-insensitively and
+with quotes removed. Without jq the guard advises at L1, like every other shipped hook. A partly wired
+hook group (a pre-S93 Bash group) gets only its missing entries, so `--sync-fleet` never lists a hook twice.
+
+**Limit, unchanged in kind:** a folder path assembled at run time (`d=.ai; … $d/appr…`) or a glob
+(`.ai/a*/x` onto an existing file) gets past the guard; still bar-raising, not tamper-proof. The settings
+rewrite keeps the project's key order (serde_json `preserve_order`, founder yes 2026-10-01), so the diff in a
+project shows only what Vajra added.
