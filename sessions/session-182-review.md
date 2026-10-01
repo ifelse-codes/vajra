@@ -47,8 +47,8 @@ Full text: `.ai/handoffs/session-182-fidelity-reviewer.md` (stamped, text-bound)
 
 **Recommendations (pass 2) — answered in the prompt's `## Advice`:** rec 1 (`..` segments + the comment), rec 2 (whole-group append with no same-matcher group), rec 5 (unlisted write commands) → parked to backlog in the S182 row of `.ai/ROADMAP.md` for the S185 ground truth (founder 2026-09-15: "no more policing"; a guard change after this ACCEPT would need a third review). rec 3 → rudra's real output and the re-syncs pasted in the summary. rec 4 → the closeout run below.
 
-**Post-review edit (disclosed):** the first closeout run went RED on `demo-markers-present` — `scripts/demo-session-182.sh` still expected "3 passed" from `tests/approvals_scaffold.rs`, which gained a 4th test in the pass-1 fixes (2967453); pass 2 did not catch it. The check now accepts 4+ passing tests and names them. It is a demo-script count only; no product code, test, or guard changed. The attestation below was recomputed after that commit, so it covers the reviewed delivery plus this one demo edit. Not re-reviewed.
+**Post-review edit (disclosed):** the first closeout run went RED on `demo-markers-present` — `scripts/demo-session-182.sh` still expected "3 passed" from `tests/approvals_scaffold.rs`, which gained a 4th test in the pass-1 fixes (2967453); pass 2 did not catch it. The check now accepts 4+ passing tests and names them. It is a demo-script count only; no product code, test, or guard changed. A second post-review edit: CI on PR #219 failed `cargo clippy -D warnings` (clippy 1.99, `useless_format`) on one line of `tests/approvals_guard.rs` — `format!("cat .ai//approvals/x > y")` with nothing to format became `"…".to_string()`. Same string, same test. The local toolchain was older and missed it. The attestation below was recomputed after both commits, so it covers the reviewed delivery plus these two edits. Not re-reviewed.
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** ced72af1f3383713154800be07eba3b5cfbc66d2bde919da38aa4c7b4a77b64d
+**Review-Inputs-SHA:** b65ecd1f1096224594d10e0f2c9ea934be7d7839728d47ca1ebc94909c0365f5
