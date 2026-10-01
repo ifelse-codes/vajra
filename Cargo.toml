@@ -31,6 +31,7 @@ exclude = [
   "!scripts/hook-copilot-murmur.sh",
   "!scripts/hook-publish-guard.sh",
   "!scripts/hook-commit-guard.sh",
+  "!scripts/hook-approvals-guard.sh",
   "!scripts/hook-session-guard.sh",
   "!scripts/hook-session-start.sh",
   "!scripts/lib-ground-truth.sh",

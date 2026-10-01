@@ -25,6 +25,12 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     (".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
     // S181: the one shared "is session N ground truth?" the session-start hook and the close gate source.
     (".ai/hooks/lib-ground-truth.sh", TPL_LIB_GROUND_TRUTH),
+    // S182 (DECISION-011 S182 addendum): the founder's approval records are not the agent's to
+    // write. The SAME file Vajra's own hook-pre-bash.sh / hook-pre-write.sh call — one source.
+    (
+        ".ai/hooks/hook-approvals-guard.sh",
+        TPL_HOOK_APPROVALS_GUARD,
+    ),
     // S146 (DECISION-007 S146 addendum): the close-gate is a ShellComment-stamped pure-render shell
     // script — the same shape as the hooks above. Adding it to SYNC_HOOKS gives adopters the
     // four-state upgrade path (Missing/UpToDate/StaleRender/Drifted) so `--sync-fleet` can push a
@@ -1267,6 +1273,10 @@ fn files(
         fxs(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
         fxs(".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
         fxs(".ai/hooks/lib-ground-truth.sh", TPL_LIB_GROUND_TRUTH),
+        fxs(
+            ".ai/hooks/hook-approvals-guard.sh",
+            TPL_HOOK_APPROVALS_GUARD,
+        ),
         // Git-level belt (S43): tracked pre-commit/pre-push, an independent L2 layer
         // (git-native) beneath the L3 .claude/ hooks. Byte-identical to the vajra repo's
         // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
@@ -1673,6 +1683,15 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
             "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-copilot-loader.sh\""
           }
         ]
+      },
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-approvals-guard.sh\""
+          }
+        ]
       }
     ]
   }
@@ -1721,6 +1740,11 @@ const TPL_HOOK_PUBLISH_GUARD: &str = include_str!("../../scripts/hook-publish-gu
 // avoid bricking the build agent's own commits — see .ai/CONSTRAINTS.yaml). Un-excluded in
 // Cargo.toml so it ships with `cargo install`.
 const TPL_HOOK_COMMIT_GUARD: &str = include_str!("../../scripts/hook-commit-guard.sh");
+
+// Canonical approvals guard (S182) — blocks an agent Bash/Edit/Write into the approvals folder,
+// which only `vajra approve NN` in the founder's own terminal writes. Its own PreToolUse group in
+// the settings template, so `--sync-fleet` can add it to an old project without touching the others.
+const TPL_HOOK_APPROVALS_GUARD: &str = include_str!("../../scripts/hook-approvals-guard.sh");
 
 // Canonical git-level hooks (S43) — the SAME files the vajra repo runs, embedded verbatim
 // so the scaffolded copy can never drift (S22 one-source pattern). An independent L2 belt
