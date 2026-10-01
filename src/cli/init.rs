@@ -519,6 +519,76 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
         }
     }
 
+    // S182 (DECISION-011 S182 addendum; deviates from the S136 "rendered files only" scope): a hook
+    // file nobody's settings run is not a guard (S129). Add Vajra's missing hook groups to the
+    // project's `.claude/settings.json` with the same add-only merge `vajra init` has used since
+    // S44 — every user key and hook kept, a group already wired skipped. Never creates the file.
+    let settings = root.join(CLAUDE_SETTINGS_PATH);
+    let mut settings_merged = 0u32;
+    if settings.exists() {
+        let merged = fs::read_to_string(&settings)
+            .map_err(anyhow::Error::from)
+            .and_then(|s| merge_claude_settings(&s, TPL_CLAUDE_SETTINGS));
+        match merged {
+            Ok((_, false)) => writeln!(
+                out,
+                "  ok      {CLAUDE_SETTINGS_PATH} (Vajra's hooks already wired)"
+            )?,
+            Ok((text, true)) => {
+                let verb = if opts.dry_run {
+                    "would   add"
+                } else {
+                    fs::write(&settings, text)
+                        .with_context(|| format!("failed to write {CLAUDE_SETTINGS_PATH}"))?;
+                    "merge  "
+                };
+                writeln!(
+                    out,
+                    "  {verb} Vajra's missing hooks into {CLAUDE_SETTINGS_PATH} (your keys and hooks kept)"
+                )?;
+                settings_merged = 1;
+            }
+            Err(e) => writeln!(
+                out,
+                "  WARN    {CLAUDE_SETTINGS_PATH} left untouched — {e}. Fix the JSON and re-run, or \
+                 Vajra's new guards are on disk but never run."
+            )?,
+        }
+    } else {
+        writeln!(
+            out,
+            "  note    {CLAUDE_SETTINGS_PATH} is absent — run `vajra init` to wire Vajra's hooks"
+        )?;
+    }
+
+    // S182 Part 4: report, never edit. Without `session_rules_from` every session in this project
+    // reads approvals, waivers and stamps the OLD way. The line is the founder's policy call and a
+    // write could switch a running session mid-way, so the project's own file is never touched.
+    if !crate::approval::rules_from(root).1 {
+        let next = fs::read_to_string(root.join(".ai/SESSION"))
+            .ok()
+            .and_then(|s| s.trim().parse::<u32>().ok())
+            .map(|n| n + 1);
+        let n = next.map_or("N".to_string(), |n| n.to_string());
+        writeln!(out)?;
+        writeln!(
+            out,
+            "  ACTION  .ai/CONSTRAINTS.yaml has no `session_rules_from:` — every session here still \
+             follows the OLD rules\n          (approval by the brief's own words, one waiver for \
+             every check, stamps not tied to their text).\n          To turn the new rules on from \
+             your next session, add this line under `session:` (Vajra never edits this file):\n\
+             \n              session_rules_from: {n}\n"
+        )?;
+        if next.is_some() {
+            writeln!(
+                out,
+                "          ({n} = the session after .ai/SESSION's {}; pick a later one if that \
+                 session has already started.)",
+                n.parse::<u32>().unwrap_or(1) - 1
+            )?;
+        }
+    }
+
     writeln!(out)?;
     // A dry run must not report work it did not do. Same numbers, honest verb.
     let (verb_c, verb_u, verb_r) = if opts.dry_run {
@@ -535,7 +605,7 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
     )?;
     // S173 F49: rudra's sync upgraded one hook and it sat uncommitted on main through a whole
     // session — the agent called it "your change" and left it out of every commit. Say whose it is.
-    let written = created + upgraded + refreshed;
+    let written = created + upgraded + refreshed + settings_merged;
     if !opts.dry_run && written > 0 {
         writeln!(
             out,

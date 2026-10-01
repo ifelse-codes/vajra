@@ -104,3 +104,110 @@ fn a_new_project_is_guarded_through_its_settings() {
     assert!(t.path().join(".ai/hooks").join(GUARD).exists());
     assert_guarded(t.path());
 }
+
+/// A project scaffolded before S182: no guard file, no guard group in its settings, a key of the
+/// user's own, and no `session_rules_from` in its constraints.
+fn old_project() -> tempfile::TempDir {
+    let t = new_project();
+    let r = t.path();
+    fs::remove_file(r.join(".ai/hooks").join(GUARD)).unwrap();
+    let p = r.join(".claude/settings.json");
+    let mut s: serde_json::Value = serde_json::from_str(&fs::read_to_string(&p).unwrap()).unwrap();
+    s["hooks"]["PreToolUse"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|g| !g.to_string().contains(GUARD));
+    s["model"] = serde_json::json!("the-user's-own-key");
+    fs::write(&p, serde_json::to_string_pretty(&s).unwrap()).unwrap();
+    let c = r.join(".ai/CONSTRAINTS.yaml");
+    let kept: String = fs::read_to_string(&c)
+        .unwrap()
+        .lines()
+        .filter(|l| !l.contains("session_rules_from"))
+        .map(|l| format!("{l}\n"))
+        .collect();
+    fs::write(&c, kept).unwrap();
+    fs::write(r.join(".ai/SESSION"), "15\n").unwrap();
+    t
+}
+
+fn sync(root: &Path, extra: &[&str]) -> String {
+    let out = Command::new(env!("CARGO_BIN_EXE_vajra"))
+        .args(["init", "--sync-fleet"])
+        .args(extra)
+        .current_dir(root)
+        .output()
+        .unwrap();
+    format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    )
+}
+
+fn read(root: &Path, rel: &str) -> String {
+    fs::read_to_string(root.join(rel)).unwrap()
+}
+
+#[test]
+fn sync_fleet_guards_an_old_project_through_its_settings() {
+    let t = old_project();
+    let r = t.path();
+    assert!(
+        registered_for(r, "Bash").iter().all(|c| !c.contains(GUARD)),
+        "fixture must start unguarded"
+    );
+
+    // --dry-run writes nothing.
+    let before = read(r, ".claude/settings.json");
+    let text = sync(r, &["--dry-run"]);
+    assert!(text.contains("would   add"), "{text}");
+    assert_eq!(read(r, ".claude/settings.json"), before);
+    assert!(!r.join(".ai/hooks").join(GUARD).exists());
+
+    let text = sync(r, &[]);
+    assert!(text.contains("merge"), "{text}");
+    assert!(r.join(".ai/hooks").join(GUARD).exists());
+    assert_guarded(r);
+
+    // Every hook listed exactly as a fresh scaffold lists it (no group doubled), user key kept.
+    let s: serde_json::Value = serde_json::from_str(&read(r, ".claude/settings.json")).unwrap();
+    let fresh = new_project();
+    let f: serde_json::Value =
+        serde_json::from_str(&read(fresh.path(), ".claude/settings.json")).unwrap();
+    assert_eq!(
+        s["hooks"], f["hooks"],
+        "merged hooks must equal a fresh scaffold's"
+    );
+    assert_eq!(s["model"], "the-user's-own-key");
+
+    // A second run changes nothing.
+    let once = read(r, ".claude/settings.json");
+    let text = sync(r, &[]);
+    assert!(text.contains("already wired"), "{text}");
+    assert_eq!(read(r, ".claude/settings.json"), once);
+}
+
+#[test]
+fn sync_fleet_reports_a_missing_session_rules_from_and_never_writes_it() {
+    let t = old_project();
+    let r = t.path();
+    let before = read(r, ".ai/CONSTRAINTS.yaml");
+    let text = sync(r, &[]);
+    assert!(text.contains("session_rules_from: 16"), "{text}");
+    assert!(text.contains("never edits this file"), "{text}");
+    assert_eq!(
+        read(r, ".ai/CONSTRAINTS.yaml"),
+        before,
+        "constraints must be untouched"
+    );
+
+    // Once the line is there, no report.
+    fs::write(
+        r.join(".ai/CONSTRAINTS.yaml"),
+        before.replace("session:\n", "session:\n  session_rules_from: 16\n"),
+    )
+    .unwrap();
+    let text = sync(r, &[]);
+    assert!(!text.contains("session_rules_from:"), "{text}");
+}
