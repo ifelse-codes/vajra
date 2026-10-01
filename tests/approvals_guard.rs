@@ -81,7 +81,7 @@ fn writes() -> Vec<String> {
         format!("perl -e 'print 1' {DIR}/x"),
         format!("node -e '' {DIR}/x"),
         format!("cat {DIR}/x > /tmp/copy"), // over-blocks a redirect elsewhere: kept (only add)
-        format!("cat .ai//approvals/x > y"),
+        "cat .ai//approvals/x > y".to_string(),
         "cd .ai && echo x > approvals/x".to_string(), // S181's disclosed gap, closed
         "cd .ai/approvals && touch x".to_string(),
         "x=`cd .ai && echo y > approvals/z`".to_string(), // inside backticks (S182, found at close)
