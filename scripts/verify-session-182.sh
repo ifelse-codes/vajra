@@ -27,7 +27,7 @@ hook() { printf '{"tool_name":"%s","tool_input":%s}' "$3" "$4" | CLAUDE_PROJECT_
 P="$T/p"; mkdir -p "$P/.ai"; echo "maturity: L2" > "$P/.ai/CONSTRAINTS.yaml"
 
 # --- Part 6 (AC7): the guard blocks writes, not reads — old vs new on the real hook -----------------
-t "P6 22 writes block, reads pass, Vajra's own hooks call the one guard (AC7)" approvals_guard
+t "P6 every write blocks, reads pass, every command the S181 guard blocked still blocks, no-jq L1 advises (AC7)" approvals_guard
 git show "$OLD_SHA:scripts/hook-pre-bash.sh" > "$T/old-pre-bash.sh"
 READ="{\"command\":\"cat $APPR/x 2>&1\"}"
 o=$(hook "$T/old-pre-bash.sh" "$P" Bash "$READ"); n=$(hook scripts/hook-pre-bash.sh "$P" Bash "$READ")

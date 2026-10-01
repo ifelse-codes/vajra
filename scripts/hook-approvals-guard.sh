@@ -13,15 +13,18 @@
 
 set -euo pipefail
 
+ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+MATURITY="${VAJRA_GUARD_MATURITY:-$(grep -m1 '^maturity:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | awk '{print $2}' || true)}"
+MATURITY="${MATURITY:-L2}"
+
+# jq preflight — fail-closed at L2/L3, advise at L1 (the same fallback every other shipped hook has).
 if ! command -v jq >/dev/null 2>&1; then
+  [ "$MATURITY" = "L1" ] && { echo "[vajra] jq not on PATH — the approvals guard degraded to advise (L1)."; exit 0; }
   echo "[vajra] BLOCKED: jq required for Vajra enforcement, not on PATH (fail-closed)." 1>&2
   exit 2
 fi
 
 INPUT=$(cat 2>/dev/null || echo "{}")
-ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-MATURITY="${VAJRA_GUARD_MATURITY:-$(grep -m1 '^maturity:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | awk '{print $2}' || true)}"
-MATURITY="${MATURITY:-L2}"
 
 block() {
   if [ "$MATURITY" = "L1" ]; then
@@ -39,7 +42,8 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
 
 # Write-type tools: the path itself. `//` and `/./` are collapsed so a spelling cannot step around it.
 if [ -n "$FILE" ]; then
-  NORM=$(printf '%s' "$FILE" | sed -E 's#/+#/#g; s#(/\./)+#/#g; s#^\./##')
+  # Lower-cased: macOS's default filesystem is case-insensitive, so `.AI/Approvals/x` is the folder.
+  NORM=$(printf '%s' "$FILE" | tr '[:upper:]' '[:lower:]' | sed -E 's#/+#/#g; s#(/\./)+#/#g; s#^\./##')
   case "$NORM" in
     */.ai/approvals/*|.ai/approvals/*|*/.ai/approvals|.ai/approvals)
       block "$FILE is an approval record. Only the founder writes it: \`vajra approve NN\` in their own terminal." ;;
@@ -48,20 +52,24 @@ fi
 
 [ -z "$CMD" ] && exit 0
 
-# Does the command name the folder? Its path, or a `cd` into .ai / approvals plus the word.
+# Does the command name the folder? Its path, or a `cd` into .ai / approvals plus the word. Read
+# case-insensitively and with quotes removed (`".ai"/approvals`, `.AI/Approvals` reach the same folder).
+# Only this "names it?" test reads the de-quoted copy; what follows reads the command as written.
+NAMED=$(printf '%s' "$CMD" | tr -d "\"'\\\\")
 NAMES=0
-if printf '%s' "$CMD" | grep -qE '\.ai/+(\./)*approvals'; then
+if printf '%s' "$NAMED" | grep -qiE '\.ai/+(\./)*approvals'; then
   NAMES=1
-elif printf '%s' "$CMD" | grep -qE 'approvals' && \
-     printf '%s' "$CMD" | grep -qE '(^|[;&|({`[:space:]])(cd|pushd)[[:space:]]+[^;&|]*(\.ai|approvals)'; then
+elif printf '%s' "$NAMED" | grep -qiE 'approvals' && \
+     printf '%s' "$NAMED" | grep -qiE '(^|[;&|({`[:space:]])(cd|pushd)[[:space:]]+[^;&|]*(\.ai|approvals)'; then
   NAMES=1
 fi
 [ "$NAMES" = 1 ] || exit 0
 
-# Remove only what provably writes nothing: fd duplication/closing and redirects to /dev/null.
+# Remove only what provably writes nothing: fd duplication/closing and redirects to /dev/null. Each
+# is anchored on its right (S182 review rec 1): `>&1/../x` is a WRITE to the file `1/../x`, not a dup.
 STRIPPED=$(printf '%s' "$CMD" | sed -E \
-  -e 's#[0-9]*>&([0-9]+-?|-)##g' \
-  -e 's#[0-9]*<&([0-9]+-?|-)##g' \
+  -e 's#[0-9]*>&([0-9]+-?|-)([[:space:];&|)]|$)#\2#g' \
+  -e 's#[0-9]*<&([0-9]+-?|-)([[:space:];&|)]|$)#\2#g' \
   -e 's#(&>>?|[0-9]*>>?\|?)[[:space:]]*/dev/null([[:space:];&|)]|$)#\2#g')
 
 if printf '%s' "$STRIPPED" | grep -qE '>'; then
