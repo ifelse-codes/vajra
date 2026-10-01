@@ -80,7 +80,8 @@ whole_suite_check() {
   out=$(cargo test -q 2>&1) || rc=$?
   if [ "$rc" -ne 0 ]; then echo "cargo test exited $rc"; return 1; fi
   if ! printf '%s\n' "$out" | grep -qE 'test result: ok\. [0-9]+ passed'; then echo "no 'test result: ok' line"; return 1; fi
-  if printf '%s\n' "$out" | grep -qE 'FAILED|test result: FAILED'; then echo "a FAILED line"; return 1; fi
+  # cargo's own failure lines only — a test may print the word FAILED as its own output (demo-kit fixtures do).
+  if printf '%s\n' "$out" | grep -qE '^test .+ \.\.\. FAILED$|^test result: FAILED'; then echo "a test FAILED"; return 1; fi
   return 0
 }
 if why=$(whole_suite_check); then
