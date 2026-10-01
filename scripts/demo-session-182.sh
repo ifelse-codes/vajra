@@ -108,8 +108,8 @@ slide_cases() {
     bash -c 'printf "%s" "$1" | grep -q "exit: 1" && printf "%s" "$1" | grep -q "allow-all=182"' _ "$_DK_OUT"
   dk_run_v suite approvals_scaffold
   dk_term "3 · an old project upgraded: guard wired through settings; rules line reported, never written" "$_DK_OUT"
-  dk_check "all three scaffold tests pass" \
-    bash -c 'printf "%s" "$1" | grep -qE "ok\. 3 passed; 0 failed"' _ "$_DK_OUT"
+  dk_check "every scaffold test passes (new project, old project, pre-S93 project, rules report)" \
+    bash -c 'printf "%s" "$1" | grep -qE "ok\. [4-9][0-9]* passed; 0 failed"' _ "$_DK_OUT"
   dk_run_v rudra_live
   dk_term "4 · rudra, the founder's real project" "$_DK_OUT"
   dk_check "rudra's own guard blocks an agent write (or rudra is absent here)" \
