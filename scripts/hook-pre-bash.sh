@@ -30,16 +30,14 @@ esac
 
 BRANCH=$(cd "$ROOT" && git branch --show-current 2>/dev/null || echo "?")
 
-# S181 Part 4: approval records are the founder's. A command that names .ai/approvals AND writes
-# (redirect, tee, cp, mv, rm, touch, sed -i, an interpreter) is blocked; plain reads and `git add` pass.
-if echo "$CMD" | grep -qE '\.ai/approvals' && \
-   echo "$CMD" | grep -qE '(>|\btee\b|\bcp\b|\bmv\b|\brm\b|\btouch\b|sed[[:space:]]+-i|\bdd\b|\binstall\b|\bln\b|\bpython3?\b|\bperl\b|\bnode\b|\bruby\b)'; then
-  if [ "$MATURITY" = "L1" ]; then
-    echo "[HOOK WARNING] command writes .ai/approvals — approval records are the founder's (L1 report-only)"
-  else
-    echo "[HOOK BLOCK] .ai/approvals holds the founder's approvals. Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there."
-    exit 2
-  fi
+# S181 Part 4 / S182: the founder's approval records are not the agent's to write. One guard, one
+# source: scripts/hook-approvals-guard.sh (shipped to projects as .ai/hooks/hook-approvals-guard.sh).
+_AG="$(dirname "${BASH_SOURCE[0]}")/hook-approvals-guard.sh"
+if [ -f "$_AG" ]; then
+  printf '%s' "$INPUT" | bash "$_AG" || exit $?
+elif [ "${MATURITY:-L2}" != "L1" ]; then
+  echo "[HOOK BLOCK] hook-approvals-guard.sh is missing next to $(basename "$0") — cannot check (fail-closed)."
+  exit 2
 fi
 
 # Ground Truth detection
