@@ -91,7 +91,10 @@ fn writes_still_block() {
     ] {
         let (code, err) = bash(&cmd);
         assert_eq!(code, 2, "write was not blocked: {cmd}");
-        assert!(err.contains("[HOOK BLOCK]"), "block message not on stderr: {cmd}\n{err}");
+        assert!(
+            err.contains("[HOOK BLOCK]"),
+            "block message not on stderr: {cmd}\n{err}"
+        );
     }
 }
 
@@ -100,7 +103,11 @@ fn write_tools_block_on_the_path() {
     for (tool, key, path) in [
         ("Write", "file_path", format!("/p/{DIR}/session-9.json")),
         ("Edit", "file_path", format!("{DIR}/session-9.json")),
-        ("MultiEdit", "file_path", "/p/.ai//./approvals/x".to_string()),
+        (
+            "MultiEdit",
+            "file_path",
+            "/p/.ai//./approvals/x".to_string(),
+        ),
         ("NotebookEdit", "notebook_path", format!("/p/{DIR}/n.ipynb")),
     ] {
         let (code, _) = run(
@@ -129,7 +136,12 @@ fn l1_warns_only() {
         .spawn()
         .unwrap();
     let p = serde_json::json!({"tool_input": {"command": format!("echo x > {DIR}/x")}});
-    child.stdin.take().unwrap().write_all(p.to_string().as_bytes()).unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(p.to_string().as_bytes())
+        .unwrap();
     let out = child.wait_with_output().unwrap();
     assert_eq!(out.status.code(), Some(0));
     assert!(String::from_utf8_lossy(&out.stdout).contains("[HOOK WARNING]"));
