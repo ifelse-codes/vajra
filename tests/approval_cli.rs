@@ -83,7 +83,11 @@ fn approve_from_an_unmarked_terminal_writes_the_record() {
 
 #[test]
 fn an_agent_cannot_use_the_launch_time_yes() {
-    for args in [vec!["claude", "--allow-all"], vec!["claude"]] {
+    for args in [
+        vec!["claude", "--allow-all=181"],
+        vec!["claude", "--allow-all"],
+        vec!["claude"],
+    ] {
         let d = tempfile::tempdir().unwrap();
         let mut c = Command::new(bin());
         c.args(&args)
@@ -163,6 +167,33 @@ fn the_agents_write_and_shell_tools_are_blocked_from_the_approvals_dir() {
             hook("hook-pre-bash.sh", d.path(), &j),
             0,
             "{cmd} is a read/stage and must pass"
+        );
+    }
+}
+
+/// S182 Part 5: a bare `--allow-all` names no session, so it is refused before anything starts or
+/// any record is written — the founder types `--allow-all=NN`.
+#[test]
+fn a_bare_allow_all_is_refused_before_launch() {
+    for bad in ["--allow-all", "--allow-all=", "--allow-all=next"] {
+        let d = tempfile::tempdir().unwrap();
+        let out = Command::new(bin())
+            .args(["claude", bad])
+            .current_dir(d.path())
+            .stdin(Stdio::null())
+            .env_remove("VAJRA_AGENT_MARK")
+            .env_remove("VAJRA_APPROVE")
+            .output()
+            .unwrap();
+        let err = String::from_utf8_lossy(&out.stderr);
+        assert!(!out.status.success(), "{bad}: {err}");
+        assert!(
+            err.contains("--allow-all=182"),
+            "{bad}: the refusal must show the form: {err}"
+        );
+        assert!(
+            !d.path().join(".ai/approvals").exists(),
+            "{bad} wrote a record"
         );
     }
 }

@@ -25,6 +25,12 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     (".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
     // S181: the one shared "is session N ground truth?" the session-start hook and the close gate source.
     (".ai/hooks/lib-ground-truth.sh", TPL_LIB_GROUND_TRUTH),
+    // S182 (DECISION-011 S182 addendum): the founder's approval records are not the agent's to
+    // write. The SAME file Vajra's own hook-pre-bash.sh / hook-pre-write.sh call — one source.
+    (
+        ".ai/hooks/hook-approvals-guard.sh",
+        TPL_HOOK_APPROVALS_GUARD,
+    ),
     // S146 (DECISION-007 S146 addendum): the close-gate is a ShellComment-stamped pure-render shell
     // script — the same shape as the hooks above. Adding it to SYNC_HOOKS gives adopters the
     // four-state upgrade path (Missing/UpToDate/StaleRender/Drifted) so `--sync-fleet` can push a
@@ -513,6 +519,76 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
         }
     }
 
+    // S182 (DECISION-011 S182 addendum; deviates from the S136 "rendered files only" scope): a hook
+    // file nobody's settings run is not a guard (S129). Add Vajra's missing hook groups to the
+    // project's `.claude/settings.json` with the same add-only merge `vajra init` has used since
+    // S44 — every user key and hook kept, a group already wired skipped. Never creates the file.
+    let settings = root.join(CLAUDE_SETTINGS_PATH);
+    let mut settings_merged = 0u32;
+    if settings.exists() {
+        let merged = fs::read_to_string(&settings)
+            .map_err(anyhow::Error::from)
+            .and_then(|s| merge_claude_settings(&s, TPL_CLAUDE_SETTINGS));
+        match merged {
+            Ok((_, false)) => writeln!(
+                out,
+                "  ok      {CLAUDE_SETTINGS_PATH} (Vajra's hooks already wired)"
+            )?,
+            Ok((text, true)) => {
+                let verb = if opts.dry_run {
+                    "would   add"
+                } else {
+                    fs::write(&settings, text)
+                        .with_context(|| format!("failed to write {CLAUDE_SETTINGS_PATH}"))?;
+                    "merge  "
+                };
+                writeln!(
+                    out,
+                    "  {verb} Vajra's missing hooks into {CLAUDE_SETTINGS_PATH} (your keys and hooks kept)"
+                )?;
+                settings_merged = 1;
+            }
+            Err(e) => writeln!(
+                out,
+                "  WARN    {CLAUDE_SETTINGS_PATH} left untouched — {e}. Fix the JSON and re-run, or \
+                 Vajra's new guards are on disk but never run."
+            )?,
+        }
+    } else {
+        writeln!(
+            out,
+            "  note    {CLAUDE_SETTINGS_PATH} is absent — run `vajra init` to wire Vajra's hooks"
+        )?;
+    }
+
+    // S182 Part 4: report, never edit. Without `session_rules_from` every session in this project
+    // reads approvals, waivers and stamps the OLD way. The line is the founder's policy call and a
+    // write could switch a running session mid-way, so the project's own file is never touched.
+    if !crate::approval::rules_from(root).1 {
+        let next = fs::read_to_string(root.join(".ai/SESSION"))
+            .ok()
+            .and_then(|s| s.trim().parse::<u32>().ok())
+            .map(|n| n + 1);
+        let n = next.map_or("N".to_string(), |n| n.to_string());
+        writeln!(out)?;
+        writeln!(
+            out,
+            "  ACTION  .ai/CONSTRAINTS.yaml has no `session_rules_from:` — every session here still \
+             follows the OLD rules\n          (approval by the brief's own words, one waiver for \
+             every check, stamps not tied to their text).\n          To turn the new rules on from \
+             your next session, add this line under `session:` (Vajra never edits this file):\n\
+             \n              session_rules_from: {n}\n"
+        )?;
+        if next.is_some() {
+            writeln!(
+                out,
+                "          ({n} = the session after .ai/SESSION's {}; pick a later one if that \
+                 session has already started.)",
+                n.parse::<u32>().unwrap_or(1) - 1
+            )?;
+        }
+    }
+
     writeln!(out)?;
     // A dry run must not report work it did not do. Same numbers, honest verb.
     let (verb_c, verb_u, verb_r) = if opts.dry_run {
@@ -529,7 +605,7 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
     )?;
     // S173 F49: rudra's sync upgraded one hook and it sat uncommitted on main through a whole
     // session — the agent called it "your change" and left it out of every commit. Say whose it is.
-    let written = created + upgraded + refreshed;
+    let written = created + upgraded + refreshed + settings_merged;
     if !opts.dry_run && written > 0 {
         writeln!(
             out,
@@ -869,7 +945,40 @@ fn merge_claude_settings(existing_json: &str, template_json: &str) -> Result<(St
             if group_already_present(&snapshot, group) {
                 continue;
             }
-            arr.push(group.clone());
+            // S182 review rec 2: a group that is PARTLY wired (an older project's Bash group from
+            // before a hook was added) gets only its missing hook entries, appended to the project's
+            // group with the same matcher. Appending the whole template group made every hook it
+            // already had run twice — reachable from `--sync-fleet` since S182, not only `init`.
+            let missing: Vec<Value> = group
+                .get("hooks")
+                .and_then(Value::as_array)
+                .map(|hs| {
+                    hs.iter()
+                        .filter(|h| {
+                            hook_script_paths(h)
+                                .iter()
+                                .any(|p| !snapshot.iter().any(|e| entry_references(e, p)))
+                        })
+                        .cloned()
+                        .collect()
+                })
+                .unwrap_or_default();
+            let all_missing = missing.len()
+                == group
+                    .get("hooks")
+                    .and_then(Value::as_array)
+                    .map_or(0, |v| v.len());
+            let same_matcher = arr
+                .iter_mut()
+                .find(|g| g.get("matcher") == group.get("matcher") && g.get("hooks").is_some());
+            match same_matcher {
+                Some(g) if !all_missing => {
+                    if let Some(hs) = g.get_mut("hooks").and_then(Value::as_array_mut) {
+                        hs.extend(missing);
+                    }
+                }
+                _ => arr.push(group.clone()),
+            }
             changed = true;
         }
     }
@@ -1267,6 +1376,10 @@ fn files(
         fxs(".ai/hooks/hook-publish-guard.sh", TPL_HOOK_PUBLISH_GUARD),
         fxs(".ai/hooks/hook-commit-guard.sh", TPL_HOOK_COMMIT_GUARD),
         fxs(".ai/hooks/lib-ground-truth.sh", TPL_LIB_GROUND_TRUTH),
+        fxs(
+            ".ai/hooks/hook-approvals-guard.sh",
+            TPL_HOOK_APPROVALS_GUARD,
+        ),
         // Git-level belt (S43): tracked pre-commit/pre-push, an independent L2 layer
         // (git-native) beneath the L3 .claude/ hooks. Byte-identical to the vajra repo's
         // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
@@ -1673,6 +1786,15 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
             "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-copilot-loader.sh\""
           }
         ]
+      },
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-approvals-guard.sh\""
+          }
+        ]
       }
     ]
   }
@@ -1721,6 +1843,11 @@ const TPL_HOOK_PUBLISH_GUARD: &str = include_str!("../../scripts/hook-publish-gu
 // avoid bricking the build agent's own commits — see .ai/CONSTRAINTS.yaml). Un-excluded in
 // Cargo.toml so it ships with `cargo install`.
 const TPL_HOOK_COMMIT_GUARD: &str = include_str!("../../scripts/hook-commit-guard.sh");
+
+// Canonical approvals guard (S182) — blocks an agent Bash/Edit/Write into the approvals folder,
+// which only `vajra approve NN` in the founder's own terminal writes. Its own PreToolUse group in
+// the settings template, so `--sync-fleet` can add it to an old project without touching the others.
+const TPL_HOOK_APPROVALS_GUARD: &str = include_str!("../../scripts/hook-approvals-guard.sh");
 
 // Canonical git-level hooks (S43) — the SAME files the vajra repo runs, embedded verbatim
 // so the scaffolded copy can never drift (S22 one-source pattern). An independent L2 belt

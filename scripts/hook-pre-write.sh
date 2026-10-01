@@ -29,17 +29,15 @@ MATURITY=$(grep -m1 '^maturity:' "$ROOT/.ai/CONSTRAINTS.yaml" 2>/dev/null | awk 
 BRANCH=$(cd "$ROOT" && git branch --show-current 2>/dev/null || echo "?")
 SESSION_NUM=$(echo "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
 
-# S181 Part 4: the founder's approval records are not the agent's to write (`vajra approve NN` from
-# the founder's own terminal is the only writer). Bar-raising: a shell can still reach the file.
-case "$FILE" in
-  */.ai/approvals/*|.ai/approvals/*)
-    if [ "${MATURITY:-L2}" = "L1" ]; then
-      echo "[HOOK WARNING] write to $FILE — approval records are the founder's (L1 report-only, not blocking)"
-    else
-      echo "[HOOK BLOCK] $FILE is an approval record. Only the founder writes it: \`vajra approve NN\` in their own terminal."
-      exit 2
-    fi ;;
-esac
+# S181 Part 4 / S182: the founder's approval records are not the agent's to write. One guard, one
+# source: scripts/hook-approvals-guard.sh (shipped to projects as .ai/hooks/hook-approvals-guard.sh).
+_AG="$(dirname "${BASH_SOURCE[0]}")/hook-approvals-guard.sh"
+if [ -f "$_AG" ]; then
+  printf '%s' "$INPUT" | bash "$_AG" || exit $?
+elif [ "${MATURITY:-L2}" != "L1" ]; then
+  echo "[HOOK BLOCK] hook-approvals-guard.sh is missing next to $(basename "$0") — cannot check (fail-closed)."
+  exit 2
+fi
 
 # Ground Truth detection
 case "$BRANCH" in

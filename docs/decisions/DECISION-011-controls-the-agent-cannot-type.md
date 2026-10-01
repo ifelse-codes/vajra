@@ -49,8 +49,8 @@ Bar-raising, **not tamper-proof.** The agent runs as the same OS user. It can st
 (`env -u`), fake a terminal, write the record with a shell path the hook does not match, set both waiver
 variables, or re-record its own text through `vajra next --role` and receive a fresh stamp for text the
 helper never wrote. What the controls buy: the easy paths are closed, every use is labelled, and the
-trail is a file in git a reviewer can read. Scaffolded projects do not yet get the Write/Bash hooks that
-guard `.ai/approvals/`.
+trail is a file in git a reviewer can read. ~~Scaffolded projects do not yet get the Write/Bash hooks that
+guard `.ai/approvals/`.~~ (S182: they do — see the addendum.)
 
 ## Alternatives rejected
 
@@ -58,3 +58,40 @@ guard `.ai/approvals/`.
 - A second environment-variable scheme — the existing `VAJRA_ALLOW_COMMIT` refuse-agent-set pattern is reused.
 - Removing the old waiver now — the founder has not said to.
 - Guessing the type from more keywords — still text guessing.
+
+---
+
+## S182 addendum — the controls reach existing projects (2026-10-01)
+
+**Follows** this record; **deviates from** DECISION-007's S136 addendum (`--sync-fleet` touches rendered files only).
+
+1. **One guard, one source.** `scripts/hook-approvals-guard.sh` checks Bash commands and Edit/Write/
+   MultiEdit/NotebookEdit paths. Vajra's own `hook-pre-bash.sh` / `hook-pre-write.sh` call it; `vajra init`
+   ships the same bytes stamped as `.ai/hooks/hook-approvals-guard.sh`, registered as its own PreToolUse
+   group. Its block message goes to stderr — the S181 one went to stdout, which Claude Code does not hand
+   the agent on exit 2 (it saw "No stderr output").
+2. **Block by whether a command can write, not on any `>`.** A command naming the folder (or `cd`-ing into
+   `.ai` / the folder) blocks on any redirect left after the provable non-writes are removed (`N>&M`, `>&N`,
+   `N>&-`, a redirect to `/dev/null`), a file-writing tool, or an interpreter. Everything the S181 line
+   blocked still blocks except those non-writes (S173: guard changes only add); `cd .ai && echo x >
+   approvals/x`, an S181 gap, is now blocked. Over-block kept: a command naming the folder that redirects
+   elsewhere (`cat <folder>/x > /tmp/y`) still blocks, and says to split the read off.
+3. **`--sync-fleet` wires the guard (the deviation).** A file nobody's settings run is not a guard (S129).
+   `--sync-fleet` now adds Vajra's missing hook groups to an existing `.claude/settings.json` through the S44
+   add-only merge — every user key and hook kept, `--dry-run` honoured, never creating the file.
+4. **Report, never edit, `session_rules_from`.** With no key, `--sync-fleet` prints the exact line and
+   N = `.ai/SESSION` + 1. The project's `.ai/CONSTRAINTS.yaml` is never written — the founder's policy call.
+5. **`--allow-all=NN` (narrows decision 2).** The record stores `session` next to `pid`; it approves session
+   NN only, while that launch runs. A bare `--allow-all` is refused before anything starts; a pre-S182
+   record naming no session approves nothing. Not the branch name: the agent usually types it.
+
+**After the cold review (pass 1, ACCEPT with a mismatch):** the fd-dup strip is anchored on its right
+(`>&1/../<folder>/x` writes a file and was let through), and "only add" is now CHECKED — a test runs every
+listed command through the S181 hook from git and the new one. The folder is matched case-insensitively and
+with quotes removed. Without jq the guard advises at L1, like every other shipped hook. A partly wired
+hook group (a pre-S93 Bash group) gets only its missing entries, so `--sync-fleet` never lists a hook twice.
+
+**Limit, unchanged in kind:** a folder path assembled at run time (`d=.ai; … $d/appr…`) or a glob
+(`.ai/a*/x` onto an existing file) gets past the guard; still bar-raising, not tamper-proof. The settings
+rewrite keeps the project's key order (serde_json `preserve_order`, founder yes 2026-10-01), so the diff in a
+project shows only what Vajra added.

@@ -72,10 +72,22 @@ else
 fi
 
 # --- whole suite ---------------------------------------------------------------------------------------------
-if cargo test -q 2>&1 | grep 'test result' | grep -qv ' 0 failed'; then
-  bad "full cargo test has failures"
+# S182 Part 1: a POSITIVE check. The old one passed when no `test result` line printed at all, so a suite
+# that failed to compile was green. Now: cargo exits 0, at least one `test result: ok`, and no FAILED.
+# The S182 verify script runs this function against a stub `cargo` that fails to compile (must go red).
+whole_suite_check() {
+  local out rc=0
+  out=$(cargo test -q 2>&1) || rc=$?
+  if [ "$rc" -ne 0 ]; then echo "cargo test exited $rc"; return 1; fi
+  if ! printf '%s\n' "$out" | grep -qE 'test result: ok\. [0-9]+ passed'; then echo "no 'test result: ok' line"; return 1; fi
+  # cargo's own failure lines only — a test may print the word FAILED as its own output (demo-kit fixtures do).
+  if printf '%s\n' "$out" | grep -qE '^test .+ \.\.\. FAILED$|^test result: FAILED'; then echo "a test FAILED"; return 1; fi
+  return 0
+}
+if why=$(whole_suite_check); then
+  ok "full cargo test: exit 0, suites ran, none FAILED"
 else
-  ok "full cargo test: every suite 0 failed"
+  bad "full cargo test: $why"
 fi
 
 echo; echo "=== Session 181 Verify Summary ==="

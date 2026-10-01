@@ -156,3 +156,69 @@ fn an_edited_handoff_stops_being_trusted_by_the_mandate_gate() {
     assert!(!ok, "an edited record must NOT verify: {text}");
     assert!(text.contains("changed after it was captured"), "{text}");
 }
+
+/// S182 Part 2 (S181 review rec 2): the obeyed gate, end to end. A judge's `obeyed-check …
+/// implemented:` verdict on a real commit passes `--check-obeyed`; edit the judge's findings and
+/// the same command must block — the stamp no longer matches the text it was captured with.
+#[test]
+fn an_edited_judgment_stops_being_trusted_by_the_obeyed_gate() {
+    let f = fixture(&[
+        ("design-advisor", "toolu_01DES"),
+        ("fidelity-reviewer", "toolu_01FID"),
+    ]);
+    fs::write(f.repo.join("work.txt"), "the change\n").unwrap();
+    for args in [
+        vec!["add", "work.txt"],
+        vec![
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-q",
+            "-m",
+            "work",
+        ],
+    ] {
+        assert!(Command::new("git")
+            .args(&args)
+            .current_dir(&f.repo)
+            .status()
+            .unwrap()
+            .success());
+    }
+    let sha = String::from_utf8(
+        Command::new("git")
+            .args(["rev-parse", "--short", "HEAD"])
+            .current_dir(&f.repo)
+            .output()
+            .unwrap()
+            .stdout,
+    )
+    .unwrap()
+    .trim()
+    .to_string();
+    record(&f, "design-advisor", "rec 1 — add the work file\n");
+    let prompt = f.repo.join("prompts/181-task-x.md");
+    let mut p = fs::read_to_string(&prompt).unwrap();
+    p.push_str(&format!(
+        "\n## Advice\n- design-advisor rec 1 — obeyed: {sha} (adds the work file)\n"
+    ));
+    fs::write(&prompt, p).unwrap();
+    let judge = record(
+        &f,
+        "fidelity-reviewer",
+        &format!(
+            "finding one\nobeyed-check design-advisor rec 1 — implemented: {sha} — the commit adds work.txt\n"
+        ),
+    );
+    let (ok, text) = vajra(&f, &["next", "--check-obeyed", "181"]);
+    assert!(ok, "an untouched judgment must pass: {text}");
+    assert!(text.contains("implemented"), "{text}");
+    edit_findings(&judge);
+    let (ok, text) = vajra(&f, &["next", "--check-obeyed", "181"]);
+    assert!(!ok, "an edited judgment must NOT pass: {text}");
+    assert!(text.contains("changed after it was captured"), "{text}");
+}

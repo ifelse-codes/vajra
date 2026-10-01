@@ -13,10 +13,17 @@ pub fn run(args: &[String]) -> Result<()> {
     // Code never sees it) and `VAJRA_APPROVE=NN` is the same yes for one session. Both are honoured
     // ONLY when this launcher is not itself running under an agent (a marked env): an agent that runs
     // `vajra claude --allow-all` gets a refusal, not an approval.
-    let allow_all = args.iter().any(|a| a == "--allow-all");
+    // S182 Part 5 (DECISION-011 S182 addendum): `--allow-all=NN` names the ONE session it approves,
+    // like every other founder control (`vajra approve NN`, `VAJRA_APPROVE=NN`,
+    // `VAJRA_ALLOW_COMMIT=NN`). Not the branch name — the agent usually types that, and `main` has none.
+    let allow_all_arg = args
+        .iter()
+        .find(|a| *a == "--allow-all" || a.starts_with("--allow-all="))
+        .cloned();
+    let allow_all = allow_all_arg.is_some();
     let args: Vec<String> = args
         .iter()
-        .filter(|a| *a != "--allow-all")
+        .filter(|a| *a != "--allow-all" && !a.starts_with("--allow-all="))
         .cloned()
         .collect();
     let args = args.as_slice();
@@ -29,6 +36,20 @@ pub fn run(args: &[String]) -> Result<()> {
              terminal. This process was started by Vajra for an agent (VAJRA_AGENT_MARK is set)."
         )
     }
+    let allow_all_session: Option<u32> = match allow_all_arg.as_deref() {
+        None => None,
+        Some(a) => match a
+            .strip_prefix("--allow-all=")
+            .map(|v| v.trim().parse::<u32>())
+        {
+            Some(Ok(n)) => Some(n),
+            _ => anyhow::bail!(
+                "refused: --allow-all needs the session it approves, e.g. `vajra claude \
+                 --allow-all=182`. It approves that one session only, while this launch runs \
+                 (S182). Nothing was started."
+            ),
+        },
+    };
     let root = std::env::current_dir()?;
     if let Some(v) = &launch_approve {
         let n: u32 = v
@@ -41,9 +62,9 @@ pub fn run(args: &[String]) -> Result<()> {
             p.display()
         );
     }
-    if allow_all {
-        let p = approval::record_allow_all(&root, std::process::id())?;
-        eprintln!("[vajra] --allow-all recorded (human chose at start; live only while this launch runs): {}", p.display());
+    if let Some(n) = allow_all_session {
+        let p = approval::record_allow_all(&root, n, std::process::id())?;
+        eprintln!("[vajra] --allow-all={n} recorded (human chose at start; session {n} only, live only while this launch runs): {}", p.display());
     }
     let result = run_launch(args);
     if allow_all {

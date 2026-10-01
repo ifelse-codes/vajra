@@ -105,20 +105,24 @@ pub fn approved(root: &Path, n: u32) -> Option<Approved> {
             }
         }
     }
-    if allow_all_live(root) {
+    if allow_all_live(root, n) {
         return Some(Approved::AllowAll);
     }
     None
 }
 
-/// The allow-all record counts only while the launch that wrote it is still running.
-fn allow_all_live(root: &Path) -> bool {
+/// The allow-all record counts only for the session it names (S182), and only while the launch that
+/// wrote it is still running. A record with no `session` (written before S182) approves nothing.
+fn allow_all_live(root: &Path, n: u32) -> bool {
     let Ok(text) = fs::read_to_string(allow_all_path(root)) else {
         return false;
     };
     let Ok(v) = serde_json::from_str::<serde_json::Value>(&text) else {
         return false;
     };
+    if v.get("session").and_then(|s| s.as_u64()) != Some(n as u64) {
+        return false;
+    }
     match v.get("pid").and_then(|p| p.as_u64()) {
         Some(pid) => pid_alive(pid),
         None => false,
@@ -178,11 +182,11 @@ pub fn record_launch_env(root: &Path, n: u32) -> Result<PathBuf> {
     write_record(root, n, "launch-env")
 }
 
-pub fn record_allow_all(root: &Path, pid: u32) -> Result<PathBuf> {
+pub fn record_allow_all(root: &Path, n: u32, pid: u32) -> Result<PathBuf> {
     fs::create_dir_all(dir(root))?;
     let p = allow_all_path(root);
-    let body = serde_json::json!({ "method": "allow-all", "pid": pid, "at_unix": now(),
-        "note": "human chose at start; live only while this launch runs" });
+    let body = serde_json::json!({ "method": "allow-all", "session": n, "pid": pid, "at_unix": now(),
+        "note": "human chose at start; this session only, live only while this launch runs" });
     fs::write(&p, serde_json::to_string_pretty(&body)? + "\n")?;
     Ok(p)
 }
@@ -263,16 +267,33 @@ mod tests {
     #[test]
     fn allow_all_counts_only_while_its_launch_lives() {
         let d = tempfile::tempdir().unwrap();
-        record_allow_all(d.path(), std::process::id()).unwrap();
+        record_allow_all(d.path(), 181, std::process::id()).unwrap();
         assert_eq!(approved(d.path(), 181), Some(Approved::AllowAll));
         clear_allow_all(d.path());
         assert_eq!(approved(d.path(), 181), None);
-        record_allow_all(d.path(), 999_999_999).unwrap(); // a dead pid: a crashed launch
+        record_allow_all(d.path(), 181, 999_999_999).unwrap(); // a dead pid: a crashed launch
         assert_eq!(
             approved(d.path(), 181),
             None,
             "a stale record must not approve forever"
         );
+    }
+
+    /// S182 Part 5: a live `--allow-all=A` approves session A and nothing else; a pre-S182 record
+    /// that names no session approves nothing.
+    #[test]
+    fn allow_all_approves_only_the_session_it_names() {
+        let d = tempfile::tempdir().unwrap();
+        record_allow_all(d.path(), 181, std::process::id()).unwrap();
+        assert_eq!(approved(d.path(), 181), Some(Approved::AllowAll));
+        assert_eq!(
+            approved(d.path(), 182),
+            None,
+            "session B must not ride A's yes"
+        );
+        let legacy = serde_json::json!({"method": "allow-all", "pid": std::process::id()});
+        fs::write(allow_all_path(d.path()), legacy.to_string()).unwrap();
+        assert_eq!(approved(d.path(), 181), None, "a record naming no session");
     }
 
     #[test]

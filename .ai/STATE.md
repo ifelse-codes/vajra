@@ -3,9 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S181 is closed on `session-181-close-the-loopholes` (PR to open; the founder merges). S180 merged (#217). Next: S182 (draft, founder picks).**
+**None — between sessions. S182 is closed on `session-182-finish-s181-gaps` (PR to open; the founder merges). S181 merged (#218). Next: S183 (draft, option 1 — rudra S16 under the new rules; founder approves or picks another).**
 
-## What was done this session (S181 — CODE, interactive: close the loopholes, five parts one by one)
+## What was done this session (S182 — CODE, interactive: ship S181's controls into existing projects)
+
+- **One approvals guard** (`scripts/hook-approvals-guard.sh`): blocks writes, not reads (`2>&1`, `>&N`, `/dev/null` are non-writes); any case, quotes removed, `cd` into `.ai` (also in backticks); message on stderr (S181's went to stdout — the agent saw "No stderr output"); L1 without jq advises. Vajra's own two hooks call it; "only add" checked against the S181 hook from git.
+- **Shipped to projects:** every scaffold gets it stamped + its own PreToolUse group; `vajra init --sync-fleet` now merges Vajra's missing hook groups into an existing `.claude/settings.json` (add-only, a partly wired group gets only its missing hooks, key order kept — serde_json `preserve_order`, founder yes).
+- **`--sync-fleet` reports a missing `session_rules_from`** with N = `.ai/SESSION` + 1; never edits `.ai/CONSTRAINTS.yaml`.
+- **`vajra claude --allow-all=NN`** approves that one session; a bare `--allow-all` is refused before launch; a record naming no session approves nothing.
+- **S181 carries closed:** the whole-suite verify check is positive; the obeyed gate's stamp binding has a gate-level test.
+- **rudra upgraded live** with the branch build: guard registered once, an agent write blocked (exit 2), `session_rules_from: 16` added; rudra HEAD `5ab6e83` unchanged — 6 files uncommitted there for the founder's S16.
+- Review pass 1 ACCEPT + 1 mismatch (4 defects, all fixed with failing-first tests) → pass 2 ACCEPT 14/15. Verify 15/15 · demo 6/6 · 562 lib tests · DECISION-011 S182 addendum.
+
+## Previous session (S181 — CODE, interactive: close the loopholes, five parts one by one)
 
 - **Part 1:** `--help` names the `claude` exception; the dry-run test now commits the scaffold first so it can fail; `--help`-after-args probes.
 - **Part 2:** ONE shared `scripts/lib-ground-truth.sh` answers "is session N a review-only session?" for the 6 sites + both close gates. Default every 5th; `ground_truth_next_session` is a one-time override that lapses once its session is reported or passed, then says so and rolls to the next multiple of 5. `.ai/CONSTRAINTS.yaml`'s `180` needed no edit (S181 not GT, S185 is).
@@ -19,18 +29,6 @@
 
 - `sessions/session-180-ground-truth.md`. Founder rulings: release/reach not a problem yet; cadence must be smart (S181 Part 2); approvals must be un-typeable by the agent (S181 Parts 3–5); other tools one at a time later. `--dogfood-age` is blind to rudra runs. No code changed.
 
-## What was done this session (S179 - interactive, F89 + the founder's rudra sessions 14–15)
-
-- **F89 fixed:** `vajra <cmd> --help`/`-h` prints that command's help and runs nothing (`init --help` wrote 11 files; rudra's agent hit `next --help` live). `claude` stays a pass-through.
-- **F90 fixed:** `vajra init` refuses a word it does not know before writing anything (`init --dry-run` did a full setup).
-- **F93 fixed (founder yes):** a project's ground truth leads with vision → roadmap → the new `delivery_progress`; `dogfood_check`/`dogfood_staleness` withheld from projects with declared reasons. rudra's copy updated by hand (uncommitted there).
-- **rudra S14/S15 (OpenCode, one chat):** close runs ~30 → ~5 (S178's F86 note worked). Findings F91–F97; non-Claude ones parked until after S180 (founder); F92 → S180 Goal 0. S178's wrong record corrected (summary + PR #215 comment).
-- Verify 37/37 · demo 6/6 · 551 lib tests · review: see `sessions/session-179-review.md`.
-
-## Previous session (S178 - interactive, the founder's rudra sessions 10–13)
-
-- F83/F86/F87 wording fixes; F77–F80, F84, F85 → S180 Goal 0. `sessions/session-178-summary.md`.
-
 ## What Currently Works
 
 - The close gate refuses made-up evidence: prose/malformed/non-existent `done:` shas, unlanded plan steps, unbacked verdict claims, a CODE session with no tech-lead (S169).
@@ -43,6 +41,7 @@
 - **The Planner checks `covers: N` both ways (S176):** a plan citing acceptance items the brief lacks blocks; `| ACn |` tables are read.
 - **`vajra <cmd> --help` runs nothing; `vajra init` refuses unknown words (S179, F89/F90).**
 - **A project's ground truth leads with the project (S179, F93):** vision → roadmap → `delivery_progress`; Vajra's two self-usage audits are withheld from projects (`build.rs` `OMIT_AUDITS`).
+- **The controls reach existing projects (S182):** `--sync-fleet` ships and WIRES the approvals guard, reports a missing `session_rules_from`; `--allow-all=NN` is per session. rudra has them (uncommitted there).
 - **The founder's controls are hard for the agent to type (S181, DECISION-011):** approval is a record from `vajra approve NN` (or the launch-time yes), a waiver names its checks and a reason, a stamp dies when its text is edited, the type is a strict field, and the next review-only session is derived, not hand-kept. Bar-raising, not tamper-proof.
 - **`VAJRA_ALLOW_PUBLISH=1` no longer covers merge (S175):** `gh pr merge`/`glab mr merge` always fall to the founder, matching the boundary `VAJRA_ALLOW_COMMIT` (F55) already held.
 
@@ -64,7 +63,7 @@
 - **🟡 F71 (S176, PARKED; recurred S177):** a GitHub-button merge leaves the remote session branch; the release check's `pruned` looks at locals only.
 - **🟡 F73 (S176, LOW):** `1)`, `**1.**`, numeric tables, `- AC1:` are not read as criteria (a plan citing them now blocks with the right message); `covers:` u32 overflow is dropped.
 - **🟡 F66 (S175, disclosed, not fixed):** `--check-crew`/`read_handoff` checks a handoff file's presence on disk, never that it's git-tracked — a session's required crew can close with real handoffs left uncommitted. Same bug family as F60 (Vajra's own sync files), different target. No new gate on Vajra's own paperwork without the founder's explicit yes (Guardrails).
-- **🟡 S181 disclosed (DECISION-011):** all bar-raising, not tamper-proof — the agent can strip the mark, fake a terminal, or re-record its own text through `vajra next --role`; a `cd .ai && echo x` write into the approvals folder gets past the hook; the `--allow-all` record is not tied to one session and relies on pid liveness; the approvals hooks are NOT yet in scaffolded projects; a project with no `session_rules_from` stays on the old readings (the gate names the line to add; `--sync-fleet` never edits that file). `scripts/verify-session-181.sh:75`'s whole-suite check is hollow (passes if the suite fails to compile); the obeyed gate's stamp binding has only a unit test → S182. `scripts/verify-session-175.sh` has 2 stale checks superseded by Part 2 (left as history).
+- **🟡 S181/S182 disclosed (DECISION-011):** all bar-raising, not tamper-proof — the agent can strip the mark, fake a terminal, or re-record its own text through `vajra next --role`; `--allow-all=NN` relies on pid liveness. The approvals guard reads command TEXT: a run-time path, a glob, `..` segments (`.ai/hooks/../approvals/x`), or an unlisted write command (`find -delete`, `git checkout --`, `rsync`, `curl -o`) gets past; it over-blocks a command naming the folder that redirects anywhere, and commit-message text naming it. `merge_claude_settings` still appends a whole template group when it is partly present with no same-matcher group (`src/cli/init.rs:980`). These three S182 pass-2 recs are PARKED for the S185 ground truth (ROADMAP S182 row). `scripts/verify-session-175.sh` has 2 stale checks superseded by S181 Part 2 (left as history).
 - **🟡 `.ai/ROADMAP.md`'s "NN % 5 == 0 → mandatory NO-CODE GT" pointer line had gone stale for many cycles** (last hand-updated at S120/S125, corrected at S175 to S170/S180) — a reminder that a hand-maintained "next X" pointer drifts unless something derives it.
 - **🟡 F97 (S179):** `vajra init --sync-fleet` never touches a project's `CONSTRAINTS.yaml`, so existing projects keep the old ground-truth list (rudra updated by hand). Other subcommands still swallow unknown flags (read-only).
 - **🔴 Non-Claude agents (S179, PARKED until after S180 by the founder):** F91 the git guards cannot tell OpenCode's agent from the founder (37 unchecked commits, a push straight to rudra's main) · F94 one chat for two sessions · F95 OpenCode helpers matched to unrelated Claude Code records. F92 (a waiver labelled "founder" he did not give; the waiver passes ~20 checks at once) → S180 Goal 0.
@@ -73,16 +72,17 @@
 
 ## What Is In Progress
 
-- Nothing. S181 closed on its branch; PR to open. The founder picks S182 from the summary's three options.
+- Nothing. S182 closed on its branch; PR to open. S183 drafted as option 1 (rudra S16); the founder approves it or picks another.
 
 ## Active PRs
 
-- S181's, once opened. S180 merged as #217, S179 as #216.
+- S182's, once opened. S181 merged as #218, S180 as #217.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S182 | $0 | No paid run. 5 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2) |
 | S181 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer ×2) |
 | S179 | $0 | No paid run in this repo; the founder's rudra S14/S15 ran under OpenCode ($1.93 by OpenCode, no Vajra receipt). 2 fleet dispatches (tech-lead, fidelity-reviewer — also the judge of the tech-lead's obeyed lines) |
 | S178 | $0 | No paid run in this repo; the founder's rudra S10 (~$147) and S12 (~$161.45) receipts are F67-overstated ~5×; S11/S13 ran outside `vajra claude` (no receipt). 4 fleet dispatches (tech-lead, fidelity-reviewer ×2, release-coordinator as judge) |
