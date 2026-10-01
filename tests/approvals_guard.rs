@@ -88,6 +88,7 @@ fn writes_still_block() {
         format!("cat .ai//approvals/x > y"),
         "cd .ai && echo x > approvals/x".to_string(), // S181's disclosed gap, closed
         "cd .ai/approvals && touch x".to_string(),
+        "x=`cd .ai && echo y > approvals/z`".to_string(), // inside backticks (S182, found at close)
     ] {
         let (code, err) = bash(&cmd);
         assert_eq!(code, 2, "write was not blocked: {cmd}");

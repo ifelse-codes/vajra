@@ -53,7 +53,7 @@ NAMES=0
 if printf '%s' "$CMD" | grep -qE '\.ai/+(\./)*approvals'; then
   NAMES=1
 elif printf '%s' "$CMD" | grep -qE 'approvals' && \
-     printf '%s' "$CMD" | grep -qE '(^|[;&|({[:space:]])(cd|pushd)[[:space:]]+[^;&|]*(\.ai|approvals)'; then
+     printf '%s' "$CMD" | grep -qE '(^|[;&|({`[:space:]])(cd|pushd)[[:space:]]+[^;&|]*(\.ai|approvals)'; then
   NAMES=1
 fi
 [ "$NAMES" = 1 ] || exit 0
