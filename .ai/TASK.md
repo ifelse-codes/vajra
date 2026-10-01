@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S181 (close the loopholes) complete on `session-181-close-the-loopholes`; S182 next
+## Between Sessions — S182 (ship S181's controls into existing projects) complete on `session-182-finish-s181-gaps`; S183 next
 
-**Next: Session 182 (draft, founder picks from the S181 summary's three options)** — finish S181's own gaps: ship the approvals guards + `session_rules_from` report into existing projects, tie `--allow-all` to a session, fix the hollow verify check (`prompts/182-task-finish-s181-gaps.md`, DRAFT until `vajra approve 182`). Start in a fresh chat.
+**Next: Session 183 (draft — option 1, recommended; the founder had not picked when it was written)** — rudra session 16 under the new rules: the founder runs it under `vajra claude`, brings what breaks, and this session fixes what he says yes to (`prompts/183-task-rudra-s16-new-rules.md`, DRAFT until `vajra approve 183`). Before rudra S16: merge S182, `cargo install --path .`, commit rudra's 6 S182 files, prune its 3 merged branches, `vajra approve 16`. Start in a fresh chat.
+
+## Session 182 — CODE, interactive: ship S181's controls into existing projects — COMPLETE
+
+- Brief: `prompts/182-task-finish-s181-gaps.md`. Summary: `sessions/session-182-summary.md`. Review: `sessions/session-182-review.md` (pass 1 ACCEPT + 1 mismatch → fixed → pass 2 ACCEPT 14/15). Decision: DECISION-011 S182 addendum.
+- Shipped: one approvals guard (writes block, reads pass, message reaches the agent) · shipped AND wired into existing projects by `--sync-fleet` (key order kept) · missing `session_rules_from` reported, never written · `--allow-all=NN` · S181's hollow whole-suite check + obeyed-gate test · rudra upgraded live. Verify 15/15 · demo 6/6.
+- **Parked → S185 GT (ROADMAP S182 row):** pass-2 recs 1 (`..` segments + overclaiming comment), 2 (whole-group append with no same-matcher group), 5 (unlisted write commands).
 
 ## Session 181 — CODE, interactive: close the loopholes — COMPLETE
 
