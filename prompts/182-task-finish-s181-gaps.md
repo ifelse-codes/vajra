@@ -57,15 +57,47 @@ A new hook shipped to every project, `--sync-fleet` now adding Vajra's hook entr
 10. Close: summary records the rudra command, report, hook exit-2 output and HEAD before/after; DECISION-011 S182 addendum; a fresh cold fidelity review with `--inputs-sha 182`; `scripts/verify-closeout.sh` exits 0 on the branch before merge (covers: 6, 8)
 
 ## Execution
-- step 1 — done: 71f7c68 (tests a74d886; fmt 20d50ce; backtick `cd` case added at close)
+- step 1 — done: 71f7c68 (tests a74d886; fmt 20d50ce; backtick case 540db79; review fixes 4449ebb)
 - step 2 — done: 8aed970 (follow-up 91b7380: cargo's own FAILED lines only — a test prints the word)
 - step 3 — done: 3fce2eb
 - step 4 — done: 86499ec
-- step 5 — done: 3a2a02e
+- step 5 — done: 3a2a02e (partly wired group fix 2967453; key order 293796b)
 - step 6 — done: 3a2a02e
 - step 7 — done: 57542bb (the rudra work is uncommitted in rudra by design; this commit's verify P7 re-checks it live, and the summary records the run)
 - step 8 — done: 233e669 (CLI tests 198d22c)
 - step 9 — done: 57542bb
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-advisor` (required by the tech-lead), `fidelity-reviewer` (required; the cold close review, and the independent judge of the `obeyed:` lines below).
+
+**tech-lead** (`.ai/handoffs/session-182-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 71f7c68 (the guard fix landed as step 1, before the scaffold shipped it in 86499ec)
+- tech-lead rec 2 — obeyed: 4449ebb (first built in 71f7c68; the review-found `>&1/…` spelling closed here; a read with `2>&1` passes; interpreters naming the folder still block, with a message naming cat/ls/jq and the Edit tool)
+- tech-lead rec 3 — obeyed: 233e669 (order 6 → 1 → 2 → 3 → 4 → 7 → 5 kept; the cut line was not needed — Part 5 is this commit)
+- tech-lead rec 4 — obeyed: 4d4839e (the summary records the branch-build command, the report, the exit-2 output, and rudra HEAD 5ab6e83 before and after)
+- tech-lead rec 5 — deferred: sessions/session-182-review.md
+
+**design-advisor** (`.ai/handoffs/session-182-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 4d4839e (`design-significant: yes` in 616ae71; the S182 addendum and the rewritten Limit line in DECISION-011 here)
+- design-advisor rec 2 — obeyed: 86499ec (one `scripts/hook-approvals-guard.sh`, `include_str!` into `SYNC_HOOKS`; Vajra's own two hooks call it since 71f7c68)
+- design-advisor rec 3 — obeyed: 3a2a02e (`--sync-fleet` merges the missing groups through `merge_claude_settings`, its own PreToolUse group, `--dry-run` honoured)
+- design-advisor rec 4 — obeyed: 616ae71 (Deliverable 4 and Acceptance 4/8 now name `.ai/CONSTRAINTS.yaml`)
+- design-advisor rec 5 — obeyed: 3a2a02e (report only; N = `.ai/SESSION` + 1)
+- design-advisor rec 6 — obeyed: 233e669 (`--allow-all=NN`, `session` stored next to `pid`, bare form refused before launch)
+- design-advisor rec 7 — obeyed: 4449ebb (first built in 71f7c68; fd-dup strip anchored, case + quotes here; deviation, stricter: instead of parsing redirect targets, ANY redirect left after the provable non-writes blocks when the folder is named — target parsing would have let `> "$D"/x` through where S181 blocked it; `cd`-into case and interpreters kept; run-time-path gap disclosed in DECISION-011)
+- design-advisor rec 8 — obeyed: 2967453 (pass 1 judged 3a2a02e a mismatch — the fixture never had a partly wired group; now a pre-S93 Bash group gets only its missing hook and `sync_fleet_never_lists_a_hook_twice_in_a_pre_s93_project` checks every tool runs exactly the hooks a fresh scaffold runs)
+
+**plan-advisor** (`.ai/handoffs/session-182-plan-advisor.md`):
+- plan-advisor rec 1 — obeyed: 616ae71 (the 10-step plan and cut line, recorded in `## Plan`)
+- plan-advisor rec 2 — refused: the rec applies only if the cut line is used; it was not — Part 5 was built in 233e669, so nothing was carried and Acceptance 5 is covered by a built step
+- plan-advisor rec 3 — obeyed: 86499ec (the scaffold's guard is `include_str!` of the same file Vajra runs)
+- plan-advisor rec 4 — obeyed: 3a2a02e (`.claude/settings.json` registers the hook; the scaffold tests and verify P7 run the command as the settings spell it)
+- plan-advisor rec 5 — obeyed: 57542bb (verify-182 P1 uses a stub `cargo` on PATH; the real build is never broken)
+- plan-advisor rec 6 — obeyed: a74d886 (`2>`, `2>&1 >`, `>>`, `tee`, `cp` into the folder all block; `cat <folder>/x 2>&1` passes)
+- plan-advisor rec 7 — obeyed: 57542bb (verify P7 prints SKIPPED, never PASS, when rudra is absent)
+- plan-advisor rec 8 — obeyed: 4d4839e (the summary names the absolute branch-build path and rudra HEAD before/after)
+
+Why the one `deferred:` line points where it does: tech-lead rec 5 asks for `verify-closeout.sh` on the branch before merge and the review recorded with `--inputs-sha 182` — both happen at close and land in the review file. Its third ask (scaffold probes in a scratch repo, not Vajra's tree) is met by `tests/approvals_scaffold.rs`, which scaffolds into temp dirs.
 
 ## Guardrails
 - No autonomous commits: the founder runs them, or launches with `VAJRA_ALLOW_COMMIT=182`. The agent never sets it.

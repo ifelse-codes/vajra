@@ -37,8 +37,10 @@ rudra's registered guard (matcher Bash|Edit|Write|MultiEdit|NotebookEdit):
 ```
 A second `--sync-fleet` after the close-time guard fix upgraded the one file (`stale render c12e4d65 → f002611a`).
 
+**Cold review pass 1 (ACCEPT, one `mismatch:`):** found that the guard let one write spelling through that S181 blocked (`>&1/../<folder>/x`). It also found that `--sync-fleet` would list three hooks twice in a pre-S93 project, that an L1 project with no jq was blocked on every edit, and that capitals and quotes reached the folder. All four were fixed with tests that fail without the fix (4449ebb, 2967453). With the founder's yes, the settings rewrite now keeps the project's key order (293796b), so rudra's settings diff is 9 added lines. Pass 2 is a fresh review (`sessions/session-182-review.md`).
+
 **Not built:** nothing from the brief. **Found and fixed on the way:** the S181 guard printed its block message to stdout, so the agent saw "No stderr output" and no reason; my first step-2 check was too strict (a test prints the word FAILED as its own output); a `cd .ai` inside backticks got past the guard (found while writing the addendum).
-**Fakest green:** the guard still decides by reading command text. A folder path built at run time (`d=.ai; … "$d/approvals"`) gets past it. 23 write shapes are tested, but that is a list of spellings, not proof (the S173 lesson). It is also blunt the other way: a command that names the folder and redirects anywhere is blocked, even a harmless one.
+**Fakest green:** the guard still decides by reading command text. A folder path built at run time (`d=.ai; … "$d/approvals"`) or a glob gets past it. "Only add" is now checked against the S181 hook, but only for the 27 listed spellings. That is a list, not a proof (the S173 lesson). It is also blunt the other way: a command that names the folder and redirects anywhere is blocked, even a harmless one.
 
 ## Disclosed limits
 Bar-raising, **not tamper-proof** (DECISION-011): same OS user, run-time paths, `env -u` the mark. The obeyed-gate test proves an edited judge record is refused; it does not prove a judge read the diff (the S132 ceiling). `--allow-all=NN` still relies on the launch pid being alive. For rudra's S16 the founder now approves with `vajra approve 16`, because the brief's own words no longer count.
