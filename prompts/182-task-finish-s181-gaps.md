@@ -57,7 +57,15 @@ A new hook shipped to every project, `--sync-fleet` now adding Vajra's hook entr
 10. Close: summary records the rudra command, report, hook exit-2 output and HEAD before/after; DECISION-011 S182 addendum; a fresh cold fidelity review with `--inputs-sha 182`; `scripts/verify-closeout.sh` exits 0 on the branch before merge (covers: 6, 8)
 
 ## Execution
-_(step N — done: <sha> as work lands.)_
+- step 1 — done: 71f7c68 (tests a74d886; fmt 20d50ce; backtick `cd` case added at close)
+- step 2 — done: 8aed970 (follow-up 91b7380: cargo's own FAILED lines only — a test prints the word)
+- step 3 — done: 3fce2eb
+- step 4 — done: 86499ec
+- step 5 — done: 3a2a02e
+- step 6 — done: 3a2a02e
+- step 7 — done: 57542bb (the rudra work is uncommitted in rudra by design; this commit's verify P7 re-checks it live, and the summary records the run)
+- step 8 — done: 233e669 (CLI tests 198d22c)
+- step 9 — done: 57542bb
 
 ## Guardrails
 - No autonomous commits: the founder runs them, or launches with `VAJRA_ALLOW_COMMIT=182`. The agent never sets it.
