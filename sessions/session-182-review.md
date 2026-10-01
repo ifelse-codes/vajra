@@ -28,3 +28,25 @@ Brief: `prompts/182-task-finish-s181-gaps.md`. Two passes by independent `fideli
 - rec 5 — keep key order. **Done, 293796b** (founder yes to the dependency feature): rudra's settings diff is now 9 added lines, not a re-sorted file.
 
 Code changed after an ACCEPT → a fresh pass 2 (F81).
+
+## Pass 2 — fresh, independent — ACCEPT (14 SHIPPED · 1 PARTIAL · 0 NOT-BUILT)
+
+Full text: `.ai/handoffs/session-182-fidelity-reviewer.md` (stamped, text-bound). Graded the code at 293796b, not pass 1's claims.
+
+| # | Verdict | Evidence (condensed) |
+|---|---|---|
+| D1–D7 | SHIPPED | `verify-session-181.sh:78-86` · `stamp_gate.rs:164-224` · `init.rs:30-33,1790-1797,1850` · `init.rs:567-590` · `launch.rs:39-52`, `approval/mod.rs:116-130` · `hook-approvals-guard.sh:70-86` · rudra settings/constraints/reflog first-hand |
+| AC1–AC5, AC7, AC8 | SHIPPED | the scaffold, CLI, stamp and guard tests; verify P1/P6/P7 live |
+| AC6 | PARTIAL | the closeout run cannot exist until this pass is attested — recorded below |
+
+**Probes on the post-pass-1 changes:** no `>&word` write gets through the anchored strip; the de-quoted copy can only name the folder more often (new false blocks possible, within "only add"); the partly-wired merge is correct for the tested shapes, with untested edges (rec 2); `preserve_order` touches nothing that hashes JSON.
+
+**Fakest green (pass 2):** the guard comment "a spelling cannot step around it" (line 43) and an "only add — CHECKED" test that proves only-add over the author's own 34-command list — `.ai/hooks/../approvals/x`, `find … -delete`, `git checkout -- <folder>` walk past. Bar-raising, as DECISION-011 says; the comment claims more than the tests show.
+
+**Obeyed judgments:** 19 of 19 `implemented` (the pass-1 mismatch, design-advisor rec 8, now `implemented: 2967453`).
+
+**Recommendations (pass 2) — answered in the prompt's `## Advice`:** rec 1 (`..` segments + the comment), rec 2 (whole-group append with no same-matcher group), rec 5 (unlisted write commands) → parked to backlog in the S182 row of `.ai/ROADMAP.md` for the S185 ground truth (founder 2026-09-15: "no more policing"; a guard change after this ACCEPT would need a third review). rec 3 → rudra's real output and the re-syncs pasted in the summary. rec 4 → the closeout run below.
+
+**Verdict:** ACCEPT
+
+**Review-Inputs-SHA:** 14ac358240ac8fda41727ae68d8493b6564ae6a91756f3db11cbe9e27024d173
