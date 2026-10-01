@@ -342,3 +342,11 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **Tests that skip when a tool is missing pass without testing.** Hook tests now assert `jq` exists instead of returning early.
 - **A verify check that greps for the absence of a failure passes when nothing ran** (`grep -qv ' 0 failed'` on a suite that never compiled). Assert a positive line instead.
 
+
+## S182 — permanent facts
+
+- **On a PreToolUse exit 2, Claude Code hands the agent stderr only.** A block message on stdout reaches the agent as "No stderr output" — it is blocked and never told why. Every block message goes to `>&2`.
+- **A hook file nobody's settings run is not a guard (S129, again).** `vajra init --sync-fleet` now merges Vajra's missing hook groups into an existing `.claude/settings.json` (add-only; a partly wired group gets only its missing entries; key order kept via serde_json `preserve_order`). Before S182 only a first `vajra init` wired hooks, so every hook added later reached existing projects as a file that never ran.
+- **The approvals guard (S182) supersedes the S181 fact above:** a plain read passes (`2>&1`, `>&N`, `/dev/null` are non-writes). A command naming the folder (any case, quotes removed, or a `cd` into `.ai`) still blocks on any other redirect, a file-writing tool, or an interpreter, even a heredoc that only mentions it. Write such files with the Write/Edit tools. Commit-message text naming the folder trips it too (S173 class).
+- **`>&word` with a non-digit word is a file write, not an fd dup.** A strip of "harmless" redirects must be anchored on its right, or `>&1/../x` slips through.
+- **"Only add" for a guard is checked, not stated:** `tests/approvals_guard.rs` runs every listed command through the previous hook from git and the new one. It covers only the listed spellings.
