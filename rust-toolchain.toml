@@ -1,0 +1,8 @@
+# S183 (F101): the ONE place Vajra's Rust version is written. rustup obeys it locally and in CI
+# (.github/workflows/*.yml run `rustup toolchain install`, which reads this file), so the close
+# gate's clippy and CI's clippy are the same clippy. A new stable release can no longer turn an
+# unchanged branch red; moving to a newer Rust is one deliberate edit here, with any new lints
+# fixed in the same commit. Keep an exact version — `stable` would bring back the S182 gap.
+[toolchain]
+channel = "1.99.0"
+components = ["clippy", "rustfmt"]
