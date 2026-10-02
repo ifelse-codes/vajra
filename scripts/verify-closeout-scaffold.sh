@@ -58,6 +58,11 @@ spath() {   # spath <prefix> <suffix>  ->  the session-numbered path to use
 }
 
 bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); }
+# S183 (F101): a row that is neither a pass nor a fail must SAY so in the table, not only in its
+# log — a WARN or N/A hidden under PASS is what S178 read as green.
+WARNS=0
+warn() { RESULTS+=("$(printf '%-34s %s' "$1" WARN)"); WARNS=$((WARNS+1)); }
+na()   { RESULTS+=("$(printf '%-34s %s' "$1" N/A)"); }
 
 # --- ground-truth session test (S175 in Vajra's own gate; carried here S177, F74) ----------
 # S181: the answer comes from the ONE shared helper (lib-ground-truth.sh): every 5th session, with
@@ -1145,6 +1150,43 @@ check_live_gate() {
   fi
 }
 
+# --- the project's own lint (S183, F101) ----------------------------------------------------
+# Vajra's S182 closed green, then CI failed its lint: the close gate never ran it. A project says
+# what its lint is in ONE field of .ai/CONSTRAINTS.yaml — Vajra never works it out from CI files or
+# from which files the project has (S177):
+#   lint_command: <the exact command your CI runs>   -> run here; non-zero FAILS
+#   lint_command: none                               -> this project has no linter (N/A)
+#   (missing)                                        -> WARN in the table, naming the line to add
+# Fakest green: the agent can type `lint_command: true` or `none`; only the diff shows it.
+check_project_lint() {
+  local NAME="project-lint-clean"; local LOG="$ARTIFACTS/${NAME}.log"
+  if [ -n "$N" ] && is_ground_truth_session; then
+    echo "N/A: ground-truth session — no code to lint." > "$LOG"; na "$NAME"; return
+  fi
+  local line cmd
+  line="$(grep -E '^[[:space:]]*lint_command:' .ai/CONSTRAINTS.yaml 2>/dev/null | head -1 || true)"
+  cmd="$(printf '%s' "$line" | sed -E 's/^[[:space:]]*lint_command:[[:space:]]*//; s/[[:space:]]+$//')"
+  case "$cmd" in \"*\") cmd="${cmd#\"}"; cmd="${cmd%\"}" ;; \'*\') cmd="${cmd#\'}"; cmd="${cmd%\'}" ;; esac
+  if [ -z "$cmd" ]; then
+    { echo "WARN: .ai/CONSTRAINTS.yaml has no \`lint_command:\` — this close ran no lint, so a branch can close green and fail CI."
+      echo "      Add the exact command your CI runs, e.g.  lint_command: cargo clippy --all-targets -- -D warnings"
+      echo "      or, if this project has no linter:       lint_command: none"; } > "$LOG"
+    warn "$NAME"; return
+  fi
+  if [ "$cmd" = "none" ]; then
+    echo "N/A: lint_command: none — this project records that it has no linter." > "$LOG"; na "$NAME"; return
+  fi
+  echo "+ $cmd" > "$LOG"
+  if bash -c "$cmd" >> "$LOG" 2>&1; then
+    echo "OK: lint_command exits 0" >> "$LOG"; ok "$NAME"; return
+  fi
+  if waiver_ok; then
+    echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: the project's lint_command failed (output above) — fix it, then re-run verify-closeout." >> "$LOG"; bad "$NAME"
+  fi
+}
+
 check_session_file
 check_required_files
 check_session_boot
@@ -1155,6 +1197,7 @@ check_roadmap_current
 check_cost_tracking
 check_execution_shas
 check_session_type
+check_project_lint
 check_verify_demo_scripts
 check_fidelity_review
 check_next_options
@@ -1175,6 +1218,7 @@ echo "=== Closeout Verify Summary (N=${N:-?}) ==="
 printf '%-34s %s\n' "STEP" "RESULT"
 printf '%-34s %s\n' "----------------------------------" "------"
 for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
+[ "$WARNS" -gt 0 ] && echo "($WARNS WARN row(s) above — not failures, but nothing was checked there; read the log.)"
 echo ""
 echo "Artifacts: $ARTIFACTS"
 

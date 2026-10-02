@@ -193,6 +193,18 @@ check_cargo_fmt() {
   fi
 }
 
+# S183 (F101): S182 closed green here, then CI failed clippy — the close gate never ran it, and the
+# local clippy was older than CI's. scripts/ci-lint.sh is the ONE lint command CI runs too; it
+# names the toolchain and FAILS when it is not the one rust-toolchain.toml pins.
+check_cargo_clippy() {
+  local NAME="cargo-clippy-clean"; local LOG="$ARTIFACTS/${NAME}.log"
+  if bash scripts/ci-lint.sh > "$LOG" 2>&1; then
+    echo "OK: scripts/ci-lint.sh exits 0 (CI's clippy, on the pinned toolchain)" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: fix what scripts/ci-lint.sh reports above (the same check CI runs), then re-run verify-closeout." >> "$LOG"; bad "$NAME"
+  fi
+}
+
 # --- Execution-sha placeholder guard (S81, tightened S154) -------------------
 # Catches the S79 failure mode: a CODE session that closes with `step N — done: <sha>`
 # placeholders still in its `## Execution` section. The Coder gate (src/coder/mod.rs)
@@ -1347,6 +1359,7 @@ check_session_pair
 check_roadmap_current
 check_cost_tracking
 check_cargo_fmt
+check_cargo_clippy
 check_execution_shas
 check_session_type
 check_verify_demo_scripts
