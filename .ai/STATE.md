@@ -3,14 +3,14 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S183 is closed on `session-183-rudra-s16-new-rules` (PR #220; the founder merges). S182 merged (#219). Next: S184, from the founder's pick of S183's three options.**
+**None — between sessions. S183 is closed on `session-183-rudra-s16-new-rules` (PR #220; the founder merges). S182 merged (#219). Next: S184 — rudra S17 under the new rules + F103/F107/F108 (founder's pick A; `prompts/184-task-rudra-s17-new-rules.md`).**
 
 ## What was done this session (S183 — INTERACTIVE: rudra S16 under the new rules, and F101)
 
 - **F101 — a green close means a green CI.** `rust-toolchain.toml` pins Rust 1.99.0, the only place the version is written; CI and Release run `rustup toolchain install` from it. `scripts/ci-lint.sh` is the one lint command: it names rustc/clippy, FAILS when the running rustc is not the pinned one, then runs `cargo clippy --all-targets -- -D warnings`. CI runs it; Vajra's close gate runs it as `cargo-clippy-clean`. A project's close gate runs its declared `lint_command:` (`none` → N/A, missing → a WARN row). WARN and N/A now show as themselves in the scaffold gate's table.
 - **F102:** `main`'s CI had been red since #219 (S182's no-jq test assumed `/bin` lacks jq; on Linux `/bin` = `/usr/bin`). The test now builds a PATH with every tool but jq and proves jq is gone. PR #220's CI is green on Ubuntu and macOS.
 - **From rudra S16 (founder ran it, ~55 min of work):** approval read from the record, 0 guard blocks, no waivers, no stamp refusals, the founder merged. **F104:** 34 unchecked `obeyed:` claims closed under PASS (threshold = Vajra's session 132) → `vajra next --check-obeyed` prints `unjudged: N`, the project gate shows WARN with the count. **F105:** `session_type:` met only at close → `vajra next --steps` names it at the start, read through the shared helper. **F106:** `--inputs-sha` no longer leaves an empty close folder.
-- **Asked, not built:** F103, F107, F108 (see Broken). Verify 23/23 · demo 6/6 · all 19 test suites · DECISION-011 S183 addendum.
+- **Asked, not built:** F103, F107, F108 (founder: fix all three in S184). Verify 23/23 · demo 6/6 · all 19 test suites · DECISION-011 S183 addendum.
 
 ## Previous session (S182 — CODE, interactive: ship S181's controls into existing projects)
 
@@ -59,14 +59,14 @@
 - **🟡 `.ai/ROADMAP.md`'s "NN % 5 == 0 → mandatory NO-CODE GT" pointer line had gone stale for many cycles** (last hand-updated at S120/S125, corrected at S175 to S170/S180) — a reminder that a hand-maintained "next X" pointer drifts unless something derives it.
 - **🟡 F97 (S179):** `vajra init --sync-fleet` never touches a project's `CONSTRAINTS.yaml`, so existing projects keep the old ground-truth list (rudra updated by hand). Other subcommands still swallow unknown flags (read-only).
 - **🔴 Non-Claude agents (S179, PARKED until after S180 by the founder):** F91 the git guards cannot tell OpenCode's agent from the founder (37 unchecked commits, a push straight to rudra's main) · F94 one chat for two sessions · F95 OpenCode helpers matched to unrelated Claude Code records. F92 (a waiver labelled "founder" he did not give; the waiver passes ~20 checks at once) → S180 Goal 0.
-- **🟡 S183 asked, not built (founder calls → S184):** F103 `vajra init` waits forever on an open, silent, non-terminal stdin (piped answers are a supported use, so "no terminal → defaults" is not the fix); F107 the obeyed WARN text tells a project "threshold: session 132" (Vajra's numbering); F108 `--ledger`/`--ledger-verify` leave an empty dated close folder.
+- **🟡 S183 asked, not built (founder 2026-10-03: fix all three in S184):** F103 `vajra init` waits forever on an open, silent, non-terminal stdin (piped answers are a supported use, so "no terminal → defaults" is not the fix); F107 the obeyed WARN text tells a project "threshold: session 132" (Vajra's numbering); F108 `--ledger`/`--ledger-verify` leave an empty dated close folder.
 - **🟡 S183 disclosed:** F104 is a WARN, not a block — below session 132 a project's `obeyed:` still needs nobody's check. `lint_command: true`/`none` passes (only the diff shows it); "matches CI" = matches the pinned version; `#[allow]` silences a lint. Release's `rustup toolchain install && rustup target add` runs only on a tag — not tried. A Rust bump is now a deliberate edit to `rust-toolchain.toml` (and a local `rustup toolchain install`).
 - **🟡 Not tested:** Windows; a real light-background terminal. **Zero external users**; prove-then-cut-cost arc unstarted; Autopilot Rung 2/3 incomplete.
 - **🟡 Backlog carry-forwards** — D2 inner-session gap + waiver path (S161) · crew advice impact F13 · S154-QA 1–3 · S156-FR r1/r2 · S157-FR r2 · S159-FR r1 · S161-FR 2–4 · S164-QA r1 · verify-158 source grep · no gate against new hollow verify checks · Releaser NoBranch blind spot · init.rs hand-typed scaffold scope · waiver BLOCK paths untested.
 
 ## What Is In Progress
 
-- Nothing. S183 closed on its branch; PR #220 open (founder merges). S184 waits for the founder's pick.
+- Nothing. S183 closed on its branch; PR #220 open (founder merges). S184 drafted from the founder's pick (A); he approves with `vajra approve 184`.
 
 ## Active PRs
 

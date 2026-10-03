@@ -4,7 +4,7 @@
 
 ## Between Sessions — S183 (rudra S16 under the new rules + F101) complete on `session-183-rudra-s16-new-rules`; S184 next
 
-**Next: Session 184 — from the founder's pick** of S183's three options (`sessions/session-183-summary.md`; recommended: rudra session 17 under the new rules, with his calls on F103/F107/F108). Prompt `prompts/184-task-<slug>.md` written from the pick. Before it: merge #220, `cargo install --path .`. Start in a fresh chat.
+**Next: Session 184 — rudra session 17 under the new rules, plus F103 / F107 / F108** (the founder's pick, option A, 2026-10-03; all three a yes) — `prompts/184-task-rudra-s17-new-rules.md`, DRAFT until `vajra approve 184`. Before it: merge #220, `cargo install --path .`. Start in a fresh chat.
 
 ## Session 183 — INTERACTIVE: rudra S16 under the new rules, and F101 — COMPLETE
 

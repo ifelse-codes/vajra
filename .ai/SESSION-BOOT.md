@@ -1,7 +1,7 @@
 # Session Boot
 
 ## Next Session
-- **S184 — from the founder's pick of S183's three options** (`sessions/session-183-summary.md`; recommended: rudra session 17 under the new rules). Its prompt is written once he picks. Before it: merge S183's PR (#220) — main's CI goes green with it (F102) — then `cargo install --path .` (the installed Vajra is pre-S183). Start in a FRESH chat.
+- **S184 — rudra session 17 under the new rules, plus F103 / F107 / F108** (`prompts/184-task-rudra-s17-new-rules.md`, DRAFT — the founder's pick, option A; he approves with `vajra approve 184`). Before it: merge S183's PR (#220) — main's CI goes green with it (F102) — then `cargo install --path .` (the installed Vajra is pre-S183). Start in a FRESH chat.
 
 ## Current Session
 - **Number:** 183 — CLOSED. INTERACTIVE: rudra S16 under the new rules + F101. A green close now means a green CI: `rust-toolchain.toml` pins Rust 1.99.0 and `scripts/ci-lint.sh` is the one lint both run (F101); main's red CI since #219 fixed (F102); unchecked `obeyed:` claims WARN with the count (F104); the step list names the session type at the start (F105); `--inputs-sha` leaves no empty folder (F106). F103/F107/F108 asked. Summary: `sessions/session-183-summary.md`. Review: `sessions/session-183-review.md`. Decision: DECISION-011 S183 addendum. Verify: `scripts/verify-session-183.sh` (23/23). Demo: `scripts/demo-session-183.sh` (6 live checks).
