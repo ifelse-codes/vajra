@@ -29,6 +29,9 @@ Read every close log for `WAIVED`, `N/A` and `WARN` FIRST, never just PASS (S178
 - **F107 — the obeyed WARN text quotes Vajra's own numbering to projects.** `src/obeyed/mod.rs` ~520: "session NN predates this gate (threshold: session 132)". In rudra that is meaningless. Fix: words a project understands; Vajra's own gate keeps its threshold. Test: the project close log for an unchecked claim does not say "132".
 - **F108 — `--ledger` / `--ledger-verify` leave an empty dated close folder.** Same class as F106 (S183). Fix both close scripts the same way. Test: folder count unchanged after each mode.
 
+## Question for the founder (S183 cold review rec 7)
+- **Should Vajra's own close check also run `cargo test`?** S183 made it run CI's lint on CI's Rust version, but CI also runs `cargo test`, on Linux too — so a test that is green on a Mac and red on Linux (exactly F102) still closes green. Options: run `cargo test` in the close check (slower close), or have the close check say plainly that it does not. His call, given "no new ceremony".
+
 ## Carried in
 1. **S182 pass-2 recs 1, 2, 5** — still parked for the S185 ground truth; fix only if rudra S17 hits one.
 2. **Parked by the founder:** F67 (receipt ~5×), non-Claude tools (F91, F94, F95), release/publish.
