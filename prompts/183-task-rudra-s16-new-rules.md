@@ -89,8 +89,8 @@ Cut line (founder-approved): F105 moves to S184 if the ~2h cap runs out — not 
 - step 6 — done: 9293b6d
 - step 7 — done: 6388972
 - step 8 — done: fda7c81
-- step 9 — done: <sha>
-- step 10 — done: <sha>
+- step 9 — done: 17d5bef
+- step 10 — done: 5b14ec3
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-advisor` (required by the tech-lead), `fidelity-reviewer` (required; the one cold close review). Deviation from the tech-lead: it asked for the design-advisor ONCE, after the rudra findings, and also for F101 to land BEFORE them — F101 cannot land without its design, so the design-advisor ran for F101 only; F102–F106 needed no new design record (F105's one design choice — Rust sourcing the shared bash helper — is stated in `## Design`).
@@ -118,7 +118,7 @@ Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-adv
 - plan-advisor rec 4 — refused: the "do not use a terminal test" half is followed (nothing was changed), but its timed-reader alternative is not built either — it is a behaviour choice (how long to wait, what to print) the founder has not made; F103 goes back to him with the evidence. Decision → S184's prompt, from his answer
 - plan-advisor rec 5 — refused: rudra S16 never hung — F103 was found in THIS session (verify-183's first draft ran `vajra init` with an open, silent stdin and stderr hidden); that exact shape is quoted in the summary's findings table
 - plan-advisor rec 6 — obeyed: 6388972 (`unjudged: N`, exit code unchanged; the gate matches only that line)
-- plan-advisor rec 7 — obeyed: <sha> (F107 recorded above and in the summary; not fixed)
+- plan-advisor rec 7 — obeyed: 17d5bef (F107 recorded above and in the summary; not fixed)
 - plan-advisor rec 8 — refused: the step is third, after the tech-lead and the "prompt says what this session is for" step — that step is where the brief gets written, so its type line belongs right after it; it is still eight steps before the review stamp, and `an_untouched_session_starts_with_the_tech_lead` passes
 - plan-advisor rec 9 — obeyed: fda7c81 (missing ✗ · `code` ✗ · `CODE` ✓; editing the project's helper flips it ✗; deleting it ✗)
 - plan-advisor rec 10 — obeyed: fda7c81 (the check needs jq on the host; the Linux red is CI's — main red since #219, green on PR #220 — named in the summary)
