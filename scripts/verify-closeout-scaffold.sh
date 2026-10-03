@@ -40,7 +40,10 @@ type vajra_waiver_ok >/dev/null 2>&1 || vajra_waiver_ok() { WAIVER_NOTE=""; retu
 
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 ARTIFACTS=".ai/verify/closeout/${TS}"
-mkdir -p "$ARTIFACTS"
+# S183 (F106): `--inputs-sha` only prints a hash — it left an empty dated folder in the close logs on
+# every call (rudra S16 had one beside its real runs). Every other mode writes its logs here.
+# Its one internal check (the session number) logs to a temp folder, removed on exit.
+if [ "${1:-}" = "--inputs-sha" ]; then ARTIFACTS="$(mktemp -d)" || exit 1; trap 'rm -rf "$ARTIFACTS"' EXIT; else mkdir -p "$ARTIFACTS"; fi
 
 PASS=0; FAIL=0; RESULTS=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
@@ -662,6 +665,16 @@ check_obeyed_judgments() {
     return
   fi
   if [ "$code" -eq 0 ]; then
+    # S183 (F104): READY can still mean "nobody checked". Before the gate's threshold session an
+    # unjudged `obeyed:` only warns — rudra S16 closed 34 of them under a PASS row. The binary prints
+    # `unjudged: N`; any N > 0 is a WARN row with the count, never PASS. (A build without that line
+    # reads as 0: the S182-and-earlier behaviour.)
+    local unj; unj="$(grep -m1 -E '^unjudged: [0-9]+$' <<<"$out" | grep -oE '[0-9]+' || true)"
+    if [ "${unj:-0}" -gt 0 ]; then
+      echo "WARN: $unj \`obeyed:\` claim(s) for session $N were never checked by an independent role — nobody confirmed the cited commits do what the advice asked." >> "$LOG"
+      echo "      To check one: an independent role records \`obeyed-check <role> rec <N> — implemented: <sha> — <note>\` in its handoff." >> "$LOG"
+      warn "$NAME"; return
+    fi
     echo "OK: every \`obeyed:\` disposition for session $N carries an admissible independent judgment." >> "$LOG"
     ok "$NAME"; return
   fi

@@ -989,6 +989,14 @@ fn run_check_obeyed(nn: Option<&String>) -> Result<()> {
     } else {
         println!("verdict: READY");
     }
+    // S183 (F104): one fixed line the close gate reads as a number. Before the threshold an
+    // unjudged `obeyed:` only warns, and the gate's row read PASS — rudra S16 closed 34 of them so.
+    let unjudged = verdict
+        .items
+        .iter()
+        .filter(|i| matches!(i.state, obeyed::ObeyedState::Unjudged))
+        .count();
+    println!("unjudged: {unjudged}");
     for w in &verdict.warnings {
         println!("  ⚠ {w}");
     }

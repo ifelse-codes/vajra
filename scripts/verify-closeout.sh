@@ -40,7 +40,10 @@ type vajra_waiver_ok >/dev/null 2>&1 || vajra_waiver_ok() { WAIVER_NOTE=""; retu
 
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 ARTIFACTS=".ai/verify/closeout/${TS}"
-mkdir -p "$ARTIFACTS"
+# S183 (F106): `--inputs-sha` only prints a hash — it left an empty dated folder in the close logs on
+# every call (rudra S16 had one beside its real runs). Every other mode writes its logs here.
+# Its one internal check (the session number) logs to a temp folder, removed on exit.
+if [ "${1:-}" = "--inputs-sha" ]; then ARTIFACTS="$(mktemp -d)" || exit 1; trap 'rm -rf "$ARTIFACTS"' EXIT; else mkdir -p "$ARTIFACTS"; fi
 
 PASS=0; FAIL=0; RESULTS=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
