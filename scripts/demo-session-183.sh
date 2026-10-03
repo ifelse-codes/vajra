@@ -137,7 +137,7 @@ slide_scorecard() {
   dk_vajra_scorecard "$SESSION"
   dk_scorecard "LIVE — ran while you watched"
   dk_table "Recorded at close — not re-run here|Result" \
-    "scripts/verify-session-183.sh — real-run checks|23 / 23" \
+    "scripts/verify-session-183.sh — real-run checks|24 / 24" \
     "PR #220 CI (Ubuntu + macOS) on the pinned toolchain|green"
   dk_verdict "HONEST NOTES" \
     "Release builds use the pinned toolchain too, but that workflow only runs on a version tag — not tried yet. The Linux case of F102 is proven by GitHub's CI, not on this Mac." \
