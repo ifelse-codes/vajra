@@ -212,8 +212,6 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
     .collect()
 }
 
-/// True when a prompt file for `session` exists (`prompts/NN-task-*.md`, padded like everything
-/// else Vajra writes).
 /// S183 (F105): how the close gates read session NN's `session_type:` — `declared`, `missing`,
 /// `unknown`, `conflict` or `noprompt` — asked of the ONE shared helper (`vajra_session_type` in
 /// lib-ground-truth.sh: `scripts/` here, `.ai/hooks/` in a project), never re-implemented.
@@ -251,6 +249,8 @@ fn session_type_state(root: &Path, session: u32) -> Option<String> {
     })
 }
 
+/// True when a prompt file for `session` exists (`prompts/NN-task-*.md`, padded like everything
+/// else Vajra writes).
 fn prompt_exists(root: &Path, session: u32) -> bool {
     let dir = root.join("prompts");
     let prefix = format!("{session:02}-task-");
@@ -416,6 +416,44 @@ mod tests {
     use super::*;
     use std::fs;
     use tempfile::TempDir;
+
+    /// S183 (F105, cold review rec 6): the session-type step names what the close check reads —
+    /// through the real shared helper, so each state is the helper's answer, not a Rust guess.
+    #[test]
+    fn session_type_state_is_the_shared_helpers_answer() {
+        let d = repo();
+        let r = d.path();
+        fs::create_dir_all(r.join(".ai")).unwrap();
+        fs::create_dir_all(r.join("scripts")).unwrap();
+        fs::write(
+            r.join(".ai/CONSTRAINTS.yaml"),
+            "session:\n  session_rules_from: 2\n",
+        )
+        .unwrap();
+        let prompt = r.join("prompts/02-task-x.md");
+        assert_eq!(
+            session_type_state(r, 2).as_deref(),
+            Some("nohelper"),
+            "no helper on disk"
+        );
+        fs::write(
+            r.join("scripts/lib-ground-truth.sh"),
+            include_str!("../../scripts/lib-ground-truth.sh"),
+        )
+        .unwrap();
+        assert_eq!(session_type_state(r, 2).as_deref(), Some("noprompt"));
+        fs::write(&prompt, "## Type\n- CODE\n").unwrap();
+        assert_eq!(session_type_state(r, 2).as_deref(), Some("missing"));
+        fs::write(&prompt, "## Type\nsession_type: code\n").unwrap();
+        assert_eq!(session_type_state(r, 2).as_deref(), Some("unknown"));
+        fs::write(&prompt, "## Type\nsession_type: CODE\n").unwrap();
+        assert_eq!(session_type_state(r, 2).as_deref(), Some("declared"));
+        assert_eq!(
+            session_type_state(r, 1),
+            None,
+            "below session_rules_from: no step"
+        );
+    }
 
     fn repo() -> TempDir {
         let d = TempDir::new().unwrap();

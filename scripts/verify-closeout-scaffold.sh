@@ -1236,6 +1236,8 @@ echo ""
 echo "Artifacts: $ARTIFACTS"
 
 if [ "$FAIL" -eq 0 ]; then
+  # S183 cold review rec 4: a WARN row must not hide under an "ALL GREEN" headline (the S178 trap).
+  if [ "$WARNS" -gt 0 ]; then echo "GREEN with $WARNS WARN ($PASS pass, 0 fail) — closeout is done; read the WARN rows."; exit 0; fi
   echo "ALL GREEN ($PASS pass, 0 fail) — closeout is done."; exit 0
 else
   echo "RED ($PASS pass, $FAIL fail) — closeout NOT done."; exit 1

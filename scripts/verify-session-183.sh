@@ -127,6 +127,9 @@ cp "$LIB" "$T/lib.keep"; sed -i.bak 's/CODE|DOCUMENT|GROUND_TRUTH|INTERACTIVE)/D
 rm -f "$LIB"; r5=$(stp); cp "$T/lib.keep" "$LIB"
 [ "$r1" = "✗" ] && [ "$r2" = "✗" ] && [ "$r3" = "✓" ] && ok "F105 type missing ✗ · 'code' ✗ · 'CODE' ✓ in vajra next --steps" || bad "F105 missing='$r1' code='$r2' CODE='$r3'"
 [ "$r4" = "✗" ] && [ "$r5" = "✗" ] && ok "F105 the step reads the project's shared helper: edit it to drop CODE → ✗; delete it → ✗" || bad "F105 helper-edited='$r4' no-helper='$r5'"
+cargo test -q --lib session_type_state_is_the_shared_helpers_answer 2>&1 | grep -q 'test result: ok. 1 passed' \
+  && ok "F105 the step's state is the helper's answer: nohelper · noprompt · missing · unknown · declared · none below the rules boundary" \
+  || bad "F105 session_type_state test"
 pos=$( (cd "$P" && vajra next --steps 2>&1) | grep -nE '^  [✓✗] ' | grep -E 'session type|independent review' | cut -d: -f1 | tr '\n' ' ')
 set -- $pos; [ "${1:-0}" -lt "${2:-0}" ] && ok "F105 the type step comes before the review step (lines $pos)" || bad "F105 order '$pos'"
 
