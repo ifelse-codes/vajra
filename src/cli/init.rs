@@ -1594,6 +1594,9 @@ verify:
   exit_zero_required: true
   closeout_script: 'scripts/verify-closeout.sh'
   closeout_must_pass_before_close: true   # fails on a missing/incomplete/REJECT fidelity review (reviewer/SKILL.md)
+  # S183: the close gate runs your lint — the exact command your CI runs — so a branch cannot
+  # close green and then fail CI. `none` = this project has no linter. Unset → a WARN row at every close.
+  # lint_command: cargo clippy --all-targets -- -D warnings
   # The bound (S73): the QA gate re-runs this script LIVE at close; a run past timeout_secs is
   # killed and BLOCKS (cannot-evaluate → FAIL). Missing key → a generous built-in default (600s).
   timeout_secs: 600

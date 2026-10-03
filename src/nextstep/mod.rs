@@ -10,6 +10,8 @@
 //!
 //! It only ever SAYS what is left. Nothing here blocks, writes, or runs a script: a checklist the
 //! agent (and the human) can read is the point, and a gate that already exists does the refusing.
+//! One narrow exception (S183, F105): the session type is read by SOURCING the shared, read-only
+//! `lib-ground-truth.sh` helper the close gates use — a second Rust reading would be a copy that drifts.
 
 use std::path::Path;
 
@@ -85,6 +87,26 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             "the prompt says what this session is for",
             format!("fill the prompt's `## Delta`, then: vajra next --validate {nn}"),
         ),
+    ]
+    .into_iter()
+    // S183 (F105): rudra S16 met the strict `session_type:` rule only at close, after its review was
+    // stamped — adding the line moved the stamp, so it re-stamped. Said here, at the start, instead.
+    // No step for a session below `session_rules_from` (it keeps the old reading).
+    .chain(session_type_state(root, session).map(|state| {
+        let how = if state == "nohelper" {
+            "lib-ground-truth.sh (the helper the close check reads the type with) is missing — run \
+             `vajra init --sync-fleet`"
+                .to_string()
+        } else {
+            format!(
+                "the close check reads `{state}` — put one line under `## Type` in \
+                 prompts/{nn}-task-*.md: `session_type: CODE` (or DOCUMENT | GROUND_TRUTH | \
+                 INTERACTIVE); adding it after the review is stamped means stamping again"
+            )
+        };
+        Step::new(state == "declared", "the prompt says its session type", how)
+    }))
+    .chain([
         Step::new(
             passed("Architect"),
             "the design is recorded (or the prompt says it needs none)",
@@ -186,7 +208,45 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
              the human which ones (e.g. a Vajra sync); only the human pushes main"
                 .replace("NN", &nn),
         ),
+    ])
+    .collect()
+}
+
+/// S183 (F105): how the close gates read session NN's `session_type:` — `declared`, `missing`,
+/// `unknown`, `conflict` or `noprompt` — asked of the ONE shared helper (`vajra_session_type` in
+/// lib-ground-truth.sh: `scripts/` here, `.ai/hooks/` in a project), never re-implemented.
+/// `None` = the session is below `session_rules_from`: it keeps the old reading and gets no step.
+/// `nohelper` = no helper found; no bash reads as `missing` — either way the step stays open, as
+/// the close gate would fail too.
+fn session_type_state(root: &Path, session: u32) -> Option<String> {
+    if session < crate::approval::rules_from(root).0 {
+        return None;
+    }
+    let Some(lib) = [
+        "scripts/lib-ground-truth.sh",
+        ".ai/hooks/lib-ground-truth.sh",
     ]
+    .iter()
+    .map(|p| root.join(p))
+    .find(|p| p.is_file()) else {
+        return Some("nohelper".into());
+    };
+    let state = std::process::Command::new("bash")
+        .arg("-c")
+        .arg(r#". "$1" && vajra_session_type "$2" "$3" && printf '%s' "$VAJRA_TYPE_STATE""#)
+        .arg("vajra")
+        .arg(&lib)
+        .arg(session.to_string())
+        .arg(root)
+        .stdin(std::process::Stdio::null())
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+        .unwrap_or_default();
+    Some(if state.is_empty() {
+        "missing".into()
+    } else {
+        state
+    })
 }
 
 /// True when a prompt file for `session` exists (`prompts/NN-task-*.md`, padded like everything
@@ -356,6 +416,44 @@ mod tests {
     use super::*;
     use std::fs;
     use tempfile::TempDir;
+
+    /// S183 (F105, cold review rec 6): the session-type step names what the close check reads —
+    /// through the real shared helper, so each state is the helper's answer, not a Rust guess.
+    #[test]
+    fn session_type_state_is_the_shared_helpers_answer() {
+        let d = repo();
+        let r = d.path();
+        fs::create_dir_all(r.join(".ai")).unwrap();
+        fs::create_dir_all(r.join("scripts")).unwrap();
+        fs::write(
+            r.join(".ai/CONSTRAINTS.yaml"),
+            "session:\n  session_rules_from: 2\n",
+        )
+        .unwrap();
+        let prompt = r.join("prompts/02-task-x.md");
+        assert_eq!(
+            session_type_state(r, 2).as_deref(),
+            Some("nohelper"),
+            "no helper on disk"
+        );
+        fs::write(
+            r.join("scripts/lib-ground-truth.sh"),
+            include_str!("../../scripts/lib-ground-truth.sh"),
+        )
+        .unwrap();
+        assert_eq!(session_type_state(r, 2).as_deref(), Some("noprompt"));
+        fs::write(&prompt, "## Type\n- CODE\n").unwrap();
+        assert_eq!(session_type_state(r, 2).as_deref(), Some("missing"));
+        fs::write(&prompt, "## Type\nsession_type: code\n").unwrap();
+        assert_eq!(session_type_state(r, 2).as_deref(), Some("unknown"));
+        fs::write(&prompt, "## Type\nsession_type: CODE\n").unwrap();
+        assert_eq!(session_type_state(r, 2).as_deref(), Some("declared"));
+        assert_eq!(
+            session_type_state(r, 1),
+            None,
+            "below session_rules_from: no step"
+        );
+    }
 
     fn repo() -> TempDir {
         let d = TempDir::new().unwrap();

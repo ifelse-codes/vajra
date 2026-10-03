@@ -40,7 +40,10 @@ type vajra_waiver_ok >/dev/null 2>&1 || vajra_waiver_ok() { WAIVER_NOTE=""; retu
 
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 ARTIFACTS=".ai/verify/closeout/${TS}"
-mkdir -p "$ARTIFACTS"
+# S183 (F106): `--inputs-sha` only prints a hash — it left an empty dated folder in the close logs on
+# every call (rudra S16 had one beside its real runs). Every other mode writes its logs here.
+# Its one internal check (the session number) logs to a temp folder, removed on exit.
+if [ "${1:-}" = "--inputs-sha" ]; then ARTIFACTS="$(mktemp -d)" || exit 1; trap 'rm -rf "$ARTIFACTS"' EXIT; else mkdir -p "$ARTIFACTS"; fi
 
 PASS=0; FAIL=0; RESULTS=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
@@ -190,6 +193,18 @@ check_cargo_fmt() {
     echo "OK: cargo fmt --check exits 0 (formatting clean)" >> "$LOG"; ok "$NAME"
   else
     echo "FAIL: run \`cargo fmt\` to fix formatting, then re-run verify-closeout." >> "$LOG"; bad "$NAME"
+  fi
+}
+
+# S183 (F101): S182 closed green here, then CI failed clippy — the close gate never ran it, and the
+# local clippy was older than CI's. scripts/ci-lint.sh is the ONE lint command CI runs too; it
+# names the toolchain and FAILS when it is not the one rust-toolchain.toml pins.
+check_cargo_clippy() {
+  local NAME="cargo-clippy-clean"; local LOG="$ARTIFACTS/${NAME}.log"
+  if bash scripts/ci-lint.sh > "$LOG" 2>&1; then
+    echo "OK: scripts/ci-lint.sh exits 0 (CI's clippy, on the pinned toolchain)" >> "$LOG"; ok "$NAME"
+  else
+    echo "FAIL: fix what scripts/ci-lint.sh reports above (the same check CI runs), then re-run verify-closeout." >> "$LOG"; bad "$NAME"
   fi
 }
 
@@ -1347,6 +1362,7 @@ check_session_pair
 check_roadmap_current
 check_cost_tracking
 check_cargo_fmt
+check_cargo_clippy
 check_execution_shas
 check_session_type
 check_verify_demo_scripts

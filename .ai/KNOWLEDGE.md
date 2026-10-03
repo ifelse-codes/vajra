@@ -350,3 +350,10 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **The approvals guard (S182) supersedes the S181 fact above:** a plain read passes (`2>&1`, `>&N`, `/dev/null` are non-writes). A command naming the folder (any case, quotes removed, or a `cd` into `.ai`) still blocks on any other redirect, a file-writing tool, or an interpreter, even a heredoc that only mentions it. Write such files with the Write/Edit tools. Commit-message text naming the folder trips it too (S173 class).
 - **`>&word` with a non-digit word is a file write, not an fd dup.** A strip of "harmless" redirects must be anchored on its right, or `>&1/../x` slips through.
 - **"Only add" for a guard is checked, not stated:** `tests/approvals_guard.rs` runs every listed command through the previous hook from git and the new one. It covers only the listed spellings.
+
+## S183 — toolchain and CI facts (permanent)
+- **Vajra's Rust version lives in ONE file: `rust-toolchain.toml`** (`channel = "1.99.0"`, clippy + rustfmt). rustup obeys it in the repo; CI/Release run `rustup toolchain install` (no args — reads the file; needs rustup ≥ 1.28) instead of `dtolnay/rust-toolchain@stable`. A pinned `1.99.0` is a different rustup toolchain from `stable`, even at the same version — a fresh machine downloads it once. Bumping Rust = edit that file + fix any new lints in the same commit.
+- **`scripts/ci-lint.sh` is the one lint command** (CI + `verify-closeout.sh` `cargo-clippy-clean`). It FAILS when the running rustc is not the pinned version (`RUSTUP_TOOLCHAIN` or a non-rustup cargo ignores the file).
+- **Linux `/bin` is `/usr/bin`** on GitHub's ubuntu runners (merged /usr), and jq is installed there; macOS `/usr/bin` also ships jq. A test that wants "no jq" must build its own PATH (F102).
+- **GitHub cancels the sibling matrix job when one fails** (fail-fast): a "cancelled" macOS job is not its own failure — read the job that failed.
+- **`vajra init` reads its answers from stdin** — piping answers in is a supported use (demo-session-08/09/143); a caller that leaves stdin open and silent hangs it (F103, open).

@@ -21,12 +21,13 @@ jobs:
           # Full history: the demo-template tests read shipped versions out of git (S167 list,
           # S168 StaleRender); a depth-1 clone has `.git` but not those commits, and they fail.
           fetch-depth: 0
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
+      # S183 (F101): the toolchain comes from rust-toolchain.toml (the one pinned version), not
+      # a moving `@stable` — so CI's clippy is the clippy the close gate ran.
+      - run: rustup toolchain install
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --check
       # S171 cold review rec 6: --all-targets, or a warning inside a #[cfg(test)] module
-      # (a duplicated #[test] attribute, in that review) sails past CI unseen.
-      - run: cargo clippy --all-targets -- -D warnings
+      # (a duplicated #[test] attribute, in that review) sails past CI unseen. S183: the command
+      # lives in scripts/ci-lint.sh, which the close gate runs too.
+      - run: bash scripts/ci-lint.sh
       - run: cargo test

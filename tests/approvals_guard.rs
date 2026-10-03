@@ -185,15 +185,35 @@ fn vajras_own_hooks_call_the_guard() {
 }
 
 /// S182 review rec 3: without jq the guard advises at L1 (like every other shipped hook) and still
-/// fails closed at L2. PATH=/bin holds bash but not jq.
+/// fails closed at L2.
+/// S183: PATH=/bin was "no jq" only on macOS — on Linux /bin IS /usr/bin, where GitHub's runners have
+/// jq, so this failed CI from S182's merge on. PATH is now a folder of links to every tool in /bin and
+/// /usr/bin except jq, and the test first proves jq is not found there.
 #[test]
 fn no_jq_advises_at_l1_and_blocks_at_l2() {
     let m = Path::new(env!("CARGO_MANIFEST_DIR"));
     let proj = tempfile::tempdir().unwrap();
+    let nojq = tempfile::tempdir().unwrap();
+    for dir in ["/bin", "/usr/bin"] {
+        for e in std::fs::read_dir(dir).unwrap().flatten() {
+            let name = e.file_name();
+            let link = nojq.path().join(&name);
+            if name != "jq" && !link.exists() {
+                std::os::unix::fs::symlink(e.path(), link).unwrap();
+            }
+        }
+    }
+    let path = nojq.path().to_str().unwrap();
+    let found = Command::new("/bin/bash")
+        .args(["-c", "command -v jq"])
+        .env("PATH", path)
+        .output()
+        .unwrap();
+    assert!(!found.status.success(), "the no-jq PATH still finds jq");
     for (level, want) in [("L1", 0), ("L2", 2)] {
         let code = Command::new("/bin/bash")
             .arg(m.join("scripts/hook-approvals-guard.sh"))
-            .env("PATH", "/bin")
+            .env("PATH", path)
             .env("CLAUDE_PROJECT_DIR", proj.path())
             .env("VAJRA_GUARD_MATURITY", level)
             .stdin(Stdio::null())

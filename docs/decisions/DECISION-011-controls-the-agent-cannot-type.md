@@ -95,3 +95,40 @@ hook group (a pre-S93 Bash group) gets only its missing entries, so `--sync-flee
 (`.ai/a*/x` onto an existing file) gets past the guard; still bar-raising, not tamper-proof. The settings
 rewrite keeps the project's key order (serde_json `preserve_order`, founder yes 2026-10-01), so the diff in a
 project shows only what Vajra added.
+
+## S183 addendum — the close check lints like CI, on CI's toolchain (2026-10-03)
+
+**Why here:** this record's rule — a project switch is one strict field in `.ai/CONSTRAINTS.yaml`, read by
+exact key, never worked out from prose or YAML text — is what the scaffold half of this fix borrows. No
+record covered the toolchain, so it is written here rather than in a new DECISION.
+
+**Problem (F101).** S182 closed green on its branch, then CI failed `cargo clippy --all-targets -- -D
+warnings` (clippy 1.99, `useless_format`). The close gate ran only `cargo fmt --check`, and the local clippy
+was older than CI's moving `dtolnay/rust-toolchain@stable`. Adding the command alone would not have caught
+it: the same command on the older clippy passes.
+
+1. **One toolchain, written once.** `rust-toolchain.toml` pins `channel = "1.99.0"` (+ clippy, rustfmt).
+   rustup obeys it locally; CI and Release run `rustup toolchain install`, which reads the same file (Release
+   adds `rustup target add <target>`). No version number in any YAML. Moving to a newer Rust is one edit to
+   that file, with any new lints fixed in the same commit.
+2. **One lint command.** `scripts/ci-lint.sh` prints `rustc -V` / `cargo clippy -V`, FAILS when the running
+   rustc is not the pinned version (a cargo outside rustup or a `RUSTUP_TOOLCHAIN` override ignores the file),
+   FAILS on a missing file or a non-exact channel, then runs `cargo clippy --all-targets -- -D warnings`.
+   CI runs it; Vajra's close gate runs it as `cargo-clippy-clean`.
+3. **A project names its lint.** The scaffold gate reads `lint_command:` from `.ai/CONSTRAINTS.yaml`: set →
+   run it, FAIL on non-zero (waivable like the other checks); `none` → N/A; missing → a WARN row in the
+   results table that names the line to add. Never derived from CI files or from which files exist (S177).
+   These two new rows (`project-lint-clean`, and `obeyed-judgments` for F104) show WARN and N/A as themselves,
+   not under PASS (the S178 trap); the scaffold's older log-only N/A/WARN paths still record PASS (cold review). New scaffolds carry the
+   line commented out; existing projects add it themselves (Vajra never edits their CONSTRAINTS).
+
+**Rejected:** comparing the local version against "CI's" (with `@stable` nothing records CI's version — a
+network call or a hand-kept copy); `dtolnay@master` with `toolchain: 1.99.0` beside the toml (two copies);
+`rustup update` inside the gate (network, changes the founder's machine, still a race); command + logged
+version only (leaves the S182 gap); the per-session verify script for project lint (opt-in every session);
+guessing the lint from CI YAML or `Cargo.toml` (S177).
+
+**Fakest green — stated where a reader will see it:** the agent can type `lint_command: true` or `none`
+(only the diff shows it); "matches CI" means "clean on the pinned version", not on today's stable — the pin
+ages until someone bumps it; `#[allow(clippy::…)]` still silences any lint. **Not checked live:** the
+Release workflow's `rustup toolchain install && rustup target add` runs only on a tag (CI's runs on the PR).
