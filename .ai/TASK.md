@@ -9,7 +9,7 @@
 ## Session 183 — INTERACTIVE: rudra S16 under the new rules, and F101 — COMPLETE
 
 - Brief: `prompts/183-task-rudra-s16-new-rules.md`. Summary: `sessions/session-183-summary.md`. Review: `sessions/session-183-review.md`. Decision: DECISION-011 S183 addendum. PR #220.
-- Shipped: F101 one pinned toolchain (`rust-toolchain.toml`) + one lint script (`scripts/ci-lint.sh`) run by CI and both close gates, `lint_command:` for projects · F102 main's red CI since #219 · F104 unchecked obeyed claims WARN with the count · F105 session type named at the start · F106 no empty close folder. Verify 23/23 · demo 6/6.
+- Shipped: F101 one pinned toolchain (`rust-toolchain.toml`) + one lint script (`scripts/ci-lint.sh`) run by CI and both close gates, `lint_command:` for projects · F102 main's red CI since #219 · F104 unchecked obeyed claims WARN with the count · F105 session type named at the start · F106 no empty close folder. Verify 24/24 · demo 6/6.
 - **Asked, not built:** F103 (`vajra init` waits on a silent open stdin — a "no terminal → defaults" fix breaks piped answers), F107 (obeyed WARN text quotes Vajra's session 132 to projects), F108 (`--ledger`/`--ledger-verify` leave empty folders) → S184's prompt, from the founder's calls.
 
 ## Session 182 — CODE, interactive: ship S181's controls into existing projects — COMPLETE
