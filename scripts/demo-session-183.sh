@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Session 183 demo — a close that is green means CI is green too (F101: one pinned toolchain, one lint
+# Session 183 demo — the close check runs CI's lint on CI's Rust version (F101: one pinned toolchain, one lint
 # script, both close gates run it), plus four fixes from the founder's rudra session 16 (F102 main's red
 # CI, F104 unchecked "obeyed" claims shown as WARN, F105 the session-type step at the start, F106 no
 # empty close folders). Drawn with scripts/demo-kit.sh (DECISION-009/010): every claim runs live; the
@@ -68,7 +68,7 @@ folders_after() {
 slide_headline() {
   dk_section headline "session $SESSION · what shipped"
   dk_vajra_tiles "$SESSION" "FIXES|5|F101 F102 F104 F105 F106"
-  dk_h1 "A green close now means " "a green CI" " — one Rust version, one lint, everywhere."
+  dk_h1 "The close check now runs " "CI's lint" " on CI's exact Rust version."
   dk_verdict "WHAT CHANGED, IN ONE BREATH" \
     "Old: S182 closed green, then GitHub failed its lint — your machine had an older clippy, and the close check never ran clippy at all. In rudra, 34 'I obeyed the advice' claims passed unchecked under a PASS." \
     "New: one file pins Rust for your machine and CI; the close check runs CI's own lint script and names the version. Unchecked claims show as WARN with the count. The session-type rule shows at the start."

@@ -118,7 +118,8 @@ it: the same command on the older clippy passes.
 3. **A project names its lint.** The scaffold gate reads `lint_command:` from `.ai/CONSTRAINTS.yaml`: set →
    run it, FAIL on non-zero (waivable like the other checks); `none` → N/A; missing → a WARN row in the
    results table that names the line to add. Never derived from CI files or from which files exist (S177).
-   WARN and N/A now show as themselves in the table, not under PASS (the S178 trap). New scaffolds carry the
+   These two new rows (`project-lint-clean`, and `obeyed-judgments` for F104) show WARN and N/A as themselves,
+   not under PASS (the S178 trap); the scaffold's older log-only N/A/WARN paths still record PASS (cold review). New scaffolds carry the
    line commented out; existing projects add it themselves (Vajra never edits their CONSTRAINTS).
 
 **Rejected:** comparing the local version against "CI's" (with `@stable` nothing records CI's version — a
