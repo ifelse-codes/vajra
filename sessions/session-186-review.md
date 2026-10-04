@@ -245,5 +245,3 @@ rec 6 — Add to DECISION-011's limits that here-strings need a writable temp di
 - pass 5, rec 6: obeyed: 6417b01 (no here-strings left: every check is `printf | grep -c >/dev/null`, which needs no temp file; recorded in DECISION-011)
 
 **Verdict:** ACCEPT
-
-**Review-Inputs-SHA:** fcaa29918f85a17ef466c6d138ea7e771022162b8f3c9740226f6d90bad601cd
