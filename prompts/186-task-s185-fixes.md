@@ -111,10 +111,10 @@ Cut line (prompt guardrail): if step 8 is not green with its corpus by ~1h30, sh
 - step 5 — done: 4c34e51
 - step 6 — done: 3a4fca9
 - step 7 — done: 3a4fca9
-- step 8 — done: 3a4fca9
+- step 8 — done: 1409a3c
 - step 9 — done: 9dcec17
 - step 10 — done: 2c0b576
-- step 11 — done: ef560a6
+- step 11 — done: fe1ed46
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required), `fidelity-reviewer` (required;
@@ -122,9 +122,9 @@ the one cold close review), `release-coordinator` (required; the one judge of ev
 implementation-advisor: skipped — the tech-lead deferred it on budget (its rec 2): a guard-code dispatch reads the shell scripts, about 1.5M tokens, and the AC3 corpus test (every command the S182 guard blocked, run through both guards) stands in for its review of F110 (b).
 
 **tech-lead** (`.ai/handoffs/session-186-tech-lead.md`):
-- tech-lead rec 1 — obeyed: 4c34e51 (order kept: F114 0dd33f1 and N1 c6bbeb9 first, F113 62bfe63 with the F115 fixture 4c34e51, then the guard 3a4fca9, the merge 9dcec17; F110 (b) finished inside the cut line, no split)
-- tech-lead rec 2 — obeyed: ef560a6 (no implementation-advisor dispatch; the reasoned skip line is in this section, and the guard took one build pass against the corpus)
-- tech-lead rec 3 — obeyed: 3a4fca9 (the corpus and `every_command_the_s182_guard_blocked_still_blocks` were written and run red before the guard changed; the only allowed differences are `reads()`; the scaffold ships the same bytes via include_str!)
+- tech-lead rec 1 — refused: in part — F114 → N1 → F113 with F115 landed in the asked order (0dd33f1, c6bbeb9, 62bfe63, 4c34e51), but F110 (b) landed in the same commit as S182 recs 1/5 (3a4fca9) and before rec 2 (9dcec17), so the clean cut the rec wanted was never available; it did not matter because (b) finished inside the cut line (cold review pass 1, probe 5).
+- tech-lead rec 2 — obeyed: ac1b5da (no implementation-advisor dispatch; the reasoned skip line is in this section. Its second half — "more than one review pass on (b) → split" — was weighed after pass 1 REJECT: the three holes were small and concrete, so they were fixed in 1409a3c with one fresh pass, as its rec 5 allows, rather than split)
+- tech-lead rec 3 — refused: in part — the corpus was written and run red before the guard changed (in-session only: corpus and guard share commit 3a4fca9, so history cannot show the order), and "every command e1c348e blocks" is not a set a test can enumerate. The test is now named for what it proves, a listed corpus (`every_listed_command_the_s182_guard_blocked_still_blocks`, 1409a3c), and the cold review's three missed classes were added to it.
 - tech-lead rec 4 — obeyed: 651d174 (the design-advisor brief named the files and asked "do the picks fit the code", not a redesign)
 - tech-lead rec 5 — deferred: sessions/session-186-review.md
   why: the one cold fidelity review runs at close on the finished branch; its verdict and the live re-runs it did are recorded in that file.
@@ -138,7 +138,7 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - design-advisor rec 4 — obeyed: cfd7f86 (demo-132's subject declares the key, and its case 7 records a real tech-lead — it had the same S135 staleness as F115; demo-132 green 8/8. The kept phrases are unchanged)
 - design-advisor rec 5 — obeyed: 596db24 (only "(threshold N)" removed; "predates the design-advisor mandate" kept; verify-133's wording check and its rename probe updated in the same commit)
 - design-advisor rec 6 — obeyed: 3a4fca9 (redirects found on the de-quoted copy; the target read from both copies at the same `>`; any difference, quote or backslash in the written one blocks)
-- design-advisor rec 7 — obeyed: 3a4fca9 (no/empty `cwd` blocks; a symlinked or hard-linked last component blocks; `cd -P` resolves the existing part as the kernel would — symlinks are FOLLOWED, not refused, because refusing them blocks every `/tmp` target on macOS; a `..` past a missing folder blocks. Tested in `a_linked_target_or_a_missing_cwd_is_not_provable`)
+- design-advisor rec 7 — refused: in part — its core ask (refuse a symlink in any path component) was not built: refusing every symlink blocks every `/tmp` target on macOS (`/tmp` → `/private/tmp`), including AC3's own read. Built instead (3a4fca9): `cd -P` resolves the existing part as the kernel would, so a symlink is FOLLOWED to where the write really goes; a symlinked or hard-linked last component, a `..` past a missing folder, and no/empty `cwd` block (`a_linked_target_or_a_missing_cwd_is_not_provable`). Recorded in DECISION-011's S186 addendum.
 - design-advisor rec 8 — obeyed: 3a4fca9 (heredoc bodies and quoted text are scanned; `> quote` in a body resolves to a harmless literal)
 - design-advisor rec 9 — obeyed: 3a4fca9 (new writers and shells match only at a command start or after a wrapper; the S182 lists are unchanged; a commit message naming `hook-approvals-guard.sh` and "source" is in the corpus and passes)
 - design-advisor rec 10 — obeyed: 3a4fca9 (bash 3.2 + BSD tools only: `tr`, `cd -P`, `ls -ld`, awk with ENVIRON; the guard tests pass under `/bin/bash` 3.2.57 and bash 5)
@@ -147,6 +147,16 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - design-advisor rec 13 — obeyed: 4c34e51 (the fixture records a real, provenance-verified tech-lead; the brief's skip-line option removed in ef560a6)
 - design-advisor rec 14 — obeyed: ef560a6 (DECISION-007 S186 addendum names the deviation against the S133 addendum §6 and the S134 rejection, with the opt-out limit)
 - design-advisor rec 15 — obeyed: ef560a6 (DECISION-011 S186 addendum: follows S183's strict-key rule, amends S182 §2, reverses its over-block sentence, corrects "never lists a hook twice")
+
+**fidelity-reviewer** (`.ai/handoffs/session-186-fidelity-reviewer.md`; pass 1 REJECT 12/15 — its recs are answered here; pass 2's handoff replaces pass 1's, both are in `sessions/session-186-review.md`):
+- fidelity-reviewer rec 1 — obeyed: 1409a3c (a backslash-newline is joined first, as the shell does; P1 in `s186_writes()`)
+- fidelity-reviewer rec 2 — obeyed: 1409a3c (awk, gawk, mawk, nawk, editors, sqlite3, php, lua and similar block at a command start while naming the folder; P2 in the corpus)
+- fidelity-reviewer rec 3 — obeyed: 1409a3c (`cd`/`pushd`/`popd`/`chdir` after any non-letter, and a command word holding `$`, a backtick or `{`, count as a directory change; zsh `>!` read as `>|`; P3 in the corpus)
+- fidelity-reviewer rec 4 — obeyed: 1409a3c (command starts after `if`/`while`/`then`/`do`/`!`/`{` and `NAME=value`; `.`; `git` with any options before the subcommand; `curl -o<path>`; plus `sponge`)
+- fidelity-reviewer rec 5 — obeyed: a20c94b (DECISION-011 says "every LISTED command" and names the three found classes and the open "a writer no list names" class; the test renamed in 1409a3c)
+- fidelity-reviewer rec 6 — obeyed: fe1ed46 (tech-lead recs 1 and 3 and design rec 7 are now `refused: in part` with reasons; tech-lead rec 2 re-cited to ac1b5da — this section, landed after fe1ed46)
+- fidelity-reviewer rec 7 — obeyed: fe1ed46 (SESSION-BOOT names S187 next and S186 as CODE; `prompts/187-task-rudra-s18-new-guard.md` exists; step 11 re-pointed to fe1ed46)
+- fidelity-reviewer rec 8 — obeyed: 1409a3c (a hook `cwd` inside `.ai/approvals` counts as naming it; `a_cwd_inside_the_folder_blocks_a_redirect`)
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
