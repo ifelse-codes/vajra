@@ -1,6 +1,6 @@
 # Session 184 — rudra session 17 under the new rules, plus F103 / F107 / F108
 
-> **Status:** DRAFT — written by the S183 agent from the founder's pick (option A, 2026-10-03: "A . and yes F103 fix, F107 fix, F108 fix"). He approves it with `vajra approve 184` in his own terminal; the gate reads the approval record, not this line.
+> **Status:** APPROVED (`vajra approve 184`, the founder's own terminal) — written by the S183 agent from the founder's pick (option A, 2026-10-03: "A . and yes F103 fix, F107 fix, F108 fix"). He approves it with `vajra approve 184` in his own terminal; the gate reads the approval record, not this line.
 
 ## Type
 session_type: INTERACTIVE
@@ -51,13 +51,48 @@ Read every close log for `WAIVED`, `N/A` and `WARN` FIRST, never just PASS (S178
 4. `verify-closeout.sh` exits 0 on the branch before merge (it now runs `scripts/ci-lint.sh`, so the branch's CI should match); one fresh cold review at close.
 
 ## Design
-design-significant: _to be decided by the design-advisor once the findings are known (F103's wait time and default rule is a behaviour choice to record)_
+design-significant: yes
+
+Cites `docs/decisions/DECISION-007-agent-fleet.md`, S134 addendum ("the migration threshold is measured in the wrong units"). Design-advisor handoff: `.ai/handoffs/session-184-design-advisor.md`. No new decision record: F103 is one constant and one rule, easy to undo (design-advisor rec 3).
+
+- **F103 — the one design call.** A terminal is read exactly as before (a blocking line, no timer). Any other stdin is read by ONE reader thread shared by all three questions; each answer waits at most 10 s (`PIPED_ANSWER_WAIT`). The first silence or end of input gives that question and every later one its default, each named on stderr; a late line is dropped. Why: every in-repo script pipes its answers at once, so 10 s is generous; stopping at the first silence caps the hang at 10 s in total; dropping the late line stops it landing on the wrong question.
+  Rejected: "not a terminal → defaults" (breaks demo-session-08/09/143 and verify-session-46/143) · a thread per question (a stuck read cannot be cancelled and steals the next answer) · poll/select on stdin (Unix-only) · a `--defaults` flag (still hangs for anyone who forgets it).
+  Known cost: a person typing into a non-terminal stdin (some IDE run panels) who pauses 10 s gets defaults — printed, so it is visible.
+- **F107 — wording only, and it DEVIATES from the cited record.** The session-132 threshold still counts the PROJECT's own sessions, so a project reaching its own session 132 starts BLOCKING unchecked `obeyed:` claims, against the founder's 2026-10-03 "not a blocking gate for projects". The warning now says "does not block on them in this session" — true, and it no longer promises more. Named, not closed: the founder (2026-10-04) calls it an issue to fix — **F113, first on the S185 ground-truth list**, fix after it.
+- **F108 — a pure fix.** The read-only `--ledger` / `--ledger-verify` log to a temp folder removed on exit, exactly as S183's F106 did for `--inputs-sha`.
+
+## Findings (founder calls — evidence in `sessions/session-184-summary.md`)
+- **F103 / F107 / F108** — founder yes before the session (2026-10-03). Fixed.
+- **F109** rudra S17's agent started a 4-thread download script against NSE before the terms check came back (403 at once, 0 files) — founder 2026-10-04: not what Vajra is for, at least in its current shape; rudra's / the agent's job. Recorded only.
+- **F110** the approvals guard false-blocks a command whose TEXT names the approvals folder next to a redirect (a heredoc counts) — hit three times on 2026-10-04 (once in rudra S17, twice in this session) — founder: fix, planned → the S185 ground-truth list with S182's parked guard recs.
+- **F111** rudra's own clippy fails (`research::trust`) and fmt differs in 5 files; rudra has no `lint_command:` so its close ran no lint (the WARN row said so) — founder: rudra's thing, Vajra stays out.
+- **F112** rudra's verify took 944–1,010 s against the 600 s bound (one target dir compiled twice); rudra fixed it (28–73 s) — founder: rudra's thing.
+- **F113** (design-advisor rec 2) the obeyed threshold counts a project's sessions in Vajra's numbering, so a project's own session 132 starts blocking — founder 2026-10-04: an issue, we fix it → S185 list first, then a fix session.
+- **`cargo test` in Vajra's close** — founder 2026-10-04: no. Nothing built.
 
 ## Plan
-_(written with the plan-advisor after the findings are listed; every step cites `covers: N`.)_
+1. Approval record, the brief with the founder's no-real-F104 decision, and the tech-lead handoff. — covers: 1
+2. F108: `--ledger` / `--ledger-verify` leave no empty dated close folder, in both close scripts. — covers: 2
+3. F107: the obeyed WARN names no Vajra session number. — covers: 2
+4. F103: `vajra init` waits 10 s per answer on a silent pipe, then uses the defaults. — covers: 2
+5. `scripts/verify-session-184.sh`: 14 real-run checks, each red at e1c348e and green now. — covers: 2
+6. Findings table F103, F107, F108 and F109–F113, each with evidence and the founder's call; the `cargo test` question closed with nothing built; the diff shows no Vajra commit touches rudra. — covers: 1, 3
+7. Settle `## Design` (design-significant: yes, F103's rule; F107's deviation named). — covers: 4
+8. Demo script, plus the summary with 3 next options. — covers: 1
+9. Closeout sync: the `.ai` files, and ROADMAP with F110 and F113 on the S185 list. — covers: 1, 4
+10. Next prompt, from the founder's pick (S185 ground truth). — covers: 4
+11. `verify-closeout.sh` exits 0 on the branch before merge; one fresh cold review; the `--inputs-sha 184` stamp goes on last. — covers: 4
+
+Cut line (plan-advisor): nothing in steps 6–11 can be dropped; if the cap runs out, the demo re-runs verify-184's real runs and adds nothing new.
 
 ## Execution
-_(step N — done: <sha> as work lands.)_
+- step 1 — done: 6702ee5
+- step 2 — done: b6c15c8
+- step 3 — done: 84674c8
+- step 4 — done: a3bcc64
+- step 5 — done: 3170809
+- step 7 — done: a0c1417
+- step 8 — done: 8525237
 
 ## Guardrails
 - No autonomous commits: the founder runs them, or launches with `VAJRA_ALLOW_COMMIT=184`.

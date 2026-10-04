@@ -145,7 +145,7 @@ slide_next() {
   dk_h2 "Next"
   dk_table " |Option|Why pick it · the risk" \
     "A|S185 ground truth — the review-only session (due now)|every 5th session; F110 and S182's parked guard recs are on its list · risk: no code, it may say 'rethink'" \
-    "B|F67: the receipt reads the tool's own cost|rudra S17 read ~\$110 for ~2h40m, ~5× real · risk: Claude Code may not expose it" \
+    "B|F67: the receipt reads the tool's own cost|rudra S17 read ~\$110, ~5× real · risk: Claude Code may not expose it" \
     "C|the non-Claude tools brainstorm (F91, F94, F95)|parked since S179 · risk: a design session, nothing a user runs yet"
   dk_table "word|meaning" \
     "pipe|input fed to a program from another program, not typed by a person" \
