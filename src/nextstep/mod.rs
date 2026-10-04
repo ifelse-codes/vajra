@@ -89,9 +89,9 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         ),
     ]
     .into_iter()
-    // S187 (S185 N4): the Analyst step above stays open with no approval record, and its "how"
-    // speaks of the Delta — so the founder said "approved" in chat and nothing named the record. Its
-    // own step, from the session the records apply to (below it, the brief's words still count).
+    // S187 (S185 N4): no step named the approval record — the founder said "approved" in chat and
+    // the list stayed silent (the Analyst station passes on a substantive Delta alone). Its own step,
+    // from the session the records apply to (below it, the brief's words still count).
     .chain((session >= crate::approval::rules_from(root).0).then(|| {
         Step::new(
             crate::approval::approved(root, session).is_some(),

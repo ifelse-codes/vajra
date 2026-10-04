@@ -1,8 +1,8 @@
 # Vajra — Working Roadmap
 
 **Where things stand now:** `.ai/SESSION-BOOT.md`, or run `vajra next --steps`. This file keeps no
-"current session" line on purpose — the hand-typed one that stood here named S166 for twenty
-sessions (S185 N6; removed S187). Where a session is up to is derived from git and `.ai/`, never re-typed.
+"current session" line on purpose — the hand-typed one that stood here went stale for twenty
+sessions before a ground truth caught it. Where a session is up to is derived from git and `.ai/`, never re-typed.
 
 ## Session notes, S121–S166 (history — kept as written, not kept current)
 
