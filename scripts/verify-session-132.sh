@@ -88,6 +88,8 @@ build_subject() {
       && git checkout -q -b "session-${SESS}-fixture" ) || return 1
   mkdir -p "$TMP/.ai/handoffs" "$TMP/prompts"
   echo "$SESS" > "$TMP/.ai/SESSION"
+  # S186 (F113): blocking is declared, never built in — this subject declares it as Vajra does.
+  [ "${NO_KEY:-0}" = 1 ] || printf 'session:\n  obeyed_blocks_from: 132\n' > "$TMP/.ai/CONSTRAINTS.yaml"
   local SHA; SHA="$( cd "$TMP" && git rev-parse --short=7 HEAD )"
   cat > "$TMP/prompts/${SESS}-task-fixture.md" <<PROMPT
 # Session ${SESS} — fixture
@@ -240,6 +242,24 @@ pre_threshold_warns_and_names_the_exemption() {
   grep -q "warning, not blocking" <<<"$OUT" || { echo "FAIL: no per-item warning"; rc=1; }
   grep -q "names them but does not block on them" <<<"$OUT" \
     || { echo "FAIL: the exemption is not disclosed in the output"; rc=1; }
+  # S186 (F113): the warning says WHY it does not block — here, the declared key.
+  grep -q "blocks on them only from session 132 (\`obeyed_blocks_from: 132\`" <<<"$OUT" \
+    || { echo "FAIL: the warning does not say why it does not block (the declared key)"; rc=1; }
+  rm -rf "$TMP"
+  # No key at all (every `vajra init` project): session 132 warns, never blocks, and says why.
+  TMP="$(real_tmpdir)"
+  NO_KEY=1 build_subject "$TMP" 132 >/dev/null || { rm -rf "$TMP"; return 1; }
+  OUT="$( cd "$TMP" && "$VAJRA" next --check-obeyed 132 2>&1 )"; code=$?
+  echo "--- no key, session 132: exit=$code"
+  [ "$code" -eq 0 ] || { echo "FAIL: with no obeyed_blocks_from: a project's session 132 blocked (exit $code)"; rc=1; }
+  grep -q "does not block on unchecked \`obeyed:\` claims (no \`obeyed_blocks_from:\` in .ai/CONSTRAINTS.yaml)" <<<"$OUT" \
+    || { echo "FAIL: the no-key warning does not say why"; rc=1; }
+  # A malformed key BLOCKS and names its line — never a quiet default.
+  printf 'session:\n  obeyed_blocks_from: x\n' > "$TMP/.ai/CONSTRAINTS.yaml"
+  OUT="$( cd "$TMP" && "$VAJRA" next --check-obeyed 132 2>&1 )"; code=$?
+  echo "--- obeyed_blocks_from: x: exit=$code"
+  [ "$code" -eq 1 ] || { echo "FAIL: a malformed key did not block (exit $code)"; rc=1; }
+  grep -q "CONSTRAINTS.yaml line 2" <<<"$OUT" || { echo "FAIL: the malformed key's line is not named"; rc=1; }
   rm -rf "$TMP"; return $rc
 }
 run_check "pre-threshold-warns-and-names-the-exemption" exec pre_threshold_warns_and_names_the_exemption
@@ -297,14 +317,19 @@ historical_specimen_127_is_joined_and_binds() {
 run_check "s127-specimen-joins-and-drives-the-exit-code" exec historical_specimen_127_is_joined_and_binds
 
 # --- 7. the gate really BINDS `--advance`, with every other stage neutralised -----------------------
-advance_binds_the_close_path() {
-  local TMP; TMP="$(real_tmpdir)"; local rc=0 OUT SHA
+# S186 (F115): red since S135 — the Crew gate (no env override, by design) refused first, so this
+# never reached the Obeyed gate. The fixture now records a REAL tech-lead (provenance from a
+# dispatch fixture, every role deferred-budget) so the Obeyed gate gets its turn, and tests both
+# sides of F113: the key declared → blocks; no key (every `vajra init` project) → warns, advances.
+build_advance_fixture() {   # TMP PROJROOT KEY(yes|no) — echoes nothing; returns non-zero on setup failure
+  local TMP="$1" PROJROOT="$2" KEY="$3" SHA
   ( cd "$TMP" && git init -q . && git config user.email t@t && git config user.name t \
-      && "$VAJRA" init >/dev/null 2>&1 </dev/null ) || { echo "FAIL: init"; rm -rf "$TMP"; return 1; }
+      && "$VAJRA" init >/dev/null 2>&1 </dev/null ) || { echo "FAIL: init"; return 1; }
   echo "132" > "$TMP/.ai/SESSION"
+  [ "$KEY" = yes ] && printf '  obeyed_blocks_from: 132\n' >> "$TMP/.ai/CONSTRAINTS.yaml"
   mkdir -p "$TMP/.ai/handoffs" "$TMP/prompts"
   ( cd "$TMP" && git add -A >/dev/null 2>&1 && git commit -q -m seed --no-verify \
-      && git checkout -q -b session-132-x ) || { echo "FAIL: branch"; rm -rf "$TMP"; return 1; }
+      && git checkout -q -b session-132-x ) || { echo "FAIL: branch"; return 1; }
   SHA="$( cd "$TMP" && git rev-parse --short=7 HEAD )"
   printf '# S132\n\n## Plan\n1. x\n\n## Advice\n\n- plan-advisor rec 1 — obeyed: %s\n' "$SHA" \
     > "$TMP/prompts/132-task-x.md"
@@ -325,20 +350,48 @@ rec 1 — record a covers: tag on every plan step
 ## Handoff Delta
 - \`+\` new: fixture advisor brief
 HAND
+  build_real_dispatch_fixture "$PROJROOT" "$TMP" session-132-x toolu_TECHLEAD tech-lead
+  local r; for r in researcher requirements-analyst design-advisor plan-advisor implementation-advisor \
+      qa-specialist demo-producer fidelity-reviewer release-coordinator; do
+    echo "crew $r — deferred-budget — budget: 1000 tokens — a fixture: only the obeyed gate is under test"
+  done > "$TMP/crew.md"
+  ( cd "$TMP" && VAJRA_CLAUDE_PROJECTS_DIR="$PROJROOT" "$VAJRA" next --role tech-lead --from crew.md ) \
+    >/dev/null 2>&1 || { echo "FAIL: the fixture tech-lead was not recorded"; return 1; }
+}
 
+advance_binds_the_close_path() {
+  local rc=0 OUT code TMP PROJROOT
   local SKIPS="VAJRA_SKIP_ANALYST_GATE=1 VAJRA_SKIP_ARCHITECT_GATE=1 VAJRA_SKIP_PLANNER_GATE=1 \
 VAJRA_SKIP_CODER_GATE=1 VAJRA_SKIP_QA_GATE=1 VAJRA_SKIP_DEMOER_GATE=1 VAJRA_SKIP_RELEASER_GATE=1 \
 VAJRA_SKIP_ADVICE_GATE=1 VAJRA_SKIP_FIDELITY_GATE=1"
 
-  OUT="$( cd "$TMP" && eval "$SKIPS" "$VAJRA" next --advance 2>&1 </dev/null )"; local code=$?
-  echo "$OUT" | grep -iE 'obeyed|refusing' | head -5
+  # (a) key declared: an unjudged obeyed: refuses, and the refusal is the Obeyed gate's.
+  TMP="$(real_tmpdir)"; PROJROOT="$(real_tmpdir)"
+  build_advance_fixture "$TMP" "$PROJROOT" yes || { rm -rf "$TMP" "$PROJROOT"; return 1; }
+  OUT="$( cd "$TMP" && eval "$SKIPS" VAJRA_CLAUDE_PROJECTS_DIR="$PROJROOT" "$VAJRA" next --advance 2>&1 </dev/null )"; code=$?
+  echo "--- (a) obeyed_blocks_from: 132 — exit=$code"; echo "$OUT" | grep -iE 'obeyed\]|refusing|crew\]' | head -4
   [ "$code" -ne 0 ] || { echo "FAIL: --advance succeeded with an unjudged obeyed:"; rc=1; }
   grep -q "\[vajra obeyed\]" <<<"$OUT" || { echo "FAIL: the refusal did not come from the Obeyed gate"; rc=1; }
-  OUT="$( cd "$TMP" && eval "$SKIPS" VAJRA_SKIP_OBEYED_GATE=1 "$VAJRA" next --advance 2>&1 </dev/null )"; code=$?
+  grep -q "\[vajra crew\]" <<<"$OUT" && { echo "FAIL: the Crew gate still refuses first (the S135 staleness)"; rc=1; }
+  # (b) the documented override announces itself and advances.
+  OUT="$( cd "$TMP" && eval "$SKIPS" VAJRA_SKIP_OBEYED_GATE=1 VAJRA_CLAUDE_PROJECTS_DIR="$PROJROOT" "$VAJRA" next --advance 2>&1 </dev/null )"; code=$?
+  echo "--- (b) override — exit=$code"
   grep -q "VAJRA_SKIP_OBEYED_GATE set" <<<"$OUT" \
     || { echo "FAIL: the override does not announce itself"; echo "$OUT" | tail -5; rc=1; }
   [ "$code" -eq 0 ] || { echo "FAIL: the override did not advance (exit $code)"; echo "$OUT" | tail -5; rc=1; }
-  rm -rf "$TMP"; return $rc
+  rm -rf "$TMP" "$PROJROOT"
+
+  # (c) no key (a fresh `vajra init` project): the same unjudged obeyed: WARNs, says why, advances.
+  TMP="$(real_tmpdir)"; PROJROOT="$(real_tmpdir)"
+  build_advance_fixture "$TMP" "$PROJROOT" no || { rm -rf "$TMP" "$PROJROOT"; return 1; }
+  OUT="$( cd "$TMP" && eval "$SKIPS" VAJRA_CLAUDE_PROJECTS_DIR="$PROJROOT" "$VAJRA" next --advance 2>&1 </dev/null )"; code=$?
+  echo "--- (c) no key — exit=$code"
+  [ "$code" -eq 0 ] || { echo "FAIL: with no key a project's session 132 did not advance (exit $code)"; echo "$OUT" | tail -5; rc=1; }
+  grep -q "\[vajra obeyed\]" <<<"$OUT" && { echo "FAIL: the Obeyed gate refused with no key"; rc=1; }
+  grep -q "does not block on unchecked \`obeyed:\` claims" <<<"$OUT" \
+    || { echo "FAIL: the no-key warning is missing from --advance"; rc=1; }
+  rm -rf "$TMP" "$PROJROOT"
+  return $rc
 }
 run_check "advance-really-binds-on-an-unjudged-obeyed" exec advance_binds_the_close_path
 
