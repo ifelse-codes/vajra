@@ -356,4 +356,6 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **`scripts/ci-lint.sh` is the one lint command** (CI + `verify-closeout.sh` `cargo-clippy-clean`). It FAILS when the running rustc is not the pinned version (`RUSTUP_TOOLCHAIN` or a non-rustup cargo ignores the file).
 - **Linux `/bin` is `/usr/bin`** on GitHub's ubuntu runners (merged /usr), and jq is installed there; macOS `/usr/bin` also ships jq. A test that wants "no jq" must build its own PATH (F102).
 - **GitHub cancels the sibling matrix job when one fails** (fail-fast): a "cancelled" macOS job is not its own failure — read the job that failed.
-- **`vajra init` reads its answers from stdin** — piping answers in is a supported use (demo-session-08/09/143); a caller that leaves stdin open and silent hangs it (F103, open).
+- **`vajra init` reads its answers from stdin** — piping answers in is a supported use (demo-session-08/09/143); a caller that leaves stdin open and silent waits 10 s per answer, then gets the defaults (F103, S184); a terminal waits for ever, as before.
+- **macOS `script -q /dev/null CMD` (a pretend terminal for tests) writes ^D when its own input ends** — input piped in all at once can arrive AFTER that end-of-input, so the program reads EOF first. Hold input back (`(sleep N; printf …; sleep 1) | script …`).
+- **The approvals guard reads command TEXT:** a heredoc or a `<…>` (e.g. a commit sign-off) in the same command as the folder name is blocked (F110, open). Put the text in a file (`git commit -F`, a script file) and run it.
