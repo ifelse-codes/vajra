@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Session 186 verify — the fixes the S185 ground truth picked: F113 (obeyed_blocks_from:), F115
-# (verify-132's --advance fixture), F110 (b) + S182 recs 1/2/5 (the approvals guard and the settings
-# merge), F114 (a fresh project's ledger), N1 (hook block reasons on stderr).
+# (verify-132's --advance fixture), S182 recs 1/2/5 (the approvals guard, add-only, and the settings
+# merge), F114 (a fresh project's ledger), N1 (hook block reasons on stderr). F110 (b) was split out by
+# the founder: its three cases are checked to still block with the way past.
 # Every check RUNS the real thing — the real binary, the real hooks, a real `vajra init` project — and
 # each fix is also run at the commit S186 started from, where it must go red for the reason it names
 # (S122). Nothing greps source.
@@ -98,6 +99,14 @@ jq -n --arg d "$GP" '{tool_name:"Write", cwd:$d, tool_input:{file_path:($d + "/.
   || bad "rec 1 Write tool: new=$n old=$o"
 
 # --- AC3: the corpus — every command the S182 guard blocked still blocks, except listed non-writes ------
+# Pass 4: a large command must block too (the S182 guard let ~60 KB through, SIGPIPE under pipefail).
+for kb in 40 70 120; do
+  BIG="cp /tmp/forged $D/187.json; true \\
+$(head -c $((kb*1024)) /dev/zero | tr '\0' 'a')"
+  n=$(guard scripts/hook-approvals-guard.sh "$BIG"); o=$(guard "$T/old-guard.sh" "$BIG")
+  [ "$n" = 2 ] && ok "pass 4: a ${kb} KB command writing into the folder blocks (exit 2; at $OLD_SHA exit $o)" \
+    || bad "pass 4: ${kb} KB not blocked (exit $n)"
+done
 if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 12 passed' "$T/guard-tests.out"; then
   ok "AC3 tests/approvals_guard.rs: 12 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (only adds; F110 cases still block)"
 else bad "AC3 guard tests"; tail -5 "$T/guard-tests.out"; fi
