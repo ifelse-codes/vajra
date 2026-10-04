@@ -111,8 +111,9 @@ else bad "AC5 verify-133: new exit $rn ($cn checks), old exit $ro ($co checks)";
 # --- 5 (AC6, N6): no hand-typed session number in ROADMAP's header ------------------------------------
 header() { awk '/^## /{exit} {print}'; }
 hn=$(header < .ai/ROADMAP.md); ho=$(git show "$OLD_SHA:.ai/ROADMAP.md" | header)
-if ! grep -qE 'Session [0-9]+' <<<"$hn" && grep -q 'vajra next --steps' <<<"$hn" && grep -q 'Session 166' <<<"$ho"; then
-  ok "AC6 ROADMAP's header (before its first section) names no session and points at \`vajra next --steps\`; at $OLD_SHA it said 'Session 166'"
+# cold review rec 5: any session number — `Session 166` or `S166` — not only the long form.
+if ! grep -qE 'Session [0-9]+|(^|[^A-Za-z0-9])S[0-9]+' <<<"$hn" && grep -q 'vajra next --steps' <<<"$hn" && grep -q 'Session 166' <<<"$ho"; then
+  ok "AC6 ROADMAP's header (before its first section) names no session (neither 'Session N' nor 'SN') and points at \`vajra next --steps\`; at $OLD_SHA it said 'Session 166'"
 else bad "AC6 ROADMAP header"; fi
 
 # --- 6 (AC7, N7 + N5) ---------------------------------------------------------------------------------
@@ -123,6 +124,18 @@ left=$(ls "$VAJRA_OLD_CHECKOUTS" 2>/dev/null | wc -l | tr -d ' ')
 bash -c '. scripts/lib-old-checkout.sh; p=$(vajra_old_checkout '"$OLD_SHA"'); vajra_old_checkout_remove "$p"' 2>"$T/sweep.err"
 after=$(ls "$VAJRA_OLD_CHECKOUTS" 2>/dev/null | wc -l | tr -d ' ')
 reg=$(git worktree list | grep -c "$VAJRA_OLD_CHECKOUTS" || true)
+# cold review rec 4: a LIVE owner's checkout survives a sweep, and so does a folder that is not one.
+sleep 60 & LIVE_PID=$!
+bash -c '. scripts/lib-old-checkout.sh; vajra_old_checkout '"$OLD_SHA"' '"$LIVE_PID"' >/dev/null'
+mkdir -p "$VAJRA_OLD_CHECKOUTS/123-notes"
+bash -c '. scripts/lib-old-checkout.sh; vajra_old_checkout_sweep' 2>/dev/null
+survived=0; [ -d "$VAJRA_OLD_CHECKOUTS/$LIVE_PID-$OLD_SHA" ] && [ -d "$VAJRA_OLD_CHECKOUTS/123-notes" ] && survived=1
+kill "$LIVE_PID" 2>/dev/null; wait "$LIVE_PID" 2>/dev/null
+bash -c '. scripts/lib-old-checkout.sh; vajra_old_checkout_sweep' 2>/dev/null
+[ "$survived" = 1 ] && [ ! -d "$VAJRA_OLD_CHECKOUTS/$LIVE_PID-$OLD_SHA" ] && [ -d "$VAJRA_OLD_CHECKOUTS/123-notes" ] \
+  && ok "AC7 N7 a live run's checkout survives a sweep and is cleared once its run ends; a folder that is not a checkout is never touched" \
+  || bad "AC7 N7 live/non-checkout sweep (survived $survived)"
+rm -rf "$VAJRA_OLD_CHECKOUTS/123-notes"
 unset VAJRA_OLD_CHECKOUTS
 if [ "$left" = 1 ] && [ "$after" = 0 ] && [ "$reg" = 0 ] && grep -q 'cleared a leftover' "$T/sweep.err" \
    && ! git cat-file -e "$OLD_SHA:scripts/lib-old-checkout.sh" 2>/dev/null; then

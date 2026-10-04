@@ -17,13 +17,18 @@ VAJRA_OLD_CHECKOUTS="${VAJRA_OLD_CHECKOUTS%/}"
 
 # Remove every checkout in the folder whose owning process is gone. A pid that was reused keeps its
 # leftover one run longer — never the other way round (a live run's checkout is never removed).
+# S187 cold review rec 4: only a folder named <pid>-<hex sha> that IS a worktree (a `.git` file) is
+# touched, so a folder pointed at by VAJRA_OLD_CHECKOUTS that holds anything else is left alone; and a
+# pid we may not signal (EPERM — another user's process) counts as alive.
 vajra_old_checkout_sweep() {
-  local d name pid
+  local d name pid err
   for d in "$VAJRA_OLD_CHECKOUTS"/*; do
-    [ -d "$d" ] || continue
-    name="${d##*/}"; pid="${name%%-*}"
-    case "$pid" in ''|*[!0-9]*) continue ;; esac
-    kill -0 "$pid" 2>/dev/null && continue
+    [ -d "$d" ] && [ -f "$d/.git" ] || continue
+    name="${d##*/}"
+    printf '%s' "$name" | grep -cE '^[0-9]+-[0-9a-f]{7,40}$' >/dev/null || continue
+    pid="${name%%-*}"
+    err=$(kill -0 "$pid" 2>&1) && continue
+    case "$err" in *ermitted*) continue ;; esac
     git worktree remove --force "$d" >/dev/null 2>&1 || rm -rf "$d"
     echo "[vajra] cleared a leftover old-version checkout (its run was killed): $d" >&2
   done
