@@ -40,7 +40,32 @@ Yes. The three fixes the founder said yes to before the session are built, each 
 | AC3 | No Vajra commit touches rudra; rudra's commits are the founder's | SHIPPED | `git diff --name-only e1c348e...HEAD` (below) lists Vajra paths only. Vajra only read rudra (its transcript, close logs, summary, `gh pr view 20`). rudra HEAD b626e79 is the founder's merge of #20; every S17 commit is the rudra agent's under the founder's launch-time `VAJRA_ALLOW_COMMIT=17`. |
 | AC4 | `verify-closeout.sh` exits 0 on the branch before merge; one fresh cold review | at close | recorded in `sessions/session-184-review.md` |
 
-Files this branch changes (`git diff --name-only e1c348e...HEAD`, at the closeout commit): `.ai/{SESSION,SESSION-BOOT.md,STATE.md,TASK.md,ROADMAP.md}`, `.ai/approvals/session-184.json`, `.ai/handoffs/session-184-{tech-lead,design-advisor,plan-advisor,fidelity-reviewer}.md`, `prompts/184-task-rudra-s17-new-rules.md`, `prompts/185-task-ground-truth.md`, `scripts/{verify-closeout.sh,verify-closeout-scaffold.sh,verify-session-132.sh,verify-session-184.sh,demo-session-184.sh}`, `sessions/session-184-{summary,review}.md`, `src/{cli/init.rs,obeyed/mod.rs}`.
+Files this branch changes — the real output of `git diff --name-only e1c348e...HEAD`, pasted just before this commit (the release-coordinator's handoff and this file's last edit land after it):
+
+```
+.ai/approvals/session-184.json
+.ai/handoffs/session-184-design-advisor.md
+.ai/handoffs/session-184-fidelity-reviewer.md
+.ai/handoffs/session-184-plan-advisor.md
+.ai/handoffs/session-184-tech-lead.md
+.ai/KNOWLEDGE.md
+.ai/ROADMAP.md
+.ai/SESSION
+.ai/SESSION-BOOT.md
+.ai/STATE.md
+.ai/TASK.md
+prompts/184-task-rudra-s17-new-rules.md
+prompts/185-task-ground-truth.md
+scripts/demo-session-184.sh
+scripts/verify-closeout-scaffold.sh
+scripts/verify-closeout.sh
+scripts/verify-session-132.sh
+scripts/verify-session-184.sh
+sessions/session-184-review.md
+sessions/session-184-summary.md
+src/cli/init.rs
+src/obeyed/mod.rs
+```
 
 ## The fakest green here
 - **F103's 10 s is a guess** that fits every script in this repo. A program that feeds answers more than 10 s apart, or a person typing into a non-terminal input, gets defaults — printed on stderr, but not stopped.
