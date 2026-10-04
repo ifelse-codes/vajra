@@ -45,6 +45,8 @@ case "$TMP" in "$ROOT"*) echo "demo bug: temp dir inside the repo"; exit 2;; esa
     && git checkout -q -b session-132-demo-subject ) || exit 1
 mkdir -p "$TMP/.ai/handoffs" "$TMP/prompts"
 echo "132" > "$TMP/.ai/SESSION"
+# S186 (F113): blocking is declared, never built in — the subject declares it as Vajra's own repo does.
+printf 'session:\n  obeyed_blocks_from: 132\n' > "$TMP/.ai/CONSTRAINTS.yaml"
 SHA="$( cd "$TMP" && git rev-parse --short=7 HEAD )"
 printf '# S132 demo\n\n## Advice\n\n- plan-advisor rec 1 — obeyed: %s\n' "$SHA" \
   > "$TMP/prompts/132-task-demo.md"
@@ -181,8 +183,16 @@ score $? exec "case 6: a real judgment passes — the gate is not merely a block
 
 label "case 7 — the gate really refuses \`--advance\`, every other stage neutralised"
 rm -f "$TMP/.ai/handoffs/session-132-fidelity-reviewer.md"
+# S186 (F115): since S135 the Crew gate (no env override) refused first, so this case never reached
+# the Obeyed gate. A real recorded tech-lead (every role deferred-budget) gives it its turn.
+build_dispatch tech-lead toolu_01DEMOTECHLEAD
+for r in researcher requirements-analyst design-advisor plan-advisor implementation-advisor \
+    qa-specialist demo-producer fidelity-reviewer release-coordinator; do
+  echo "crew $r — deferred-budget — budget: 1000 tokens — a demo subject: only the obeyed gate is shown"
+done > "$TMP/crew.md"
+( cd "$TMP" && VAJRA_CLAUDE_PROJECTS_DIR="$PROJROOT" "$VAJRA" next --role tech-lead --from crew.md ) >/dev/null 2>&1
 SKIPS="VAJRA_SKIP_ANALYST_GATE=1 VAJRA_SKIP_ARCHITECT_GATE=1 VAJRA_SKIP_PLANNER_GATE=1 VAJRA_SKIP_CODER_GATE=1 VAJRA_SKIP_QA_GATE=1 VAJRA_SKIP_DEMOER_GATE=1 VAJRA_SKIP_RELEASER_GATE=1 VAJRA_SKIP_ADVICE_GATE=1 VAJRA_SKIP_FIDELITY_GATE=1"
-OUT="$( cd "$TMP" && eval "$SKIPS" "$VAJRA" next --advance 2>&1 )"; RC=$?
+OUT="$( cd "$TMP" && eval "$SKIPS" VAJRA_CLAUDE_PROJECTS_DIR="$PROJROOT" "$VAJRA" next --advance 2>&1 )"; RC=$?
 dim "    $(printf '%s\n' "$OUT" | grep -i '\[vajra obeyed\]' | head -1)"
 [ "$RC" -ne 0 ] && printf '%s' "$OUT" | grep -q '\[vajra obeyed\]'
 score $? exec "case 7: --advance is refused BY THIS GATE, driven end-to-end"
