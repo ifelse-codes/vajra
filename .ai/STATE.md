@@ -80,7 +80,7 @@
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
-| S184 | $0 | No paid run in this repo; the founder's rudra S17 receipt read ~$110.63 (F67-overstated ~5×). 4 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer) |
+| S184 | $0 | No paid run in this repo; the founder's rudra S17 receipt read ~$110.63 (F67-overstated ~5×). 6 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2 — review + judge, release-coordinator as the recorded judge of all 16 obeyed answers) |
 | S183 | $0 | No paid run in this repo; the founder's rudra S16 receipt read ~$83.54 (F67-overstated ~5×; ~55 min of work). 7 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2, release-coordinator as the judge of the reviewer's recs) |
 | S182 | $0 | No paid run. 5 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2) |
 | S181 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer ×2) |
