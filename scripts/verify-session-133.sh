@@ -355,7 +355,8 @@ threshold_governs_silence_only() {
   local OUT; OUT="$( cd "$TMP" && "$VAJRA" $GATE 42 2>&1 )"; local code=$?
   echo "--- session 42, silent: exit=$code"; echo "$OUT" | grep '⚠'
   [ "$code" -eq 0 ] || { echo "FAIL: silence below the threshold blocked"; rc=1; }
-  grep -q "predates the design-advisor mandate (threshold 133)" <<<"$OUT" \
+  # S186 (F113 sibling): the words no longer quote Vajra's own session number; the behaviour is unchanged.
+  grep -q "comes before Vajra began requiring the design-advisor" <<<"$OUT" \
     || { echo "FAIL: the exemption is not NAMED in the output"; rc=1; }
   rm -rf "$TMP"
   # (b) below the threshold, a marker that EXISTS but is unusable still BLOCKS.
