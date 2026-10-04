@@ -93,6 +93,31 @@ Cut line (plan-advisor): nothing in steps 6–11 can be dropped; if the cap runs
 - step 5 — done: 3170809
 - step 7 — done: a0c1417
 - step 8 — done: 8525237
+- step 6 — done: 302f923
+- step 9 — done: fabb6fc
+- step 10 — done: 3c687bf
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-advisor` (required by the tech-lead), `fidelity-reviewer` (required; the one cold close review). Deviation from the tech-lead: it asked for the design-advisor ONCE, after the rudra findings — done (dispatched after F109–F112 were listed), but F103/F107/F108 had already landed by its rec 4, so the design-advisor judged landed code; its one wording rec (rec 2) landed as a0c1417.
+
+**tech-lead** (`.ai/handoffs/session-184-tech-lead.md`):
+- tech-lead rec 1 — obeyed: b6c15c8 (`case --inputs-sha|--ledger|--ledger-verify` in both close scripts; folder counts before/after, Vajra's gate and a `vajra init` scaffold, in verify-184)
+- tech-lead rec 2 — obeyed: 84674c8 (both texts rewritten, no session number and no "threshold"; the scratch-project test greps the close log and the gate for `132|threshold`; the S132 checks that matched the old words were updated, behaviour unchanged. Vajra's own close script does not print its threshold — nothing added, no new ceremony)
+- tech-lead rec 3 — obeyed: a3bcc64 (one reader thread + channel, `recv_timeout` only off a terminal, first silence/end of input defaults every later answer, each named on stderr; terminal path unchanged)
+- tech-lead rec 4 — obeyed: a3bcc64 (F108 → F107 → F103 landed before the rudra findings; every commit ≤3 files; scaffold changes tested in temp `vajra init` projects, never rudra)
+- tech-lead rec 5 — deferred: sessions/session-184-review.md
+  why: the `cargo test` question was asked early and answered (no, 2026-10-04, nothing built); the close half — verify-closeout on the branch, one cold review, `--inputs-sha 184` last — happens at close and is recorded in that file.
+
+**design-advisor** (`.ai/handoffs/session-184-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 302f923 (`design-significant: yes`, on F103 alone)
+- design-advisor rec 2 — obeyed: a0c1417 (the warning says "in this session"; `## Design` names F107's deviation from DECISION-007 in 302f923; the founder made it F113 — an issue to fix, first on the S185 list in 3c687bf)
+- design-advisor rec 3 — obeyed: 302f923 (no new decision record; `## Design` is F103's record)
+- design-advisor rec 4 — obeyed: 302f923 (10 s, first-silence rule and dropped late line kept; the known cost and the two reasons are in `## Design`)
+
+**plan-advisor** (`.ai/handoffs/session-184-plan-advisor.md`):
+- plan-advisor rec 1 — obeyed: 302f923 (`## Design` filled before close; `vajra next --check-design 184` READY)
+- plan-advisor rec 2 — obeyed: 3c687bf (S185's prompt landed before the cold review and the stamp)
+- plan-advisor rec 3 — obeyed: 302f923 (the summary lists `git diff --name-only e1c348e...HEAD` — Vajra paths only)
 
 ## Guardrails
 - No autonomous commits: the founder runs them, or launches with `VAJRA_ALLOW_COMMIT=184`.
