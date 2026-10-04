@@ -160,12 +160,12 @@ Passes 1–5 each REJECTED (the guard); the handoff holds the latest pass (5). A
 - fidelity-reviewer rec 6 — obeyed: 6417b01 (no here-strings left: every check is `printf | grep -c >/dev/null`, which needs no temp file; recorded in DECISION-011)
 
 Pass 6 ACCEPTED (12 of 14 SHIPPED; D2 NOT-BUILT and AC2 PARTIAL from the founder's split). Its recs:
-- fidelity-reviewer rec 1 — obeyed: SHA_R (the broken `## Delta` fragment and the two orphaned pass-4 lines removed; `## Advice` ends at the real `## Delta`)
-- fidelity-reviewer rec 2 — obeyed: SHA_R (tech-lead rec 5 is now `refused: in part` with the six passes named)
-- fidelity-reviewer rec 3 — obeyed: SHA_R (summary and TASK say verify 35/35)
-- fidelity-reviewer rec 4 — obeyed: SHA_T (the test runs `/bin/bash` when it exists — macOS's 3.2 — and its comment says only there can it catch the pass-5 slowdown)
+- fidelity-reviewer rec 1 — obeyed: a579494 (the broken `## Delta` fragment and the two orphaned pass-4 lines removed; `## Advice` ends at the real `## Delta`)
+- fidelity-reviewer rec 2 — obeyed: a579494 (tech-lead rec 5 is now `refused: in part` with the six passes named)
+- fidelity-reviewer rec 3 — obeyed: a579494 (summary and TASK say verify 35/35)
+- fidelity-reviewer rec 4 — obeyed: cf109c5 (the test runs `/bin/bash` when it exists — macOS's 3.2 — and its comment says only there can it catch the pass-5 slowdown)
 - fidelity-reviewer rec 5 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
-  why: not a regression (S182 passes `timeout 5 git checkout …` too); more wrappers belong with F110 (b)'s own session → backlog — reason: the founder picks when; on the S190 ground-truth checklist. The "…" in DECISION-011 §2's wrapper list is replaced by the real list in SHA_R.
+  why: not a regression (S182 passes `timeout 5 git checkout …` too); more wrappers belong with F110 (b)'s own session → backlog — reason: the founder picks when; on the S190 ground-truth checklist. The "…" in DECISION-011 §2's wrapper list is replaced by the real list in a579494.
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
