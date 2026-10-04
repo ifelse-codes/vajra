@@ -64,6 +64,10 @@ Is the real scope one narrow slice presented as the whole? No. All three pre-app
 - rec 4 — added to F113's item in `prompts/185-task-ground-truth.md`.
 - rec 5 — `scripts/verify-session-143.sh` run at close: 13 passed, 0 failed, RESULT: PASS.
 
+## Obeyed claims — two independent judges (added at close)
+- **Recorded judge:** the release-coordinator (`.ai/handoffs/session-184-release-coordinator.md`) judged all 16 `obeyed:` answers: 16 of 16 `implemented` after two answers were re-cited (design-advisor rec 2: a0c1417 → 302f923, the commit that wrote the `## Design` deviation; plan-advisor rec 3: 302f923 → d396daf, which pastes the real `git diff --name-only` output in place of a hand-typed list that missed KNOWLEDGE.md). `vajra next --check-obeyed 184`: READY, unjudged 0.
+- **Second judge, not recorded as a handoff** (a fresh fidelity-reviewer dispatch; recording it would have replaced the review's own handoff above): 8 of 11 advisor answers `implemented`. Its three mismatches: design-advisor rec 2 and plan-advisor rec 3 — both fixed by the re-cites above; and **tech-lead rec 1 (b6c15c8)** — the commit has the fix but not the folder-count test the rec also asked for (that test is in 3170809, strengthened in f6ea7d6). The recorded judge graded the same answer `implemented` and named the same split. Left as is: the fix and its test both landed; the answer cites the fix.
+
 **Verdict:** ACCEPT
 
 **Review-Inputs-SHA:** PENDING

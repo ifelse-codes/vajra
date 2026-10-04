@@ -79,7 +79,7 @@ src/obeyed/mod.rs
 F110 and F113 — the founder's yes to fix, after the S185 review (`prompts/185-task-ground-truth.md`, first items). F114 — fix later (S185 list). F115 — S185 answers it. F109, F111, F112 — rudra's own, by the founder's call. `cargo test` in the close — founder: no.
 
 ## Cost
-$0 in this repo (no paid run). The founder's rudra S17 receipt read ~$110.63 (F67, ~5× over). Fleet dispatches: tech-lead, design-advisor, plan-advisor, fidelity-reviewer.
+$0 in this repo (no paid run). The founder's rudra S17 receipt read ~$110.63 (F67, ~5× over). Fleet dispatches: 6 — tech-lead, design-advisor, plan-advisor, fidelity-reviewer (the cold review), a second fidelity-reviewer as a judge of the advisors' `obeyed:` answers, release-coordinator (the recorded judge of all 16, plus the ship steps; re-dispatched once after two re-cites).
 
 ## 3 ranked next candidates
 **Founder's pick (2026-10-04): option 1 — "yes next session 185 is review"** → `prompts/185-task-ground-truth.md`.
