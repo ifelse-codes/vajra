@@ -98,6 +98,7 @@ Cut line (plan-advisor): nothing in steps 6–11 can be dropped; if the cap runs
 - step 6 — done: 302f923
 - step 9 — done: fabb6fc
 - step 10 — done: 3c687bf
+- step 11 — done: 7b45842
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-advisor` (required by the tech-lead), `fidelity-reviewer` (required; the one cold close review). Deviation from the tech-lead: it asked for the design-advisor ONCE, after the rudra findings — done (dispatched after F109–F112 were listed), but F103/F107/F108 had already landed by its rec 4, so the design-advisor judged landed code; its one wording rec (rec 2) landed as a0c1417.
@@ -120,6 +121,13 @@ Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-adv
 - plan-advisor rec 1 — obeyed: 302f923 (`## Design` filled before close; `vajra next --check-design 184` READY)
 - plan-advisor rec 2 — obeyed: 3c687bf (S185's prompt landed before the cold review and the stamp)
 - plan-advisor rec 3 — obeyed: 302f923 (the summary lists `git diff --name-only e1c348e...HEAD` — Vajra paths only)
+
+**fidelity-reviewer** (`.ai/handoffs/session-184-fidelity-reviewer.md`, ACCEPT 4 SHIPPED · 2 PARTIAL):
+- fidelity-reviewer rec 1 — obeyed: f6ea7d6 (F114 numbered and reproduced; founder: fix later → S185 list in 2935095; verify-184's F108 check now commits one review and requires exit 0 + non-empty, identical output)
+- fidelity-reviewer rec 2 — obeyed: 2935095 (F115 numbered, on the S185 list: stale check or real regression)
+- fidelity-reviewer rec 3 — obeyed: f6ea7d6 (plan step 5, the demo scorecard, story and rule rows corrected before the stamp)
+- fidelity-reviewer rec 4 — obeyed: 2935095 (restoring F107's lost disclosure is part of F113's item in `prompts/185-task-ground-truth.md`)
+- fidelity-reviewer rec 5 — obeyed: 7b45842 (verify-session-143 run at close: 13 passed, 0 failed; recorded in the summary)
 
 ## Guardrails
 - No autonomous commits: the founder runs them, or launches with `VAJRA_ALLOW_COMMIT=184`.
