@@ -99,6 +99,13 @@ pub fn dogfood_age(root: &Path, current_session: u32) -> Option<DogfoodAgeReport
 pub fn format_dogfood_age(current_session: u32, report: Option<&DogfoodAgeReport>) -> String {
     let mut out = String::new();
     out.push_str("=== dogfood age (derived from git — not from STATE.md) ===\n");
+    // S187 (S185 N5, S180 N3): runs in OTHER projects (the founder's rudra sessions) leave no record
+    // this repo can read — `vajra claude` prints its receipt and writes no file. Said on every
+    // report, so "N sessions since" is never read as "Vajra unused for N sessions". Named, not closed.
+    out.push_str(
+        "  scope                : THIS repo only — runs in other projects (e.g. rudra) leave no \
+         record here and are not counted\n",
+    );
     match report {
         None => {
             out.push_str(
@@ -365,6 +372,8 @@ mod tests {
     fn format_dogfood_age_shows_none_when_no_report() {
         let text = format_dogfood_age(90, None);
         assert!(text.contains("no dogfood run detected"));
+        // S187 (S185 N5): the blind spot is said, with or without a report.
+        assert!(text.contains("THIS repo only"), "{text}");
     }
 
     #[test]
