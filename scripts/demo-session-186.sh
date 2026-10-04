@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Session 186 demo — the fixes the S185 ground truth picked: the approvals guard reads where output
-# really goes (F110 b), a project's unchecked claims warn instead of blocking (F113), a fresh project's
-# ledger speaks (F114), and hook block reasons reach the agent (N1). Drawn with scripts/demo-kit.sh
+# Session 186 demo — the fixes the S185 ground truth picked: a project's unchecked claims warn instead
+# of blocking (F113), the approvals guard catches more ways to write (S182 recs 1/5; F110 b was split
+# out by the founder), a fresh project's ledger speaks (F114), and hook block reasons reach the agent (N1). Drawn with scripts/demo-kit.sh
 # (DECISION-009/010): every claim runs live; the "before" is the commit S186 started from.
 # Try it: DEMO_MODE=stream bash scripts/demo-session-186.sh (gate view) · bare in a terminal (deck).
 
@@ -52,68 +52,73 @@ claim() {
   echo "exit $rc · $(printf '%s\n' "$out" | grep '^verdict')"
   printf '%s\n' "$out" | grep -oE 'does not block on unchecked `obeyed:` claims \(no `obeyed_blocks_from:`[^)]*\)|carries no independent judgment' | head -1
 }
+# write_tool GUARD → what the guard says about the Write tool aimed at .ai/hooks/../approvals/x
+write_tool() {
+  jq -n --arg d "$P" '{tool_name:"Write", cwd:$d, tool_input:{file_path:($d + "/.ai/hooks/../approvals/x")}}' \
+    | CLAUDE_PROJECT_DIR="$P" bash "$1" >/dev/null 2>&1 && echo "allowed (exit 0)" || echo "BLOCKED (exit $?)"
+}
 ledger() { local out rc; out=$(cd "$P" && bash "$1" --ledger 2>&1); rc=$?; echo "exit $rc · ${out:-<prints nothing>}"; }
 
 slide_headline() {
   dk_section headline "session $SESSION · what shipped"
-  dk_vajra_tiles "$SESSION" "FIXES|6|F113 F110 F114 F115 N1 +3 guard recs"
-  dk_h1 "The guard stops blocking " "what it can prove is harmless" " — and still blocks the rest."
+  dk_vajra_tiles "$SESSION" "FIXES|5|F113 F114 F115 N1 +3 guard recs · F110 (b) split out"
+  dk_h1 "Projects stop blocking at " "Vajra's session numbers" " — and the guard catches more ways to write."
   dk_verdict "WHAT CHANGED, IN ONE BREATH" \
-    "Old: any command that named the approvals folder AND had a '>' anywhere was blocked — even a commit message with an email in <angle brackets>. A project's own session 132 started blocking unchecked claims." \
-    "New: the guard works out where the output really goes; harmless ones pass, and anything it cannot be sure of still blocks. Projects warn about unchecked claims; only Vajra blocks."
+    "Old: a project's own session 132 started blocking unchecked claims (Vajra's number). '..', 'find -delete', 'git checkout', awk got past the guard. A new project's ledger died silently." \
+    "New: projects warn and say why; only Vajra blocks. Those writes are blocked. The ledger says 'no reviewed sessions yet'. F110 (the commit-message false block) is still open — split out, by your call."
 }
 
 slide_story() {
   dk_section story "the story"
   dk_h2 "What we did this session"
   dk_bullets \
-    "F110 (b).|The guard read the TEXT. It now reads where each '>' really writes: a plain file outside the folder passes; a variable, a quote, a 'cd', a link, or the folder itself still blocks." \
-    "S182 recs.|'..' tricks count as the folder; more write tools (find -delete, git checkout, rsync, curl -o) and shells (sh, bash, eval) are caught; --sync-fleet stops adding a hook twice." \
     "F113.|'Block unchecked claims from session 132' was Vajra's own number, applied to every project. It is now a setting only Vajra's own file has." \
-    "F115 + F114 + N1.|A check broken since S135 works again · a new project's ledger says 'no reviewed sessions yet' instead of dying silently · ground-truth block reasons reach the agent." \
-    "Found on the way.|The guard blocked my own commands four times while I built it — the safe direction. verify-133 has been red since S181 (3 checks, same at main)."
+    "Guard, only adds.|'..' tricks, a working folder inside the approvals folder, find -delete, git checkout, rsync, curl -o, sh/bash/eval, awk and editors are now caught." \
+    "F110 (b), split out.|I built a guard that reads where '>' really writes. Two cold reviews each found writes into the folder it let through. You chose to put the old rule back and give (b) its own session." \
+    "F115 + F114 + N1.|A check broken since S135 works again · a new project's ledger speaks · ground-truth block reasons reach the agent." \
+    "Found on the way.|verify-133 has been red since S181 (3–4 old checks, same at main) → backlog."
 }
 
 slide_before_after() {
-  dk_section before_after "the change · the same commit message, before and after"
+  dk_section before_after "the change · the same project, the same claim, before and after"
   dk_h2 "Before → After"
-  dk_p "The input: a commit message that names the approvals folder and ends with an email sign-off in <angle brackets>. Left: the guard at $OLD_SHA. Right: today's."
+  dk_p "The input: a fresh 'vajra init' project at its own session 132, with one 'I followed the advice' claim nobody checked. Left: Vajra at $OLD_SHA. Right: today's."
   local before after
-  dk_run_v guard "$DK_TMP/old-guard.sh" "$COMMIT"; before="$_DK_OUT"
-  dk_run_v guard "$ROOT/scripts/hook-approvals-guard.sh" "$COMMIT"; after="$_DK_OUT"
-  dk_compare "BEFORE|guard at $OLD_SHA" "$before" "AFTER|guard today · live" "$after"
+  dk_run_v claim "$OLD_VAJRA"; before="$_DK_OUT"
+  dk_run_v claim vajra; after="$_DK_OUT"
+  dk_compare "BEFORE|vajra at $OLD_SHA" "$before" "AFTER|vajra today · live" "$after"
   echo
-  dk_check "before: blocked" bash -c 'printf "%s" "$1" | grep -q BLOCKED' _ "$before"
-  dk_check "after: allowed" bash -c 'printf "%s" "$1" | grep -q "allowed"' _ "$after"
+  dk_check "before: blocked (exit 1)" bash -c 'printf "%s" "$1" | grep -q "exit 1"' _ "$before"
+  dk_check "after: warns, says why, exit 0" bash -c 'printf "%s" "$1" | grep -q "exit 0" && printf "%s" "$1" | grep -q "no \`obeyed_blocks_from:\`"' _ "$after"
 }
 
 slide_rule() {
   dk_section rule "the rule, in plain words"
   dk_h2 "What the guard does now"
   dk_table "The command names the approvals folder and…|Guard now" \
-    "writes to a plain file elsewhere ('> notes.md')|allowed — it can prove where that goes" \
-    "writes into the folder, even spelled oddly ('.AI//Approvals/../approvals')|BLOCKED" \
-    "writes to a variable, a glob, '~', a quoted path, or after a 'cd'|BLOCKED — it cannot be sure" \
-    "writes to a file that is a link into the folder|BLOCKED" \
-    "runs find -delete, git checkout, rsync, curl -o, sh, bash, eval|BLOCKED"
+    "redirects output anywhere ('>')|BLOCKED — as before; the message now says: write it to a file, then git commit -F" \
+    "reaches it with '..' or from a working folder inside it|BLOCKED (new)" \
+    "runs find -delete, git checkout, rsync, curl -o, sponge|BLOCKED (new)" \
+    "runs sh, bash, eval, source, awk, an editor — even as /usr/bin/awk|BLOCKED (new)" \
+    "only reads it (cat, ls, jq, git add)|allowed — as before"
   dk_caption "Honest limit: a path built while the command runs (d=.ai; d=\$d/appr…) still gets past — the guard reads text, it is not a sandbox."
 }
 
 slide_cases() {
   dk_section cases "the cases · live"
   dk_h2 "See it for yourself"
-  dk_run_v guard "$ROOT/scripts/hook-approvals-guard.sh" "echo x >> .AI//Approvals/../approvals/y"
-  dk_term "1 · a sneaky spelling of the folder" "$_DK_OUT"
-  dk_check "still blocked" bash -c 'printf "%s" "$1" | grep -q BLOCKED' _ "$_DK_OUT"
-  dk_run_v guard "$ROOT/scripts/hook-approvals-guard.sh" "find $D -delete"
-  dk_term "2 · a write tool the old guard did not know" "$_DK_OUT"
+  dk_run_v write_tool "$DK_TMP/old-guard.sh"
+  dk_term "1 · the Write tool into .ai/hooks/../approvals/x — guard at $OLD_SHA" "$_DK_OUT"
+  dk_check "it got through" bash -c 'printf "%s" "$1" | grep -q allowed' _ "$_DK_OUT"
+  dk_run_v write_tool "$ROOT/scripts/hook-approvals-guard.sh"
+  dk_term "2 · the same, guard today" "$_DK_OUT"
   dk_check "blocked" bash -c 'printf "%s" "$1" | grep -q BLOCKED' _ "$_DK_OUT"
-  dk_run_v claim "$OLD_VAJRA"
-  dk_term "3 · F113 before ($OLD_SHA): a fresh project at its own session 132" "$_DK_OUT"
-  dk_check "it blocked (exit 1)" bash -c 'printf "%s" "$1" | grep -q "exit 1"' _ "$_DK_OUT"
-  dk_run_v claim vajra
-  dk_term "4 · F113 now: the same project, the same claim" "$_DK_OUT"
-  dk_check "it warns, says why, and does not block" bash -c 'printf "%s" "$1" | grep -q "exit 0" && printf "%s" "$1" | grep -q "no \`obeyed_blocks_from:\`"' _ "$_DK_OUT"
+  dk_run_v guard "$ROOT/scripts/hook-approvals-guard.sh" "find $D -delete"
+  dk_term "3 · a write tool the old guard did not know" "$_DK_OUT"
+  dk_check "blocked" bash -c 'printf "%s" "$1" | grep -q BLOCKED' _ "$_DK_OUT"
+  dk_run_v guard "$ROOT/scripts/hook-approvals-guard.sh" "$COMMIT"
+  dk_term "4 · F110, still open: a commit message naming the folder, with an email in <angle brackets>" "$_DK_OUT"
+  dk_check "still blocked (F110 split out)" bash -c 'printf "%s" "$1" | grep -q BLOCKED' _ "$_DK_OUT"
   dk_run_v ledger scripts/old-closeout.sh
   dk_term "5 · F114 before ($OLD_SHA): --ledger in a fresh project" "$_DK_OUT"
   dk_check "silent failure" bash -c 'printf "%s" "$1" | grep -q "exit 1 · <prints nothing>"' _ "$_DK_OUT"
@@ -128,10 +133,10 @@ slide_scorecard() {
   dk_vajra_scorecard "$SESSION"
   dk_scorecard "LIVE — ran while you watched"
   dk_table "Recorded at close — not re-run here|Result" \
-    "scripts/verify-session-186.sh — real-run checks; each fix is run at $OLD_SHA too|25 / 25" \
+    "scripts/verify-session-186.sh — real-run checks; each fix is run at $OLD_SHA too|31 / 31" \
     "scripts/verify-session-132.sh — incl. the --advance check red since S135|13 / 13"
   dk_verdict "HONEST NOTES" \
-    "The guard still over-blocks: any quote after a '>' in a command naming the folder blocks (an arrow '->' inside a commit message, for example). The message says: write it to a file, then git commit -F." \
+    "F110 is NOT fixed: a command that names the folder and has any '>' still blocks, even a commit message. Split out by your call after two cold reviews found holes in the fix." \
     "Vajra's own repo can switch off its blocking by editing obeyed_blocks_from — only the diff shows it."
 }
 

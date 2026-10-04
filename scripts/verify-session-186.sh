@@ -56,7 +56,7 @@ if bash scripts/verify-session-132.sh > "$T/v132.out" 2>&1 \
   ok "F115 scripts/verify-session-132.sh exits 0; advance-really-binds-on-an-unjudged-obeyed PASS"
 else bad "F115 verify-132"; grep -E 'FAIL' "$T/v132.out" | head -5; fi
 
-# --- F110 (b) + recs 1/5 (AC2, AC4): the guard, live, new vs old --------------------------------------
+# --- F110 (b) SPLIT OUT by the founder (2026-10-04); recs 1/5 (AC4): the guard, live, new vs old ---------
 GP="$T/guardproj"; mkdir -p "$GP/.ai"; echo 'maturity: L2' > "$GP/.ai/CONSTRAINTS.yaml"
 git show "$OLD_SHA:scripts/hook-approvals-guard.sh" > "$T/old-guard.sh"
 guard() {  # SCRIPT CMD -> exit code
@@ -73,16 +73,20 @@ Co-Authored-By: Claude <noreply@anthropic.com>\""
 QUOTE="cat <<'EOF' > notes.md
 > a quote that names $D
 EOF"
+# F110 is still open: these still block, and the block now names the way past.
 for c in "$HEREDOC" "$COMMIT" "$QUOTE"; do
-  n=$(guard scripts/hook-approvals-guard.sh "$c"); o=$(guard "$T/old-guard.sh" "$c")
-  [ "$n" = 0 ] && [ "$o" = 2 ] && ok "F110 passes now (blocked at $OLD_SHA): $(head -1 <<<"$c" | cut -c1-60)" \
-    || bad "F110 should pass: new=$n old=$o: $(head -1 <<<"$c")"
+  msg=$(jq -n --arg c "$c" --arg d "$GP" '{tool_name:"Bash", cwd:$d, tool_input:{command:$c}}' \
+    | CLAUDE_PROJECT_DIR="$GP" bash scripts/hook-approvals-guard.sh 2>&1 >/dev/null); n=$?
+  [ "$n" = 2 ] && grep -q 'git commit -F' <<<"$msg" \
+    && ok "F110 open (split): still blocks, names 'git commit -F': $(head -1 <<<"$c" | cut -c1-50)" \
+    || bad "F110 open: exit $n or no way-past message: $(head -1 <<<"$c")"
 done
 for c in "echo x > $D/y" "echo x >> .AI//Approvals/../approvals/y" "cd .ai && echo x > approvals/y" \
          "D=$D; echo x > \$D/y" "env -C $D sh -c 'echo > x'" "sh -c \"echo >\"' $D/x'" \
          "echo x > .ai/hooks/../approvals/x" "find $D -delete" "git checkout -- $D" "sh x.sh $D" \
          "echo x > \\
-$D/y" "awk -v f=$D/x 'BEGIN{print 1 > f }'" "\${x}cd $D && echo x > y"; do
+$D/y" "awk -v f=$D/x 'BEGIN{print 1 > f }'" "\${x}cd $D && echo x > y" "echo x >>! $D/y" \
+         "/usr/bin/awk -v f=$D/x 'BEGIN{print 1}'" "builtin c\${x}d $D && echo x > y"; do
   n=$(guard scripts/hook-approvals-guard.sh "$c")
   [ "$n" = 2 ] && ok "F110/AC4 still blocks: $c" || bad "F110/AC4 not blocked (exit $n): $c"
 done
@@ -94,8 +98,8 @@ jq -n --arg d "$GP" '{tool_name:"Write", cwd:$d, tool_input:{file_path:($d + "/.
   || bad "rec 1 Write tool: new=$n old=$o"
 
 # --- AC3: the corpus — every command the S182 guard blocked still blocks, except listed non-writes ------
-if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 10 passed' "$T/guard-tests.out"; then
-  ok "AC3 tests/approvals_guard.rs: 10 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (a listed corpus)"
+if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 11 passed' "$T/guard-tests.out"; then
+  ok "AC3 tests/approvals_guard.rs: 11 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (only adds; F110 cases still block)"
 else bad "AC3 guard tests"; tail -5 "$T/guard-tests.out"; fi
 
 # --- S182 rec 2 (AC5): the new merge test is red on the old merge, green now ---------------------------

@@ -133,46 +133,38 @@ guessing the lint from CI YAML or `Cargo.toml` (S177).
 ages until someone bumps it; `#[allow(clippy::…)]` still silences any lint. **Not checked live:** the
 Release workflow's `rustup toolchain install && rustup target add` runs only on a tag (CI's runs on the PR).
 
-## S186 addendum — the guard reads where a redirect writes; a project declares its own obeyed switch (2026-10-04)
+## S186 addendum — F110 (b) split out; the guard only adds; a project declares its own obeyed switch (2026-10-04)
 
 **Follows** this record's S183 rule (a project switch is one strict field in `.ai/CONSTRAINTS.yaml`, read by
 exact key) for F113's `obeyed_blocks_from:` (the gate change itself is recorded in DECISION-007's S186
-addendum). **Amends** the S182 addendum twice. Picked by the S185 ground truth (founder: F110 option b).
+addendum). **Amends** the S182 addendum once (§3 below). Picked by the S185 ground truth (founder: F110 b).
 
-1. **§2 amended — block a redirect only when it lands in the folder, or cannot be proven not to.** Every
-   `>` in the de-quoted command is a possible redirect (heredoc bodies and quoted text are read, never
-   skipped — S173); its target is read from the de-quoted copy AND the command as written at the same `>`.
-   A literal target is resolved against the hook input's `cwd` by the kernel (`cd -P` on the existing part,
-   so a symlink or a `..` after one is followed as the write would follow it). It blocks on: a target in
-   `.ai/approvals` (this project's or any `*/.ai/approvals`); a quote or backslash in the written target;
-   `$`, a backtick, `{`, `*`, `?`, `[`, `~`; `>(…)`; any `cd`/`pushd`/`popd`/`-C`/`--chdir` in the command; a
-   target that is itself a symlink or a file with a second hard link; a `..` past a missing folder; no `cwd`.
-   No next word (end, `;&|`) is not a redirect — the commit sign-off `<noreply@…>"` is the F110 case.
-   **Reversed:** "Over-block kept: `cat <folder>/x > /tmp/y` still blocks" — it now passes, and so do the
-   other declared non-writes (`tests/approvals_guard.rs` `reads()`). Every LISTED command the S182 guard
-   blocked still blocks (`every_listed_command_the_s182_guard_blocked_still_blocks`) — a corpus, not a
-   proof for every command. The first cold review found three classes the first build let through, all
-   blocked by S182: a backslash-newline after `>` (now joined first, as the shell does), a `>` inside awk's
-   own text (awk and similar programs now block while naming the folder), and a `cd` spelled so a word
-   match misses it (`${x}cd`, zsh `chdir`; a command word that expands now counts as a directory change).
-   A working folder inside `.ai/approvals` now counts as naming it.
-2. **S182 review recs 1 and 5.** A `..` segment next to the word `approvals` counts as the folder, for the
-   Write tools and in the "names it?" test. New writers (`git checkout|restore|clean|reset|stash|apply`,
+1. **F110 (b) was built, reviewed twice, and SPLIT OUT by the founder (2026-10-04).** The design: block a
+   redirect only when its target lands in the folder or cannot be proven not to (target read from the
+   de-quoted and the written command, resolved against the hook's `cwd` with `cd -P`). Two cold reviews
+   each found writes into the folder it let through that the S182 rule blocks — pass 1: a backslash-newline
+   after `>`, awk's own `>`, a `cd` spelled to dodge a word match; pass 2, after fixes for those exact
+   spellings: zsh's `>>!`/`>&|`/`>>|`, a hidden `cd` after `if`/`{`/`builtin`, awk by full path, a link
+   made earlier in the same command. Each fix closed the spelling, not the class. **The S182 §2 rule stands
+   unchanged:** a command that names the folder and redirects anywhere still blocks (F110's false blocks
+   remain); the block now names the way past, `git commit -F <file>`. Lesson for the (b) session: loosening
+   a text guard is a REMOVAL; it needs a class-level argument (what the shell can do with a `>`), not a
+   corpus that grows one probe at a time.
+2. **S182 review recs 1 and 5 — only adds.** A `..` segment next to the word `approvals`, or a hook `cwd`
+   inside the folder, counts as naming it, for the Write tools and in the "names it?" test. A backslash-
+   newline is joined first, as the shell does. The S182 word lists also read the de-quoted copy (`l''n`). New writers (`git checkout|restore|clean|reset|stash|apply`,
    `find … -delete|-exec…`, `rsync`, `curl -o`, `wget`, `tar`, `unzip`, `patch`) and shells (`sh`, `bash`,
-   `zsh`, `dash`, `ksh`, `eval`, `source`, `xargs`) match only where a command starts (after `;&|(`, a
-   backtick, a line start, or a wrapper such as `env`/`sudo`/`xargs`) — `hook.sh` or the word "source" in
-   prose is not one. The S182 word lists are unchanged.
+   `zsh`, `dash`, `ksh`, `fish`, `eval`, `source`, `.`, `xargs`) and programs that write by their own syntax
+   (`awk` and kin, editors, `sqlite3`, `php`, `lua`, …) match where a command starts — after `;&|(`, a
+   backtick, a line start, `if`/`then`/`do`/`!`/`{`, `NAME=value`, a wrapper (`env`, `sudo`, `builtin`,
+   `xargs`, …), with or without a path in front — so `hook.sh` or the word "source" in prose is not one.
 3. **Corrected — "`--sync-fleet` never lists a hook twice" was false (S182 review rec 2).** A hook wired
    under a matcher that covers the template group's tools (`Bash|Edit|Write|MultiEdit` covers `Bash`) is
    wired; the merge adds only the missing hooks. A matcher that is not a plain `A|B` list covers nothing,
    so the hook is added rather than a tool left unguarded.
 
-**Rejected:** a quote-aware shell tokenizer (one apostrophe in a heredoc flips its state and hides a later
-real redirect); stripping heredoc bodies (hides text from the guard); refusing every symlink in the path
-(macOS's `/tmp` and `/var` are symlinks — `cat <folder>/x > /tmp/copy` would block); `realpath`/`readlink -f`
-(not in bash 3.2 / older macOS — the guard ships to every project).
+**For the (b) session, recorded:** a quote-aware tokenizer fails on one apostrophe in a heredoc; refusing
+every symlink blocks macOS's `/tmp`; `realpath` is not in bash 3.2. P1–P7 are in `tests/approvals_guard.rs`.
 
-**Limit, unchanged in kind:** a path assembled at run time still gets past; so does any program the lists do
-not name that writes by its own syntax (the S173 "a spelling nobody listed" class). The guard reads text,
-it is not a sandbox. **New over-block, disclosed:** a quote right after a `>` in a command that names the folder blocks
-(`-m "a -> b"`), and so does a heredoc line that redirects into the folder; the message names `git commit -F`.
+**Limit, unchanged in kind:** a path assembled at run time, or a writer no list names with no redirect,
+still gets past; the guard reads text, it is not a sandbox.
