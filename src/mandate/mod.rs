@@ -425,8 +425,8 @@ pub fn mandate_gate(
                 } else {
                     // Rung 6 — the migration exemption, named out loud rather than silent.
                     v.warnings.push(format!(
-                        "session {session:02} comes before Vajra began requiring the {} — a \
-                         missing handoff is only warned about here. To satisfy it anyway: {how}",
+                        "session {session:02} predates the {} mandate — silence is exempt for \
+                         this session. To satisfy it anyway: {how}",
                         role.name,
                     ));
                 }

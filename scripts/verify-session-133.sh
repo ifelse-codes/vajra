@@ -356,7 +356,7 @@ threshold_governs_silence_only() {
   echo "--- session 42, silent: exit=$code"; echo "$OUT" | grep '⚠'
   [ "$code" -eq 0 ] || { echo "FAIL: silence below the threshold blocked"; rc=1; }
   # S186 (F113 sibling): the words no longer quote Vajra's own session number; the behaviour is unchanged.
-  grep -q "comes before Vajra began requiring the design-advisor" <<<"$OUT" \
+  grep -q "predates the design-advisor mandate — silence is exempt for this session" <<<"$OUT" \
     || { echo "FAIL: the exemption is not NAMED in the output"; rc=1; }
   rm -rf "$TMP"
   # (b) below the threshold, a marker that EXISTS but is unusable still BLOCKS.
@@ -542,7 +542,7 @@ fixture_fails_for_the_right_reason() {
   apply_bypass "$D" "is not a recorded skip" "RENAMED-C" || renamed=0
   apply_bypass "$D" "records nothing after the colon" "RENAMED-D" || renamed=0
   apply_bypass "$D" "skip reason is not substantive" "RENAMED-E" || renamed=0
-  apply_bypass "$D" "predates the {} mandate (threshold {from_session})" "RENAMED-F {} {from_session}" || renamed=0
+  apply_bypass "$D" "predates the {} mandate — silence is exempt for" "RENAMED-F {} —" || renamed=0
   apply_bypass "$D" "records neither a {} handoff ({}) nor a reason for \\" "RENAMED-G {} {} \\" || renamed=0
   apply_bypass "$D" "carries no verifiable dispatch id" "RENAMED-H" || renamed=0
   apply_bypass "$D" "could not be independently re-verified" "RENAMED-I" || renamed=0
