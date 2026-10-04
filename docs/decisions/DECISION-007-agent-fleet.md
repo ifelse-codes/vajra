@@ -1709,3 +1709,38 @@ key, and only the diff shows it (the `lint_command: none` class, DECISION-011 S1
 **Rejected:** keeping the constant and detecting Vajra's own repo (text guessing, S177); scaffolding
 `obeyed_blocks_from: 1` (breaks the founder's project rule); a git birth-date threshold (S134 option 2); a
 lenient reader like `session_rules_from` (a non-number line is skipped silently).
+
+## S187 addendum — `--sync-fleet` adds a project's missing ground-truth audits and questions (F97)
+
+**Narrowly reverses** the S142/S143 "Out permanently: `CONSTRAINTS.yaml`" (logged as F97 at S179: F93's
+project-first audits reached new projects and rudra, by hand, but no other existing project). Founder
+pick, 2026-10-04; the one-line rule below, founder 2026-10-05. Design: the S187 design-advisor handoff.
+
+1. Sync adds to `ground_truth.required_audits` the carried audits the line lacks. "Carried" = the
+   build-derived scaffold list (`scaffold_ground_truth.yaml`, OMIT_AUDITS excluded — one source, S129),
+   so Vajra-only audits never reach a project. Only that one line is rewritten: the project's entries
+   keep their bytes and order (a trailing `# comment` too); each missing name goes right after its
+   nearest canonical predecessor in the line, or in front of the first entry when none is. Removing the
+   added names gives the original line back, byte for byte.
+2. Each missing `<audit>_questions:` block is inserted whole inside `ground_truth:`, after the block of
+   its nearest canonical predecessor, else after the section's last indented line. A block the project
+   has is never rewritten (so an old block's wording stays — a named limit).
+3. Sync prints what it added; `--dry-run` prints the same and writes nothing; a second run adds nothing.
+   It never creates the file and never round-trips it through a YAML parser.
+4. A shape it does not recognise (no `ground_truth:` or two, a block-style or unclosed list, two
+   `required_audits:` lines) is reported with where to copy from, and nothing is written.
+
+**Why the S182 "report, never edit" reason does not apply here:** it held for keys a gate reads — a write
+could switch a running session mid-way. No hook, close gate or `src/` reader in a project parses
+`required_audits` or `*_questions` (S187 grep: the readers are Vajra-only — `stranger-check.sh`,
+`scaffold-drift.sh` — and tests); only the agent reads them at boot. Every key a gate reads
+(`session_rules_from`, `ground_truth_next_session`, `obeyed_blocks_from`, `maturity`, `lint_command`)
+stays report-only. DECISION-011's S182 §4 and S183 §3 sentences are amended to say so.
+
+**Limit:** "missing" cannot tell "never had" from "removed on purpose" (S136), so an audit a project
+deleted comes back, and sync's output says so. A strict opt-out key → S188, by name.
+
+**Rejected:** appending missing names at the end of the line (delivery_progress would land behind the
+workflow audits — undoes S179's project-first order); a second key like `required_audits_added:` (no reader
+knows it; two lists drift); a second `required_audits:` line (a duplicate key every `grep -m1` reader
+misses); a YAML parse-and-rewrite (drops the project's comments and reorders its keys).

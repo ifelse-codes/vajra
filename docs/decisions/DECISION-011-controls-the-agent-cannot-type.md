@@ -80,7 +80,7 @@ guard `.ai/approvals/`.~~ (S182: they do — see the addendum.)
    `--sync-fleet` now adds Vajra's missing hook groups to an existing `.claude/settings.json` through the S44
    add-only merge — every user key and hook kept, `--dry-run` honoured, never creating the file.
 4. **Report, never edit, `session_rules_from`.** With no key, `--sync-fleet` prints the exact line and
-   N = `.ai/SESSION` + 1. The project's `.ai/CONSTRAINTS.yaml` is never written — the founder's policy call.
+   N = `.ai/SESSION` + 1. This key in the project's `.ai/CONSTRAINTS.yaml` is never written — the founder's policy call. *(S187: the file itself may now gain missing ground-truth audits and question blocks, which no gate reads — DECISION-007 S187 addendum; this key, and every key a gate reads, is still never written.)*
 5. **`--allow-all=NN` (narrows decision 2).** The record stores `session` next to `pid`; it approves session
    NN only, while that launch runs. A bare `--allow-all` is refused before anything starts; a pre-S182
    record naming no session approves nothing. Not the branch name: the agent usually types it.
@@ -120,7 +120,7 @@ it: the same command on the older clippy passes.
    results table that names the line to add. Never derived from CI files or from which files exist (S177).
    These two new rows (`project-lint-clean`, and `obeyed-judgments` for F104) show WARN and N/A as themselves,
    not under PASS (the S178 trap); the scaffold's older log-only N/A/WARN paths still record PASS (cold review). New scaffolds carry the
-   line commented out; existing projects add it themselves (Vajra never edits their CONSTRAINTS).
+   line commented out; existing projects add it themselves (Vajra never writes this key into their CONSTRAINTS; S187 adds only ground-truth audits and question blocks — DECISION-007 S187 addendum).
 
 **Rejected:** comparing the local version against "CI's" (with `@stable` nothing records CI's version — a
 network call or a hand-kept copy); `dtolnay@master` with `toolchain: 1.99.0` beside the toml (two copies);

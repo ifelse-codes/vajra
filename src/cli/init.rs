@@ -341,7 +341,9 @@ fn is_shipped_unstamped_render(rel: &str, body: &str) -> bool {
 /// shell hooks (S142, shell-comment stamp), and — S143 — the constitution's governed BODY (markdown
 /// stamp, a boundary target). ONE list, so `plan_fleet_sync` and the scaffold agree on exactly this
 /// set — a fresh `init` immediately reports them all `UpToDate`. `CONSTRAINTS.yaml` (user-tuned, no
-/// canonical) is deliberately absent — see the DECISION-007 S143 addendum.
+/// canonical) is deliberately absent — see the DECISION-007 S143 addendum. S187 (F97): sync adds a
+/// project's missing ground-truth audits and question blocks to it, and nothing else
+/// (`add_missing_ground_truth`, DECISION-007 S187 addendum) — it is still never rendered or replaced.
 fn sync_targets() -> Vec<SyncTarget> {
     let mut targets: Vec<SyncTarget> = crate::fleet::ROLES
         .iter()
@@ -569,9 +571,59 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
         )?;
     }
 
+    // S187 (F97, DECISION-007 S187 addendum): the ground-truth audits and question blocks a project
+    // lacks are added — only those, as a text edit (never a YAML round-trip), never creating the file.
+    let constraints = root.join(".ai/CONSTRAINTS.yaml");
+    if let Ok(text) = fs::read_to_string(&constraints) {
+        match add_missing_ground_truth(&text, SCAFFOLD_GROUND_TRUTH) {
+            GtSync::Unchanged => writeln!(
+                out,
+                "  ok      .ai/CONSTRAINTS.yaml (every ground-truth audit and question block present)"
+            )?,
+            GtSync::Added {
+                text: new,
+                audits,
+                blocks,
+            } => {
+                let verb = if opts.dry_run {
+                    "would   add"
+                } else {
+                    fs::write(&constraints, new)
+                        .context("failed to write .ai/CONSTRAINTS.yaml")?;
+                    "add    "
+                };
+                if !audits.is_empty() {
+                    writeln!(
+                        out,
+                        "  {verb} ground-truth audits to .ai/CONSTRAINTS.yaml: {}",
+                        audits.join(", ")
+                    )?;
+                }
+                if !blocks.is_empty() {
+                    writeln!(
+                        out,
+                        "  {verb} ground-truth question blocks to .ai/CONSTRAINTS.yaml: {}",
+                        blocks.join(", ")
+                    )?;
+                }
+                writeln!(
+                    out,
+                    "          (nothing else in the file moves. An audit you removed on purpose comes \
+                     back — Vajra cannot tell it from one you never had.)"
+                )?;
+            }
+            GtSync::Unrecognised(why) => writeln!(
+                out,
+                "  ACTION  .ai/CONSTRAINTS.yaml left untouched — {why}. A fresh `vajra init` in an \
+                 empty folder shows the current `ground_truth:` audits and questions to copy."
+            )?,
+        }
+    }
+
     // S182 Part 4: report, never edit. Without `session_rules_from` every session in this project
     // reads approvals, waivers and stamps the OLD way. The line is the founder's policy call and a
-    // write could switch a running session mid-way, so the project's own file is never touched.
+    // write could switch a running session mid-way, so this key is never written (S187 adds only
+    // ground-truth audits and questions, which no gate reads — DECISION-007 S187 addendum).
     if !crate::approval::rules_from(root).1 {
         let next = fs::read_to_string(root.join(".ai/SESSION"))
             .ok()
@@ -584,7 +636,7 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
             "  ACTION  .ai/CONSTRAINTS.yaml has no `session_rules_from:` — every session here still \
              follows the OLD rules\n          (approval by the brief's own words, one waiver for \
              every check, stamps not tied to their text).\n          To turn the new rules on from \
-             your next session, add this line under `session:` (Vajra never edits this file):\n\
+             your next session, add this line under `session:` (Vajra never writes this line):\n\
              \n              session_rules_from: {n}\n"
         )?;
         if next.is_some() {
@@ -871,6 +923,230 @@ fn configure_githooks_path(root: &Path) {
 /// Read → merge → write-back the L3 hooks into an existing `.claude/settings.json` (S44).
 /// Returns `Ok(true)` if the file changed, `Ok(false)` if Vajra's hooks were already wired,
 /// or `Err` if the existing file is malformed — the caller then leaves it untouched.
+/// The build-derived `ground_truth:` audits and question blocks a scaffold carries (S129) — the ONE
+/// source `--sync-fleet` adds missing ones from (S187), so Vajra-only audits never reach a project.
+const SCAFFOLD_GROUND_TRUTH: &str =
+    include_str!(concat!(env!("OUT_DIR"), "/scaffold_ground_truth.yaml"));
+
+/// What `add_missing_ground_truth` did to a project's CONSTRAINTS.yaml text.
+#[derive(Debug, PartialEq, Eq)]
+enum GtSync {
+    Unchanged,
+    Added {
+        text: String,
+        audits: Vec<String>,
+        blocks: Vec<String>,
+    },
+    /// A shape this edit does not recognise — nothing is written; the reason is printed.
+    Unrecognised(String),
+}
+
+/// `  required_audits: [a, b]` → the names inside the brackets.
+fn flow_list_names(line: &str) -> Option<Vec<String>> {
+    let open = line.find('[')?;
+    let close = open + line[open..].find(']')?;
+    Some(
+        line[open + 1..close]
+            .split(',')
+            .map(|n| n.trim().to_string())
+            .filter(|n| !n.is_empty())
+            .collect(),
+    )
+}
+
+/// `  name_questions:` at exactly two spaces → `name_questions`.
+fn question_key(line: &str) -> Option<&str> {
+    let rest = line.strip_prefix("  ")?;
+    if rest.starts_with(' ') {
+        return None;
+    }
+    let key = rest.strip_suffix(':')?;
+    (key.ends_with("_questions") && key.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
+        .then_some(key)
+}
+
+/// The question blocks of a `ground_truth:` text, in order: (key, the block's lines).
+fn question_blocks(lines: &[&str]) -> Vec<(String, std::ops::Range<usize>)> {
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        if let Some(key) = question_key(lines[i]) {
+            let mut end = i + 1;
+            while end < lines.len() && lines[end].starts_with("    ") {
+                end += 1;
+            }
+            out.push((key.to_string(), i..end));
+            i = end;
+        } else {
+            i += 1;
+        }
+    }
+    out
+}
+
+/// S187 (F97, DECISION-007 S187 addendum): add the ground-truth audits and question blocks a
+/// project's CONSTRAINTS.yaml lacks, against the scaffold's `canonical` text. Two edits only: the one
+/// `required_audits:` flow line gains each missing name right after its nearest canonical
+/// predecessor (removing the added names gives the original line back, byte for byte), and each
+/// missing question block is inserted whole inside `ground_truth:`. Every other line is untouched.
+/// A shape it does not recognise is reported, never guessed at.
+fn add_missing_ground_truth(project: &str, canonical: &str) -> GtSync {
+    let can_lines: Vec<&str> = canonical.lines().collect();
+    let Some(can_audits) = can_lines
+        .iter()
+        .find(|l| l.starts_with("  required_audits:"))
+        .and_then(|l| flow_list_names(l))
+    else {
+        return GtSync::Unrecognised("Vajra's own scaffold list could not be read".into());
+    };
+    let can_blocks = question_blocks(&can_lines);
+
+    let lines: Vec<&str> = project.lines().collect();
+    let starts: Vec<usize> = (0..lines.len())
+        .filter(|&i| lines[i].trim_end() == "ground_truth:")
+        .collect();
+    let [gt] = starts[..] else {
+        return GtSync::Unrecognised(format!(
+            "it has {} top-level `ground_truth:` lines, not one",
+            starts.len()
+        ));
+    };
+    // The section runs to the next top-level key; its last indented line is where a block can go.
+    let section_end = (gt + 1..lines.len())
+        .find(|&i| {
+            let l = lines[i];
+            !l.is_empty() && !l.starts_with(' ') && !l.starts_with('#')
+        })
+        .unwrap_or(lines.len());
+    let section = gt + 1..section_end;
+    let ra: Vec<usize> = section
+        .clone()
+        .filter(|&i| lines[i].starts_with("  required_audits:"))
+        .collect();
+    let [ra] = ra[..] else {
+        return GtSync::Unrecognised(format!(
+            "its `ground_truth:` has {} `required_audits:` lines, not one",
+            ra.len()
+        ));
+    };
+    let line = lines[ra];
+    let (Some(open), Some(close)) = (line.find('['), line.find(']')) else {
+        return GtSync::Unrecognised(
+            "its `required_audits:` is not a one-line `[a, b]` list".into(),
+        );
+    };
+    if close < open || line[open + 1..close].contains('[') {
+        return GtSync::Unrecognised("its `required_audits:` list could not be read".into());
+    }
+
+    // The project's names with the byte span each occupies in the line.
+    let mut have: Vec<(String, usize, usize)> = Vec::new();
+    let mut at = open + 1;
+    for piece in line[open + 1..close].split(',') {
+        let name = piece.trim();
+        if !name.is_empty() {
+            let start = at + piece.find(name).unwrap_or(0);
+            have.push((name.to_string(), start, start + name.len()));
+        }
+        at += piece.len() + 1;
+    }
+    let present = |n: &str, added: &[(String, usize)]| {
+        have.iter().any(|(h, ..)| h == n) || added.iter().any(|(a, _)| a == n)
+    };
+    // Each insertion is (byte position in the original line, text); names chained onto one place
+    // share its position and keep canonical order. A name with no predecessor in the line goes in
+    // FRONT of the project's first entry ("name, "), so the project's own bytes never move.
+    let mut added: Vec<(String, usize)> = Vec::new();
+    let mut inserts: Vec<(usize, String)> = Vec::new();
+    let front = if have.is_empty() { open + 1 } else { have[0].1 };
+    for (ci, name) in can_audits.iter().enumerate() {
+        if present(name, &added) {
+            continue;
+        }
+        let pred = can_audits[..ci].iter().rev().find(|p| present(p, &added));
+        let after_end = pred.and_then(|p| {
+            have.iter()
+                .find(|(h, ..)| h == p)
+                .map(|(.., end)| *end)
+                .or_else(|| added.iter().find(|(a, _)| a == p).map(|(_, x)| *x))
+        });
+        let (pos, text) = match after_end {
+            Some(pos) if pos != front || have.is_empty() => (pos, format!(", {name}")),
+            _ if have.is_empty() => (front, name.to_string()),
+            _ => (front, format!("{name}, ")),
+        };
+        added.push((name.clone(), pos));
+        inserts.push((pos, text));
+    }
+    let mut new_line = String::new();
+    let mut last = 0;
+    let mut by_pos = inserts.clone();
+    by_pos.sort_by_key(|(p, _)| *p); // stable: same-position texts keep canonical order
+    for (pos, text) in &by_pos {
+        new_line.push_str(&line[last..*pos]);
+        new_line.push_str(text);
+        last = *pos;
+    }
+    new_line.push_str(&line[last..]);
+
+    // Missing question blocks, each after the block of its nearest canonical predecessor present,
+    // else after the section's last indented line.
+    let sec_lines: Vec<&str> = lines[section.clone()].to_vec();
+    let proj_blocks: Vec<(String, std::ops::Range<usize>)> = question_blocks(&sec_lines)
+        .into_iter()
+        .map(|(k, r)| (k, r.start + gt + 1..r.end + gt + 1))
+        .collect();
+    let section_last = section
+        .clone()
+        .rev()
+        .find(|&i| lines[i].starts_with(' '))
+        .unwrap_or(gt);
+    let mut block_inserts: Vec<(usize, String)> = Vec::new(); // (after line index, block text)
+    let mut added_blocks: Vec<String> = Vec::new();
+    for (ci, (key, range)) in can_blocks.iter().enumerate() {
+        if proj_blocks.iter().any(|(k, _)| k == key) {
+            continue;
+        }
+        let after = can_blocks[..ci]
+            .iter()
+            .rev()
+            .find_map(|(p, _)| proj_blocks.iter().find(|(k, _)| k == p))
+            .map(|(_, r)| r.end - 1)
+            .unwrap_or(section_last);
+        let mut text = String::new();
+        for l in &can_lines[range.clone()] {
+            text.push_str(l);
+            text.push('\n');
+        }
+        block_inserts.push((after, text));
+        added_blocks.push(key.clone());
+    }
+
+    if added.is_empty() && added_blocks.is_empty() {
+        return GtSync::Unchanged;
+    }
+    let mut out = String::new();
+    for (i, l) in project.split_inclusive('\n').enumerate() {
+        if i == ra {
+            out.push_str(&new_line);
+            out.push_str(&l[line.len()..]); // the line ending, as it was
+        } else {
+            out.push_str(l);
+        }
+        for (_, text) in block_inserts.iter().filter(|(a, _)| *a == i) {
+            if !out.ends_with('\n') {
+                out.push('\n');
+            }
+            out.push_str(text);
+        }
+    }
+    GtSync::Added {
+        text: out,
+        audits: added.into_iter().map(|(n, _)| n).collect(),
+        blocks: added_blocks,
+    }
+}
+
 fn merge_claude_settings_file(path: &Path, template: &str) -> Result<bool> {
     let existing =
         fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
@@ -4032,8 +4308,11 @@ mod tests {
     /// adds the constitution's governed BODY (`.ai/AGENTS.md`) — and NOTHING else: not `CONSTRAINTS.yaml`
     /// (user-tuned), not `SESSION`/scripts/prompts/sessions/`.githooks`. And it must never touch the
     /// constitution's user-owned HEADER: a seeded UpToDate constitution is left byte-identical.
+    /// S187 (F97, renamed from `sync_fleet_touches_only_roles_hooks_and_the_constitution`): it never
+    /// CREATES `CONSTRAINTS.yaml` (asserted below); an existing one only gains ground-truth audits and
+    /// question blocks — `sync_fleet_only_adds_ground_truth_to_constraints`.
     #[test]
-    fn sync_fleet_touches_only_roles_hooks_and_the_constitution() {
+    fn sync_fleet_touches_roles_hooks_constitution_and_never_creates_constraints() {
         let dir = tempfile::tempdir().unwrap();
         seed_constitution(dir.path());
         let constitution_before = fs::read_to_string(dir.path().join(".ai/AGENTS.md")).unwrap();
@@ -4094,6 +4373,165 @@ mod tests {
                 "{unwanted} was scaffolded by --sync-fleet"
             );
         }
+    }
+
+    /// S187 (F97): an old project's CONSTRAINTS.yaml — written before S179 added the project-first
+    /// audits. A trailing comment on the list, a question block, a key between blocks, and a later
+    /// top-level section with two-space lines of its own.
+    const OLD_CONSTRAINTS: &str = "version: 3\nmaturity: L2\n\nground_truth:\n  forbid_code_changes: true\n  \
+required_audits: [vision_alignment, state_drift, constitution_review]   # ours\n  vision_questions:\n    \
+- Our own vision question?\n  required_outputs: [sessions/session-{NN}-ground-truth.md]\n  \
+constitution_questions:\n    - Our own constitution question?\n\nload_order:\n  - .ai/AGENTS.md\n\ncopilot:\n  on:\n    - \"x => y | z\"\n";
+
+    /// AC4's property, checked: remove the added question blocks and the added names, and the file
+    /// is the original, byte for byte.
+    fn undo_ground_truth_adds(after: &str, audits: &[String], blocks: &[String]) -> String {
+        let mut out = String::new();
+        let mut skipping = false;
+        for l in after.split_inclusive('\n') {
+            let body = l.trim_end_matches('\n');
+            if let Some(k) = question_key(body) {
+                skipping = blocks.iter().any(|b| b == k);
+            } else if !body.starts_with("    ") {
+                skipping = false;
+            }
+            if skipping {
+                continue;
+            }
+            if body.starts_with("  required_audits:") {
+                let mut line = l.to_string();
+                for a in audits {
+                    line =
+                        line.replacen(&format!(", {a}"), "", 1)
+                            .replacen(&format!("{a}, "), "", 1);
+                }
+                out.push_str(&line);
+            } else {
+                out.push_str(l);
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn sync_fleet_only_adds_ground_truth_to_constraints() {
+        let dir = tempfile::tempdir().unwrap();
+        seed_constitution(dir.path());
+        let path = dir.path().join(".ai/CONSTRAINTS.yaml");
+        fs::write(&path, OLD_CONSTRAINTS).unwrap();
+        let sync = |dry_run: bool| {
+            let mut out = Vec::new();
+            sync_fleet(
+                dir.path(),
+                SyncOpts {
+                    dry_run,
+                    overwrite_drifted: false,
+                },
+                &mut out,
+            )
+            .unwrap();
+            String::from_utf8(out).unwrap()
+        };
+        // A dry run names the additions and writes nothing.
+        let dry = sync(true);
+        assert!(dry.contains("would   add ground-truth audits"), "{dry}");
+        assert_eq!(fs::read_to_string(&path).unwrap(), OLD_CONSTRAINTS);
+
+        let said = sync(false);
+        let after = fs::read_to_string(&path).unwrap();
+        let GtSync::Added { audits, blocks, .. } =
+            add_missing_ground_truth(OLD_CONSTRAINTS, SCAFFOLD_GROUND_TRUTH)
+        else {
+            panic!("the old file lacks audits")
+        };
+        assert!(
+            audits.contains(&"delivery_progress".to_string()),
+            "{audits:?}"
+        );
+        assert!(
+            blocks.contains(&"delivery_progress_questions".to_string()),
+            "{blocks:?}"
+        );
+        assert!(said.contains("delivery_progress"), "{said}");
+        assert!(
+            said.contains("comes back"),
+            "the re-add limit is said: {said}"
+        );
+        // Project-first order kept: delivery_progress lands right after roadmap_alignment, which
+        // lands right after the project's own vision_alignment.
+        assert!(
+            after.contains("required_audits: [vision_alignment, roadmap_alignment, delivery_progress, state_drift"),
+            "{after}"
+        );
+        assert!(
+            after.contains("]   # ours\n"),
+            "the trailing comment is kept: {after}"
+        );
+        // The project's own blocks are untouched; every other line is byte-identical.
+        assert!(after.contains("  vision_questions:\n    - Our own vision question?\n"));
+        assert_eq!(
+            undo_ground_truth_adds(&after, &audits, &blocks),
+            OLD_CONSTRAINTS
+        );
+        // The added blocks sit inside ground_truth:, before load_order:.
+        let lo = after.find("\nload_order:").unwrap();
+        assert!(after.find("  delivery_progress_questions:").unwrap() < lo);
+        // A second run adds nothing.
+        assert!(sync(false).contains("every ground-truth audit and question block present"));
+        assert_eq!(fs::read_to_string(&path).unwrap(), after);
+    }
+
+    #[test]
+    fn ground_truth_names_go_in_front_and_into_an_empty_list_without_moving_bytes() {
+        let front = add_missing_ground_truth(
+            "ground_truth:\n  required_audits: [state_drift]\n",
+            "  required_audits: [vision_alignment, roadmap_alignment, state_drift, cost_review]\n",
+        );
+        assert_eq!(
+            front,
+            GtSync::Added {
+                text: "ground_truth:\n  required_audits: [vision_alignment, roadmap_alignment, state_drift, cost_review]\n".into(),
+                audits: vec!["vision_alignment".into(), "roadmap_alignment".into(), "cost_review".into()],
+                blocks: vec![],
+            }
+        );
+        let GtSync::Added { text, .. } = add_missing_ground_truth(
+            "ground_truth:\n  required_audits: []\n",
+            "  required_audits: [a_x, b_x]\n",
+        ) else {
+            panic!()
+        };
+        assert_eq!(text, "ground_truth:\n  required_audits: [a_x, b_x]\n");
+    }
+
+    #[test]
+    fn an_unrecognised_ground_truth_shape_is_reported_never_written() {
+        let can = "  required_audits: [a_x]\n";
+        for (project, why) in [
+            ("version: 3\n", "0 top-level `ground_truth:`"),
+            (
+                "ground_truth:\n  required_audits:\n    - b_x\n",
+                "not a one-line",
+            ),
+            (
+                "ground_truth:\n  required_audits: [b_x]\n  required_audits: [c_x]\n",
+                "2 `required_audits:`",
+            ),
+            (
+                "ground_truth:\n  forbid_prs: true\n",
+                "0 `required_audits:`",
+            ),
+            ("ground_truth:\n  required_audits: [b_x\n", "not a one-line"),
+        ] {
+            match add_missing_ground_truth(project, can) {
+                GtSync::Unrecognised(r) => assert!(r.contains(why), "{project:?}: {r}"),
+                other => panic!("{project:?} → {other:?}"),
+            }
+        }
+        assert_eq!(
+            add_missing_ground_truth("ground_truth:\n  required_audits: [a_x]\n", can),
+            GtSync::Unchanged
+        );
     }
 
     /// An unreadable file must not be mistaken for an absent one — that would turn a permissions
