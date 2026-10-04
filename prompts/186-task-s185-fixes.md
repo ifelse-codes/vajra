@@ -96,8 +96,7 @@ design-significant: yes
 5. F115: verify-132's `--advance` fixture records a real tech-lead (dispatch fixture, every role deferred-budget) so the Obeyed gate gets its turn; both sides of F113 plus a malformed key. — covers: 7, 1
 6. Guard corpus first (tech-lead rec 3): the S186 commands, the declared non-writes, and an old-vs-new test against e1c348e's guard. — covers: 3, 2, 4
 7. S182 recs 1 and 5: `..` segments count as the folder (Write tool and Bash); the added writers and interpreters. — covers: 4
-8. F110 (b): the guard reads each redirect's real target, resolved against the hook's `cwd`; fail closed on the brief's list; the block message names `git commit -F <file>`. — covers: 2, 3
-   (Built, then SPLIT OUT by the founder after two cold-review REJECTs, 2026-10-04: the S182 redirect rule is restored; the block message names `git commit -F`.)
+8. F110 (b): build the target-reading guard, then — after two cold-review REJECTs — SPLIT IT OUT (the founder's call, 2026-10-04): restore the S182 redirect rule, keep (a)'s `git commit -F` message, record the design and P1–P7 for its own session. — covers: 2, 3
 9. S182 rec 2: `merge_claude_settings` adds no hook already wired under another matcher (a test red at e1c348e). — covers: 5
 10. `scripts/verify-session-186.sh` (each fix red at e1c348e for its named reason) and the demo. — covers: 1, 2, 3, 4, 5, 6, 7, 8
 11. DECISION-007 and DECISION-011 addenda (S185 design-advisor rec 12); summary with 3 next options; closeout sync; next prompt; one cold review; the `--inputs-sha 186` stamp last. — covers: 1, 2
@@ -113,6 +112,7 @@ Cut line (prompt guardrail): if step 8 is not green with its corpus by ~1h30, sh
 - step 6 — done: 3a4fca9
 - step 7 — done: 3a4fca9
 - step 8 — done: fb467a0
+  (fb467a0 is the split: the S182 redirect rule restored. F110 (b) itself is NOT shipped; its build was 3a4fca9/1409a3c.)
 - step 9 — done: 9dcec17
 - step 10 — done: 2c0b576
 - step 11 — done: 4e6c5fd
@@ -120,10 +120,10 @@ Cut line (prompt guardrail): if step 8 is not green with its corpus by ~1h30, sh
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required), `fidelity-reviewer` (required;
 the one cold close review), `release-coordinator` (required; the one judge of every `obeyed:` answer).
-implementation-advisor: skipped — the tech-lead deferred it on budget (its rec 2): a guard-code dispatch reads the shell scripts, about 1.5M tokens, and the AC3 corpus test (every command the S182 guard blocked, run through both guards) stands in for its review of F110 (b).
+implementation-advisor: skipped — the tech-lead deferred it on budget (its rec 2): a guard-code dispatch reads the shell scripts, about 1.5M tokens; the AC3 corpus test was meant to stand in for its review of F110 (b). That stand-in was not enough — three cold reviews found what the corpus missed — and (b) was split out.
 
 **tech-lead** (`.ai/handoffs/session-186-tech-lead.md`):
-- tech-lead rec 1 — refused: in part — F114 → N1 → F113 with F115 landed in the asked order (0dd33f1, c6bbeb9, 62bfe63, 4c34e51), but F110 (b) landed in the same commit as S182 recs 1/5 (3a4fca9) and before rec 2 (9dcec17), so the clean cut the rec wanted was never available; it did not matter because (b) finished inside the cut line (cold review pass 1, probe 5).
+- tech-lead rec 1 — refused: in part — F114 → N1 → F113 with F115 landed in the asked order (0dd33f1, c6bbeb9, 62bfe63, 4c34e51), but F110 (b) landed in the same commit as S182 recs 1/5 (3a4fca9) and before rec 2 (9dcec17), so the clean cut the rec wanted was not available. When (b) failed two reviews the cut was made by hand instead (fb467a0 restores the S182 redirect rule; the add-only parts stayed).
 - tech-lead rec 2 — obeyed: fb467a0 (no implementation-advisor dispatch — the reasoned skip line is in this section, ac1b5da; and its second half, "more than one review pass on (b) → split it out": after pass 1 the holes were fixed once (1409a3c), pass 2 REJECTED again, and the founder split (b) out — fb467a0 restores the S182 rule)
 - tech-lead rec 3 — refused: in part — the corpus was written and run red before the guard changed (in-session only: corpus and guard share commit 3a4fca9, so history cannot show the order), and "every command e1c348e blocks" is not a set a test can enumerate. The test is now named for what it proves, a listed corpus (`every_listed_command_the_s182_guard_blocked_still_blocks`, 1409a3c), and the cold review's three missed classes were added to it.
 - tech-lead rec 4 — obeyed: 651d174 (the design-advisor brief named the files and asked "do the picks fit the code", not a redesign)
@@ -142,8 +142,8 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
   why: built in 3a4fca9, then F110 (b) was split out by the founder (2026-10-04) after two cold-review REJECTs and the S182 redirect rule restored (fb467a0); the design is recorded in DECISION-011's S186 addendum for the (b) session → backlog — reason: the founder picks when (S187 is rudra S18); on the S190 ground-truth checklist.
 - design-advisor rec 7 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
   why: F110 (b) split out (fb467a0); what was built and why the symlink refusal was not (macOS `/tmp`) is recorded for the (b) session → backlog, on the S190 checklist. Was: refused: in part — its core ask (refuse a symlink in any path component) was not built: refusing every symlink blocks every `/tmp` target on macOS (`/tmp` → `/private/tmp`), including AC3's own read. Built instead (3a4fca9): `cd -P` resolves the existing part as the kernel would, so a symlink is FOLLOWED to where the write really goes; a symlinked or hard-linked last component, a `..` past a missing folder, and no/empty `cwd` block (`a_linked_target_or_a_missing_cwd_is_not_provable`). Recorded in DECISION-011's S186 addendum.
-- design-advisor rec 8 — obeyed: fb467a0 (heredoc bodies and quoted text are read, never skipped: with the S182 rule restored, any `>` in a command naming the folder blocks, heredoc or not)
-- design-advisor rec 9 — obeyed: 3a4fca9 (new writers and shells match only at a command start or after a wrapper; the S182 lists are unchanged; a commit message naming `hook-approvals-guard.sh` and "source" is in the corpus and passes)
+- design-advisor rec 8 — obeyed: 33235cd (heredoc bodies and quoted text are read, never skipped: the S182 rule is restored and every S182 check again reads the command exactly as written; the joined copy is only extra lines)
+- design-advisor rec 9 — obeyed: 33235cd (new writers and shells match only at a command start or after a wrapper, 3a4fca9; the S182 lists and the text they read are unchanged — 33235cd stopped the join from replacing that text; a `>`-free commit message naming `hook-approvals-guard.sh` and "source" passes)
 - design-advisor rec 10 — obeyed: 3a4fca9 (bash 3.2 + BSD tools only: `tr`, `cd -P`, `ls -ld`, awk with ENVIRON; the guard tests pass under `/bin/bash` 3.2.57 and bash 5)
 - design-advisor rec 11 — obeyed: 9dcec17 (a hook counts as wired only under a covering matcher; the pushed group carries only the missing hooks; AC5 fixture red at b10a1a6 ("runs it twice"); the loader is still added for Bash when wired only for Edit)
 - design-advisor rec 12 — refused: the premise is wrong — at main (b10a1a6) the four lines print to stdout (`git show b10a1a6:scripts/hook-pre-bash.sh` line 77 has no `>&2`); the advisor read the working tree after c6bbeb9 had landed. The AC8 test it asked for was built anyway (verify-186: new on stderr, b10a1a6 on stdout, both hooks).
@@ -152,13 +152,12 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - design-advisor rec 15 — obeyed: ef560a6 (DECISION-011 S186 addendum: follows S183's strict-key rule, amends S182 §2, reverses its over-block sentence, corrects "never lists a hook twice")
 
 **fidelity-reviewer** (`.ai/handoffs/session-186-fidelity-reviewer.md`; pass 1 REJECT 12/15 — its recs are answered here; pass 2's handoff replaces pass 1's, both are in `sessions/session-186-review.md`):
-Pass 1 (REJECT) and pass 2 (REJECT) each recorded recs; the handoff holds the latest pass. After pass 2 the founder split F110 (b) out (2026-10-04) and the S182 redirect rule was restored in fb467a0, which closes every redirect probe of both passes by construction (any `>` in a command naming the folder blocks). Both passes' recs are listed in `sessions/session-186-review.md`; the current handoff's recs are answered here:
-- fidelity-reviewer rec 1 — obeyed: fb467a0 (zsh `>&!`, `>>!`, `>>|` block: the restored S182 rule blocks any `>`; P4 in the corpus)
-- fidelity-reviewer rec 2 — obeyed: fb467a0 (a hidden `cd` with a redirect blocks under the restored rule; P5 in the corpus)
-- fidelity-reviewer rec 3 — obeyed: fb467a0 (command patterns accept a path in front: `/usr/bin/awk` blocks even with no `>`; P6 in the corpus)
-- fidelity-reviewer rec 4 — obeyed: fb467a0 (the S182 writer and interpreter lists also read the de-quoted copy: `l''n -s .ai/approvals l` blocks; P7 in the corpus)
-- fidelity-reviewer rec 5 — obeyed: 1bceb5c (DECISION-011's S186 addendum now says (b) was split out, names both passes' probes, and claims only that the guard adds; the summary says F110 is NOT fixed)
-- fidelity-reviewer rec 6 — obeyed: 1bceb5c (the split makes "partial fix" answers moot: (b) is recorded as split, not as obeyed; tech-lead rec 2's re-citation is ac1b5da, named in its own line)
+Passes 1, 2 and 3 each REJECTED (the guard); the handoff holds the latest pass (3). After pass 2 the founder split F110 (b) out; pass 3 found the add-only promise still broken by the backslash-newline join (R1–R3), fixed in 33235cd. Every pass's recs are listed in `sessions/session-186-review.md`; pass 3's are answered here:
+- fidelity-reviewer rec 1 — obeyed: 33235cd (the joined copy is appended as extra lines, so every S182 check reads the command as written plus more; R1, R2 in the corpus, red on fb467a0)
+- fidelity-reviewer rec 2 — obeyed: 33235cd (the folder lookup falls back to the path instead of exiting under `set -e`; `an_unenterable_folder_does_not_open_the_guard`, red on fb467a0 with exit 1)
+- fidelity-reviewer rec 3 — obeyed: 33235cd (the guard header says how it only adds; the summary, DECISION-011 §2 and the ROADMAP row are corrected in the commit after it, and a fresh cold review follows)
+- fidelity-reviewer rec 4 — obeyed: 33235cd (tech-lead rec 1's reason no longer claims (b) finished; it says the cut was made by hand)
+- fidelity-reviewer rec 5 — obeyed: 33235cd (plan step 8 now says it is the split, and its Execution line says fb467a0 is the restore, not (b))
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
