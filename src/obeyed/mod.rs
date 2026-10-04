@@ -82,7 +82,15 @@ pub const BLOCKS_FROM_KEY: &str = "obeyed_blocks_from:";
 /// `Ok(Some(n))`. Empty, not a number, or set twice → `Err` naming the line, which BLOCKS: a typo
 /// must never quietly become "never blocks".
 pub fn obeyed_blocks_from(root: &Path) -> Result<Option<u32>, String> {
-    let text = std::fs::read_to_string(root.join(".ai/CONSTRAINTS.yaml")).unwrap_or_default();
+    let text = match std::fs::read_to_string(root.join(".ai/CONSTRAINTS.yaml")) {
+        Ok(t) => t,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => {
+            return Err(format!(
+                ".ai/CONSTRAINTS.yaml could not be read ({e}), so `{BLOCKS_FROM_KEY}` is unknown"
+            ))
+        }
+    };
     let mut found: Option<(usize, u32)> = None;
     for (i, line) in text.lines().enumerate() {
         let Some(rest) = line.trim_start().strip_prefix(BLOCKS_FROM_KEY) else {
@@ -474,13 +482,11 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
     let mut reasons = Vec::new();
     let mut warnings = Vec::new();
 
-    let blocks_from = match obeyed_blocks_from(root) {
-        Ok(n) => n,
-        Err(why) => {
-            reasons.push(why);
-            None
-        }
-    };
+    let read = obeyed_blocks_from(root);
+    if let Err(why) = &read {
+        reasons.push(why.clone());
+    }
+    let blocks_from = read.clone().ok().flatten();
 
     // The recommendations, only for their TEXT — the gate binds on dispositions, so an orphan
     // disposition (answering advice no handoff records) is graded too, never skipped.
@@ -558,12 +564,15 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
     // class, disclosed in the output that relies on it. S186 (F113): the reason is the project's own
     // declared key (or its absence), so the words are true in every project.
     if !warnings.is_empty() {
-        let why = match blocks_from {
-            None => format!(
+        let why = match read {
+            Err(_) => format!(
+                "`{BLOCKS_FROM_KEY}` could not be read — see the blocking reason"
+            ),
+            Ok(None) => format!(
                 "this project does not block on unchecked `obeyed:` claims (no `{BLOCKS_FROM_KEY}` \
                  in .ai/CONSTRAINTS.yaml)"
             ),
-            Some(n) => format!(
+            Ok(Some(n)) => format!(
                 "this project blocks on them only from session {n} (`{BLOCKS_FROM_KEY} {n}` in \
                  .ai/CONSTRAINTS.yaml)"
             ),

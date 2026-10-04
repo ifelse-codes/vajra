@@ -1715,7 +1715,7 @@ fn run_advance() -> Result<()> {
     if obeyed_verdict.blocked() {
         eprintln!(
             "[vajra obeyed] session {current:02} {closes} — an `obeyed:` disposition is \
-             unjudged, or judged a mismatch:"
+             unjudged or judged a mismatch, or `obeyed_blocks_from:` cannot be read:"
         );
         print_reasons(&obeyed_verdict.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
@@ -1727,7 +1727,8 @@ fn run_advance() -> Result<()> {
         } else {
             bail!(
                 "refusing to advance: session {current:02} records an `obeyed:` disposition no \
-                 independent judge has graded true (Obeyed gate). Run `vajra next --check-obeyed \
+                 independent judge has graded true, or `obeyed_blocks_from:` in \
+                 .ai/CONSTRAINTS.yaml cannot be read (Obeyed gate). Run `vajra next --check-obeyed \
                  {current:02}`, have an independent role record `obeyed-check <role> rec <N> — \
                  implemented: <sha> — <note>` in its governed handoff, or set \
                  VAJRA_SKIP_OBEYED_GATE=1 to override. A reasoned `refused:` passes — a false \
