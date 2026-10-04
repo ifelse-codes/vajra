@@ -113,14 +113,14 @@ Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-adv
 
 **design-advisor** (`.ai/handoffs/session-184-design-advisor.md`):
 - design-advisor rec 1 — obeyed: 302f923 (`design-significant: yes`, on F103 alone)
-- design-advisor rec 2 — obeyed: a0c1417 (the warning says "in this session"; `## Design` names F107's deviation from DECISION-007 in 302f923; the founder made it F113 — an issue to fix, first on the S185 list in 3c687bf)
+- design-advisor rec 2 — obeyed: 302f923 (`## Design` names F107's deviation from DECISION-007, "Named, not closed"; parked to S185 with F110 in 3c687bf; a0c1417 also makes the warning say "in this session". First cited a0c1417 — both judges graded that a mismatch: wrong commit)
 - design-advisor rec 3 — obeyed: 302f923 (no new decision record; `## Design` is F103's record)
 - design-advisor rec 4 — obeyed: 302f923 (10 s, first-silence rule and dropped late line kept; the known cost and the two reasons are in `## Design`)
 
 **plan-advisor** (`.ai/handoffs/session-184-plan-advisor.md`):
 - plan-advisor rec 1 — obeyed: 302f923 (`## Design` filled before close; `vajra next --check-design 184` READY)
 - plan-advisor rec 2 — obeyed: 3c687bf (S185's prompt landed before the cold review and the stamp)
-- plan-advisor rec 3 — obeyed: 302f923 (the summary lists `git diff --name-only e1c348e...HEAD` — Vajra paths only)
+- plan-advisor rec 3 — obeyed: d396daf (the summary now pastes the real `git diff --name-only e1c348e...HEAD` output — Vajra paths only. First cited 302f923, whose list was typed by hand and missed KNOWLEDGE.md — a judge graded that a mismatch)
 
 **fidelity-reviewer** (`.ai/handoffs/session-184-fidelity-reviewer.md`, ACCEPT 4 SHIPPED · 2 PARTIAL):
 - fidelity-reviewer rec 1 — obeyed: f6ea7d6 (F114 numbered and reproduced; founder: fix later → S185 list in 2935095; verify-184's F108 check now commits one review and requires exit 0 + non-empty, identical output)
