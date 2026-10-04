@@ -118,6 +118,12 @@ design-significant: yes
 - step 6 — done: bf2349f
 - step 7 — done: c63ba15
 
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required; design-significant: yes),
+`fidelity-reviewer` (required; the one cold close review), `release-coordinator` (required; the one judge
+of every `obeyed:` answer).
+implementation-advisor: skipped — the tech-lead deferred it on budget (its crew line and rec 6): a guard dispatch reads both hook scripts, about 1.2M tokens, and the one guard let-through it would have reviewed (N2) moved to S188 by the founder; the S187 guard change is message-only, proven by the 0071dca-vs-now exit comparison.
+
 ## Delta
 - `~` approvals guard block reason (writer/program case) names the split-the-command way past
 - `+` `vajra next --steps` approval line
