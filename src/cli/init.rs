@@ -3123,7 +3123,10 @@ mod tests {
             .any(|g| entry_references(g, ".ai/hooks/hook-copilot-loader.sh"));
         assert!(bash_has_loader, "the loader must be wired for Bash:\n{out}");
         assert!(matcher_covers(None, Some(&json!("Bash"))));
-        assert!(!matcher_covers(Some(&json!("Bash.*")), Some(&json!("Bash"))));
+        assert!(!matcher_covers(
+            Some(&json!("Bash.*")),
+            Some(&json!("Bash"))
+        ));
     }
 
     #[test]

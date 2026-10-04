@@ -565,9 +565,7 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
     // declared key (or its absence), so the words are true in every project.
     if !warnings.is_empty() {
         let why = match read {
-            Err(_) => format!(
-                "`{BLOCKS_FROM_KEY}` could not be read — see the blocking reason"
-            ),
+            Err(_) => format!("`{BLOCKS_FROM_KEY}` could not be read — see the blocking reason"),
             Ok(None) => format!(
                 "this project does not block on unchecked `obeyed:` claims (no `{BLOCKS_FROM_KEY}` \
                  in .ai/CONSTRAINTS.yaml)"
@@ -653,8 +651,14 @@ mod tests {
         };
         let absent = seed("session:\n  max_retries: 2\n");
         let v = obeyed_gate(absent.path(), 132);
-        assert!(!v.blocked(), "no key: a project's session 132 must not block");
-        assert!(v.warnings.iter().any(|w| w.contains("no `obeyed_blocks_from:`")));
+        assert!(
+            !v.blocked(),
+            "no key: a project's session 132 must not block"
+        );
+        assert!(v
+            .warnings
+            .iter()
+            .any(|w| w.contains("no `obeyed_blocks_from:`")));
 
         let declared = seed("session:\n  obeyed_blocks_from: 132\n");
         assert!(obeyed_gate(declared.path(), 132).blocked());

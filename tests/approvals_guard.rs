@@ -21,7 +21,12 @@ fn run_in(proj: &Path, script: &str, payload: serde_json::Value) -> (i32, String
     run_with(&shell, proj, script, payload)
 }
 
-fn run_with(shell: &str, proj: &Path, script: &str, mut payload: serde_json::Value) -> (i32, String) {
+fn run_with(
+    shell: &str,
+    proj: &Path,
+    script: &str,
+    mut payload: serde_json::Value,
+) -> (i32, String) {
     std::fs::create_dir_all(proj.join(".ai")).unwrap();
     std::fs::write(proj.join(".ai/CONSTRAINTS.yaml"), "maturity: L2\n").unwrap();
     // Claude Code sends the agent's working folder; the guard reads it (a working folder inside
@@ -93,7 +98,10 @@ fn f110_still_blocks_and_names_the_way_past() {
     for cmd in f110_open() {
         let (code, err) = bash(&cmd);
         assert_eq!(code, 2, "{cmd}");
-        assert!(err.contains("git commit -F"), "the block must name the way past: {err}");
+        assert!(
+            err.contains("git commit -F"),
+            "the block must name the way past: {err}"
+        );
     }
 }
 
@@ -150,9 +158,18 @@ fn s186_writes() -> Vec<String> {
         "true #x\\\ncd .ai\necho x > approvals/y".to_string(),
         // S186 cold review pass 4: a large command — a piped `grep -q` could fail open on it
         // (SIGPIPE under pipefail). With and without a backslash-newline; the S182 guard let ~60 KB pass.
-        format!("cp /tmp/forged {DIR}/187.json; true \\\n{}", "a".repeat(20 * 1024)),
-        format!("cp /tmp/forged {DIR}/187.json; true \\\n{}", "a".repeat(70 * 1024)),
-        format!("cp /tmp/forged {DIR}/187.json; true {}", "a".repeat(120 * 1024)),
+        format!(
+            "cp /tmp/forged {DIR}/187.json; true \\\n{}",
+            "a".repeat(20 * 1024)
+        ),
+        format!(
+            "cp /tmp/forged {DIR}/187.json; true \\\n{}",
+            "a".repeat(70 * 1024)
+        ),
+        format!(
+            "cp /tmp/forged {DIR}/187.json; true {}",
+            "a".repeat(120 * 1024)
+        ),
     ]
 }
 
@@ -221,7 +238,11 @@ fn write_tools_block_on_the_path() {
         ("NotebookEdit", "notebook_path", format!("/p/{DIR}/n.ipynb")),
         ("Write", "file_path", "/p/.AI/Approvals/x".to_string()),
         // S182 review rec 1 (S186): a `..` segment that lands in the folder.
-        ("Write", "file_path", "/p/.ai/hooks/../approvals/x".to_string()),
+        (
+            "Write",
+            "file_path",
+            "/p/.ai/hooks/../approvals/x".to_string(),
+        ),
         ("Edit", "file_path", ".ai/hooks/../approvals/x".to_string()),
     ] {
         let (code, _) = run(
@@ -375,7 +396,11 @@ fn every_listed_command_the_s182_guard_blocked_still_blocks() {
     std::fs::write(&old_guard, &old.stdout).unwrap();
     let reads = reads();
     let mut old_blocked = 0;
-    for cmd in reads.iter().chain(writes().iter()).chain(s186_writes().iter()) {
+    for cmd in reads
+        .iter()
+        .chain(writes().iter())
+        .chain(s186_writes().iter())
+    {
         let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}});
         let (o, _) = run(old_guard.to_str().unwrap(), p);
         if o != 2 {
@@ -414,10 +439,18 @@ fn redirects_through_a_link_or_with_no_cwd_block() {
         format!("cat {DIR}/session-1.json > sub/link/../approvals/x"),
     ] {
         let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}});
-        assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 2, "{cmd}");
+        assert_eq!(
+            run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0,
+            2,
+            "{cmd}"
+        );
     }
     let p = serde_json::json!({"tool_name": "Bash", "cwd": "", "tool_input": {"command": format!("cat {DIR}/x > y")}});
-    assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 2, "no cwd");
+    assert_eq!(
+        run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0,
+        2,
+        "no cwd"
+    );
 }
 
 /// S186 cold review rec 8: with the agent's working folder inside `.ai/approvals` (a `cd` in an
@@ -428,9 +461,16 @@ fn a_cwd_inside_the_folder_blocks_a_redirect() {
     let inside = proj.path().join(DIR);
     std::fs::create_dir_all(&inside).unwrap();
     let p = serde_json::json!({"tool_name": "Bash", "cwd": inside.to_string_lossy(), "tool_input": {"command": "echo x > y"}});
-    assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 2);
+    assert_eq!(
+        run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0,
+        2
+    );
     let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": "echo x > y"}});
-    assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 0, "from the project root");
+    assert_eq!(
+        run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0,
+        0,
+        "from the project root"
+    );
 }
 
 /// S186 cold review pass 3, R3: an approvals folder that cannot be entered must not end the guard
@@ -456,7 +496,11 @@ fn a_backslash_dense_command_blocks_fast() {
     let dense = "\\a".repeat(30_000);
     let cmd = format!(": '{dense}' \\\n; echo x > {DIR}/y");
     let proj = tempfile::tempdir().unwrap();
-    let shell = if Path::new("/bin/bash").exists() { "/bin/bash" } else { "bash" };
+    let shell = if Path::new("/bin/bash").exists() {
+        "/bin/bash"
+    } else {
+        "bash"
+    };
     let t = std::time::Instant::now();
     let (code, _) = run_with(
         shell,
