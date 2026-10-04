@@ -115,7 +115,7 @@ Cut line (prompt guardrail): if step 8 is not green with its corpus by ~1h30, sh
 - step 8 — done: fb467a0
 - step 9 — done: 9dcec17
 - step 10 — done: 2c0b576
-- step 11 — done: fe1ed46
+- step 11 — done: 4e6c5fd
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required), `fidelity-reviewer` (required;
