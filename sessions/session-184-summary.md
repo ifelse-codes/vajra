@@ -78,6 +78,13 @@ src/obeyed/mod.rs
 ## Not built
 F110 and F113 — the founder's yes to fix, after the S185 review (`prompts/185-task-ground-truth.md`, first items). F114 — fix later (S185 list). F115 — S185 answers it. F109, F111, F112 — rudra's own, by the founder's call. `cargo test` in the close — founder: no.
 
+## Ship steps (release-coordinator recs 2–5 — the founder's to do)
+1. The close check ran on this branch after the stamp (exit code in the PR description).
+2. Push the branch, open the PR; when CI (`scripts/ci-lint.sh`) is green, merge as a merge commit — never squash or rebase (the next gate checks ancestry).
+3. `git checkout main && git fetch origin && git pull --ff-only`, then `cargo install --path .` (S185 and rudra get F103/F107).
+4. `git branch -d session-184-rudra-s17-new-rules` (lowercase `-d`: it refuses an unmerged branch), then `git fetch --prune`.
+5. Keep the untracked `.claude/launch.json`, `first-mate.html`, `sessions/session-137-scatter-render.html`, `vajra-cto-audit-2026-07-22.html` out of any `git add`.
+
 ## Cost
 $0 in this repo (no paid run). The founder's rudra S17 receipt read ~$110.63 (F67, ~5× over). Fleet dispatches: 6 — tech-lead, design-advisor, plan-advisor, fidelity-reviewer (the cold review), a second fidelity-reviewer as a judge of the advisors' `obeyed:` answers, release-coordinator (the recorded judge of all 16, plus the ship steps; re-dispatched once after two re-cites).
 

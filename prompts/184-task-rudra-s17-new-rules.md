@@ -129,6 +129,18 @@ Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `plan-adv
 - fidelity-reviewer rec 4 — obeyed: 2935095 (restoring F107's lost disclosure is part of F113's item in `prompts/185-task-ground-truth.md`)
 - fidelity-reviewer rec 5 — obeyed: 7b45842 (verify-session-143 run at close: 13 passed, 0 failed; recorded in the summary)
 
+**release-coordinator** (`.ai/handoffs/session-184-release-coordinator.md`, the recorded judge of all 16 `obeyed:` answers, plus ship steps):
+- release-coordinator rec 1 — deferred: sessions/session-184-review.md
+  why: done — design-advisor rec 2 re-cited to 302f923 in 5768add and judged `implemented` by this same role's re-dispatch; an `obeyed:` line here would need a third judge for one line. The review file records both judges.
+- release-coordinator rec 2 — deferred: sessions/session-184-summary.md
+  why: the order it asks for (handoffs committed, stamp last, full close check on the branch before push) is the close itself; the stamp and the check's exit code are in the review file and the summary's `## Ship steps`.
+- release-coordinator rec 3 — deferred: sessions/session-184-summary.md
+  why: push, PR and a `--no-ff` merge are the founder's acts — listed for him in `## Ship steps`.
+- release-coordinator rec 4 — deferred: sessions/session-184-summary.md
+  why: return to main, `git pull --ff-only`, `cargo install --path .` happen after his merge — listed in `## Ship steps`.
+- release-coordinator rec 5 — deferred: sessions/session-184-summary.md
+  why: `git branch -d` + `git fetch --prune` after the merge — listed in `## Ship steps`; S185's start gate checks it.
+
 ## Guardrails
 - No autonomous commits: the founder runs them, or launches with `VAJRA_ALLOW_COMMIT=184`.
 - ≤3 files per commit; ≤2 assumptions; ≤2 retries. Guard changes only add (S173). No new ceremony; nothing that polices Vajra's own paperwork (2026-09-15).
