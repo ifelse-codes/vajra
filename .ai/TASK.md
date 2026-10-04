@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S184 (rudra S17 under the new rules + F103/F107/F108) complete on `session-184-rudra-s17-new-rules`; S185 next
+## Between Sessions — S185 (ground truth, NO-CODE) complete on `session-185-closeout`; S186 next
 
-**Next: Session 185 — the ground truth (NO-CODE), F113 and F110 first** (the founder's pick, 2026-10-04) — `prompts/185-task-ground-truth.md`, DRAFT until `vajra approve 185`. Before it: merge S184's PR, `cargo install --path .`. Start in a fresh chat.
+**Next: Session 186 — CODE: the fixes from the S185 ground truth** (the founder's pick, 2026-10-04: option A, F110 option b) — `prompts/186-task-s185-fixes.md`, DRAFT until `vajra approve 186`. Before it: merge S185's PR. Start in a fresh chat.
+
+## Session 185 — NO-CODE ground truth — COMPLETE (🟡 PARTIAL, founder approved)
+
+- Report: `sessions/session-185-ground-truth.md`. Crew: tech-lead, design-advisor, release-coordinator.
+- Picked: F113 → `obeyed_blocks_from:` (only Vajra sets it; projects warn forever; malformed blocks) · design-advisor 133 keeps its number, words fixed · F110 → (b) read the real redirect target, fail closed, + S182 recs 1/2/5 · F114 confirmed XS · F115 = stale fixture (red since S135, c7c2ca1).
+- New: N1 GT block reasons on stdout · N2 GT guards block outside the project · N3 obeyed→advance unproven 50 sessions · N4 `--steps` silent on a missing approval · N5 `--dogfood-age` blind to rudra · N6 hand-kept headers · N7 leftover verify checkouts (11 removed, founder yes) · N8 a GT prompt fails the Analyst gate (S180 hand-typed the counter).
 
 ## Session 184 — INTERACTIVE: rudra S17 under the new rules, plus F103 / F107 / F108 — COMPLETE
 
