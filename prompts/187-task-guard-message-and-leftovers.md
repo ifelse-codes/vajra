@@ -110,6 +110,13 @@ design-significant: yes
    covers: 1, 3, 4, 5, 6, 7, 8
 
 ## Execution
+- step 1 — done: e88f3e5
+- step 2 — done: e306a73
+- step 3 — done: ff2047f
+- step 4 — done: bb4cd4c
+- step 5 — done: ac3d544
+- step 6 — done: bf2349f
+- step 7 — done: c63ba15
 
 ## Delta
 - `~` approvals guard block reason (writer/program case) names the split-the-command way past
