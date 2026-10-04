@@ -1,5 +1,11 @@
 # Vajra — Working Roadmap
 
+**Where things stand now:** `.ai/SESSION-BOOT.md`, or run `vajra next --steps`. This file keeps no
+"current session" line on purpose — the hand-typed one that stood here said "Session 166" for twenty
+sessions (S185 N6; removed S187). Where a session is up to is derived from git and `.ai/`, never re-typed.
+
+## Session notes, S121–S166 (history — kept as written, not kept current)
+
 **Updated:** 2026-09-11 · **Session 166 — CODE: fix Analyst + Coder station gaps (Option A) — ACCEPT (7/7 ACs SHIPPED).**
 AC1 SHIPPED: Analyst PASSED for S166 (first time since S160 GT — `vajra next --stations 166` → [PASSED] Analyst WHAT). AC2 SHIPPED: `check_execution_shas` now blocks prose/parenthetical `done:` entries (S164 step 2 caught). AC3 SHIPPED: real 7-char hex SHA still passes (non-regression). AC4 SHIPPED: `sessions/session-164-summary.md` written (S164 closeout complete, 3 A/B/C candidates). AC5 SHIPPED: `verify-session-166.sh` 8/8 behavioral checks (synthetic fixtures, zero source-proximity greps). AC6 SHIPPED: cargo test --lib 487 pass. AC7 SHIPPED: verify-closeout.sh exit 0 (VAJRA_CLOSEOUT_WAIVER=166). design-significant: no. Pipeline counter for S166: 4/8 (Analyst PASSED — improvement from 3/8). Carry-forward: prompt authors must use `+`/`~`/`-` markers in ## Delta going forward. **Next: S167 — every Vajra demo plays as a rich story in the terminal (`prompts/167-task-rich-terminal-demo.md`, APPROVED by the founder 2026-09-14; 167 was first used by an ungoverned adhoc fixes merge, `fab1b79`, that never advanced `.ai/SESSION`, and `vajra next --advance` opens SESSION + 1). S168 = Vajra fills in the number + scorecard slides itself (founder-named). S170 = mandatory NO-CODE GT.**
 Brief: `prompts/166-task-analyst-coder-gaps.md`.
@@ -409,7 +415,7 @@ engine, not pitch (`DECISION-005`). Fidelity is load-bearing (`DECISION-002`), v
 
 ---
 
-## Where We Are
+## Where We Are — as it stood on 2026-08-24 (S136; history, not kept current — see the top of this file)
 
 | Field | Value |
 |---|---|
@@ -1001,7 +1007,7 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
 
 ## Rules For This Document
 
-1. Update at every closeout — the "Where We Are" table and session log row are mandatory.
+1. Update at every closeout — the session log row is mandatory. Where things stand now is DERIVED (`.ai/SESSION-BOOT.md`, `vajra next --steps`) — never re-type a "current session" line here (S187, S185 N6).
 2. `NN % 5 == 0` → mandatory NO-CODE GT, **unless `.ai/CONSTRAINTS.yaml#ground_truth_next_session` names a different one (S175: this repo now sets it explicitly)**. Last = **S185** (`sessions/session-185-ground-truth.md`); the next is **S190** — derived by `scripts/lib-ground-truth.sh` (S181), no edit needed. Before that: **S170** (`sessions/session-170-ground-truth.md`); it was then **S180** (founder, 2026-09-22 — S175-S179 stay rudra test sessions; carried in `prompts/180-task-ground-truth.md`). This line was stale for many cycles (last hand-updated at S120/S125) — corrected here as part of S175's own cadence fix, not a claim that S125-S170 never ran.
 3. Mark items done only when they work in a real session, not just tests.
 4. Never exceed 7 top-level commands without explicit user approval.
