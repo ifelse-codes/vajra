@@ -37,9 +37,10 @@ split (b) into its own session — say so; do not ship half a guard.
    the missing hooks, never a hook already wired under another matcher.
 4. **F114** — a fresh project's `scripts/verify-closeout.sh --ledger` with no review files prints "ledger: no
    reviewed sessions yet" and exits 0 (this repo's script and the scaffold's).
-5. **F115** — verify-132's `advance-really-binds-on-an-unjudged-obeyed` fixture records a tech-lead (or a
-   `tech-lead: skipped — <reason>`) so the obeyed gate gets its turn, and tests both sides of F113: no key →
-   WARN and advances; `obeyed_blocks_from: 132` → blocks with `[vajra obeyed]`.
+5. **F115** — verify-132's `advance-really-binds-on-an-unjudged-obeyed` fixture records a real tech-lead (a
+   `tech-lead: skipped` line is refused by the Crew gate — design-advisor rec 13) so the obeyed gate gets its
+   turn, and tests both sides of F113: no key → WARN and advances; `obeyed_blocks_from: 132` → blocks with
+   `[vajra obeyed]`.
 6. **N1** — every `[HOOK BLOCK]` line in `scripts/hook-pre-bash.sh` (39, 77) and `scripts/hook-pre-write.sh`
    (38, 72), and their scaffold copies, goes to stderr, so the agent sees why it was blocked.
 
@@ -57,13 +58,20 @@ split (b) into its own session — say so; do not ship half a guard.
 
 ## Design
 design-significant: yes
-- Cites `docs/decisions/DECISION-007-*.md` and `docs/decisions/DECISION-011-*.md`; picked in S185
-  (`sessions/session-185-ground-truth.md`, design-advisor S185 recs 1–12). Land an S185/S186 addendum in each
-  (rec 12) — **F113 DEVIATES from DECISION-007's S132 clause**: 132+ blocks only where the key is declared.
-- F110 (b) only stops blocking redirects it can PROVE do not write into the folder — the same rule the guard
-  already applies to `/dev/null` and `>&N` (line 68); anything unresolvable blocks as today (S173: guard
-  changes only add; never hide text from the guard).
-- This session's design-advisor checks the S185 picks against the code as it is, not re-opens them.
+- Why yes: a new `.ai/CONSTRAINTS.yaml` key changes when the Obeyed gate blocks in every project; the
+  approvals guard changes what it blocks; `--sync-fleet`'s merge changes its output.
+- Cites `docs/decisions/DECISION-007-agent-fleet.md` — S186 addendum: F113 DEVIATES from the S133 addendum §6
+  (the S132 precedent: one built-in threshold for every project) and REVERSES the S134 addendum's rejection of
+  a per-project `.ai/` marker, for the Obeyed gate only (absent key = never blocks, the founder's 2026-10-03
+  rule). Honest limit: an opted-in repo can opt out by editing the key; only the diff shows it.
+- Cites `docs/decisions/DECISION-011-controls-the-agent-cannot-type.md` — S186 addendum: FOLLOWS its S183
+  strict-key rule; AMENDS the S182 addendum §2 (block a redirect only when it lands in the folder or cannot be
+  proven not to; "`cat <folder>/x > /tmp/y` still blocks" is reversed) and corrects "never lists a hook twice".
+- F110 (b): redirects are found on the de-quoted copy (heredocs and quotes read, never skipped — S173), the
+  target is read from it and from the command as written at the same `>` (a quote there blocks), literal
+  targets resolved by the kernel against `cwd`; links, `..` past a missing folder and no `cwd` block.
+- Picked in S185 (`sessions/session-185-ground-truth.md`); this session's design-advisor checked the picks
+  against the code (`.ai/handoffs/session-186-design-advisor.md`), not re-opened them.
 
 ## Carried in
 - **Founder rulings to respect:** no per-claim `obeyed:` judge (2026-10-03); Vajra's close does not run
@@ -94,6 +102,51 @@ design-significant: yes
 11. DECISION-007 and DECISION-011 addenda (S185 design-advisor rec 12); summary with 3 next options; closeout sync; next prompt; one cold review; the `--inputs-sha 186` stamp last. — covers: 1, 2
 
 Cut line (prompt guardrail): if step 8 is not green with its corpus by ~1h30, ship 1–7 and 9–11 and split (b) into its own session.
+
+## Execution
+- step 1 — done: 0dd33f1
+- step 2 — done: c6bbeb9
+- step 3 — done: 62bfe63
+- step 4 — done: b7232d3
+- step 5 — done: 4c34e51
+- step 6 — done: 3a4fca9
+- step 7 — done: 3a4fca9
+- step 8 — done: 3a4fca9
+- step 9 — done: 9dcec17
+- step 10 — done: 2c0b576
+- step 11 — done: ef560a6
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required), `fidelity-reviewer` (required;
+the one cold close review), `release-coordinator` (required; the one judge of every `obeyed:` answer).
+implementation-advisor: skipped — the tech-lead deferred it on budget (its rec 2): a guard-code dispatch reads the shell scripts, about 1.5M tokens, and the AC3 corpus test (every command the S182 guard blocked, run through both guards) stands in for its review of F110 (b).
+
+**tech-lead** (`.ai/handoffs/session-186-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 4c34e51 (order kept: F114 0dd33f1 and N1 c6bbeb9 first, F113 62bfe63 with the F115 fixture 4c34e51, then the guard 3a4fca9, the merge 9dcec17; F110 (b) finished inside the cut line, no split)
+- tech-lead rec 2 — obeyed: ef560a6 (no implementation-advisor dispatch; the reasoned skip line is in this section, and the guard took one build pass against the corpus)
+- tech-lead rec 3 — obeyed: 3a4fca9 (the corpus and `every_command_the_s182_guard_blocked_still_blocks` were written and run red before the guard changed; the only allowed differences are `reads()`; the scaffold ships the same bytes via include_str!)
+- tech-lead rec 4 — obeyed: 651d174 (the design-advisor brief named the files and asked "do the picks fit the code", not a redesign)
+- tech-lead rec 5 — deferred: sessions/session-186-review.md
+  why: the one cold fidelity review runs at close on the finished branch; its verdict and the live re-runs it did are recorded in that file.
+- tech-lead rec 6 — deferred: sessions/session-186-review.md
+  why: the release-coordinator is dispatched once, after this section answers every rec; its judgments land in its own handoff and the review file names them.
+
+**design-advisor** (`.ai/handoffs/session-186-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 62bfe63 (one strict reader; a bad key is pushed into `reasons` on every run, whatever the session holds)
+- design-advisor rec 2 — obeyed: 2f4c59d (only `NotFound` means no key; any other read error is a blocking reason naming the file)
+- design-advisor rec 3 — obeyed: 9ef5c65 (a third wording when the key cannot be read; the `[vajra obeyed]` heading and refusal in 2f4c59d and the close log's BLOCK line in both close scripts name an unreadable key)
+- design-advisor rec 4 — obeyed: cfd7f86 (demo-132's subject declares the key, and its case 7 records a real tech-lead — it had the same S135 staleness as F115; demo-132 green 8/8. The kept phrases are unchanged)
+- design-advisor rec 5 — obeyed: 596db24 (only "(threshold N)" removed; "predates the design-advisor mandate" kept; verify-133's wording check and its rename probe updated in the same commit)
+- design-advisor rec 6 — obeyed: 3a4fca9 (redirects found on the de-quoted copy; the target read from both copies at the same `>`; any difference, quote or backslash in the written one blocks)
+- design-advisor rec 7 — obeyed: 3a4fca9 (no/empty `cwd` blocks; a symlinked or hard-linked last component blocks; `cd -P` resolves the existing part as the kernel would — symlinks are FOLLOWED, not refused, because refusing them blocks every `/tmp` target on macOS; a `..` past a missing folder blocks. Tested in `a_linked_target_or_a_missing_cwd_is_not_provable`)
+- design-advisor rec 8 — obeyed: 3a4fca9 (heredoc bodies and quoted text are scanned; `> quote` in a body resolves to a harmless literal)
+- design-advisor rec 9 — obeyed: 3a4fca9 (new writers and shells match only at a command start or after a wrapper; the S182 lists are unchanged; a commit message naming `hook-approvals-guard.sh` and "source" is in the corpus and passes)
+- design-advisor rec 10 — obeyed: 3a4fca9 (bash 3.2 + BSD tools only: `tr`, `cd -P`, `ls -ld`, awk with ENVIRON; the guard tests pass under `/bin/bash` 3.2.57 and bash 5)
+- design-advisor rec 11 — obeyed: 9dcec17 (a hook counts as wired only under a covering matcher; the pushed group carries only the missing hooks; AC5 fixture red at b10a1a6 ("runs it twice"); the loader is still added for Bash when wired only for Edit)
+- design-advisor rec 12 — refused: the premise is wrong — at main (b10a1a6) the four lines print to stdout (`git show b10a1a6:scripts/hook-pre-bash.sh` line 77 has no `>&2`); the advisor read the working tree after c6bbeb9 had landed. The AC8 test it asked for was built anyway (verify-186: new on stderr, b10a1a6 on stdout, both hooks).
+- design-advisor rec 13 — obeyed: 4c34e51 (the fixture records a real, provenance-verified tech-lead; the brief's skip-line option removed in ef560a6)
+- design-advisor rec 14 — obeyed: ef560a6 (DECISION-007 S186 addendum names the deviation against the S133 addendum §6 and the S134 rejection, with the opt-out limit)
+- design-advisor rec 15 — obeyed: ef560a6 (DECISION-011 S186 addendum: follows S183's strict-key rule, amends S182 §2, reverses its over-block sentence, corrects "never lists a hook twice")
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
