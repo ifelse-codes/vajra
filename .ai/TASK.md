@@ -2,9 +2,16 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S185 (ground truth, NO-CODE) complete on `session-185-closeout`; S186 next
+## Between Sessions — S186 (CODE: the S185 fixes) complete on `session-186-s185-fixes`; S187 next
 
-**Next: Session 186 — CODE: the fixes from the S185 ground truth** (the founder's pick, 2026-10-04: option A, F110 option b) — `prompts/186-task-s185-fixes.md`, DRAFT until `vajra approve 186`. Before it: merge S185's PR. Start in a fresh chat.
+**Next: Session 187 — INTERACTIVE: rudra S18 with the new guard** (the founder's pick, 2026-10-04) — `prompts/187-task-rudra-s18-s186-fixes.md`, DRAFT until `vajra approve 187`. Before it: merge S186's PR. Start in a fresh chat.
+
+## Session 186 — CODE: the fixes from the S185 ground truth — COMPLETE
+
+- Brief: `prompts/186-task-s185-fixes.md`. Summary: `sessions/session-186-summary.md`. Review: `sessions/session-186-review.md`. Decision: DECISION-007 + DECISION-011 S186 addenda.
+- Shipped: F113 `obeyed_blocks_from:` · S182 recs 1/2/5 (add-only) · F114 · F115 · N1. Verify 35/35 · demo 8/8 · verify-132 13/13.
+- **Split out (founder, 2026-10-04):** F110 (b) — two cold-review REJECTs (P1–P7); S182 redirect rule restored → backlog, S190 checklist.
+- **Found:** verify-133 red at main since S181 (→ backlog, S190 checklist).
 
 ## Session 185 — NO-CODE ground truth — COMPLETE (🟡 PARTIAL, founder approved)
 

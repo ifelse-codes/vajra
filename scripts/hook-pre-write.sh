@@ -35,7 +35,7 @@ _AG="$(dirname "${BASH_SOURCE[0]}")/hook-approvals-guard.sh"
 if [ -f "$_AG" ]; then
   printf '%s' "$INPUT" | bash "$_AG" || exit $?
 elif [ "${MATURITY:-L2}" != "L1" ]; then
-  echo "[HOOK BLOCK] hook-approvals-guard.sh is missing next to $(basename "$0") — cannot check (fail-closed)."
+  echo "[HOOK BLOCK] hook-approvals-guard.sh is missing next to $(basename "$0") — cannot check (fail-closed)." >&2
   exit 2
 fi
 
@@ -69,7 +69,7 @@ if [ "$GT_PW" -eq 1 ]; then
       if [ "$MATURITY" = "L1" ]; then
         echo "[HOOK WARNING] Ground Truth Session $SESSION_NUM: edit to $FILE (L1 report-only, not blocking)"
       else
-        echo "[HOOK BLOCK] Ground Truth Session $SESSION_NUM forbids edits to $FILE"
+        echo "[HOOK BLOCK] Ground Truth Session $SESSION_NUM forbids edits to $FILE" >&2
         exit 2
       fi
       ;;

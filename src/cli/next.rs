@@ -953,9 +953,9 @@ fn run_check_fidelity_handoff(nn: Option<&String>) -> Result<()> {
 /// `vajra next --check-obeyed NN` — the Obeyed GATE (S132): does every `obeyed: <sha>` disposition
 /// session NN records carry an admissible, INDEPENDENT judgment that the cited commit really does
 /// what the recommendation asked? Exit 1 on a `mismatch:` verdict (any session), on a judgment that
-/// is not admissible (any session), or on a missing judgment from session
-/// `OBEYED_JUDGMENT_FROM_SESSION` onward. Before that threshold a missing judgment WARNs and the
-/// warning names the exemption — the migration posture, recorded rather than silent.
+/// is not admissible (any session), or on a missing judgment from the project's declared
+/// `obeyed_blocks_from:` session onward (S186, F113). Before it, or with no key, a missing judgment
+/// WARNs and the warning names why — the migration posture, recorded rather than silent.
 fn run_check_obeyed(nn: Option<&String>) -> Result<()> {
     let session = parse_session(nn, "--check-obeyed")?;
     let root = repo_root()?;
@@ -1715,7 +1715,7 @@ fn run_advance() -> Result<()> {
     if obeyed_verdict.blocked() {
         eprintln!(
             "[vajra obeyed] session {current:02} {closes} — an `obeyed:` disposition is \
-             unjudged, or judged a mismatch:"
+             unjudged or judged a mismatch, or `obeyed_blocks_from:` cannot be read:"
         );
         print_reasons(&obeyed_verdict.reasons, shipped.is_some());
         if maturity == MaturityLevel::L1 {
@@ -1727,7 +1727,8 @@ fn run_advance() -> Result<()> {
         } else {
             bail!(
                 "refusing to advance: session {current:02} records an `obeyed:` disposition no \
-                 independent judge has graded true (Obeyed gate). Run `vajra next --check-obeyed \
+                 independent judge has graded true, or `obeyed_blocks_from:` in \
+                 .ai/CONSTRAINTS.yaml cannot be read (Obeyed gate). Run `vajra next --check-obeyed \
                  {current:02}`, have an independent role record `obeyed-check <role> rec <N> — \
                  implemented: <sha> — <note>` in its governed handoff, or set \
                  VAJRA_SKIP_OBEYED_GATE=1 to override. A reasoned `refused:` passes — a false \

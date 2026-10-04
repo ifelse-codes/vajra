@@ -772,7 +772,7 @@ check_obeyed_judgments() {
     echo "OK: every \`obeyed:\` disposition for session $N carries an admissible independent judgment." >> "$LOG"
     ok "$NAME"; return
   fi
-  echo "BLOCK: session $N records an \`obeyed:\` that is unjudged, judged a MISMATCH, or whose judgment is inadmissible." >> "$LOG"
+  echo "BLOCK: session $N records an \`obeyed:\` that is unjudged, judged a MISMATCH, or whose judgment is inadmissible — or \`obeyed_blocks_from:\` in .ai/CONSTRAINTS.yaml cannot be read (the reason above names the line)." >> "$LOG"
   if waiver_ok; then
     echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
@@ -1199,12 +1199,14 @@ _ledger_sha_of() {
     | grep -oiE '[0-9a-f]{64}' | head -1 | tr '[:upper:]' '[:lower:]'
 }
 # Session numbers (ascending) whose review is COMMITTED at HEAD / present in the WORKTREE.
+# S186 (F114): a fresh project (no commit yet, or no review yet) is an EMPTY list — under
+# pipefail the failing `git ls-tree` / `ls` used to end the script silently with exit 1 / 128.
 _ledger_committed_sessions() {
-  git ls-tree -r --name-only HEAD -- sessions 2>/dev/null \
+  { git ls-tree -r --name-only HEAD -- sessions 2>/dev/null || true; } \
     | sed -n 's#^sessions/session-\([0-9][0-9]*\)-review\.md$#\1#p' | sort -n -u
 }
 _ledger_worktree_sessions() {
-  ls sessions/session-*-review.md 2>/dev/null \
+  { ls sessions/session-*-review.md 2>/dev/null || true; } \
     | sed -n 's#^sessions/session-\([0-9][0-9]*\)-review\.md$#\1#p' | sort -n -u
 }
 # Read one review's content from a source: "committed" (blob at HEAD) | worktree (file).
@@ -1318,6 +1320,7 @@ fi
 # Build + print the ledger as a glanceable table (derived view). `--ledger`.
 if [ "${1:-}" = "--ledger" ]; then
   list="$(_ledger_worktree_sessions)"
+  if [ -z "$list" ]; then echo "ledger: no reviewed sessions yet (no sessions/session-NN-review.md)"; exit 0; fi
   echo "=== Vajra attested-verdict delta ledger (derived view over sessions/*-review.md + git) ==="
   build_ledger worktree "$list"
   echo "------------------------------------------------------------------------------------------"

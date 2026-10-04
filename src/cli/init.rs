@@ -950,32 +950,35 @@ fn merge_claude_settings(existing_json: &str, template_json: &str) -> Result<(St
         // idempotence check (the co-pilot hook is shared across the Bash + Edit groups).
         let snapshot = arr.clone();
         for group in tpl_groups {
-            if group_already_present(&snapshot, group) {
+            if snapshot.iter().any(|e| e == group) {
                 continue;
             }
-            // S182 review rec 2: a group that is PARTLY wired (an older project's Bash group from
-            // before a hook was added) gets only its missing hook entries, appended to the project's
-            // group with the same matcher. Appending the whole template group made every hook it
-            // already had run twice — reachable from `--sync-fleet` since S182, not only `init`.
-            let missing: Vec<Value> = group
-                .get("hooks")
-                .and_then(Value::as_array)
+            // S182 review rec 2 / S186: a group that is PARTLY wired gets only its missing hook
+            // entries. A hook counts as wired only under a project group whose matcher covers every
+            // tool of this group's matcher (S186 design rec 11): wired under `Bash|Edit|…` it is
+            // wired for `Bash`; wired under `Edit|Write` it is NOT wired for `Bash`. Pushing the whole
+            // template group made a hook wired under another matcher run twice.
+            let covering: Vec<&Value> = snapshot
+                .iter()
+                .filter(|e| matcher_covers(e.get("matcher"), group.get("matcher")))
+                .collect();
+            let tpl_hooks = group.get("hooks").and_then(Value::as_array);
+            let missing: Vec<Value> = tpl_hooks
                 .map(|hs| {
                     hs.iter()
                         .filter(|h| {
                             hook_script_paths(h)
                                 .iter()
-                                .any(|p| !snapshot.iter().any(|e| entry_references(e, p)))
+                                .any(|p| !covering.iter().any(|e| entry_references(e, p)))
                         })
                         .cloned()
                         .collect()
                 })
                 .unwrap_or_default();
-            let all_missing = missing.len()
-                == group
-                    .get("hooks")
-                    .and_then(Value::as_array)
-                    .map_or(0, |v| v.len());
+            if missing.is_empty() {
+                continue;
+            }
+            let all_missing = missing.len() == tpl_hooks.map_or(0, |v| v.len());
             let same_matcher = arr
                 .iter_mut()
                 .find(|g| g.get("matcher") == group.get("matcher") && g.get("hooks").is_some());
@@ -985,7 +988,11 @@ fn merge_claude_settings(existing_json: &str, template_json: &str) -> Result<(St
                         hs.extend(missing);
                     }
                 }
-                _ => arr.push(group.clone()),
+                _ => {
+                    let mut only_missing = group.clone();
+                    only_missing["hooks"] = Value::Array(missing);
+                    arr.push(only_missing);
+                }
             }
             changed = true;
         }
@@ -997,18 +1004,32 @@ fn merge_claude_settings(existing_json: &str, template_json: &str) -> Result<(St
     Ok((out, changed))
 }
 
-/// A Vajra hook-group is already wired if the event array holds a structurally-equal group,
-/// or already references every `.ai/hooks/*.sh` script path that group carries (so a
-/// user-reformatted copy still de-dupes rather than duplicating).
-fn group_already_present(snapshot: &[Value], group: &Value) -> bool {
-    if snapshot.iter().any(|e| e == group) {
-        return true;
+/// The tools a hook matcher names: `None` = every tool (absent, `""`, `"*"`); `Some(list)` for a
+/// plain `A|B|C`. Any other regex character makes it unknown (`Some(empty)` is never returned).
+fn matcher_tools(m: Option<&Value>) -> Result<Option<Vec<String>>, ()> {
+    let s = match m.and_then(Value::as_str) {
+        None | Some("") | Some("*") => return Ok(None),
+        Some(s) => s,
+    };
+    let tools: Vec<String> = s.split('|').map(str::to_string).collect();
+    if tools
+        .iter()
+        .all(|t| !t.is_empty() && t.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
+    {
+        Ok(Some(tools))
+    } else {
+        Err(())
     }
-    let paths = hook_script_paths(group);
-    !paths.is_empty()
-        && paths
-            .iter()
-            .all(|p| snapshot.iter().any(|e| entry_references(e, p)))
+}
+
+/// Does a project group with matcher `existing` run for every tool `template` names? An unknown
+/// matcher never covers — that errs toward adding the hook, not toward leaving a tool unguarded.
+fn matcher_covers(existing: Option<&Value>, template: Option<&Value>) -> bool {
+    match (matcher_tools(existing), matcher_tools(template)) {
+        (Ok(None), _) => true,
+        (Ok(Some(e)), Ok(Some(t))) => t.iter().all(|x| e.contains(x)),
+        _ => false,
+    }
 }
 
 /// The distinct `.ai/hooks/*.sh` script paths a hook group's `command` strings reference —
@@ -3066,6 +3087,46 @@ mod tests {
         // No duplication — the shared co-pilot hook stays at 2, guards at 1.
         assert_eq!(twice.matches("hook-session-guard.sh").count(), 1);
         assert_eq!(twice.matches("hook-copilot-loader.sh").count(), 2);
+    }
+
+    // S186 (S182 review rec 2, AC5): a hook wired under a matcher that COVERS the template's is
+    // wired — the old merge pushed the whole Bash group and ran the co-pilot loader twice for Bash.
+    #[test]
+    fn merge_adds_no_hook_wired_under_a_covering_matcher() {
+        let wired = r#"{"hooks":{"PreToolUse":[{"matcher":"Bash|Edit|Write|MultiEdit","hooks":[
+            {"type":"command","command":"bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-copilot-loader.sh\""}]}]}}"#;
+        let (out, changed) = merge_claude_settings(wired, TPL_CLAUDE_SETTINGS).unwrap();
+        assert!(changed, "the missing guards must still be added");
+        assert_eq!(
+            out.matches("hook-copilot-loader.sh").count(),
+            1,
+            "the loader is already wired for Bash and Edit — adding it again runs it twice:\n{out}"
+        );
+        assert_eq!(out.matches("hook-session-guard.sh").count(), 1);
+        let (again, c2) = merge_claude_settings(&out, TPL_CLAUDE_SETTINGS).unwrap();
+        assert!(!c2, "second merge must be a no-op");
+        assert_eq!(out, again);
+    }
+
+    // ...and one wired under a matcher that does NOT cover Bash is still added for Bash.
+    #[test]
+    fn merge_still_adds_a_hook_wired_only_for_other_tools() {
+        let wired = r#"{"hooks":{"PreToolUse":[{"matcher":"Edit|Write|MultiEdit","hooks":[
+            {"type":"command","command":"bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-copilot-loader.sh\""}]}]}}"#;
+        let (out, _) = merge_claude_settings(wired, TPL_CLAUDE_SETTINGS).unwrap();
+        let v: Value = serde_json::from_str(&out).unwrap();
+        let bash_has_loader = v["hooks"]["PreToolUse"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|g| matcher_covers(g.get("matcher"), Some(&json!("Bash"))))
+            .any(|g| entry_references(g, ".ai/hooks/hook-copilot-loader.sh"));
+        assert!(bash_has_loader, "the loader must be wired for Bash:\n{out}");
+        assert!(matcher_covers(None, Some(&json!("Bash"))));
+        assert!(!matcher_covers(
+            Some(&json!("Bash.*")),
+            Some(&json!("Bash"))
+        ));
     }
 
     #[test]

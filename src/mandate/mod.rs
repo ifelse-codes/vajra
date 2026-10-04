@@ -59,7 +59,7 @@ pub const MANDATE_FLOOR: &str = "this proves a reason was WRITTEN and, when a ha
                                  and never that the advice reached the design";
 
 /// Migration threshold for the `design-advisor` mandate (S133), governing SILENCE ONLY — the S132
-/// precedent (`obeyed::OBEYED_JUDGMENT_FROM_SESSION`). A marker that EXISTS but records no usable
+/// precedent (`obeyed_blocks_from:`, declared since S186). A marker that EXISTS but records no usable
 /// reason BLOCKS at session 42; a handoff that exists but does not re-verify BLOCKS at session 100.
 /// Only the absence of BOTH is exempt below this number, and the exemption is announced in a WARN
 /// rather than passing silently.
@@ -425,8 +425,8 @@ pub fn mandate_gate(
                 } else {
                     // Rung 6 — the migration exemption, named out loud rather than silent.
                     v.warnings.push(format!(
-                        "session {session:02} predates the {} mandate (threshold {from_session}) — \
-                         silence is exempt below it, and only below it. To satisfy it anyway: {how}",
+                        "session {session:02} predates the {} mandate — silence is exempt for \
+                         this session. To satisfy it anyway: {how}",
                         role.name,
                     ));
                 }

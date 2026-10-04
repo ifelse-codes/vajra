@@ -1680,3 +1680,32 @@ Vajra's own gate has had since S175. Parked, not guarded (founder directive 2026
    e.g. S171, write `**CODE.**`). Current Vajra prompts write `**CODE**`; changing Vajra's own gate
    is a check on its own paperwork (founder directive 2026-09-15) — not done.
 2. A project picks the fix up only after `cargo install` + `vajra init --sync-fleet`.
+
+## S186 addendum — the obeyed gate blocks only where a project declares it (F113)
+
+**Deviates from** the S133 addendum §6 (the S132 precedent: one built-in session-number threshold for every
+project) and **reverses** the S134 addendum's rejection of a per-project marker in `.ai/` — for the Obeyed
+gate only. Picked by the S185 ground truth; built in S186.
+
+**Problem.** `OBEYED_JUDGMENT_FROM_SESSION = 132` counted a PROJECT's sessions in Vajra's numbering, so a
+project's own session 132 started BLOCKING unchecked `obeyed:` claims — against the founder's 2026-10-03
+rule that obeyed claims are not a blocking gate for projects.
+
+1. **`obeyed_blocks_from: N`** in `.ai/CONSTRAINTS.yaml` replaces the constant. Only Vajra's own file sets it
+   (132); `vajra init` never scaffolds it. Absent → unchecked claims WARN forever, and the warning says why
+   ("no `obeyed_blocks_from:` in .ai/CONSTRAINTS.yaml"). Read strictly: empty, not a number, set twice, or an
+   unreadable file → a blocking reason naming the line, pushed on every run (a typo shows at the next close,
+   never as a quiet "never blocks"), and the warning then never claims "no key".
+2. **The design-advisor threshold (133) keeps its number;** its warning stops printing it ("predates the
+   design-advisor mandate — silence is exempt for this session"), keeping the prefix two close scripts read.
+3. **F115.** `scripts/verify-session-132.sh`'s `--advance` check had been red since S135 (the Crew gate,
+   which has no override, refused first). Its fixture now records a real tech-lead and tests both sides.
+
+**Why the S134 rejection does not bite here:** S134 rejected an agent-editable marker because deleting it
+switched a gate OFF in a project that should block. Here the absent key is the founder's wanted default for
+projects. **Honest limit:** an opted-in repo — Vajra included — can opt itself out by deleting or raising the
+key, and only the diff shows it (the `lint_command: none` class, DECISION-011 S183).
+
+**Rejected:** keeping the constant and detecting Vajra's own repo (text guessing, S177); scaffolding
+`obeyed_blocks_from: 1` (breaks the founder's project rule); a git birth-date threshold (S134 option 2); a
+lenient reader like `session_rules_from` (a non-number line is skipped silently).

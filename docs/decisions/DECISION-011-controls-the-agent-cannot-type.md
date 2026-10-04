@@ -132,3 +132,51 @@ guessing the lint from CI YAML or `Cargo.toml` (S177).
 (only the diff shows it); "matches CI" means "clean on the pinned version", not on today's stable — the pin
 ages until someone bumps it; `#[allow(clippy::…)]` still silences any lint. **Not checked live:** the
 Release workflow's `rustup toolchain install && rustup target add` runs only on a tag (CI's runs on the PR).
+
+## S186 addendum — F110 (b) split out; the guard only adds; a project declares its own obeyed switch (2026-10-04)
+
+**Follows** this record's S183 rule (a project switch is one strict field in `.ai/CONSTRAINTS.yaml`, read by
+exact key) for F113's `obeyed_blocks_from:` (the gate change itself is recorded in DECISION-007's S186
+addendum). **Amends** the S182 addendum once (§3 below). Picked by the S185 ground truth (founder: F110 b).
+
+1. **F110 (b) was built, reviewed twice, and SPLIT OUT by the founder (2026-10-04).** The design: block a
+   redirect only when its target lands in the folder or cannot be proven not to (target read from the
+   de-quoted and the written command, resolved against the hook's `cwd` with `cd -P`). Two cold reviews
+   each found writes into the folder it let through that the S182 rule blocks — pass 1: a backslash-newline
+   after `>`, awk's own `>`, a `cd` spelled to dodge a word match; pass 2, after fixes for those exact
+   spellings: zsh's `>>!`/`>&|`/`>>|`, a hidden `cd` after `if`/`{`/`builtin`, awk by full path, a link
+   made earlier in the same command. Each fix closed the spelling, not the class. **The S182 §2 rule stands
+   unchanged:** a command that names the folder and redirects anywhere still blocks (F110's false blocks
+   remain); the block now names the way past, `git commit -F <file>`. Lesson for the (b) session: loosening
+   a text guard is a REMOVAL; it needs a class-level argument (what the shell can do with a `>`), not a
+   corpus that grows one probe at a time.
+2. **S182 review recs 1 and 5 — only adds.** A `..` segment next to the word `approvals`, or a hook `cwd`
+   inside the folder, counts as naming it, for the Write tools and in the "names it?" test. A copy with
+   backslash-newlines joined is APPENDED as extra lines — never in place of the command (S186 pass 3: in
+   place, it hid `rm` behind a `#x\` comment line). The S182 word lists also read the de-quoted copy.
+   Why this only adds: every S182 check is a line-by-line match over the command as written; S186 gives it
+   more lines and more patterns, never different ones. The folder lookup never exits early (an
+   unenterable folder once made the guard exit 1, which does not block).
+   **Exit status, not just matching (passes 4 and 5).** A check that matches but cannot finish is a pass:
+   `printf | grep -q` under pipefail failed open on a large command (grep quits early, printf gets
+   SIGPIPE) — **the S182 guard on main and in rudra lets a ~60 KB write into the folder through this way**
+   until `--sync-fleet`. Every check is now `printf | grep -c … >/dev/null` (grep reads all input; no
+   temp file, unlike a here-string, which fails on a full disk). The join is one awk pass: bash 3.2's
+   `${var//…/}` was quadratic in backslashes (10,000 took over 120 s, past a hook timeout). Measured on
+   /bin/bash 3.2: 10–120 KB and 30,000 backslashes all exit 2 in under 0.1 s. New writers (`git checkout|restore|clean|reset|stash|apply`,
+   `find … -delete|-exec…`, `rsync`, `curl -o`, `wget`, `tar`, `unzip`, `patch`) and shells (`sh`, `bash`,
+   `zsh`, `dash`, `ksh`, `fish`, `eval`, `source`, `.`, `xargs`) and programs that write by their own syntax
+   (`awk` and kin, editors, `sqlite3`, `php`, `lua`, …) match where a command starts — after `;&|(`, a
+   backtick, a line start, `if`/`then`/`do`/`!`/`{`, `NAME=value`, a wrapper (`xargs`, `env`, `exec`,
+   `command`, `builtin`, `nohup`, `sudo`, `time` — not `timeout`, `nice` or others yet), with or without a path in front — so `hook.sh` or the word "source" in prose is not one.
+3. **Corrected — "`--sync-fleet` never lists a hook twice" was false (S182 review rec 2).** A hook wired
+   under a matcher that covers the template group's tools (`Bash|Edit|Write|MultiEdit` covers `Bash`) is
+   wired; the merge adds only the missing hooks. A matcher that is not a plain `A|B` list covers nothing,
+   so the hook is added rather than a tool left unguarded.
+
+**For the (b) session, recorded:** a quote-aware tokenizer fails on one apostrophe in a heredoc; refusing
+every symlink blocks macOS's `/tmp`; `realpath` is not in bash 3.2. P1–P7 are in `tests/approvals_guard.rs`.
+
+**Limit, unchanged in kind:** a path assembled at run time, or a writer no list names with no redirect,
+still gets past; the guard reads text, it is not a sandbox. A hook killed by its timeout does not block —
+the guard is now linear, but a slow machine and a huge command still meet that limit somewhere.

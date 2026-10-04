@@ -16,6 +16,10 @@ session:
   # this repo before S175) behaves exactly as before. Founder, 2026-09-22: rudra keeps testing
   # through S179; the next ground truth is S180 (DECISION-007 S175 addendum).
   ground_truth_next_session: 180
+  # S186 (F113): unchecked `obeyed:` claims BLOCK from this session on. Vajra's own file only —
+  # `vajra init` never scaffolds it, so a project's unchecked claims warn (its session numbers are
+  # not Vajra's). Read strictly by src/obeyed/mod.rs: empty, non-number or twice → blocks.
+  obeyed_blocks_from: 132
   one_session_per_chat: true   # new vajra-session = new chat (AGENTS.md step 10). Agent-followed today; Vajra-enforced is roadmapped.
 
 branch:

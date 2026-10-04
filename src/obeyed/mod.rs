@@ -69,11 +69,51 @@ use std::path::Path;
 use crate::advice::{self, Disposition};
 use crate::fleet::{self, Handoff};
 
-/// The migration threshold (S132 prompt, `## Design` Q2). Sessions **at or after** this number
-/// BLOCK on a missing judgment; before it, silence WARNs and the warning names the exemption.
+/// The migration threshold (S132 prompt, `## Design` Q2), now DECLARED, never built in (S186, F113):
+/// `obeyed_blocks_from: N` in `.ai/CONSTRAINTS.yaml`. Sessions **at or after** N BLOCK on a missing
+/// judgment; before it, silence WARNs and the warning names the exemption. Only Vajra's own file
+/// sets it (132); `vajra init` never scaffolds it, so a project's unchecked claims WARN forever —
+/// a project's session numbers are not Vajra's (its own session 132 used to start blocking).
 /// The threshold governs SILENCE only — a judgment that EXISTS is binding at any session number,
 /// which is what makes the S127 specimen re-gradable on the real historical record.
-pub const OBEYED_JUDGMENT_FROM_SESSION: u32 = 132;
+pub const BLOCKS_FROM_KEY: &str = "obeyed_blocks_from:";
+
+/// Read `obeyed_blocks_from:` strictly. Absent → `Ok(None)`. One line with a whole number →
+/// `Ok(Some(n))`. Empty, not a number, or set twice → `Err` naming the line, which BLOCKS: a typo
+/// must never quietly become "never blocks".
+pub fn obeyed_blocks_from(root: &Path) -> Result<Option<u32>, String> {
+    let text = match std::fs::read_to_string(root.join(".ai/CONSTRAINTS.yaml")) {
+        Ok(t) => t,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => {
+            return Err(format!(
+                ".ai/CONSTRAINTS.yaml could not be read ({e}), so `{BLOCKS_FROM_KEY}` is unknown"
+            ))
+        }
+    };
+    let mut found: Option<(usize, u32)> = None;
+    for (i, line) in text.lines().enumerate() {
+        let Some(rest) = line.trim_start().strip_prefix(BLOCKS_FROM_KEY) else {
+            continue;
+        };
+        let value = rest.split('#').next().unwrap_or("").trim();
+        let n = value.parse::<u32>().map_err(|_| {
+            format!(
+                ".ai/CONSTRAINTS.yaml line {} — `{}` must be a whole session number, found `{value}`",
+                i + 1,
+                line.trim()
+            )
+        })?;
+        if let Some((first, _)) = found {
+            return Err(format!(
+                ".ai/CONSTRAINTS.yaml line {} — `{BLOCKS_FROM_KEY}` is set twice (first on line {first}); keep one",
+                i + 1
+            ));
+        }
+        found = Some((i + 1, n));
+    }
+    Ok(found.map(|(_, n)| n))
+}
 
 /// Named once so the gate, the surface and the summary cannot drift into three different
 /// admissions of the same limit (the S127 `DODGE` precedent).
@@ -442,6 +482,12 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
     let mut reasons = Vec::new();
     let mut warnings = Vec::new();
 
+    let read = obeyed_blocks_from(root);
+    if let Err(why) = &read {
+        reasons.push(why.clone());
+    }
+    let blocks_from = read.clone().ok().flatten();
+
     // The recommendations, only for their TEXT — the gate binds on dispositions, so an orphan
     // disposition (answering advice no handoff records) is graded too, never skipped.
     let mut rec_texts: Vec<(String, String)> = Vec::new();
@@ -496,7 +542,7 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
                 item.label
             )),
             ObeyedState::Unjudged => {
-                if session >= OBEYED_JUDGMENT_FROM_SESSION {
+                if blocks_from.is_some_and(|n| session >= n) {
                     reasons.push(format!(
                         "{} — `obeyed: {}` carries no independent judgment. An independent role \
                          (never the advisor, never the builder) must record `obeyed-check {} — \
@@ -514,14 +560,25 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
         }
     }
 
-    // The exemption, stated ONCE and out loud rather than buried in a constant — the S68/S71
-    // self-granted-jurisdiction class, disclosed in the output that relies on it. S184 (F107): in
-    // words any project reads — the threshold is Vajra's own session numbering, so it is not printed.
+    // The exemption, stated ONCE and out loud with its reason — the S68/S71 self-granted-jurisdiction
+    // class, disclosed in the output that relies on it. S186 (F113): the reason is the project's own
+    // declared key (or its absence), so the words are true in every project.
     if !warnings.is_empty() {
+        let why = match read {
+            Err(_) => format!("`{BLOCKS_FROM_KEY}` could not be read — see the blocking reason"),
+            Ok(None) => format!(
+                "this project does not block on unchecked `obeyed:` claims (no `{BLOCKS_FROM_KEY}` \
+                 in .ai/CONSTRAINTS.yaml)"
+            ),
+            Ok(Some(n)) => format!(
+                "this project blocks on them only from session {n} (`{BLOCKS_FROM_KEY} {n}` in \
+                 .ai/CONSTRAINTS.yaml)"
+            ),
+        };
         warnings.push(format!(
             "the {} `obeyed:` claim(s) above for session {session:02} were not checked by an \
              independent role, so nobody has confirmed the cited commits do what the advice asked. \
-             This close gate names them but does not block on them in this session. To check one, \
+             This close gate names them but does not block on them: {why}. To check one, \
              an independent role records `obeyed-check session {session:02} <role> rec <N> — implemented: <sha> — \
              <what the commit does>` in its own governed handoff",
             warnings.len()
@@ -556,6 +613,61 @@ mod tests {
     }
     fn ok(_j: &Judgment) -> Result<(), String> {
         Ok(())
+    }
+
+    fn with_constraints(text: &str) -> tempfile::TempDir {
+        let t = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(t.path().join(".ai")).unwrap();
+        std::fs::write(t.path().join(".ai/CONSTRAINTS.yaml"), text).unwrap();
+        t
+    }
+
+    // S186 (F113): a project's own session 132 is not Vajra's; blocking is declared, never built in.
+    #[test]
+    fn blocking_is_declared_by_the_key_and_a_bad_key_is_named() {
+        let none = with_constraints("session:\n  max_retries: 2\n");
+        assert_eq!(obeyed_blocks_from(none.path()), Ok(None));
+        let set = with_constraints("session:\n  obeyed_blocks_from: 132   # Vajra's own\n");
+        assert_eq!(obeyed_blocks_from(set.path()), Ok(Some(132)));
+        for bad in [
+            "session:\n  obeyed_blocks_from: x\n",
+            "session:\n  obeyed_blocks_from:\n",
+            "session:\n  obeyed_blocks_from: 132\n  obeyed_blocks_from: 140\n",
+        ] {
+            let t = with_constraints(bad);
+            let err = obeyed_blocks_from(t.path()).unwrap_err();
+            assert!(err.contains("line"), "a bad key must name its line: {err}");
+        }
+    }
+
+    #[test]
+    fn an_unjudged_obeyed_blocks_only_where_the_key_says() {
+        let prompt = "# S\n\n## Advice\n\n- plan-advisor rec 1 — obeyed: abc1234\n";
+        let seed = |constraints: &str| {
+            let t = with_constraints(constraints);
+            std::fs::create_dir_all(t.path().join("prompts")).unwrap();
+            std::fs::write(t.path().join("prompts/132-task-x.md"), prompt).unwrap();
+            t
+        };
+        let absent = seed("session:\n  max_retries: 2\n");
+        let v = obeyed_gate(absent.path(), 132);
+        assert!(
+            !v.blocked(),
+            "no key: a project's session 132 must not block"
+        );
+        assert!(v
+            .warnings
+            .iter()
+            .any(|w| w.contains("no `obeyed_blocks_from:`")));
+
+        let declared = seed("session:\n  obeyed_blocks_from: 132\n");
+        assert!(obeyed_gate(declared.path(), 132).blocked());
+        assert!(!obeyed_gate(declared.path(), 131).blocked());
+
+        let malformed = seed("session:\n  obeyed_blocks_from: x\n");
+        let v = obeyed_gate(malformed.path(), 1);
+        assert!(v.blocked(), "a malformed key blocks at any session");
+        assert!(v.reasons.iter().any(|r| r.contains("line 2")));
     }
 
     #[test]

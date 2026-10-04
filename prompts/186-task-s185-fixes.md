@@ -1,8 +1,7 @@
 # Session 186 — CODE: the fixes from the S185 ground truth (F113, F110, F114, F115, N1)
 
-> **Status:** DRAFT — written by the S185 agent from the founder's picks (2026-10-04: report "approved",
-> option A, F110 option b). He approves it with `vajra approve 186` in his own terminal; the gate reads the
-> approval record, not this line.
+> **Status:** APPROVED by the founder's approval record (`vajra approve 186`), written from the founder's
+> S185 picks (2026-10-04: report "approved", option A, F110 option b).
 
 ## Type
 session_type: CODE
@@ -38,9 +37,10 @@ split (b) into its own session — say so; do not ship half a guard.
    the missing hooks, never a hook already wired under another matcher.
 4. **F114** — a fresh project's `scripts/verify-closeout.sh --ledger` with no review files prints "ledger: no
    reviewed sessions yet" and exits 0 (this repo's script and the scaffold's).
-5. **F115** — verify-132's `advance-really-binds-on-an-unjudged-obeyed` fixture records a tech-lead (or a
-   `tech-lead: skipped — <reason>`) so the obeyed gate gets its turn, and tests both sides of F113: no key →
-   WARN and advances; `obeyed_blocks_from: 132` → blocks with `[vajra obeyed]`.
+5. **F115** — verify-132's `advance-really-binds-on-an-unjudged-obeyed` fixture records a real tech-lead (a
+   `tech-lead: skipped` line is refused by the Crew gate — design-advisor rec 13) so the obeyed gate gets its
+   turn, and tests both sides of F113: no key → WARN and advances; `obeyed_blocks_from: 132` → blocks with
+   `[vajra obeyed]`.
 6. **N1** — every `[HOOK BLOCK]` line in `scripts/hook-pre-bash.sh` (39, 77) and `scripts/hook-pre-write.sh`
    (38, 72), and their scaffold copies, goes to stderr, so the agent sees why it was blocked.
 
@@ -58,13 +58,21 @@ split (b) into its own session — say so; do not ship half a guard.
 
 ## Design
 design-significant: yes
-- Cites `docs/decisions/DECISION-007-*.md` and `docs/decisions/DECISION-011-*.md`; picked in S185
-  (`sessions/session-185-ground-truth.md`, design-advisor S185 recs 1–12). Land an S185/S186 addendum in each
-  (rec 12) — **F113 DEVIATES from DECISION-007's S132 clause**: 132+ blocks only where the key is declared.
-- F110 (b) only stops blocking redirects it can PROVE do not write into the folder — the same rule the guard
-  already applies to `/dev/null` and `>&N` (line 68); anything unresolvable blocks as today (S173: guard
-  changes only add; never hide text from the guard).
-- This session's design-advisor checks the S185 picks against the code as it is, not re-opens them.
+- Why yes: a new `.ai/CONSTRAINTS.yaml` key changes when the Obeyed gate blocks in every project; the
+  approvals guard changes what it blocks; `--sync-fleet`'s merge changes its output.
+- Cites `docs/decisions/DECISION-007-agent-fleet.md` — S186 addendum: F113 DEVIATES from the S133 addendum §6
+  (the S132 precedent: one built-in threshold for every project) and REVERSES the S134 addendum's rejection of
+  a per-project `.ai/` marker, for the Obeyed gate only (absent key = never blocks, the founder's 2026-10-03
+  rule). Honest limit: an opted-in repo can opt out by editing the key; only the diff shows it.
+- Cites `docs/decisions/DECISION-011-controls-the-agent-cannot-type.md` — S186 addendum: FOLLOWS its S183
+  strict-key rule; the S182 addendum §2 STANDS (F110 (b) — block a redirect only where it lands in the folder
+  — was built, failed two cold reviews and was split out by the founder; its design and probes P1–P7 are
+  recorded there for its own session); corrects "never lists a hook twice".
+- The guard only adds: every S182 check reads the command exactly as written; S186 adds lines (a
+  backslash-newline-joined copy), patterns and names-the-folder cases, and checks that always finish
+  (`printf | grep -c`, one awk pass — passes 4 and 5).
+- Picked in S185 (`sessions/session-185-ground-truth.md`); this session's design-advisor checked the picks
+  against the code (`.ai/handoffs/session-186-design-advisor.md`), not re-opened them.
 
 ## Carried in
 - **Founder rulings to respect:** no per-claim `obeyed:` judge (2026-10-03); Vajra's close does not run
@@ -82,10 +90,104 @@ design-significant: yes
 - If (b) is not green with its corpus by the ~1h30 mark, stop it, ship 1 + 3–6, and split (b).
 
 ## Plan
-<the S186 agent writes this after the tech-lead and design-advisor, each step citing `covers: N`>
+1. F114: both close scripts list an empty ledger as empty — `--ledger` prints "ledger: no reviewed sessions yet" and exits 0; `--ledger-verify` stops exiting 128 with no commit. — covers: 6
+2. N1: the four `[HOOK BLOCK]` lines in `hook-pre-bash.sh` / `hook-pre-write.sh` go to stderr (neither hook is shipped by `vajra init`, so there is no scaffold copy). — covers: 8
+3. F113: `obeyed_blocks_from:` strict reader replaces the constant; Vajra's own CONSTRAINTS sets 132; the warning says why it does not block; unit tests for absent / set / malformed / twice. — covers: 1
+4. F113 sibling: the design-advisor exemption stops quoting Vajra's session number; verify-133's wording check follows. — covers: 1
+5. F115: verify-132's `--advance` fixture records a real tech-lead (dispatch fixture, every role deferred-budget) so the Obeyed gate gets its turn; both sides of F113 plus a malformed key. — covers: 7, 1
+6. Guard corpus first (tech-lead rec 3): the S186 commands, the declared non-writes, and an old-vs-new test against e1c348e's guard. — covers: 3, 2, 4
+7. S182 recs 1 and 5: `..` segments count as the folder (Write tool and Bash); the added writers and interpreters. — covers: 4
+8. F110 (b): build the target-reading guard, then — after two cold-review REJECTs — SPLIT IT OUT (the founder's call, 2026-10-04): restore the S182 redirect rule, keep (a)'s `git commit -F` message, record the design and P1–P7 for its own session. — covers: 2, 3
+9. S182 rec 2: `merge_claude_settings` adds no hook already wired under another matcher (a test red at e1c348e). — covers: 5
+10. `scripts/verify-session-186.sh` (each fix red at e1c348e for its named reason) and the demo. — covers: 1, 2, 3, 4, 5, 6, 7, 8
+11. DECISION-007 and DECISION-011 addenda (S185 design-advisor rec 12); summary with 3 next options; closeout sync; next prompt; one cold review; the `--inputs-sha 186` stamp last. — covers: 1, 2
+
+Cut line (prompt guardrail): if step 8 is not green with its corpus by ~1h30, ship 1–7 and 9–11 and split (b) into its own session.
+
+## Execution
+- step 1 — done: 0dd33f1
+- step 2 — done: c6bbeb9
+- step 3 — done: 62bfe63
+- step 4 — done: b7232d3
+- step 5 — done: 4c34e51
+- step 6 — done: 3a4fca9
+- step 7 — done: 3a4fca9
+- step 8 — done: fb467a0
+  (fb467a0 is the split: the S182 redirect rule restored. F110 (b) itself is NOT shipped; its build was 3a4fca9/1409a3c.)
+- step 9 — done: 9dcec17
+- step 10 — done: 2c0b576
+- step 11 — done: 4e6c5fd
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required), `fidelity-reviewer` (required;
+the one cold close review), `release-coordinator` (required; the one judge of every `obeyed:` answer).
+implementation-advisor: skipped — the tech-lead deferred it on budget (its rec 2): a guard-code dispatch reads the shell scripts, about 1.5M tokens; the AC3 corpus test was meant to stand in for its review of F110 (b). That stand-in was not enough — three cold reviews found what the corpus missed — and (b) was split out.
+
+**tech-lead** (`.ai/handoffs/session-186-tech-lead.md`):
+- tech-lead rec 1 — refused: in part — F114 → N1 → F113 with F115 landed in the asked order (0dd33f1, c6bbeb9, 62bfe63, 4c34e51), but F110 (b) landed in the same commit as S182 recs 1/5 (3a4fca9) and before rec 2 (9dcec17), so the clean cut the rec wanted was not available. When (b) failed two reviews the cut was made by hand instead (fb467a0 restores the S182 redirect rule; the add-only parts stayed).
+- tech-lead rec 2 — obeyed: fb467a0 (no implementation-advisor dispatch — the reasoned skip line is in this section, ac1b5da; and its second half, "more than one review pass on (b) → split it out": after pass 1 the holes were fixed once (1409a3c), pass 2 REJECTED again, and the founder split (b) out — fb467a0 restores the S182 rule)
+- tech-lead rec 3 — refused: in part — the corpus was written and run red before the guard changed (in-session only: corpus and guard share commit 3a4fca9, so history cannot show the order), and "every command e1c348e blocks" is not a set a test can enumerate. The test is now named for what it proves, a listed corpus (`every_listed_command_the_s182_guard_blocked_still_blocks`, 1409a3c), and the cold review's three missed classes were added to it.
+- tech-lead rec 4 — obeyed: 651d174 (the design-advisor brief named the files and asked "do the picks fit the code", not a redesign)
+- tech-lead rec 5 — refused: in part — the review ran at close on the finished branch and re-ran its checks, but not "one fresh pass, not a loop": six cold passes ran (passes 1–5 REJECTED the guard, each on a real gap; the founder allowed passes 3–6). All six are in sessions/session-186-review.md.
+- tech-lead rec 6 — deferred: sessions/session-186-review.md
+  why: done — the release-coordinator was dispatched once, after this section answered every rec, and judged all 18 `obeyed:` answers `implemented` in one pass; its handoff is `.ai/handoffs/session-186-release-coordinator.md` and the review file's "Obeyed claims" section names it.
+
+**design-advisor** (`.ai/handoffs/session-186-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 62bfe63 (one strict reader; a bad key is pushed into `reasons` on every run, whatever the session holds)
+- design-advisor rec 2 — obeyed: 2f4c59d (only `NotFound` means no key; any other read error is a blocking reason naming the file)
+- design-advisor rec 3 — obeyed: 9ef5c65 (a third wording when the key cannot be read; the `[vajra obeyed]` heading and refusal in 2f4c59d and the close log's BLOCK line in both close scripts name an unreadable key)
+- design-advisor rec 4 — obeyed: cfd7f86 (demo-132's subject declares the key, and its case 7 records a real tech-lead — it had the same S135 staleness as F115; demo-132 green 8/8. The kept phrases are unchanged)
+- design-advisor rec 5 — obeyed: 596db24 (only "(threshold N)" removed; "predates the design-advisor mandate" kept; verify-133's wording check and its rename probe updated in the same commit)
+- design-advisor rec 6 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
+  why: built in 3a4fca9, then F110 (b) was split out by the founder (2026-10-04) after two cold-review REJECTs and the S182 redirect rule restored (fb467a0); the design is recorded in DECISION-011's S186 addendum for the (b) session → backlog — reason: the founder picks when (S187 is rudra S18); on the S190 ground-truth checklist.
+- design-advisor rec 7 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
+  why: F110 (b) split out (fb467a0); what was built and why the symlink refusal was not (macOS `/tmp`) is recorded for the (b) session → backlog, on the S190 checklist. Was: refused: in part — its core ask (refuse a symlink in any path component) was not built: refusing every symlink blocks every `/tmp` target on macOS (`/tmp` → `/private/tmp`), including AC3's own read. Built instead (3a4fca9): `cd -P` resolves the existing part as the kernel would, so a symlink is FOLLOWED to where the write really goes; a symlinked or hard-linked last component, a `..` past a missing folder, and no/empty `cwd` block (`a_linked_target_or_a_missing_cwd_is_not_provable`). Recorded in DECISION-011's S186 addendum.
+- design-advisor rec 8 — obeyed: 33235cd (heredoc bodies and quoted text are read, never skipped: the S182 rule is restored and every S182 check again reads the command exactly as written; the joined copy is only extra lines)
+- design-advisor rec 9 — obeyed: 33235cd (new writers and shells match only at a command start or after a wrapper, 3a4fca9; the S182 lists and the text they read are unchanged — 33235cd stopped the join from replacing that text; a `>`-free commit message naming `hook-approvals-guard.sh` and "source" passes)
+- design-advisor rec 10 — obeyed: 6417b01 (bash 3.2 + BSD tools only at HEAD: `tr`, `sed`, `grep -c`, `cd -P`, one awk join; the guard tests pass under `/bin/bash` 3.2.57 and bash 5. The `ls -ld`/awk-ENVIRON code of 3a4fca9 left with the split)
+- design-advisor rec 11 — obeyed: 9dcec17 (a hook counts as wired only under a covering matcher; the pushed group carries only the missing hooks; AC5 fixture red at b10a1a6 ("runs it twice"); the loader is still added for Bash when wired only for Edit)
+- design-advisor rec 12 — refused: the premise is wrong — at main (b10a1a6) the four lines print to stdout (`git show b10a1a6:scripts/hook-pre-bash.sh` line 77 has no `>&2`); the advisor read the working tree after c6bbeb9 had landed. The AC8 test it asked for was built anyway (verify-186: new on stderr, b10a1a6 on stdout, both hooks).
+- design-advisor rec 13 — obeyed: 4c34e51 (the fixture records a real, provenance-verified tech-lead; the brief's skip-line option removed in ef560a6)
+- design-advisor rec 14 — obeyed: ef560a6 (DECISION-007 S186 addendum names the deviation against the S133 addendum §6 and the S134 rejection, with the opt-out limit)
+- design-advisor rec 15 — obeyed: ed96c4b (DECISION-011 S186 addendum: follows S183's strict-key rule, corrects "never lists a hook twice", and records (b)'s design and why it was split. The §2 amendment and the over-block reversal it first carried (ef560a6) were withdrawn with the split — S182 §2 stands)
+
+**fidelity-reviewer** (`.ai/handoffs/session-186-fidelity-reviewer.md`; pass 1 REJECT 12/15 — its recs are answered here; pass 2's handoff replaces pass 1's, both are in `sessions/session-186-review.md`):
+Passes 1–5 each REJECTED the guard; every pass's recs and how each was answered are in `sessions/session-186-review.md` (the handoff holds pass 6, which replaced them). In short: pass 1 → 1409a3c; pass 2 → the founder split F110 (b) out, fb467a0; pass 3 → 33235cd (add-only by construction); pass 4 → 58b62f0 (pipe-free checks; a ~60 KB hole in the S182 guard on main); pass 5 → 6417b01 (linear join, `grep -c`).
+
+Pass 6 ACCEPTED (12 of 14 SHIPPED; D2 NOT-BUILT and AC2 PARTIAL from the founder's split). Its recs:
+- fidelity-reviewer rec 1 — obeyed: a579494 (the broken `## Delta` fragment and the two orphaned pass-4 lines removed; `## Advice` ends at the real `## Delta`)
+- fidelity-reviewer rec 2 — obeyed: a579494 (tech-lead rec 5 is now `refused: in part` with the six passes named)
+- fidelity-reviewer rec 3 — obeyed: a579494 (summary and TASK say verify 35/35)
+- fidelity-reviewer rec 4 — obeyed: cf109c5 (the test runs `/bin/bash` when it exists — macOS's 3.2 — and its comment says only there can it catch the pass-5 slowdown)
+- fidelity-reviewer rec 5 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
+  why: not a regression (S182 passes `timeout 5 git checkout …` too); more wrappers belong with F110 (b)'s own session → backlog — reason: the founder picks when; on the S190 ground-truth checklist. The "…" in DECISION-011 §2's wrapper list is replaced by the real list in e338571.
+
+**release-coordinator** (`.ai/handoffs/session-186-release-coordinator.md`, the one judge of all 18 `obeyed:` answers — 18 implemented, 0 mismatch — plus the ship steps):
+- release-coordinator rec 1 — deferred: sessions/session-186-review.md
+  why: done at close — the handoff is recorded and committed with the review file; `--check-obeyed 186` and `--check-advice 186` are run before the stamp and their results are in the summary's ship steps. The untracked html/launch.json files are in no commit.
+- release-coordinator rec 2 — deferred: sessions/session-186-review.md
+  why: done in 255c6fc (`## Design` says the S182 §2 rule stands, F110 (b) was split out, and how the guard only adds); an `obeyed:` line here would need a second judge for the judge's own rec — the founder's rule is one judge, one pass (the S184 precedent). The review file names it.
+- release-coordinator rec 3 — deferred: sessions/session-186-summary.md
+  why: the stamp is the last commit on the branch, by definition after this line; the summary's ship steps list it.
+- release-coordinator rec 4 — deferred: sessions/session-186-summary.md
+  why: `verify-closeout.sh` runs on the branch after the stamp and before the merge; its exit code is reported to the founder with the PR.
+- release-coordinator rec 5 — deferred: sessions/session-186-summary.md
+  why: push and PR follow the close check — listed in the summary's ship steps.
+- release-coordinator rec 6 — deferred: sessions/session-186-summary.md
+  why: the PR body names pass 6's ACCEPT and its limits (D2 NOT-BUILT, AC2 PARTIAL, F110 (b) not fixed); no further review pass.
+- release-coordinator rec 7 — deferred: sessions/session-186-summary.md
+  why: the merge (a merge commit) is the founder's act — listed for him in the ship steps.
+- release-coordinator rec 8 — deferred: sessions/session-186-summary.md
+  why: return to main and sync happen after his merge — listed in the ship steps.
+- release-coordinator rec 9 — deferred: sessions/session-186-summary.md
+  why: `git branch -d` after the merge — listed in the ship steps; S187's start gate checks it.
+- release-coordinator rec 10 — deferred: sessions/session-186-summary.md
+  why: `cargo install --path .` from the synced main — listed in the ship steps (also in the S187 prompt).
+- release-coordinator rec 11 — deferred: prompts/187-task-rudra-s18-s186-fixes.md
+  why: `vajra init --sync-fleet` in rudra is the founder's first step of S187, on rudra's S18 branch; the S187 prompt lists it.
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
-- `+` a target-reading approvals guard with a fail-closed list; `..`, writer and interpreter additions
+- `+` approvals guard, add-only: `..` and a cwd inside the folder, more writers/shells/awk, pipe-free checks (the target-reading guard, F110 b, was built and split out)
 - `+` F114 first-run ledger fix · F115 fixture rebuilt · hook block messages on stderr
 - `-` `OBEYED_JUDGMENT_FROM_SESSION` as the blocking switch for every project
