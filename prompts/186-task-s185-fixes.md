@@ -149,18 +149,23 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - design-advisor rec 12 — refused: the premise is wrong — at main (b10a1a6) the four lines print to stdout (`git show b10a1a6:scripts/hook-pre-bash.sh` line 77 has no `>&2`); the advisor read the working tree after c6bbeb9 had landed. The AC8 test it asked for was built anyway (verify-186: new on stderr, b10a1a6 on stdout, both hooks).
 - design-advisor rec 13 — obeyed: 4c34e51 (the fixture records a real, provenance-verified tech-lead; the brief's skip-line option removed in ef560a6)
 - design-advisor rec 14 — obeyed: ef560a6 (DECISION-007 S186 addendum names the deviation against the S133 addendum §6 and the S134 rejection, with the opt-out limit)
-- design-advisor rec 15 — obeyed: ef560a6 (DECISION-011 S186 addendum: follows S183's strict-key rule, amends S182 §2, reverses its over-block sentence, corrects "never lists a hook twice")
+- design-advisor rec 15 — obeyed: ed96c4b (DECISION-011 S186 addendum: follows S183's strict-key rule, corrects "never lists a hook twice", and records (b)'s design and why it was split. The §2 amendment and the over-block reversal it first carried (ef560a6) were withdrawn with the split — S182 §2 stands)
 
 **fidelity-reviewer** (`.ai/handoffs/session-186-fidelity-reviewer.md`; pass 1 REJECT 12/15 — its recs are answered here; pass 2's handoff replaces pass 1's, both are in `sessions/session-186-review.md`):
-Passes 1, 2 and 3 each REJECTED (the guard); the handoff holds the latest pass (3). After pass 2 the founder split F110 (b) out; pass 3 found the add-only promise still broken by the backslash-newline join (R1–R3), fixed in 33235cd. Every pass's recs are listed in `sessions/session-186-review.md`; pass 3's are answered here:
-- fidelity-reviewer rec 1 — obeyed: 33235cd (the joined copy is appended as extra lines, so every S182 check reads the command as written plus more; R1, R2 in the corpus, red on fb467a0)
-- fidelity-reviewer rec 2 — obeyed: 33235cd (the folder lookup falls back to the path instead of exiting under `set -e`; `an_unenterable_folder_does_not_open_the_guard`, red on fb467a0 with exit 1)
-- fidelity-reviewer rec 3 — obeyed: 33235cd (the guard header says how it only adds; the summary, DECISION-011 §2 and the ROADMAP row are corrected in the commit after it, and a fresh cold review follows)
-- fidelity-reviewer rec 4 — obeyed: 33235cd (tech-lead rec 1's reason no longer claims (b) finished; it says the cut was made by hand)
-- fidelity-reviewer rec 5 — obeyed: 33235cd (plan step 8 now says it is the split, and its Execution line says fb467a0 is the restore, not (b))
+Passes 1–4 each REJECTED (the guard); the handoff holds the latest pass (4). After pass 2 the founder split F110 (b) out; pass 3 found the backslash-newline join broke "only adds" (fixed 33235cd); pass 4 found large commands fail open through `printf | grep -q` under pipefail — in the S182 guard on main too (~60 KB) — and the founder chose the pipe-free fix (2026-10-04). Every pass's recs are listed in `sessions/session-186-review.md`; pass 4's are answered here (recs 1–5 carry pass 3's meaning):
+- fidelity-reviewer rec 1 — obeyed: 33235cd (the joined copy is appended as extra lines; every S182 check reads the command as written; R1, R2 in the corpus, red on fb467a0)
+- fidelity-reviewer rec 2 — obeyed: 33235cd (the folder lookup never exits under `set -e`; `an_unenterable_folder_does_not_open_the_guard`, red on fb467a0 with exit 1)
+- fidelity-reviewer rec 3 — obeyed: ed96c4b (DECISION-011 §2 and the ROADMAP row say how the guard only adds, and that pass 3 caught the join; the summary's AC3 row in 1a8957e)
+- fidelity-reviewer rec 4 — obeyed: 1a8957e (tech-lead rec 1's reason says the cut was made by hand, not that (b) finished)
+- fidelity-reviewer rec 5 — obeyed: 1a8957e (plan step 8 says it is the split; its Execution line says fb467a0 is the restore, not (b))
+- fidelity-reviewer rec 6 — obeyed: 58b62f0 (every `printf | grep -q` is `grep <<<"$X"`; measured 10–120 KB, all block now; 20/70/120 KB cases in `s186_writes()`; verify-186 runs 40/70/120 KB against the new and the b10a1a6 guard)
+- fidelity-reviewer rec 7 — refused: measured, nothing to change — the size runs above take 0–1 s per hook call under /bin/bash 3.2.57 at 10–120 KB, far below any hook timeout; the join stays in bash.
+- fidelity-reviewer rec 8 — obeyed: 7b06d0e (the `## Delta` guard line says add-only and that (b) was built and split out)
+- fidelity-reviewer rec 9 — obeyed: 7b06d0e (design-advisor rec 15 now cites ed96c4b and says the §2 amendment was withdrawn with the split)
+- fidelity-reviewer rec 10 — obeyed: 58b62f0 (the test is renamed `redirects_through_a_link_or_with_no_cwd_block` with a comment saying why it stays; the `run_in` comment fixed; verify-186's header and STATE in 7b06d0e)
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
-- `+` a target-reading approvals guard with a fail-closed list; `..`, writer and interpreter additions
+- `+` approvals guard, add-only: `..` and a cwd inside the folder, more writers/shells/awk, pipe-free checks (the target-reading guard, F110 b, was built and split out)
 - `+` F114 first-run ledger fix · F115 fixture rebuilt · hook block messages on stderr
 - `-` `OBEYED_JUDGMENT_FROM_SESSION` as the blocking switch for every project
