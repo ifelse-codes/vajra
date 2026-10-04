@@ -1,10 +1,13 @@
 # Session Boot
 
 ## Next Session
-- **S186 — CODE: the fixes from the S185 ground truth** (`prompts/186-task-s185-fixes.md`, DRAFT — the founder's pick, 2026-10-04: option A, F110 option b). F113 `obeyed_blocks_from:` · F110 (b) guard reads the real redirect target + S182 recs 1/2/5 · F114 · F115 fixture · N1 block messages on stderr. He approves with `vajra approve 186`. Before it: merge S185's PR. Start in a FRESH chat.
+- **S187 — INTERACTIVE: rudra S18 with the new guard** (`prompts/187-task-rudra-s18-new-guard.md`, DRAFT — the founder's pick, 2026-10-04). Before it: merge S186's PR, `cargo install --path .`, `vajra init --sync-fleet` in rudra. He approves with `vajra approve 187`. Start in a FRESH chat.
 
 ## Current Session
-- **Number:** 186 — CLOSED. NO-CODE ground truth, 🟡 PARTIAL PASS (founder approved 2026-10-04). F113 pick: `obeyed_blocks_from:` (only Vajra sets it; projects warn forever). F110 pick: (b) read the real redirect target, fail closed. F115 = stale fixture since S135 (the obeyed→`--advance` binding unproven 50 sessions). F114 confirmed (XS). New N1–N9 (N1: GT block reasons go to stdout; N8: a GT prompt fails the Analyst gate). Report: `sessions/session-186-ground-truth.md`.
+- **Number:** 186 — CLOSED. CODE: the S185 fixes. F113 `obeyed_blocks_from:` (only Vajra's file sets it; projects warn, saying why; a bad key blocks naming its line) · F110 (b) the approvals guard reads where a redirect really writes (fail closed on quotes, variables, `cd`, links, no `cwd`) + S182 recs 1/2/5 · F114 a fresh project's ledger speaks · F115 verify-132 green for the first time since S135 · N1 block reasons on stderr. Cold review pass 1 REJECT (3 guard holes, P1–P3) → fixed → pass 2. Summary: `sessions/session-186-summary.md`. Review: `sessions/session-186-review.md`. Verify: `scripts/verify-session-186.sh`. Demo: `scripts/demo-session-186.sh`.
+
+## Prior Session
+- **Number:** 185 — CLOSED (merged #222). NO-CODE ground truth, 🟡 PARTIAL PASS. Picked F113 → `obeyed_blocks_from:`, F110 → (b); F114, F115, N1 → S186. Report: `sessions/session-185-ground-truth.md`.
 
 ## Prior Session
 - **Number:** 184 — CLOSED (merged #221). INTERACTIVE: rudra S17 under the new rules + F103/F107/F108. `vajra init` waits 10 s per answer on a silent pipe, then uses the defaults and says so (F103); the unchecked-claims warning names no Vajra session number and says "in this session" (F107); `--ledger`/`--ledger-verify` leave no empty folder (F108). rudra S17: GREEN with 2 honest WARN, 8/8 stations; F109–F113 all have the founder's call (F110 + F113 → S186, then fixed). Summary: `sessions/session-184-summary.md`. Review: `sessions/session-184-review.md`. Verify: `scripts/verify-session-184.sh` (14/14). Demo: `scripts/demo-session-184.sh` (7 live checks).
