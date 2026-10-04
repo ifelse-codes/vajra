@@ -43,7 +43,11 @@ ARTIFACTS=".ai/verify/closeout/${TS}"
 # S183 (F106): `--inputs-sha` only prints a hash — it left an empty dated folder in the close logs on
 # every call (rudra S16 had one beside its real runs). Every other mode writes its logs here.
 # Its one internal check (the session number) logs to a temp folder, removed on exit.
-if [ "${1:-}" = "--inputs-sha" ]; then ARTIFACTS="$(mktemp -d)" || exit 1; trap 'rm -rf "$ARTIFACTS"' EXIT; else mkdir -p "$ARTIFACTS"; fi
+# S184 (F108): `--ledger` and `--ledger-verify` only read reviews and git — same empty folder, same fix.
+case "${1:-}" in
+  --inputs-sha|--ledger|--ledger-verify) ARTIFACTS="$(mktemp -d)" || exit 1; trap 'rm -rf "$ARTIFACTS"' EXIT ;;
+  *) mkdir -p "$ARTIFACTS" ;;
+esac
 
 PASS=0; FAIL=0; RESULTS=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
