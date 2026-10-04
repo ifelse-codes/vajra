@@ -151,8 +151,12 @@ addendum). **Amends** the S182 addendum once (§3 below). Picked by the S185 gro
    a text guard is a REMOVAL; it needs a class-level argument (what the shell can do with a `>`), not a
    corpus that grows one probe at a time.
 2. **S182 review recs 1 and 5 — only adds.** A `..` segment next to the word `approvals`, or a hook `cwd`
-   inside the folder, counts as naming it, for the Write tools and in the "names it?" test. A backslash-
-   newline is joined first, as the shell does. The S182 word lists also read the de-quoted copy (`l''n`). New writers (`git checkout|restore|clean|reset|stash|apply`,
+   inside the folder, counts as naming it, for the Write tools and in the "names it?" test. A copy with
+   backslash-newlines joined is APPENDED as extra lines — never in place of the command (S186 pass 3: in
+   place, it hid `rm` behind a `#x\` comment line). The S182 word lists also read the de-quoted copy.
+   Why this only adds: every S182 check is a line-by-line match over the command as written; S186 gives it
+   more lines and more patterns, never different ones. The folder lookup never exits early (an
+   unenterable folder once made the guard exit 1, which does not block). New writers (`git checkout|restore|clean|reset|stash|apply`,
    `find … -delete|-exec…`, `rsync`, `curl -o`, `wget`, `tar`, `unzip`, `patch`) and shells (`sh`, `bash`,
    `zsh`, `dash`, `ksh`, `fish`, `eval`, `source`, `.`, `xargs`) and programs that write by their own syntax
    (`awk` and kin, editors, `sqlite3`, `php`, `lua`, …) match where a command starts — after `;&|(`, a
