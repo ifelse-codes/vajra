@@ -1,43 +1,47 @@
 ---
 role: fidelity-reviewer
 session: 186
-agent: claude-code-subagent (verified: toolu_01S1PgF8CHMp4cy2ne3Yk6EA; text-sha: 1595ee7e2a520bb4892194ccb96c70767d9248ba41dc57fdabf24ab2127ed54c)
-source-sha: 4e743da6ce40dcf35d1062779cb27a8b58c6f9f39cd8099a9bf676138f000470
-captured: 2026-10-04T11:22:39Z
+agent: claude-code-subagent (verified: toolu_01ULXWsKv9H4Brx96LJKT9Vj; text-sha: cac68d2618ed18b0e0ab6d9b7a2ac26ffe72fc482969e2c4710df92c1866b9af)
+source-sha: 04ccb9cf699abc24d254eebac74508d82285c5e5978163dad0a5bccc6e0c63f0
+captured: 2026-10-04T11:34:43Z
 cost_usd: null
 ---
 
 # Fidelity-reviewer handoff — session 186
 
-(condensed) — the builder recorded this from the subagent's report: the verdict, grades, the timing counterexample and recs 1–6 are as given; evidence cells and reasoning are shortened.
+(condensed) — the builder recorded this from the subagent's report: the verdict, grades, findings and recs 1–5 are as given; evidence cells and reasoning are shortened.
 
-## Fidelity review: Session 186, pass 5 (cold; does the guard only add)
+## Fidelity review: S186, pass 6 (cold, adversarial)
 
-**Verdict:** REJECT
+**Verdict:** ACCEPT
 
-11 of 14 SHIPPED · 2 PARTIAL (AC2 by founder split, AC3) · 1 NOT-BUILT (D2, founder split). Read only; nothing run.
+12 of 14 SHIPPED · 1 PARTIAL (AC2) · 1 NOT-BUILT (D2) — both from the founder's F110 (b) split, which the prompt's own cut line allows. A faithful build of the contract minus the declared split. Read only; S182 baseline = rudra's byte copy.
 
-Main finding: line 61's `${CMD//"$_BSNL"/}` is at least backslashes × length on macOS's /bin/bash 3.2. Counterexample: 30,000 backslashes in a quoted word, then `\<NL>; echo x > .ai/approvals/y` — S182 exits 2 in milliseconds; HEAD would run tens of seconds or more, past a hook timeout, which does not block. Pass 4's rec 7 asked for exactly this timing; its refusal cited `a`-padded runs with one backslash. Second (low): here-strings need a temp file; on a full disk every check reads "no match".
+Main question — no concrete counterexample found. Line by line: the S182 checks (names test, STRIPPED sed, `>` rule, writer and interpreter lists) run unchanged, in the same order, before any new check, each over a superset of the text; `grep -c` reads all input; the awk join is one pass; every new assignment is guarded. Unmeasured, stated: above ~1 MB the bash 3.2 `case` wide-char conversion; a multi-GB single line could exhaust grep's memory.
 
-Clean: every remaining pipe reads all input; every set -e path is guarded; NAMES is a superset of S182's; the Write `case` patterns are a superset.
+| # | Verdict | Evidence (condensed) |
+|---|---|---|
+| D1 | SHIPPED | `src/obeyed/mod.rs:84-116`, `:485-489`, `:571-574`; `.ai/CONSTRAINTS.yaml:22`; `mandate/mod.rs:428` |
+| D2 | NOT-BUILT | founder split; S182 rule L117; (a)'s message L119 |
+| D3 | SHIPPED | rec 1 L51, L91-93; rec 5 L140-149; rec 2 `init.rs:956-998` (gap, not a regression: wrappers like `timeout`, `nice`) |
+| D4 | SHIPPED | both close scripts |
+| D5 | SHIPPED | verify-132 `:324-396` |
+| D6 | SHIPPED | four lines `>&2`; no scaffold copy |
+| AC1 | SHIPPED | verify-186 `:26-52`; unit tests |
+| AC2 | PARTIAL | six blocks covered; three passes still block with `git commit -F` (split) |
+| AC3 | SHIPPED | corpus vs the real e1c348e guard + the structural reading |
+| AC4–AC8 | SHIPPED | verify-186 rows; AC5 red in the b10a1a6 worktree |
 
-| # | Verdict |
-|---|---|
-| D1, D3–D6, AC1, AC4–AC8 | SHIPPED |
-| D2 | NOT-BUILT (founder split) |
-| AC2 | PARTIAL (founder split) |
-| AC3 | PARTIAL — timeout fail-open on backslash-dense commands under bash 3.2; disk-full fail-open |
+Fakest green: `a_backslash_dense_command_blocks_fast` runs whatever `bash` is first on PATH; under bash 5 it cannot fail on the pass-5 slowdown; only verify-186's explicit `/bin/bash` row checks it, on macOS. "Under 0.1 s" is the builder's measurement; the check enforces under 5 s.
 
-Fakest green: "measured 10–120 KB, all block now" — every case had at most one backslash.
-Records: DECISION-011's "only adds" is about matching, not finishing in time; the addendum does not record pass 4.
+Records: prompt line 163 corrupted (a broken `## Delta` fragment and two orphaned fidelity-reviewer lines outside `## Advice`); "verify 31/31" stale in the summary and TASK; tech-lead rec 5's answer claims one review (six ran); design-advisor rec 10's description names split-out code; pass-5 rec 1's 60K timing missing (minor).
 
-rec 1 — Time HEAD vs e1c348e under /bin/bash 3.2 on the counterexample (30K and 60K backslashes, folder and `>` at the end) and record the seconds.
-rec 2 — Replace line 61's join with a linear awk join (awk reads all input, so no SIGPIPE).
-rec 3 — Add backslash-dense cases with a time limit to `s186_writes()` and verify-186.
-rec 4 — Re-answer pass-4 rec 7 with a measurement of the input it named.
-rec 5 — Record pass 4 in DECISION-011's S186 addendum: the pipe-free checks and the ~60 KB fail-open in the S182 guard on main and in rudra.
-rec 6 — Add to DECISION-011's limits that here-strings need a writable temp dir (full disk → every check "no match").
+rec 1 — Repair line 163 of `prompts/186-task-s185-fixes.md`: delete the broken `## Delta` fragment and restore or remove the orphaned `fidelity-reviewer rec 9`/`rec 10` lines, so `## Advice` ends at the real `## Delta`.
+rec 2 — Change the tech-lead rec 5 answer to `refused: in part — six cold passes ran (founder-allowed); "one fresh pass, not a loop" was not followed`.
+rec 3 — Change "Verify 31/31" to 35/35 in `sessions/session-186-summary.md` and `.ai/TASK.md`.
+rec 4 — Make `a_backslash_dense_command_blocks_fast` run `/bin/bash` (and say so when it is not 3.2), or drop the claim that it guards the pass-5 bug.
+rec 5 — In the F110 (b) session, add common command wrappers (`timeout N`, `nice`, `stdbuf`, `doas`, `caffeinate`, `flock`, `chroot`) to the `AT` prefix, and drop the "…" in DECISION-011 §2's wrapper list.
 
 ## Handoff Delta
-- `~` re-run: fidelity-reviewer handoff replaced (2181 bytes now vs 2874 bytes prior)
+- `~` re-run: fidelity-reviewer handoff replaced (3210 bytes now vs 2101 bytes prior)
 - prior stage: this session's earlier fidelity-reviewer handoff

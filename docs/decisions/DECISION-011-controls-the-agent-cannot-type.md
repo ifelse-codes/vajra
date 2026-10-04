@@ -167,8 +167,8 @@ addendum). **Amends** the S182 addendum once (§3 below). Picked by the S185 gro
    `find … -delete|-exec…`, `rsync`, `curl -o`, `wget`, `tar`, `unzip`, `patch`) and shells (`sh`, `bash`,
    `zsh`, `dash`, `ksh`, `fish`, `eval`, `source`, `.`, `xargs`) and programs that write by their own syntax
    (`awk` and kin, editors, `sqlite3`, `php`, `lua`, …) match where a command starts — after `;&|(`, a
-   backtick, a line start, `if`/`then`/`do`/`!`/`{`, `NAME=value`, a wrapper (`env`, `sudo`, `builtin`,
-   `xargs`, …), with or without a path in front — so `hook.sh` or the word "source" in prose is not one.
+   backtick, a line start, `if`/`then`/`do`/`!`/`{`, `NAME=value`, a wrapper (`xargs`, `env`, `exec`,
+   `command`, `builtin`, `nohup`, `sudo`, `time` — not `timeout`, `nice` or others yet), with or without a path in front — so `hook.sh` or the word "source" in prose is not one.
 3. **Corrected — "`--sync-fleet` never lists a hook twice" was false (S182 review rec 2).** A hook wired
    under a matcher that covers the template group's tools (`Bash|Edit|Write|MultiEdit` covers `Bash`) is
    wired; the merge adds only the missing hooks. A matcher that is not a plain `A|B` list covers nothing,
