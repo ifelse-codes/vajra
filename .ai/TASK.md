@@ -9,7 +9,7 @@
 ## Session 186 — CODE: the fixes from the S185 ground truth — COMPLETE
 
 - Brief: `prompts/186-task-s185-fixes.md`. Summary: `sessions/session-186-summary.md`. Review: `sessions/session-186-review.md`. Decision: DECISION-007 + DECISION-011 S186 addenda.
-- Shipped: F113 `obeyed_blocks_from:` · S182 recs 1/2/5 (add-only) · F114 · F115 · N1. Verify 31/31 · demo 8/8 · verify-132 13/13.
+- Shipped: F113 `obeyed_blocks_from:` · S182 recs 1/2/5 (add-only) · F114 · F115 · N1. Verify 35/35 · demo 8/8 · verify-132 13/13.
 - **Split out (founder, 2026-10-04):** F110 (b) — two cold-review REJECTs (P1–P7); S182 redirect rule restored → backlog, S190 checklist.
 - **Found:** verify-133 red at main since S181 (→ backlog, S190 checklist).
 

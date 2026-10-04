@@ -127,8 +127,7 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - tech-lead rec 2 — obeyed: fb467a0 (no implementation-advisor dispatch — the reasoned skip line is in this section, ac1b5da; and its second half, "more than one review pass on (b) → split it out": after pass 1 the holes were fixed once (1409a3c), pass 2 REJECTED again, and the founder split (b) out — fb467a0 restores the S182 rule)
 - tech-lead rec 3 — refused: in part — the corpus was written and run red before the guard changed (in-session only: corpus and guard share commit 3a4fca9, so history cannot show the order), and "every command e1c348e blocks" is not a set a test can enumerate. The test is now named for what it proves, a listed corpus (`every_listed_command_the_s182_guard_blocked_still_blocks`, 1409a3c), and the cold review's three missed classes were added to it.
 - tech-lead rec 4 — obeyed: 651d174 (the design-advisor brief named the files and asked "do the picks fit the code", not a redesign)
-- tech-lead rec 5 — deferred: sessions/session-186-review.md
-  why: the one cold fidelity review runs at close on the finished branch; its verdict and the live re-runs it did are recorded in that file.
+- tech-lead rec 5 — refused: in part — the review ran at close on the finished branch and re-ran its checks, but not "one fresh pass, not a loop": six cold passes ran (passes 1–5 REJECTED the guard, each on a real gap; the founder allowed passes 3–6). All six are in sessions/session-186-review.md.
 - tech-lead rec 6 — deferred: sessions/session-186-review.md
   why: the release-coordinator is dispatched once, after this section answers every rec; its judgments land in its own handoff and the review file names them.
 
@@ -144,7 +143,7 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
   why: F110 (b) split out (fb467a0); what was built and why the symlink refusal was not (macOS `/tmp`) is recorded for the (b) session → backlog, on the S190 checklist. Was: refused: in part — its core ask (refuse a symlink in any path component) was not built: refusing every symlink blocks every `/tmp` target on macOS (`/tmp` → `/private/tmp`), including AC3's own read. Built instead (3a4fca9): `cd -P` resolves the existing part as the kernel would, so a symlink is FOLLOWED to where the write really goes; a symlinked or hard-linked last component, a `..` past a missing folder, and no/empty `cwd` block (`a_linked_target_or_a_missing_cwd_is_not_provable`). Recorded in DECISION-011's S186 addendum.
 - design-advisor rec 8 — obeyed: 33235cd (heredoc bodies and quoted text are read, never skipped: the S182 rule is restored and every S182 check again reads the command exactly as written; the joined copy is only extra lines)
 - design-advisor rec 9 — obeyed: 33235cd (new writers and shells match only at a command start or after a wrapper, 3a4fca9; the S182 lists and the text they read are unchanged — 33235cd stopped the join from replacing that text; a `>`-free commit message naming `hook-approvals-guard.sh` and "source" passes)
-- design-advisor rec 10 — obeyed: 3a4fca9 (bash 3.2 + BSD tools only: `tr`, `cd -P`, `ls -ld`, awk with ENVIRON; the guard tests pass under `/bin/bash` 3.2.57 and bash 5)
+- design-advisor rec 10 — obeyed: 6417b01 (bash 3.2 + BSD tools only at HEAD: `tr`, `sed`, `grep -c`, `cd -P`, one awk join; the guard tests pass under `/bin/bash` 3.2.57 and bash 5. The `ls -ld`/awk-ENVIRON code of 3a4fca9 left with the split)
 - design-advisor rec 11 — obeyed: 9dcec17 (a hook counts as wired only under a covering matcher; the pushed group carries only the missing hooks; AC5 fixture red at b10a1a6 ("runs it twice"); the loader is still added for Bash when wired only for Edit)
 - design-advisor rec 12 — refused: the premise is wrong — at main (b10a1a6) the four lines print to stdout (`git show b10a1a6:scripts/hook-pre-bash.sh` line 77 has no `>&2`); the advisor read the working tree after c6bbeb9 had landed. The AC8 test it asked for was built anyway (verify-186: new on stderr, b10a1a6 on stdout, both hooks).
 - design-advisor rec 13 — obeyed: 4c34e51 (the fixture records a real, provenance-verified tech-lead; the brief's skip-line option removed in ef560a6)
@@ -160,9 +159,13 @@ Passes 1–5 each REJECTED (the guard); the handoff holds the latest pass (5). A
 - fidelity-reviewer rec 5 — obeyed: 02b5a2f (DECISION-011's S186 addendum records passes 4 and 5: the pipe-free checks and the ~60 KB hole in the S182 guard on main and in rudra)
 - fidelity-reviewer rec 6 — obeyed: 6417b01 (no here-strings left: every check is `printf | grep -c >/dev/null`, which needs no temp file; recorded in DECISION-011)
 
-## Delta` guard line says add-only and that (b) was built and split out)
-- fidelity-reviewer rec 9 — obeyed: cd5444e (design-advisor rec 15 now cites ed96c4b and says the §2 amendment was withdrawn with the split)
-- fidelity-reviewer rec 10 — obeyed: 58b62f0 (the test is renamed `redirects_through_a_link_or_with_no_cwd_block` with a comment saying why it stays; the `run_in` comment fixed; verify-186's header and STATE in 7b06d0e)
+Pass 6 ACCEPTED (12 of 14 SHIPPED; D2 NOT-BUILT and AC2 PARTIAL from the founder's split). Its recs:
+- fidelity-reviewer rec 1 — obeyed: SHA_R (the broken `## Delta` fragment and the two orphaned pass-4 lines removed; `## Advice` ends at the real `## Delta`)
+- fidelity-reviewer rec 2 — obeyed: SHA_R (tech-lead rec 5 is now `refused: in part` with the six passes named)
+- fidelity-reviewer rec 3 — obeyed: SHA_R (summary and TASK say verify 35/35)
+- fidelity-reviewer rec 4 — obeyed: SHA_T (the test runs `/bin/bash` when it exists — macOS's 3.2 — and its comment says only there can it catch the pass-5 slowdown)
+- fidelity-reviewer rec 5 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
+  why: not a regression (S182 passes `timeout 5 git checkout …` too); more wrappers belong with F110 (b)'s own session → backlog — reason: the founder picks when; on the S190 ground-truth checklist. The "…" in DECISION-011 §2's wrapper list is replaced by the real list in SHA_R.
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
