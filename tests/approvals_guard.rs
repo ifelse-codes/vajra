@@ -101,6 +101,22 @@ fn s186_writes() -> Vec<String> {
         format!("rsync /tmp/y {DIR}/x"),
         format!("curl -o {DIR}/x https://x"),
         format!("ls {DIR} | xargs rm"),
+        // S186 cold review pass 1 — P1: a backslash-newline after `>` is a line continuation.
+        format!("echo x > \\\n{DIR}/y"),
+        // P2: a `>` inside another program's own text (awk's `print > f`).
+        format!("awk -v f={DIR}/x 'BEGIN{{print 1 > f }}'"),
+        // P3: a `cd` the old word match missed, and zsh's spellings.
+        format!("${{x}}cd {DIR} && echo x > y"),
+        format!("\"$x\"cd {DIR} && echo x > y"),
+        format!("$'\\x63d' {DIR} && echo x > y"),
+        format!("chdir {DIR} && echo x > y"),
+        format!("echo x >! {DIR}/y"),
+        // rec 4: wider command starts
+        format!(". x.sh {DIR}"),
+        format!("X=1 git checkout -- {DIR}"),
+        format!("git -c a=b checkout -- {DIR}"),
+        format!("curl -o{DIR}/x https://x"),
+        format!("if true; then sh x.sh {DIR}; fi"),
     ]
 }
 
@@ -306,10 +322,11 @@ fn every_command_the_s181_guard_blocked_still_blocks() {
     );
 }
 
-/// S186 AC3 — the same check one guard later: every command the S182 guard (e1c348e) blocked must
-/// still block, unless it is a declared non-write in `reads()`.
+/// S186 AC3 — the same check one guard later, over THIS corpus: every listed command the S182 guard
+/// (e1c348e) blocked must still block, unless it is a declared non-write in `reads()`. A finite list,
+/// not a proof for every command (cold review pass 1 found three classes it missed: P1–P3, now listed).
 #[test]
-fn every_command_the_s182_guard_blocked_still_blocks() {
+fn every_listed_command_the_s182_guard_blocked_still_blocks() {
     let m = Path::new(env!("CARGO_MANIFEST_DIR"));
     let old = Command::new("git")
         .args(["show", "e1c348e:scripts/hook-approvals-guard.sh"])
@@ -366,4 +383,17 @@ fn a_linked_target_or_a_missing_cwd_is_not_provable() {
     assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 2, "no cwd");
     let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": format!("cat {DIR}/x > fresh.md")}});
     assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 0, "a plain new file");
+}
+
+/// S186 cold review rec 8: with the agent's working folder inside `.ai/approvals` (a `cd` in an
+/// earlier call), a redirect writes there without naming the folder — it blocks.
+#[test]
+fn a_cwd_inside_the_folder_blocks_a_redirect() {
+    let proj = tempfile::tempdir().unwrap();
+    let inside = proj.path().join(DIR);
+    std::fs::create_dir_all(&inside).unwrap();
+    let p = serde_json::json!({"tool_name": "Bash", "cwd": inside.to_string_lossy(), "tool_input": {"command": "echo x > y"}});
+    assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 2);
+    let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": "echo x > y"}});
+    assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 0, "from the project root");
 }

@@ -54,6 +54,18 @@ if [ -n "$FILE" ]; then
 fi
 
 [ -z "$CMD" ] && exit 0
+# A backslash-newline is a line continuation: the shell joins the lines before it reads the command
+# (S186 cold review P1: `echo x > \<newline>.ai/approvals/y` writes). Joining inside single quotes
+# too only makes the guard read MORE as one word — the safe direction.
+_BSNL=$'\\\n'; CMD="${CMD//"$_BSNL"/}"
+
+lc() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
+# The folder, physically, and the agent's working folder (Claude Code sends `cwd`).
+if [ -d "$ROOT/.ai/approvals" ]; then AP=$(cd -P "$ROOT/.ai/approvals" && pwd -P)
+elif [ -d "$ROOT/.ai" ]; then AP="$(cd -P "$ROOT/.ai" && pwd -P)/approvals"
+else AP="$(cd -P "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")/.ai/approvals"; fi
+AP_LC=$(lc "$AP")
+CWD_P=""; [ -n "$CWD" ] && CWD_P=$(cd -P "$CWD" 2>/dev/null && pwd -P) || true
 
 # Does the command name the folder? Its path, a `cd` into .ai / approvals plus the word, or (S186)
 # a `..` segment plus the word. Read case-insensitively and with quotes removed (`".ai"/approvals`,
@@ -69,6 +81,9 @@ elif printf '%s' "$NAMED" | grep -qiE 'approvals' && \
      printf '%s' "$NAMED" | grep -qE '(^|[/[:space:]=])\.\.(/|[[:space:]]|$)'; then
   NAMES=1
 fi
+# S186 cold review rec 8: a working folder inside .ai/approvals (a `cd` in an earlier call) — any
+# relative write lands there without the command naming it.
+case "$(lc "$CWD_P")" in "$AP_LC"|"$AP_LC"/*|*/.ai/approvals|*/.ai/approvals/*) NAMES=1 ;; esac
 [ "$NAMES" = 1 ] || exit 0
 
 # Remove only what provably writes nothing: fd duplication/closing and redirects to /dev/null. Each
@@ -97,7 +112,7 @@ BEGIN {
     if (op == "(") { print "PROC"; continue }
     if (op == ">") {
       i++; j2 = nextgt(c, j); if (j2 != j) quoted = 1; j = (j2 ? j2 + 1 : nc + 1)
-    } else if (op == "|" || op == "&") {
+    } else if (op == "|" || op == "&" || op == "!") {
       i++; if (substr(c, j, 1) == op) j++; else quoted = 1
     }
     while (substr(d, i, 1) == " " || substr(d, i, 1) == "\t") i++
@@ -111,8 +126,6 @@ BEGIN {
     print "TARGET\t" w
   }
 }') || REDIRECTS="QUOTED	?"
-
-lc() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 
 # Where a literal target really lands. Exit 0 = into the folder OR not provable; 1 = provably not.
 # The existing part of the path is resolved by the kernel (`cd -P`, so a symlink or a `..` after one
@@ -141,14 +154,12 @@ lands_in_folder() {
 }
 
 if [ -n "$REDIRECTS" ]; then
-  CWD_P=""; [ -n "$CWD" ] && CWD_P=$(cd -P "$CWD" 2>/dev/null && pwd -P) || true
-  if [ -d "$ROOT/.ai/approvals" ]; then AP=$(cd -P "$ROOT/.ai/approvals" && pwd -P)
-  elif [ -d "$ROOT/.ai" ]; then AP="$(cd -P "$ROOT/.ai" && pwd -P)/approvals"
-  else AP="$(cd -P "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")/.ai/approvals"; fi
-  AP_LC=$(lc "$AP")
-  # A directory change anywhere in the command means a relative target cannot be resolved from `cwd`.
+  # A directory change anywhere in the command means a relative target cannot be resolved from `cwd`:
+  # `cd`/`pushd`/`popd`/zsh's `chdir` after anything but a letter, `-C`/`--chdir`, or (P3) a command
+  # word that expands when it runs (`${x}cd`, `"$x"cd`, `$'\x63d'`) — fail closed.
   CHDIR=0
-  printf '%s' "$NAMED" | grep -qE '(^|[;&|({`[:space:]])(cd|pushd|popd)([[:space:]]|$|;)|(^|[[:space:]])(-C|--chdir)([[:space:]=]|$)' && CHDIR=1
+  printf '%s' "$NAMED" | grep -qE '(^|[^A-Za-z0-9_])(cd|pushd|popd|chdir)([[:space:]]|$|;)|(^|[[:space:]])(-C|--chdir)([[:space:]=]|$)' && CHDIR=1
+  printf '%s' "$NAMED" | grep -qE '(^|[;&|(`])[[:space:]]*[^[:space:];&|]*[$`{]' && CHDIR=1
   REASON=""
   while IFS="$(printf '\t')" read -r kind word; do
     case "$kind" in
@@ -183,16 +194,19 @@ fi
 # S186 (S182 review rec 5): more writers and interpreters — matched only where a command starts
 # (start of a line, after `;&|(` or a backtick, or after a wrapper such as `xargs`/`env`/`sudo`), so
 # a file name like `hook.sh` or the word "source" in prose is not one (design rec 9). De-quoted copy.
-AT='(^|[;&|(`])[[:space:]]*((xargs|env|exec|command|nohup|sudo|time)([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+)?'
-if printf '%s' "$NAMED" | grep -qE "${AT}(rsync|wget|tar|unzip|patch)([[:space:]]|\$)" || \
-   printf '%s' "$NAMED" | grep -qE "${AT}git([[:space:]]+-[^[:space:]]+)*[[:space:]]+(checkout|restore|clean|reset|stash|apply)([[:space:]]|\$)" || \
-   printf '%s' "$NAMED" | grep -qE "${AT}curl([[:space:]][^;&|]*)?[[:space:]](-[a-zA-Z]*[oO][a-zA-Z]*|--output|--remote-name)([[:space:]=]|\$)" || \
+# (cold review rec 4) Also after `if`/`while`/`then`/`do`/`!`/`{` and leading `NAME=value` assignments.
+AT='(^|[;&|(`])[[:space:]]*((if|while|until|then|do|else|elif|!|\{)[[:space:]]+)*([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*((xargs|env|exec|command|nohup|sudo|time)([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+)?'
+if printf '%s' "$NAMED" | grep -qE "${AT}(rsync|wget|tar|unzip|patch|sponge)([[:space:]]|\$)" || \
+   printf '%s' "$NAMED" | grep -qE "${AT}git([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+(checkout|restore|clean|reset|stash|apply)([[:space:]]|\$)" || \
+   printf '%s' "$NAMED" | grep -qE "${AT}curl([[:space:]][^;&|]*)?[[:space:]](-[a-zA-Z]*[oO]|--output|--remote-name)" || \
    printf '%s' "$NAMED" | grep -qE "${AT}find[[:space:]][^;&|]*[[:space:]]-(delete|exec|execdir|ok|okdir|fprint[0f]?|fls)([[:space:]]|\$)"; then
   block ".ai/approvals holds the founder's approvals, and this command runs a file-writing tool while naming it." \
         "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there."
 fi
-if printf '%s' "$NAMED" | grep -qE "${AT}(sh|bash|zsh|dash|ksh|eval|source|xargs)([[:space:]]|\$)"; then
-  block ".ai/approvals holds the founder's approvals, and this command runs a shell while naming it — what it runs cannot be read from its text, so it is blocked." \
+# P2: awk and other programs write with their own `>` (`print 1 > f`), which no redirect reading can
+# see — like the S182 interpreters, they block while the command names the folder.
+if printf '%s' "$NAMED" | grep -qE "${AT}(sh|bash|zsh|dash|ksh|fish|eval|source|\.|xargs|awk|gawk|mawk|nawk|busybox|ed|ex|vi|vim|nvim|emacs|sqlite3|php|lua|tclsh|Rscript)([[:space:]]|\$)"; then
+  block ".ai/approvals holds the founder's approvals, and this command runs a shell or a program with its own way to write (awk, an editor) while naming it — what it writes cannot be read from its text, so it is blocked." \
         "To read the folder, use cat, ls or jq on their own."
 fi
 exit 0
