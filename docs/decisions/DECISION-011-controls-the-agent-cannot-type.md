@@ -132,3 +132,41 @@ guessing the lint from CI YAML or `Cargo.toml` (S177).
 (only the diff shows it); "matches CI" means "clean on the pinned version", not on today's stable — the pin
 ages until someone bumps it; `#[allow(clippy::…)]` still silences any lint. **Not checked live:** the
 Release workflow's `rustup toolchain install && rustup target add` runs only on a tag (CI's runs on the PR).
+
+## S186 addendum — the guard reads where a redirect writes; a project declares its own obeyed switch (2026-10-04)
+
+**Follows** this record's S183 rule (a project switch is one strict field in `.ai/CONSTRAINTS.yaml`, read by
+exact key) for F113's `obeyed_blocks_from:` (the gate change itself is recorded in DECISION-007's S186
+addendum). **Amends** the S182 addendum twice. Picked by the S185 ground truth (founder: F110 option b).
+
+1. **§2 amended — block a redirect only when it lands in the folder, or cannot be proven not to.** Every
+   `>` in the de-quoted command is a possible redirect (heredoc bodies and quoted text are read, never
+   skipped — S173); its target is read from the de-quoted copy AND the command as written at the same `>`.
+   A literal target is resolved against the hook input's `cwd` by the kernel (`cd -P` on the existing part,
+   so a symlink or a `..` after one is followed as the write would follow it). It blocks on: a target in
+   `.ai/approvals` (this project's or any `*/.ai/approvals`); a quote or backslash in the written target;
+   `$`, a backtick, `{`, `*`, `?`, `[`, `~`; `>(…)`; any `cd`/`pushd`/`popd`/`-C`/`--chdir` in the command; a
+   target that is itself a symlink or a file with a second hard link; a `..` past a missing folder; no `cwd`.
+   No next word (end, `;&|`) is not a redirect — the commit sign-off `<noreply@…>"` is the F110 case.
+   **Reversed:** "Over-block kept: `cat <folder>/x > /tmp/y` still blocks" — it now passes, and so do the
+   two other declared non-writes (`tests/approvals_guard.rs` `reads()`); every other command the S182 guard
+   blocked still blocks (`every_command_the_s182_guard_blocked_still_blocks`, the AC3 corpus).
+2. **S182 review recs 1 and 5.** A `..` segment next to the word `approvals` counts as the folder, for the
+   Write tools and in the "names it?" test. New writers (`git checkout|restore|clean|reset|stash|apply`,
+   `find … -delete|-exec…`, `rsync`, `curl -o`, `wget`, `tar`, `unzip`, `patch`) and shells (`sh`, `bash`,
+   `zsh`, `dash`, `ksh`, `eval`, `source`, `xargs`) match only where a command starts (after `;&|(`, a
+   backtick, a line start, or a wrapper such as `env`/`sudo`/`xargs`) — `hook.sh` or the word "source" in
+   prose is not one. The S182 word lists are unchanged.
+3. **Corrected — "`--sync-fleet` never lists a hook twice" was false (S182 review rec 2).** A hook wired
+   under a matcher that covers the template group's tools (`Bash|Edit|Write|MultiEdit` covers `Bash`) is
+   wired; the merge adds only the missing hooks. A matcher that is not a plain `A|B` list covers nothing,
+   so the hook is added rather than a tool left unguarded.
+
+**Rejected:** a quote-aware shell tokenizer (one apostrophe in a heredoc flips its state and hides a later
+real redirect); stripping heredoc bodies (hides text from the guard); refusing every symlink in the path
+(macOS's `/tmp` and `/var` are symlinks — `cat <folder>/x > /tmp/copy` would block); `realpath`/`readlink -f`
+(not in bash 3.2 / older macOS — the guard ships to every project).
+
+**Limit, unchanged in kind:** a path assembled at run time still gets past; the guard reads text, it is not a
+sandbox. **New over-block, disclosed:** a quote right after a `>` in a command that names the folder blocks
+(`-m "a -> b"`), and so does a heredoc line that redirects into the folder; the message names `git commit -F`.
