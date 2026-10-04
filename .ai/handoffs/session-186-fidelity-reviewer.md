@@ -1,70 +1,58 @@
 ---
 role: fidelity-reviewer
 session: 186
-agent: claude-code-subagent (verified: toolu_01R4tsxToBaYNpN2AnZfKBXx; text-sha: ce7fb1b6f1bdc4a60d1fe69a7ed0509b671a9ebf91faa20c13e9af1bca6b15bf)
-source-sha: a68bfc4e8503cbbcd83fb9fb9bfca061a13db3e4e478560b370f27d7db0617af
-captured: 2026-10-04T09:24:09Z
+agent: claude-code-subagent (verified: toolu_017EWXiuyBvUpXePcztcpbNa; text-sha: 83032ec8113c4ab676272c414be5053dabf7326f00f6da41469696a4f9d73ed7)
+source-sha: f55e36a6ddf6a6ef7bb792cd52fb04fb55df6c83c53c3b33a4fc1778b4de9dae
+captured: 2026-10-04T10:43:52Z
 cost_usd: null
 ---
 
 # Fidelity-reviewer handoff — session 186
 
-(condensed) — the builder recorded this from the subagent's report: the verdict, the per-requirement grades, the three probes and recs 1–8 are as given; the table's evidence cells and some reasoning are shortened.
+(condensed) — the builder recorded this from the subagent's report: the verdict, grades, probes P4–P7 and recs 1–6 are as given; evidence cells and reasoning are shortened.
 
-## Fidelity review: Session 186 (cold, adversarial) — pass 1
+## Fidelity review: Session 186, pass 2 (cold, adversarial)
 
 **Verdict:** REJECT
 
-Count: 12 of 15 SHIPPED, 3 PARTIAL, 0 NOT-BUILT.
-
-The work is mostly a faithful build of the contract. One part is not: the guard's headline promise. The guardrail says the guard changes "ADD-only except the listed proven non-writes", and AC3 asks for the same. DECISION-011's S186 addendum states it as fact: "every other command the S182 guard blocked still blocks". That is false: three kinds of command name `.ai/approvals` literally, really write into it, were blocked by the S182 guard, and now exit 0. None are in `reads()`.
+12 of 15 SHIPPED, 3 PARTIAL, 0 NOT-BUILT. Read only; S182 baseline = rudra's byte copy of the S182 guard.
 
 | Req | Verdict | Evidence (condensed) |
 |---|---|---|
-| D1 F113 | SHIPPED | strict reader `src/obeyed/mod.rs:84-116`; error pushed every run `:485-488`; three wordings `:566-579`; constant gone; `.ai/CONSTRAINTS.yaml:22`; mandate words fixed |
-| D2 F110 (b) | PARTIAL | backslash-newline after `>` read as "no next word" (`:104-105`); the cd check is a word match (`:151`); symlinks in the parent path are followed, not refused (disclosed deviation) |
-| D3 S182 recs 1, 5, 2 | SHIPPED | rec 1 `:51`, `:68-70`; rec 5 `:186-197`; rec 2 `src/cli/init.rs:956-998`, `matcher_covers` |
-| D4 F114 | SHIPPED | both close scripts print the line, exit 0 |
-| D5 F115 | SHIPPED | `scripts/verify-session-132.sh:324-394` |
-| D6 N1 | SHIPPED | four lines `>&2`; neither hook ships with `vajra init` |
-| AC1 | SHIPPED | verify-186 `:25-51` + verify-132 7(c) |
-| AC2 | SHIPPED | `reads()`, `s186_writes()`, verify-186 `:76-86` |
-| AC3 | PARTIAL | `every_command_the_s182_guard_blocked_still_blocks` covers a hand-picked list; the property it names is false (P1–P3) |
-| AC4 | SHIPPED | `tests:172-173` and Bash; `s186_writes` |
-| AC5 | SHIPPED | `init.rs:3095`; red at b10a1a6 "runs it twice" |
-| AC6 | SHIPPED | verify-186 `:112-119` |
-| AC7 | SHIPPED | fixture reaches the gate (13/13 is the builder's claim; not run) |
-| AC8 | SHIPPED | verify-186 `:124-140` |
-| Guardrail ADD-only | PARTIAL | broken by P1–P3 |
+| D1 F113 | SHIPPED | `src/obeyed/mod.rs:84-116`, `:485-488`, `:566-579`; `.ai/CONSTRAINTS.yaml:22`; `src/mandate/mod.rs:428` |
+| D2 F110 (b) | PARTIAL | zsh redirect operators misread (P4); cd-by-expansion check stops at `if`/`{`/`builtin` (P5); parent-path symlink followed (disclosed) |
+| D3 S182 recs 1, 5, 2 | SHIPPED | rec 1 `:51`, `:80-82`; rec 5 `:198-211`; rec 2 `src/cli/init.rs:956-1033` |
+| D4 F114 | SHIPPED | both close scripts |
+| D5 F115 | SHIPPED | `scripts/verify-session-132.sh:324-395` |
+| D6 N1 | SHIPPED | four lines to stderr; no scaffold copy |
+| AC1 | SHIPPED | verify-186 `:25-51` |
+| AC2 | SHIPPED | verify-186 `:76-88`; `reads()`, `s186_writes()` |
+| AC3 | PARTIAL | P4–P7 are S182-blocked writes that now pass, not in `reads()` |
+| AC4 | SHIPPED | `tests:188-189`; verify-186 `:89-94` |
+| AC5 | SHIPPED | `init.rs:3095`; red at b10a1a6 |
+| AC6 | SHIPPED | verify-186 `:114-123` |
+| AC7 | SHIPPED | fixture reaches the gate (read, not run) |
+| AC8 | SHIPPED | verify-186 `:126-142` |
+| Guardrail | PARTIAL | broken by P4–P6 |
 
-### Probes — name the folder, really write into it, exit 0 (all blocked by the S182 guard)
-- P1 (high): `echo x > \` newline `.ai/approvals/y` — `NAMED` drops the `\`, the scan meets a newline, `w==""`, continues; the shell joins the lines and writes.
-- P2 (high): `awk -v f=.ai/approvals/x 'BEGIN{print 1 > f }'` — `> f` read as a shell redirect to `$CWD/f`; awk writes into the folder.
-- P3 (high): `${x}cd .ai/approvals && echo x > y`, `"$x"cd …`, `$'\x63d' …` — the cd check needs a separator before `cd`. zsh-only (medium): `chdir .ai/approvals && echo x > y`; `echo x >! .ai/approvals/y` (target read as `!`).
-- Older hole, not a regression: `cd .ai/approvals` in one call, `echo x > y` in the next.
+Pass 1's P1 closed; P2 closed for the bare word only; P3 closed only at `;&|(`/backtick starts.
 
-### Probes 3–4
-- F113 reader matches the brief; a mistyped key name or a deleted CONSTRAINTS file reads as "no key" (minor).
-- Merge (rec 2): correct, safe direction.
+### New probes — name the folder, write into it, blocked by S182, exit 0 now
+- P4 (high, zsh): `echo x >&! .ai/approvals/y`, `>>!`, `>>|`, `>&|`, `>>&` and kin.
+- P5 (high): `if c${x}d .ai/approvals; then echo x > y; fi`, `{ c${x}d …; echo x > y; }`, `builtin c${x}d … && echo x > y`.
+- P6 (high): `/usr/bin/awk -v f=.ai/approvals/x 'BEGIN{print 1 > f }'`.
+- P7 (medium): `l''n -s .ai/approvals l; echo x > l/y`.
+- Design-inherent, not disclosed: a writer no list names plus a harmless redirect passes now; S182 blocked it through any `>`.
 
-### Probe 5 — `obeyed:` answers doubted (for the judge)
-- tech-lead rec 2 → ef560a6 is the DECISION addenda; the skip line landed in ac1b5da.
-- tech-lead rec 3 → 3a4fca9: corpus and guard in one commit; "every command e1c348e blocks" premise false (P1–P3).
-- design rec 7 → 3a4fca9: the build follows symlinks; a reasoned refusal recorded as `obeyed:`.
-- tech-lead rec 1 → 4c34e51: (b) shipped bundled with recs 1/5, so the clean cut was never possible. Minor.
+Fakest green: `every_listed_command_the_s182_guard_blocked_still_blocks` — each pass-1 probe added word for word; the docs claim the classes closed.
 
-### Fakest green
-`every_command_the_s182_guard_blocked_still_blocks` — a universal name over a finite builder-written list. The summary overclaims AC3 SHIPPED; its fakest-green omits P1–P3; `## Execution` step 11 claims closeout and the next prompt done; `.ai/SESSION-BOOT.md:7` reads "186 — CLOSED. NO-CODE ground truth".
-
-rec 1 — In `hook-approvals-guard.sh`, block when a `>` is followed (after spaces) by a backslash-newline in the command as written, instead of treating it as "no next word", and add P1 to `s186_writes()`.
-rec 2 — Restore the S182 floor for `>` signs the shell may not own: block on a leftover `>` when a non-shell program that writes with `>` runs, or add awk and its relatives to the interpreter list. Put P2 in the corpus.
-rec 3 — Make the cd check fail closed: block if a command word could expand (`$`, `{`, a backtick), or match `cd`/`pushd`/`popd`/`chdir` after any non-letter. Add P3 (incl. zsh `chdir` and `>!`) to the corpus.
-rec 4 — Widen the rec 5 command-start pattern: `.`, `if`/`while`/`until`/`!`, leading `NAME=value`; let `git` skip options that take a value (`-c k=v`, `-C dir`); let `curl -o` match a path stuck to the flag.
-rec 5 — Rename or re-scope the AC3 test and the DECISION-011 S186 sentence "every other command the S182 guard blocked still blocks" to what is proven ("every command in this corpus"), and list the known open classes beside the run-time-path limit.
-rec 6 — Change the `obeyed:` answers for tech-lead rec 2 (wrong sha), tech-lead rec 3 (ordering not visible; premise false) and design rec 7 (built the opposite) to the sha or `refused:` reason that matches what was built.
-rec 7 — Fix `.ai/SESSION-BOOT.md` lines 4 and 7, and either write the next prompt or mark step 11 not done until it exists.
-rec 8 — Optional, an older hole: run the redirect scan also when the hook's `cwd` resolves inside `.ai/approvals`, even if the command does not name the folder.
+rec 1 — In the awk scanner, fail closed when a `>` has no next word and the next character is `|`, `&`, `!` or `>`; read the zsh clobber/append operators; add P4 to `s186_writes()`.
+rec 2 — Apply the `${AT}` prefix (and `builtin`) to the expanding-command-word directory-change check, or fail closed on any `$`/backtick/`{` in a command that redirects; add P5.
+rec 3 — Let the command patterns accept an optional path before the command name (`/usr/bin/awk`, `/bin/sh`); add P6.
+rec 4 — Run the S182 writer and interpreter lists on the de-quoted copy (`NAMED`) as well as `STRIPPED`; closes P7.
+rec 5 — Correct DECISION-011's S186 addendum and the summary to say the classes were narrowed, not closed; name P4–P7; disclose that a writer no list names now passes when its command also carries a harmless redirect.
+rec 6 — If recs 1–3 are not built, change fidelity-reviewer recs 2 and 3 from `obeyed: 1409a3c` to `refused: in part`, and re-cite rec 6 to the commit that carries the tech-lead rec 2 re-citation.
 
 ## Handoff Delta
-- `+` new: first fidelity-reviewer handoff for this session (5550 bytes of findings)
-- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
+- `~` re-run: fidelity-reviewer handoff replaced (3304 bytes now vs 5292 bytes prior)
+- prior stage: this session's earlier fidelity-reviewer handoff

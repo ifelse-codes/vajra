@@ -1,10 +1,10 @@
 # Session Boot
 
 ## Next Session
-- **S187 — INTERACTIVE: rudra S18 with the new guard** (`prompts/187-task-rudra-s18-new-guard.md`, DRAFT — the founder's pick, 2026-10-04). Before it: merge S186's PR, `cargo install --path .`, `vajra init --sync-fleet` in rudra. He approves with `vajra approve 187`. Start in a FRESH chat.
+- **S187 — INTERACTIVE: rudra S18 with the new guard** (`prompts/187-task-rudra-s18-s186-fixes.md`, DRAFT — the founder's pick, 2026-10-04). Before it: merge S186's PR, `cargo install --path .`, `vajra init --sync-fleet` in rudra. He approves with `vajra approve 187`. Start in a FRESH chat.
 
 ## Current Session
-- **Number:** 186 — CLOSED. CODE: the S185 fixes. F113 `obeyed_blocks_from:` (only Vajra's file sets it; projects warn, saying why; a bad key blocks naming its line) · F110 (b) the approvals guard reads where a redirect really writes (fail closed on quotes, variables, `cd`, links, no `cwd`) + S182 recs 1/2/5 · F114 a fresh project's ledger speaks · F115 verify-132 green for the first time since S135 · N1 block reasons on stderr. Cold review pass 1 REJECT (3 guard holes, P1–P3) → fixed → pass 2. Summary: `sessions/session-186-summary.md`. Review: `sessions/session-186-review.md`. Verify: `scripts/verify-session-186.sh`. Demo: `scripts/demo-session-186.sh`.
+- **Number:** 186 — CLOSED. CODE: the S185 fixes. F113 `obeyed_blocks_from:` (only Vajra's file sets it; projects warn, saying why; a bad key blocks naming its line) · S182 recs 1/2/5 add-only (`..`, more writers/shells/awk, no duplicate hooks) · F114 a fresh project's ledger speaks · F115 verify-132 green for the first time since S135 · N1 block reasons on stderr. **F110 (b) split out by the founder** after two cold-review REJECTs; the S182 redirect rule is back, its block names `git commit -F`. Summary: `sessions/session-186-summary.md`. Review: `sessions/session-186-review.md`. Verify: `scripts/verify-session-186.sh`. Demo: `scripts/demo-session-186.sh`.
 
 ## Prior Session
 - **Number:** 185 — CLOSED (merged #222). NO-CODE ground truth, 🟡 PARTIAL PASS. Picked F113 → `obeyed_blocks_from:`, F110 → (b); F114, F115, N1 → S186. Report: `sessions/session-185-ground-truth.md`.
