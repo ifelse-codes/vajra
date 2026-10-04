@@ -65,11 +65,12 @@ design-significant: yes
   a per-project `.ai/` marker, for the Obeyed gate only (absent key = never blocks, the founder's 2026-10-03
   rule). Honest limit: an opted-in repo can opt out by editing the key; only the diff shows it.
 - Cites `docs/decisions/DECISION-011-controls-the-agent-cannot-type.md` — S186 addendum: FOLLOWS its S183
-  strict-key rule; AMENDS the S182 addendum §2 (block a redirect only when it lands in the folder or cannot be
-  proven not to; "`cat <folder>/x > /tmp/y` still blocks" is reversed) and corrects "never lists a hook twice".
-- F110 (b): redirects are found on the de-quoted copy (heredocs and quotes read, never skipped — S173), the
-  target is read from it and from the command as written at the same `>` (a quote there blocks), literal
-  targets resolved by the kernel against `cwd`; links, `..` past a missing folder and no `cwd` block.
+  strict-key rule; the S182 addendum §2 STANDS (F110 (b) — block a redirect only where it lands in the folder
+  — was built, failed two cold reviews and was split out by the founder; its design and probes P1–P7 are
+  recorded there for its own session); corrects "never lists a hook twice".
+- The guard only adds: every S182 check reads the command exactly as written; S186 adds lines (a
+  backslash-newline-joined copy), patterns and names-the-folder cases, and checks that always finish
+  (`printf | grep -c`, one awk pass — passes 4 and 5).
 - Picked in S185 (`sessions/session-185-ground-truth.md`); this session's design-advisor checked the picks
   against the code (`.ai/handoffs/session-186-design-advisor.md`), not re-opened them.
 
