@@ -80,7 +80,9 @@ for c in "$HEREDOC" "$COMMIT" "$QUOTE"; do
 done
 for c in "echo x > $D/y" "echo x >> .AI//Approvals/../approvals/y" "cd .ai && echo x > approvals/y" \
          "D=$D; echo x > \$D/y" "env -C $D sh -c 'echo > x'" "sh -c \"echo >\"' $D/x'" \
-         "echo x > .ai/hooks/../approvals/x" "find $D -delete" "git checkout -- $D" "sh x.sh $D"; do
+         "echo x > .ai/hooks/../approvals/x" "find $D -delete" "git checkout -- $D" "sh x.sh $D" \
+         "echo x > \\
+$D/y" "awk -v f=$D/x 'BEGIN{print 1 > f }'" "\${x}cd $D && echo x > y"; do
   n=$(guard scripts/hook-approvals-guard.sh "$c")
   [ "$n" = 2 ] && ok "F110/AC4 still blocks: $c" || bad "F110/AC4 not blocked (exit $n): $c"
 done
@@ -92,8 +94,8 @@ jq -n --arg d "$GP" '{tool_name:"Write", cwd:$d, tool_input:{file_path:($d + "/.
   || bad "rec 1 Write tool: new=$n old=$o"
 
 # --- AC3: the corpus — every command the S182 guard blocked still blocks, except listed non-writes ------
-if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 9 passed' "$T/guard-tests.out"; then
-  ok "AC3 tests/approvals_guard.rs: 9 pass, incl. every_command_the_s182_guard_blocked_still_blocks"
+if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 10 passed' "$T/guard-tests.out"; then
+  ok "AC3 tests/approvals_guard.rs: 10 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (a listed corpus)"
 else bad "AC3 guard tests"; tail -5 "$T/guard-tests.out"; fi
 
 # --- S182 rec 2 (AC5): the new merge test is red on the old merge, green now ---------------------------
