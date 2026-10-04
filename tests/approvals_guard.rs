@@ -511,3 +511,65 @@ fn a_backslash_dense_command_blocks_fast() {
     assert_eq!(code, 2);
     assert!(t.elapsed().as_secs() < 5, "took {:?}", t.elapsed());
 }
+
+/// S187 (F110 class, founder pick C) — the 2026-10-04 live false block: a branch made and the folder
+/// listed in ONE command. It still blocks (what blocks does not change); the reason now says how to
+/// get past it — the read as its own command.
+fn s187_split() -> Vec<String> {
+    vec![
+        format!("git checkout -b X main && cd ~/playground/rudra && ls {DIR}/"),
+        format!("ls {DIR}; rm notes.txt"),
+        format!("cat {DIR}/session-187.json && python3 tool.py"),
+        format!("ls {DIR} && awk 1 notes.txt"),
+    ]
+}
+
+#[test]
+fn a_joined_read_still_blocks_and_says_split_it() {
+    for cmd in s187_split() {
+        let (code, err) = bash(&cmd);
+        assert_eq!(code, 2, "{cmd}");
+        assert!(
+            err.contains("as its own command") && err.contains("git commit -F"),
+            "the block must say how to get past it: {err}"
+        );
+    }
+}
+
+/// S187 AC1 (tech-lead rec 3): fix C changes only the reason. Every command in the corpus gets the
+/// SAME exit code from the guard S187 started from (0071dca) and from this one — a command that
+/// blocks or passes differently is a regression, not the fix.
+#[test]
+fn s187_blocks_exactly_what_0071dca_blocked() {
+    let m = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let old = Command::new("git")
+        .args(["show", "0071dca:scripts/hook-approvals-guard.sh"])
+        .current_dir(m)
+        .output()
+        .unwrap();
+    assert!(
+        old.status.success(),
+        "cannot read the 0071dca guard from git"
+    );
+    let dir = tempfile::tempdir().unwrap();
+    let old_guard = dir.path().join("old-approvals-guard.sh");
+    std::fs::write(&old_guard, &old.stdout).unwrap();
+    let mut blocked = 0;
+    for cmd in reads()
+        .iter()
+        .chain(writes().iter())
+        .chain(s186_writes().iter())
+        .chain(f110_open().iter())
+        .chain(s187_split().iter())
+    {
+        let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}});
+        let (o, _) = run(old_guard.to_str().unwrap(), p);
+        let (n, _) = bash(cmd);
+        assert_eq!(o, n, "`{cmd}`: 0071dca exited {o}, S187 exits {n}");
+        blocked += usize::from(o == 2);
+    }
+    assert!(
+        blocked >= 40,
+        "the old guard must actually run ({blocked} blocked)"
+    );
+}
