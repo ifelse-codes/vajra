@@ -58,8 +58,14 @@ fi
 # writes). The joined copy is APPENDED as extra lines, never put in place of the command: every check
 # below is a line-by-line grep, so it reads the command exactly as S182 did PLUS the joined lines — it
 # can only match more (pass 3, R1: replacing it hid `rm` behind `#x\<newline>`, which the shell runs).
-_BSNL=$'\\\n'; _JOINED="${CMD//"$_BSNL"/}"
-[ "$_JOINED" != "$CMD" ] && CMD="$CMD"$'\n'"$_JOINED"
+# awk, not `${CMD//\\$'\n'/}`: that bash substitution is quadratic in backslashes on macOS's bash 3.2
+# (S186 pass 5: 10,000 backslashes took over 120 s — past a hook timeout, which does not block). awk
+# reads everything (no early exit, so no SIGPIPE) and is linear.
+_BSNL=$'\\\n'
+case "$CMD" in
+  *"$_BSNL"*) _JOINED=$(printf '%s\n' "$CMD" | awk '{ if (sub(/\\$/, "")) printf "%s", $0; else print }')
+               CMD="$CMD"$'\n'"$_JOINED" ;;
+esac
 
 lc() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 # The folder, physically, and the agent's working folder (Claude Code sends `cwd`).
@@ -77,13 +83,13 @@ CWD_P=""; [ -n "$CWD" ] && CWD_P=$(cd -P "$CWD" 2>/dev/null && pwd -P) || true
 # `.AI/Approvals` reach the same folder).
 NAMED=$(printf '%s' "$CMD" | tr -d "\"'\\\\")
 NAMES=0
-if grep -qiE '\.ai/+(\./)*approvals' <<<"$NAMED"; then
+if printf '%s' "$NAMED" | grep -ciE '\.ai/+(\./)*approvals' >/dev/null; then
   NAMES=1
-elif grep -qiE 'approvals' <<<"$NAMED" && \
-     grep -qiE '(^|[;&|({`[:space:]])(cd|pushd)[[:space:]]+[^;&|]*(\.ai|approvals)' <<<"$NAMED"; then
+elif printf '%s' "$NAMED" | grep -ciE 'approvals' >/dev/null && \
+     printf '%s' "$NAMED" | grep -ciE '(^|[;&|({`[:space:]])(cd|pushd)[[:space:]]+[^;&|]*(\.ai|approvals)' >/dev/null; then
   NAMES=1
-elif grep -qiE 'approvals' <<<"$NAMED" && \
-     grep -qE '(^|[/[:space:]=])\.\.(/|[[:space:]]|$)' <<<"$NAMED"; then
+elif printf '%s' "$NAMED" | grep -ciE 'approvals' >/dev/null && \
+     printf '%s' "$NAMED" | grep -cE '(^|[/[:space:]=])\.\.(/|[[:space:]]|$)' >/dev/null; then
   NAMES=1
 fi
 # S186 cold review rec 8: a working folder inside .ai/approvals (a `cd` in an earlier call) — any
@@ -91,9 +97,10 @@ fi
 case "$(lc "$CWD_P")" in "$AP_LC"|"$AP_LC"/*|*/.ai/approvals|*/.ai/approvals/*) NAMES=1 ;; esac
 [ "$NAMES" = 1 ] || exit 0
 
-# Every check below is `grep … <<<"$X"`, never `printf | grep -q` (S186 pass 4): under pipefail, grep -q
-# quitting on its first match killed printf with SIGPIPE on a large command, and the failed pipe read
-# as "no match" — the S182 guard let a ~60 KB command through that way. A here-string has no pipe.
+# Every check below is `printf | grep -c … >/dev/null`, never `grep -q` (S186 pass 4): under pipefail,
+# grep -q quitting on its first match killed printf with SIGPIPE on a large command, and the failed pipe
+# read as "no match" — the S182 guard let a ~60 KB command through that way. grep -c reads all of its
+# input, so printf always finishes; and unlike a here-string it needs no temp file (pass 5: a full disk).
 # Remove only what provably writes nothing: fd duplication/closing and redirects to /dev/null. Each
 # is anchored on its right (S182 review rec 1): `>&1/../x` is a WRITE to the file `1/../x`, not a dup.
 # The S182 word checks below read this copy, unchanged.
@@ -107,7 +114,7 @@ STRIPPED=$(printf '%s' "$CMD" | sed -E \
 # it let through that this rule blocks (a backslash-newline, awk's own `>`, a disguised `cd`, zsh's
 # `>>!`/`>&|`, a full-path awk). The founder split (b) into its own session (2026-10-04); until then a
 # command that names the folder AND redirects anywhere blocks, and the message says how to get past.
-if grep -qE '>' <<<"$STRIPPED"; then
+if printf '%s' "$STRIPPED" | grep -cE '>' >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command redirects output while naming it." \
         "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there. Reading is fine: run the read on its own (cat/ls/jq), without a redirect in the same command. Writing ABOUT the folder (a commit message, notes)? Put the text in a file with the Write tool, then \`git commit -F <file>\`."
 fi
@@ -116,11 +123,11 @@ S182_WRITERS='(\btee\b|\bcp\b|\bmv\b|\brm\b|\btouch\b|sed[[:space:]]+(-[a-zA-Z]*
 S182_INTERP='(\bpython[0-9.]*\b|\bperl\b|\bnode\b|\bruby\b|\bosascript\b)'
 # The S182 lists, unchanged, read the command as written AND (S186, pass-2 rec 4) the de-quoted copy,
 # so a quote-spelled writer (`l''n`, `r"m"`) is caught too. Only adds.
-if grep -qE "$S182_WRITERS" <<<"$STRIPPED" || grep -qE "$S182_WRITERS" <<<"$NAMED"; then
+if printf '%s' "$STRIPPED" | grep -cE "$S182_WRITERS" >/dev/null || printf '%s' "$NAMED" | grep -cE "$S182_WRITERS" >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command runs a file-writing tool while naming it." \
         "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there."
 fi
-if grep -qE "$S182_INTERP" <<<"$STRIPPED" || grep -qE "$S182_INTERP" <<<"$NAMED"; then
+if printf '%s' "$STRIPPED" | grep -cE "$S182_INTERP" >/dev/null || printf '%s' "$NAMED" | grep -cE "$S182_INTERP" >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command runs an interpreter while naming it — what a script writes cannot be read from its text, so it is blocked." \
         "To read the folder, use cat, ls or jq on their own. If the script only mentions the folder's name (for example, editing a document about it), use the Edit tool instead."
 fi
@@ -130,16 +137,16 @@ fi
 # a file name like `hook.sh` or the word "source" in prose is not one (design rec 9). De-quoted copy.
 # (cold review rec 4) Also after `if`/`while`/`then`/`do`/`!`/`{` and leading `NAME=value` assignments.
 AT='(^|[;&|(`])[[:space:]]*((if|while|until|then|do|else|elif|!|\{)[[:space:]]+)*([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*((xargs|env|exec|command|builtin|nohup|sudo|time)([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+)?([^[:space:];&|]*/)?'
-if grep -qE "${AT}(rsync|wget|tar|unzip|patch|sponge)([[:space:]]|\$)" <<<"$NAMED" || \
-   grep -qE "${AT}git([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+(checkout|restore|clean|reset|stash|apply)([[:space:]]|\$)" <<<"$NAMED" || \
-   grep -qE "${AT}curl([[:space:]][^;&|]*)?[[:space:]](-[a-zA-Z]*[oO]|--output|--remote-name)" <<<"$NAMED" || \
-   grep -qE "${AT}find[[:space:]][^;&|]*[[:space:]]-(delete|exec|execdir|ok|okdir|fprint[0f]?|fls)([[:space:]]|\$)" <<<"$NAMED"; then
+if printf '%s' "$NAMED" | grep -cE "${AT}(rsync|wget|tar|unzip|patch|sponge)([[:space:]]|\$)" >/dev/null || \
+   printf '%s' "$NAMED" | grep -cE "${AT}git([[:space:]]+[^;&|[:space:]]+)*[[:space:]]+(checkout|restore|clean|reset|stash|apply)([[:space:]]|\$)" >/dev/null || \
+   printf '%s' "$NAMED" | grep -cE "${AT}curl([[:space:]][^;&|]*)?[[:space:]](-[a-zA-Z]*[oO]|--output|--remote-name)" >/dev/null || \
+   printf '%s' "$NAMED" | grep -cE "${AT}find[[:space:]][^;&|]*[[:space:]]-(delete|exec|execdir|ok|okdir|fprint[0f]?|fls)([[:space:]]|\$)" >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command runs a file-writing tool while naming it." \
         "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there."
 fi
 # awk and other programs write by their own syntax (`print 1 > f`, an editor's `:w`) — like the S182
 # interpreters, they block while the command names the folder, with or without a path in front.
-if grep -qE "${AT}(sh|bash|zsh|dash|ksh|fish|eval|source|\.|xargs|awk|gawk|mawk|nawk|busybox|ed|ex|vi|vim|nvim|emacs|sqlite3|php|lua|tclsh|Rscript)([[:space:]]|\$)" <<<"$NAMED"; then
+if printf '%s' "$NAMED" | grep -cE "${AT}(sh|bash|zsh|dash|ksh|fish|eval|source|\.|xargs|awk|gawk|mawk|nawk|busybox|ed|ex|vi|vim|nvim|emacs|sqlite3|php|lua|tclsh|Rscript)([[:space:]]|\$)" >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command runs a shell or a program with its own way to write (awk, an editor) while naming it — what it writes cannot be read from its text, so it is blocked." \
         "To read the folder, use cat, ls or jq on their own."
 fi

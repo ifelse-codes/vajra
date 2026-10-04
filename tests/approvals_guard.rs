@@ -442,3 +442,15 @@ fn an_unenterable_folder_does_not_open_the_guard() {
     std::fs::set_permissions(&ap, std::fs::Permissions::from_mode(0o755)).unwrap();
     assert_eq!(code, 2);
 }
+
+/// S186 cold review pass 5: a backslash-dense command must be decided fast. The first join was
+/// quadratic on bash 3.2 (10,000 backslashes took over 120 s — a hook past its timeout does not block).
+#[test]
+fn a_backslash_dense_command_blocks_fast() {
+    let dense = "\\a".repeat(30_000);
+    let cmd = format!(": '{dense}' \\\n; echo x > {DIR}/y");
+    let t = std::time::Instant::now();
+    let (code, _) = bash(&cmd);
+    assert_eq!(code, 2);
+    assert!(t.elapsed().as_secs() < 5, "took {:?}", t.elapsed());
+}
