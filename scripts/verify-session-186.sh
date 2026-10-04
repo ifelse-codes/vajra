@@ -98,8 +98,8 @@ jq -n --arg d "$GP" '{tool_name:"Write", cwd:$d, tool_input:{file_path:($d + "/.
   || bad "rec 1 Write tool: new=$n old=$o"
 
 # --- AC3: the corpus — every command the S182 guard blocked still blocks, except listed non-writes ------
-if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 11 passed' "$T/guard-tests.out"; then
-  ok "AC3 tests/approvals_guard.rs: 11 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (only adds; F110 cases still block)"
+if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 12 passed' "$T/guard-tests.out"; then
+  ok "AC3 tests/approvals_guard.rs: 12 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (only adds; F110 cases still block)"
 else bad "AC3 guard tests"; tail -5 "$T/guard-tests.out"; fi
 
 # --- S182 rec 2 (AC5): the new merge test is red on the old merge, green now ---------------------------
