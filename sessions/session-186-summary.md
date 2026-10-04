@@ -9,13 +9,13 @@ Yes, after one REJECT. All six deliverables the S185 ground truth picked are bui
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
 | D1 | F113 `obeyed_blocks_from:` — strict key, Vajra only, absent → WARN forever saying why, malformed → BLOCK naming the line; design-advisor words drop the number | SHIPPED | 62bfe63, 2f4c59d, 9ef5c65, 596db24; unit tests in `src/obeyed/mod.rs`; verify-186 rows 1–4 |
-| D2 | F110 (b) — the guard reads where a redirect really writes; fail closed on the listed cases; (a)'s message | SHIPPED | 3a4fca9; verify-186 F110 rows; `tests/approvals_guard.rs` |
+| D2 | F110 (b) — the guard reads where a redirect really writes; fail closed on the listed cases; (a)'s message | SHIPPED | 3a4fca9, then 1409a3c (pass-1 fixes P1–P3); verify-186 F110 rows; `tests/approvals_guard.rs` |
 | D3 | S182 recs 1 (`..`), 5 (writers, shells), 2 (merge) — add-only | SHIPPED | 3a4fca9 (1, 5), 9dcec17 (2) |
 | D4 | F114 — fresh project `--ledger` says "no reviewed sessions yet", exit 0 (both scripts) | SHIPPED | 0dd33f1; also `--ledger-verify` (exit 128 before) |
 | D5 | F115 — verify-132's `--advance` fixture records a real tech-lead; both sides of F113 | SHIPPED | 4c34e51 |
 | D6 | N1 — `[HOOK BLOCK]` lines on stderr | SHIPPED | c6bbeb9; the two hooks are Vajra-only (not in `vajra init`'s list), so there is no scaffold copy |
 | AC1 | fresh project at 132: WARN "does not block" and advances; key 132 refuses; `x` refuses naming the line; Vajra still blocks from 132 | SHIPPED | verify-186 rows 1–4 (the b10a1a6 binary BLOCKS the no-key case); verify-132 check 7(c) advances |
-| AC2 | heredoc / commit `<…>` / `> quote` pass; the six listed writes block | SHIPPED | verify-186: 3 pass now (all 3 blocked at b10a1a6), 10 still block |
+| AC2 | heredoc / commit `<…>` / `> quote` pass; the six listed writes block | SHIPPED | verify-186: 3 pass now (all 3 blocked at b10a1a6), 13 still block (incl. P1–P3) |
 | AC3 | every command the S182 guard blocked still blocks, except a listed set | SHIPPED (for a listed corpus) | `every_listed_command_the_s182_guard_blocked_still_blocks` (git show e1c348e guard) — a corpus, not a proof for every command; pass 1 found three classes it lacked (now in it). The listed non-writes are `reads()`: `cat <folder>/x > /tmp/copy`, `cat .ai//approvals/x > y`, the three AC2 texts, a commit message naming `hook-approvals-guard.sh` |
 | AC4 | `.ai/hooks/../approvals/x` blocked for Write and Bash; `find -delete`, `git checkout --`, `sh x.sh` blocked | SHIPPED | verify-186 (the Write case passed at b10a1a6) |
 | AC5 | `--sync-fleet` adds no duplicate when a hook is wired under another matcher; test red before | SHIPPED | 9dcec17; verify-186 lifts the test into a b10a1a6 worktree: fails "runs it twice" |
