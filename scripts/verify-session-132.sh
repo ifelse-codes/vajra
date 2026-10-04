@@ -425,8 +425,10 @@ fixture_fails_for_the_right_reason() {
   # Measured this session, not assumed: the SAME `cargo test` takes ~12s in a worktree under the
   # repo's gitignored `target/` and more than TEN MINUTES in one under $TMPDIR. Probe worktrees
   # live inside the repo for that reason alone.
-  local WT="$ROOT/target/s132-fixture-wt"; local rc=0
-  rm -rf "$WT"; git worktree prune
+  # S186: a unique folder per run — the close gate can run this script twice at once (verify-186 calls
+  # it), and a shared fixed path let one run delete the other's worktree mid-probe.
+  local WT; WT="$(mktemp -d "$ROOT/target/s132-fixture-wt.XXXXXX")" && rmdir "$WT"; local rc=0
+  git worktree prune
   git worktree add --detach -q "$WT" HEAD 2>/dev/null || { echo "FAIL: no clean-room worktree"; return 1; }
   local D="$WT/src/obeyed/mod.rs"
   # One PERSISTENT target dir (inside the gitignored `target/`) shared by the six probe compiles
