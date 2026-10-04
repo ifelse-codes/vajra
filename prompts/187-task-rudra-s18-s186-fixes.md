@@ -1,4 +1,4 @@
-# Session 187 — rudra session 18 with the new guard
+# Session 187 — rudra session 18 with the S186 fixes
 
 > **Status:** DRAFT — written by the S186 agent from the founder's pick (2026-10-04: "rudra S18 (Recommended)").
 > He approves it with `vajra approve 187` in his own terminal; the gate reads the approval record, not this line.
@@ -9,7 +9,7 @@ session_type: INTERACTIVE
 - The founder runs rudra S18 himself under `vajra claude` and brings what happened; this session lists the findings with him and fixes what he says yes to.
 
 ## Goal
-S186's changes get their first real use in rudra S18: the approvals guard that reads where a redirect really writes (F110 b), unchecked `obeyed:` claims that warn instead of blocking at rudra's own session numbers (F113), hook block reasons on stderr (N1), and the `--sync-fleet` merge that adds no hook twice. Every finding gets evidence and the founder's call; every fix he says yes to gets a check that fails without it.
+S186's changes get their first real use in rudra S18: unchecked `obeyed:` claims that warn instead of blocking at rudra's own session numbers (F113), an approvals guard that blocks more ways to write (`..`, find -delete, git checkout, awk…) and whose redirect block names `git commit -F` (F110 (b) itself was split out), hook block reasons on stderr (N1), and the `--sync-fleet` merge that adds no hook twice. Every finding gets evidence and the founder's call; every fix he says yes to gets a check that fails without it.
 
 ## Before rudra S18 starts (founder, in order)
 1. Merge S186's PR. Then `cargo install --path .` in `~/playground/vajra` (the installed Vajra is pre-S186).
@@ -18,7 +18,7 @@ S186's changes get their first real use in rudra S18: the approvals guard that r
 
 ## What to watch in rudra S18
 Read every close log for `WAIVED`, `N/A` and `WARN` FIRST, never just PASS (S178).
-- **The guard:** every `[HOOK BLOCK]` naming `.ai/approvals` — was it a real write, or an over-block (a quote after `>`, an arrow `->` in a commit message, a heredoc line)? Did the agent see the reason and use `git commit -F`?
+- **The guard:** every `[HOOK BLOCK]` naming `.ai/approvals` — a real write, or the known F110 over-block (a command naming the folder with any `>`)? Did the agent see the reason and use `git commit -F`? Count them: that number is the evidence for when the (b) session is worth it.
 - **Obeyed claims:** the `obeyed-judgments` row should WARN and say "no `obeyed_blocks_from:`" — never block.
 - **Ground-truth blocks** (if any): the reason reaches the agent, not "No stderr output".
 - **Time + cost** (the receipt is still F67-overstated ~5×).
@@ -39,7 +39,7 @@ design-significant: no
 - Interactive test session; any fix the founder approves is designed in-session and recorded here.
 
 ## Carried in
-- **From S186's cold review:** the guard reads text — a path built at run time and any writer no list names still get past; over-blocks (a quote after `>`) are expected. If rudra hits either, it is a finding.
+- **From S186:** F110 (b) split out by the founder after two REJECTs → backlog (S190 checklist); its design and P1–P7 are in DECISION-011's S186 addendum. The guard reads text — a path built at run time and a writer no list names still get past.
 - **verify-session-133 is red at main** (3–4 checks, stale since S181) → backlog, on the S190 ground-truth checklist with S185 N3.
 - **S185 N2, N4–N7** → backlog, on the S190 checklist. **Parked by the founder:** F67, non-Claude tools (F91, F94, F95), release.
 
