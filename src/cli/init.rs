@@ -1,8 +1,10 @@
 use anyhow::{bail, Context, Result};
 use serde_json::{json, Value};
-use std::io::{self, BufRead, Write as _};
+use std::io::{self, BufRead, IsTerminal as _, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
+use std::time::Duration;
 use std::{fmt, fs};
 
 /// The one file `init` merges into rather than skips when it already exists (S44).
@@ -88,14 +90,20 @@ pub fn run(args: &[String]) -> Result<()> {
     eprintln!("vajra init — scaffolding .ai/ workflow");
     eprintln!();
 
-    let project_name = prompt("Project name: ")?.unwrap_or_else(|| "my-project".into());
-    let goal = prompt("First session goal: ")?.unwrap_or_else(|| "first session".into());
+    let mut answers = Answers::from_stdin();
+    let project_name = answers
+        .ask("Project name: ", "my-project")?
+        .unwrap_or_else(|| "my-project".into());
+    let goal = answers
+        .ask("First session goal: ", "first session")?
+        .unwrap_or_else(|| "first session".into());
     eprintln!();
     eprintln!("Maturity levels:");
     eprintln!("  L1 (Report) — hooks log violations but never block");
     eprintln!("  L2 (Gated)  — hooks can reject, human approval required [default]");
     eprintln!("  L3 (Auto)   — auto-advance, strict enforcement");
-    let maturity = prompt("Maturity level [L1/L2/L3]: ")?
+    let maturity = answers
+        .ask("Maturity level [L1/L2/L3]: ", "L2")?
         .and_then(|v| match v.trim() {
             "L1" | "l1" => Some("L1"),
             "L3" | "l3" => Some("L3"),
@@ -1214,22 +1222,90 @@ impl fmt::Debug for FileEntry {
     }
 }
 
-fn prompt(label: &str) -> Result<Option<String>> {
-    eprint!("{label}");
-    io::stderr().flush()?;
-    let mut line = String::new();
-    let bytes = io::stdin()
-        .lock()
-        .read_line(&mut line)
-        .context("failed to read input")?;
-    if bytes == 0 {
-        return Ok(None);
+/// S184 (F103): how long `vajra init` waits for each answer when stdin is NOT a terminal. Piped
+/// answers (`printf 'acme-app\n…' | vajra init`) arrive at once; an open pipe that never speaks
+/// (`sleep 60 | vajra init`, a CI step with stdin left open) used to hang forever.
+const PIPED_ANSWER_WAIT: Duration = Duration::from_secs(10);
+
+/// Where `vajra init` reads its answers from. A terminal is read exactly as before: a plain
+/// blocking line, no timer. Anything else is read by ONE thread shared by every question (a
+/// thread stuck in `read_line` cannot be cancelled, so a thread per question would steal the next
+/// answer); each answer waits at most `wait`. The first silence or end of input gives that
+/// question its default and every later one, each printed to stderr.
+struct Answers {
+    piped: Option<Receiver<io::Result<String>>>,
+    wait: Duration,
+    gave_up: Option<&'static str>,
+}
+
+impl Answers {
+    fn from_stdin() -> Self {
+        if io::stdin().is_terminal() {
+            return Self {
+                piped: None,
+                wait: PIPED_ANSWER_WAIT,
+                gave_up: None,
+            };
+        }
+        let (tx, rx) = mpsc::channel();
+        std::thread::spawn(move || {
+            let mut stdin = io::stdin().lock();
+            loop {
+                let mut line = String::new();
+                match stdin.read_line(&mut line) {
+                    Ok(0) => break,
+                    Ok(_) => {
+                        if tx.send(Ok(line)).is_err() {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        let _ = tx.send(Err(e));
+                        break;
+                    }
+                }
+            }
+        });
+        Self::piped(rx, PIPED_ANSWER_WAIT)
     }
-    let trimmed = line.trim().to_string();
-    if trimmed.is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some(trimmed))
+
+    fn piped(rx: Receiver<io::Result<String>>, wait: Duration) -> Self {
+        Self {
+            piped: Some(rx),
+            wait,
+            gave_up: None,
+        }
+    }
+
+    fn ask(&mut self, label: &str, default: &str) -> Result<Option<String>> {
+        eprint!("{label}");
+        io::stderr().flush()?;
+        let line = match &self.piped {
+            None => {
+                let mut line = String::new();
+                let bytes = io::stdin()
+                    .lock()
+                    .read_line(&mut line)
+                    .context("failed to read input")?;
+                (bytes > 0).then_some(line)
+            }
+            Some(_) if self.gave_up.is_some() => None,
+            Some(rx) => match rx.recv_timeout(self.wait) {
+                Ok(read) => Some(read.context("failed to read input")?),
+                Err(RecvTimeoutError::Timeout) => {
+                    self.gave_up = Some("no answer arrived on the piped input");
+                    None
+                }
+                Err(RecvTimeoutError::Disconnected) => {
+                    self.gave_up = Some("the piped input ended");
+                    None
+                }
+            },
+        };
+        if let (None, Some(why)) = (&line, self.gave_up) {
+            eprintln!("{default}  (default — {why})");
+        }
+        Ok(line.map(|l| l.trim().to_string()).filter(|t| !t.is_empty()))
     }
 }
 
@@ -2022,6 +2098,44 @@ first-pass understanding.
 
 #[cfg(test)]
 mod tests {
+    // S184 (F103): a piped stdin that never speaks gets the default after one bounded wait, and
+    // every later question gets its default without waiting again.
+    #[test]
+    fn piped_silence_waits_once_then_defaults_every_later_answer() {
+        let (tx, rx) = mpsc::channel::<io::Result<String>>();
+        let mut answers = Answers::piped(rx, Duration::from_millis(50));
+        let start = std::time::Instant::now();
+        assert_eq!(answers.ask("a: ", "x").unwrap(), None);
+        assert!(start.elapsed() >= Duration::from_millis(50));
+        tx.send(Ok("late\n".into())).unwrap();
+        assert_eq!(
+            answers.ask("b: ", "y").unwrap(),
+            None,
+            "a late answer is not taken"
+        );
+        drop(tx);
+    }
+
+    #[test]
+    fn piped_answers_land_in_order_then_end_of_input_defaults() {
+        let (tx, rx) = mpsc::channel::<io::Result<String>>();
+        tx.send(Ok("acme-app\n".into())).unwrap();
+        tx.send(Ok("\n".into())).unwrap();
+        drop(tx);
+        let mut answers = Answers::piped(rx, Duration::from_secs(5));
+        assert_eq!(
+            answers.ask("a: ", "x").unwrap().as_deref(),
+            Some("acme-app")
+        );
+        assert_eq!(
+            answers.ask("b: ", "y").unwrap(),
+            None,
+            "a blank line means the default"
+        );
+        assert_eq!(answers.ask("c: ", "z").unwrap(), None);
+        assert_eq!(answers.gave_up, Some("the piped input ended"));
+    }
+
     use super::*;
 
     /// Test helper (S143): write a canonical scaffolded constitution — the filled header + the
