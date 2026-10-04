@@ -66,18 +66,29 @@ fn reads() -> Vec<String> {
         format!("jq . {DIR}/x >/dev/null 2>&1 && echo ok"),
         format!("git add {DIR}/session-182.json"),
         "echo hello > notes.txt".to_string(), // a write that does not name the folder
-        // S186 (F110 b): the guard reads where a redirect really writes. These four name the folder
-        // and redirect, but provably write somewhere else — the declared non-writes the S182 guard
-        // blocked (`every_command_the_s182_guard_blocked_still_blocks`).
-        format!("cat {DIR}/x > /tmp/copy"),
+        // S186 design rec 9: a file name ending `.sh` and the word "source" are not commands.
+        format!("git commit -m \"S186: {DIR} - one source, hook-approvals-guard.sh\""),
+    ]
+}
+
+/// F110 — still OPEN: the founder split (b) out of S186 (2026-10-04) after two cold reviews found
+/// writes its target reading let through. These name the folder and redirect elsewhere; they still
+/// block, and the block names the way past (`git commit -F`).
+fn f110_open() -> Vec<String> {
+    vec![
         format!("cat > notes.md <<'EOF'\nThe folder {DIR} holds the founder's approvals.\nEOF"),
         format!("git commit -m \"S186: fix the {DIR} guard\n\nCo-Authored-By: Claude <noreply@anthropic.com>\""),
         format!("cat <<'EOF' > notes.md\n> a quote that names {DIR}\nEOF"),
-        // S182 review rec 4's spelling, as a READ: the folder is read, the redirect writes `y`.
-        "cat .ai//approvals/x > y".to_string(),
-        // design rec 9: a file name ending `.sh` and the word "source" are not commands.
-        format!("git commit -m \"S186: {DIR} — one source, hook-approvals-guard.sh <noreply@x.com>\""),
     ]
+}
+
+#[test]
+fn f110_still_blocks_and_names_the_way_past() {
+    for cmd in f110_open() {
+        let (code, err) = bash(&cmd);
+        assert_eq!(code, 2, "{cmd}");
+        assert!(err.contains("git commit -F"), "the block must name the way past: {err}");
+    }
 }
 
 /// S186 (F110 b, S182 recs 1 and 5): writes the S182 guard missed or that the new target reading
@@ -117,6 +128,16 @@ fn s186_writes() -> Vec<String> {
         format!("git -c a=b checkout -- {DIR}"),
         format!("curl -o{DIR}/x https://x"),
         format!("if true; then sh x.sh {DIR}; fi"),
+        // S186 cold review pass 2 — P4 (zsh), P5, P6, P7: blocked by the S182 rule, kept.
+        format!("echo x >&! {DIR}/y"),
+        format!("echo x >>! {DIR}/y"),
+        format!("echo x >>| {DIR}/y"),
+        format!("if c${{x}}d {DIR}; then echo x > y; fi"),
+        format!("builtin c${{x}}d {DIR} && echo x > y"),
+        format!("/usr/bin/awk -v f={DIR}/x 'BEGIN{{print 1 > f }}'"),
+        format!("/usr/bin/awk -v f={DIR}/x 'BEGIN{{print 1}}'"),
+        format!("l''n -s {DIR} l; echo x > l/y"),
+        format!("l''n -s {DIR} l"),
     ]
 }
 
@@ -381,8 +402,6 @@ fn a_linked_target_or_a_missing_cwd_is_not_provable() {
     }
     let p = serde_json::json!({"tool_name": "Bash", "cwd": "", "tool_input": {"command": format!("cat {DIR}/x > y")}});
     assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 2, "no cwd");
-    let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": format!("cat {DIR}/x > fresh.md")}});
-    assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 0, "a plain new file");
 }
 
 /// S186 cold review rec 8: with the agent's working folder inside `.ai/approvals` (a `cd` in an
