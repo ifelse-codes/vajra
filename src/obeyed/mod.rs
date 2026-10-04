@@ -521,8 +521,8 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
         warnings.push(format!(
             "the {} `obeyed:` claim(s) above for session {session:02} were not checked by an \
              independent role, so nobody has confirmed the cited commits do what the advice asked. \
-             This close gate names them but does not block on them. To check one, an independent \
-             role records `obeyed-check session {session:02} <role> rec <N> — implemented: <sha> — \
+             This close gate names them but does not block on them in this session. To check one, \
+             an independent role records `obeyed-check session {session:02} <role> rec <N> — implemented: <sha> — \
              <what the commit does>` in its own governed handoff",
             warnings.len()
         ));
