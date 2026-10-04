@@ -506,7 +506,7 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
                     ));
                 } else {
                     warnings.push(format!(
-                        "{} — `obeyed: {}` carries no independent judgment (pre-threshold: WARN)",
+                        "{} — `obeyed: {}` was not checked by an independent role (warning, not blocking)",
                         item.label, item.sha
                     ));
                 }
@@ -515,16 +515,15 @@ pub fn obeyed_gate(root: &Path, session: u32) -> ObeyedVerdict {
     }
 
     // The exemption, stated ONCE and out loud rather than buried in a constant — the S68/S71
-    // self-granted-jurisdiction class, disclosed in the output that relies on it.
+    // self-granted-jurisdiction class, disclosed in the output that relies on it. S184 (F107): in
+    // words any project reads — the threshold is Vajra's own session numbering, so it is not printed.
     if !warnings.is_empty() {
         warnings.push(format!(
-            "session {session:02} predates this gate (threshold: session \
-             {OBEYED_JUDGMENT_FROM_SESSION}), so the {} unjudged disposition(s) above WARN instead \
-             of blocking. Named, not silently exempt: they were recorded under a contract that had \
-             no judgment marker in it, and re-grading every past session is not what this gate was \
-             built to do. The exemption is not permanent — any later session may grade one by \
-             recording `obeyed-check session {session:02} <role> rec <N> — …` in its own governed \
-             handoff",
+            "the {} `obeyed:` claim(s) above for session {session:02} were not checked by an \
+             independent role, so nobody has confirmed the cited commits do what the advice asked. \
+             This close gate names them but does not block on them in this session. To check one, \
+             an independent role records `obeyed-check session {session:02} <role> rec <N> — implemented: <sha> — \
+             <what the commit does>` in its own governed handoff",
             warnings.len()
         ));
     }

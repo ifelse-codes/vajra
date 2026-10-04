@@ -236,11 +236,10 @@ pre_threshold_warns_and_names_the_exemption() {
   OUT="$( cd "$TMP" && "$VAJRA" next --check-obeyed 131 2>&1 )"; local code=$?
   echo "$OUT"; echo "exit=$code"
   [ "$code" -eq 0 ] || { echo "FAIL: a pre-threshold session must not block, got exit $code"; rc=1; }
-  grep -q "pre-threshold: WARN" <<<"$OUT" || { echo "FAIL: no per-item warning"; rc=1; }
-  grep -q "threshold: session 132" <<<"$OUT" \
-    || { echo "FAIL: the exemption is not named in the output"; rc=1; }
-  grep -q "not silently exempt" <<<"$OUT" \
-    || { echo "FAIL: the exemption is not disclosed as one"; rc=1; }
+  # S184 (F107): the wording is project-neutral now; the behaviour checked here is unchanged.
+  grep -q "warning, not blocking" <<<"$OUT" || { echo "FAIL: no per-item warning"; rc=1; }
+  grep -q "names them but does not block on them" <<<"$OUT" \
+    || { echo "FAIL: the exemption is not disclosed in the output"; rc=1; }
   rm -rf "$TMP"; return $rc
 }
 run_check "pre-threshold-warns-and-names-the-exemption" exec pre_threshold_warns_and_names_the_exemption
@@ -291,7 +290,7 @@ historical_specimen_127_is_joined_and_binds() {
   grep -qF "$(sed -E 's/.*: [0-9a-f]+ — //' <<<"$LINE" | cut -c1-40)" <<<"$OUT" \
     || { echo "FAIL: the gate does not carry the judge's own reason into its output"; rc=1; }
   # (d) The threshold still exempts SILENCE only: S127's other dispositions warn, they do not block.
-  grep -q "pre-threshold: WARN" <<<"$OUT" \
+  grep -q "warning, not blocking" <<<"$OUT" \
     || { echo "FAIL: the rest of S127 is not warned as pre-threshold"; rc=1; }
   return $rc
 }

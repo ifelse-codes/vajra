@@ -3,18 +3,18 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S183 is closed on `session-183-rudra-s16-new-rules` (PR #220; the founder merges). S182 merged (#219). Next: S184 — rudra S17 under the new rules + F103/F107/F108 (founder's pick A; `prompts/184-task-rudra-s17-new-rules.md`).**
+**None — between sessions. S184 is closed on `session-184-rudra-s17-new-rules` (PR open; the founder merges). S183 merged (#220). Next: S185 — the ground truth (NO-CODE), F113 and F110 first (founder's pick; `prompts/185-task-ground-truth.md`).**
 
-## What was done this session (S183 — INTERACTIVE: rudra S16 under the new rules, and F101)
+## What was done this session (S184 — INTERACTIVE: rudra S17 under the new rules, plus F103 / F107 / F108)
 
-- **F101 — the close runs CI's lint on CI's Rust version (not CI's tests, not Linux).** `rust-toolchain.toml` pins Rust 1.99.0, the only place the version is written; CI and Release run `rustup toolchain install` from it. `scripts/ci-lint.sh` is the one lint command: it names rustc/clippy, FAILS when the running rustc is not the pinned one, then runs `cargo clippy --all-targets -- -D warnings`. CI runs it; Vajra's close gate runs it as `cargo-clippy-clean`. A project's close gate runs its declared `lint_command:` (`none` → N/A, missing → a WARN row). The two new rows (`project-lint-clean`, `obeyed-judgments`) show WARN/N/A as themselves; the scaffold's older log-only N/A/WARN paths still record PASS.
-- **F102:** `main`'s CI had been red since #219 (S182's no-jq test assumed `/bin` lacks jq; on Linux `/bin` = `/usr/bin`). The test now builds a PATH with every tool but jq and proves jq is gone. PR #220's CI is green on Ubuntu and macOS.
-- **From rudra S16 (founder ran it, ~55 min of work):** approval read from the record, 0 guard blocks, no waivers, no stamp refusals, the founder merged. **F104:** 34 unchecked `obeyed:` claims closed under PASS (threshold = Vajra's session 132) → `vajra next --check-obeyed` prints `unjudged: N`, the project gate shows WARN with the count. **F105:** `session_type:` met only at close → `vajra next --steps` names it at the start, read through the shared helper. **F106:** `--inputs-sha` no longer leaves an empty close folder.
-- **Asked, not built:** F103, F107, F108 (founder: fix all three in S184). Verify 24/24 · demo 6/6 · all 19 test suites · DECISION-011 S183 addendum.
+- **F103:** `vajra init` on a non-terminal stdin reads answers through one shared thread; each waits at most 10 s; the first silence or end of input gives that question and every later one its default, named on stderr; a late line is dropped. A terminal is read exactly as before. Design in the brief's `## Design` (DECISION-007 S134 addendum cited; no new record).
+- **F107:** the unchecked-`obeyed:` warning names no Vajra session number and says "does not block on them in this session". Behaviour unchanged. **F108:** `--ledger`/`--ledger-verify` leave no empty dated folder (both close scripts).
+- **From rudra S17 (founder ran it):** GREEN with 2 honest WARN (lint, unchecked claims), 0 WAIVED, 8/8 stations for the first time, 1 false guard block. Founder calls: F109 (agent's early download), F111 (rudra lint fails), F112 (slow verify) are rudra's own; F110 (guard false block, hit 3×) and F113 (a project's session 132 starts blocking) → S185, then fixed; Vajra's close does not run `cargo test`.
+- Verify 14/14 · demo 7/7 · all cargo test suites · ci-lint clean.
 
-## Previous session (S182 — CODE, interactive: ship S181's controls into existing projects)
+## Previous session (S183 — INTERACTIVE: rudra S16 under the new rules, and F101)
 
-- One approvals guard (writes block, reads pass) shipped to every scaffold and wired by `--sync-fleet`; a missing `session_rules_from` reported, never written; `--allow-all=NN`; S181's two test gaps closed; rudra upgraded live. Pass 2 ACCEPT 14/15. Merged #219 — whose own CI was red (F102, fixed in S183).
+- One pinned toolchain + one lint script for CI and the close (F101); main's red CI fixed (F102); unchecked `obeyed:` claims WARN with the count (F104); session type named at the start (F105); no empty `--inputs-sha` folder (F106). Merged #220.
 
 ## S180 (NO-CODE ground truth, 🟡 PARTIAL)
 
@@ -35,6 +35,7 @@
 - **The controls reach existing projects (S182):** `--sync-fleet` ships and WIRES the approvals guard, reports a missing `session_rules_from`; `--allow-all=NN` is per session. rudra has them (uncommitted there).
 - **The founder's controls are hard for the agent to type (S181, DECISION-011):** approval is a record from `vajra approve NN` (or the launch-time yes), a waiver names its checks and a reason, a stamp dies when its text is edited, the type is a strict field, and the next review-only session is derived, not hand-kept. Bar-raising, not tamper-proof.
 - **The close runs CI's lint on CI's Rust version (S183, F101; not CI's tests, not Linux):** one pinned toolchain (`rust-toolchain.toml`) and one lint script (`scripts/ci-lint.sh`) for CI and the close gate; projects declare `lint_command:`. Unchecked `obeyed:` claims in a project WARN with the count (F104); `vajra next --steps` names the session type at the start (F105).
+- **`vajra init` never hangs on a silent pipe (S184, F103):** 10 s per answer, then defaults, named on stderr; piped answers and a terminal work as before.
 - **`VAJRA_ALLOW_PUBLISH=1` no longer covers merge (S175):** `gh pr merge`/`glab mr merge` always fall to the founder, matching the boundary `VAJRA_ALLOW_COMMIT` (F55) already held.
 
 ## What Is Broken / Weak / Disclosed
@@ -59,23 +60,27 @@
 - **🟡 `.ai/ROADMAP.md`'s "NN % 5 == 0 → mandatory NO-CODE GT" pointer line had gone stale for many cycles** (last hand-updated at S120/S125, corrected at S175 to S170/S180) — a reminder that a hand-maintained "next X" pointer drifts unless something derives it.
 - **🟡 F97 (S179):** `vajra init --sync-fleet` never touches a project's `CONSTRAINTS.yaml`, so existing projects keep the old ground-truth list (rudra updated by hand). Other subcommands still swallow unknown flags (read-only).
 - **🔴 Non-Claude agents (S179, PARKED until after S180 by the founder):** F91 the git guards cannot tell OpenCode's agent from the founder (37 unchecked commits, a push straight to rudra's main) · F94 one chat for two sessions · F95 OpenCode helpers matched to unrelated Claude Code records. F92 (a waiver labelled "founder" he did not give; the waiver passes ~20 checks at once) → S180 Goal 0.
-- **🟡 S183 asked, not built (founder 2026-10-03: fix all three in S184):** F103 `vajra init` waits forever on an open, silent, non-terminal stdin (piped answers are a supported use, so "no terminal → defaults" is not the fix); F107 the obeyed WARN text tells a project "threshold: session 132" (Vajra's numbering); F108 `--ledger`/`--ledger-verify` leave an empty dated close folder.
+- **🔴 F113 (S184, founder: an issue — fix after S185):** the obeyed threshold (`OBEYED_JUDGMENT_FROM_SESSION = 132`) counts a PROJECT's sessions in Vajra's numbering, so a project's own session 132 starts BLOCKING unchecked `obeyed:` claims, against the 2026-10-03 "not a blocking gate for projects". The warning now says "in this session" so it promises nothing more. The design-advisor threshold has the same units (DECISION-007 S134 addendum).
+- **🟡 F110 (S184, founder: fix — S185 list):** the approvals guard false-blocks a command whose TEXT names the approvals folder next to a redirect (a heredoc, a `<…>` in a commit sign-off) — hit 3× on 2026-10-04. Workaround: put the text in a file, or `git commit -F`.
+- **🟡 S184 disclosed:** F103's 10 s is a guess (a feeder slower than 10 s per answer gets defaults, printed); `scripts/verify-session-132.sh` `advance-really-binds-on-an-unjudged-obeyed` is red at e1c348e and after — not caused by S184, not yet explained (F115 → S185).
+- **🟡 F114 (S184 cold review, founder: fix later → S185 list):** in a fresh `vajra init` project with no review files, `scripts/verify-closeout.sh --ledger` prints nothing and exits 1 — a first-run defect, old.
 - **🟡 S183 disclosed:** F104 is a WARN, not a block — below session 132 a project's `obeyed:` still needs nobody's check. `lint_command: true`/`none` passes (only the diff shows it); "matches CI" = matches the pinned version; `#[allow]` silences a lint. Release's `rustup toolchain install && rustup target add` runs only on a tag — not tried. A Rust bump is now a deliberate edit to `rust-toolchain.toml` (and a local `rustup toolchain install`).
 - **🟡 Not tested:** Windows; a real light-background terminal. **Zero external users**; prove-then-cut-cost arc unstarted; Autopilot Rung 2/3 incomplete.
 - **🟡 Backlog carry-forwards** — D2 inner-session gap + waiver path (S161) · crew advice impact F13 · S154-QA 1–3 · S156-FR r1/r2 · S157-FR r2 · S159-FR r1 · S161-FR 2–4 · S164-QA r1 · verify-158 source grep · no gate against new hollow verify checks · Releaser NoBranch blind spot · init.rs hand-typed scaffold scope · waiver BLOCK paths untested.
 
 ## What Is In Progress
 
-- Nothing. S183 closed on its branch; PR #220 open (founder merges). S184 drafted from the founder's pick (A); he approves with `vajra approve 184`.
+- Nothing. S184 closed on its branch; PR open (founder merges). S185 drafted from the founder's pick; he approves with `vajra approve 185`.
 
 ## Active PRs
 
-- #220 (S183). S182 merged as #219, S181 as #218.
+- S184's PR (open). S183 merged as #220, S182 as #219.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S184 | $0 | No paid run in this repo; the founder's rudra S17 receipt read ~$110.63 (F67-overstated ~5×). 6 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2 — review + judge, release-coordinator as the recorded judge of all 16 obeyed answers) |
 | S183 | $0 | No paid run in this repo; the founder's rudra S16 receipt read ~$83.54 (F67-overstated ~5×; ~55 min of work). 7 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2, release-coordinator as the judge of the reviewer's recs) |
 | S182 | $0 | No paid run. 5 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2) |
 | S181 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer ×2) |
