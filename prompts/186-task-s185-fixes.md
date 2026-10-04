@@ -152,15 +152,15 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - design-advisor rec 15 — obeyed: ed96c4b (DECISION-011 S186 addendum: follows S183's strict-key rule, corrects "never lists a hook twice", and records (b)'s design and why it was split. The §2 amendment and the over-block reversal it first carried (ef560a6) were withdrawn with the split — S182 §2 stands)
 
 **fidelity-reviewer** (`.ai/handoffs/session-186-fidelity-reviewer.md`; pass 1 REJECT 12/15 — its recs are answered here; pass 2's handoff replaces pass 1's, both are in `sessions/session-186-review.md`):
-Passes 1–4 each REJECTED (the guard); the handoff holds the latest pass (4). After pass 2 the founder split F110 (b) out; pass 3 found the backslash-newline join broke "only adds" (fixed 33235cd); pass 4 found large commands fail open through `printf | grep -q` under pipefail — in the S182 guard on main too (~60 KB) — and the founder chose the pipe-free fix (2026-10-04). Every pass's recs are listed in `sessions/session-186-review.md`; pass 4's are answered here (recs 1–5 carry pass 3's meaning):
-- fidelity-reviewer rec 1 — obeyed: 33235cd (the joined copy is appended as extra lines; every S182 check reads the command as written; R1, R2 in the corpus, red on fb467a0)
-- fidelity-reviewer rec 2 — obeyed: 33235cd (the folder lookup never exits under `set -e`; `an_unenterable_folder_does_not_open_the_guard`, red on fb467a0 with exit 1)
-- fidelity-reviewer rec 3 — obeyed: ed96c4b (DECISION-011 §2 and the ROADMAP row say how the guard only adds, and that pass 3 caught the join; the summary's AC3 row in 1a8957e)
-- fidelity-reviewer rec 4 — obeyed: 1a8957e (tech-lead rec 1's reason says the cut was made by hand, not that (b) finished)
-- fidelity-reviewer rec 5 — obeyed: 1a8957e (plan step 8 says it is the split; its Execution line says fb467a0 is the restore, not (b))
-- fidelity-reviewer rec 6 — obeyed: 58b62f0 (every `printf | grep -q` is `grep <<<"$X"`; measured 10–120 KB, all block now; 20/70/120 KB cases in `s186_writes()`; verify-186 runs 40/70/120 KB against the new and the b10a1a6 guard)
-- fidelity-reviewer rec 7 — refused: measured, nothing to change — the size runs above take 0–1 s per hook call under /bin/bash 3.2.57 at 10–120 KB, far below any hook timeout; the join stays in bash.
-- fidelity-reviewer rec 8 — obeyed: cd5444e (the `## Delta` guard line says add-only and that (b) was built and split out)
+Passes 1–5 each REJECTED (the guard); the handoff holds the latest pass (5). After pass 2 the founder split F110 (b) out; pass 3 found the backslash-newline join broke "only adds" (33235cd); pass 4 found large commands fail open through `printf | grep -q` — in the S182 guard on main too (~60 KB) — and the founder chose the pipe-free fix (58b62f0); pass 5 found that join quadratic on bash 3.2 (measured: 10,000 backslashes >120 s) and the here-strings needing a temp file (fixed 6417b01). Every pass's recs are in `sessions/session-186-review.md`; pass 5's are answered here:
+- fidelity-reviewer rec 1 — obeyed: 6417b01 (timed under /bin/bash 3.2, folder and `>` at the end: S182 guard 0.03 s at every size; the 58b62f0 guard 1.4 s at 2,000, 20.9 s at 5,000, killed at 120 s at 10,000 and 30,000 backslashes — the counterexample is real)
+- fidelity-reviewer rec 2 — obeyed: 6417b01 (the join is one awk pass; 30,000 backslashes now exit 2 in 0.06 s)
+- fidelity-reviewer rec 3 — obeyed: 6417b01 (`a_backslash_dense_command_blocks_fast`, <5 s; verify-186 times 30,000 backslashes under /bin/bash)
+- fidelity-reviewer rec 4 — obeyed: 6417b01 (pass 4's rec 7 was answered from the wrong input — `a`-padding, one backslash; the measurement in rec 1 above is the one it named, and it found the bug)
+- fidelity-reviewer rec 5 — obeyed: 02b5a2f (DECISION-011's S186 addendum records passes 4 and 5: the pipe-free checks and the ~60 KB hole in the S182 guard on main and in rudra)
+- fidelity-reviewer rec 6 — obeyed: 6417b01 (no here-strings left: every check is `printf | grep -c >/dev/null`, which needs no temp file; recorded in DECISION-011)
+
+## Delta` guard line says add-only and that (b) was built and split out)
 - fidelity-reviewer rec 9 — obeyed: cd5444e (design-advisor rec 15 now cites ed96c4b and says the §2 amendment was withdrawn with the split)
 - fidelity-reviewer rec 10 — obeyed: 58b62f0 (the test is renamed `redirects_through_a_link_or_with_no_cwd_block` with a comment saying why it stays; the `run_in` comment fixed; verify-186's header and STATE in 7b06d0e)
 

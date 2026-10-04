@@ -1,49 +1,43 @@
 ---
 role: fidelity-reviewer
 session: 186
-agent: claude-code-subagent (verified: toolu_01YEtPuUjswDCoVzc5WWNT2v; text-sha: cd39f65fc96b25e6fe143364f4827e0b42e73bc5a3777d2c129d7234d9536667)
-source-sha: 2a969f135d466a43484295c2a05ecebdf1e483a4f35cf9a2993a44b46b0eb8dd
-captured: 2026-10-04T11:06:00Z
+agent: claude-code-subagent (verified: toolu_01S1PgF8CHMp4cy2ne3Yk6EA; text-sha: 1595ee7e2a520bb4892194ccb96c70767d9248ba41dc57fdabf24ab2127ed54c)
+source-sha: 4e743da6ce40dcf35d1062779cb27a8b58c6f9f39cd8099a9bf676138f000470
+captured: 2026-10-04T11:22:39Z
 cost_usd: null
 ---
 
 # Fidelity-reviewer handoff — session 186
 
-(condensed) — the builder recorded this from the subagent's report: the verdict, grades, the SIGPIPE finding and recs 1–10 are as given; evidence cells and reasoning are shortened.
+(condensed) — the builder recorded this from the subagent's report: the verdict, grades, the timing counterexample and recs 1–6 are as given; evidence cells and reasoning are shortened.
 
-## Fidelity review: Session 186, pass 4 (cold, add-only focus)
+## Fidelity review: Session 186, pass 5 (cold; does the guard only add)
 
 **Verdict:** REJECT
 
-11 of 14 SHIPPED · 2 PARTIAL (AC2 by founder split, AC3) · 1 NOT-BUILT (D2, founder split). Read only.
+11 of 14 SHIPPED · 2 PARTIAL (AC2 by founder split, AC3) · 1 NOT-BUILT (D2, founder split). Read only; nothing run.
 
-Text comparison: every S182 check is present and reads the original lines; the joined copy is appended; R1 and R3 closed; no exit other than 0 or 2 on the set -e paths.
+Main finding: line 61's `${CMD//"$_BSNL"/}` is at least backslashes × length on macOS's /bin/bash 3.2. Counterexample: 30,000 backslashes in a quoted word, then `\<NL>; echo x > .ai/approvals/y` — S182 exits 2 in milliseconds; HEAD would run tens of seconds or more, past a hook timeout, which does not block. Pass 4's rec 7 asked for exactly this timing; its refusal cited `a`-padded runs with one backslash. Second (low): here-strings need a temp file; on a full disk every check reads "no match".
 
-Counterexample (reasoned): every check is `printf '%s' "$X" | grep -q…` under `set -o pipefail`. grep -q exits on its first match; printf with unwritten bytes dies of SIGPIPE; the pipeline counts as failed; the `if` goes false. The join doubles the bytes piped, so a ~50 KB command (`cp /tmp/forged .ai/approvals/187.json; true \<NL>` + padding) leaves NAMES=0 and exits 0. S182 already fails open the same way on larger commands; S186 halves the size.
+Clean: every remaining pipe reads all input; every set -e path is guarded; NAMES is a superset of S182's; the Write `case` patterns are a superset.
 
-| # | Verdict | Evidence (condensed) |
-|---|---|---|
-| D1 | SHIPPED | `src/obeyed/mod.rs:84`, gate `:485-545`, `.ai/CONSTRAINTS.yaml:22`, `mandate/mod.rs:428` |
-| D2 | NOT-BUILT | founder split; S182 rule `:107`; (a)'s message only |
-| D3 | SHIPPED | `..` `:51`, `:85-87`; writers/shells `:129-142`; merge proven by AC5 |
-| D4 | SHIPPED | both close scripts |
-| D5 | SHIPPED | verify-132 `:329`, `:369-375` |
-| D6 | SHIPPED | four lines `>&2`; no scaffold copy |
-| AC1 | SHIPPED | verify-186 `:32-51` |
-| AC2 | PARTIAL | six blocks covered; the three passes still block (founder) |
-| AC3 | PARTIAL | the SIGPIPE path lets a large command exit 0 where S182 exits 2 |
-| AC4–AC8 | SHIPPED | verify-186 rows |
+| # | Verdict |
+|---|---|
+| D1, D3–D6, AC1, AC4–AC8 | SHIPPED |
+| D2 | NOT-BUILT (founder split) |
+| AC2 | PARTIAL (founder split) |
+| AC3 | PARTIAL — timeout fail-open on backslash-dense commands under bash 3.2; disk-full fail-open |
 
-Fakest green: `a_linked_target_or_a_missing_cwd_is_not_provable` names logic the split deleted; stale comments `tests/approvals_guard.rs:22`, verify-186 `:2-3`; AC3's "can only match more" true of greps, untested for exit status.
-Records: the prompt's `## Delta` still claims a target-reading guard; design rec 15's text describes the withdrawn §2 amendment; STATE.md:13 leaves out pass 3's REJECT.
+Fakest green: "measured 10–120 KB, all block now" — every case had at most one backslash.
+Records: DECISION-011's "only adds" is about matching, not finishing in time; the addendum does not record pass 4.
 
-rec 1–5 — pass 3's, carried with the same meaning (already answered).
-rec 6 — Replace every `printf '%s' "$X" | grep -q…` in the guard with a pipe-free test (`grep -q… <<<"$X"`); add ~20 KB and ~70 KB backslash-newline commands that name the folder on line 1 to `s186_writes()`.
-rec 7 — Time line 61's `${CMD//"$_BSNL"/}` under `/bin/bash` 3.2 on a 60 KB backslash-heavy command; if it nears the hook timeout, join with sed/awk.
-rec 8 — Fix the prompt's `## Delta` line claiming a target-reading guard.
-rec 9 — Update design-advisor rec 15's disposition: the §2 amendment and over-block reversal were withdrawn with the split.
-rec 10 — Rename or delete `a_linked_target_or_a_missing_cwd_is_not_provable` and fix the stale comments (`tests/approvals_guard.rs:22`, `scripts/verify-session-186.sh:2-3`, STATE.md:13).
+rec 1 — Time HEAD vs e1c348e under /bin/bash 3.2 on the counterexample (30K and 60K backslashes, folder and `>` at the end) and record the seconds.
+rec 2 — Replace line 61's join with a linear awk join (awk reads all input, so no SIGPIPE).
+rec 3 — Add backslash-dense cases with a time limit to `s186_writes()` and verify-186.
+rec 4 — Re-answer pass-4 rec 7 with a measurement of the input it named.
+rec 5 — Record pass 4 in DECISION-011's S186 addendum: the pipe-free checks and the ~60 KB fail-open in the S182 guard on main and in rudra.
+rec 6 — Add to DECISION-011's limits that here-strings need a writable temp dir (full disk → every check "no match").
 
 ## Handoff Delta
-- `~` re-run: fidelity-reviewer handoff replaced (2945 bytes now vs 2965 bytes prior)
+- `~` re-run: fidelity-reviewer handoff replaced (2181 bytes now vs 2874 bytes prior)
 - prior stage: this session's earlier fidelity-reviewer handoff
