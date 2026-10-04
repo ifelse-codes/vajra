@@ -130,7 +130,7 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - tech-lead rec 4 — obeyed: 651d174 (the design-advisor brief named the files and asked "do the picks fit the code", not a redesign)
 - tech-lead rec 5 — refused: in part — the review ran at close on the finished branch and re-ran its checks, but not "one fresh pass, not a loop": six cold passes ran (passes 1–5 REJECTED the guard, each on a real gap; the founder allowed passes 3–6). All six are in sessions/session-186-review.md.
 - tech-lead rec 6 — deferred: sessions/session-186-review.md
-  why: the release-coordinator is dispatched once, after this section answers every rec; its judgments land in its own handoff and the review file names them.
+  why: done — the release-coordinator was dispatched once, after this section answered every rec, and judged all 18 `obeyed:` answers `implemented` in one pass; its handoff is `.ai/handoffs/session-186-release-coordinator.md` and the review file's "Obeyed claims" section names it.
 
 **design-advisor** (`.ai/handoffs/session-186-design-advisor.md`):
 - design-advisor rec 1 — obeyed: 62bfe63 (one strict reader; a bad key is pushed into `reasons` on every run, whatever the session holds)
@@ -161,6 +161,29 @@ Pass 6 ACCEPTED (12 of 14 SHIPPED; D2 NOT-BUILT and AC2 PARTIAL from the founder
 - fidelity-reviewer rec 4 — obeyed: cf109c5 (the test runs `/bin/bash` when it exists — macOS's 3.2 — and its comment says only there can it catch the pass-5 slowdown)
 - fidelity-reviewer rec 5 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
   why: not a regression (S182 passes `timeout 5 git checkout …` too); more wrappers belong with F110 (b)'s own session → backlog — reason: the founder picks when; on the S190 ground-truth checklist. The "…" in DECISION-011 §2's wrapper list is replaced by the real list in e338571.
+
+**release-coordinator** (`.ai/handoffs/session-186-release-coordinator.md`, the one judge of all 18 `obeyed:` answers — 18 implemented, 0 mismatch — plus the ship steps):
+- release-coordinator rec 1 — deferred: sessions/session-186-review.md
+  why: done at close — the handoff is recorded and committed with the review file; `--check-obeyed 186` and `--check-advice 186` are run before the stamp and their results are in the summary's ship steps. The untracked html/launch.json files are in no commit.
+- release-coordinator rec 2 — obeyed: 255c6fc (`## Design` says the S182 §2 rule stands, F110 (b) was split out, and how the guard only adds)
+- release-coordinator rec 3 — deferred: sessions/session-186-summary.md
+  why: the stamp is the last commit on the branch, by definition after this line; the summary's ship steps list it.
+- release-coordinator rec 4 — deferred: sessions/session-186-summary.md
+  why: `verify-closeout.sh` runs on the branch after the stamp and before the merge; its exit code is reported to the founder with the PR.
+- release-coordinator rec 5 — deferred: sessions/session-186-summary.md
+  why: push and PR follow the close check — listed in the summary's ship steps.
+- release-coordinator rec 6 — deferred: sessions/session-186-summary.md
+  why: the PR body names pass 6's ACCEPT and its limits (D2 NOT-BUILT, AC2 PARTIAL, F110 (b) not fixed); no further review pass.
+- release-coordinator rec 7 — deferred: sessions/session-186-summary.md
+  why: the merge (a merge commit) is the founder's act — listed for him in the ship steps.
+- release-coordinator rec 8 — deferred: sessions/session-186-summary.md
+  why: return to main and sync happen after his merge — listed in the ship steps.
+- release-coordinator rec 9 — deferred: sessions/session-186-summary.md
+  why: `git branch -d` after the merge — listed in the ship steps; S187's start gate checks it.
+- release-coordinator rec 10 — deferred: sessions/session-186-summary.md
+  why: `cargo install --path .` from the synced main — listed in the ship steps (also in the S187 prompt).
+- release-coordinator rec 11 — deferred: prompts/187-task-rudra-s18-s186-fixes.md
+  why: `vajra init --sync-fleet` in rudra is the founder's first step of S187, on rudra's S18 branch; the S187 prompt lists it.
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
