@@ -16,7 +16,12 @@ fn run(script: &str, payload: serde_json::Value) -> (i32, String) {
     run_in(proj.path(), script, payload)
 }
 
-fn run_in(proj: &Path, script: &str, mut payload: serde_json::Value) -> (i32, String) {
+fn run_in(proj: &Path, script: &str, payload: serde_json::Value) -> (i32, String) {
+    let shell = std::env::var("VAJRA_TEST_BASH").unwrap_or("bash".into());
+    run_with(&shell, proj, script, payload)
+}
+
+fn run_with(shell: &str, proj: &Path, script: &str, mut payload: serde_json::Value) -> (i32, String) {
     std::fs::create_dir_all(proj.join(".ai")).unwrap();
     std::fs::write(proj.join(".ai/CONSTRAINTS.yaml"), "maturity: L2\n").unwrap();
     // Claude Code sends the agent's working folder; the guard reads it (a working folder inside
@@ -26,7 +31,7 @@ fn run_in(proj: &Path, script: &str, mut payload: serde_json::Value) -> (i32, St
             .or_insert_with(|| proj.to_string_lossy().into_owned().into());
     }
     let m = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let mut child = Command::new(std::env::var("VAJRA_TEST_BASH").unwrap_or("bash".into()))
+    let mut child = Command::new(shell)
         .arg(m.join(script))
         .env("CLAUDE_PROJECT_DIR", proj)
         .env_remove("VAJRA_GUARD_MATURITY")
@@ -445,12 +450,20 @@ fn an_unenterable_folder_does_not_open_the_guard() {
 
 /// S186 cold review pass 5: a backslash-dense command must be decided fast. The first join was
 /// quadratic on bash 3.2 (10,000 backslashes took over 120 s — a hook past its timeout does not block).
+/// Runs `/bin/bash` (macOS's 3.2, the shell the slowdown needs); under bash 5 it cannot catch it.
 #[test]
 fn a_backslash_dense_command_blocks_fast() {
     let dense = "\\a".repeat(30_000);
     let cmd = format!(": '{dense}' \\\n; echo x > {DIR}/y");
+    let proj = tempfile::tempdir().unwrap();
+    let shell = if Path::new("/bin/bash").exists() { "/bin/bash" } else { "bash" };
     let t = std::time::Instant::now();
-    let (code, _) = bash(&cmd);
+    let (code, _) = run_with(
+        shell,
+        proj.path(),
+        "scripts/hook-approvals-guard.sh",
+        serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}}),
+    );
     assert_eq!(code, 2);
     assert!(t.elapsed().as_secs() < 5, "took {:?}", t.elapsed());
 }
