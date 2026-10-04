@@ -48,7 +48,7 @@ $0 in paid runs. Fleet: tech-lead (~31k subagent tokens), design-advisor (~145k)
 6. `cargo install --path .`; check the new `vajra` is on PATH.
 7. S187: in rudra, `vajra init --sync-fleet --dry-run`, then the real run, on rudra's S18 branch — brings the hardened guard (closes the ~60 KB hole in rudra's copy).
 
-## Next — 3 options (ranked)
+## Next — 3 ranked candidates
 1. **(Recommended — the founder's pick) rudra S18 with the S186 fixes — interactive.** You run `vajra init --sync-fleet` in rudra and use it; we fix what you hit. Why: F113 changes rudra's close, and the guard blocks more. Risk: F110 false blocks still happen (workaround: `git commit -F`).
 2. **F67 — the receipt reads the tool's own cost for interactive runs.** The one wrong number every user sees (~5× high). Risk: Claude Code may not write a cost into an interactive run's transcript.
 3. **The non-Claude tools brainstorm (F91, F94, F95).** Promised since S179. Risk: a design session — nothing a user runs comes out of it.
