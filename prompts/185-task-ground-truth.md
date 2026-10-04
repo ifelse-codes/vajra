@@ -17,6 +17,9 @@ session_type: GROUND_TRUTH
      addendum already names this mistake for the design-advisor threshold and lists the options: an
      adoption marker in the project, the prompt's git birth date, or dropping the threshold for projects.
      Which, and does the design-advisor threshold (same units) need the same fix? No text guessing (S177).
+     With the fix, restore the honest disclosure F107 removed (S184 cold review rec 4): the comment at
+     `src/obeyed/mod.rs` ~517 still says the exemption is "stated out loud", and verify-132's
+     `pre-threshold-warns-and-names-the-exemption` no longer checks that it is named.
    - **F110 — the approvals guard false-blocks text.** A command whose TEXT names the approvals folder next to
      a redirect is blocked — a heredoc counts, and so did the `<…>` in a commit sign-off. Hit three times on
      2026-10-04 (rudra S17 once, S184 twice); every agent worked around it in seconds. Weigh with S182's
@@ -37,8 +40,11 @@ Output: `sessions/session-185-ground-truth.md`. New findings listed with a sever
 - **F113, F110** (above) · S182 pass-2 recs 1, 2, 5.
 - **Parked by the founder:** F67 (receipt ~5×; rudra S17 read ~$110.63), non-Claude tools (F91, F94, F95),
   release/publish. F109 (rudra's download before a terms check) is NOT Vajra's — founder, 2026-10-04.
-- `scripts/verify-session-132.sh` `advance-really-binds-on-an-unjudged-obeyed` is red at e1c348e and after
-  (S184 fakest green) — a stale check or a real regression? Say which.
+- **F114 (founder: fix later):** in a fresh `vajra init` project with no review files, `scripts/verify-closeout.sh
+  --ledger` prints nothing and exits 1 (`set -euo pipefail` + an `ls` glob with no match in
+  `_ledger_worktree_sessions`). A first-run defect — size it and slot the fix.
+- **F115:** `scripts/verify-session-132.sh` `advance-really-binds-on-an-unjudged-obeyed` is red at e1c348e and
+  after — the check that the obeyed gate really stops `--advance`. A stale check or a real regression? Say which.
 - Founder decisions to respect: no per-claim `obeyed:` judge (2026-10-03); Vajra's close does not run
   `cargo test` (2026-10-04); no new policing of Vajra's own paperwork (2026-09-15).
 
