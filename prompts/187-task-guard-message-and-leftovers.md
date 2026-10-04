@@ -124,6 +124,56 @@ Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required; de
 of every `obeyed:` answer).
 implementation-advisor: skipped — the tech-lead deferred it on budget (its crew line and rec 6): a guard dispatch reads both hook scripts, about 1.2M tokens, and the one guard let-through it would have reviewed (N2) moved to S188 by the founder; the S187 guard change is message-only, proven by the 0071dca-vs-now exit comparison.
 
+**tech-lead** (`.ai/handoffs/session-187-tech-lead.md`):
+- tech-lead rec 1 — refused: in part — items 1 and 3 landed first (e88f3e5, e306a73) and item 7 last (bf2349f, 51dfd5c), as asked; but item 4 (F97, ff2047f) landed after items 5 and 6 (bb4cd4c, ac3d544) because its design waited on the design-advisor's handoff, and the founder's one-line rule came after that. Nothing was carried: all seven landed.
+- tech-lead rec 2 — deferred: sessions/session-187-summary.md
+  why: AC2 (N2) moved to S188 by the founder (2026-10-05); the design-advisor (rec 11) found there is no scaffold copy of hook-pre-write.sh, and its recs 12–20 — including "a new file in a folder that does not exist yet blocks" — are S188's input, named in this summary's Next option 1.
+- tech-lead rec 3 — obeyed: e88f3e5 (`s187_blocks_exactly_what_0071dca_blocked`: every corpus command exits the same at 0071dca and now)
+- tech-lead rec 4 — obeyed: e414c28 (the summary records 15 checks at 0071dca — 12 PASS · 3 FAIL — and 15 after, with one re-pointed line per check)
+- tech-lead rec 5 — obeyed: ff2047f (renamed to `sync_fleet_touches_roles_hooks_constitution_and_never_creates_constraints`, its never-creates assertion kept, in the same commit as the DECISION-007 S187 addendum)
+- tech-lead rec 6 — obeyed: 1a92d97 (the implementation-advisor skip line in this section, with the budget reason)
+- tech-lead rec 7 — obeyed: 39c3d10 (one cold fidelity pass on the finished branch, ACCEPT; no loop; the release-coordinator is dispatched once, after this section answers every rec)
+
+**design-advisor** (`.ai/handoffs/session-187-design-advisor.md`):
+- design-advisor rec 1 — obeyed: ff2047f (DECISION-007 S187 addendum narrows S142/S143; the prompt's attribution was corrected to DECISION-007, F97 logged at S179, in 9034949)
+- design-advisor rec 2 — obeyed: ff2047f (DECISION-011 S182 §4 and S183 §3, the `sync_targets` doc comment and the printed "(Vajra never edits this file)" → "never writes this line", same commit)
+- design-advisor rec 3 — obeyed: ff2047f (only audit names and whole question blocks are added; `session_rules_from` stays report-only, its comment says why)
+- design-advisor rec 4 — obeyed: 994974f (the one flow line changes, names after their nearest canonical predecessor, trailing comment kept — ff2047f; an unrecognised shape prints the current line and the block names to add — 994974f)
+- design-advisor rec 5 — obeyed: 9034949 (AC4 reworded to the one-line rule; the founder said yes in chat, 2026-10-05)
+- design-advisor rec 6 — obeyed: ff2047f (blocks inserted whole inside `ground_truth:`, never at end of file; an existing block is never rewritten — the addendum names the stale-wording limit)
+- design-advisor rec 7 — obeyed: ff2047f (`SCAFFOLD_GROUND_TRUTH` = the build-derived `scaffold_ground_truth.yaml`, OMIT_AUDITS already out)
+- design-advisor rec 8 — obeyed: ff2047f (a text edit; a missing file is never created — the renamed test keeps that assertion; `--dry-run` writes nothing; a second run adds nothing — `sync_fleet_only_adds_ground_truth_to_constraints`)
+- design-advisor rec 9 — obeyed: ff2047f (sync prints "An audit you removed on purpose comes back"; the addendum names the limit; the opt-out key is named for S188 in the summary)
+- design-advisor rec 10 — obeyed: ff2047f (the addendum states no gate in a project reads `required_audits` or `*_questions`, with the grep's readers named; verify-187 checks the byte-undo of the whole file, c63ba15)
+- design-advisor rec 11 — obeyed: 9034949 (no project ground-truth write guard added; the prompt records N2 as Vajra's own guard only)
+- design-advisor rec 12 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+- design-advisor rec 13 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+- design-advisor rec 14 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+- design-advisor rec 15 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+- design-advisor rec 16 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+- design-advisor rec 17 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+- design-advisor rec 18 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+- design-advisor rec 19 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+- design-advisor rec 20 — deferred: sessions/session-187-summary.md
+  why: N2 moved to S188 by the founder (2026-10-05); this rec is part of N2's design and is S188's input (the summary's Next option 1).
+
+**fidelity-reviewer** (`.ai/handoffs/session-187-fidelity-reviewer.md`):
+- fidelity-reviewer rec 1 — obeyed: 994974f (quoted names, a `_questions:` key with text after its colon, an item at two spaces, a four-space line outside a block, a block with no items: each refused, each with a test)
+- fidelity-reviewer rec 2 — obeyed: 994974f (the refusal prints the current `required_audits:` line and the question-block names)
+- fidelity-reviewer rec 3 — obeyed: 39c3d10 (the second branch: D7 relabelled PARTIAL in the table; the rest of N7 carried to backlog, on the S190 ground-truth checklist, with its reason)
+- fidelity-reviewer rec 4 — obeyed: 1f1b448 (only `<pid>-<hex sha>` folders holding a `.git` worktree file are touched; EPERM counts as alive; verify-187 shows a live owner's checkout and a non-checkout folder survive a sweep)
+- fidelity-reviewer rec 5 — obeyed: a34fe3b (the pointer line names no session; verify-187's header check catches `Session N` and `SN`, 1f1b448)
+- fidelity-reviewer rec 6 — obeyed: a34fe3b (the comment now says the Analyst station passes on a Delta alone, so nothing named the record)
+- fidelity-reviewer rec 7 — refused: already done — `s187_blocks_exactly_what_0071dca_blocked` chains `s186_writes()`, which holds verify-186's extra probes: the backslash-newline after `>`, zsh `>>!`, and `/usr/bin/awk` (tests/approvals_guard.rs); listing them again would duplicate the corpus.
+
 ## Delta
 - `~` approvals guard block reason (writer/program case) names the split-the-command way past
 - `+` `vajra next --steps` approval line
