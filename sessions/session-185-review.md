@@ -59,3 +59,5 @@ rec 5 — Correct the stale "Design and Advice are not in the prompt" line, and 
 None this session — no code and no commits before close, so every answer is `deferred:` or `refused:` with a reason (release-coordinator S185: "no `obeyed:` answers to judge").
 
 **Verdict:** ACCEPT
+
+**Review-Inputs-SHA:** 06684078362f9d6b081ac723c515b4b0e6b19bfe362bc26c98490a009be61d5c
