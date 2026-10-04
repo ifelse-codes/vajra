@@ -7,8 +7,8 @@
 # Bash: a command that names the folder (its path, a `..` next to the word, a `cd` into it, or a working
 # folder inside it) is blocked when it can write — any redirect left after the provable non-writes, a
 # file-writing command, or an interpreter, shell or program that writes by its own syntax (its intent
-# cannot be read from text, S177: fail closed). S186 only adds to what the S182 guard blocked
-# (tests/approvals_guard.rs, `every_listed_command_the_s182_guard_blocked_still_blocks`).
+# cannot be read from text, S177: fail closed). S186 only adds to what the S182 guard blocked: every S182
+# check reads the command as written, unchanged; the joined copy is extra lines (tests/approvals_guard.rs).
 # Bar-raising, not tamper-proof (DECISION-011): a path built at run time (`d=.ai; d=$d/appr…`) gets past.
 # L1 = warn-only; L2/L3 = block (exit 2).
 
@@ -54,16 +54,21 @@ if [ -n "$FILE" ]; then
 fi
 
 [ -z "$CMD" ] && exit 0
-# A backslash-newline is a line continuation: the shell joins the lines before it reads the command
-# (S186 cold review P1: `echo x > \<newline>.ai/approvals/y` writes). Joining inside single quotes
-# too only makes the guard read MORE as one word — the safe direction.
-_BSNL=$'\\\n'; CMD="${CMD//"$_BSNL"/}"
+# A backslash-newline is a line continuation (S186 cold review P1: `echo x > \<newline>.ai/approvals/y`
+# writes). The joined copy is APPENDED as extra lines, never put in place of the command: every check
+# below is a line-by-line grep, so it reads the command exactly as S182 did PLUS the joined lines — it
+# can only match more (pass 3, R1: replacing it hid `rm` behind `#x\<newline>`, which the shell runs).
+_BSNL=$'\\\n'; _JOINED="${CMD//"$_BSNL"/}"
+[ "$_JOINED" != "$CMD" ] && CMD="$CMD"$'\n'"$_JOINED"
 
 lc() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 # The folder, physically, and the agent's working folder (Claude Code sends `cwd`).
-if [ -d "$ROOT/.ai/approvals" ]; then AP=$(cd -P "$ROOT/.ai/approvals" && pwd -P)
-elif [ -d "$ROOT/.ai" ]; then AP="$(cd -P "$ROOT/.ai" && pwd -P)/approvals"
-else AP="$(cd -P "$ROOT" 2>/dev/null && pwd -P || printf '%s' "$ROOT")/.ai/approvals"; fi
+# Never an exit here: under `set -e` a folder that cannot be entered (`chmod 000`) used to end the
+# guard with exit 1, which Claude Code does not treat as a block (pass 3, R3). Fall back to the path.
+AP=$(cd -P "$ROOT/.ai/approvals" 2>/dev/null && pwd -P) \
+  || AP="$(cd -P "$ROOT/.ai" 2>/dev/null && pwd -P)/approvals" \
+  || AP="$ROOT/.ai/approvals"
+[ "$AP" = "/approvals" ] && AP="$ROOT/.ai/approvals"
 AP_LC=$(lc "$AP")
 CWD_P=""; [ -n "$CWD" ] && CWD_P=$(cd -P "$CWD" 2>/dev/null && pwd -P) || true
 

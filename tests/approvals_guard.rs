@@ -138,6 +138,10 @@ fn s186_writes() -> Vec<String> {
         format!("/usr/bin/awk -v f={DIR}/x 'BEGIN{{print 1}}'"),
         format!("l''n -s {DIR} l; echo x > l/y"),
         format!("l''n -s {DIR} l"),
+        // S186 cold review pass 3 — R1, R2: a comment line ending in `\` is not a continuation.
+        format!("true #x\\\nrm -f {DIR}/session-186.json"),
+        format!("true #x\\\ncp /tmp/forged {DIR}/187.json"),
+        "true #x\\\ncd .ai\necho x > approvals/y".to_string(),
     ]
 }
 
@@ -415,4 +419,19 @@ fn a_cwd_inside_the_folder_blocks_a_redirect() {
     assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 2);
     let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": "echo x > y"}});
     assert_eq!(run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0, 0, "from the project root");
+}
+
+/// S186 cold review pass 3, R3: an approvals folder that cannot be entered must not end the guard
+/// with a non-blocking exit 1 — the guard still blocks a write (exit 2).
+#[test]
+fn an_unenterable_folder_does_not_open_the_guard() {
+    use std::os::unix::fs::PermissionsExt;
+    let proj = tempfile::tempdir().unwrap();
+    let ap = proj.path().join(DIR);
+    std::fs::create_dir_all(&ap).unwrap();
+    std::fs::set_permissions(&ap, std::fs::Permissions::from_mode(0o000)).unwrap();
+    let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": format!("chmod 755 {DIR} && cp /tmp/f {DIR}/x")}});
+    let code = run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0;
+    std::fs::set_permissions(&ap, std::fs::Permissions::from_mode(0o755)).unwrap();
+    assert_eq!(code, 2);
 }
