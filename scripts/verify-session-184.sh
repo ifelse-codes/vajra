@@ -93,11 +93,15 @@ grep -qE '^pre-threshold-warns-and-names-the-exemption +exec +PASS' "$T/v132.out
 
 # --- F108: --ledger / --ledger-verify leave no empty dated folder ------------------------------------
 git show "$OLD_SHA:scripts/verify-closeout-scaffold.sh" > "$T/old-scaffold.sh"
+# One committed review, so --ledger prints a real chain: in a project with NO review yet it exits 1
+# silently at e1c348e and now alike (F114, S185) — comparing two such runs would prove nothing.
+(cd "$P" && mkdir -p sessions && printf '**Verdict:** ACCEPT\n' > sessions/session-01-review.md && git add sessions \
+  && git -c core.hooksPath=/nonexistent commit -qm review)
 for mode in --ledger --ledger-verify; do
   a=$(folders "$P"); (cd "$P" && bash scripts/verify-closeout.sh $mode > "$T/l-new.out" 2>&1); rn=$?; b=$(folders "$P")
   sleep 1   # the dated folder is per second: two runs in one second share one name
   CLAUDE_PROJECT_DIR="$P" bash "$T/old-scaffold.sh" $mode > "$T/l-old.out" 2>&1; ro=$?; c=$(folders "$P")
-  [ "$a" = "$b" ] && [ "$c" = $((b+1)) ] && [ "$rn" = "$ro" ] && cmp -s "$T/l-new.out" "$T/l-old.out" \
+  [ "$a" = "$b" ] && [ "$c" = $((b+1)) ] && [ "$rn" = 0 ] && [ "$ro" = 0 ] && [ -s "$T/l-new.out" ] && cmp -s "$T/l-new.out" "$T/l-old.out" \
     && ok "F108 project gate $mode: no folder now (the $OLD_SHA gate added 1); same exit ($rn) and same output" \
     || bad "F108 project $mode folders ${a}→${b} (old →${c}) exit new=$rn old=$ro"
 done

@@ -68,6 +68,8 @@ Cites `docs/decisions/DECISION-007-agent-fleet.md`, S134 addendum ("the migratio
 - **F111** rudra's own clippy fails (`research::trust`) and fmt differs in 5 files; rudra has no `lint_command:` so its close ran no lint (the WARN row said so) — founder: rudra's thing, Vajra stays out.
 - **F112** rudra's verify took 944–1,010 s against the 600 s bound (one target dir compiled twice); rudra fixed it (28–73 s) — founder: rudra's thing.
 - **F113** (design-advisor rec 2) the obeyed threshold counts a project's sessions in Vajra's numbering, so a project's own session 132 starts blocking — founder 2026-10-04: an issue, we fix it → S185 list first, then a fix session.
+- **F114** (cold review rec 1) in a fresh `vajra init` project with no review files, `scripts/verify-closeout.sh --ledger` prints nothing and exits 1 (`set -euo pipefail` + an `ls` glob with no match, scaffold `_ledger_worktree_sessions`); old, not caused by S184 — founder 2026-10-04: fix later → S185 list.
+- **F115** (cold review rec 2) `scripts/verify-session-132.sh` `advance-really-binds-on-an-unjudged-obeyed` is red at e1c348e and at HEAD — the check that the obeyed gate really stops `--advance`; stale check or real regression is unknown → S185 list, answer it there.
 - **`cargo test` in Vajra's close** — founder 2026-10-04: no. Nothing built.
 
 ## Plan
@@ -75,7 +77,7 @@ Cites `docs/decisions/DECISION-007-agent-fleet.md`, S134 addendum ("the migratio
 2. F108: `--ledger` / `--ledger-verify` leave no empty dated close folder, in both close scripts. — covers: 2
 3. F107: the obeyed WARN names no Vajra session number. — covers: 2
 4. F103: `vajra init` waits 10 s per answer on a silent pipe, then uses the defaults. — covers: 2
-5. `scripts/verify-session-184.sh`: 14 real-run checks, each red at e1c348e and green now. — covers: 2
+5. `scripts/verify-session-184.sh`: 14 real-run checks; each fix has one that is red at e1c348e and green now (the rest are controls). — covers: 2
 6. Findings table F103, F107, F108 and F109–F113, each with evidence and the founder's call; the `cargo test` question closed with nothing built; the diff shows no Vajra commit touches rudra. — covers: 1, 3
 7. Settle `## Design` (design-significant: yes, F103's rule; F107's deviation named). — covers: 4
 8. Demo script, plus the summary with 3 next options. — covers: 1

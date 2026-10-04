@@ -76,7 +76,7 @@ slide_story() {
     "F103.|A silent open pipe (a CI step, a tool shell) hung 'vajra init'. Now each answer waits 10 s; then every question left gets its default, named on screen. A real terminal has no timer." \
     "F107.|The 'nobody checked this claim' warning told rudra 'threshold: session 132'. Same warning, plain words, no Vajra number." \
     "F108.|'--ledger' and '--ledger-verify' left an empty dated folder, like '--inputs-sha' did before S183." \
-    "rudra S17.|You ran it: 21 pass, 0 fail, 2 honest WARNs, 8 of 8 stations for the first time. Four findings, all rudra's own (F109–F112)." \
+    "rudra S17.|You ran it: 21 pass, 0 fail, 2 honest WARNs, 8 of 8 stations for the first time. Five findings: three rudra's own (F109, F111, F112), two Vajra's (F110 guard false block, F113) for S185." \
     "Your calls.|Vajra does not police downloads · the guard false block goes to the S185 review · Vajra's close does not run the tests."
 }
 
@@ -102,7 +102,7 @@ slide_rule() {
     "init on piped answers|reads them at once — exactly as before" \
     "init on a silent pipe|waits 10 s for an answer, then uses the default for it and every later question, and prints which" \
     "the unchecked-claims warning|says nobody checked, that it is named not blocked, and how to check one" \
-    "--ledger, --ledger-verify|print their result and leave no folder behind"
+    "--ledger, --ledger-verify|leave no folder behind (in a project with no reviews yet, --ledger still fails silently: F114, S185)"
   dk_caption "Honest limit: the numbering behind the warning is still Vajra's — a project reaching its own session 132 starts blocking unchecked claims; only the words changed."
 }
 
@@ -133,7 +133,7 @@ slide_scorecard() {
   dk_vajra_scorecard "$SESSION"
   dk_scorecard "LIVE — ran while you watched"
   dk_table "Recorded at close — not re-run here|Result" \
-    "scripts/verify-session-184.sh — real-run checks, each red at $OLD_SHA|14 / 14" \
+    "scripts/verify-session-184.sh — real-run checks; each FIX has one that is red at $OLD_SHA|14 / 14" \
     "rudra S17 close (the founder's run)|21 pass · 0 fail · 2 WARN · 0 WAIVED · 8/8 stations"
   dk_verdict "HONEST NOTES" \
     "The 10 s wait is a guess that fits every script in this repo; a slow program feeding answers more than 10 s apart would get defaults." \
