@@ -1,8 +1,7 @@
 # Session 186 — CODE: the fixes from the S185 ground truth (F113, F110, F114, F115, N1)
 
-> **Status:** DRAFT — written by the S185 agent from the founder's picks (2026-10-04: report "approved",
-> option A, F110 option b). He approves it with `vajra approve 186` in his own terminal; the gate reads the
-> approval record, not this line.
+> **Status:** APPROVED by the founder's approval record (`vajra approve 186`), written from the founder's
+> S185 picks (2026-10-04: report "approved", option A, F110 option b).
 
 ## Type
 session_type: CODE
@@ -82,7 +81,19 @@ design-significant: yes
 - If (b) is not green with its corpus by the ~1h30 mark, stop it, ship 1 + 3–6, and split (b).
 
 ## Plan
-<the S186 agent writes this after the tech-lead and design-advisor, each step citing `covers: N`>
+1. F114: both close scripts list an empty ledger as empty — `--ledger` prints "ledger: no reviewed sessions yet" and exits 0; `--ledger-verify` stops exiting 128 with no commit. — covers: 6
+2. N1: the four `[HOOK BLOCK]` lines in `hook-pre-bash.sh` / `hook-pre-write.sh` go to stderr (neither hook is shipped by `vajra init`, so there is no scaffold copy). — covers: 8
+3. F113: `obeyed_blocks_from:` strict reader replaces the constant; Vajra's own CONSTRAINTS sets 132; the warning says why it does not block; unit tests for absent / set / malformed / twice. — covers: 1
+4. F113 sibling: the design-advisor exemption stops quoting Vajra's session number; verify-133's wording check follows. — covers: 1
+5. F115: verify-132's `--advance` fixture records a real tech-lead (dispatch fixture, every role deferred-budget) so the Obeyed gate gets its turn; both sides of F113 plus a malformed key. — covers: 7, 1
+6. Guard corpus first (tech-lead rec 3): the S186 commands, the declared non-writes, and an old-vs-new test against e1c348e's guard. — covers: 3, 2, 4
+7. S182 recs 1 and 5: `..` segments count as the folder (Write tool and Bash); the added writers and interpreters. — covers: 4
+8. F110 (b): the guard reads each redirect's real target, resolved against the hook's `cwd`; fail closed on the brief's list; the block message names `git commit -F <file>`. — covers: 2, 3
+9. S182 rec 2: `merge_claude_settings` adds no hook already wired under another matcher (a test red at e1c348e). — covers: 5
+10. `scripts/verify-session-186.sh` (each fix red at e1c348e for its named reason) and the demo. — covers: 1, 2, 3, 4, 5, 6, 7, 8
+11. DECISION-007 and DECISION-011 addenda (S185 design-advisor rec 12); summary with 3 next options; closeout sync; next prompt; one cold review; the `--inputs-sha 186` stamp last. — covers: 1, 2
+
+Cut line (prompt guardrail): if step 8 is not green with its corpus by ~1h30, ship 1–7 and 9–11 and split (b) into its own session.
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
