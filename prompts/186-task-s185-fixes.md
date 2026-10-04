@@ -165,7 +165,8 @@ Pass 6 ACCEPTED (12 of 14 SHIPPED; D2 NOT-BUILT and AC2 PARTIAL from the founder
 **release-coordinator** (`.ai/handoffs/session-186-release-coordinator.md`, the one judge of all 18 `obeyed:` answers — 18 implemented, 0 mismatch — plus the ship steps):
 - release-coordinator rec 1 — deferred: sessions/session-186-review.md
   why: done at close — the handoff is recorded and committed with the review file; `--check-obeyed 186` and `--check-advice 186` are run before the stamp and their results are in the summary's ship steps. The untracked html/launch.json files are in no commit.
-- release-coordinator rec 2 — obeyed: 255c6fc (`## Design` says the S182 §2 rule stands, F110 (b) was split out, and how the guard only adds)
+- release-coordinator rec 2 — deferred: sessions/session-186-review.md
+  why: done in 255c6fc (`## Design` says the S182 §2 rule stands, F110 (b) was split out, and how the guard only adds); an `obeyed:` line here would need a second judge for the judge's own rec — the founder's rule is one judge, one pass (the S184 precedent). The review file names it.
 - release-coordinator rec 3 — deferred: sessions/session-186-summary.md
   why: the stamp is the last commit on the branch, by definition after this line; the summary's ship steps list it.
 - release-coordinator rec 4 — deferred: sessions/session-186-summary.md

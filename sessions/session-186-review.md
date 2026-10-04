@@ -35,6 +35,7 @@ rec 5 — In the F110 (b) session, add common command wrappers (`timeout N`, `ni
 
 - **The one judge:** the release-coordinator (`.ai/handoffs/session-186-release-coordinator.md`) judged all 18 `obeyed:` answers in one pass: **18 implemented, 0 mismatch**. Its method limit, stated by it: no git, so each judgment rests on the cited sha being on the branch with a matching subject plus the code at the tip — weakest for design-advisor rec 5, recs split across two commits (design-advisor 3, 9) and fidelity-reviewer recs 1–3.
 - Founder rule (2026-10-03/04): one judge, one pass, no per-claim double check.
+- The judge's own rec 2 (fix `## Design`) was done in 255c6fc and is answered `deferred:` to this file, not `obeyed:` — no one else judges the judge (S184 precedent).
 
 ## Passes 1–5 (history)
 
