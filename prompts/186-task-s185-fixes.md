@@ -160,8 +160,8 @@ Passes 1–4 each REJECTED (the guard); the handoff holds the latest pass (4). A
 - fidelity-reviewer rec 5 — obeyed: 1a8957e (plan step 8 says it is the split; its Execution line says fb467a0 is the restore, not (b))
 - fidelity-reviewer rec 6 — obeyed: 58b62f0 (every `printf | grep -q` is `grep <<<"$X"`; measured 10–120 KB, all block now; 20/70/120 KB cases in `s186_writes()`; verify-186 runs 40/70/120 KB against the new and the b10a1a6 guard)
 - fidelity-reviewer rec 7 — refused: measured, nothing to change — the size runs above take 0–1 s per hook call under /bin/bash 3.2.57 at 10–120 KB, far below any hook timeout; the join stays in bash.
-- fidelity-reviewer rec 8 — obeyed: 7b06d0e (the `## Delta` guard line says add-only and that (b) was built and split out)
-- fidelity-reviewer rec 9 — obeyed: 7b06d0e (design-advisor rec 15 now cites ed96c4b and says the §2 amendment was withdrawn with the split)
+- fidelity-reviewer rec 8 — obeyed: cd5444e (the `## Delta` guard line says add-only and that (b) was built and split out)
+- fidelity-reviewer rec 9 — obeyed: cd5444e (design-advisor rec 15 now cites ed96c4b and says the §2 amendment was withdrawn with the split)
 - fidelity-reviewer rec 10 — obeyed: 58b62f0 (the test is renamed `redirects_through_a_link_or_with_no_cwd_block` with a comment saying why it stays; the `run_in` comment fixed; verify-186's header and STATE in 7b06d0e)
 
 ## Delta
