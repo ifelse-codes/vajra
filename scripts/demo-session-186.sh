@@ -133,7 +133,7 @@ slide_scorecard() {
   dk_vajra_scorecard "$SESSION"
   dk_scorecard "LIVE — ran while you watched"
   dk_table "Recorded at close — not re-run here|Result" \
-    "scripts/verify-session-186.sh — real-run checks; each fix is run at $OLD_SHA too|34 / 34" \
+    "scripts/verify-session-186.sh — real-run checks; each fix is run at $OLD_SHA too|35 / 35" \
     "scripts/verify-session-132.sh — incl. the --advance check red since S135|13 / 13"
   dk_verdict "HONEST NOTES" \
     "F110 is NOT fixed: a command that names the folder and has any '>' still blocks, even a commit message. Split out by your call after two cold reviews found holes in the fix." \
