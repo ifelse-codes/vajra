@@ -107,8 +107,16 @@ $(head -c $((kb*1024)) /dev/zero | tr '\0' 'a')"
   [ "$n" = 2 ] && ok "pass 4: a ${kb} KB command writing into the folder blocks (exit 2; at $OLD_SHA exit $o)" \
     || bad "pass 4: ${kb} KB not blocked (exit $n)"
 done
-if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 12 passed' "$T/guard-tests.out"; then
-  ok "AC3 tests/approvals_guard.rs: 12 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (only adds; F110 cases still block)"
+# Pass 5: a backslash-dense command, decided fast under macOS's /bin/bash 3.2 (the first join took >120 s).
+DENSE=": '$(printf '\\a%.0s' $(seq 30000))' \\
+; echo x > $D/y"
+s0=$SECONDS
+n=$(jq -n --arg c "$DENSE" --arg d "$GP" '{tool_name:"Bash", cwd:$d, tool_input:{command:$c}}' \
+  | CLAUDE_PROJECT_DIR="$GP" /bin/bash scripts/hook-approvals-guard.sh >/dev/null 2>&1; echo $?)
+[ "$n" = 2 ] && [ $((SECONDS - s0)) -lt 5 ] && ok "pass 5: 30,000 backslashes + a write into the folder: blocked in $((SECONDS - s0)) s under /bin/bash" \
+  || bad "pass 5: dense command exit $n in $((SECONDS - s0)) s"
+if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 13 passed' "$T/guard-tests.out"; then
+  ok "AC3 tests/approvals_guard.rs: 13 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (only adds; F110 cases still block)"
 else bad "AC3 guard tests"; tail -5 "$T/guard-tests.out"; fi
 
 # --- S182 rec 2 (AC5): the new merge test is red on the old merge, green now ---------------------------

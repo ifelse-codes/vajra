@@ -156,7 +156,14 @@ addendum). **Amends** the S182 addendum once (§3 below). Picked by the S185 gro
    place, it hid `rm` behind a `#x\` comment line). The S182 word lists also read the de-quoted copy.
    Why this only adds: every S182 check is a line-by-line match over the command as written; S186 gives it
    more lines and more patterns, never different ones. The folder lookup never exits early (an
-   unenterable folder once made the guard exit 1, which does not block). New writers (`git checkout|restore|clean|reset|stash|apply`,
+   unenterable folder once made the guard exit 1, which does not block).
+   **Exit status, not just matching (passes 4 and 5).** A check that matches but cannot finish is a pass:
+   `printf | grep -q` under pipefail failed open on a large command (grep quits early, printf gets
+   SIGPIPE) — **the S182 guard on main and in rudra lets a ~60 KB write into the folder through this way**
+   until `--sync-fleet`. Every check is now `printf | grep -c … >/dev/null` (grep reads all input; no
+   temp file, unlike a here-string, which fails on a full disk). The join is one awk pass: bash 3.2's
+   `${var//…/}` was quadratic in backslashes (10,000 took over 120 s, past a hook timeout). Measured on
+   /bin/bash 3.2: 10–120 KB and 30,000 backslashes all exit 2 in under 0.1 s. New writers (`git checkout|restore|clean|reset|stash|apply`,
    `find … -delete|-exec…`, `rsync`, `curl -o`, `wget`, `tar`, `unzip`, `patch`) and shells (`sh`, `bash`,
    `zsh`, `dash`, `ksh`, `fish`, `eval`, `source`, `.`, `xargs`) and programs that write by their own syntax
    (`awk` and kin, editors, `sqlite3`, `php`, `lua`, …) match where a command starts — after `;&|(`, a
@@ -171,4 +178,5 @@ addendum). **Amends** the S182 addendum once (§3 below). Picked by the S185 gro
 every symlink blocks macOS's `/tmp`; `realpath` is not in bash 3.2. P1–P7 are in `tests/approvals_guard.rs`.
 
 **Limit, unchanged in kind:** a path assembled at run time, or a writer no list names with no redirect,
-still gets past; the guard reads text, it is not a sandbox.
+still gets past; the guard reads text, it is not a sandbox. A hook killed by its timeout does not block —
+the guard is now linear, but a slow machine and a huge command still meet that limit somewhere.
