@@ -772,7 +772,7 @@ check_obeyed_judgments() {
     echo "OK: every \`obeyed:\` disposition for session $N carries an admissible independent judgment." >> "$LOG"
     ok "$NAME"; return
   fi
-  echo "BLOCK: session $N records an \`obeyed:\` that is unjudged, judged a MISMATCH, or whose judgment is inadmissible." >> "$LOG"
+  echo "BLOCK: session $N records an \`obeyed:\` that is unjudged, judged a MISMATCH, or whose judgment is inadmissible — or \`obeyed_blocks_from:\` in .ai/CONSTRAINTS.yaml cannot be read (the reason above names the line)." >> "$LOG"
   if waiver_ok; then
     echo "${WAIVER_NOTE}" >> "$LOG"; ok "$NAME"
   else
