@@ -97,6 +97,7 @@ design-significant: yes
 6. Guard corpus first (tech-lead rec 3): the S186 commands, the declared non-writes, and an old-vs-new test against e1c348e's guard. — covers: 3, 2, 4
 7. S182 recs 1 and 5: `..` segments count as the folder (Write tool and Bash); the added writers and interpreters. — covers: 4
 8. F110 (b): the guard reads each redirect's real target, resolved against the hook's `cwd`; fail closed on the brief's list; the block message names `git commit -F <file>`. — covers: 2, 3
+   (Built, then SPLIT OUT by the founder after two cold-review REJECTs, 2026-10-04: the S182 redirect rule is restored; the block message names `git commit -F`.)
 9. S182 rec 2: `merge_claude_settings` adds no hook already wired under another matcher (a test red at e1c348e). — covers: 5
 10. `scripts/verify-session-186.sh` (each fix red at e1c348e for its named reason) and the demo. — covers: 1, 2, 3, 4, 5, 6, 7, 8
 11. DECISION-007 and DECISION-011 addenda (S185 design-advisor rec 12); summary with 3 next options; closeout sync; next prompt; one cold review; the `--inputs-sha 186` stamp last. — covers: 1, 2
@@ -111,7 +112,7 @@ Cut line (prompt guardrail): if step 8 is not green with its corpus by ~1h30, sh
 - step 5 — done: 4c34e51
 - step 6 — done: 3a4fca9
 - step 7 — done: 3a4fca9
-- step 8 — done: 1409a3c
+- step 8 — done: fb467a0
 - step 9 — done: 9dcec17
 - step 10 — done: 2c0b576
 - step 11 — done: fe1ed46
@@ -123,7 +124,7 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 
 **tech-lead** (`.ai/handoffs/session-186-tech-lead.md`):
 - tech-lead rec 1 — refused: in part — F114 → N1 → F113 with F115 landed in the asked order (0dd33f1, c6bbeb9, 62bfe63, 4c34e51), but F110 (b) landed in the same commit as S182 recs 1/5 (3a4fca9) and before rec 2 (9dcec17), so the clean cut the rec wanted was never available; it did not matter because (b) finished inside the cut line (cold review pass 1, probe 5).
-- tech-lead rec 2 — obeyed: ac1b5da (no implementation-advisor dispatch; the reasoned skip line is in this section. Its second half — "more than one review pass on (b) → split" — was weighed after pass 1 REJECT: the three holes were small and concrete, so they were fixed in 1409a3c with one fresh pass, as its rec 5 allows, rather than split)
+- tech-lead rec 2 — obeyed: fb467a0 (no implementation-advisor dispatch — the reasoned skip line is in this section, ac1b5da; and its second half, "more than one review pass on (b) → split it out": after pass 1 the holes were fixed once (1409a3c), pass 2 REJECTED again, and the founder split (b) out — fb467a0 restores the S182 rule)
 - tech-lead rec 3 — refused: in part — the corpus was written and run red before the guard changed (in-session only: corpus and guard share commit 3a4fca9, so history cannot show the order), and "every command e1c348e blocks" is not a set a test can enumerate. The test is now named for what it proves, a listed corpus (`every_listed_command_the_s182_guard_blocked_still_blocks`, 1409a3c), and the cold review's three missed classes were added to it.
 - tech-lead rec 4 — obeyed: 651d174 (the design-advisor brief named the files and asked "do the picks fit the code", not a redesign)
 - tech-lead rec 5 — deferred: sessions/session-186-review.md
@@ -137,9 +138,11 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - design-advisor rec 3 — obeyed: 9ef5c65 (a third wording when the key cannot be read; the `[vajra obeyed]` heading and refusal in 2f4c59d and the close log's BLOCK line in both close scripts name an unreadable key)
 - design-advisor rec 4 — obeyed: cfd7f86 (demo-132's subject declares the key, and its case 7 records a real tech-lead — it had the same S135 staleness as F115; demo-132 green 8/8. The kept phrases are unchanged)
 - design-advisor rec 5 — obeyed: 596db24 (only "(threshold N)" removed; "predates the design-advisor mandate" kept; verify-133's wording check and its rename probe updated in the same commit)
-- design-advisor rec 6 — obeyed: 3a4fca9 (redirects found on the de-quoted copy; the target read from both copies at the same `>`; any difference, quote or backslash in the written one blocks)
-- design-advisor rec 7 — refused: in part — its core ask (refuse a symlink in any path component) was not built: refusing every symlink blocks every `/tmp` target on macOS (`/tmp` → `/private/tmp`), including AC3's own read. Built instead (3a4fca9): `cd -P` resolves the existing part as the kernel would, so a symlink is FOLLOWED to where the write really goes; a symlinked or hard-linked last component, a `..` past a missing folder, and no/empty `cwd` block (`a_linked_target_or_a_missing_cwd_is_not_provable`). Recorded in DECISION-011's S186 addendum.
-- design-advisor rec 8 — obeyed: 3a4fca9 (heredoc bodies and quoted text are scanned; `> quote` in a body resolves to a harmless literal)
+- design-advisor rec 6 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
+  why: built in 3a4fca9, then F110 (b) was split out by the founder (2026-10-04) after two cold-review REJECTs and the S182 redirect rule restored (fb467a0); the design is recorded in DECISION-011's S186 addendum for the (b) session → backlog — reason: the founder picks when (S187 is rudra S18); on the S190 ground-truth checklist.
+- design-advisor rec 7 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
+  why: F110 (b) split out (fb467a0); what was built and why the symlink refusal was not (macOS `/tmp`) is recorded for the (b) session → backlog, on the S190 checklist. Was: refused: in part — its core ask (refuse a symlink in any path component) was not built: refusing every symlink blocks every `/tmp` target on macOS (`/tmp` → `/private/tmp`), including AC3's own read. Built instead (3a4fca9): `cd -P` resolves the existing part as the kernel would, so a symlink is FOLLOWED to where the write really goes; a symlinked or hard-linked last component, a `..` past a missing folder, and no/empty `cwd` block (`a_linked_target_or_a_missing_cwd_is_not_provable`). Recorded in DECISION-011's S186 addendum.
+- design-advisor rec 8 — obeyed: fb467a0 (heredoc bodies and quoted text are read, never skipped: with the S182 rule restored, any `>` in a command naming the folder blocks, heredoc or not)
 - design-advisor rec 9 — obeyed: 3a4fca9 (new writers and shells match only at a command start or after a wrapper; the S182 lists are unchanged; a commit message naming `hook-approvals-guard.sh` and "source" is in the corpus and passes)
 - design-advisor rec 10 — obeyed: 3a4fca9 (bash 3.2 + BSD tools only: `tr`, `cd -P`, `ls -ld`, awk with ENVIRON; the guard tests pass under `/bin/bash` 3.2.57 and bash 5)
 - design-advisor rec 11 — obeyed: 9dcec17 (a hook counts as wired only under a covering matcher; the pushed group carries only the missing hooks; AC5 fixture red at b10a1a6 ("runs it twice"); the loader is still added for Bash when wired only for Edit)
@@ -149,14 +152,13 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - design-advisor rec 15 — obeyed: ef560a6 (DECISION-011 S186 addendum: follows S183's strict-key rule, amends S182 §2, reverses its over-block sentence, corrects "never lists a hook twice")
 
 **fidelity-reviewer** (`.ai/handoffs/session-186-fidelity-reviewer.md`; pass 1 REJECT 12/15 — its recs are answered here; pass 2's handoff replaces pass 1's, both are in `sessions/session-186-review.md`):
-- fidelity-reviewer rec 1 — obeyed: 1409a3c (a backslash-newline is joined first, as the shell does; P1 in `s186_writes()`)
-- fidelity-reviewer rec 2 — obeyed: 1409a3c (awk, gawk, mawk, nawk, editors, sqlite3, php, lua and similar block at a command start while naming the folder; P2 in the corpus)
-- fidelity-reviewer rec 3 — obeyed: 1409a3c (`cd`/`pushd`/`popd`/`chdir` after any non-letter, and a command word holding `$`, a backtick or `{`, count as a directory change; zsh `>!` read as `>|`; P3 in the corpus)
-- fidelity-reviewer rec 4 — obeyed: 1409a3c (command starts after `if`/`while`/`then`/`do`/`!`/`{` and `NAME=value`; `.`; `git` with any options before the subcommand; `curl -o<path>`; plus `sponge`)
-- fidelity-reviewer rec 5 — obeyed: a20c94b (DECISION-011 says "every LISTED command" and names the three found classes and the open "a writer no list names" class; the test renamed in 1409a3c)
-- fidelity-reviewer rec 6 — obeyed: fe1ed46 (tech-lead recs 1 and 3 and design rec 7 are now `refused: in part` with reasons; tech-lead rec 2 re-cited to ac1b5da — this section, landed after fe1ed46)
-- fidelity-reviewer rec 7 — obeyed: fe1ed46 (SESSION-BOOT names S187 next and S186 as CODE; `prompts/187-task-rudra-s18-new-guard.md` exists; step 11 re-pointed to fe1ed46)
-- fidelity-reviewer rec 8 — obeyed: 1409a3c (a hook `cwd` inside `.ai/approvals` counts as naming it; `a_cwd_inside_the_folder_blocks_a_redirect`)
+Pass 1 (REJECT) and pass 2 (REJECT) each recorded recs; the handoff holds the latest pass. After pass 2 the founder split F110 (b) out (2026-10-04) and the S182 redirect rule was restored in fb467a0, which closes every redirect probe of both passes by construction (any `>` in a command naming the folder blocks). Both passes' recs are listed in `sessions/session-186-review.md`; the current handoff's recs are answered here:
+- fidelity-reviewer rec 1 — obeyed: fb467a0 (zsh `>&!`, `>>!`, `>>|` block: the restored S182 rule blocks any `>`; P4 in the corpus)
+- fidelity-reviewer rec 2 — obeyed: fb467a0 (a hidden `cd` with a redirect blocks under the restored rule; P5 in the corpus)
+- fidelity-reviewer rec 3 — obeyed: fb467a0 (command patterns accept a path in front: `/usr/bin/awk` blocks even with no `>`; P6 in the corpus)
+- fidelity-reviewer rec 4 — obeyed: fb467a0 (the S182 writer and interpreter lists also read the de-quoted copy: `l''n -s .ai/approvals l` blocks; P7 in the corpus)
+- fidelity-reviewer rec 5 — obeyed: 1bceb5c (DECISION-011's S186 addendum now says (b) was split out, names both passes' probes, and claims only that the guard adds; the summary says F110 is NOT fixed)
+- fidelity-reviewer rec 6 — obeyed: 1bceb5c (the split makes "partial fix" answers moot: (b) is recorded as split, not as obeyed; tech-lead rec 2's re-citation is ac1b5da, named in its own line)
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
