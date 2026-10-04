@@ -151,13 +151,13 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its rec
 - design-advisor rec 15 — obeyed: ed96c4b (DECISION-011 S186 addendum: follows S183's strict-key rule, corrects "never lists a hook twice", and records (b)'s design and why it was split. The §2 amendment and the over-block reversal it first carried (ef560a6) were withdrawn with the split — S182 §2 stands)
 
 **fidelity-reviewer** (`.ai/handoffs/session-186-fidelity-reviewer.md`; pass 1 REJECT 12/15 — its recs are answered here; pass 2's handoff replaces pass 1's, both are in `sessions/session-186-review.md`):
-Passes 1–5 each REJECTED (the guard); the handoff holds the latest pass (5). After pass 2 the founder split F110 (b) out; pass 3 found the backslash-newline join broke "only adds" (33235cd); pass 4 found large commands fail open through `printf | grep -q` — in the S182 guard on main too (~60 KB) — and the founder chose the pipe-free fix (58b62f0); pass 5 found that join quadratic on bash 3.2 (measured: 10,000 backslashes >120 s) and the here-strings needing a temp file (fixed 6417b01). Every pass's recs are in `sessions/session-186-review.md`; pass 5's are answered here:
-- fidelity-reviewer rec 1 — obeyed: 6417b01 (timed under /bin/bash 3.2, folder and `>` at the end: S182 guard 0.03 s at every size; the 58b62f0 guard 1.4 s at 2,000, 20.9 s at 5,000, killed at 120 s at 10,000 and 30,000 backslashes — the counterexample is real)
-- fidelity-reviewer rec 2 — obeyed: 6417b01 (the join is one awk pass; 30,000 backslashes now exit 2 in 0.06 s)
-- fidelity-reviewer rec 3 — obeyed: 6417b01 (`a_backslash_dense_command_blocks_fast`, <5 s; verify-186 times 30,000 backslashes under /bin/bash)
-- fidelity-reviewer rec 4 — obeyed: 6417b01 (pass 4's rec 7 was answered from the wrong input — `a`-padding, one backslash; the measurement in rec 1 above is the one it named, and it found the bug)
-- fidelity-reviewer rec 5 — obeyed: 02b5a2f (DECISION-011's S186 addendum records passes 4 and 5: the pipe-free checks and the ~60 KB hole in the S182 guard on main and in rudra)
-- fidelity-reviewer rec 6 — obeyed: 6417b01 (no here-strings left: every check is `printf | grep -c >/dev/null`, which needs no temp file; recorded in DECISION-011)
+Passes 1–5 each REJECTED (the guard); the handoff holds the latest pass (5). After pass 2 the founder split F110 (b) out; pass 3 found the backslash-newline join broke "only adds" (33235cd); pass 4 found large commands fail open through `printf | grep -q` — in the S182 guard on main too (~60 KB) — and the founder chose the pipe-free fix (58b62f0); pass 5 found that join quadratic on bash 3.2 (measured: 10,000 backslashes >120 s) and the here-strings needing a temp file (fixed 6417b01). Every pass's recs are in `sessions/session-186-review.md`; pass 5's answers, kept as history (pass 6's handoff replaced it):
+- pass 5, rec 1: obeyed: 6417b01 (timed under /bin/bash 3.2, folder and `>` at the end: S182 guard 0.03 s at every size; the 58b62f0 guard 1.4 s at 2,000, 20.9 s at 5,000, killed at 120 s at 10,000 and 30,000 backslashes — the counterexample is real)
+- pass 5, rec 2: obeyed: 6417b01 (the join is one awk pass; 30,000 backslashes now exit 2 in 0.06 s)
+- pass 5, rec 3: obeyed: 6417b01 (`a_backslash_dense_command_blocks_fast`, <5 s; verify-186 times 30,000 backslashes under /bin/bash)
+- pass 5, rec 4: obeyed: 6417b01 (pass 4's rec 7 was answered from the wrong input — `a`-padding, one backslash; the measurement in rec 1 above is the one it named, and it found the bug)
+- pass 5, rec 5: obeyed: 02b5a2f (DECISION-011's S186 addendum records passes 4 and 5: the pipe-free checks and the ~60 KB hole in the S182 guard on main and in rudra)
+- pass 5, rec 6: obeyed: 6417b01 (no here-strings left: every check is `printf | grep -c >/dev/null`, which needs no temp file; recorded in DECISION-011)
 
 Pass 6 ACCEPTED (12 of 14 SHIPPED; D2 NOT-BUILT and AC2 PARTIAL from the founder's split). Its recs:
 - fidelity-reviewer rec 1 — obeyed: a579494 (the broken `## Delta` fragment and the two orphaned pass-4 lines removed; `## Advice` ends at the real `## Delta`)
@@ -165,7 +165,7 @@ Pass 6 ACCEPTED (12 of 14 SHIPPED; D2 NOT-BUILT and AC2 PARTIAL from the founder
 - fidelity-reviewer rec 3 — obeyed: a579494 (summary and TASK say verify 35/35)
 - fidelity-reviewer rec 4 — obeyed: cf109c5 (the test runs `/bin/bash` when it exists — macOS's 3.2 — and its comment says only there can it catch the pass-5 slowdown)
 - fidelity-reviewer rec 5 — deferred: docs/decisions/DECISION-011-controls-the-agent-cannot-type.md
-  why: not a regression (S182 passes `timeout 5 git checkout …` too); more wrappers belong with F110 (b)'s own session → backlog — reason: the founder picks when; on the S190 ground-truth checklist. The "…" in DECISION-011 §2's wrapper list is replaced by the real list in a579494.
+  why: not a regression (S182 passes `timeout 5 git checkout …` too); more wrappers belong with F110 (b)'s own session → backlog — reason: the founder picks when; on the S190 ground-truth checklist. The "…" in DECISION-011 §2's wrapper list is replaced by the real list in e338571.
 
 ## Delta
 - `+` `obeyed_blocks_from:` key (Vajra's own CONSTRAINTS only) and its strict reader
