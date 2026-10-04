@@ -612,11 +612,22 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                      back — Vajra cannot tell it from one you never had.)"
                 )?;
             }
-            GtSync::Unrecognised(why) => writeln!(
-                out,
-                "  ACTION  .ai/CONSTRAINTS.yaml left untouched — {why}. A fresh `vajra init` in an \
-                 empty folder shows the current `ground_truth:` audits and questions to copy."
-            )?,
+            GtSync::Unrecognised(why) => {
+                // S187 cold review rec 2: say exactly what to add by hand.
+                let can: Vec<&str> = SCAFFOLD_GROUND_TRUTH.lines().collect();
+                let list = can
+                    .iter()
+                    .find(|l| l.starts_with("  required_audits:"))
+                    .map_or("", |l| l.trim());
+                let keys: Vec<String> = question_blocks(&can).into_iter().map(|(k, _)| k).collect();
+                writeln!(
+                    out,
+                    "  ACTION  .ai/CONSTRAINTS.yaml left untouched — {why}. Under `ground_truth:`, \
+                     the current list is:\n              {list}\n          and these question \
+                     blocks (a fresh `vajra init` in an empty folder has their text): {}",
+                    keys.join(", ")
+                )?
+            }
         }
     }
 
@@ -1038,6 +1049,38 @@ fn add_missing_ground_truth(project: &str, canonical: &str) -> GtSync {
     if close < open || line[open + 1..close].contains('[') {
         return GtSync::Unrecognised("its `required_audits:` list could not be read".into());
     }
+    // S187 cold review rec 1: write only a section read EXACTLY — a quoted name, a `_questions:` key
+    // with anything after its colon, a block with no items, an item at two spaces, or a four-space
+    // line outside a block (a blank line inside a block) would get a duplicate key or a project's own
+    // questions moved under another audit, while the byte-undo still held.
+    if line[open + 1..close].contains(['"', '\'']) {
+        return GtSync::Unrecognised("its `required_audits:` list has quoted names".into());
+    }
+    let sec_lines: Vec<&str> = lines[section.clone()].to_vec();
+    let blocks_here = question_blocks(&sec_lines);
+    for (k, l) in sec_lines.iter().enumerate() {
+        let key = l.split(':').next().unwrap_or("").trim();
+        let in_block = blocks_here.iter().any(|(_, r)| r.contains(&k));
+        let bad = if l.starts_with("    ") {
+            !in_block
+        } else if l.starts_with("  - ") {
+            true
+        } else {
+            l.starts_with("  ")
+                && !l.starts_with("   ")
+                && key.ends_with("_questions")
+                && question_key(l).is_none()
+        };
+        if bad {
+            return GtSync::Unrecognised(format!(
+                "its `ground_truth:` line {:?} is not a shape this edit reads exactly",
+                l.trim()
+            ));
+        }
+    }
+    if let Some((k, _)) = blocks_here.iter().find(|(_, r)| r.len() < 2) {
+        return GtSync::Unrecognised(format!("its `{k}:` has no `    - ` items under it"));
+    }
 
     // The project's names with the byte span each occupies in the line.
     let mut have: Vec<(String, usize, usize)> = Vec::new();
@@ -1091,7 +1134,6 @@ fn add_missing_ground_truth(project: &str, canonical: &str) -> GtSync {
 
     // Missing question blocks, each after the block of its nearest canonical predecessor present,
     // else after the section's last indented line.
-    let sec_lines: Vec<&str> = lines[section.clone()].to_vec();
     let proj_blocks: Vec<(String, std::ops::Range<usize>)> = question_blocks(&sec_lines)
         .into_iter()
         .map(|(k, r)| (k, r.start + gt + 1..r.end + gt + 1))
@@ -4522,6 +4564,27 @@ constitution_questions:\n    - Our own constitution question?\n\nload_order:\n  
                 "0 `required_audits:`",
             ),
             ("ground_truth:\n  required_audits: [b_x\n", "not a one-line"),
+            // S187 cold review rec 1: shapes that used to be WRITTEN wrongly.
+            (
+                "ground_truth:\n  required_audits: [\"b_x\"]\n",
+                "quoted names",
+            ),
+            (
+                "ground_truth:\n  required_audits: [b_x]\n  b_questions:   # ours\n    - q?\n",
+                "not a shape this edit reads exactly",
+            ),
+            (
+                "ground_truth:\n  required_audits: [b_x]\n  b_questions:\n    - q?\n\n    - r?\n",
+                "not a shape this edit reads exactly",
+            ),
+            (
+                "ground_truth:\n  required_audits: [b_x]\n  b_questions:\n  - q?\n",
+                "not a shape this edit reads exactly",
+            ),
+            (
+                "ground_truth:\n  required_audits: [b_x]\n  b_questions:\n",
+                "no `    - ` items",
+            ),
         ] {
             match add_missing_ground_truth(project, can) {
                 GtSync::Unrecognised(r) => assert!(r.contains(why), "{project:?}: {r}"),
