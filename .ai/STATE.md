@@ -3,19 +3,18 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S185 (NO-CODE ground truth) is closed on `session-185-closeout` (PR open; the founder merges). S184 merged (#221). Next: S186 — CODE: the fixes from the S185 ground truth (founder's pick A, F110 option b; `prompts/186-task-s185-fixes.md`).**
+**None — between sessions. S186 (CODE: the S185 fixes) is closed on `session-186-s185-fixes` (PR open; the founder merges). S185 merged (#222). Next: S187 — INTERACTIVE: rudra S18 with the new guard (`prompts/187-task-rudra-s18-new-guard.md`).**
 
-## What was done this session (S185 — NO-CODE ground truth, 🟡 PARTIAL PASS, founder approved 2026-10-04)
+## What was done this session (S186 — CODE: the fixes from the S185 ground truth)
 
-- Report: `sessions/session-185-ground-truth.md`. No Vajra code changed. Crew: tech-lead → design-advisor + release-coordinator required, 7 deferred-budget (`--check-crew 185` READY).
-- **F113 pick:** `obeyed_blocks_from: N` — only Vajra's own CONSTRAINTS sets it (132); absent → projects WARN forever and say so; malformed → BLOCK naming the line. Design-advisor threshold 133 keeps its number, words fixed. DEVIATES from DECISION-007's S132 clause.
-- **F110 pick (founder: b):** the approvals guard reads where a redirect really writes; fail closed on anything unresolvable; + S182 recs 1 (`..`), 5 (writers/shells), 2 (settings merge). Hit 4× on 2026-10-04, once in S185 itself.
-- **F115:** stale fixture, not a regression — red since S135 (c7c2ca1, the Crew gate runs first); same red at e1c348e^ and e1c348e. **F114:** confirmed (fresh project `--ledger` exit 1, silent), XS.
-- Audits: stations 8/8 ×4 (S181–S184) · stranger-check 21/21 · scaffold-drift exit 0 · `--dogfood-age` says S161/23 days (blind to rudra) · 0 stars, v0.2.0 6 downloads, crates.io 0.1.0 (19) — unchanged. 55 of 103 commits since S180 are paperwork. 11 leftover verify checkouts removed (founder yes).
+- **F113:** `obeyed_blocks_from: N` in `.ai/CONSTRAINTS.yaml` replaces `OBEYED_JUDGMENT_FROM_SESSION`; only Vajra's file sets it (132). No key → unchecked `obeyed:` claims WARN and say why; empty / non-number / twice / unreadable → a blocking reason naming the line. The design-advisor exemption stops printing 133. DECISION-007 S186 addendum (deviates from S133 §6, reverses S134's marker rejection for this gate).
+- **F110 (b) + S182 recs 1/2/5:** `scripts/hook-approvals-guard.sh` reads where each `>` really writes (target from both the de-quoted and the written command; resolved against the hook's `cwd` with `cd -P`); blocks into-the-folder or unprovable targets (quotes, `$`, globs, `~`, `>(…)`, a `cd`/`chdir`/`-C`, an expanding command word, a linked target, no `cwd`). `..` counts as the folder; more writers/shells/awk at command position; a `cwd` inside the folder counts. `--sync-fleet` adds no hook wired under a covering matcher. DECISION-011 S186 addendum.
+- **F114** fresh project `--ledger` / `--ledger-verify` exit 0 · **F115** verify-132 13/13 (first time since S135; demo-132 case 7 fixed too) · **N1** hook block reasons on stderr.
+- Cold review pass 1 REJECT (P1 backslash-newline, P2 awk's `>`, P3 disguised `cd` — all blocked by S182, let through by the first build) → fixed in 1409a3c → pass 2. Verify 28/28, demo 8/8, 569 lib tests, guard tests on bash 3.2 and 5.
 
-## Previous session (S184 — INTERACTIVE: rudra S17 under the new rules, plus F103 / F107 / F108)
+## Previous session (S185 — NO-CODE ground truth, 🟡 PARTIAL PASS)
 
-- F103 `vajra init` waits 10 s per answer on a silent pipe; F107 warning wording; F108 no empty ledger folder. rudra S17 GREEN, 8/8. Merged #221.
+- `sessions/session-185-ground-truth.md`. Picked F113 → key, F110 → (b), F114/F115/N1 → S186. N2–N8 recorded. Merged #222.
 
 ## S180 (NO-CODE ground truth, 🟡 PARTIAL)
 
@@ -57,31 +56,33 @@
 - **🟡 F71 (S176, PARKED; recurred S177):** a GitHub-button merge leaves the remote session branch; the release check's `pruned` looks at locals only.
 - **🟡 F73 (S176, LOW):** `1)`, `**1.**`, numeric tables, `- AC1:` are not read as criteria (a plan citing them now blocks with the right message); `covers:` u32 overflow is dropped.
 - **🟡 F66 (S175, disclosed, not fixed):** `--check-crew`/`read_handoff` checks a handoff file's presence on disk, never that it's git-tracked — a session's required crew can close with real handoffs left uncommitted. Same bug family as F60 (Vajra's own sync files), different target. No new gate on Vajra's own paperwork without the founder's explicit yes (Guardrails).
-- **🟡 S181/S182 disclosed (DECISION-011):** all bar-raising, not tamper-proof — the agent can strip the mark, fake a terminal, or re-record its own text through `vajra next --role`; `--allow-all=NN` relies on pid liveness. The approvals guard reads command TEXT: a run-time path, a glob, `..` segments (`.ai/hooks/../approvals/x`), or an unlisted write command (`find -delete`, `git checkout --`, `rsync`, `curl -o`) gets past; it over-blocks a command naming the folder that redirects anywhere, and commit-message text naming it. `merge_claude_settings` still appends a whole template group when it is partly present with no same-matcher group (`src/cli/init.rs:980`). These three S182 pass-2 recs → S186 (S185 pick, founder yes). `scripts/verify-session-175.sh` has 2 stale checks superseded by S181 Part 2 (left as history).
+- **🟡 S181/S182 disclosed (DECISION-011):** all bar-raising, not tamper-proof — the agent can strip the mark, fake a terminal, or re-record its own text through `vajra next --role`; `--allow-all=NN` relies on pid liveness. The approvals guard reads command TEXT: a run-time path, a glob, `..` segments (`.ai/hooks/../approvals/x`), or an unlisted write command (`find -delete`, `git checkout --`, `rsync`, `curl -o`) gets past; it over-blocks a command naming the folder that redirects anywhere, and commit-message text naming it. `merge_claude_settings` still appends a whole template group when it is partly present with no same-matcher group (`src/cli/init.rs:980`). These three S182 pass-2 recs were FIXED in S186 (the guard now reads targets; `..`, more writers; the merge respects covering matchers). `scripts/verify-session-175.sh` has 2 stale checks superseded by S181 Part 2 (left as history).
 - **🟡 `.ai/ROADMAP.md`'s "NN % 5 == 0 → mandatory NO-CODE GT" pointer line had gone stale for many cycles** (last hand-updated at S120/S125, corrected at S175 to S170/S180) — a reminder that a hand-maintained "next X" pointer drifts unless something derives it.
 - **🟡 F97 (S179):** `vajra init --sync-fleet` never touches a project's `CONSTRAINTS.yaml`, so existing projects keep the old ground-truth list (rudra updated by hand). Other subcommands still swallow unknown flags (read-only).
 - **🔴 Non-Claude agents (S179, PARKED until after S180 by the founder):** F91 the git guards cannot tell OpenCode's agent from the founder (37 unchecked commits, a push straight to rudra's main) · F94 one chat for two sessions · F95 OpenCode helpers matched to unrelated Claude Code records. F92 (a waiver labelled "founder" he did not give; the waiver passes ~20 checks at once) → S180 Goal 0.
-- **🔴 F113 (S184; S185 picked the fix → S186: `obeyed_blocks_from:`):** the obeyed threshold (`OBEYED_JUDGMENT_FROM_SESSION = 132`) counts a PROJECT's sessions in Vajra's numbering, so a project's own session 132 starts BLOCKING unchecked `obeyed:` claims, against the 2026-10-03 "not a blocking gate for projects". The warning now says "in this session" so it promises nothing more. The design-advisor threshold has the same units (DECISION-007 S134 addendum).
-- **🟡 F110 (S184; S185 picked (b), read the real redirect target → S186; hit 4× on 2026-10-04):** the approvals guard false-blocks a command whose TEXT names the approvals folder next to a redirect (a heredoc, a `<…>` in a commit sign-off) — hit 3× on 2026-10-04. Workaround: put the text in a file, or `git commit -F`.
-- **🟡 S184 disclosed:** F103's 10 s is a guess (a feeder slower than 10 s per answer gets defaults, printed); `scripts/verify-session-132.sh` `advance-really-binds-on-an-unjudged-obeyed` is red — S185: a stale fixture since S135 (the Crew gate refuses first), so the obeyed→`--advance` binding has had no working proof for 50 sessions (F115/N3 → S186).
-- **🟡 F114 (S184 cold review; S185 confirmed, XS → S186):** in a fresh `vajra init` project with no review files, `scripts/verify-closeout.sh --ledger` prints nothing and exits 1 — a first-run defect, old.
+- **🟢 F113 FIXED S186 (was 🔴):** the obeyed threshold (`OBEYED_JUDGMENT_FROM_SESSION = 132`) counts a PROJECT's sessions in Vajra's numbering, so a project's own session 132 starts BLOCKING unchecked `obeyed:` claims, against the 2026-10-03 "not a blocking gate for projects". The warning now says "in this session" so it promises nothing more. The design-advisor threshold has the same units (DECISION-007 S134 addendum).
+- **🟢 F110 FIXED S186 (b) — the guard now reads the target; over-blocks remain on a quote after `>` (disclosed). Was:** the approvals guard false-blocks a command whose TEXT names the approvals folder next to a redirect (a heredoc, a `<…>` in a commit sign-off) — hit 3× on 2026-10-04. Workaround: put the text in a file, or `git commit -F`.
+- **🟡 S184 disclosed:** F103's 10 s is a guess (a feeder slower than 10 s per answer gets defaults, printed); `scripts/verify-session-132.sh` `advance-really-binds-on-an-unjudged-obeyed` was red since S135 — FIXED S186 (F115: the fixture records a real tech-lead; 13/13).
+- **🟢 F114 FIXED S186. Was:** in a fresh `vajra init` project with no review files, `scripts/verify-closeout.sh --ledger` prints nothing and exits 1 — a first-run defect, old.
 - **🟡 S183 disclosed:** F104 is a WARN, not a block — below session 132 a project's `obeyed:` still needs nobody's check. `lint_command: true`/`none` passes (only the diff shows it); "matches CI" = matches the pinned version; `#[allow]` silences a lint. Release's `rustup toolchain install && rustup target add` runs only on a tag — not tried. A Rust bump is now a deliberate edit to `rust-toolchain.toml` (and a local `rustup toolchain install`).
-- **🟡 S185 new (N1–N9):** N1 the ground-truth `[HOOK BLOCK]` lines (`hook-pre-bash.sh:39,77`, `hook-pre-write.sh:38,72`) print to stdout, so the agent sees "No stderr output" (→ S186) · N2 the GT guards block a commit in a throwaway repo and writes to the agent's scratch folder (F56 class) · N3 = F115's lesson · N4 `vajra next --steps` never names a missing approval record · N5 `--dogfood-age` still blind to rudra (S180 N3) · N6 ROADMAP header still "Session 166" (S180 N4) · N7 verify scripts leave old-version checkouts when killed (11 removed 2026-10-04). · N8 a GT prompt has no Deliverables/Acceptance, so `--advance` refuses it; S180 hand-typed .ai/SESSION, S185 added the two sections (restating the Goal) and advanced normally.
+- **🟡 verify-session-133.sh red at main (S186 found):** 3–4 checks stale since S181 (4addc3a rewrote a line its probe patches) → backlog, S190 checklist with N3.
+- **🟡 S185 new (N1–N9):** N1 FIXED S186 · N1 was: the ground-truth `[HOOK BLOCK]` lines (`hook-pre-bash.sh:39,77`, `hook-pre-write.sh:38,72`) print to stdout, so the agent sees "No stderr output" (→ S186) · N2 the GT guards block a commit in a throwaway repo and writes to the agent's scratch folder (F56 class) · N3 = F115's lesson · N4 `vajra next --steps` never names a missing approval record · N5 `--dogfood-age` still blind to rudra (S180 N3) · N6 ROADMAP header still "Session 166" (S180 N4) · N7 verify scripts leave old-version checkouts when killed (11 removed 2026-10-04). · N8 a GT prompt has no Deliverables/Acceptance, so `--advance` refuses it; S180 hand-typed .ai/SESSION, S185 added the two sections (restating the Goal) and advanced normally.
 - **🟡 Not tested:** Windows; a real light-background terminal. **Zero external users**; prove-then-cut-cost arc unstarted; Autopilot Rung 2/3 incomplete.
 - **🟡 Backlog carry-forwards** — D2 inner-session gap + waiver path (S161) · crew advice impact F13 · S154-QA 1–3 · S156-FR r1/r2 · S157-FR r2 · S159-FR r1 · S161-FR 2–4 · S164-QA r1 · verify-158 source grep · no gate against new hollow verify checks · Releaser NoBranch blind spot · init.rs hand-typed scaffold scope · waiver BLOCK paths untested.
 
 ## What Is In Progress
 
-- Nothing. S185 closed on `session-185-closeout`; PR open (founder merges). S186 drafted from the founder's pick; he approves with `vajra approve 186`.
+- Nothing. S186 closed on `session-186-s185-fixes`; PR open (founder merges). S187 drafted from the founder's pick; he approves with `vajra approve 187`.
 
 ## Active PRs
 
-- S185's PR (open). S184 merged as #221, S183 as #220.
+- S186's PR (open). S185 merged as #222, S184 as #221.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S186 | $0 | No paid run. 5 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer ×2, release-coordinator as the judge of every obeyed answer) |
 | S185 | $0 | No paid run. 3 fleet dispatches (tech-lead, design-advisor, release-coordinator; ~113k subagent tokens). NO-CODE ground truth |
 | S184 | $0 | No paid run in this repo; the founder's rudra S17 receipt read ~$110.63 (F67-overstated ~5×). 6 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2 — review + judge, release-coordinator as the recorded judge of all 16 obeyed answers) |
 | S183 | $0 | No paid run in this repo; the founder's rudra S16 receipt read ~$83.54 (F67-overstated ~5×; ~55 min of work). 7 fleet dispatches (tech-lead, design-advisor, plan-advisor, fidelity-reviewer ×2, release-coordinator as the judge of the reviewer's recs) |
