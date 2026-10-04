@@ -19,7 +19,8 @@ fn run(script: &str, payload: serde_json::Value) -> (i32, String) {
 fn run_in(proj: &Path, script: &str, mut payload: serde_json::Value) -> (i32, String) {
     std::fs::create_dir_all(proj.join(".ai")).unwrap();
     std::fs::write(proj.join(".ai/CONSTRAINTS.yaml"), "maturity: L2\n").unwrap();
-    // Claude Code sends the agent's working folder; S186's guard resolves redirect targets against it.
+    // Claude Code sends the agent's working folder; the guard reads it (a working folder inside
+    // .ai/approvals counts as naming the folder).
     if let Some(o) = payload.as_object_mut() {
         o.entry("cwd")
             .or_insert_with(|| proj.to_string_lossy().into_owned().into());
@@ -142,6 +143,11 @@ fn s186_writes() -> Vec<String> {
         format!("true #x\\\nrm -f {DIR}/session-186.json"),
         format!("true #x\\\ncp /tmp/forged {DIR}/187.json"),
         "true #x\\\ncd .ai\necho x > approvals/y".to_string(),
+        // S186 cold review pass 4: a large command — a piped `grep -q` could fail open on it
+        // (SIGPIPE under pipefail). With and without a backslash-newline; the S182 guard let ~60 KB pass.
+        format!("cp /tmp/forged {DIR}/187.json; true \\\n{}", "a".repeat(20 * 1024)),
+        format!("cp /tmp/forged {DIR}/187.json; true \\\n{}", "a".repeat(70 * 1024)),
+        format!("cp /tmp/forged {DIR}/187.json; true {}", "a".repeat(120 * 1024)),
     ]
 }
 
@@ -383,10 +389,11 @@ fn every_listed_command_the_s182_guard_blocked_still_blocks() {
     );
 }
 
-/// S186 design rec 7: a redirect target that is itself a link into the folder, or a request with no
-/// `cwd` to resolve against, is not provably outside — it blocks.
+/// Redirects into the folder through a link, or with no `cwd`, block. (Written in S186 for the
+/// target-reading guard, which was split out; they now block under the S182 redirect rule, and stay as
+/// cases the (b) session must keep blocking.)
 #[test]
-fn a_linked_target_or_a_missing_cwd_is_not_provable() {
+fn redirects_through_a_link_or_with_no_cwd_block() {
     let proj = tempfile::tempdir().unwrap();
     let rec = proj.path().join(DIR).join("session-1.json");
     std::fs::create_dir_all(rec.parent().unwrap()).unwrap();
