@@ -18,7 +18,7 @@ to S188 by the founder. Verify: `scripts/verify-session-187.sh` 13/13 (exit 0); 
 | D4 | F97 — `--sync-fleet` adds a project's missing ground-truth audits + question blocks (one-line rule) | SHIPPED | ff2047f; DECISION-007 S187 addendum; DECISION-011 S182 §4 / S183 §3 corrected; tests `sync_fleet_only_adds_ground_truth_to_constraints` (undo = original, byte for byte), front/empty-list and unrecognised-shape tests; the S142 test renamed, not deleted |
 | D5 | verify-133 green, no check deleted | SHIPPED | bb4cd4c — 15 checks before (12 PASS · 3 FAIL at 0071dca) and 15 after (15 PASS) |
 | D6 | N6 — ROADMAP header derived or deleted | SHIPPED | ac3d544 + f07c875 — the header points at `.ai/SESSION-BOOT.md` / `vajra next --steps`; the S121–S166 notes kept under a history heading; rule 1 amended |
-| D7 | N7 one checkout folder + N5 `--dogfood-age` | N7 SHIPPED · N5 PARTIAL (named, not closed) | bf2349f + 51dfd5c — `scripts/lib-old-checkout.sh`; verify-184/186/187 and demo-187 use it. N5: a rudra run leaves no record on disk (`vajra claude` prints its receipt, writes no file), so the output now says "THIS repo only"; the blind spot stays |
+| D7 | N7 one checkout folder + N5 `--dogfood-age` | PARTIAL — N7 for the three newest verify scripts + demo-187 only; N5 named, not closed | bf2349f + 51dfd5c — `scripts/lib-old-checkout.sh`; verify-184/186/187 and demo-187 use it. N5: a rudra run leaves no record on disk (`vajra claude` prints its receipt, writes no file), so the output now says "THIS repo only"; the blind spot stays |
 | AC1 | live joined read still exits 2 and names the way past; corpus exits the same | SHIPPED | verify-187 rows 1–2 |
 | AC3 | ✗ line with `vajra approve NN` / ✓ with the record | SHIPPED | verify-187 rows 3–4 (0071dca: no such line) |
 | AC4 | sync adds; every line byte-identical except the one list line, which equals the original once the added names are removed; dry run writes nothing; second run adds nothing | SHIPPED | verify-187 rows 5–7 (0071dca: sync left the file as it was) |
@@ -36,13 +36,14 @@ to S188 by the founder. Verify: `scripts/verify-session-187.sh` 13/13 (exit 0); 
 - **N2** (moved to S188 by the founder) — the ground-truth Write guard still blocks writes outside the project.
 - **F110 itself** — the guard still blocks a harmless read joined to a write; fix C only makes the block say how to get past it. Option A (Claude Code's own sandbox, `sandbox.filesystem.denyWrite` + `allowUnsandboxedCommands: false`) is recorded for the S190 ground truth.
 - **N5** is named, not closed — `--dogfood-age` still cannot see rudra's runs.
-- **N7** covers verify-184/186/187 and demo-187 only; older scripts (verify-176, demo-176/178/179/184/186, …) still make their own checkouts.
+- **N7** covers verify-184/186/187 and demo-187 only; verify-176/178/179 and demo-176/178/179/184/186 still make their own checkouts → backlog — reason: housekeeping only we feel; on the S190 ground-truth checklist (cold review rec 3).
 - **F97 opt-out key** (design-advisor rec 9): an audit a project removed on purpose comes back on every sync, and sync says so → S188.
 
 ## Fakest green
+- **AC4's byte-undo test (the cold review's pick).** "Remove the added names and blocks and you get the original" holds for ANY edit that only inserts lines — even one that changes what the YAML means (a second `vision_questions:` key, a project's items moved under another audit). Pass 1 wrote such shapes; after rec 1 they are refused (quoted names, a key with text after its colon, an item at two spaces, a four-space line outside a block, a block with no items), each with a test. A shape nobody listed is still read by the same rules.
 - **D1's "only the reason changed" is a list, not a proof** — `s187_blocks_exactly_what_0071dca_blocked` compares exit codes over the test corpus (40+ blocked commands); a command nobody listed is not compared (the S173 limit).
 - **N5's PASS is a label.** The verify row proves the words "THIS repo only" are printed; nothing more is measured.
-- **AC6 reads the header's words** — a session number written without the word "Session" (e.g. "S187") is allowed; it is in the pointer line on purpose.
+- **AC6 reads the header's words** — after rec 5 it catches `Session N` and `SN`; a number spelled another way ("one-eighty-seven") would pass.
 
 ## Found on the way
 - The guard blocked my own work four times this session (the branch + list, a python edit naming the folder, a test heredoc) — the F110 cost, measured: each time one retry with a script file.
@@ -50,7 +51,7 @@ to S188 by the founder. Verify: `scripts/verify-session-187.sh` 13/13 (exit 0); 
 - `scripts/verify-session-89.sh` was already 13/16 at 0071dca (date, last-session and line-count checks of a 2026-07 ROADMAP) — unchanged by S187, left as history.
 
 ## Cost
-$0 — no paid run. 3 fleet dispatches so far (tech-lead, design-advisor; fidelity-reviewer + release-coordinator at close).
+$0 — no paid run. 4 fleet dispatches: tech-lead, design-advisor, fidelity-reviewer (one cold pass, ACCEPT 10/13 · 3 PARTIAL), release-coordinator (the judge of every `obeyed:` answer).
 
 ## Next — 3 ranked candidates
 1. **(Recommended) N2 — a review-only session may write outside the project.** From the design-advisor's recs 12–20 (resolve the root, the leaf, case, `/var`, relative paths, a crash that exits 1); plus F97's opt-out key. Why: the design is done and it blocked the S185 audit. Risk: it is the one guard change that lets more through — two cold reviews of F110 (b) found holes the same way.
