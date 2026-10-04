@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S183 (rudra S16 under the new rules + F101) complete on `session-183-rudra-s16-new-rules`; S184 next
+## Between Sessions — S184 (rudra S17 under the new rules + F103/F107/F108) complete on `session-184-rudra-s17-new-rules`; S185 next
 
-**Next: Session 184 — rudra session 17 under the new rules, plus F103 / F107 / F108** (the founder's pick, option A, 2026-10-03; all three a yes) — `prompts/184-task-rudra-s17-new-rules.md`, DRAFT until `vajra approve 184`. Before it: merge #220, `cargo install --path .`. Start in a fresh chat.
+**Next: Session 185 — the ground truth (NO-CODE), F113 and F110 first** (the founder's pick, 2026-10-04) — `prompts/185-task-ground-truth.md`, DRAFT until `vajra approve 185`. Before it: merge S184's PR, `cargo install --path .`. Start in a fresh chat.
+
+## Session 184 — INTERACTIVE: rudra S17 under the new rules, plus F103 / F107 / F108 — COMPLETE
+
+- Brief: `prompts/184-task-rudra-s17-new-rules.md`. Summary: `sessions/session-184-summary.md`. Review: `sessions/session-184-review.md`.
+- Shipped: F103 `vajra init` waits 10 s per answer on a silent pipe, then defaults (named on stderr; a terminal unchanged) · F107 the unchecked-claims warning names no Vajra session number, and says "in this session" · F108 `--ledger`/`--ledger-verify` leave no empty folder. Verify 14/14 · demo 7/7.
+- **Founder calls:** F109/F111/F112 rudra's own · F110 (guard false block) + F113 (a project's session 132 starts blocking) → S185, then fixed · Vajra's close does not run `cargo test`.
 
 ## Session 183 — INTERACTIVE: rudra S16 under the new rules, and F101 — COMPLETE
 
