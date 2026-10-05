@@ -7,12 +7,13 @@
 
 ## What was done this session (S188 — CODE: the approvals folder — check what changed, not what the words say)
 
-- **The founder's plan (2026-10-05), DECISION-011 S188 addendum:** the approvals guard no longer reads Bash commands. It saves `.ai/approvals`' state before every AI tool call (PreToolUse, keyed by `tool_use_id`, outside the folder) and compares after it (PostToolUse + PostToolUseFailure). A change lists the records present in `.ai/approvals/voided.json` (gitignored); `approved()` reads a listed record as missing (names lower-cased; an unreadable marker voids all); the AI is told in plain words (exit 2). `vajra approve NN` un-lists NN and every earlier session; the launch-time writers un-list what they write. `--steps` and the Analyst gate say why a record on disk does not count.
+- **The founder's plan (2026-10-05), DECISION-011 S188 addendum:** the approvals guard no longer reads Bash commands. It saves `.ai/approvals`' state before every guarded tool call — Bash, Edit, Write, MultiEdit, NotebookEdit, not MCP tools — (PreToolUse, keyed by `tool_use_id`, outside the folder) and compares after it (PostToolUse + PostToolUseFailure). A change lists the records present in `.ai/approvals/voided.json` (gitignored); `approved()` reads a listed record as missing (names lower-cased; an unreadable marker voids all); the AI is told in plain words (exit 2). `vajra approve NN` un-lists NN and every earlier session; the launch-time writers un-list what they write. `--steps` and the Analyst gate say why a record on disk does not count.
 - **F110 CLOSED:** reading the folder, or writing ABOUT it (heredoc, commit message, a read joined to another command), is never blocked. The Write-tool path block is unchanged.
 - **Counted:** of the 76 corpus commands the start guard (43305fd) blocked before they ran, 45 really write and are now caught AFTER they run; 31 wrote nothing and now pass. LOST (named): a write into another project's folder; a change undone inside one command (the sharpest: forge, run a gate, remove — in ONE command).
 - **Projects:** scaffold settings run the guard after every call too; `--sync-fleet` adds both after groups once, keeps a project's own after hooks. New Hard Rule "Approvals are the founder's" (reaches every scaffold through build.rs). rudra gets it on its next sync.
 - **Live run** (founder's yes, Haiku, $0.03): a write in a failing command fired PostToolUseFailure once with the Pre call's id; the agent got the message verbatim; a read raised nothing; under `vajra claude` the after check ran once.
-- N2 → backlog wording also fixed in the S187 summary (D1). Verify-188 11/11 · demo 8/8 · full `cargo test` 686/0.
+- N2 → backlog wording also fixed in the S187 summary (D1). Verify-188 11/11 · demo 8/8 · full `cargo test` 687/0.
+- **One cold review, ACCEPT (10/12 · 2 PARTIAL); its 5 recs fixed in-session** — the serious one: the void failed OPEN (a forge plus a file named `--x`, or `chmod a-w` on the folder, left no void while the message said "no longer count"); now it fails closed or says "STILL count". `--sync-fleet` now says to restart Claude Code (until then Bash writes are neither blocked nor caught).
 
 ## Previous session (S187 — CODE: the guard message and the S190 leftovers, merged #224)
 
@@ -101,7 +102,7 @@
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
-| S188 | $0.03 | One live run (Haiku, `vajra claude -p`, founder's yes) proving the after-check in real Claude Code. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, release-coordinator as the judge of all 27 obeyed answers) |
+| S188 | $0.03 | One live run (Haiku, `vajra claude -p`, founder's yes) proving the after-check in real Claude Code. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of all 30 obeyed answers) |
 | S187 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, release-coordinator as the judge of all 22 obeyed answers) |
 | S186 | $0 | No paid run. 5 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer ×2, release-coordinator as the judge of every obeyed answer) |
 | S185 | $0 | No paid run. 3 fleet dispatches (tech-lead, design-advisor, release-coordinator; ~113k subagent tokens). NO-CODE ground truth |
