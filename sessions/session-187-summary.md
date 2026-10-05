@@ -6,8 +6,8 @@ message, what blocks unchanged) + every S185 leftover offered. On 2026-10-05 the
 and approved the one-line rule for F97.
 
 ## Goal achieved?
-Yes for D1, D3, D4, D5, D6; D7 is half fixed and half named (N7 fixed; N5 **named, not closed**); D2 moved
-to S188 by the founder. Verify: `scripts/verify-session-187.sh` 13/13 (exit 0); verify-133 15/15, verify-186 35/35, verify-184 14/14 re-run green after the N7 retrofit. Demo: `scripts/demo-session-187.sh`.
+Yes for D1, D3, D4, D5, D6; D7 is PARTIAL (N7 in the three newest verify scripts + demo-187 only; N5 **named, not closed**); D2 moved
+to S188 by the founder. Verify: `scripts/verify-session-187.sh` 14/14 (exit 0); verify-133 15/15, verify-186 35/35, verify-184 14/14 re-run green after the N7 retrofit. Demo: `scripts/demo-session-187.sh`.
 
 ## Fidelity map (prompt `prompts/187-task-guard-message-and-leftovers.md`)
 | # | Requirement | Status | Evidence |
@@ -24,7 +24,7 @@ to S188 by the founder. Verify: `scripts/verify-session-187.sh` 13/13 (exit 0); 
 | AC4 | sync adds; every line byte-identical except the one list line, which equals the original once the added names are removed; dry run writes nothing; second run adds nothing | SHIPPED | verify-187 rows 5–7 (0071dca: sync left the file as it was) |
 | AC5 | verify-133 exits 0, same number of checks | SHIPPED | verify-187 row 8 (the 0071dca text of verify-133 fails today's code) |
 | AC6 | no hand-typed session number in ROADMAP's header | SHIPPED | verify-187 row 9 (0071dca: "Session 166") |
-| AC7 | killed run's checkout in one folder, cleared next run; dogfood-age counts rudra or says "this repo only" | SHIPPED (N5 by its second branch — the label) | verify-187 rows 10–11 |
+| AC7 | killed run's checkout in one folder, cleared next run; dogfood-age counts rudra or says "this repo only" | SHIPPED (N5 by its second branch — the label) | verify-187 rows 10–12 |
 | AC8 | each fix has a real-run check red at 0071dca | SHIPPED | every verify-187 row runs the 0071dca binary, guard, script or file too |
 
 ### verify-133 — the three re-pointed checks (tech-lead rec 4)
