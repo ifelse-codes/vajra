@@ -94,3 +94,5 @@ Why: AC6 asked for each fix to be red at the start commit for its own reason. Fo
 
 rec 5 — Hash the folder in one process (`git hash-object --no-filters --stdin-paths`) instead of one git spawn per entry.
 Why: the cost lands on every Bash and Edit call of every project and grows by one record per session. It is cheap to fix now and easy to miss later.
+
+**Review-Inputs-SHA:** eab4f9e597eea0e272390905bab2594c9af8e2a9a90a8a8033b719c3519829d7
