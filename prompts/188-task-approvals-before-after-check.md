@@ -150,6 +150,13 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its cre
 - design-advisor rec 15 — obeyed: 80bdcb1 (the rule is a Hard Rules row in `.ai/AGENTS.md`, which build.rs derives into the governed body `TPL_AGENTS_BODY` ships — a fresh `vajra init`'s `.ai/AGENTS.md` carries it) and aff49f1 (a new KNOWLEDGE fact that supersedes the S181–S183 guard facts, the old ones left as written)
 - design-advisor rec 16 — obeyed: aff49f1 and 66c557d (the DECISION-011 S188 addendum's first lines say it deviates from §2's last sentence, reverses the S182 addendum §2 and the S186 addendum §1–2 and the S173 only-add rule; no new DECISION file)
 
+**fidelity-reviewer** (`.ai/handoffs/session-188-fidelity-reviewer.md`):
+- fidelity-reviewer rec 1 — obeyed: 26c593c (names reach jq on stdin, NUL-separated; a read-only folder is made writable first; a void that still cannot be written says "NOT voided — these approvals STILL count"; `s188_writes` gains the `--x` and `chmod a-w` attacks — shown red with the pre-fix guard — and `s188_a_void_that_cannot_be_written_says_the_approvals_still_count`)
+- fidelity-reviewer rec 2 — obeyed: 20dcaa3 (`--sync-fleet` prints "restart Claude Code in this project now — … until then, Bash writes into .ai/approvals are neither blocked nor caught" when it wires new hooks, and not when nothing new was wired; tested in `sync_fleet_guards_an_old_project_through_its_settings`) and a4b1a1c (the addendum's §6 says it)
+- fidelity-reviewer rec 3 — obeyed: a4b1a1c (the chmod sentence replaced; the sharpest gap is "a gate run in the same command as the forge, removed or not"; the void is this machine's only; STATE and KNOWLEDGE say "guarded tools", not "any AI tool call") and 70a6d93 (the summary's wording)
+- fidelity-reviewer rec 4 — obeyed: 70a6d93 (verify-188's `git checkout --` row runs at 43305fd too — blocked before it ran there; the last row says the S188 cases are new and run at HEAD only)
+- fidelity-reviewer rec 5 — obeyed: 26c593c (`state()` hashes every plain file through one `git hash-object --no-filters --stdin-paths`; a newline name, a failed or short batch fall back to one hash per file)
+
 ## Delta
 - `-` the approvals guard's Bash word checks (redirect, writer, interpreter and program lists)
 - `+` a before/after check of `.ai/approvals` around every AI Bash command; a changed folder voids the approval
