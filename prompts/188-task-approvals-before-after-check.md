@@ -130,7 +130,7 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its cre
 - tech-lead rec 8 — obeyed: 80bdcb1 (`sync_fleet_adds_the_after_check_once_and_keeps_a_projects_own_after_hooks`: the project's own PostToolUse group stays equal, one guard group added, a second run changes nothing) and 281fa28 (verify-188 AC5)
 - tech-lead rec 9 — obeyed: 281fa28 (verify-188 AC6: the guard `vajra init` ships equals scripts/hook-approvals-guard.sh byte for byte, the stamp line aside; AC1–AC5 run through a `vajra init` project's own shipped copy and settings)
 - tech-lead rec 10 — refused: in part — ROADMAP and STATE already said "N2 → backlog, a known issue" (PR #225), so no commit touched them; but deliverable 1 also says "S187's 'N2 → S188' wording is replaced", and the S187 summary still said "N2 → S188" in four places plus "F97 opt-out key → S188"; b870483 corrects those lines.
-- tech-lead rec 11 — obeyed: ADVICE_SHA (the implementation-advisor skip line above, with the budget reason); one cold fidelity pass on the finished branch, then the release-coordinator once, after this section answers every rec
+- tech-lead rec 11 — obeyed: 66c557d (the implementation-advisor skip line above, with the budget reason); one cold fidelity pass on the finished branch, then the release-coordinator once, after this section answers every rec
 
 **design-advisor** (`.ai/handoffs/session-188-design-advisor.md`):
 - design-advisor rec 1 — obeyed: 441fd36 (one script branching on `hook_event_name`, the before record in `${TMPDIR:-/tmp}/vajra-approvals-UID/`, mode 700, pruned after a day) and dfed53e (void option B: names listed, not one marker)
@@ -148,7 +148,7 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its cre
 - design-advisor rec 13 — obeyed: aff49f1 (the addendum's first Limit bullet: a forged record put in place, a gate run and the record removed in ONE command is read as approved — the sharpest gap, named, not closed); the summary says it
 - design-advisor rec 14 — obeyed: aff49f1 (the addendum: a write into another project's folder, once blocked by its text, is now neither blocked nor caught); the summary lists it as LOST, not moved
 - design-advisor rec 15 — obeyed: 80bdcb1 (the rule is a Hard Rules row in `.ai/AGENTS.md`, which build.rs derives into the governed body `TPL_AGENTS_BODY` ships — a fresh `vajra init`'s `.ai/AGENTS.md` carries it) and aff49f1 (a new KNOWLEDGE fact that supersedes the S181–S183 guard facts, the old ones left as written)
-- design-advisor rec 16 — obeyed: aff49f1 and ADVICE_SHA (the DECISION-011 S188 addendum's first lines say it deviates from §2's last sentence, reverses the S182 addendum §2 and the S186 addendum §1–2 and the S173 only-add rule; no new DECISION file)
+- design-advisor rec 16 — obeyed: aff49f1 and 66c557d (the DECISION-011 S188 addendum's first lines say it deviates from §2's last sentence, reverses the S182 addendum §2 and the S186 addendum §1–2 and the S173 only-add rule; no new DECISION file)
 
 ## Delta
 - `-` the approvals guard's Bash word checks (redirect, writer, interpreter and program lists)
