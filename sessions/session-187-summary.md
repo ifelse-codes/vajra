@@ -48,6 +48,7 @@ to S188 by the founder. Verify: `scripts/verify-session-187.sh` 14/14 (exit 0); 
 ## Found on the way
 - The guard blocked my own work four times this session (the branch + list, a python edit naming the folder, a test heredoc) — the F110 cost, measured: each time one retry with a script file.
 - `scripts/verify-session-186.sh` pinned "13 passed" for the guard tests — went red the moment S187 added two (the S185 N3 class, again); re-pointed to 13+ in 51dfd5c.
+- **The close gate ran verify-187 twice at once** (two verify-133 runs started 2 s apart, 05:16Z) — both collided on verify-133's one fixed fixture worktree (`target/s133-fixture-wt`, `index.lock: File exists`) and went red; where the second run came from is not found. verify-187 now takes turns on verify-133 through a lock folder (owner pid; a dead owner's lock is taken over); two concurrent verify-187 runs both pass 14/14. verify-133 itself is still not safe to run twice at once → backlog, S190 checklist.
 - `scripts/verify-session-89.sh` was already 13/16 at 0071dca (date, last-session and line-count checks of a 2026-07 ROADMAP) — unchanged by S187, left as history.
 
 ## Cost

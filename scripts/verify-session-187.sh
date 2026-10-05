@@ -12,7 +12,7 @@ PASS=0; FAIL=0
 ok()  { echo "PASS: $1"; PASS=$((PASS+1)); }
 bad() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
 T="$(cd "$(mktemp -d)" && pwd -P)"
-trap 'vajra_old_checkout_remove "${OLD_WT:-}"; rm -rf "$T"' EXIT
+trap 'vajra_old_checkout_remove "${OLD_WT:-}"; [ "$(cat "${V133_LOCK:-/nonexistent}/pid" 2>/dev/null)" = "$$" ] && rm -rf "$V133_LOCK"; rm -rf "$T"' EXIT
 OLD_SHA=0071dca
 VAJRA="$ROOT/target/release/vajra"
 cargo build --release -q || { echo "FAIL: cargo build --release"; exit 1; }
@@ -98,9 +98,19 @@ cmp -s "$C" "$T/after.yaml" && grep -q 'every ground-truth audit and question bl
   && ok "AC4 a second run adds nothing" || bad "AC4 second run"
 
 # --- 4 (AC5): verify-133 green, same 15 checks; the 0071dca script is red against today's code --------
+# verify-133 builds its fixtures in ONE fixed worktree (target/s133-fixture-wt): two runs at once
+# collide on its index.lock and both go red (the S187 close gate saw exactly that). Take turns — a
+# lock folder holding the owner's pid; a lock whose owner is gone is taken over.
+V133_LOCK="$ROOT/target/s187-verify-133.lock"
+for _i in $(seq 1 300); do
+  mkdir "$V133_LOCK" 2>/dev/null && { echo $$ > "$V133_LOCK/pid"; break; }
+  _p=$(cat "$V133_LOCK/pid" 2>/dev/null); [ -n "$_p" ] && ! kill -0 "$_p" 2>/dev/null && rm -rf "$V133_LOCK"
+  sleep 1
+done
 bash scripts/verify-session-133.sh > "$T/v133.out" 2>&1; rn=$?
 git show "$OLD_SHA:scripts/verify-session-133.sh" > "$T/v133-old.sh"
 CLAUDE_PROJECT_DIR="$ROOT" bash "$T/v133-old.sh" > "$T/v133-old.out" 2>&1; ro=$?
+rm -rf "$V133_LOCK"
 cn=$(grep -cE '^[a-z0-9-]+ +(exec|behav|struct) +(PASS|FAIL)' "$T/v133.out")
 co=$(grep -cE '^[a-z0-9-]+ +(exec|behav|struct) +(PASS|FAIL)' "$T/v133-old.out")
 if [ "$rn" = 0 ] && [ "$cn" = 15 ] && [ "$co" = 15 ] && [ "$ro" != 0 ] \
