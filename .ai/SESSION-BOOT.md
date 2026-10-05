@@ -4,6 +4,9 @@
 - **S188 — the approvals folder: check what changed, not what the words say** (`prompts/188-task-approvals-before-after-check.md`, DRAFT — the founder's approved plan, 2026-10-05). The AI's Bash commands are no longer judged by their words; Vajra compares the folder before and after each one, and a change voids the approval. He approves with `vajra approve 188`. S187 merged (#224). Start in a FRESH chat.
 
 ## Current Session
+- **Number:** 188 — IN PROGRESS on `session-188-approvals-before-after-check`. CODE: the approvals folder — a before/after check replaces the Bash word guard; a change voids the approval until the founder approves again. Brief: `prompts/188-task-approvals-before-after-check.md`.
+
+## Prior Session
 - **Number:** 187 — CLOSED (merged #224). CODE: the guard message and the S190 leftovers (rewritten with the founder; rudra S18 paused). The approvals guard says how to get past a joined read — what blocks is unchanged (F110 fix C) · `--steps` names a missing approval (N4) · `--sync-fleet` adds a project's missing ground-truth audits and questions, refusing any shape it cannot read exactly (F97, DECISION-007 S187 addendum) · verify-133 green · ROADMAP header derived (N6) · old checkouts in one folder (N7, newest scripts) · `--dogfood-age` says "THIS repo only" (N5, named not closed). N2 → backlog, a known issue (founder). Summary: `sessions/session-187-summary.md`. Review: `sessions/session-187-review.md` (ACCEPT). Verify: `scripts/verify-session-187.sh` (14/14). Demo: `scripts/demo-session-187.sh`.
 
 ## Prior Session
