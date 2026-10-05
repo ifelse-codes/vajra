@@ -71,7 +71,7 @@ before they ran:
   void lands only after the command ends. The old guard blocked the plain spelling.
 - **The void is this machine's only:** a caught forged record that gets committed counts in CI, a fresh clone, a
   worktree. Vajra undoes nothing.
-- **The restart window** after `--sync-fleet` (said by the command now).
+- **The restart window** after `--sync-fleet` (said by the command now) — and in this repo: after merging S188, quit and relaunch Claude Code before S189 (the after hooks load only at launch).
 - **Writes between pairs look like the founder:** a background job (`(sleep 5; cp …) &`, `run_in_background`), what
   an interrupted command or a child it left behind writes after the call returns, a hook killed by its timeout.
   Caught only if it lands inside a later pair.

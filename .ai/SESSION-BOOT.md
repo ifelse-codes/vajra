@@ -1,7 +1,7 @@
 # Session Boot
 
 ## Next Session
-- **S189 — F67 for good: the receipt reads Claude Code's own cost for interactive runs** (`prompts/189-task-receipt-tool-cost.md`, DRAFT — the founder's pick, 2026-10-05). The headline is the tool's own figure or says none is known; no new price rows. He approves with `vajra approve 189`. S188's PR first (the founder merges). Start in a FRESH chat.
+- **S189 — F67 for good: the receipt reads Claude Code's own cost for interactive runs** (`prompts/189-task-receipt-tool-cost.md`, DRAFT — the founder's pick, 2026-10-05). The headline is the tool's own figure or says none is known; no new price rows. S188's PR first: merge it with a merge commit; then in YOUR terminal `git checkout main && git pull --ff-only` (one command), `git branch -d session-188-approvals-before-after-check`, then `vajra approve 189`; then QUIT and relaunch Claude Code (the new after-hooks load only at launch). Start S189 in a FRESH chat.
 
 ## Current Session
 - **Number:** 188 — COMPLETE on `session-188-approvals-before-after-check` (PR open). CODE: the approvals folder — the Bash word guard replaced by a before/after check; a change voids the approvals until `vajra approve NN` (DECISION-011 S188 addendum). F110 closed. Of 76 commands the old guard blocked: 45 caught after they write, 31 pass. Live run $0.03. Summary: `sessions/session-188-summary.md`. Review: `sessions/session-188-review.md`. Verify: `scripts/verify-session-188.sh` (11/11). Demo: `scripts/demo-session-188.sh`.

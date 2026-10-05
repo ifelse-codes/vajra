@@ -153,9 +153,27 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its cre
 **fidelity-reviewer** (`.ai/handoffs/session-188-fidelity-reviewer.md`):
 - fidelity-reviewer rec 1 — obeyed: 26c593c (names reach jq on stdin, NUL-separated; a read-only folder is made writable first; a void that still cannot be written says "NOT voided — these approvals STILL count"; `s188_writes` gains the `--x` and `chmod a-w` attacks — shown red with the pre-fix guard — and `s188_a_void_that_cannot_be_written_says_the_approvals_still_count`)
 - fidelity-reviewer rec 2 — obeyed: 20dcaa3 (`--sync-fleet` prints "restart Claude Code in this project now — … until then, Bash writes into .ai/approvals are neither blocked nor caught" when it wires new hooks, and not when nothing new was wired; tested in `sync_fleet_guards_an_old_project_through_its_settings`) and a4b1a1c (the addendum's §6 says it)
-- fidelity-reviewer rec 3 — obeyed: a4b1a1c (the chmod sentence replaced; the sharpest gap is "a gate run in the same command as the forge, removed or not"; the void is this machine's only; STATE and KNOWLEDGE say "guarded tools", not "any AI tool call") and 70a6d93 (the summary's wording)
+- fidelity-reviewer rec 3 — obeyed: 30b2a46 (STATE:10 and ROADMAP's S188 row say "guarded tool call (Bash, Edit, Write, MultiEdit, NotebookEdit — not MCP tools)" — the two places a4b1a1c missed, found by the judge's pass 1) and a4b1a1c (the chmod sentence replaced; the sharpest gap is "a gate run in the same command as the forge, removed or not"; the void is this machine's only; STATE and KNOWLEDGE say "guarded tools", not "any AI tool call") and 70a6d93 (the summary's wording)
 - fidelity-reviewer rec 4 — obeyed: 70a6d93 (verify-188's `git checkout --` row runs at 43305fd too — blocked before it ran there; the last row says the S188 cases are new and run at HEAD only)
 - fidelity-reviewer rec 5 — obeyed: 26c593c (`state()` hashes every plain file through one `git hash-object --no-filters --stdin-paths`; a newline name, a failed or short batch fall back to one hash per file)
+
+**release-coordinator** (`.ai/handoffs/session-188-release-coordinator.md`):
+- release-coordinator rec 1 — deferred: sessions/session-188-summary.md
+  why: done before the close — STATE:10 and ROADMAP fixed (30b2a46), fidelity-reviewer rec 3's answer now leads with 30b2a46, and one release-coordinator pass 2 re-judges that answer (the other 29 judgments copied). Deferred, not obeyed: the judge cannot judge its own recs.
+- release-coordinator rec 2 — deferred: sessions/session-188-summary.md
+  why: the order the builder follows at close — the pass-2 handoff and this section are committed before `vajra next --inputs-sha 188` is computed.
+- release-coordinator rec 3 — deferred: sessions/session-188-summary.md
+  why: the last commit on the branch adds `**Review-Inputs-SHA:**` to sessions/session-188-review.md (outside the hash).
+- release-coordinator rec 4 — deferred: sessions/session-188-summary.md
+  why: `bash scripts/verify-closeout.sh` runs on the session branch after that last commit and before the push; it must exit 0.
+- release-coordinator rec 5 — deferred: sessions/session-188-summary.md
+  why: every S188 commit names its files in a commit script (no `git add -A`); the four untracked local files stay out. The PR is opened after the close check passes.
+- release-coordinator rec 6 — deferred: sessions/session-188-summary.md
+  why: the founder's step — merge the PR with a merge commit, not a squash; said in .ai/SESSION-BOOT.md's Next Session line.
+- release-coordinator rec 7 — deferred: sessions/session-188-summary.md
+  why: the founder's step after the merge, in his own terminal: `git checkout main && git pull --ff-only` as ONE command, then `git branch -d session-188-approvals-before-after-check`, then `vajra approve 189`; said in .ai/SESSION-BOOT.md.
+- release-coordinator rec 8 — deferred: sessions/session-188-summary.md
+  why: the founder's step — quit and relaunch Claude Code in the Vajra repo before S189's first AI command (hooks are read at launch); said in .ai/SESSION-BOOT.md and the summary.
 
 ## Delta
 - `-` the approvals guard's Bash word checks (redirect, writer, interpreter and program lists)
