@@ -174,6 +174,20 @@ implementation-advisor: skipped — the tech-lead deferred it on budget (its cre
 - fidelity-reviewer rec 6 — obeyed: a34fe3b (the comment now says the Analyst station passes on a Delta alone, so nothing named the record)
 - fidelity-reviewer rec 7 — refused: already done — `s187_blocks_exactly_what_0071dca_blocked` chains `s186_writes()`, which holds verify-186's extra probes: the backslash-newline after `>`, zsh `>>!`, and `/usr/bin/awk` (tests/approvals_guard.rs); listing them again would duplicate the corpus.
 
+**release-coordinator** (`.ai/handoffs/session-187-release-coordinator.md`):
+- release-coordinator rec 1 — deferred: sessions/session-187-summary.md
+  why: done in the closeout — the summary says 14/14, "D7 PARTIAL" and rows 10–12 (bc3976b), and the rest of N7 is on .ai/TASK.md's S190 checklist line (4064a32). Deferred, not obeyed: the judge cannot judge its own recs.
+- release-coordinator rec 2 — deferred: sessions/session-187-summary.md
+  why: the order the builder follows at close — STATE/TASK/ROADMAP written (4064a32, bc3976b), the next prompt after the founder's pick, `scripts/verify-closeout.sh` on the branch, then `--inputs-sha 187` as the last commit.
+- release-coordinator rec 3 — deferred: sessions/session-187-summary.md
+  why: every S187 commit stages files by name (the commit scripts list each path); the four untracked local files stay out.
+- release-coordinator rec 4 — deferred: sessions/session-187-summary.md
+  why: the founder's step — merge S187's PR with a merge commit, not a squash; said in .ai/SESSION-BOOT.md's Next Session line.
+- release-coordinator rec 5 — deferred: sessions/session-187-summary.md
+  why: after the founder merges — `git fetch`, `git checkout main`, `git pull --ff-only`; the next session's start checks main is synced.
+- release-coordinator rec 6 — deferred: sessions/session-187-summary.md
+  why: after rec 5 — `git branch -d session-187-guard-message-and-leftovers` (lowercase, refuses an unmerged branch).
+
 ## Delta
 - `~` approvals guard block reason (writer/program case) names the split-the-command way past
 - `+` `vajra next --steps` approval line
