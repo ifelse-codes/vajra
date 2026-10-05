@@ -232,8 +232,12 @@ spelling, a path built at run time, or an interpreter, changes what it sees.
 fires on success and PostToolUseFailure after a tool call fails; PreToolUse, PostToolUse and PostToolUseFailure
 inputs all carry `tool_use_id`; exit 2 on the two after events shows stderr to Claude and cannot block; hooks fire
 for subagent tool calls; matching hooks run in parallel with no order between them; hooks are read once at start.
-Not documented: when PostToolUse fires for `run_in_background`. Checked live: see the S188 summary (design-advisor
-rec 11).
+Not documented: when PostToolUse fires for `run_in_background`. **Checked live (design-advisor rec 11, founder's yes,
+2026-10-05):** a throwaway `vajra init` project, `vajra claude -p --model haiku` (Claude Code 2.1.280, $0.03), a
+logger hook beside the guard in every group. `cp forged.json .ai/approvals/session-02.json; false` fired PreToolUse
+then PostToolUseFailure once each, with the same `tool_use_id`; the agent received the `[vajra] CAUGHT` message
+verbatim; `voided.json` listed both records; `vajra next --steps` showed ✗. `ls .ai/approvals` fired PreToolUse and
+PostToolUse once each and raised nothing. Under `vajra claude` the after check ran once, not twice.
 
 **What moves from before to after — counted, not stated.** `tests/approvals_guard.rs`
 (`every_command_the_start_guard_blocked_is_caught_after_if_it_wrote`) runs the whole S181–S187 corpus for real
