@@ -3,11 +3,11 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S187 (CODE: the guard message and the S190 leftovers) is closed on `session-187-guard-message-and-leftovers` (PR open; the founder merges — a merge commit, not a squash). S186 merged (#223). Next: S188 — the founder's pick from `sessions/session-187-summary.md`; rudra S18 waits for rudra's data API.**
+**None — between sessions. S187 merged (#224). Next: S188 — the approvals before/after check (`prompts/188-task-approvals-before-after-check.md`, DRAFT until `vajra approve 188`); rudra S18 waits for rudra's data API.**
 
 ## What was done this session (S187 — CODE: the guard message and the S190 leftovers)
 
-- **Rewritten with the founder at the start:** rudra S18 waits for rudra's data API, so S187 became the guard fix (founder pick C — a clearer message, what blocks unchanged; A = Claude Code's own sandbox locking the folder was found and offered, recorded for S190) + every S185 leftover. N2 moved to S188 (founder, 2026-10-05).
+- **Rewritten with the founder at the start:** rudra S18 waits for rudra's data API, so S187 became the guard fix (founder pick C — a clearer message, what blocks unchanged; A = Claude Code's own sandbox locking the folder was found and offered, recorded for S190) + every S185 leftover. N2 → backlog, a known issue (founder, 2026-10-05).
 - **F110 class, fix C:** the approvals guard's writer / interpreter / program blocks now say "run the read (cat, ls, jq) as its own command" and name `git commit -F`; every corpus command exits the same at 0071dca and now (`s187_blocks_exactly_what_0071dca_blocked`).
 - **N4:** `vajra next --steps` shows "the founder has approved this session" (✗ with `vajra approve NN` / ✓) from `session_rules_from` on.
 - **F97 FIXED:** `--sync-fleet` adds a project's missing ground-truth audits (in canonical place, on the one `required_audits:` line) and whole question blocks inside `ground_truth:`; refuses — and prints what to add — any shape it cannot read exactly (quoted names, a key with text after its colon, items at two spaces, a blank line inside a block, an empty block). DECISION-007 S187 addendum narrows S142/S143; DECISION-011 S182 §4 / S183 §3 corrected. An audit a project removed on purpose comes back (said in the output).
@@ -78,16 +78,17 @@
 - **🟢 verify-session-133.sh green again (S187, 15/15):** three checks re-pointed to today's behaviour, none deleted.
 - **🟡 S185 new (N1–N9):** N1 FIXED S186 · N1 was: the ground-truth `[HOOK BLOCK]` lines (`hook-pre-bash.sh:39,77`, `hook-pre-write.sh:38,72`) print to stdout, so the agent sees "No stderr output" (→ S186) · N2 the GT guards block a commit in a throwaway repo and writes to the agent's scratch folder (F56 class) · N3 = F115's lesson · N4 `vajra next --steps` never names a missing approval record · N5 `--dogfood-age` still blind to rudra (S180 N3) · N6 ROADMAP header still "Session 166" (S180 N4) · N7 verify scripts leave old-version checkouts when killed (11 removed 2026-10-04). · N8 a GT prompt has no Deliverables/Acceptance, so `--advance` refuses it; S180 hand-typed .ai/SESSION, S185 added the two sections (restating the Goal) and advanced normally.
 - **🟡 S187 found / disclosed:** `vajra next --advance` still rewrites SESSION-BOOT by number swap (S170's bug): it turned "186" into "187" across old text; S187's closeout rebuilt it by hand · the session guard reads a session number in an edit's TEXT as starting that session (blocked S187's own TASK.md edit; the way past: put the text in a file) · the approvals guard blocked S187's own work four times (one retry each) — F110 stays open; the guard's block now says how · N5 named, not closed · the rest of N7 (verify-176/178/179, demo-176/178/179/184/186) → backlog, S190 checklist.
+- **🟡 N2 — KNOWN ISSUE, backlog (founder, 2026-10-05):** in a review-only session the ground-truth Write guard blocks writes OUTSIDE the project (a scratch note, a throwaway test repo). Vajra's own repo only; workaround: put the commands in a script file. Fix some time in a future session (design: S187 design-advisor recs 12–20).
 - **🟡 Not tested:** Windows; a real light-background terminal. **Zero external users**; prove-then-cut-cost arc unstarted; Autopilot Rung 2/3 incomplete.
 - **🟡 Backlog carry-forwards** — D2 inner-session gap + waiver path (S161) · crew advice impact F13 · S154-QA 1–3 · S156-FR r1/r2 · S157-FR r2 · S159-FR r1 · S161-FR 2–4 · S164-QA r1 · verify-158 source grep · no gate against new hollow verify checks · Releaser NoBranch blind spot · init.rs hand-typed scaffold scope · waiver BLOCK paths untested.
 
 ## What Is In Progress
 
-- Nothing. S187 closed on `session-187-guard-message-and-leftovers`; PR open (founder merges). S188 waits on the founder's pick.
+- Nothing. S187 merged (#224); S188's prompt is written from the founder's approved plan.
 
 ## Active PRs
 
-- S187's PR (open). S186 merged as #223, S185 as #222.
+- S187's closeout PR (the S188 prompt + N2 → backlog). S187 merged as #224, S186 as #223.
 
 ## Cost Tracking
 
