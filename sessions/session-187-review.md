@@ -73,3 +73,5 @@ Why: the comment explains the new step with something that is not true, and the 
 rec 7 — Run the AC1 0071dca-vs-now exit comparison also on the extra commands verify-186 used to probe the guard (backslash-newline, zsh `>>!`, a full-path awk), not just the unit-test corpus.
 Why: "only the reason changed" is proven over a list. I found no decision change by reading, but a bigger list is cheap and is the only proof this check offers.
 
+
+**Review-Inputs-SHA:** 0abd9bfc9d16c351329b04639ebd0a48650c2a7019e31f5b12863a2ebe5c9e7d
