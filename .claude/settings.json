@@ -24,6 +24,14 @@
         {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-copilot-loader.sh\""}
       ]}
     ],
+    "PostToolUse": [
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-approvals-guard.sh\""}]},
+      {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-approvals-guard.sh\""}]}
+    ],
+    "PostToolUseFailure": [
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-approvals-guard.sh\""}]},
+      {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-approvals-guard.sh\""}]}
+    ],
     "Stop": [{"hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hook-stop.sh\""}]}]
   }
 }

@@ -573,3 +573,428 @@ fn s187_blocks_exactly_what_0071dca_blocked() {
         "the old guard must actually run ({blocked} blocked)"
     );
 }
+
+// ── S188: the before/after check ─────────────────────────────────────────────────────────────────
+// Each case is one AI tool call as Claude Code runs it: PreToolUse, the REAL command (bash, in the
+// project), then PostToolUse — or PostToolUseFailure when the command failed — every hook a real run of
+// the shipped script, paired by tool_use_id. TMPDIR is the test's own, so the before records of two
+// tests never meet.
+
+struct Ai {
+    proj: tempfile::TempDir,
+    tmp: tempfile::TempDir,
+    calls: std::cell::Cell<u32>,
+}
+
+/// One hook run: (exit code, stdout, stderr).
+fn hook_in(
+    ai: &Ai,
+    script: &str,
+    payload: &serde_json::Value,
+    maturity: Option<&str>,
+) -> (i32, String, String) {
+    let m = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mut c = Command::new(std::env::var("VAJRA_TEST_BASH").unwrap_or("bash".into()));
+    c.arg(m.join(script))
+        .env("CLAUDE_PROJECT_DIR", ai.proj.path())
+        .env("TMPDIR", ai.tmp.path())
+        .env_remove("VAJRA_GUARD_MATURITY")
+        .current_dir(ai.proj.path())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    if let Some(l) = maturity {
+        c.env("VAJRA_GUARD_MATURITY", l);
+    }
+    let mut child = c.spawn().unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(payload.to_string().as_bytes())
+        .unwrap();
+    let out = child.wait_with_output().unwrap();
+    (
+        out.status.code().unwrap_or(-1),
+        String::from_utf8_lossy(&out.stdout).into_owned(),
+        String::from_utf8_lossy(&out.stderr).into_owned(),
+    )
+}
+
+/// A project with one approved session (188) and git, ready for AI calls.
+fn ai_project() -> Ai {
+    let ai = Ai {
+        proj: tempfile::tempdir().unwrap(),
+        tmp: tempfile::tempdir().unwrap(),
+        calls: std::cell::Cell::new(0),
+    };
+    let p = ai.proj.path();
+    std::fs::create_dir_all(p.join(DIR)).unwrap();
+    std::fs::write(p.join(".ai/CONSTRAINTS.yaml"), "maturity: L2\n").unwrap();
+    std::fs::write(
+        p.join(DIR).join("session-188.json"),
+        "{\"session\": 188, \"method\": \"approve-command\", \"at_unix\": 1}\n",
+    )
+    .unwrap();
+    std::fs::write(p.join("notes.txt"), "n\n").unwrap();
+    std::fs::write(
+        p.join("forged.json"),
+        "{\"session\": 189, \"method\": \"approve-command\"}\n",
+    )
+    .unwrap();
+    let git = |args: &[&str]| {
+        let ok = Command::new("git")
+            .args(args)
+            .current_dir(p)
+            .env("GIT_AUTHOR_NAME", "t")
+            .env("GIT_AUTHOR_EMAIL", "t@t")
+            .env("GIT_COMMITTER_NAME", "t")
+            .env("GIT_COMMITTER_EMAIL", "t@t")
+            .output()
+            .unwrap()
+            .status
+            .success();
+        assert!(ok, "git {args:?}");
+    };
+    git(&["init", "-q", "-b", "main"]);
+    git(&["add", "-A"]);
+    git(&["commit", "-q", "-m", "start"]);
+    ai
+}
+
+struct Call {
+    pre: i32,
+    ran: i32,
+    post: i32,
+    out: String,
+    err: String,
+}
+
+fn payload(event: &str, tool: &str, id: &str, input: serde_json::Value) -> serde_json::Value {
+    serde_json::json!({"hook_event_name": event, "tool_name": tool, "tool_use_id": id, "tool_input": input})
+}
+
+/// One Bash call: Pre → the command → Post/PostFailure, through `pre_script` for the Pre side (the guard
+/// itself, or Vajra's own hook-pre-bash.sh which calls it).
+fn bash_call_via(ai: &Ai, pre_script: &str, cmd: &str, maturity: Option<&str>) -> Call {
+    ai.calls.set(ai.calls.get() + 1);
+    let id = format!("toolu_s188_{}", ai.calls.get());
+    let input = serde_json::json!({ "command": cmd });
+    let (pre, _, _) = hook_in(
+        ai,
+        pre_script,
+        &payload("PreToolUse", "Bash", &id, input.clone()),
+        maturity,
+    );
+    let ran = Command::new("bash")
+        .args(["-c", cmd])
+        .current_dir(ai.proj.path())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .unwrap()
+        .code()
+        .unwrap_or(-1);
+    let event = if ran == 0 {
+        "PostToolUse"
+    } else {
+        "PostToolUseFailure"
+    };
+    let (post, out, err) = hook_in(
+        ai,
+        "scripts/hook-approvals-guard.sh",
+        &payload(event, "Bash", &id, input),
+        maturity,
+    );
+    Call {
+        pre,
+        ran,
+        post,
+        out,
+        err,
+    }
+}
+
+fn bash_call(ai: &Ai, cmd: &str) -> Call {
+    bash_call_via(ai, "scripts/hook-approvals-guard.sh", cmd, None)
+}
+
+fn approved_188(ai: &Ai) -> bool {
+    vajractl::approval::approved(ai.proj.path(), 188).is_some()
+}
+
+/// AC2's corpus: every write the old guard's corpus names that a stock machine can run, plus the two
+/// tech-lead rec 7 cases — a write inside a FAILING command and a path built at run time (the hole
+/// DECISION-011 admitted the word guard had).
+fn s188_writes() -> Vec<String> {
+    vec![
+        format!("echo x > {DIR}/x"),
+        format!("echo x >> {DIR}/session-188.json"),
+        format!("cp forged.json {DIR}/session-189.json"),
+        format!("mv {DIR}/session-188.json notes.md"),
+        format!("rm {DIR}/session-188.json"),
+        format!("echo x | tee {DIR}/x >/dev/null"),
+        format!("touch {DIR}/x"),
+        format!("ln -s ../../forged.json {DIR}/session-189.json"),
+        format!("truncate -s 0 {DIR}/session-188.json"),
+        format!("dd if=forged.json of={DIR}/session-189.json 2>/dev/null"),
+        format!("python3 -c 'open(\"{DIR}/x\",\"w\").write(\"1\")'"),
+        format!("perl -e 'open(F, \">\", \"{DIR}/x\"); print F 1'"),
+        format!("awk 'BEGIN{{print 1 > \"{DIR}/x\"}}'"),
+        format!("find {DIR} -name '*.json' -delete"),
+        format!("cp forged.json {DIR}/session-189.json; false"),
+        "d=.ai; a=appr; cp forged.json $d/${a}ovals/session-189.json".to_string(),
+        format!("cd {DIR} && echo x > y"),
+        format!("mkdir {DIR}/sub"),
+        format!("rm -rf {DIR}"),
+    ]
+}
+
+#[test]
+fn s188_every_write_is_caught_after_it_runs_and_the_approval_stops_counting() {
+    for cmd in s188_writes() {
+        let ai = ai_project();
+        assert!(approved_188(&ai), "the fixture starts approved");
+        let c = bash_call(&ai, &cmd);
+        assert_eq!(
+            c.post, 2,
+            "`{cmd}` (ran {}) was not caught: {}",
+            c.ran, c.err
+        );
+        assert!(c.err.contains("[vajra] CAUGHT"), "`{cmd}`: {}", c.err);
+        assert!(
+            c.err.contains("vajra approve NN") && c.err.contains("tell the founder"),
+            "the message says who writes there and what to do: {}",
+            c.err
+        );
+        assert!(!approved_188(&ai), "`{cmd}`: session 188 still counts");
+        assert!(
+            vajractl::approval::approved(ai.proj.path(), 189).is_none(),
+            "`{cmd}`: a forged later record counts"
+        );
+    }
+}
+
+/// `git checkout --` restores a committed record over a changed one — a change, caught.
+#[test]
+fn s188_git_checkout_of_the_folder_is_caught() {
+    let ai = ai_project();
+    std::fs::write(
+        ai.proj.path().join(DIR).join("session-188.json"),
+        "{\"session\": 188, \"method\": \"approve-command\", \"at_unix\": 2}\n",
+    )
+    .unwrap(); // the founder's newer record, not yet committed
+    let c = bash_call(&ai, &format!("git checkout -- {DIR}"));
+    assert_eq!(c.post, 2, "{}", c.err);
+    assert!(c.err.contains("changed: session-188.json"), "{}", c.err);
+}
+
+/// AC1 (the after side): every read the old guard false-blocked changes nothing, so the after check is
+/// silent. (The before side passes them once the word checks go — step 4.)
+#[test]
+fn s188_reads_change_nothing_and_the_after_check_is_silent() {
+    let ai = ai_project();
+    let reads = [
+        format!("ls {DIR}/"),
+        format!("cat {DIR}/session-188.json 2>&1"),
+        format!(
+            "git checkout -q -b X main && cd .. && ls {}/{DIR}/",
+            ai.proj.path().display()
+        ),
+        format!("cat > notes.md <<'EOF'\nThe folder {DIR} holds the founder's approvals.\nEOF"),
+        format!("git add notes.md && git -c user.name=t -c user.email=t@t commit -q -m \"fix the {DIR} guard\n\nCo-Authored-By: Claude <noreply@anthropic.com>\""),
+        format!("ls {DIR}; rm notes.txt"),
+        format!("cat {DIR}/session-188.json && python3 -c 'print(1)'"),
+        format!("ls {DIR} && awk 1 notes.md"),
+        format!("jq . {DIR}/session-188.json >/dev/null && false"),
+    ];
+    for cmd in reads {
+        let c = bash_call(&ai, &cmd);
+        assert_eq!(c.post, 0, "`{cmd}` (ran {}) was flagged: {}", c.ran, c.err);
+        assert!(approved_188(&ai), "`{cmd}` voided the approval");
+    }
+}
+
+/// AC3 / deliverable 5: the founder's `vajra approve` lands BETWEEN two AI calls — nothing is raised,
+/// and the new record counts, even after a void.
+#[test]
+fn s188_the_founders_approve_between_calls_raises_nothing() {
+    let ai = ai_project();
+    assert_eq!(bash_call(&ai, &format!("cp forged.json {DIR}/x")).post, 2);
+    assert!(!approved_188(&ai));
+    vajractl::approval::approve(ai.proj.path(), 188, false, true).unwrap();
+    assert!(approved_188(&ai), "the founder's yes counts again");
+    let c = bash_call(&ai, &format!("ls {DIR}"));
+    assert_eq!(c.post, 0, "the founder's write was flagged: {}", c.err);
+    assert!(approved_188(&ai));
+}
+
+/// Tech-lead rec 4: the founder's approve lands WHILE an AI command runs — what really happens: it is
+/// flagged (the pair cannot tell who wrote), and the message tells the founder to run it again.
+#[test]
+fn s188_an_approve_during_a_command_is_flagged_and_says_run_it_again() {
+    let ai = ai_project();
+    let input = serde_json::json!({"command": "sleep 0"});
+    let id = "toolu_s188_overlap";
+    let script = "scripts/hook-approvals-guard.sh";
+    let pre = payload("PreToolUse", "Bash", id, input.clone());
+    assert_eq!(hook_in(&ai, script, &pre, None).0, 0);
+    vajractl::approval::approve(ai.proj.path(), 188, false, true).unwrap(); // mid-command
+    let post = payload("PostToolUse", "Bash", id, input);
+    let (code, _, err) = hook_in(&ai, script, &post, None);
+    assert_eq!(code, 2);
+    assert!(
+        err.contains("if you ran `vajra approve` yourself while this command was running"),
+        "{err}"
+    );
+    assert!(!approved_188(&ai));
+    vajractl::approval::approve(ai.proj.path(), 188, false, true).unwrap();
+    assert!(approved_188(&ai), "running it again works");
+}
+
+/// Design-advisor rec 6: no before record (deleted, a Pre hook that never ran) and no tool_use_id both
+/// count as a change at L2; at L1 they and a real change are one report line, exit 0, nothing voided.
+#[test]
+fn s188_no_before_record_counts_as_a_change_and_l1_only_reports() {
+    let ai = ai_project();
+    let script = "scripts/hook-approvals-guard.sh";
+    let input = serde_json::json!({"command": "ls"});
+    let never = payload("PostToolUse", "Bash", "toolu_never_pre", input.clone());
+    let (code, _, err) = hook_in(&ai, script, &never, None);
+    assert_eq!(code, 2, "a missing before record must void");
+    assert!(
+        err.contains("could not compare") && err.contains("no record of the folder from before"),
+        "{err}"
+    );
+    assert!(!approved_188(&ai));
+
+    let ai = ai_project();
+    let no_id = serde_json::json!({"hook_event_name": "PostToolUseFailure", "tool_name": "Bash", "tool_input": input});
+    let (code, _, err) = hook_in(&ai, script, &no_id, None);
+    assert_eq!(code, 2);
+    assert!(err.contains("update Claude Code"), "{err}");
+
+    for cmd in [format!("cp forged.json {DIR}/x"), "true".to_string()] {
+        let ai = ai_project();
+        let c = bash_call_via(&ai, script, &cmd, Some("L1"));
+        assert_eq!(c.post, 0, "L1 never blocks: {cmd}");
+        assert!(
+            c.out.contains("[HOOK WARNING]") || cmd == "true",
+            "{cmd}: {}",
+            c.out
+        );
+        assert!(
+            !ai.proj.path().join(DIR).join("voided.json").exists(),
+            "L1 voided: {cmd}"
+        );
+        assert!(approved_188(&ai));
+    }
+    let ai = ai_project();
+    let none = payload("PostToolUse", "Bash", "toolu_none", serde_json::json!({}));
+    let (code, out, _) = hook_in(&ai, script, &none, Some("L1"));
+    assert_eq!(code, 0);
+    assert!(
+        out.contains("[HOOK WARNING]") && out.contains("no record"),
+        "{out}"
+    );
+}
+
+/// Design-advisor rec 2: the after check may run twice for one call (wired twice, or vajra claude's
+/// --settings copy). It never deletes the before record, so both runs give the same answer.
+#[test]
+fn s188_a_second_after_run_gives_the_same_answer() {
+    let ai = ai_project();
+    let script = "scripts/hook-approvals-guard.sh";
+    for (id, cmd, want) in [
+        ("toolu_twice_a", "ls".to_string(), 0),
+        ("toolu_twice_b", format!("cp forged.json {DIR}/x"), 2),
+    ] {
+        let input = serde_json::json!({ "command": cmd });
+        let pre = payload("PreToolUse", "Bash", id, input.clone());
+        hook_in(&ai, script, &pre, None); // saves the before record (its exit is not this test's point)
+        Command::new("bash")
+            .args(["-c", &cmd])
+            .current_dir(ai.proj.path())
+            .status()
+            .unwrap();
+        for run in 1..=2 {
+            let post = payload("PostToolUse", "Bash", id, input.clone());
+            let (code, _, err) = hook_in(&ai, script, &post, None);
+            assert_eq!(code, want, "`{cmd}` after-run {run}: {err}");
+        }
+    }
+}
+
+/// Removing or editing the void is itself a change: caught, and everything present is listed again.
+#[test]
+fn s188_removing_the_void_is_caught_and_relisted() {
+    let ai = ai_project();
+    let first = bash_call(&ai, &format!("cp forged.json {DIR}/session-189.json"));
+    assert_eq!(first.post, 2);
+    let c = bash_call(&ai, &format!("rm {DIR}/voided.json"));
+    assert_eq!(c.post, 2, "{}", c.err);
+    assert!(c.err.contains("removed: voided.json"), "{}", c.err);
+    assert!(!approved_188(&ai));
+    assert!(vajractl::approval::approved(ai.proj.path(), 189).is_none());
+}
+
+/// Design-advisor rec 3: a Write tool aimed at a link that leads into the folder passes the path check
+/// before it runs (the path is not the folder) — and the after check catches the write.
+#[test]
+fn s188_a_write_tool_through_a_link_is_caught_after() {
+    let ai = ai_project();
+    let p = ai.proj.path();
+    std::os::unix::fs::symlink(p.join(DIR).join("session-189.json"), p.join("docs.md")).unwrap();
+    let input =
+        serde_json::json!({"file_path": p.join("docs.md").to_string_lossy(), "content": "x"});
+    let script = "scripts/hook-approvals-guard.sh";
+    let pre = payload("PreToolUse", "Write", "toolu_link", input.clone());
+    assert_eq!(hook_in(&ai, script, &pre, None).0, 0);
+    std::fs::write(
+        p.join("docs.md"),
+        "{\"session\": 189, \"method\": \"approve-command\"}",
+    )
+    .unwrap();
+    let post = payload("PostToolUse", "Write", "toolu_link", input);
+    let (code, _, err) = hook_in(&ai, script, &post, None);
+    assert_eq!(code, 2, "{err}");
+    assert!(vajractl::approval::approved(p, 189).is_none());
+}
+
+fn uid() -> String {
+    String::from_utf8(Command::new("id").arg("-u").output().unwrap().stdout)
+        .unwrap()
+        .trim()
+        .to_string()
+}
+
+/// Design-advisor rec 4: when the before record cannot be saved the Pre side exits 0, never 1 — Vajra's
+/// own hook-pre-bash.sh ends on any non-zero exit and would skip its later checks; the after side then
+/// counts the missing record as a change.
+#[test]
+fn s188_an_unsavable_before_record_exits_0_at_pre_and_is_caught_after() {
+    let ai = ai_project();
+    let blocker = ai.tmp.path().join(format!("vajra-approvals-{}", uid()));
+    std::fs::write(&blocker, "a file where the folder should be").unwrap();
+    let c = bash_call(&ai, &format!("ls {DIR}"));
+    assert_eq!(c.pre, 0);
+    assert_eq!(c.post, 2, "{}", c.err);
+    let c = bash_call_via(&ai, "scripts/hook-pre-bash.sh", &format!("ls {DIR}"), None);
+    assert_eq!(c.pre, 0, "Vajra's own Pre hook must not end early");
+}
+
+/// Vajra's own Pre hook (hook-pre-bash.sh) saves the before record through the guard: the pair works.
+#[test]
+fn s188_vajras_own_pre_hook_saves_the_before_record() {
+    let ai = ai_project();
+    let c = bash_call_via(&ai, "scripts/hook-pre-bash.sh", &format!("ls {DIR}"), None);
+    assert_eq!((c.pre, c.post), (0, 0), "{}", c.err);
+    let ai = ai_project();
+    let c = bash_call_via(
+        &ai,
+        "scripts/hook-pre-bash.sh",
+        "d=.ai; cp forged.json $d/approvals/x",
+        None,
+    );
+    assert_eq!(c.post, 2, "{}", c.err);
+}
