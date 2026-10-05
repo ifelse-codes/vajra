@@ -83,16 +83,32 @@ state() {
   else printf 'folder\tabsent\0'; return 0
   fi
   [ -d "$AP/" ] || return 0
-  local f rel
-  while IFS= read -r -d '' f; do
+  local f rel i=0 paths=() batch=() hashes=() h
+  while IFS= read -r -d '' f; do paths+=("$f"); done < <(find "$AP/" -mindepth 1 -print0 2>/dev/null | LC_ALL=C sort -z)
+  # Every plain file's hash from ONE git process (S188 review rec 5: a spawn per record made every call
+  # slower as records pile up, one per session). A path holding a newline cannot go through
+  # --stdin-paths: it is hashed on its own below. A batch that fails (an unreadable file) or comes back
+  # short falls back to one hash per file, so an unreadable entry is still recorded as a state.
+  for f in ${paths[@]+"${paths[@]}"}; do
+    [ ! -L "$f" ] && [ -f "$f" ] && case "$f" in *$'\n'*) ;; *) batch+=("$f") ;; esac
+  done
+  if [ ${#batch[@]} -gt 0 ]; then
+    while IFS= read -r h; do hashes+=("$h"); done < <(printf '%s\n' "${batch[@]}" | git hash-object --no-filters --stdin-paths 2>/dev/null || true)
+    [ ${#hashes[@]} -eq ${#batch[@]} ] || hashes=()
+  fi
+  for f in ${paths[@]+"${paths[@]}"}; do
     rel="${f#"$AP"/}"
     if [ -L "$f" ]; then printf 'L\t%s\t%s\0' "$rel" "$(readlink "$f" 2>/dev/null || echo '?')"
     elif [ -d "$f" ]; then
       if [ -r "$f" ] && [ -x "$f" ]; then printf 'D\t%s\0' "$rel"; else printf 'D\t%s\tunreadable\0' "$rel"; fi
-    elif [ -f "$f" ]; then printf 'F\t%s\t%s\0' "$rel" "$(hash_of "$f")"
+    elif [ -f "$f" ]; then
+      h=""
+      case "$f" in *$'\n'*) ;; *) [ ${#hashes[@]} -gt 0 ] && h="${hashes[$i]}"; i=$((i+1)) ;; esac
+      [ -n "$h" ] || h=$(hash_of "$f")
+      printf 'F\t%s\t%s\0' "$rel" "$h"
     else printf 'O\t%s\0' "$rel"
     fi
-  done < <(find "$AP/" -mindepth 1 -print0 2>/dev/null | LC_ALL=C sort -z)
+  done
 }
 
 # PreToolUse: save first, before any block decides (design-advisor rec 4). A state that cannot be saved
@@ -131,18 +147,22 @@ describe() {
 
 # The void: every record name present now (top level, the marker itself left out), written by THIS
 # process into the folder — so removing or editing the marker is itself a change the next pair catches.
+# S188 review rec 1 — it must not fail open: the names reach jq on stdin, NUL-separated (as argv, a file
+# named `--x` was read by jq as an option and no void was written), and a folder made read-only is
+# made writable again first. If it still cannot be written, the caller says the approvals STILL count.
 write_void() {
   local what="$1" names=() f n tmp
   [ -d "$AP/" ] || return 1
   while IFS= read -r -d '' f; do
     n="${f##*/}"; [ "$n" = "$VOID" ] || names+=("$n")
   done < <(find "$AP/" -mindepth 1 -maxdepth 1 -print0 2>/dev/null | LC_ALL=C sort -z)
+  [ -w "$AP/" ] || chmod u+w "$AP/" 2>/dev/null || true
   [ -d "$AP/$VOID" ] && [ ! -L "$AP/$VOID" ] && rm -rf "$AP/$VOID"
   tmp=$(mktemp "$AP/.$VOID.XXXXXX" 2>/dev/null) || return 1
-  if jq -n --arg what "$what" --arg at "$(date +%s)" \
-      '{listed: $ARGS.positional, at_unix: ($at | tonumber), what: $what,
+  if printf '%s\0' ${names[@]+"${names[@]}"} | jq -Rs --arg what "$what" --arg at "$(date +%s)" \
+      '{listed: (split("\u0000") | map(select(. != ""))), at_unix: ($at | tonumber), what: $what,
         note: "an AI tool call changed this folder; a listed record does not count until the founder writes it again (vajra approve NN)"}' \
-      --args ${names[@]+"${names[@]}"} > "$tmp" 2>/dev/null; then
+      > "$tmp" 2>/dev/null; then
     mv -f "$tmp" "$AP/$VOID" 2>/dev/null && return 0
   fi
   rm -f "$tmp"; return 1
@@ -171,10 +191,12 @@ after() {
     echo "[HOOK WARNING] .ai/approvals: ${what:+changed during this command — $what}${why:+$why} (L1 report-only: no approval voided)"
     return 0
   fi
+  local voided=1
   if write_void "${what:-$why}"; then
     listed=$(jq -r '.listed | join(", ")' "$AP/$VOID" 2>/dev/null || true)
   else
-    listed="(Vajra could not write .ai/approvals/$VOID — the folder is not a folder it can write)"
+    voided=0
+    listed=$(find "$AP/" -mindepth 1 -maxdepth 1 2>/dev/null | sed 's#.*/##' | LC_ALL=C sort | paste -sd, - | sed 's/,/, /g')
   fi
   {
     if [ -n "$what" ]; then
@@ -183,7 +205,11 @@ after() {
       echo "[vajra] CAUGHT: Vajra could not compare .ai/approvals before and after this command — $why."
     fi
     echo "  Only the founder writes there (\`vajra approve NN\`, in their own terminal). Vajra cannot undo it."
-    echo "  These approvals no longer count until the founder approves again: ${listed:-none present} (listed in .ai/approvals/$VOID)."
+    if [ "$voided" = 1 ]; then
+      echo "  These approvals no longer count until the founder approves again: ${listed:-none present} (listed in .ai/approvals/$VOID)."
+    else
+      echo "  Vajra could NOT write .ai/approvals/$VOID, so these approvals were NOT voided and STILL count: ${listed:-none present}. Founder: look at the folder now."
+    fi
     echo "  Stop and tell the founder what you ran. Do not write there again — reading it is fine."
     echo "  Founder: if you ran \`vajra approve\` yourself while this command was running, or this was a git checkout or pull that moved a record, just run it again."
   } >&2

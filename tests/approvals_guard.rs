@@ -762,6 +762,10 @@ fn s188_writes() -> Vec<String> {
         format!("cd {DIR} && echo x > y"),
         format!("mkdir {DIR}/sub"),
         format!("rm -rf {DIR}"),
+        // S188 cold review rec 1: a forge that also tries to stop the void being written — a file jq
+        // would read as an option, a folder made read-only. The void must still land (fail closed).
+        format!("cp forged.json {DIR}/session-189.json; touch -- {DIR}/--x"),
+        format!("cp forged.json {DIR}/session-189.json && chmod a-w {DIR}"),
     ]
 }
 
@@ -1019,4 +1023,20 @@ fn s188_vajras_own_pre_hook_saves_the_before_record() {
         None,
     );
     assert_eq!(c.post, 2, "{}", c.err);
+}
+
+/// S188 cold review rec 1: when the void cannot be written at all (the folder replaced by a file), the
+/// message must not claim the approvals stopped counting — it says they STILL count.
+#[test]
+fn s188_a_void_that_cannot_be_written_says_the_approvals_still_count() {
+    let ai = ai_project();
+    let c = bash_call(&ai, &format!("rm -rf {DIR} && echo x > {DIR}"));
+    assert_eq!(c.post, 2, "{}", c.err);
+    assert!(
+        c.err.contains("NOT voided")
+            && c.err.contains("STILL count")
+            && !c.err.contains("no longer count"),
+        "{}",
+        c.err
+    );
 }
