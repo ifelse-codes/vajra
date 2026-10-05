@@ -223,7 +223,9 @@ spelling, a path built at run time, or an interpreter, changes what it sees.
    PreToolUse hook returns, and runs the after events once it ends. No other Vajra hook writes the folder.
 6. **Projects.** `vajra init` ships the same bytes; `--sync-fleet` adds the PostToolUse and PostToolUseFailure
    groups through the S182 add-only merge (a project's own after hooks stay as they were). Claude Code reads hooks
-   when it starts: the after check runs from the next launch. The `.gitignore` line for the void reaches a new
+   when it starts: the after check runs from the next launch — but the upgraded script is live at once, so between
+   a `--sync-fleet` and that restart, Bash writes into `.ai/approvals` are neither blocked nor caught; `--sync-fleet`
+   says "restart Claude Code in this project now" (cold review rec 2). The `.gitignore` line for the void reaches a new
    project; an existing project's ignore block is appended once and never again (S171), so there the void shows as
    an untracked file — named, rare.
 7. **The constitution says it.** A Hard Rule in `.ai/AGENTS.md` ("Approvals are the founder's"), carried into
@@ -256,10 +258,14 @@ the before record inside the folder or the tracked tree; keeping the word checks
 (founder, 2026-10-05); a hash crate (git is already required).
 
 **Limit — bar-raising, not tamper-proof. Named, not closed:**
-- A change undone within one command is not seen — including putting a forged record in place, running a gate and
-  removing the record in ONE command: the gate inside that command reads it as approved. The old guard blocked that
-  command's plain spelling. (The sharpest gap; a later fix could have the approval reader compare the folder
-  against the open before record.)
+- **A gate run in the same command as the forge** reads the forged record as approved, removed afterwards or not:
+  the void lands only after the command ends, when the gate has already acted (the AI is told CAUGHT, but the gate's
+  pass and its side effects stand). A change undone within one command is not seen at all. The old guard blocked the
+  plain spelling of both. (The sharpest gap; a later fix could have the approval reader compare the folder against
+  the open before record.)
+- **The void belongs to this machine** (`voided.json` is gitignored), while a caught forged record stays on disk —
+  Vajra undoes nothing. If that record is committed, it counts in every other checkout: CI, a fresh clone, a `git
+  worktree`, or after `git clean -fdX`.
 - The before record can be edited during the command.
 - A write between pairs looks like the founder: a background job (`(sleep 5; cp …) &`, `run_in_background`), what
   an interrupted command or a child it left behind writes after the call returns, a hook killed by its own timeout.
@@ -274,4 +280,10 @@ the before record inside the folder or the tracked tree; keeping the word checks
 - The founder is flagged when his `vajra approve` lands while an AI command or a background subagent's command is
   running — the message tells him to run it again; and a `git checkout`/`pull`/`stash` that moves a committed
   record counts as a change (`git checkout main && git pull --ff-only` as one command does not).
-- A file's mode change (`chmod`) is not a change; it can only take an approval away, never grant one.
+- A file's mode change (`chmod`) is not itself a change. S188's cold review (rec 1) found that a forge plus
+  `chmod a-w .ai/approvals`, or a file named `--x` (read by jq as an option), stopped the void being written while
+  the message said the approvals no longer counted. Fixed in-session: the names reach jq on stdin, the folder is made
+  writable again first, and a void that still cannot be written (a folder replaced by a file, `chflags uchg`) is
+  reported as "NOT voided — these approvals STILL count".
+- The hook scripts (Stop, UserPromptSubmit, SessionStart, or a PreToolUse hook racing the save) are files the AI can
+  edit, and what they write lands outside any pair (the same class as a write between pairs).
