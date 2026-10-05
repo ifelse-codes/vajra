@@ -1,19 +1,19 @@
 ---
 role: release-coordinator
 session: 188
-agent: claude-code-subagent (verified: toolu_01ESojcrAP6dnv9Le1zuvt4s; text-sha: a42fbb46fde1164247e3f8692bce394188dd30ad7f106be555556b55dce294a2)
-source-sha: 1cb1fb1c67b28e411cf6bf13805ccec63214a177702389f1401e85ee963192bd
-captured: 2026-10-05T16:40:32Z
+agent: claude-code-subagent (verified: toolu_016d2K4s92ah8gbn87RCimRq; text-sha: 80746641108a4d7931837f8a8181d999042334c2fd1201aa6677625af70d7227)
+source-sha: 88ce259ba4574924c35d545c9aa8b4604c7d997411a3abe6d140e7217c8b8571
+captured: 2026-10-05T19:14:48Z
 cost_usd: null
 ---
 
 # Release-coordinator handoff — session 188
 
-# Release-coordinator handoff — session 188
+# Release-coordinator handoff — session 188 (pass 2)
 
-Release-coordinator brief: S188 cannot close yet. 29 of the 30 `obeyed:` answers match the tip. One is a mismatch: fidelity-reviewer rec 3. Its answer says STATE.md was corrected, but `.ai/STATE.md:10` still says the guard saves the folder's state "before every AI tool call". MCP tools are not watched, so that sentence is still false. Two more things stand between the branch and the merge. The review file has no `Review-Inputs-SHA` line yet. And the recs below still need answers in `## Advice`. Going by the ref files, the branch is not merged and probably not pushed. Local `main` matches `origin/main` as of the last fetch, and there are no merged `session-*` branches lying around.
+Release-coordinator brief: All 30 `obeyed:` answers now match the tip. Fidelity-reviewer rec 3 was the one mismatch in pass 1. Its answer now leads with 30b2a46, and STATE, ROADMAP and KNOWLEDGE no longer say "every/any AI tool call". All eight step recs are answered in `## Advice`. Two things still stand between the branch and the close. First, the review file has no `Review-Inputs-SHA` line yet. Second, this pass-2 handoff has to be committed before that hash is computed. Going by the ref files, the branch (tip 5cdbb3c) is not merged and probably not pushed. Local `main` matches `origin/main` as of the last fetch, and there are no merged `session-*` branches lying around.
 
-Method: I ran no git. Each judgment rests on the commit subjects and file lists in `s188-commits.txt` plus the files at the tip (1966ac2), not on what each commit changed on its own. The session-start snapshot showed no modified tracked files, so the working tree should match the tip. I judged the FIRST sha in each disposition, because that is the one the gate binds to (`leading_hex` in `src/obeyed/mod.rs:216`). The ship state comes from reading `.git/refs/*` as plain files. That is an inference, not ancestry that git worked out.
+Method: I ran no git. Pass 2 re-judges only fidelity-reviewer rec 3. I used grep at the tip (5cdbb3c), plus the commit subjects and file lists in `s188-commits.txt`. The session-start snapshot was taken at 5cdbb3c and showed no modified tracked files, so the working tree should match the tip. The other 29 lines are copied unchanged from pass 1, because their first shas did not move. As in pass 1, I judged the FIRST sha in each answer, since that is the one the gate binds to (`leading_hex`, `src/obeyed/mod.rs:216`). The ship state comes from reading `.git/refs/*` as plain files. That is an inference, not ancestry that git worked out.
 
 ## Judgments (one per `obeyed:` answer)
 
@@ -71,69 +71,75 @@ obeyed-check fidelity-reviewer rec 1 — implemented: 26c593c — names reach jq
 
 obeyed-check fidelity-reviewer rec 2 — implemented: 20dcaa3 — --sync-fleet prints "restart Claude Code in this project now — ... until then, Bash writes into .ai/approvals are neither blocked nor caught" only when it merged new hooks (src/cli/init.rs:559-566); sync_fleet_guards_an_old_project_through_its_settings checks that it is said, and not said on a run that wires nothing (tests/approvals_scaffold.rs:230-234, :259-262); addendum §6 says it (DECISION-011:224-228)
 
-obeyed-check fidelity-reviewer rec 3 — mismatch: a4b1a1c — the chmod sentence, the sharpest gap and the this-machine-only void are fixed (DECISION-011:261-268, :283-287), and STATE.md:51, KNOWLEDGE.md:365 and summary:10 now say "guarded tool"; but .ai/STATE.md:10 still says the guard "saves `.ai/approvals`' state before every AI tool call", the overclaim the rec asked to remove from STATE (MCP tools are not watched), while the answer claims STATE was corrected; .ai/ROADMAP.md:705 has the same phrase
+obeyed-check fidelity-reviewer rec 3 — implemented: 30b2a46 — STATE.md:10, STATE.md:51, ROADMAP.md:705 (the S188 row) and KNOWLEDGE.md:365 now say "guarded tool call (Bash, Edit, Write, MultiEdit, NotebookEdit — not MCP tools)", and the summary says "a guarded tool" (summary:10); grepping STATE, ROADMAP and KNOWLEDGE finds no "every/any AI tool call", and the only two hits left are DECISION-011:195's heading "every AI tool call the guard sees" (narrowed, with :275 saying MCP tools are not watched) and summary:65, which quotes the old phrase as the thing that was replaced; the other three asks, which a4b1a1c landed and the answer also cites, still hold at the tip: the chmod sentence is replaced (DECISION-011:283-287), the sharpest gap is widened to "a gate run in the same command as the forge, removed afterwards or not" (DECISION-011:261-265, STATE.md:88, summary:70-71), and the void is named as this machine's only (DECISION-011:266-268, STATE.md:88, summary:72-73)
 
 obeyed-check fidelity-reviewer rec 4 — implemented: 70a6d93 — verify-session-188.sh's `git checkout --` row now also runs at 43305fd (:133-142, `ro=$(gco "$OLD_P")`); the last row says "the S188 cases are new, so this row runs at HEAD only", and the typed "(they do not exist at 43305fd)" is gone (:212-217)
 
 obeyed-check fidelity-reviewer rec 5 — implemented: 26c593c — state() hashes every plain file through one `git hash-object --no-filters --stdin-paths` (scripts/hook-approvals-guard.sh:92-98); a name with a newline, or a failed or short batch, falls back to one hash per file (:93, :97, :106-107)
 
 ## The two refusals (not graded; are the reasons true?)
-- Tech-lead rec 2, refused in part: the reason holds at the tip. The before record sits under TMPDIR, keyed by a checksum of the project root plus the tool_use_id (guard :56-61). after() never deletes it (:173-189), and the Pre side prunes records older than a day (:120). One small point: the key is the project, not the session as the rec's example had it. The rec said "for example", so "as asked" is loose but not false.
-- Tech-lead rec 10, refused in part: the reason holds. STATE.md:87 calls N2 a known backlog issue. The S187 summary's lines 5, 10, 16, 36 and 40 now say "→ backlog" (b870483, 5 lines changed according to the commit list). "No commit touched them" means no D1 commit did. The closeout commits 280eed8 and a4b1a1c did edit STATE and ROADMAP, for other reasons.
+- **Tech-lead rec 2, refused in part.** The reason holds at the tip. The before record sits under TMPDIR, keyed by a checksum of the project root plus the tool_use_id (guard :56-61). after() never deletes it (:173-189), and the Pre side prunes records older than a day (:120). One small point: the key is the project, not the session as the rec's example had it. The rec said "for example", so "as asked" is loose but not false.
+- **Tech-lead rec 10, refused in part.** The reason holds. STATE.md:87 calls N2 a known backlog issue. The S187 summary's lines 5, 10, 16, 36 and 40 now say "→ backlog" (b870483, 5 lines changed according to the commit list). "No commit touched them" means no D1 commit did. The closeout commits 280eed8, a4b1a1c and 30b2a46 did edit STATE and ROADMAP, for other reasons.
 
 ## Noted, not graded
 - In verify-188 row 4, the 43305fd side only checks that the result is "not 0/2", yet the message says "blocked before it ran" (verify-session-188.sh:139-141). The printed `[$ro]` shows the real value, so the check is weaker than its wording.
-- The new Hard Rule ships "(DECISION-011 S188)" into every scaffold, but projects do not have that record. The review called this minor and made no rec; it is not addressed. It belongs with the other scaffold-wording fixes in build.rs (RETEXT_RULES).
+- The new Hard Rule ships "(DECISION-011 S188)" into every scaffold, but projects do not have that record. The review called this minor and made no rec, and it is still not addressed. It belongs with the other scaffold-wording fixes in build.rs (RETEXT_RULES).
+- New in pass 2: DECISION-011:195 still opens §1 with "Before and after every AI tool call the guard sees." It is narrowed and was not in rec 3's list, so it is not a mismatch. If anyone touches the addendum again, "every guarded tool call" would match the other files.
 
 ## Ship state (inferred from files; I could not run git)
-- Branch tip: `.git/refs/heads/session-188-approvals-before-after-check` = 1966ac2. Start = 43305fd.
-- Local `main` = 43305fd, and `origin/main` = 43305fd as of the last fetch. So main is neither behind nor diverged *as of that fetch*. The branch is **not merged**, because main still sits at the branch's start point.
-- There is no `.git/refs/remotes/origin/session-188-*`. The branch was most likely never pushed from this clone, so no PR exists yet, and STATE.md:6's "PR open" is ahead of the facts.
-- Local branches: only `main` and the S188 branch (no packed-refs file). No merged `session-*` branches are lying around today.
-- Four stale remote-tracking refs remain (origin/session-165-closeout, session-186-s185-fixes, session-187-guard-message-and-leftovers, session-187-closeout). The prune check only looks at local branches, so these are tidiness only.
-- The session-start snapshot shows four untracked files that must stay out of git: `.claude/launch.json`, `first-mate.html`, `sessions/session-137-scatter-render.html`, `vajra-cto-audit-2026-07-22.html`.
+- **Branch tip:** `.git/refs/heads/session-188-approvals-before-after-check` = 5cdbb3c (pass 1 saw 1966ac2; since then 30b2a46 and 5cdbb3c). Start = 43305fd.
+- **Main:** local `main` = 43305fd, and `origin/main` = 43305fd *as of the last fetch*. So main is neither behind nor diverged as of that fetch. The branch is **not merged**, because main still sits at the branch's start point.
+- **Remote:** there is still no `.git/refs/remotes/origin/session-188-*`. The branch was most likely never pushed from this clone, so no PR exists yet. STATE.md:6's "PR open" (and :99's "S188's PR") is still ahead of the facts.
+- **Local branches:** only `main` and the S188 branch (no packed-refs file). No merged `session-*` branches are lying around today.
+- **Stale remote-tracking refs:** four remain (origin/session-165-closeout, session-186-s185-fixes, session-187-guard-message-and-leftovers, session-187-closeout). The prune check only looks at local branches, so these are tidiness only.
+- **Advice:** 5cdbb3c answered all eight release-coordinator recs in the prompt's `## Advice` (prompt :161-176), each `deferred: sessions/session-188-summary.md`, and moved rec 3's answer to lead with 30b2a46 (:156). The founder's merge, return-to-main and relaunch steps are now written in `.ai/SESSION-BOOT.md:4` and summary:74.
+- **Untracked files:** the session-start snapshot shows four that must stay out of git: `.claude/launch.json`, `first-mate.html`, `sessions/session-137-scatter-render.html`, `vajra-cto-audit-2026-07-22.html`.
 
 ## Blockers (separate from the steps)
-1. **The obeyed check blocks:** fidelity-reviewer rec 3 is a mismatch against a4b1a1c, and that verdict stays until the answer is changed (`src/obeyed/mod.rs:354-396`). `verify-closeout.sh` runs `vajra next --check-obeyed 188`.
-2. **The advice check blocks** until the recs below are answered in the prompt's `## Advice`.
-3. **The review is not attested:** `sessions/session-188-review.md:7` says ACCEPT but has no `Review-Inputs-SHA` line, so `review-inputs-attested` fails.
-4. **The branch is unmerged** (inferred). The next session's Releaser check `require_merged_prior` will block until the founder merges. After the merge, `require_main_synced` blocks until main is pulled, and `require_pruned` blocks until the branch is deleted locally.
+1. **The obeyed check:** cleared by this pass, once it is recorded. Pass 1's mismatch on fidelity-reviewer rec 3 is replaced by `implemented: 30b2a46` above. This only takes effect after this handoff is recorded via `vajra next --role release-coordinator --from <file>` and committed. Until then the pass-1 mismatch is what `vajra next --check-obeyed 188` reads.
+2. **The review is not attested:** `sessions/session-188-review.md` has no `Review-Inputs-SHA` line, so `review-inputs-attested` fails.
+3. **The branch is unmerged and unpushed** (inferred from refs). The next session's Releaser check `require_merged_prior` blocks until the founder merges. After the merge, `require_main_synced` blocks until main is pulled, and `require_pruned` blocks until the branch is deleted locally.
 
-Gaps in what the checks can see: `origin/main` is only as fresh as the last fetch. And a branch deleted before its merge looks exactly like one deleted after. S187's local branches are gone, and nothing in the refs shows whether they were merged before deletion (STATE says #224 and #225 were).
+Gaps in what the checks can see:
+- `origin/main` is only as fresh as the last fetch.
+- A branch deleted before its merge looks exactly like one deleted after. S187's local branches are gone, and nothing in the refs shows whether they were merged before deletion (STATE says #224 and #225 were).
 
 ## Recommended steps (in the order the checks run)
-Every rec below is a step a human takes at or after the close. Answer them `deferred: sessions/session-188-summary.md`, as S184–S187 did. An `obeyed:` answer to a release-coordinator rec would need a judge other than this role.
+Every rec below is a step a human takes at or after the close. The numbers and the asks are the same as pass 1, so the eight answers already in `## Advice` still apply. An `obeyed:` answer to a release-coordinator rec would need a judge other than this role.
 
 rec 1 — Clear the fidelity-reviewer rec 3 mismatch first: fix STATE.md:10 (and ROADMAP.md:705) to say "every guarded tool call (Bash, Edit, Write, MultiEdit, NotebookEdit — not MCP tools)", put the new sha first in rec 3's answer, and run one release-coordinator pass 2 — or answer rec 3 `refused: in part — <reason>` instead.
-Why: the mismatch stays attached to a4b1a1c. Only a new first sha with a fresh judgment, or a refusal, clears it. The fix is one phrase. A pass 2 rewrites this handoff file, so it must restate all 30 lines; the other 29 can be copied unchanged because their shas do not move. If you would rather not pay for a pass 2, a reasoned `refused:` is an honest answer.
+Why: the mismatch stayed attached to a4b1a1c until a new first sha got a fresh judgment. That is now done: 30b2a46 fixed the wording, 5cdbb3c moved the answer to lead with it, and this pass 2 re-judges it as implemented. What remains is to record and commit this handoff (rec 2).
 
 rec 2 — Commit this handoff and the `## Advice` answers to these recs BEFORE computing the review-inputs hash.
-Why: the hash covers the prompt file's bytes and every committed change outside `sessions/` and the synced `.ai/` files, and `.ai/handoffs/` is included (verify-closeout.sh:1100-1124). Anything committed there after the hash breaks `review-inputs-attested`.
+Why: the hash covers the prompt's bytes and every committed change outside `sessions/` and the synced `.ai/` files, and `.ai/handoffs/` is included (verify-closeout.sh:1100-1124). The Advice is already committed at 5cdbb3c. This pass-2 handoff is not committed yet, and if it lands after the hash it breaks `review-inputs-attested`.
 
 rec 3 — Compute the hash last (`bash scripts/verify-closeout.sh --inputs-sha 188`, or `vajra next --inputs-sha 188`), add `**Review-Inputs-SHA:** <hash>` to sessions/session-188-review.md, and make that the last commit on the branch.
-Why: the review has no attestation today. `sessions/` is outside the hash, so this commit does not move it. Any later edit to the prompt, or any commit outside `sessions/` and the synced `.ai/` files, would.
+Why: the review is still unattested. `sessions/` is outside the hash, so this commit does not move it.
 
 rec 4 — Run the full `bash scripts/verify-closeout.sh 188` on the session branch after that last commit and before pushing; it must exit 0.
-Why: the attestation check works from merge-base(main, HEAD), and that collapses once main absorbs the branch (S83). Run before rec 3, the check fails by design. The summary's full `cargo test` result (687/0) is the builder's claim; I did not run it. It only needs repeating if src/, tests/ or scripts/ change, and a STATE/ROADMAP wording fix changes none of them.
+Why: the attestation check works from merge-base(main, HEAD), and that collapses once main absorbs the branch (S83). 30b2a46 and 5cdbb3c changed no src/, tests/ or scripts/ files, so the summary's `cargo test` 687/0 (the builder's claim, not run by me) does not need repeating.
 
 rec 5 — Push the branch and open the PR by hand, using a commit script that names its files — never `git add -A`.
-Why: the ref files suggest it was never pushed. Four untracked local files would ride along with `-A`, against the founder's no-session-artifacts rule.
+Why: the refs suggest the branch was never pushed, and four untracked local files would ride along with `-A`, against the founder's no-session-artifacts rule.
 
 rec 6 — The founder merges the PR with a merge commit, not squash or rebase.
-Why: `require_merged_prior` checks that the branch tip is an ancestor of main. A squash or rebase leaves the tip outside main's history, and `git branch -d` then refuses to delete the branch too.
+Why: `require_merged_prior` checks that the branch tip is an ancestor of main. A squash or rebase leaves 5cdbb3c outside main's history, and `git branch -d` then refuses to delete the branch.
 
 rec 7 — After the merge, the founder returns to main in his own terminal as ONE command (`git checkout main && git pull --ff-only`), then runs `git branch -d session-188-approvals-before-after-check`, and only then `vajra approve 189`.
-Why: this satisfies `require_main_synced` and `require_pruned`. If an AI chat runs the checkout and the pull as two separate commands, each one moves committed approval records, gets caught as a change (DECISION-011:280-282), and voids every record present — including session-189.json if it was approved first. `-d`, unlike `-D`, refuses an unmerged branch. That covers the check's blind spot that a branch deleted before its merge looks like one deleted after. The pull also refreshes `origin/main`, which is only as fresh as the last fetch.
+Why: this satisfies `require_main_synced` and `require_pruned`.
+- Run as two separate AI commands, the checkout and the pull each move committed approval records, each counts as a change (DECISION-011:280-282), and each voids every record present.
+- `-d`, unlike `-D`, refuses an unmerged branch. That covers the blind spot that a branch deleted before its merge looks like one deleted after.
+- The pull also refreshes `origin/main`.
 
 rec 8 — Quit and relaunch Claude Code in the Vajra repo after the return to main, before S189's first AI command.
-Why: Claude Code reads hooks only at launch (KNOWLEDGE.md:366). A chat started before 441fd36 runs the new script, which no longer has the word checks, but not the after hooks. In such a chat a Bash write into .ai/approvals is neither blocked nor caught (summary:59-62). Opening a new chat inside the same running program is not a relaunch.
+Why: hooks load only at launch (KNOWLEDGE.md:366). In a chat started before 441fd36, a Bash write into .ai/approvals is neither blocked nor caught (summary:59-62). Opening a new chat in the same running program is not a relaunch.
 
 ## Questions for the founder (decisions, not steps)
-- rudra gets S188 only after you rebuild your installed `vajra` from the merged main, run `vajra init --sync-fleet` in rudra, and restart Claude Code there straight away. Until that restart, a Bash write into rudra's `.ai/approvals` is neither blocked nor caught. Do you want that now, or with rudra S18 (the summary's option 3)?
-- Releasing stays parked (crates.io at 0.1.0, STATE.md:59), even though S188 changes what `vajra init` ships. I am not proposing a version bump or a publish. Do you want it to stay parked?
+- **rudra:** it gets S188 only after you rebuild your installed `vajra` from the merged main, run `vajra init --sync-fleet` in rudra, and restart Claude Code there straight away. Until that restart, a Bash write into rudra's `.ai/approvals` is neither blocked nor caught. Do you want that now, or with rudra S18 (the summary's option 3)?
+- **Releasing:** it stays parked (crates.io at 0.1.0, STATE.md:59), even though S188 changes what `vajra init` ships. I am not proposing a version bump or a publish. Do you want it to stay parked?
 
-Files: /Users/suman/playground/vajra/prompts/188-task-approvals-before-after-check.md, /Users/suman/playground/vajra/.ai/STATE.md (line 10), /Users/suman/playground/vajra/.ai/ROADMAP.md (line 705), /Users/suman/playground/vajra/sessions/session-188-review.md, /Users/suman/playground/vajra/scripts/hook-approvals-guard.sh, /Users/suman/playground/vajra/src/approval/mod.rs, /Users/suman/playground/vajra/docs/decisions/DECISION-011-controls-the-agent-cannot-type.md, /Users/suman/playground/vajra/scripts/verify-session-188.sh, /Users/suman/playground/vajra/scripts/verify-closeout.sh, /Users/suman/playground/vajra/src/obeyed/mod.rs
+Files: /Users/suman/playground/vajra/prompts/188-task-approvals-before-after-check.md, /Users/suman/playground/vajra/.ai/STATE.md, /Users/suman/playground/vajra/.ai/ROADMAP.md, /Users/suman/playground/vajra/.ai/KNOWLEDGE.md, /Users/suman/playground/vajra/sessions/session-188-summary.md, /Users/suman/playground/vajra/sessions/session-188-review.md, /Users/suman/playground/vajra/docs/decisions/DECISION-011-controls-the-agent-cannot-type.md, /Users/suman/playground/vajra/.ai/SESSION-BOOT.md, /Users/suman/playground/vajra/.ai/handoffs/session-188-fidelity-reviewer.md, /Users/suman/playground/vajra/.ai/handoffs/session-188-release-coordinator.md, /Users/suman/playground/vajra/scripts/verify-closeout.sh, /Users/suman/playground/vajra/src/obeyed/mod.rs
 
 ## Handoff Delta
-- `+` new: first release-coordinator handoff for this session (21159 bytes of findings)
-- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
+- `~` re-run: release-coordinator handoff replaced (22287 bytes now vs 20749 bytes prior)
+- prior stage: this session's earlier release-coordinator handoff
