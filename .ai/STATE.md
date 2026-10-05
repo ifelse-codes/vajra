@@ -102,7 +102,7 @@
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
-| S188 | $0.03 | One live run (Haiku, `vajra claude -p`, founder's yes) proving the after-check in real Claude Code. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of all 30 obeyed answers) |
+| S188 | $0.03 | One live run (Haiku, `vajra claude -p`, founder's yes) proving the after-check in real Claude Code. 5 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of all 30 obeyed answers ×2 — pass 1 found one mismatch, pass 2 re-judged it; one more pass-2 attempt cut off by the usage limit) |
 | S187 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, release-coordinator as the judge of all 22 obeyed answers) |
 | S186 | $0 | No paid run. 5 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer ×2, release-coordinator as the judge of every obeyed answer) |
 | S185 | $0 | No paid run. 3 fleet dispatches (tech-lead, design-advisor, release-coordinator; ~113k subagent tokens). NO-CODE ground truth |
