@@ -183,9 +183,11 @@ the guard is now linear, but a slow machine and a huge command still meet that l
 
 ## S188 addendum — the approvals folder: check what changed, not what the words say (2026-10-05)
 
-**Follows** this record (§2: only the founder's own process writes an approval record). **Reverses, for Bash,**
-the S182 addendum §2 and the S186 addendum §1–2 — block a command by reading its text; a guard change only adds
-(the S173 rule). Founder's decision, 2026-10-05: in S187 alone the text guard blocked plain reads five times (F110),
+**Deviates from** §2's last sentence ("The agent's Write and Bash hooks refuse to write there") for Bash: the Bash
+hook no longer refuses a write, it catches one after it runs (the Write hook still refuses). **Reverses, for Bash,**
+the S182 addendum §2 and the S186 addendum §1–2 — block a command by reading its text — and the S173 rule that a
+guard change only adds. **Keeps** the rest of §2: only the founder's own process writes an approval record that
+counts. Founder's decision, 2026-10-05: in S187 alone the text guard blocked plain reads five times (F110),
 and S186's two cold reviews kept finding spellings it missed. The class-level argument S186 asked for before any
 loosening: the check no longer reads the command, it reads the folder — so every write the shell can make, by any
 spelling, a path built at run time, or an interpreter, changes what it sees.
