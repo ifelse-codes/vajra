@@ -227,6 +227,11 @@ fn sync_fleet_guards_an_old_project_through_its_settings() {
 
     let text = sync(r, &[]);
     assert!(text.contains("merge"), "{text}");
+    // S188 cold review rec 2: the new groups run only from Claude Code's next start — said at once.
+    assert!(
+        text.contains("restart Claude Code in this project now"),
+        "{text}"
+    );
     assert!(r.join(".ai/hooks").join(GUARD).exists());
     assert_guarded(r);
 
@@ -251,6 +256,10 @@ fn sync_fleet_guards_an_old_project_through_its_settings() {
     let once = read(r, ".claude/settings.json");
     let text = sync(r, &[]);
     assert!(text.contains("already wired"), "{text}");
+    assert!(
+        !text.contains("restart Claude Code"),
+        "nothing new wired, no restart asked: {text}"
+    );
     assert_eq!(read(r, ".claude/settings.json"), once);
 }
 

@@ -556,6 +556,14 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                     out,
                     "  {verb} Vajra's missing hooks into {CLAUDE_SETTINGS_PATH} (your keys and hooks kept)"
                 )?;
+                // S188 cold review rec 2: the hook SCRIPTS are re-read on every call, so an upgraded
+                // guard is live at once — but Claude Code reads settings when it starts, so the newly
+                // wired groups (the approvals after-check) run only from its next launch.
+                writeln!(
+                    out,
+                    "  NOTE    restart Claude Code in this project now — the new hooks run only from its next \
+                     start; until then, Bash writes into .ai/approvals are neither blocked nor caught"
+                )?;
                 settings_merged = 1;
             }
             Err(e) => writeln!(
