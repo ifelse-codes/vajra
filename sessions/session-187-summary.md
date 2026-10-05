@@ -49,6 +49,7 @@ to S188 by the founder. Verify: `scripts/verify-session-187.sh` 14/14 (exit 0); 
 - The guard blocked my own work four times this session (the branch + list, a python edit naming the folder, a test heredoc) — the F110 cost, measured: each time one retry with a script file.
 - `scripts/verify-session-186.sh` pinned "13 passed" for the guard tests — went red the moment S187 added two (the S185 N3 class, again); re-pointed to 13+ in 51dfd5c.
 - **The close gate ran verify-187 twice at once** (two verify-133 runs started 2 s apart, 05:16Z) — both collided on verify-133's one fixed fixture worktree (`target/s133-fixture-wt`, `index.lock: File exists`) and went red; where the second run came from is not found. verify-187 now takes turns on verify-133 through a lock folder (owner pid; a dead owner's lock is taken over); two concurrent verify-187 runs both pass 14/14. verify-133 itself is still not safe to run twice at once → backlog, S190 checklist.
+- **CI caught what the close did not run** (the close runs no `cargo test`, founder rule): `tests/approvals_scaffold.rs` still expected sync to leave CONSTRAINTS.yaml byte-identical and the old "never edits this file" wording — updated to F97's rule (the key never written, every original line kept). And `tests/gt_cadence_shared.rs` runs the session-start hook in a temp project but the hook prints the REAL repo's latest summary options — a summary whose options mention "ground truth" turns its S181 case red. The summary was reworded; the test's leak into the real repo → backlog, S190 checklist.
 - `scripts/verify-session-89.sh` was already 13/16 at 0071dca (date, last-session and line-count checks of a 2026-07 ROADMAP) — unchanged by S187, left as history.
 
 ## Cost
@@ -58,4 +59,4 @@ $0 — no paid run. 4 fleet dispatches: tech-lead, design-advisor, fidelity-revi
 1. **(Recommended) N2 — a review-only session may write outside the project.** From the design-advisor's recs 12–20 (resolve the root, the leaf, case, `/var`, relative paths, a crash that exits 1); plus F97's opt-out key. Why: the design is done and it blocked the S185 audit. Risk: it is the one guard change that lets more through — two cold reviews of F110 (b) found holes the same way.
 2. **F67 — the receipt reads the tool's own cost for interactive runs.** The one wrong number every user sees (~5× high). Risk: Claude Code may not write a cost into an interactive run's transcript.
 3. **The non-Claude tools brainstorm (F91, F94, F95).** Promised since S179. Risk: a design session — nothing a user runs comes out of it.
-(rudra S18 waits for rudra's data API — founder, 2026-10-04. S190 is the next ground truth.)
+(rudra S18 waits for rudra's data API — founder, 2026-10-04. S190 is the next review-only session.)
