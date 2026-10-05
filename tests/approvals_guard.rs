@@ -1,9 +1,13 @@
-//! S182 Part 6 — the approvals guard blocks by whether a command can WRITE, not on any `>`.
+//! The approvals guard (S182 → S188), driven with the JSON Claude Code sends.
 //!
-//! Drives the real `scripts/hook-approvals-guard.sh` (and Vajra's own `hook-pre-bash.sh` /
-//! `hook-pre-write.sh`, which call it) with the JSON Claude Code sends. Two live false blocks at the
-//! start of S182 are the read cases; every write the S181 line blocked must still block (S173).
+//! S182–S187 blocked a Bash command by reading its WORDS; S188 (DECISION-011 S188 addendum, the
+//! founder's call of 2026-10-05) checks what the command CHANGED: the guard saves the folder's state
+//! before every call and compares after it. The corpus below is the S181–S187 test list, kept: every
+//! command the old guards blocked is now RUN for real between a real before call and a real after call,
+//! and it is caught after it runs exactly when it changed the folder. The Write-tool path block is
+//! unchanged and still blocks before the tool runs.
 
+use std::collections::BTreeMap;
 use std::io::Write as _;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -29,16 +33,16 @@ fn run_with(
 ) -> (i32, String) {
     std::fs::create_dir_all(proj.join(".ai")).unwrap();
     std::fs::write(proj.join(".ai/CONSTRAINTS.yaml"), "maturity: L2\n").unwrap();
-    // Claude Code sends the agent's working folder; the guard reads it (a working folder inside
-    // .ai/approvals counts as naming the folder).
     if let Some(o) = payload.as_object_mut() {
         o.entry("cwd")
             .or_insert_with(|| proj.to_string_lossy().into_owned().into());
     }
     let m = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let tmp = tempfile::tempdir().unwrap();
     let mut child = Command::new(shell)
         .arg(m.join(script))
         .env("CLAUDE_PROJECT_DIR", proj)
+        .env("TMPDIR", tmp.path())
         .env_remove("VAJRA_GUARD_MATURITY")
         .current_dir(proj)
         .stdin(Stdio::piped())
@@ -59,6 +63,7 @@ fn run_with(
     )
 }
 
+/// The before side of a Bash call, alone (no event name: how S182–S187 called it).
 fn bash(cmd: &str) -> (i32, String) {
     run(
         "scripts/hook-approvals-guard.sh",
@@ -66,7 +71,7 @@ fn bash(cmd: &str) -> (i32, String) {
     )
 }
 
-/// The declared non-writes: the ONLY commands the S181 line blocked that the guard may now pass.
+/// The declared non-writes of S182–S187.
 fn reads() -> Vec<String> {
     vec![
         format!("cat {DIR}/session-181.json"),
@@ -82,9 +87,8 @@ fn reads() -> Vec<String> {
     ]
 }
 
-/// F110 — still OPEN: the founder split (b) out of S186 (2026-10-04) after two cold reviews found
-/// writes its target reading let through. These name the folder and redirect elsewhere; they still
-/// block, and the block names the way past (`git commit -F`).
+/// F110 — the false blocks S186 and S187 left open: these name the folder and redirect ELSEWHERE.
+/// S188 closes F110: they write nothing in the folder, so nothing blocks them, before or after.
 fn f110_open() -> Vec<String> {
     vec![
         format!("cat > notes.md <<'EOF'\nThe folder {DIR} holds the founder's approvals.\nEOF"),
@@ -93,20 +97,8 @@ fn f110_open() -> Vec<String> {
     ]
 }
 
-#[test]
-fn f110_still_blocks_and_names_the_way_past() {
-    for cmd in f110_open() {
-        let (code, err) = bash(&cmd);
-        assert_eq!(code, 2, "{cmd}");
-        assert!(
-            err.contains("git commit -F"),
-            "the block must name the way past: {err}"
-        );
-    }
-}
-
-/// S186 (F110 b, S182 recs 1 and 5): writes the S182 guard missed or that the new target reading
-/// must still catch — AC2's block list and AC4.
+/// S186 (F110 b, S182 recs 1 and 5): writes the S182 guard missed or that the target reading had to
+/// catch, and every spelling the S186 cold reviews found (P1–P7, R1–R3).
 fn s186_writes() -> Vec<String> {
     vec![
         format!("echo x > {DIR}/y"),
@@ -142,7 +134,7 @@ fn s186_writes() -> Vec<String> {
         format!("git -c a=b checkout -- {DIR}"),
         format!("curl -o{DIR}/x https://x"),
         format!("if true; then sh x.sh {DIR}; fi"),
-        // S186 cold review pass 2 — P4 (zsh), P5, P6, P7: blocked by the S182 rule, kept.
+        // S186 cold review pass 2 — P4 (zsh), P5, P6, P7.
         format!("echo x >&! {DIR}/y"),
         format!("echo x >>! {DIR}/y"),
         format!("echo x >>| {DIR}/y"),
@@ -156,8 +148,7 @@ fn s186_writes() -> Vec<String> {
         format!("true #x\\\nrm -f {DIR}/session-186.json"),
         format!("true #x\\\ncp /tmp/forged {DIR}/187.json"),
         "true #x\\\ncd .ai\necho x > approvals/y".to_string(),
-        // S186 cold review pass 4: a large command — a piped `grep -q` could fail open on it
-        // (SIGPIPE under pipefail). With and without a backslash-newline; the S182 guard let ~60 KB pass.
+        // S186 cold review pass 4: large commands (the S182 guard let ~60 KB through by SIGPIPE).
         format!(
             "cp /tmp/forged {DIR}/187.json; true \\\n{}",
             "a".repeat(20 * 1024)
@@ -193,35 +184,50 @@ fn writes() -> Vec<String> {
         format!("python3 -c 'open(\"{DIR}/x\",\"w\")'"),
         format!("perl -e 'print 1' {DIR}/x"),
         format!("node -e '' {DIR}/x"),
-        "cd .ai && echo x > approvals/x".to_string(), // S181's disclosed gap, closed
+        "cd .ai && echo x > approvals/x".to_string(),
         "cd .ai/approvals && touch x".to_string(),
-        "x=`cd .ai && echo y > approvals/z`".to_string(), // inside backticks (S182, found at close)
-        // S182 review rec 1: `>&word` with a non-digit word is a WRITE to the file `word`
+        "x=`cd .ai && echo y > approvals/z`".to_string(),
         format!("echo x >&1/../{DIR}/x"),
-        // S182 review rec 4: case and quotes reach the same folder on macOS
         "echo x > .AI/Approvals/x".to_string(),
         "echo x > \".ai\"/approvals/x".to_string(),
         "echo x > '.ai/approvals'/x".to_string(),
     ]
 }
 
-#[test]
-fn reads_pass() {
-    for cmd in reads() {
-        let (code, err) = bash(&cmd);
-        assert_eq!(code, 0, "read was blocked: {cmd}\n{err}");
-    }
+/// S187 (F110 class): a read joined to an unrelated command — the S187 guard blocked it and said "split
+/// it". S188: it writes nothing in the folder, so it passes.
+fn s187_split() -> Vec<String> {
+    vec![
+        format!("git checkout -b X main && cd ~/playground/rudra && ls {DIR}/"),
+        format!("ls {DIR}; rm notes.txt"),
+        format!("cat {DIR}/session-187.json && python3 tool.py"),
+        format!("ls {DIR} && awk 1 notes.txt"),
+    ]
 }
 
+/// The whole S181–S187 corpus, each command once.
+fn corpus() -> Vec<String> {
+    let mut all: Vec<String> = Vec::new();
+    for c in reads()
+        .into_iter()
+        .chain(writes())
+        .chain(s186_writes())
+        .chain(f110_open())
+        .chain(s187_split())
+    {
+        if !all.contains(&c) {
+            all.push(c);
+        }
+    }
+    all
+}
+
+/// AC1: the before side reads no Bash command any more — every read the old guards false-blocked passes.
 #[test]
-fn writes_still_block() {
-    for cmd in writes().into_iter().chain(s186_writes()) {
+fn reads_f110_and_joined_reads_pass_the_before_side() {
+    for cmd in reads().into_iter().chain(f110_open()).chain(s187_split()) {
         let (code, err) = bash(&cmd);
-        assert_eq!(code, 2, "write was not blocked: {cmd}");
-        assert!(
-            err.contains("[HOOK BLOCK]"),
-            "block message not on stderr: {cmd}\n{err}"
-        );
+        assert_eq!(code, 0, "read was blocked: {cmd}\n{err}");
     }
 }
 
@@ -250,6 +256,16 @@ fn write_tools_block_on_the_path() {
             serde_json::json!({"tool_name": tool, "tool_input": {key: path}}),
         );
         assert_eq!(code, 2, "{tool} into {path} was not blocked");
+        // S188: the same, sent as Claude Code sends it now (an event name and a call id).
+        let (code, _) = run(
+            "scripts/hook-approvals-guard.sh",
+            serde_json::json!({"hook_event_name": "PreToolUse", "tool_name": tool,
+                "tool_use_id": "toolu_w", "tool_input": {key: path}}),
+        );
+        assert_eq!(
+            code, 2,
+            "{tool} into {path} was not blocked (with an event)"
+        );
     }
     let (code, _) = run(
         "scripts/hook-approvals-guard.sh",
@@ -258,6 +274,7 @@ fn write_tools_block_on_the_path() {
     assert_eq!(code, 0, "a file merely named like the folder was blocked");
 }
 
+/// L1 is report-only on the before side too: a Write into the folder warns and passes.
 #[test]
 fn l1_warns_only() {
     let proj = tempfile::tempdir().unwrap();
@@ -270,7 +287,8 @@ fn l1_warns_only() {
         .stdout(Stdio::piped())
         .spawn()
         .unwrap();
-    let p = serde_json::json!({"tool_input": {"command": format!("echo x > {DIR}/x")}});
+    let p =
+        serde_json::json!({"tool_name": "Write", "tool_input": {"file_path": format!("{DIR}/x")}});
     child
         .stdin
         .take()
@@ -282,14 +300,10 @@ fn l1_warns_only() {
     assert!(String::from_utf8_lossy(&out.stdout).contains("[HOOK WARNING]"));
 }
 
-/// Vajra's own hooks call the one guard: same verdicts through them.
+/// Vajra's own hooks call the one guard: the Write block through hook-pre-write.sh, and a Bash read
+/// through hook-pre-bash.sh passes (the Bash pair through it: `s188_vajras_own_pre_hook_…` below).
 #[test]
 fn vajras_own_hooks_call_the_guard() {
-    let (code, err) = run(
-        "scripts/hook-pre-bash.sh",
-        serde_json::json!({"tool_name": "Bash", "tool_input": {"command": format!("echo x > {DIR}/x")}}),
-    );
-    assert_eq!(code, 2, "hook-pre-bash.sh let a write through\n{err}");
     let (code, err) = run(
         "scripts/hook-pre-bash.sh",
         serde_json::json!({"tool_name": "Bash", "tool_input": {"command": format!("cat {DIR}/x 2>&1")}}),
@@ -343,235 +357,235 @@ fn no_jq_advises_at_l1_and_blocks_at_l2() {
     }
 }
 
-/// S182 review rec 1 — "guard changes only add", CHECKED rather than stated: every command here that
-/// the S181 hook (at e5db703, where S182 started) blocked must still block, unless it is one of the
-/// declared non-writes in `reads()`.
-#[test]
-fn every_command_the_s181_guard_blocked_still_blocks() {
-    let m = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let old = Command::new("git")
-        .args(["show", "e5db703:scripts/hook-pre-bash.sh"])
-        .current_dir(m)
-        .output()
-        .unwrap();
-    assert!(old.status.success(), "cannot read the S181 hook from git");
-    let dir = tempfile::tempdir().unwrap();
-    let old_hook = dir.path().join("old-pre-bash.sh");
-    std::fs::write(&old_hook, &old.stdout).unwrap();
-    let reads = reads();
-    let mut old_blocked = 0;
-    for cmd in reads.iter().chain(writes().iter()) {
-        let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}});
-        let (o, _) = run(old_hook.to_str().unwrap(), p);
-        if o != 2 {
-            continue;
-        }
-        old_blocked += 1;
-        let (n, _) = bash(cmd);
-        assert!(
-            n == 2 || reads.contains(cmd),
-            "the S181 guard blocked `{cmd}` and the new one lets it through"
-        );
-    }
-    assert!(
-        old_blocked >= 20,
-        "the old hook must actually run ({old_blocked} blocked)"
+/// What is in the folder, read independently of the guard: each entry's kind and bytes (a link's target).
+fn folder(p: &Path) -> Option<BTreeMap<String, Vec<u8>>> {
+    use std::os::unix::fs::PermissionsExt;
+    let ap = p.join(DIR);
+    let meta = std::fs::symlink_metadata(&ap).ok()?;
+    let mut out = BTreeMap::new();
+    out.insert(
+        String::new(),
+        format!("{:?} {:o}", meta.file_type(), meta.permissions().mode()).into_bytes(),
     );
+    let mut stack = vec![ap.clone()];
+    while let Some(d) = stack.pop() {
+        let Ok(rd) = std::fs::read_dir(&d) else {
+            continue;
+        };
+        for e in rd.flatten() {
+            let path = e.path();
+            let rel = path
+                .strip_prefix(&ap)
+                .unwrap()
+                .to_string_lossy()
+                .into_owned();
+            let m = std::fs::symlink_metadata(&path).unwrap();
+            let v = if m.file_type().is_symlink() {
+                std::fs::read_link(&path)
+                    .unwrap()
+                    .to_string_lossy()
+                    .as_bytes()
+                    .to_vec()
+            } else if m.is_dir() {
+                stack.push(path.clone());
+                b"dir".to_vec()
+            } else {
+                std::fs::read(&path).unwrap_or_else(|_| b"unreadable".to_vec())
+            };
+            out.insert(rel, v);
+        }
+    }
+    Some(out)
 }
 
-/// S186 AC3 — the same check one guard later, over THIS corpus: every listed command the S182 guard
-/// (e1c348e) blocked must still block, unless it is a declared non-write in `reads()`. A finite list,
-/// not a proof for every command (cold review pass 1 found three classes it missed: P1–P3, now listed).
+/// One corpus command, run for real as an AI call in a fresh project: the before hook, the command (its
+/// `/tmp/` fixtures and `https://x` made local, HOME a scratch folder), the after hook its exit picks.
+struct Real {
+    changed: bool,
+    pre: i32,
+    post: i32,
+    voided: bool,
+}
+
+fn run_for_real(cmd: &str, old_guard: &Path) -> (i32, Real) {
+    let ai = ai_project();
+    let p = ai.proj.path();
+    let fx = ai.tmp.path().join("fx");
+    std::fs::create_dir_all(fx.join(DIR)).unwrap();
+    for f in ["y", "forged", "f"] {
+        std::fs::write(
+            fx.join(f),
+            "{\"session\": 189, \"method\": \"approve-command\"}\n",
+        )
+        .unwrap();
+    }
+    let cmd = cmd
+        .replace("/tmp/", &format!("{}/", fx.display()))
+        .replace("https://x", &format!("file://{}/y", fx.display()));
+    let input = serde_json::json!({ "command": cmd });
+    let old = hook_in(
+        &ai,
+        old_guard.to_str().unwrap(),
+        &serde_json::json!({"tool_name": "Bash", "tool_input": input, "cwd": p}),
+        None,
+    )
+    .0;
+    let id = "toolu_corpus";
+    let pre = hook_in(
+        &ai,
+        "scripts/hook-approvals-guard.sh",
+        &payload("PreToolUse", "Bash", id, input.clone()),
+        None,
+    )
+    .0;
+    let before = folder(p);
+    let ran = Command::new("bash")
+        .args(["-c", &cmd])
+        .current_dir(p)
+        .env("HOME", &fx)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .unwrap();
+    let changed = folder(p) != before;
+    let event = if ran.success() {
+        "PostToolUse"
+    } else {
+        "PostToolUseFailure"
+    };
+    let post = hook_in(
+        &ai,
+        "scripts/hook-approvals-guard.sh",
+        &payload(event, "Bash", id, input),
+        None,
+    )
+    .0;
+    let voided = !approved_188(&ai);
+    // restore permissions a command may have taken away, so the temp folder can be removed
+    let _ = Command::new("chmod").args(["-R", "u+rwx"]).arg(p).status();
+    (
+        old,
+        Real {
+            changed,
+            pre,
+            post,
+            voided,
+        },
+    )
+}
+
+/// S188 — "guard changes only add" (S173) is reversed for Bash by the founder's call; what replaces it,
+/// CHECKED: every corpus command the guard S188 started from (43305fd) blocked before it ran, now run for
+/// real, is caught after it runs exactly when it changed the folder (and the approval stops counting);
+/// one that changed nothing passes. The before side blocks no Bash command at all.
 #[test]
-fn every_listed_command_the_s182_guard_blocked_still_blocks() {
+fn every_command_the_start_guard_blocked_is_caught_after_if_it_wrote() {
     let m = Path::new(env!("CARGO_MANIFEST_DIR"));
     let old = Command::new("git")
-        .args(["show", "e1c348e:scripts/hook-approvals-guard.sh"])
+        .args(["show", "43305fd:scripts/hook-approvals-guard.sh"])
         .current_dir(m)
         .output()
         .unwrap();
-    assert!(old.status.success(), "cannot read the S182 guard from git");
+    assert!(old.status.success(), "cannot read the start guard from git");
     let dir = tempfile::tempdir().unwrap();
     let old_guard = dir.path().join("old-approvals-guard.sh");
     std::fs::write(&old_guard, &old.stdout).unwrap();
-    let reads = reads();
-    let mut old_blocked = 0;
-    for cmd in reads
-        .iter()
-        .chain(writes().iter())
-        .chain(s186_writes().iter())
-    {
-        let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}});
-        let (o, _) = run(old_guard.to_str().unwrap(), p);
-        if o != 2 {
-            continue;
-        }
-        old_blocked += 1;
-        let (n, _) = bash(cmd);
-        assert!(
-            n == 2 || reads.contains(cmd),
-            "the S182 guard blocked `{cmd}` and the new one lets it through"
-        );
-    }
-    assert!(
-        old_blocked >= 30,
-        "the old guard must actually run ({old_blocked} blocked)"
-    );
-}
-
-/// Redirects into the folder through a link, or with no `cwd`, block. (Written in S186 for the
-/// target-reading guard, which was split out; they now block under the S182 redirect rule, and stay as
-/// cases the (b) session must keep blocking.)
-#[test]
-fn redirects_through_a_link_or_with_no_cwd_block() {
-    let proj = tempfile::tempdir().unwrap();
-    let rec = proj.path().join(DIR).join("session-1.json");
-    std::fs::create_dir_all(rec.parent().unwrap()).unwrap();
-    std::fs::write(&rec, "{}").unwrap();
-    std::os::unix::fs::symlink(&rec, proj.path().join("soft.md")).unwrap();
-    std::fs::hard_link(&rec, proj.path().join("hard.md")).unwrap();
-    std::fs::create_dir_all(proj.path().join("sub")).unwrap();
-    std::os::unix::fs::symlink(proj.path().join(DIR), proj.path().join("sub/link")).unwrap();
-    for cmd in [
-        format!("cat {DIR}/session-1.json > soft.md"),
-        format!("cat {DIR}/session-1.json > hard.md"),
-        format!("cat {DIR}/session-1.json > sub/link/x"),
-        format!("cat {DIR}/session-1.json > sub/link/../approvals/x"),
-    ] {
-        let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}});
+    let (mut blocked, mut caught, mut moved) = (0, 0, Vec::new());
+    for cmd in corpus() {
+        let (o, r) = run_for_real(&cmd, &old_guard);
+        assert_eq!(r.pre, 0, "the before side blocked a Bash command: {cmd}");
         assert_eq!(
-            run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0,
-            2,
-            "{cmd}"
+            r.post == 2,
+            r.changed,
+            "`{cmd}`: changed {} but after-exit {}",
+            r.changed,
+            r.post
         );
+        assert_eq!(
+            r.voided, r.changed,
+            "`{cmd}`: changed {} but voided {}",
+            r.changed, r.voided
+        );
+        if o == 2 {
+            blocked += 1;
+            if r.changed {
+                caught += 1;
+            } else {
+                moved.push(cmd.chars().take(60).collect::<String>());
+            }
+        }
     }
-    let p = serde_json::json!({"tool_name": "Bash", "cwd": "", "tool_input": {"command": format!("cat {DIR}/x > y")}});
-    assert_eq!(
-        run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0,
-        2,
-        "no cwd"
+    eprintln!("start guard blocked {blocked}: {caught} caught after they wrote; {} wrote nothing and pass: {moved:?}", moved.len());
+    assert!(
+        blocked >= 60,
+        "the old guard must actually run ({blocked} blocked)"
+    );
+    assert!(
+        caught >= 40,
+        "most old blocks must really write and be caught ({caught})"
     );
 }
 
-/// S186 cold review rec 8: with the agent's working folder inside `.ai/approvals` (a `cd` in an
-/// earlier call), a redirect writes there without naming the folder — it blocks.
+/// Writes through a link or a hard link into a record, run for real: caught after. (S186 wrote these
+/// for the target-reading guard; the S182 rule blocked them by their words until S188.)
 #[test]
-fn a_cwd_inside_the_folder_blocks_a_redirect() {
-    let proj = tempfile::tempdir().unwrap();
-    let inside = proj.path().join(DIR);
-    std::fs::create_dir_all(&inside).unwrap();
-    let p = serde_json::json!({"tool_name": "Bash", "cwd": inside.to_string_lossy(), "tool_input": {"command": "echo x > y"}});
-    assert_eq!(
-        run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0,
-        2
-    );
-    let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": "echo x > y"}});
-    assert_eq!(
-        run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0,
-        0,
-        "from the project root"
-    );
+fn writes_through_a_link_are_caught_after() {
+    for cmd in [
+        format!("cat {DIR}/session-188.json > soft.md"),
+        format!("cat {DIR}/session-188.json > hard.md"),
+        format!("cat {DIR}/session-188.json > sub/link/x"),
+        format!("cat {DIR}/session-188.json > sub/link/../approvals/x"),
+    ] {
+        let ai = ai_project();
+        let p = ai.proj.path();
+        let rec = p.join(DIR).join("session-188.json");
+        std::os::unix::fs::symlink(&rec, p.join("soft.md")).unwrap();
+        std::fs::hard_link(&rec, p.join("hard.md")).unwrap();
+        std::fs::create_dir_all(p.join("sub")).unwrap();
+        std::os::unix::fs::symlink(p.join(DIR), p.join("sub/link")).unwrap();
+        let c = bash_call(&ai, &cmd);
+        assert_eq!((c.pre, c.post), (0, 2), "{cmd}: {}", c.err);
+        assert!(!approved_188(&ai), "{cmd}");
+    }
 }
 
-/// S186 cold review pass 3, R3: an approvals folder that cannot be entered must not end the guard
-/// with a non-blocking exit 1 — the guard still blocks a write (exit 2).
+/// S186 cold review rec 8: a working folder inside `.ai/approvals` — a relative write lands there
+/// without the command naming it. Caught after; the same command from the project root is not a change.
+#[test]
+fn a_write_from_inside_the_folder_is_caught_after() {
+    let ai = ai_project();
+    let c = bash_call(&ai, &format!("cd {DIR} && echo x > y"));
+    assert_eq!(c.post, 2, "{}", c.err);
+    let ai = ai_project();
+    let c = bash_call(&ai, "echo x > y");
+    assert_eq!(c.post, 0, "from the project root: {}", c.err);
+}
+
+/// S186 cold review pass 3, R3: a folder that cannot be entered must not end the guard with a
+/// non-blocking exit 1. The change it hides (`chmod` back, then a write) is caught after.
 #[test]
 fn an_unenterable_folder_does_not_open_the_guard() {
     use std::os::unix::fs::PermissionsExt;
-    let proj = tempfile::tempdir().unwrap();
-    let ap = proj.path().join(DIR);
-    std::fs::create_dir_all(&ap).unwrap();
+    let ai = ai_project();
+    let ap = ai.proj.path().join(DIR);
     std::fs::set_permissions(&ap, std::fs::Permissions::from_mode(0o000)).unwrap();
-    let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": format!("chmod 755 {DIR} && cp /tmp/f {DIR}/x")}});
-    let code = run_in(proj.path(), "scripts/hook-approvals-guard.sh", p).0;
+    let c = bash_call(&ai, &format!("chmod 755 {DIR} && cp forged.json {DIR}/x"));
     std::fs::set_permissions(&ap, std::fs::Permissions::from_mode(0o755)).unwrap();
-    assert_eq!(code, 2);
+    assert_eq!((c.pre, c.post), (0, 2), "{}", c.err);
 }
 
-/// S186 cold review pass 5: a backslash-dense command must be decided fast. The first join was
-/// quadratic on bash 3.2 (10,000 backslashes took over 120 s — a hook past its timeout does not block).
-/// Runs `/bin/bash` (macOS's 3.2, the shell the slowdown needs); under bash 5 it cannot catch it.
+/// S186 cold review pass 5: a backslash-dense command must be decided fast (a hook past its timeout does
+/// not block). Runs `/bin/bash` (macOS's 3.2) where it exists; the write in it is caught after.
 #[test]
-fn a_backslash_dense_command_blocks_fast() {
+fn a_backslash_dense_command_is_decided_fast() {
     let dense = "\\a".repeat(30_000);
     let cmd = format!(": '{dense}' \\\n; echo x > {DIR}/y");
-    let proj = tempfile::tempdir().unwrap();
-    let shell = if Path::new("/bin/bash").exists() {
-        "/bin/bash"
-    } else {
-        "bash"
-    };
+    let ai = ai_project();
     let t = std::time::Instant::now();
-    let (code, _) = run_with(
-        shell,
-        proj.path(),
-        "scripts/hook-approvals-guard.sh",
-        serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}}),
-    );
-    assert_eq!(code, 2);
-    assert!(t.elapsed().as_secs() < 5, "took {:?}", t.elapsed());
-}
-
-/// S187 (F110 class, founder pick C) — the 2026-10-04 live false block: a branch made and the folder
-/// listed in ONE command. It still blocks (what blocks does not change); the reason now says how to
-/// get past it — the read as its own command.
-fn s187_split() -> Vec<String> {
-    vec![
-        format!("git checkout -b X main && cd ~/playground/rudra && ls {DIR}/"),
-        format!("ls {DIR}; rm notes.txt"),
-        format!("cat {DIR}/session-187.json && python3 tool.py"),
-        format!("ls {DIR} && awk 1 notes.txt"),
-    ]
-}
-
-#[test]
-fn a_joined_read_still_blocks_and_says_split_it() {
-    for cmd in s187_split() {
-        let (code, err) = bash(&cmd);
-        assert_eq!(code, 2, "{cmd}");
-        assert!(
-            err.contains("as its own command") && err.contains("git commit -F"),
-            "the block must say how to get past it: {err}"
-        );
-    }
-}
-
-/// S187 AC1 (tech-lead rec 3): fix C changes only the reason. Every command in the corpus gets the
-/// SAME exit code from the guard S187 started from (0071dca) and from this one — a command that
-/// blocks or passes differently is a regression, not the fix.
-#[test]
-fn s187_blocks_exactly_what_0071dca_blocked() {
-    let m = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let old = Command::new("git")
-        .args(["show", "0071dca:scripts/hook-approvals-guard.sh"])
-        .current_dir(m)
-        .output()
-        .unwrap();
-    assert!(
-        old.status.success(),
-        "cannot read the 0071dca guard from git"
-    );
-    let dir = tempfile::tempdir().unwrap();
-    let old_guard = dir.path().join("old-approvals-guard.sh");
-    std::fs::write(&old_guard, &old.stdout).unwrap();
-    let mut blocked = 0;
-    for cmd in reads()
-        .iter()
-        .chain(writes().iter())
-        .chain(s186_writes().iter())
-        .chain(f110_open().iter())
-        .chain(s187_split().iter())
-    {
-        let p = serde_json::json!({"tool_name": "Bash", "tool_input": {"command": cmd}});
-        let (o, _) = run(old_guard.to_str().unwrap(), p);
-        let (n, _) = bash(cmd);
-        assert_eq!(o, n, "`{cmd}`: 0071dca exited {o}, S187 exits {n}");
-        blocked += usize::from(o == 2);
-    }
-    assert!(
-        blocked >= 40,
-        "the old guard must actually run ({blocked} blocked)"
-    );
+    let c = bash_call(&ai, &cmd);
+    assert_eq!((c.pre, c.post), (0, 2), "{}", c.err);
+    assert!(t.elapsed().as_secs() < 10, "took {:?}", t.elapsed());
 }
 
 // ── S188: the before/after check ─────────────────────────────────────────────────────────────────
@@ -630,6 +644,7 @@ fn ai_project() -> Ai {
     };
     let p = ai.proj.path();
     std::fs::create_dir_all(p.join(DIR)).unwrap();
+    std::fs::create_dir_all(p.join(".ai/hooks")).unwrap(); // so `.ai/hooks/../approvals/x` resolves
     std::fs::write(p.join(".ai/CONSTRAINTS.yaml"), "maturity: L2\n").unwrap();
     std::fs::write(
         p.join(DIR).join("session-188.json"),
@@ -761,6 +776,7 @@ fn s188_every_write_is_caught_after_it_runs_and_the_approval_stops_counting() {
             "`{cmd}` (ran {}) was not caught: {}",
             c.ran, c.err
         );
+        assert_eq!(c.pre, 0, "`{cmd}`: the before side reads no Bash command");
         assert!(c.err.contains("[vajra] CAUGHT"), "`{cmd}`: {}", c.err);
         assert!(
             c.err.contains("vajra approve NN") && c.err.contains("tell the founder"),
@@ -790,7 +806,7 @@ fn s188_git_checkout_of_the_folder_is_caught() {
 }
 
 /// AC1 (the after side): every read the old guard false-blocked changes nothing, so the after check is
-/// silent. (The before side passes them once the word checks go — step 4.)
+/// silent, and the before side (no word reading since S188) passes them too.
 #[test]
 fn s188_reads_change_nothing_and_the_after_check_is_silent() {
     let ai = ai_project();
@@ -810,7 +826,13 @@ fn s188_reads_change_nothing_and_the_after_check_is_silent() {
     ];
     for cmd in reads {
         let c = bash_call(&ai, &cmd);
-        assert_eq!(c.post, 0, "`{cmd}` (ran {}) was flagged: {}", c.ran, c.err);
+        assert_eq!(
+            (c.pre, c.post),
+            (0, 0),
+            "`{cmd}` (ran {}) was flagged: {}",
+            c.ran,
+            c.err
+        );
         assert!(approved_188(&ai), "`{cmd}` voided the approval");
     }
 }
@@ -911,7 +933,7 @@ fn s188_a_second_after_run_gives_the_same_answer() {
     ] {
         let input = serde_json::json!({ "command": cmd });
         let pre = payload("PreToolUse", "Bash", id, input.clone());
-        hook_in(&ai, script, &pre, None); // saves the before record (its exit is not this test's point)
+        assert_eq!(hook_in(&ai, script, &pre, None).0, 0);
         Command::new("bash")
             .args(["-c", &cmd])
             .current_dir(ai.proj.path())
