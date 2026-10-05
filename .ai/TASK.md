@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S186 (CODE: the S185 fixes) complete on `session-186-s185-fixes`; S187 next
+## Between Sessions — S187 (CODE: the guard message and the S190 leftovers) complete on `session-187-guard-message-and-leftovers`; S188 next
 
-**Next: Session 187 — INTERACTIVE: rudra S18 with the new guard** (the founder's pick, 2026-10-04) — `prompts/187-task-rudra-s18-s186-fixes.md`, DRAFT until `vajra approve 187`. Before it: merge S186's PR. Start in a fresh chat.
+**Next: Session 188 — the founder's pick** from `sessions/session-187-summary.md` (N2 · F67 · the non-Claude brainstorm, or another). Before it: merge S187's PR. rudra S18 waits for rudra's data API. Start in a fresh chat.
+
+## Session 187 — CODE: the guard message and the S190 leftovers — COMPLETE
+
+- Brief: `prompts/187-task-guard-message-and-leftovers.md` (rewritten in-session with the founder; rudra S18 paused). Summary: `sessions/session-187-summary.md`. Review: `sessions/session-187-review.md` (one cold pass, ACCEPT 10/13 · 3 PARTIAL). Decision: DECISION-007 S187 addendum.
+- Shipped: the guard's writer/program blocks say "run the read as its own command" (fix C — what blocks is unchanged) · `--steps` approval line (N4) · F97 `--sync-fleet` adds missing ground-truth audits/questions, refuses shapes it cannot read exactly · verify-133 15/15 · ROADMAP header derived (N6) · `scripts/lib-old-checkout.sh` (N7) · `--dogfood-age` "THIS repo only" (N5, named not closed). Verify 14/14.
+- **Moved → S188 (founder):** N2. **→ backlog, S190 GT checklist:** the rest of N7 (verify-176/178/179, demo-176/178/179/184/186 still make their own checkouts) · F97's opt-out key for an audit removed on purpose (or S188 with N2) · option A for F110 (Claude Code's sandbox `denyWrite` on the folder) · `vajra next --advance` still number-swaps SESSION-BOOT (rewrote "186" as "187" in old text; fixed by hand in S187's closeout) · the session guard reads a session number in edit text as starting that session (blocked S187's own TASK.md edit).
 
 ## Session 186 — CODE: the fixes from the S185 ground truth — COMPLETE
 
