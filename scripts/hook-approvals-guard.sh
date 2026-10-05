@@ -119,17 +119,21 @@ if printf '%s' "$STRIPPED" | grep -cE '>' >/dev/null; then
         "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there. Reading is fine: run the read on its own (cat/ls/jq), without a redirect in the same command. Writing ABOUT the folder (a commit message, notes)? Put the text in a file with the Write tool, then \`git commit -F <file>\`."
 fi
 
+# S187 (F110 class, founder pick C): the checks below read the WHOLE command, so a harmless read
+# joined to an unrelated write (`git checkout -b x main && ls <the folder>`, 2026-10-04) blocks.
+# What blocks does not change; the reason says how to get past it.
+SPLIT="Only reading the folder? Run the read (cat, ls or jq) as its own command, not joined to the rest by && or ; — the rest then runs as a second command. Writing ABOUT the folder (a commit message, notes)? Put the text in a file with the Write tool, then \`git commit -F <file>\`."
 S182_WRITERS='(\btee\b|\bcp\b|\bmv\b|\brm\b|\btouch\b|sed[[:space:]]+(-[a-zA-Z]*[[:space:]]+)*-i|\bdd\b|\binstall\b|\bln\b|\btruncate\b)'
 S182_INTERP='(\bpython[0-9.]*\b|\bperl\b|\bnode\b|\bruby\b|\bosascript\b)'
 # The S182 lists, unchanged, read the command as written AND (S186, pass-2 rec 4) the de-quoted copy,
 # so a quote-spelled writer (`l''n`, `r"m"`) is caught too. Only adds.
 if printf '%s' "$STRIPPED" | grep -cE "$S182_WRITERS" >/dev/null || printf '%s' "$NAMED" | grep -cE "$S182_WRITERS" >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command runs a file-writing tool while naming it." \
-        "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there."
+        "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there. $SPLIT"
 fi
 if printf '%s' "$STRIPPED" | grep -cE "$S182_INTERP" >/dev/null || printf '%s' "$NAMED" | grep -cE "$S182_INTERP" >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command runs an interpreter while naming it — what a script writes cannot be read from its text, so it is blocked." \
-        "To read the folder, use cat, ls or jq on their own. If the script only mentions the folder's name (for example, editing a document about it), use the Edit tool instead."
+        "$SPLIT If the script only mentions the folder's name (for example, editing a document about it), use the Edit tool instead."
 fi
 
 # S186 (S182 review rec 5): more writers and interpreters — matched only where a command starts
@@ -142,12 +146,12 @@ if printf '%s' "$NAMED" | grep -cE "${AT}(rsync|wget|tar|unzip|patch|sponge)([[:
    printf '%s' "$NAMED" | grep -cE "${AT}curl([[:space:]][^;&|]*)?[[:space:]](-[a-zA-Z]*[oO]|--output|--remote-name)" >/dev/null || \
    printf '%s' "$NAMED" | grep -cE "${AT}find[[:space:]][^;&|]*[[:space:]]-(delete|exec|execdir|ok|okdir|fprint[0f]?|fls)([[:space:]]|\$)" >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command runs a file-writing tool while naming it." \
-        "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there."
+        "Only \`vajra approve NN\`, typed by the founder in their own terminal, writes there. $SPLIT"
 fi
 # awk and other programs write by their own syntax (`print 1 > f`, an editor's `:w`) — like the S182
 # interpreters, they block while the command names the folder, with or without a path in front.
 if printf '%s' "$NAMED" | grep -cE "${AT}(sh|bash|zsh|dash|ksh|fish|eval|source|\.|xargs|awk|gawk|mawk|nawk|busybox|ed|ex|vi|vim|nvim|emacs|sqlite3|php|lua|tclsh|Rscript)([[:space:]]|\$)" >/dev/null; then
   block ".ai/approvals holds the founder's approvals, and this command runs a shell or a program with its own way to write (awk, an editor) while naming it — what it writes cannot be read from its text, so it is blocked." \
-        "To read the folder, use cat, ls or jq on their own."
+        "$SPLIT"
 fi
 exit 0

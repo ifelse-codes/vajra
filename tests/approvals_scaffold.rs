@@ -247,12 +247,28 @@ fn sync_fleet_reports_a_missing_session_rules_from_and_never_writes_it() {
     let before = read(r, ".ai/CONSTRAINTS.yaml");
     let text = sync(r, &[]);
     assert!(text.contains("session_rules_from: 16"), "{text}");
-    assert!(text.contains("never edits this file"), "{text}");
-    assert_eq!(
-        read(r, ".ai/CONSTRAINTS.yaml"),
-        before,
-        "constraints must be untouched"
+    assert!(text.contains("never writes this line"), "{text}");
+    // S187 (F97, DECISION-007 S187 addendum): sync may now ADD missing ground-truth audits and question
+    // blocks — but never this key, and every original line stays (the one `required_audits:` line may
+    // gain names; it is compared without them).
+    let after = read(r, ".ai/CONSTRAINTS.yaml");
+    assert!(
+        !after.contains("session_rules_from"),
+        "the key must never be written: {after}"
     );
+    let keep = |t: &str| -> Vec<String> {
+        t.lines()
+            .filter(|l| !l.starts_with("  required_audits:"))
+            .map(str::to_string)
+            .collect()
+    };
+    let mut rest = keep(&after).into_iter();
+    for line in keep(&before) {
+        assert!(
+            rest.any(|l| l == line),
+            "an original line moved or changed: {line:?}"
+        );
+    }
 
     // Once the line is there, no report.
     fs::write(

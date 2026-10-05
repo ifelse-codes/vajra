@@ -13,12 +13,14 @@ PASS=0; FAIL=0
 ok()  { echo "PASS: $1"; PASS=$((PASS+1)); }
 bad() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
 T="$(cd "$(mktemp -d)" && pwd -P)"
-trap 'git worktree remove --force "$T/old" >/dev/null 2>&1; git worktree prune >/dev/null 2>&1; rm -rf "$T"' EXIT
+trap 'vajra_old_checkout_remove "${OLD_WT:-}"; rm -rf "$T"' EXIT
 OLD_SHA=b10a1a6
 VAJRA="$ROOT/target/release/vajra"
 cargo build --release -q || { echo "FAIL: cargo build --release"; exit 1; }
-git worktree add --detach "$T/old" "$OLD_SHA" >/dev/null 2>&1 || { echo "FAIL: worktree at $OLD_SHA"; exit 1; }
-(cd "$T/old" && CARGO_TARGET_DIR="$ROOT/target/s186-old" cargo build --release -q) || { echo "FAIL: build at $OLD_SHA"; exit 1; }
+# S187 (S185 N7): the old checkout lives in the one known folder; a killed run's is cleared next run.
+. "$ROOT/scripts/lib-old-checkout.sh"
+OLD_WT=$(vajra_old_checkout "$OLD_SHA") || { echo "FAIL: worktree at $OLD_SHA"; exit 1; }
+(cd "$OLD_WT" && CARGO_TARGET_DIR="$ROOT/target/s186-old" cargo build --release -q) || { echo "FAIL: build at $OLD_SHA"; exit 1; }
 OLD_VAJRA="$ROOT/target/s186-old/release/vajra"
 
 # --- F113 (AC1): a project's session 132 is not Vajra's ----------------------------------------------
@@ -115,21 +117,24 @@ n=$(jq -n --arg c "$DENSE" --arg d "$GP" '{tool_name:"Bash", cwd:$d, tool_input:
   | CLAUDE_PROJECT_DIR="$GP" /bin/bash scripts/hook-approvals-guard.sh >/dev/null 2>&1; echo $?)
 [ "$n" = 2 ] && [ $((SECONDS - s0)) -lt 5 ] && ok "pass 5: 30,000 backslashes + a write into the folder: blocked in $((SECONDS - s0)) s under /bin/bash" \
   || bad "pass 5: dense command exit $n in $((SECONDS - s0)) s"
-if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 && grep -q 'test result: ok. 13 passed' "$T/guard-tests.out"; then
-  ok "AC3 tests/approvals_guard.rs: 13 pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (only adds; F110 cases still block)"
+# S187: at least the 13 S186 tests, none failing — S187 added two (a pinned "13 passed" went red the
+# moment a later session added a guard test, the S185 N3 class).
+if cargo test -q --test approvals_guard > "$T/guard-tests.out" 2>&1 \
+   && [ "$(grep -oE 'test result: ok. [0-9]+ passed; 0 failed' "$T/guard-tests.out" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+')" -ge 13 ]; then
+  ok "AC3 tests/approvals_guard.rs: 13+ pass, incl. every_listed_command_the_s182_guard_blocked_still_blocks (only adds; F110 cases still block)"
 else bad "AC3 guard tests"; tail -5 "$T/guard-tests.out"; fi
 
 # --- S182 rec 2 (AC5): the new merge test is red on the old merge, green now ---------------------------
 TESTFN="$(awk '/fn merge_adds_no_hook_wired_under_a_covering_matcher/{p=1; print "    #[test]"} p{print} p&&/^    }$/{exit}' src/cli/init.rs)"
 [ -n "$TESTFN" ] || bad "AC5 could not lift the test"
-TESTFN="$TESTFN" perl -0pi -e 's/(    #\[test\]\n    fn merge_is_idempotent)/$ENV{TESTFN}\n\n$1/' "$T/old/src/cli/init.rs"
-(cd "$T/old" && CARGO_TARGET_DIR="$ROOT/target/s186-old" cargo test -q --lib merge_adds_no_hook_wired_under_a_covering_matcher) > "$T/ac5-old.out" 2>&1; ro=$?
+TESTFN="$TESTFN" perl -0pi -e 's/(    #\[test\]\n    fn merge_is_idempotent)/$ENV{TESTFN}\n\n$1/' "$OLD_WT/src/cli/init.rs"
+(cd "$OLD_WT" && CARGO_TARGET_DIR="$ROOT/target/s186-old" cargo test -q --lib merge_adds_no_hook_wired_under_a_covering_matcher) > "$T/ac5-old.out" 2>&1; ro=$?
 cargo test -q --lib merge_adds_no_hook_wired_under_a_covering_matcher > "$T/ac5-new.out" 2>&1; rn=$?
 if [ "$rn" = 0 ] && [ "$ro" != 0 ] && grep -q 'adding it again runs it twice' "$T/ac5-old.out" \
    && ! grep -qE 'error\[E[0-9]+\]' "$T/ac5-old.out"; then
   ok "AC5 a hook wired under a covering matcher is not added again; at $OLD_SHA the same test fails: 'runs it twice'"
 else bad "AC5 new=$rn old=$ro"; grep -E 'panicked|error' "$T/ac5-old.out" | head -3; fi
-git -C "$T/old" checkout -q -- src/cli/init.rs
+git -C "$OLD_WT" checkout -q -- src/cli/init.rs
 
 # --- F114 (AC6): a fresh project's ledger ---------------------------------------------------------------
 F="$T/fresh"; mkdir -p "$F" && (cd "$F" && git init -q && "$VAJRA" init >/dev/null 2>&1 </dev/null)

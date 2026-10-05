@@ -89,6 +89,19 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         ),
     ]
     .into_iter()
+    // S187 (S185 N4): no step named the approval record — the founder said "approved" in chat and
+    // the list stayed silent (the Analyst station passes on a substantive Delta alone). Its own step,
+    // from the session the records apply to (below it, the brief's words still count).
+    .chain((session >= crate::approval::rules_from(root).0).then(|| {
+        Step::new(
+            crate::approval::approved(root, session).is_some(),
+            "the founder has approved this session",
+            format!(
+                "the founder types `vajra approve {session}` in their OWN terminal — the agent \
+                 cannot (a chat \"approved\" is not the record); ask them"
+            ),
+        )
+    }))
     // S183 (F105): rudra S16 met the strict `session_type:` rule only at close, after its review was
     // stamped — adding the line moved the stamp, so it re-stamped. Said here, at the start, instead.
     // No step for a session below `session_rules_from` (it keeps the old reading).
@@ -749,6 +762,38 @@ mod tests {
         let out = render(d.path(), 6, "session-06-x");
         assert!(!out.contains("is merged —"), "{out}");
         assert!(out.contains("YOUR NEXT STEP: the tech-lead"), "{out}");
+    }
+
+    /// S187 (S185 N4): with no approval record the list names the founder's `vajra approve NN`;
+    /// with the record the step is done; below `session_rules_from` (the brief's words) it is absent.
+    #[test]
+    fn the_list_names_a_missing_approval_record() {
+        let d = repo();
+        fs::create_dir_all(d.path().join(".ai")).unwrap();
+        fs::write(
+            d.path().join(".ai/CONSTRAINTS.yaml"),
+            "session:\n  session_rules_from: 5\n",
+        )
+        .unwrap();
+        let approval = |n: u32| {
+            steps(d.path(), n)
+                .into_iter()
+                .find(|s| s.what.contains("founder has approved"))
+        };
+        let s = approval(7).expect("session 7 is past session_rules_from: the step is listed");
+        assert!(!s.done);
+        assert!(s.how.contains("vajra approve 7"), "{}", s.how);
+        fs::create_dir_all(d.path().join(".ai/approvals")).unwrap();
+        fs::write(
+            d.path().join(".ai/approvals/session-07.json"),
+            r#"{"session": 7, "method": "approve-command", "at_unix": 1}"#,
+        )
+        .unwrap();
+        assert!(approval(7).unwrap().done);
+        assert!(
+            approval(4).is_none(),
+            "below session_rules_from the words count"
+        );
     }
 
     /// S174 F63: rudra S05 (and Vajra S174) moved `.ai/SESSION` and hit the pre-commit drift block.

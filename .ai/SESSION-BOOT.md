@@ -1,10 +1,13 @@
 # Session Boot
 
 ## Next Session
-- **S187 — INTERACTIVE: rudra S18 with the new guard** (`prompts/187-task-rudra-s18-s186-fixes.md`, DRAFT — the founder's pick, 2026-10-04). Before it: merge S186's PR, `cargo install --path .`, `vajra init --sync-fleet` in rudra. He approves with `vajra approve 187`. Start in a FRESH chat.
+- **S188 — waiting on the founder's pick** from `sessions/session-187-summary.md` (1 N2 · 2 F67 · 3 the non-Claude brainstorm; the longer list is in the S187 chat). Before it: merge S187's PR (a merge commit, not a squash). rudra S18 waits for rudra's data API (founder, 2026-10-04). S190 is the next ground truth. Start in a FRESH chat.
 
 ## Current Session
-- **Number:** 186 — CLOSED. CODE: the S185 fixes. F113 `obeyed_blocks_from:` (only Vajra's file sets it; projects warn, saying why; a bad key blocks naming its line) · S182 recs 1/2/5 add-only (`..`, more writers/shells/awk, no duplicate hooks) · F114 a fresh project's ledger speaks · F115 verify-132 green for the first time since S135 · N1 block reasons on stderr. **F110 (b) split out by the founder** after two cold-review REJECTs; the S182 redirect rule is back, its block names `git commit -F`. Summary: `sessions/session-186-summary.md`. Review: `sessions/session-186-review.md`. Verify: `scripts/verify-session-186.sh`. Demo: `scripts/demo-session-186.sh`.
+- **Number:** 187 — CLOSED. CODE: the guard message and the S190 leftovers (rewritten with the founder; rudra S18 paused). The approvals guard says how to get past a joined read — what blocks is unchanged (F110 fix C) · `--steps` names a missing approval (N4) · `--sync-fleet` adds a project's missing ground-truth audits and questions, refusing any shape it cannot read exactly (F97, DECISION-007 S187 addendum) · verify-133 green · ROADMAP header derived (N6) · old checkouts in one folder (N7, newest scripts) · `--dogfood-age` says "THIS repo only" (N5, named not closed). N2 → S188 (founder). Summary: `sessions/session-187-summary.md`. Review: `sessions/session-187-review.md` (ACCEPT). Verify: `scripts/verify-session-187.sh` (14/14). Demo: `scripts/demo-session-187.sh`.
+
+## Prior Session
+- **Number:** 186 — CLOSED (merged #223). CODE: the S185 fixes. F113 `obeyed_blocks_from:` (only Vajra's file sets it; projects warn, saying why; a bad key blocks naming its line) · S182 recs 1/2/5 add-only (`..`, more writers/shells/awk, no duplicate hooks) · F114 a fresh project's ledger speaks · F115 verify-132 green for the first time since S135 · N1 block reasons on stderr. **F110 (b) split out by the founder** after two cold-review REJECTs; the S182 redirect rule is back, its block names `git commit -F`. Summary: `sessions/session-186-summary.md`. Review: `sessions/session-186-review.md`. Verify: `scripts/verify-session-186.sh`. Demo: `scripts/demo-session-186.sh`.
 
 ## Prior Session
 - **Number:** 185 — CLOSED (merged #222). NO-CODE ground truth, 🟡 PARTIAL PASS. Picked F113 → `obeyed_blocks_from:`, F110 → (b); F114, F115, N1 → S186. Report: `sessions/session-185-ground-truth.md`.

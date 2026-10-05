@@ -238,7 +238,9 @@ real_dispatch_passes() {
   echo "$OUT"; echo "exit=$code"
   [ "$code" -eq 0 ] || { echo "FAIL: a real dispatch did not pass (exit $code)"; rc=1; }
   grep -q "verdict: READY" <<<"$OUT" || { echo "FAIL: expected READY"; rc=1; }
-  grep -q "agent:   claude-code-subagent (verified: toolu_01REALDESIGN)" <<<"$OUT" \
+  # S187: re-pointed — S181 binds a handoff to its text, so the provenance line now ends with
+  # `; text-sha: <hash>)` after the id. The id is what this check proves the gate surfaced.
+  grep -qE "agent:   claude-code-subagent \(verified: toolu_01REALDESIGN[;)]" <<<"$OUT" \
     || { echo "FAIL: the gate did not surface the verified provenance it accepted"; rc=1; }
   grep -q "SKIPPED" <<<"$OUT" && { echo "FAIL: a dispatched session rendered as skipped"; rc=1; }
   rm -rf "$TMP"; return $rc
@@ -476,8 +478,10 @@ fixture_fails_for_the_right_reason() {
   git -C "$WT" checkout -q -- src/mandate/mod.rs
 
   # Bypass C — rung 1: trust whatever provenance the handoff claims.
-  if apply_bypass "$D" "Some(id) => match dispatch::reverify(root, role.name, session, &id) {" \
-        "Some(id) => match { let _ = &id; Ok::<(), String>(()) } {" \
+  # S187: re-pointed — S181 renamed the call to `reverify_handoff(root, role.name, &h)` (the text-sha
+  # rides on the handoff). Same rung, same bypass: trust whatever the handoff claims.
+  if apply_bypass "$D" "Some(_) => match dispatch::reverify_handoff(root, role.name, &h) {" \
+        "Some(_) => match { let _ = &h; Ok::<(), String>(()) } {" \
      && expect_test_red "$WT" mandate::tests::a_fabricated_dispatch_id_blocks; then
     echo "OK: bypassing provenance re-verification -> RED (as a test failure)"
   else
@@ -589,7 +593,11 @@ run_check "s131-and-s132-gates-unchanged" exec prior_gates_unchanged
 # this reads the LIVE repo and never a clean room.
 # The K recorded at S132's closeout, BEFORE this session existed. Pinned, so "unchanged" means the
 # NUMBER and not merely the shape (cold review rec 4).
-K_BASELINE="8 of 8 stations passed"
+# S187: re-pointed 8 -> 7. S168 (DECISION-010) added `complete` to demo.required_elements; S132's
+# demo predates it, so its Demo-er reads ABSENT ("missing elements: complete") — the bar moved, not
+# S132's work. Pinned to 7 AND the one non-PASSED row must be exactly that Demo-er, so any other
+# station moving still fails here.
+K_BASELINE="7 of 8 stations passed"
 k_of_8_unchanged_and_not_a_ninth_station() {
   local rc=0 SOUT K
   SOUT="$( "$VAJRA" next --stations 132 2>&1 )"
@@ -601,6 +609,9 @@ k_of_8_unchanged_and_not_a_ninth_station() {
   [ "$K" = "$K_BASELINE" ] \
     || { echo "FAIL: K moved — baseline was '$K_BASELINE', now '$K'"; rc=1; }
   grep -qE '[0-9]+ of 8 stations passed' <<<"$SOUT" || { echo "FAIL: the counter is no longer K of 8"; rc=1; }
+  local NOTPASSED; NOTPASSED="$( grep -E '^ *\[(ABSENT|LEGACY|FAILED|BLOCKED)\]' <<<"$SOUT" )"
+  grep -qE '^ *\[ABSENT\] Demo-er .*missing elements: complete$' <<<"$NOTPASSED" && [ "$(grep -c . <<<"$NOTPASSED")" -eq 1 ] \
+    || { echo "FAIL: the one station below PASSED is not S168's Demo-er 'complete' — got: $NOTPASSED"; rc=1; }
   if grep -ciE '(\[PASSED\]|\[ABSENT\]|\[LEGACY\]) *(mandate|design-advisor)' <<<"$SOUT" | grep -qv '^0$'; then
     echo "FAIL: the mandate appears as a station row"; rc=1
   else

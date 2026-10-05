@@ -11,14 +11,16 @@ PASS=0; FAIL=0
 ok()  { echo "PASS: $1"; PASS=$((PASS+1)); }
 bad() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
 T="$(mktemp -d)"; KILL=()
-trap 'for p in ${KILL[@]+"${KILL[@]}"}; do kill "$p" 2>/dev/null; done; git worktree remove --force "$T/old" >/dev/null 2>&1; rm -rf "$T"' EXIT
+trap 'for p in ${KILL[@]+"${KILL[@]}"}; do kill "$p" 2>/dev/null; done; vajra_old_checkout_remove "${OLD_WT:-}"; rm -rf "$T"' EXIT
 OLD_SHA=e1c348e
 VAJRA="$ROOT/target/release/vajra"
 cargo build --release -q || { echo "FAIL: cargo build --release"; exit 1; }
 export PATH="$ROOT/target/release:$PATH"
 # The OLD binary, built once into its own target dir (kept under target/ so a re-run is fast).
-git worktree add --detach "$T/old" "$OLD_SHA" >/dev/null 2>&1 || { echo "FAIL: worktree at $OLD_SHA"; exit 1; }
-(cd "$T/old" && CARGO_TARGET_DIR="$ROOT/target/s184-old" cargo build --release -q) || { echo "FAIL: build at $OLD_SHA"; exit 1; }
+# S187 (S185 N7): the old checkout lives in the one known folder; a killed run's is cleared next run.
+. "$ROOT/scripts/lib-old-checkout.sh"
+OLD_WT=$(vajra_old_checkout "$OLD_SHA") || { echo "FAIL: worktree at $OLD_SHA"; exit 1; }
+(cd "$OLD_WT" && CARGO_TARGET_DIR="$ROOT/target/s184-old" cargo build --release -q) || { echo "FAIL: build at $OLD_SHA"; exit 1; }
 OLD_VAJRA="$ROOT/target/s184-old/release/vajra"
 row() { grep -E "^$2[[:space:]]" "$1" | awk '{print $2}'; }
 folders() { ls "$1/.ai/verify/closeout" 2>/dev/null | wc -l | tr -d ' '; }
