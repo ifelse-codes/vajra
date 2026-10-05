@@ -73,3 +73,5 @@ sessions/session-76-artifacts/run2/*
 # S171: scaffold debris from running `vajra init` inside Vajra itself — not part of the product.
 prompts/00-task-brownfield-onboarding.md
 prompts/01-task-kickoff.md
+# S188: the approvals check's void — this machine's record of which approvals an AI command voided.
+.ai/approvals/voided.json
