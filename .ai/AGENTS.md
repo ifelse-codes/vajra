@@ -118,6 +118,7 @@ Hooks (`hook-pre-bash.sh`, `hook-pre-write.sh`) enforce. Authorized hardening go
 | One vajra-session per chat | New session = new chat (step 10). Convention until Vajra enforces it. |
 | **Fidelity ≠ discipline** | Following the rules is not delivering what was asked. Map **every** numbered requirement in the prompt to evidence (SHIPPED / PARTIAL / NOT-BUILT). A green verify script proves discipline, never fidelity. (DECISION-002) |
 | **No self-certification** | The builder does not accept its own delivery. Fidelity is judged by an **independent** pass fed only the prompt + the diff, adversarially — not by the agent that wrote the code. (DECISION-002) |
+| **Approvals are the founder's** | The AI never writes to `.ai/approvals/` — only the founder's `vajra approve NN` does. Reading it is fine. A Write/Edit there is blocked; any change an AI command makes there is caught after it runs, and those approvals stop counting until the founder approves again. If it happens, stop and tell the founder. (DECISION-011 S188) |
 
 **Approval tokens:** `approved`, `lgtm`, `ship it`, `yes commit`, `go ahead and commit`, `go ahead`.
 
