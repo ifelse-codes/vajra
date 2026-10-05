@@ -115,6 +115,8 @@ WRITES=(
   "find $D -name '*.json' -delete"
   "cp forged.json $D/session-03.json; false"
   "d=.ai; a=appr; cp forged.json \$d/\${a}ovals/session-03.json"
+  "cp forged.json $D/session-03.json; touch -- $D/--x"
+  "cp forged.json $D/session-03.json && chmod a-w $D"
 )
 wn=0; wo=0; wmsg=0; wsteps=0
 for c in "${WRITES[@]}"; do
@@ -126,14 +128,18 @@ for c in "${WRITES[@]}"; do
   case "$r" in */2) wo=$((wo+1)) ;; esac
 done
 if [ "$wn" = "${#WRITES[@]}" ] && [ "$wmsg" = "${#WRITES[@]}" ] && [ "$wsteps" = "${#WRITES[@]}" ] && [ "$wo" = 0 ]; then
-  ok "AC2 ${#WRITES[@]}/${#WRITES[@]} writes (cp, mv, rm, >, tee, python, awk, find -delete, a write in a FAILING command, a path built at run time) ran, were caught after (exit 2, the plain message) and \`vajra next --steps\` shows ✗ approval; at $OLD_SHA nothing ran after a call (0 caught)"
+  ok "AC2 ${#WRITES[@]}/${#WRITES[@]} writes (cp, mv, rm, >, tee, python, awk, find -delete, a write in a FAILING command, a path built at run time, a forge plus a \`--x\` file or a read-only folder — review rec 1) ran, were caught after (exit 2, the plain message) and \`vajra next --steps\` shows ✗ approval; at $OLD_SHA nothing ran after a call (0 caught)"
 else bad "AC2 caught $wn, message $wmsg, steps ✗ $wsteps of ${#WRITES[@]}; at $OLD_SHA caught $wo"; fi
-fresh "$NEW_P" "$T/g"
-printf '{"session": 2, "method": "approve-command", "at_unix": 2}\n' > "$T/g/$D/session-02.json"   # the founder's newer record
-r=$(pair "$T/g" "git checkout -- $D")
-if [ "$r" = "0/2" ] && grep -q 'changed: session-02.json' "$T/hook.err"; then
-  ok "AC2 \`git checkout -- $D\` (restores a committed record over the founder's newer one) is caught after"
-else bad "AC2 git checkout: $r"; fi
+gco() { # BASE → the pair for `git checkout -- <folder>` over the founder's newer, uncommitted record
+  fresh "$1" "$T/g"
+  printf '{"session": 2, "method": "approve-command", "at_unix": 2}\n' > "$T/g/$D/session-02.json"
+  pair "$T/g" "git checkout -- $D"
+}
+r=$(gco "$NEW_P"); grep -q 'changed: session-02.json' "$T/hook.err" && rm_=named || rm_=unnamed
+ro=$(gco "$OLD_P")
+if [ "$r" = "0/2" ] && [ "$rm_" = named ] && [ "$ro" != "0/2" ]; then
+  ok "AC2 \`git checkout -- $D\` (restores a committed record over the founder's newer one) runs and is caught after, naming the record; at $OLD_SHA it was blocked before it ran [$ro]"
+else bad "AC2 git checkout: now $r ($rm_) at $OLD_SHA $ro"; fi
 
 # --- 4 (AC3): the founder's approve BETWEEN two AI calls raises nothing; his new record counts ---------
 s3() { # BIN DIR → "after-write steps · approve · after-approve steps · the next read"
@@ -207,7 +213,7 @@ else bad "AC6 the shipped guard differs from scripts/hook-approvals-guard.sh"; f
 if cargo test -q --test approvals_guard --test approvals_scaffold --test approval_cli > "$T/t.out" 2>&1 \
    && cargo test -q --lib approval:: >> "$T/t.out" 2>&1; then
   n=$(grep -E '^test result: ok' "$T/t.out" | awk '{s+=$4} END {print s+0}')
-  ok "AC6 the guard, scaffold, approve-CLI and void tests pass ($n tests; they do not exist at $OLD_SHA)"
+  ok "AC6 the guard, scaffold, approve-CLI and void tests pass ($n tests; the S188 cases are new, so this row runs at HEAD only)"
 else bad "AC6 cargo tests"; tail -15 "$T/t.out"; fi
 
 echo "----"
