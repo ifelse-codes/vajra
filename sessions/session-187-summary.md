@@ -2,18 +2,18 @@
 
 Brief: `prompts/187-task-guard-message-and-leftovers.md` — rewritten in-session with the founder (2026-10-04):
 rudra S18 waits for rudra's data API, so S187 became the guard fix (founder pick **C**: a clearer
-message, what blocks unchanged) + every S185 leftover offered. On 2026-10-05 the founder moved **N2 → S188**
+message, what blocks unchanged) + every S185 leftover offered. On 2026-10-05 the founder moved **N2 → S188**, then (later that day) **→ backlog, a known issue**
 and approved the one-line rule for F97.
 
 ## Goal achieved?
 Yes for D1, D3, D4, D5, D6; D7 is PARTIAL (N7 in the three newest verify scripts + demo-187 only; N5 **named, not closed**); D2 moved
-to S188 by the founder. Verify: `scripts/verify-session-187.sh` 14/14 (exit 0); verify-133 15/15, verify-186 35/35, verify-184 14/14 re-run green after the N7 retrofit. Demo: `scripts/demo-session-187.sh`.
+to S188 by the founder, then to the backlog as a known issue. Verify: `scripts/verify-session-187.sh` 14/14 (exit 0); verify-133 15/15, verify-186 35/35, verify-184 14/14 re-run green after the N7 retrofit. Demo: `scripts/demo-session-187.sh`.
 
 ## Fidelity map (prompt `prompts/187-task-guard-message-and-leftovers.md`)
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
 | D1 | The approvals guard's writer/interpreter/program blocks say how to get past a joined read; what blocks unchanged | SHIPPED | e88f3e5; `a_joined_read_still_blocks_and_says_split_it`, `s187_blocks_exactly_what_0071dca_blocked` (every corpus command exits the same at 0071dca and now; 40+ blocked) |
-| D2 | N2 — ground-truth Write guard lets through paths outside the project | MOVED → S188 (founder, 2026-10-05) | design-advisor: Vajra-only guard (no scaffold copy), ten holes to close (its recs 12–20); this session keeps to changes that only add blocks |
+| D2 | N2 — ground-truth Write guard lets through paths outside the project | MOVED → S188, then → backlog as a known issue (founder, 2026-10-05) | design-advisor: Vajra-only guard (no scaffold copy), ten holes to close (its recs 12–20); this session keeps to changes that only add blocks |
 | D3 | N4 — `--steps` names a missing approval | SHIPPED | e306a73; `the_list_names_a_missing_approval_record`; live: this session's list shows `✓ the founder has approved this session` |
 | D4 | F97 — `--sync-fleet` adds a project's missing ground-truth audits + question blocks (one-line rule) | SHIPPED | ff2047f; DECISION-007 S187 addendum; DECISION-011 S182 §4 / S183 §3 corrected; tests `sync_fleet_only_adds_ground_truth_to_constraints` (undo = original, byte for byte), front/empty-list and unrecognised-shape tests; the S142 test renamed, not deleted |
 | D5 | verify-133 green, no check deleted | SHIPPED | bb4cd4c — 15 checks before (12 PASS · 3 FAIL at 0071dca) and 15 after (15 PASS) |
@@ -33,11 +33,11 @@ to S188 by the founder. Verify: `scripts/verify-session-187.sh` 14/14 (exit 0); 
 - `k-of-8-unchanged-and-not-a-ninth-station` — re-pointed 8 → 7: S168 (DECISION-010) added `complete` to `demo.required_elements`, and S132's demo predates it, so its Demo-er reads ABSENT. Not a regression of S132's work. The check now also requires that the ONE non-PASSED station is exactly that Demo-er, so any other move still fails.
 
 ## What I did NOT build
-- **N2** (moved to S188 by the founder) — the ground-truth Write guard still blocks writes outside the project.
+- **N2** (moved to S188 by the founder, then to the backlog as a known issue) — the ground-truth Write guard still blocks writes outside the project.
 - **F110 itself** — the guard still blocks a harmless read joined to a write; fix C only makes the block say how to get past it. Option A (Claude Code's own sandbox, `sandbox.filesystem.denyWrite` + `allowUnsandboxedCommands: false`) is recorded for the S190 ground truth.
 - **N5** is named, not closed — `--dogfood-age` still cannot see rudra's runs.
 - **N7** covers verify-184/186/187 and demo-187 only; verify-176/178/179 and demo-176/178/179/184/186 still make their own checkouts → backlog — reason: housekeeping only we feel; on the S190 ground-truth checklist (cold review rec 3).
-- **F97 opt-out key** (design-advisor rec 9): an audit a project removed on purpose comes back on every sync, and sync says so → S188.
+- **F97 opt-out key** (design-advisor rec 9): an audit a project removed on purpose comes back on every sync, and sync says so → backlog (S190 ground-truth checklist; the S188 prompt names it there).
 
 ## Fakest green
 - **AC4's byte-undo test (the cold review's pick).** "Remove the added names and blocks and you get the original" holds for ANY edit that only inserts lines — even one that changes what the YAML means (a second `vision_questions:` key, a project's items moved under another audit). Pass 1 wrote such shapes; after rec 1 they are refused (quoted names, a key with text after its colon, an item at two spaces, a four-space line outside a block, a block with no items), each with a test. A shape nobody listed is still read by the same rules.

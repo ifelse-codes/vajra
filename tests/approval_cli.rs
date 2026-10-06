@@ -112,6 +112,11 @@ fn an_agent_cannot_use_the_launch_time_yes() {
 }
 
 fn hook(name: &str, root: &Path, json: &str) -> i32 {
+    hook_tmp(name, root, json, &std::env::temp_dir())
+}
+
+/// A hook run with its own TMPDIR (S188: the before record lives there, so a pair shares one).
+fn hook_tmp(name: &str, root: &Path, json: &str, tmp: &Path) -> i32 {
     use std::io::Write;
     let script = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("scripts")
@@ -119,6 +124,7 @@ fn hook(name: &str, root: &Path, json: &str) -> i32 {
     let mut c = Command::new("bash")
         .arg(script)
         .env("CLAUDE_PROJECT_DIR", root)
+        .env("TMPDIR", tmp)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -128,8 +134,33 @@ fn hook(name: &str, root: &Path, json: &str) -> i32 {
     c.wait_with_output().unwrap().status.code().unwrap_or(-1)
 }
 
+/// S188: one AI Bash call — Vajra's own hook-pre-bash.sh before it, the real command, the guard after
+/// it (the event its exit picks). Returns (before exit, after exit).
+fn bash_pair(root: &Path, id: &str, cmd: &str) -> (i32, i32) {
+    let tmp = tempfile::tempdir().unwrap();
+    let j = |ev: &str| {
+        serde_json::json!({"hook_event_name": ev, "tool_name": "Bash", "tool_use_id": id,
+            "tool_input": {"command": cmd}})
+        .to_string()
+    };
+    let pre = hook_tmp("hook-pre-bash.sh", root, &j("PreToolUse"), tmp.path());
+    let ok = Command::new("bash")
+        .args(["-c", cmd])
+        .current_dir(root)
+        .status()
+        .unwrap()
+        .success();
+    let ev = if ok {
+        "PostToolUse"
+    } else {
+        "PostToolUseFailure"
+    };
+    let post = hook_tmp("hook-approvals-guard.sh", root, &j(ev), tmp.path());
+    (pre, post)
+}
+
 #[test]
-fn the_agents_write_and_shell_tools_are_blocked_from_the_approvals_dir() {
+fn the_agents_write_tools_are_blocked_and_shell_writes_caught_after() {
     assert!(
         Command::new("jq").arg("--version").output().is_ok(),
         "jq is required to run the hook tests (the hooks themselves fail closed without it)"
@@ -149,24 +180,36 @@ fn the_agents_write_and_shell_tools_are_blocked_from_the_approvals_dir() {
         0,
         "positive anchor: other files still pass"
     );
+    // S188 (DECISION-011 S188 addendum): a Bash write is no longer blocked by its words — it runs, is
+    // caught after it, and the approval stops counting until the founder approves again.
+    fs::write(
+        d.path().join("x"),
+        "{\"session\": 181, \"method\": \"approve-command\"}",
+    )
+    .unwrap();
     for cmd in [
         "echo '{}' > .ai/approvals/session-181.json",
         "cp x .ai/approvals/session-181.json",
         "python3 -c \"open('.ai/approvals/session-181.json','w')\"",
     ] {
-        let j = serde_json::json!({"tool_input": {"command": cmd}}).to_string();
-        assert_eq!(hook("hook-pre-bash.sh", d.path(), &j), 2, "{cmd}");
+        let _ = fs::remove_dir_all(d.path().join(".ai/approvals"));
+        fs::create_dir_all(d.path().join(".ai/approvals")).unwrap();
+        let (pre, post) = bash_pair(d.path(), "toolu_cli_w", cmd);
+        assert_eq!((pre, post), (0, 2), "{cmd}");
+        assert!(
+            vajractl::approval::approved(d.path(), 181).is_none(),
+            "{cmd}: the record the AI wrote must not count"
+        );
     }
     for cmd in [
         "ls .ai/approvals",
         "git add .ai/approvals",
         "cat .ai/approvals/session-181.json",
     ] {
-        let j = serde_json::json!({"tool_input": {"command": cmd}}).to_string();
         assert_eq!(
-            hook("hook-pre-bash.sh", d.path(), &j),
-            0,
-            "{cmd} is a read/stage and must pass"
+            bash_pair(d.path(), "toolu_cli_r", cmd),
+            (0, 0),
+            "{cmd} is a read/stage and must pass, before and after"
         );
     }
 }

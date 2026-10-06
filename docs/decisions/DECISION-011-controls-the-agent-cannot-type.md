@@ -180,3 +180,110 @@ every symlink blocks macOS's `/tmp`; `realpath` is not in bash 3.2. P1–P7 are 
 **Limit, unchanged in kind:** a path assembled at run time, or a writer no list names with no redirect,
 still gets past; the guard reads text, it is not a sandbox. A hook killed by its timeout does not block —
 the guard is now linear, but a slow machine and a huge command still meet that limit somewhere.
+
+## S188 addendum — the approvals folder: check what changed, not what the words say (2026-10-05)
+
+**Deviates from** §2's last sentence ("The agent's Write and Bash hooks refuse to write there") for Bash: the Bash
+hook no longer refuses a write, it catches one after it runs (the Write hook still refuses). **Reverses, for Bash,**
+the S182 addendum §2 and the S186 addendum §1–2 — block a command by reading its text — and the S173 rule that a
+guard change only adds. **Keeps** the rest of §2: only the founder's own process writes an approval record that
+counts. Founder's decision, 2026-10-05: in S187 alone the text guard blocked plain reads five times (F110),
+and S186's two cold reviews kept finding spellings it missed. The class-level argument S186 asked for before any
+loosening: the check no longer reads the command, it reads the folder — so every write the shell can make, by any
+spelling, a path built at run time, or an interpreter, changes what it sees.
+
+1. **Before and after every AI tool call the guard sees.** PreToolUse saves the folder's state under
+   `${TMPDIR:-/tmp}/vajra-approvals-UID/` (mode 700), named by a checksum of the project root plus the call's
+   `tool_use_id`: the folder's own type, then each entry's name, type and `git hash-object --no-filters` hash (a
+   link's target), NUL-separated. PostToolUse (the call succeeded) and PostToolUseFailure (it failed) save it again
+   and compare byte for byte. Same → silent. Different → the void (2), a plain message on stderr, exit 2. On these
+   two events exit 2 cannot block — the tool already ran — it is how the agent is told. The before record lives
+   outside the folder and the tracked tree; the after hook never deletes it (two after runs for one call give the
+   same answer); records older than a day are pruned. The after groups use exactly the Pre matcher of their
+   settings file: an after event with no Pre hook would void every call.
+2. **The void is a file inside the folder.** `.ai/approvals/voided.json` — gitignored, this machine's state like
+   `.ai/.session-owner` — lists every record present after the change. `approved()` reads a listed record
+   (`session-NN.json`, or `allow-all.launch` for the allow-all branch) as missing, comparing names lower-cased
+   (macOS's disk is case-insensitive); an unreadable marker makes every approval missing. `vajra approve NN`
+   rewrites `session-NN.json` and un-lists it and every `session-MM.json` with MM below NN; the launch-time writers
+   un-list what they write; an empty list removes the marker; an unreadable one is rebuilt from what is present.
+   Removing or editing the marker is itself a change, so the next pair re-lists everything present. Keyed on names,
+   not times: a same-second approve cannot race it. `vajra next --steps` and the Analyst gate say why a record on
+   disk does not count. Only record-based approvals are voided; sessions below `session_rules_from` still read the
+   dated fallback.
+3. **No before record → counted as a change** (L2/L3). Deleting the before record, the cheapest dodge, is caught;
+   the message says Vajra could not compare. A call with no `tool_use_id` is treated the same, and the message says
+   to update Claude Code. A state that cannot be saved at PreToolUse exits 0 — Vajra's hook-pre-bash.sh and
+   hook-pre-write.sh skip their later checks on a non-zero exit — and the after hook counts it. **L1:** one report
+   line, exit 0, no void — the report-only posture of the rest of this guard.
+4. **The Bash word checks are removed** (the redirect rule, the writer, interpreter and program lists, the
+   "names the folder" test). The Edit/Write/MultiEdit/NotebookEdit path block stays, unchanged, and still blocks
+   before the tool runs; a write through a link the path check cannot see is caught by (1).
+5. **Order with the other hooks: none assumed.** Relied on only: Claude Code starts the tool after every
+   PreToolUse hook returns, and runs the after events once it ends. No other Vajra hook writes the folder.
+6. **Projects.** `vajra init` ships the same bytes; `--sync-fleet` adds the PostToolUse and PostToolUseFailure
+   groups through the S182 add-only merge (a project's own after hooks stay as they were). Claude Code reads hooks
+   when it starts: the after check runs from the next launch — but the upgraded script is live at once, so between
+   a `--sync-fleet` and that restart, Bash writes into `.ai/approvals` are neither blocked nor caught; `--sync-fleet`
+   says "restart Claude Code in this project now" (cold review rec 2). The `.gitignore` line for the void reaches a new
+   project; an existing project's ignore block is appended once and never again (S171), so there the void shows as
+   an untracked file — named, rare.
+7. **The constitution says it.** A Hard Rule in `.ai/AGENTS.md` ("Approvals are the founder's"), carried into
+   every scaffold by build.rs: the AI never writes there; a change is caught after it runs and voids those
+   approvals; stop and tell the founder.
+
+**Docs facts relied on** (code.claude.com/docs/en/hooks, read 2026-10-05; Claude Code 2.1.280): PostToolUse
+fires on success and PostToolUseFailure after a tool call fails; PreToolUse, PostToolUse and PostToolUseFailure
+inputs all carry `tool_use_id`; exit 2 on the two after events shows stderr to Claude and cannot block; hooks fire
+for subagent tool calls; matching hooks run in parallel with no order between them; hooks are read once at start.
+Not documented: when PostToolUse fires for `run_in_background`. **Checked live (design-advisor rec 11, founder's yes,
+2026-10-05):** a throwaway `vajra init` project, `vajra claude -p --model haiku` (Claude Code 2.1.280, $0.03), a
+logger hook beside the guard in every group. `cp forged.json .ai/approvals/session-02.json; false` fired PreToolUse
+then PostToolUseFailure once each, with the same `tool_use_id`; the agent received the `[vajra] CAUGHT` message
+verbatim; `voided.json` listed both records; `vajra next --steps` showed ✗. `ls .ai/approvals` fired PreToolUse and
+PostToolUse once each and raised nothing. Under `vajra claude` the after check ran once, not twice.
+
+**What moves from before to after — counted, not stated.** `tests/approvals_guard.rs`
+(`every_command_the_start_guard_blocked_is_caught_after_if_it_wrote`) runs the whole S181–S187 corpus for real
+between a real before call and a real after call. The guard S188 started from (43305fd) blocked 76 of them before
+they ran: **45 really write the folder and are now caught after they run** (the record may be changed or gone, the
+approval stops counting, the founder runs `vajra approve NN` again — Vajra undoes nothing); **31 wrote nothing in
+the folder and now pass** — F110's false blocks (a heredoc or commit message naming the folder, a read joined to
+another command) and commands that fail or write elsewhere.
+
+**Rejected:** one marker that voids everything until the next approve (a forged record for a later session counts
+again once the founder approves this one); a void kept outside the folder (one more unwatched command deletes it);
+the before record inside the folder or the tracked tree; keeping the word checks too (F110); pairing Bash only
+(a Write through a link into the folder lands between pairs); Claude Code's sandbox and Vajra's own OS box
+(founder, 2026-10-05); a hash crate (git is already required).
+
+**Limit — bar-raising, not tamper-proof. Named, not closed:**
+- **A gate run in the same command as the forge** reads the forged record as approved, removed afterwards or not:
+  the void lands only after the command ends, when the gate has already acted (the AI is told CAUGHT, but the gate's
+  pass and its side effects stand). A change undone within one command is not seen at all. The old guard blocked the
+  plain spelling of both. (The sharpest gap; a later fix could have the approval reader compare the folder against
+  the open before record.)
+- **The void belongs to this machine** (`voided.json` is gitignored), while a caught forged record stays on disk —
+  Vajra undoes nothing. If that record is committed, it counts in every other checkout: CI, a fresh clone, a `git
+  worktree`, or after `git clean -fdX`.
+- The before record can be edited during the command.
+- A write between pairs looks like the founder: a background job (`(sleep 5; cp …) &`, `run_in_background`), what
+  an interrupted command or a child it left behind writes after the call returns, a hook killed by its own timeout.
+  Caught only if it lands inside a later pair; otherwise missed.
+- Only this project's folder is watched: a write into another project's `.ai/approvals` (`cd ../rudra && cp …`),
+  once blocked by its text, is now neither blocked nor caught.
+- Tools outside the paired ones (an MCP server that writes files) are not watched.
+- Pairs overlap (subagents, parallel calls): a change is reported by every open pair, sometimes against an innocent
+  command; the void is the same.
+- Un-listing every session below NN means a forged record for a session still open counts again if the founder
+  approves a later session before closing it.
+- The founder is flagged when his `vajra approve` lands while an AI command or a background subagent's command is
+  running — the message tells him to run it again; and a `git checkout`/`pull`/`stash` that moves a committed
+  record counts as a change (`git checkout main && git pull --ff-only` as one command does not).
+- A file's mode change (`chmod`) is not itself a change. S188's cold review (rec 1) found that a forge plus
+  `chmod a-w .ai/approvals`, or a file named `--x` (read by jq as an option), stopped the void being written while
+  the message said the approvals no longer counted. Fixed in-session: the names reach jq on stdin, the folder is made
+  writable again first, and a void that still cannot be written (a folder replaced by a file, `chflags uchg`) is
+  reported as "NOT voided — these approvals STILL count".
+- The hook scripts (Stop, UserPromptSubmit, SessionStart, or a PreToolUse hook racing the save) are files the AI can
+  edit, and what they write lands outside any pair (the same class as a write between pairs).

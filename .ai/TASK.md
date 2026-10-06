@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S187 (CODE: the guard message and the S190 leftovers) complete on `session-187-guard-message-and-leftovers`; S188 next
+## Between Sessions — S188 (CODE: the approvals folder — check what changed) complete on `session-188-approvals-before-after-check`; S189 next
 
-**Next: Session 188 — the approvals folder: a before/after check replaces the word guard** (the founder's approved plan, 2026-10-05) — `prompts/188-task-approvals-before-after-check.md`, DRAFT until `vajra approve 188`. S187 merged (#224). Start in a fresh chat.
+**Next: Session 189 — F67 for good: the receipt reads Claude Code's own cost for interactive runs** (founder pick, 2026-10-05) — `prompts/189-task-receipt-tool-cost.md`, DRAFT until `vajra approve 189`. Start in a fresh chat after S188's PR is merged.
+
+## Session 188 — CODE: the approvals folder — check what changed, not what the words say — COMPLETE
+
+- Brief: `prompts/188-task-approvals-before-after-check.md` (the founder's approved plan). Summary: `sessions/session-188-summary.md`. Review: `sessions/session-188-review.md`. Decision: DECISION-011 S188 addendum.
+- Shipped: the before/after check (PreToolUse saves, PostToolUse/PostToolUseFailure compare) · the void (`voided.json`, `approved()` reads a listed record as missing, `vajra approve NN` un-lists) · the Bash word checks removed (F110 closed) · scaffold + `--sync-fleet` wire the after hooks · Hard Rule "Approvals are the founder's" · N2 → backlog wording in the S187 summary. Verify 11/11 · demo 8/8 · live run $0.03.
+- **→ backlog, S190 GT checklist:** S188's named gaps (a change undone in one command; writes between pairs; another project's folder; the founder flagged during a command) · the older guard verify checks superseded by S188 (verify-182/186/187) · the rest of N7 · F97's opt-out key · `--advance` number-swaps SESSION-BOOT (hit again in S188) · the session guard reads a session number in edit text · verify-133 not safe to run twice at once · `tests/gt_cadence_shared.rs` reads the real repo's summary.
 
 ## Session 187 — CODE: the guard message and the S190 leftovers — COMPLETE
 

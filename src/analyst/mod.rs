@@ -665,11 +665,12 @@ pub fn gate(root: &Path, session: u32) -> GateVerdict {
                             "session {session} approved via {}",
                             how.describe()
                         )),
-                        None => reasons.push(format!(
+                        // S188: a voided record is on disk — say why it does not count.
+                        None => reasons.push(crate::approval::void_note(root, session).unwrap_or_else(|| format!(
                             "session {session} has no approval record — the brief's Status line is not read. \
                              The founder runs `vajra approve {session}` in their OWN terminal (not the agent's), \
                              or launches with `VAJRA_APPROVE={session}` / `vajra claude --allow-all={session}`"
-                        )),
+                        ))),
                     }
                 } else {
                     if report.approval == Approval::Draft {
@@ -967,6 +968,22 @@ Do one thing.
         let v = gate(tmp.path(), 181);
         assert!(!v.blocked(), "reasons: {:?}", v.reasons);
         assert!(v.warnings.iter().any(|w| w.contains("approved via")));
+        // S188: the before/after check voided the record — the gate blocks and says why.
+        fs::write(
+            tmp.path().join(".ai/approvals/voided.json"),
+            r#"{"listed": ["session-181.json"]}"#,
+        )
+        .unwrap();
+        let v = gate(tmp.path(), 181);
+        assert!(
+            v.reasons
+                .iter()
+                .any(|r| r.contains("changed .ai/approvals")),
+            "{:?}",
+            v.reasons
+        );
+        crate::approval::approve(tmp.path(), 181, false, true).unwrap();
+        assert!(!gate(tmp.path(), 181).blocked(), "the founder's yes again");
         // The record is for one session only.
         fs::write(
             tmp.path().join("prompts/182-task-x.md"),

@@ -14,11 +14,17 @@ const GUARD: &str = "hook-approvals-guard.sh";
 
 /// The command strings `.claude/settings.json` registers for `tool` under PreToolUse.
 fn registered_for(root: &Path, tool: &str) -> Vec<String> {
+    registered_in(root, "PreToolUse", tool)
+}
+
+/// The command strings `.claude/settings.json` registers for `tool` under `event` (S188: the after
+/// events too — a guard the settings never run after a call catches nothing).
+fn registered_in(root: &Path, event: &str, tool: &str) -> Vec<String> {
     let s: serde_json::Value =
         serde_json::from_str(&fs::read_to_string(root.join(".claude/settings.json")).unwrap())
             .unwrap();
     let mut out = Vec::new();
-    for g in s["hooks"]["PreToolUse"].as_array().unwrap() {
+    for g in s["hooks"][event].as_array().into_iter().flatten() {
         let m = g["matcher"].as_str().unwrap_or("");
         if !m.split('|').any(|t| t == tool) {
             continue;
@@ -30,21 +36,29 @@ fn registered_for(root: &Path, tool: &str) -> Vec<String> {
     out
 }
 
-/// Run the registered approvals-guard command for `tool` exactly as settings spell it.
-fn guard_exit(root: &Path, tool: &str, input: serde_json::Value) -> i32 {
-    let cmds: Vec<String> = registered_for(root, tool)
+/// Run the registered approvals-guard command for `tool` under `event` exactly as settings spell it.
+fn guard_run(
+    root: &Path,
+    tmp: &Path,
+    event: &str,
+    tool: &str,
+    id: &str,
+    input: serde_json::Value,
+) -> i32 {
+    let cmds: Vec<String> = registered_in(root, event, tool)
         .into_iter()
         .filter(|c| c.contains(GUARD))
         .collect();
     assert_eq!(
         cmds.len(),
         1,
-        "{tool}: the approvals guard must be registered exactly once, got {cmds:?}"
+        "{event} {tool}: the approvals guard must be registered exactly once, got {cmds:?}"
     );
     let mut child = Command::new("bash")
         .arg("-c")
         .arg(&cmds[0])
         .env("CLAUDE_PROJECT_DIR", root)
+        .env("TMPDIR", tmp)
         .env_remove("VAJRA_GUARD_MATURITY")
         .current_dir(root)
         .stdin(Stdio::piped())
@@ -52,7 +66,8 @@ fn guard_exit(root: &Path, tool: &str, input: serde_json::Value) -> i32 {
         .stderr(Stdio::null())
         .spawn()
         .unwrap();
-    let payload = serde_json::json!({"tool_name": tool, "tool_input": input});
+    let payload = serde_json::json!({"hook_event_name": event, "tool_name": tool,
+        "tool_use_id": id, "tool_input": input});
     child
         .stdin
         .take()
@@ -60,6 +75,36 @@ fn guard_exit(root: &Path, tool: &str, input: serde_json::Value) -> i32 {
         .write_all(payload.to_string().as_bytes())
         .unwrap();
     child.wait().unwrap().code().unwrap_or(-1)
+}
+
+fn guard_exit(root: &Path, tool: &str, input: serde_json::Value) -> i32 {
+    let tmp = tempfile::tempdir().unwrap();
+    guard_run(root, tmp.path(), "PreToolUse", tool, "toolu_pre", input)
+}
+
+/// One AI Bash call through the project's settings: Pre, the real command, then the after event its
+/// exit picks. Returns (pre, after): `after` is None when the Pre side blocked (the call never ran).
+fn bash_pair(root: &Path, id: &str, cmd: &str) -> (i32, Option<i32>) {
+    let tmp = tempfile::tempdir().unwrap();
+    let input = serde_json::json!({ "command": cmd });
+    let pre = guard_run(root, tmp.path(), "PreToolUse", "Bash", id, input.clone());
+    if pre == 2 {
+        return (pre, None);
+    }
+    let ran = Command::new("bash")
+        .args(["-c", cmd])
+        .current_dir(root)
+        .status()
+        .unwrap();
+    let event = if ran.success() {
+        "PostToolUse"
+    } else {
+        "PostToolUseFailure"
+    };
+    (
+        pre,
+        Some(guard_run(root, tmp.path(), event, "Bash", id, input)),
+    )
 }
 
 fn assert_guarded(root: &Path) {
@@ -72,23 +117,33 @@ fn assert_guarded(root: &Path) {
         guard_exit(root, "Edit", serde_json::json!({"file_path": w})),
         2
     );
-    assert_eq!(
-        guard_exit(
-            root,
-            "Bash",
-            serde_json::json!({"command": "echo x > .ai/approvals/s.json"})
-        ),
-        2
+    // S188: a Bash write is caught AFTER it runs (the word checks that blocked it before are gone);
+    // both after events are wired for every tool the Pre side sees.
+    fs::create_dir_all(root.join(".ai/approvals")).unwrap();
+    let (pre, after) = bash_pair(root, "toolu_w", "echo x > .ai/approvals/s.json");
+    assert!(
+        pre == 2 || after == Some(2),
+        "a Bash write was neither blocked nor caught (pre {pre}, after {after:?})"
     );
+    let _ = fs::remove_file(root.join(".ai/approvals/voided.json"));
+    let _ = fs::remove_file(root.join(".ai/approvals/s.json"));
     assert_eq!(
-        guard_exit(
-            root,
-            "Bash",
-            serde_json::json!({"command": "cat .ai/approvals/s.json 2>&1"})
-        ),
-        0,
-        "a read must pass"
+        bash_pair(root, "toolu_r", "cat .ai/approvals/s.json 2>&1"),
+        (0, Some(0)),
+        "a read must pass, before and after"
     );
+    for event in ["PostToolUse", "PostToolUseFailure"] {
+        for tool in ["Bash", "Edit", "Write", "MultiEdit", "NotebookEdit"] {
+            let n = registered_in(root, event, tool)
+                .iter()
+                .filter(|c| c.contains(GUARD))
+                .count();
+            assert_eq!(
+                n, 1,
+                "{event} {tool}: the guard must run after the call, once"
+            );
+        }
+    }
 }
 
 fn new_project() -> tempfile::TempDir {
@@ -117,6 +172,9 @@ fn old_project() -> tempfile::TempDir {
         .as_array_mut()
         .unwrap()
         .retain(|g| !g.to_string().contains(GUARD));
+    let hooks = s["hooks"].as_object_mut().unwrap();
+    hooks.shift_remove("PostToolUse");
+    hooks.shift_remove("PostToolUseFailure");
     s["model"] = serde_json::json!("the-user's-own-key");
     // appended LAST, so its place differs from alphabetical — the merge must keep it there (rec 5)
     s["aaa_user_key"] = serde_json::json!(1);
@@ -169,6 +227,11 @@ fn sync_fleet_guards_an_old_project_through_its_settings() {
 
     let text = sync(r, &[]);
     assert!(text.contains("merge"), "{text}");
+    // S188 cold review rec 2: the new groups run only from Claude Code's next start — said at once.
+    assert!(
+        text.contains("restart Claude Code in this project now"),
+        "{text}"
+    );
     assert!(r.join(".ai/hooks").join(GUARD).exists());
     assert_guarded(r);
 
@@ -193,6 +256,10 @@ fn sync_fleet_guards_an_old_project_through_its_settings() {
     let once = read(r, ".claude/settings.json");
     let text = sync(r, &[]);
     assert!(text.contains("already wired"), "{text}");
+    assert!(
+        !text.contains("restart Claude Code"),
+        "nothing new wired, no restart asked: {text}"
+    );
     assert_eq!(read(r, ".claude/settings.json"), once);
 }
 
@@ -278,4 +345,45 @@ fn sync_fleet_reports_a_missing_session_rules_from_and_never_writes_it() {
     .unwrap();
     let text = sync(r, &[]);
     assert!(!text.contains("session_rules_from:"), "{text}");
+}
+
+/// S188 (tech-lead rec 8): a project that already runs its OWN PostToolUse hooks keeps them exactly;
+/// `--sync-fleet` adds the guard's two after groups once, and a second run adds nothing.
+#[test]
+fn sync_fleet_adds_the_after_check_once_and_keeps_a_projects_own_after_hooks() {
+    let t = old_project();
+    let r = t.path();
+    let p = r.join(".claude/settings.json");
+    let mut s: serde_json::Value = serde_json::from_str(&read(r, ".claude/settings.json")).unwrap();
+    let own = serde_json::json!({"matcher": "Bash", "hooks": [{"type": "command", "command": "bash my-own-after.sh"}]});
+    s["hooks"]["PostToolUse"] = serde_json::json!([own.clone()]);
+    fs::write(&p, serde_json::to_string_pretty(&s).unwrap()).unwrap();
+
+    sync(r, &[]);
+    let s: serde_json::Value = serde_json::from_str(&read(r, ".claude/settings.json")).unwrap();
+    let post = s["hooks"]["PostToolUse"].as_array().unwrap();
+    assert_eq!(
+        post[0], own,
+        "the project's own after hook must be untouched"
+    );
+    assert_eq!(post.len(), 2, "one guard group added: {post:?}");
+    assert_eq!(
+        s["hooks"]["PostToolUseFailure"].as_array().unwrap().len(),
+        1
+    );
+    assert_guarded(r);
+    let once = read(r, ".claude/settings.json");
+    sync(r, &[]);
+    assert_eq!(
+        read(r, ".claude/settings.json"),
+        once,
+        "a second run adds nothing"
+    );
+}
+
+/// S188: a fresh project ignores the void (this machine's state, never committed).
+#[test]
+fn a_new_project_ignores_the_void() {
+    let t = new_project();
+    assert!(read(t.path(), ".gitignore").contains(".ai/approvals/voided.json"));
 }

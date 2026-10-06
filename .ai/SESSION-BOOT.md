@@ -1,9 +1,12 @@
 # Session Boot
 
 ## Next Session
-- **S188 — the approvals folder: check what changed, not what the words say** (`prompts/188-task-approvals-before-after-check.md`, DRAFT — the founder's approved plan, 2026-10-05). The AI's Bash commands are no longer judged by their words; Vajra compares the folder before and after each one, and a change voids the approval. He approves with `vajra approve 188`. S187 merged (#224). Start in a FRESH chat.
+- **S189 — F67 for good: the receipt reads Claude Code's own cost for interactive runs** (`prompts/189-task-receipt-tool-cost.md`, DRAFT — the founder's pick, 2026-10-05). The headline is the tool's own figure or says none is known; no new price rows. S188's PR first: merge it with a merge commit; then in YOUR terminal `git checkout main && git pull --ff-only` (one command), `git branch -d session-188-approvals-before-after-check`, then `vajra approve 189`; then QUIT and relaunch Claude Code (the new after-hooks load only at launch). Start S189 in a FRESH chat.
 
 ## Current Session
+- **Number:** 188 — COMPLETE on `session-188-approvals-before-after-check` (PR open). CODE: the approvals folder — the Bash word guard replaced by a before/after check; a change voids the approvals until `vajra approve NN` (DECISION-011 S188 addendum). F110 closed. Of 76 commands the old guard blocked: 45 caught after they write, 31 pass. Live run $0.03. Summary: `sessions/session-188-summary.md`. Review: `sessions/session-188-review.md`. Verify: `scripts/verify-session-188.sh` (11/11). Demo: `scripts/demo-session-188.sh`.
+
+## Prior Session
 - **Number:** 187 — CLOSED (merged #224). CODE: the guard message and the S190 leftovers (rewritten with the founder; rudra S18 paused). The approvals guard says how to get past a joined read — what blocks is unchanged (F110 fix C) · `--steps` names a missing approval (N4) · `--sync-fleet` adds a project's missing ground-truth audits and questions, refusing any shape it cannot read exactly (F97, DECISION-007 S187 addendum) · verify-133 green · ROADMAP header derived (N6) · old checkouts in one folder (N7, newest scripts) · `--dogfood-age` says "THIS repo only" (N5, named not closed). N2 → backlog, a known issue (founder). Summary: `sessions/session-187-summary.md`. Review: `sessions/session-187-review.md` (ACCEPT). Verify: `scripts/verify-session-187.sh` (14/14). Demo: `scripts/demo-session-187.sh`.
 
 ## Prior Session

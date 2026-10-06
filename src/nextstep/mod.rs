@@ -93,13 +93,18 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
     // the list stayed silent (the Analyst station passes on a substantive Delta alone). Its own step,
     // from the session the records apply to (below it, the brief's words still count).
     .chain((session >= crate::approval::rules_from(root).0).then(|| {
-        Step::new(
-            crate::approval::approved(root, session).is_some(),
-            "the founder has approved this session",
-            format!(
+        // S188: a record the before/after check voided is there on disk — say why it does not count.
+        let how = match crate::approval::void_note(root, session) {
+            Some(why) => format!("{why} — the agent cannot; tell them what your command did"),
+            None => format!(
                 "the founder types `vajra approve {session}` in their OWN terminal — the agent \
                  cannot (a chat \"approved\" is not the record); ask them"
             ),
+        };
+        Step::new(
+            crate::approval::approved(root, session).is_some(),
+            "the founder has approved this session",
+            how,
         )
     }))
     // S183 (F105): rudra S16 met the strict `session_type:` rule only at close, after its review was
@@ -793,6 +798,19 @@ mod tests {
         assert!(
             approval(4).is_none(),
             "below session_rules_from the words count"
+        );
+        // S188: a record the before/after check voided reads as missing, and the step says why.
+        fs::write(
+            d.path().join(".ai/approvals/voided.json"),
+            r#"{"listed": ["session-07.json"]}"#,
+        )
+        .unwrap();
+        let s = approval(7).unwrap();
+        assert!(!s.done, "a voided record must not count");
+        assert!(
+            s.how.contains("changed .ai/approvals") && s.how.contains("vajra approve 7"),
+            "{}",
+            s.how
         );
     }
 

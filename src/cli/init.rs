@@ -556,6 +556,14 @@ pub fn sync_fleet(root: &Path, opts: SyncOpts, out: &mut impl io::Write) -> Resu
                     out,
                     "  {verb} Vajra's missing hooks into {CLAUDE_SETTINGS_PATH} (your keys and hooks kept)"
                 )?;
+                // S188 cold review rec 2: the hook SCRIPTS are re-read on every call, so an upgraded
+                // guard is live at once — but Claude Code reads settings when it starts, so the newly
+                // wired groups (the approvals after-check) run only from its next launch.
+                writeln!(
+                    out,
+                    "  NOTE    restart Claude Code in this project now — the new hooks run only from its next \
+                     start; until then, Bash writes into .ai/approvals are neither blocked nor caught"
+                )?;
                 settings_merged = 1;
             }
             Err(e) => writeln!(
@@ -2214,6 +2222,28 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-approvals-guard.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-approvals-guard.sh\""
+          }
+        ]
+      }
     ]
   }
 }
@@ -2262,9 +2292,11 @@ const TPL_HOOK_PUBLISH_GUARD: &str = include_str!("../../scripts/hook-publish-gu
 // Cargo.toml so it ships with `cargo install`.
 const TPL_HOOK_COMMIT_GUARD: &str = include_str!("../../scripts/hook-commit-guard.sh");
 
-// Canonical approvals guard (S182) — blocks an agent Bash/Edit/Write into the approvals folder,
-// which only `vajra approve NN` in the founder's own terminal writes. Its own PreToolUse group in
-// the settings template, so `--sync-fleet` can add it to an old project without touching the others.
+// Canonical approvals guard (S182; S188 = the before/after check) — blocks an agent Edit/Write into the
+// approvals folder, which only `vajra approve NN` in the founder's own terminal writes, and catches any
+// change a tool call made there AFTER it runs (the approval stops counting). Its own PreToolUse,
+// PostToolUse and PostToolUseFailure groups in the settings template (one matcher for all three), so
+// `--sync-fleet` can add them to an old project without touching the others.
 const TPL_HOOK_APPROVALS_GUARD: &str = include_str!("../../scripts/hook-approvals-guard.sh");
 
 // Canonical git-level hooks (S43) — the SAME files the vajra repo runs, embedded verbatim
@@ -2288,6 +2320,8 @@ const TPL_GITIGNORE: &str = r#"# ── Vajra: local-only session artifacts ─�
 # output. Git gets the summary, the review and the small evidence records — never the raw runs.
 .ai/.session-owner
 .ai/verify/
+# The approvals check's void (S188): this machine's record of which approvals an AI command voided.
+.ai/approvals/voided.json
 "#;
 
 // Darshan (S27/S28) — the human's glanceable output skill, embedded verbatim from the
