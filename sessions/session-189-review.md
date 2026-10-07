@@ -94,3 +94,21 @@ Sources read:
 - /Users/suman/playground/vajra/.ai/CONSTRAINTS.yaml (budget cap_usd 5.00)
 - /Users/suman/.claude/projects/-Users-suman-playground-vajra/69ecb30e-f3ea-4691-84aa-4fe8e8630ef8.jsonl (cost-state fields and line types/timestamps only, checked against the fixture)
 - A repo-wide search for the old headline strings ("estimated  (", "no authoritative cost")
+
+---
+
+## The release-coordinator's pass-1 recommendations (verbatim)
+
+Pass 2 (`.ai/handoffs/session-189-release-coordinator.md`) replaced pass 1 and made no new recs; these four are answered in the prompt's `## Advice`.
+
+rec 1 — Fix the researcher rec 4 mismatch: add one named-limit line to the ADR-0004 S189 addendum, or reword the answer.
+Why: the answer cites 2d6ab54 for the ADR naming "session moved to the background", and that text is not in the ADR. The fix is one line: "a session moved to the background (agent view) exits before Claude Code's cost is final → no figure (researcher rec 4; Vajra cannot tell it from a crash)". Commit it and re-point the answer to that commit. Also say "no session started" is moot because no transcript means no receipt. The one judge then re-checks only that line. Rewording the answer to claim only "predates", plus a `refused:` for "background" with the no-text-guessing reason, is an equally good answer.
+
+rec 2 — Remove the leftover "A tripwire too (design-advisor rec 8)" comment at `src/meter/mod.rs:1492`, or say plainly that it stays.
+Why: fidelity rec 1 and the design-advisor rec 8 answer both say the fixture is not a tripwire any more. The test code still says it is, and the S189 summary row calls that exact claim the fakest green. A one-line comment change; `refused:` (cosmetic, not shipped behaviour) is acceptable.
+
+rec 3 — Run the full `cargo test` and `scripts/verify-closeout.sh` (with `--check-advice 189` and `--check-obeyed 189`) on the branch before the PR is merged, not after.
+Why: S83 found the close check cannot be re-run correctly once main absorbs the branch. S187 found CI catching what the close skips. ROADMAP's "697/0" is the builder's claim; the fidelity review saw no captured output (its G4 PARTIAL).
+
+rec 4 — Merge with a merge commit, then return to main, pull, and prune the merged `session-*` branches, in that order.
+Why: these are the three recorded gate keys. A squash merge or an early prune is the usual reason the next session (S190, the review-only session) blocks at start.

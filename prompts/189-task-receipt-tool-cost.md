@@ -129,7 +129,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only user-fa
 - fidelity-reviewer rec 6 — obeyed: 42842ea (verify rows for the fork branch and the unpriced record, both real runs red at 8e52d29; the test-name count row removed)
 - fidelity-reviewer rec 7 — obeyed: 2b6c035 (STATE keeps F67 on the broken list as "fixed on recorded lines; no live interactive run yet", not deleted)
 
-**release-coordinator** (`.ai/handoffs/session-189-release-coordinator.md`):
+**release-coordinator** (pass 1 — its handoff was replaced by pass 2, which has no recs; pass 1's four recs are quoted verbatim in `sessions/session-189-review.md`):
 - release-coordinator rec 1 — deferred: sessions/session-189-summary.md
   why: done before the close — the ADR names a backgrounded session and why "no session started" needs no line (328b940); researcher rec 4's answer now cites 328b940, and one release-coordinator pass 2 re-judges that answer (the other judgments copied). Deferred, not obeyed: the judge cannot judge its own recs.
 - release-coordinator rec 2 — deferred: sessions/session-189-summary.md
