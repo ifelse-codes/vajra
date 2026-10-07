@@ -69,8 +69,9 @@ const MODEL_PRICING: &[ModelPricing] = &[
 /// tells a new user nothing. `apply_captured_cost` drops this warning by matching on it, so the
 /// text lives in ONE place.
 pub(crate) const NO_REPORTED_COST_WARNING: &str =
-    "this run did not report what it cost, so the figure above is Vajra's own estimate from the \
-     tokens in the transcript — not the charge on your bill";
+    "Claude Code did not record what this run cost, so there is no charge to show — the \
+     [estimate] line is Vajra's own estimate from the tokens in the transcript, not the charge on \
+     your bill";
 
 const WEB_SEARCH_PER_REQUEST: f64 = 0.01;
 const WEB_FETCH_PER_REQUEST: f64 = 0.01;
@@ -142,6 +143,11 @@ pub struct SessionCost {
     /// The SDK-authoritative `total_cost_usd` if the JSONL carried it (headless `type:"result"`
     /// line). When `Some`, this is the real bill and the receipt headline uses it (S66).
     pub authoritative_dollars: Option<f64>,
+    /// Claude Code's own `cost-state` record from the transcript (S189, ADR-0004 S189 addendum).
+    /// Its own field on purpose: `apply_captured_cost` only fills an empty `authoritative_dollars`,
+    /// so putting this figure there would let the transcript silently beat the `-p` stream (AC4).
+    /// `headline_dollars` picks between the sources in one place.
+    pub tool_record: Option<ToolRecord>,
     /// Models seen in the transcript that are absent from `MODEL_PRICING` — their token estimate
     /// used the opus upper-bound fallback, so it must be labeled, never billed (S66).
     pub unknown_models: Vec<String>,
@@ -156,7 +162,18 @@ impl SessionCost {
     /// JSONL carried it, else the token estimate. Callers (budget cap, receipt headline) use this
     /// so an unknown-model estimate can never masquerade as the charge (S66).
     pub fn billed_dollars(&self) -> f64 {
-        self.authoritative_dollars.unwrap_or(self.total_dollars)
+        self.headline_dollars().unwrap_or(self.total_dollars)
+    }
+
+    /// The one source-order resolver (S189): the transcript's `type:"result"` figure or the
+    /// captured `-p` stream (both in `authoritative_dollars`, S66/S78), then this run's share of
+    /// Claude Code's `cost-state` total, then none. A whole-conversation total is never this run's
+    /// cost, so it is not returned here — the receipt labels it on its own line.
+    pub fn headline_dollars(&self) -> Option<f64> {
+        self.authoritative_dollars.or(match self.tool_record {
+            Some(ToolRecord::ThisRun { dollars, .. }) => Some(dollars),
+            _ => None,
+        })
     }
 
     /// Apply an authoritative `total_cost_usd` captured from the coding tool's OWN end-of-session
@@ -176,6 +193,137 @@ impl SessionCost {
             }
         }
     }
+}
+
+/// Claude Code's own cost record, read from the `{"type":"cost-state"}` lines it appends to the
+/// main transcript at each normal exit (Claude Code 2.1.275 and later; S189 researcher). The line
+/// carries the conversation's RUNNING total: a resumed conversation has one line per finished run
+/// (4.65 → 13.94 → …), and one exit can write the line twice with the same total — so lines are
+/// never added up.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ToolRecord {
+    /// This run's share: the last total minus the last total written before this run began.
+    ThisRun { dollars: f64, unpriced: bool },
+    /// No launch time to cut at (`vajra meter FILE`): the whole conversation's total, every run in
+    /// the file, labelled as that — never as "this run".
+    WholeConversation { dollars: f64, unpriced: bool },
+    /// The total started before this launch and no earlier total is in the file to subtract (a
+    /// fork, or a resume whose earlier record is missing): this run's share is unknown.
+    IncludesEarlierSpend { dollars: f64 },
+}
+
+/// Read Claude Code's own `cost-state` record from a main transcript's text (S189, ADR-0004 S189
+/// addendum). `launch_ms` is Vajra's launch time in Unix milliseconds; `None` (no launch to cut
+/// at) gives the whole conversation's total. Fails closed — any doubt is `None`, never a number
+/// with the wrong label:
+/// - the cut is the first line whose `timestamp` reads (strict UTC shape) at or after the launch;
+///   no such line → `None`;
+/// - the last `cost-state` line must come after the cut (otherwise this run wrote none: a crash
+///   or a kill) → else `None`;
+/// - the baseline is the last `cost-state` before the cut (0 when there is none);
+/// - a total that is not a finite number ≥ 0, or a negative share → `None`;
+/// - no baseline and a `startTime` before the launch (or none at all) → `IncludesEarlierSpend`.
+pub fn cost_state_record(content: &str, launch_ms: Option<u64>) -> Option<ToolRecord> {
+    // (line index, totalCostUSD, startTime, hasUnknownModelCost)
+    let mut records: Vec<(usize, f64, Option<u64>, bool)> = Vec::new();
+    let mut cut: Option<usize> = None;
+    for (i, line) in content.lines().enumerate() {
+        let Ok(v) = serde_json::from_str::<serde_json::Value>(line) else {
+            continue;
+        };
+        if v["type"].as_str() == Some("cost-state") {
+            let total = v["totalCostUSD"].as_f64().unwrap_or(f64::NAN);
+            let unpriced = v["hasUnknownModelCost"].as_bool().unwrap_or(false);
+            records.push((i, total, v["startTime"].as_u64(), unpriced));
+            continue;
+        }
+        if let (None, Some(launch)) = (cut, launch_ms) {
+            if v["timestamp"]
+                .as_str()
+                .and_then(parse_utc_ms)
+                .is_some_and(|t| t >= launch)
+            {
+                cut = Some(i);
+            }
+        }
+    }
+    let &(last_i, total, start, unpriced) = records.last()?;
+    if !total.is_finite() || total < 0.0 {
+        return None;
+    }
+    let Some(launch) = launch_ms else {
+        return Some(ToolRecord::WholeConversation {
+            dollars: total,
+            unpriced,
+        });
+    };
+    let cut = cut?;
+    if last_i < cut {
+        return None;
+    }
+    match records.iter().rev().find(|r| r.0 < cut) {
+        Some(&(_, base, _, _)) => {
+            let share = total - base;
+            if !base.is_finite() || base < 0.0 || share < 0.0 {
+                return None;
+            }
+            Some(ToolRecord::ThisRun {
+                dollars: share,
+                unpriced,
+            })
+        }
+        None if start.is_some_and(|s| s >= launch) => Some(ToolRecord::ThisRun {
+            dollars: total,
+            unpriced,
+        }),
+        None => Some(ToolRecord::IncludesEarlierSpend { dollars: total }),
+    }
+}
+
+/// Unix milliseconds from the one timestamp shape Claude Code writes, `YYYY-MM-DDTHH:MM:SS[.f…]Z`
+/// (UTC). Anything else is `None` — the caller skips the line, so the worst case is "no figure"
+/// (S189 design-advisor rec 6; no date crate for one comparison).
+pub(crate) fn parse_utc_ms(ts: &str) -> Option<u64> {
+    let b = ts.as_bytes();
+    if b.len() < 20 || *b.last()? != b'Z' {
+        return None;
+    }
+    let num = |r: std::ops::Range<usize>| -> Option<u64> {
+        let s = ts.get(r)?;
+        if s.is_empty() || !s.bytes().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
+        s.parse().ok()
+    };
+    if b[4] != b'-' || b[7] != b'-' || b[10] != b'T' || b[13] != b':' || b[16] != b':' {
+        return None;
+    }
+    let (y, mo, d) = (num(0..4)?, num(5..7)?, num(8..10)?);
+    let (h, mi, s) = (num(11..13)?, num(14..16)?, num(17..19)?);
+    let ms = match b.len() {
+        20 => 0,
+        n if b[19] == b'.' && (22..=30).contains(&n) => {
+            let frac = ts.get(20..n - 1)?;
+            num(20..n - 1)?;
+            let three: String = frac.chars().chain("000".chars()).take(3).collect();
+            three.parse::<u64>().ok()?
+        }
+        _ => return None,
+    };
+    if !(1..=12).contains(&mo) || !(1..=31).contains(&d) || h > 23 || mi > 59 || s > 60 {
+        return None;
+    }
+    // Days from 1970-01-01 (Howard Hinnant's days_from_civil).
+    let (y, m) = (y as i64 - i64::from(mo <= 2), mo as i64);
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let doy = (153 * (m + if m > 2 { -3 } else { 9 }) + 2) / 5 + d as i64 - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    let days = era * 146_097 + doe - 719_468;
+    if days < 0 {
+        return None;
+    }
+    Some(((days as u64 * 86_400 + h * 3_600 + mi * 60 + s) * 1_000) + ms)
 }
 
 /// Extract the SDK-authoritative `total_cost_usd` from a headless run's captured stdout — the
@@ -219,10 +367,24 @@ pub fn extract_result_cost(stdout: &[u8]) -> Option<f64> {
 
 // ─── core ──────────────────────────────────────────────────────────
 
+/// Meter a transcript with no launch time (`vajra meter FILE`): Claude Code's own record, if any,
+/// is the whole conversation's total, labelled as that (S189).
 pub fn meter_session(
     main_jsonl: &Path,
     subagent_dir: Option<&Path>,
     compression_stats: Option<CompressionStats>,
+) -> Result<SessionCost> {
+    meter_run(main_jsonl, subagent_dir, compression_stats, None)
+}
+
+/// Meter one `vajra claude` run: `launch` is when Vajra started Claude Code, so Claude Code's own
+/// `cost-state` total can be cut to this run's share (S189, ADR-0004 S189 addendum). `None` behaves
+/// like `meter_session`.
+pub fn meter_run(
+    main_jsonl: &Path,
+    subagent_dir: Option<&Path>,
+    compression_stats: Option<CompressionStats>,
+    launch: Option<std::time::SystemTime>,
 ) -> Result<SessionCost> {
     let session_id = main_jsonl
         .file_stem()
@@ -303,7 +465,21 @@ pub fn meter_session(
             unknown_models.join(", ")
         ));
     }
-    if authoritative_dollars.is_none() {
+    // Claude Code's own record (S189). Main transcript only — subagent files carry none, and their
+    // spend is already inside Claude Code's total.
+    let launch_ms = launch.and_then(|t| {
+        t.duration_since(std::time::UNIX_EPOCH)
+            .ok()
+            .map(|d| d.as_millis() as u64)
+    });
+    let tool_record = fs::read_to_string(main_jsonl)
+        .ok()
+        .and_then(|text| cost_state_record(&text, launch_ms));
+    let tool_has_figure = matches!(
+        tool_record,
+        Some(ToolRecord::ThisRun { .. } | ToolRecord::WholeConversation { .. })
+    );
+    if authoritative_dollars.is_none() && !tool_has_figure {
         warnings.push(NO_REPORTED_COST_WARNING.into());
     }
 
@@ -312,6 +488,7 @@ pub fn meter_session(
         model_breakdown,
         total_dollars,
         authoritative_dollars,
+        tool_record,
         unknown_models,
         compression: compression_stats,
         estimated_tokens_saved,
@@ -495,34 +672,57 @@ pub fn format_receipt(cost: &SessionCost) -> String {
             cost.unknown_models.join(", ").replace("claude-", "")
         )
     };
-    match cost.authoritative_dollars {
-        Some(authoritative) => {
+    let models = model_summary.join(" · ");
+    // One resolver picks the source (S189): the tool's own figure for this run, else no dollar
+    // sign at all on the headline. The token figure only ever rides the `[estimate]` line beneath.
+    let estimate_line = format!(
+        "         ~${:.2}  {}  Vajra's own estimate from the tokens — not the charge on your bill\n",
+        cost.total_dollars, estimate_tag
+    );
+    let unpriced_note = "\n         Claude Code could not price every model in this run";
+    match (cost.authoritative_dollars, &cost.tool_record) {
+        (Some(authoritative), _) => {
             out.push_str(&format!(
                 " ${:.2}  what this run cost  ({})\n",
-                authoritative,
-                model_summary.join(" · ")
+                authoritative, models
             ));
             out.push_str(&format!(
                 "         ${:.2}  Vajra's own estimate from tokens  {}\n",
                 cost.total_dollars, estimate_tag
             ));
         }
-        None => {
+        (None, Some(ToolRecord::ThisRun { dollars, unpriced })) => {
             out.push_str(&format!(
-                " ~${:.2}  estimated  ({})\n",
-                cost.total_dollars,
-                model_summary.join(" · ")
+                " ${:.2}  what this run cost — Claude Code's own figure  ({}){}\n",
+                dollars,
+                models,
+                if *unpriced { unpriced_note } else { "" }
             ));
-            // The plain `[estimate]` tag would only repeat the sentence; an unknown-model tag
-            // says something the sentence does not, so that one still rides along.
-            let tag = if estimate_tag == "[estimate]" {
-                String::new()
-            } else {
-                format!("  {estimate_tag}")
-            };
+            out.push_str(&estimate_line);
+        }
+        (None, Some(ToolRecord::WholeConversation { dollars, unpriced })) => {
             out.push_str(&format!(
-                "         worked out from the tokens used — not the charge on your bill{tag}\n"
+                " ${:.2}  Claude Code's own total for this whole conversation (every run in this file)  ({}){}\n",
+                dollars,
+                models,
+                if *unpriced { unpriced_note } else { "" }
             ));
+            out.push_str(&estimate_line);
+        }
+        (None, Some(ToolRecord::IncludesEarlierSpend { dollars })) => {
+            out.push_str(&format!(
+                " no cost from Claude Code for this run  ({models})\n"
+            ));
+            out.push_str(&format!(
+                "         ${dollars:.2}  Claude Code's total for this whole conversation — includes spend before this run\n"
+            ));
+            out.push_str(&estimate_line);
+        }
+        (None, None) => {
+            out.push_str(&format!(
+                " no cost from Claude Code for this run  ({models})\n"
+            ));
+            out.push_str(&estimate_line);
         }
     }
 
@@ -876,6 +1076,7 @@ mod tests {
             }],
             total_dollars: 0.0859,
             authoritative_dollars: None,
+            tool_record: None,
             unknown_models: vec![],
             compression: Some(CompressionStats {
                 lines_folded: 83,
@@ -1071,7 +1272,10 @@ mod tests {
             receipt.contains("$0.42  what this run cost"),
             "receipt: {receipt}"
         );
-        assert!(!receipt.contains("estimated  ("), "receipt: {receipt}");
+        assert!(
+            !receipt.contains("no cost from Claude Code"),
+            "receipt: {receipt}"
+        );
 
         let _ = fs::remove_dir_all(&dir);
     }
@@ -1136,7 +1340,7 @@ mod tests {
         let receipt = format_receipt(&cost);
         assert!(receipt.contains("what this run cost"), "receipt: {receipt}");
         assert!(
-            !receipt.contains("estimated  ("),
+            !receipt.contains("no cost from Claude Code"),
             "captured cost must supersede the honest fallback: {receipt}"
         );
     }
@@ -1185,7 +1389,10 @@ mod tests {
         let receipt = format_receipt(&result);
         // No authoritative figure → the headline is the honest statement, never a `$… total`
         // (criterion 2).
-        assert!(receipt.contains("estimated  ("), "receipt: {receipt}");
+        assert!(
+            receipt.contains(" no cost from Claude Code for this run  ("),
+            "receipt: {receipt}"
+        );
         assert!(
             !receipt.contains("  total"),
             "estimate must not masquerade as a total: {receipt}"
@@ -1212,5 +1419,258 @@ mod tests {
             "warnings: {:?}",
             result.warnings
         );
+    }
+
+    // ─── S189: Claude Code's own `cost-state` record (F67) ─────────────────────────────────────
+    // Fixture: two runs of one conversation, built around the REAL `cost-state` lines of a Claude
+    // Code 2.1.280 transcript (4.648… after run 1, 13.943… after run 2, written twice at one exit).
+    // A tripwire too (design-advisor rec 8): Claude Code calls the line format internal.
+
+    const S189_FIXTURE: &str = include_str!("../../tests/fixtures/meter/cost-state-2.1.280.jsonl");
+    const S189_RUN1: f64 = 4.648155399999999;
+    const S189_RUN2_TOTAL: f64 = 13.94323919999999;
+
+    fn s189_ms(ts: &str) -> u64 {
+        parse_utc_ms(ts).unwrap()
+    }
+    fn s189_lines(keep: impl Fn(usize, &str) -> bool) -> String {
+        S189_FIXTURE
+            .lines()
+            .enumerate()
+            .filter(|(i, l)| keep(*i, l))
+            .map(|(_, l)| format!("{l}\n"))
+            .collect()
+    }
+    fn s189_meter(name: &str, text: &str, launch: Option<&str>) -> SessionCost {
+        let dir = std::env::temp_dir().join(format!("vajra-s189-{name}-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("69ecb30e-f3ea-4691-84aa-4fe8e8630ef8.jsonl");
+        fs::write(&path, text).unwrap();
+        let launch =
+            launch.map(|t| std::time::UNIX_EPOCH + std::time::Duration::from_millis(s189_ms(t)));
+        let cost = meter_run(&path, None, None, launch).unwrap();
+        let _ = fs::remove_dir_all(&dir);
+        cost
+    }
+    fn s189_headline(receipt: &str) -> &str {
+        receipt.lines().nth(1).unwrap_or("")
+    }
+
+    #[test]
+    fn s189_timestamps_read_only_in_the_shape_claude_code_writes() {
+        // The fixture's startTime 1790227599460 is 2026-09-24T05:26:39.460Z.
+        assert_eq!(
+            parse_utc_ms("2026-09-24T05:26:39.460Z"),
+            Some(1_790_227_599_460)
+        );
+        assert_eq!(
+            parse_utc_ms("2026-09-24T05:26:39Z"),
+            Some(1_790_227_599_000)
+        );
+        assert_eq!(parse_utc_ms("1970-01-01T00:00:00.001Z"), Some(1));
+        for bad in [
+            "",
+            "2026-09-24 05:26:39.460Z",
+            "2026-09-24T05:26:39.460+01:00",
+            "2026-09-24T05:26:39.460",
+            "2026-13-24T05:26:39.460Z",
+            "2026-09-24T05:26:39.Z",
+            "２026-09-24T05:26:39.460Z",
+        ] {
+            assert_eq!(parse_utc_ms(bad), None, "{bad:?} must not read");
+        }
+    }
+
+    #[test]
+    fn s189_a_fresh_run_is_claude_codes_own_total() {
+        let run1 = s189_lines(|i, _| i < 6);
+        assert_eq!(
+            cost_state_record(&run1, Some(s189_ms("2026-09-24T05:26:39.000Z"))),
+            Some(ToolRecord::ThisRun {
+                dollars: S189_RUN1,
+                unpriced: false
+            })
+        );
+        // AC1: the receipt's headline IS that figure, not the price-list estimate.
+        let cost = s189_meter("fresh", &run1, Some("2026-09-24T05:26:39.000Z"));
+        let receipt = format_receipt(&cost);
+        assert_eq!(cost.headline_dollars(), Some(S189_RUN1));
+        assert!(
+            s189_headline(&receipt)
+                .starts_with(" $4.65  what this run cost — Claude Code's own figure"),
+            "receipt: {receipt}"
+        );
+        assert!(
+            receipt.lines().nth(2).unwrap().contains("[estimate"),
+            "the token figure stays, labelled: {receipt}"
+        );
+        assert!(!cost.warnings.iter().any(|w| w == NO_REPORTED_COST_WARNING));
+    }
+
+    #[test]
+    fn s189_a_resumed_run_is_its_own_share_and_duplicates_are_never_added() {
+        let launch = Some(s189_ms("2026-09-24T11:49:40.000Z"));
+        match cost_state_record(S189_FIXTURE, launch) {
+            Some(ToolRecord::ThisRun {
+                dollars,
+                unpriced: false,
+            }) => {
+                assert!(
+                    (dollars - (S189_RUN2_TOTAL - S189_RUN1)).abs() < 1e-9,
+                    "{dollars}"
+                )
+            }
+            other => panic!("expected this run's share, got {other:?}"),
+        }
+        let cost = s189_meter("resume", S189_FIXTURE, Some("2026-09-24T11:49:40.000Z"));
+        assert!(s189_headline(&format_receipt(&cost)).starts_with(" $9.30  what this run cost"));
+    }
+
+    #[test]
+    fn s189_no_record_from_this_run_means_no_figure() {
+        // A crash or a kill: run 2's lines are there, its cost-state lines are not.
+        let crashed = s189_lines(|i, _| i < 12);
+        let crashed = crashed.trim_end().rsplit_once('\n').unwrap().0.to_string() + "\n";
+        assert!(crashed.matches("cost-state").count() == 1, "{crashed}");
+        assert_eq!(
+            cost_state_record(&crashed, Some(s189_ms("2026-09-24T11:49:40.000Z"))),
+            None
+        );
+        // No line from this run at all (no cut): no figure either.
+        assert_eq!(
+            cost_state_record(S189_FIXTURE, Some(s189_ms("2026-09-25T00:00:00.000Z"))),
+            None
+        );
+        // A total that is not a number, or negative: no figure.
+        let neg = s189_lines(|i, _| i < 6).replace(
+            "\"totalCostUSD\":4.648155399999999",
+            "\"totalCostUSD\":-1.0",
+        );
+        assert_eq!(
+            cost_state_record(&neg, Some(s189_ms("2026-09-24T05:26:39.000Z"))),
+            None
+        );
+        let txt = s189_lines(|i, _| i < 6).replace(
+            "\"totalCostUSD\":4.648155399999999",
+            "\"totalCostUSD\":\"4.6\"",
+        );
+        assert_eq!(
+            cost_state_record(&txt, Some(s189_ms("2026-09-24T05:26:39.000Z"))),
+            None
+        );
+        // AC2: the headline says so, and the estimate is a labelled line beneath — never the headline.
+        let cost = s189_meter("crash", &crashed, Some("2026-09-24T11:49:40.000Z"));
+        let receipt = format_receipt(&cost);
+        let head = s189_headline(&receipt);
+        assert!(
+            head.starts_with(" no cost from Claude Code for this run"),
+            "receipt: {receipt}"
+        );
+        assert!(
+            !head.contains('$'),
+            "no dollar figure on the headline: {receipt}"
+        );
+        assert!(
+            receipt.lines().nth(2).unwrap().contains("[estimate"),
+            "receipt: {receipt}"
+        );
+        assert_eq!(cost.headline_dollars(), None);
+    }
+
+    #[test]
+    fn s189_spend_from_before_this_run_is_never_called_this_runs_cost() {
+        // Run 2's lines only: no earlier total to subtract, and startTime is before the launch.
+        let run2 = s189_lines(|i, _| i >= 6);
+        let launch = Some(s189_ms("2026-09-24T11:49:40.000Z"));
+        assert_eq!(
+            cost_state_record(&run2, launch),
+            Some(ToolRecord::IncludesEarlierSpend {
+                dollars: S189_RUN2_TOTAL
+            })
+        );
+        let cost = s189_meter("fork", &run2, Some("2026-09-24T11:49:40.000Z"));
+        let receipt = format_receipt(&cost);
+        assert!(s189_headline(&receipt).starts_with(" no cost from Claude Code for this run"));
+        assert!(receipt.contains("$13.94  Claude Code's total for this whole conversation — includes spend before this run"));
+        assert_eq!(cost.headline_dollars(), None);
+        // No startTime at all: fail closed the same way.
+        let no_start = s189_lines(|i, _| i < 6).replace("\"startTime\":1790227599460,", "");
+        assert!(matches!(
+            cost_state_record(&no_start, Some(s189_ms("2026-09-24T05:26:39.000Z"))),
+            Some(ToolRecord::IncludesEarlierSpend { .. })
+        ));
+    }
+
+    #[test]
+    fn s189_vajra_meter_on_a_file_shows_the_whole_conversation_labelled() {
+        assert_eq!(
+            cost_state_record(S189_FIXTURE, None),
+            Some(ToolRecord::WholeConversation {
+                dollars: S189_RUN2_TOTAL,
+                unpriced: false
+            })
+        );
+        let cost = s189_meter("file", S189_FIXTURE, None);
+        let receipt = format_receipt(&cost);
+        assert!(s189_headline(&receipt).starts_with(
+            " $13.94  Claude Code's own total for this whole conversation (every run in this file)"
+        ));
+        assert!(!receipt.contains("what this run cost"), "{receipt}");
+    }
+
+    #[test]
+    fn s189_an_unknown_model_never_makes_the_headline_a_guess() {
+        // AC3: a made-up model with no price row and no record from Claude Code.
+        let opus9 = s189_lines(|i, _| i < 5).replace("claude-opus-5-5", "claude-opus-9");
+        let cost = s189_meter("opus9", &opus9, Some("2026-09-24T05:26:39.000Z"));
+        let receipt = format_receipt(&cost);
+        let head = s189_headline(&receipt);
+        assert!(
+            head.starts_with(" no cost from Claude Code for this run"),
+            "{receipt}"
+        );
+        assert!(!head.contains('$'), "{receipt}");
+        assert!(cost.unknown_models.contains(&"claude-opus-9".to_string()));
+        assert!(
+            receipt
+                .lines()
+                .nth(2)
+                .unwrap()
+                .contains("unknown-model upper bound"),
+            "{receipt}"
+        );
+        // With a record Claude Code could not fully price: still its figure, and it says so.
+        let unpriced = s189_lines(|i, _| i < 6)
+            .replace("claude-opus-5-5", "claude-opus-9")
+            .replace(
+                "\"hasUnknownModelCost\":false",
+                "\"hasUnknownModelCost\":true",
+            );
+        let cost = s189_meter("opus9-rec", &unpriced, Some("2026-09-24T05:26:39.000Z"));
+        let receipt = format_receipt(&cost);
+        assert!(s189_headline(&receipt)
+            .starts_with(" $4.65  what this run cost — Claude Code's own figure"));
+        assert!(
+            receipt.contains("Claude Code could not price every model in this run"),
+            "{receipt}"
+        );
+    }
+
+    #[test]
+    fn s189_the_p_stream_still_wins_over_the_transcript_record() {
+        // AC4: a headless run also writes a cost-state line; the captured stream stays the headline.
+        let mut cost = s189_meter(
+            "p",
+            &s189_lines(|i, _| i < 6),
+            Some("2026-09-24T05:26:39.000Z"),
+        );
+        cost.apply_captured_cost(Some(0.4211));
+        let receipt = format_receipt(&cost);
+        assert!(
+            s189_headline(&receipt).starts_with(" $0.42  what this run cost  ("),
+            "{receipt}"
+        );
+        assert!(!receipt.contains("Claude Code's own figure"), "{receipt}");
+        assert_eq!(cost.billed_dollars(), 0.4211);
     }
 }
