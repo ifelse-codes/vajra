@@ -45,6 +45,16 @@ pub fn format_budget_warning(spent: f64, cap: f64, kill: bool) -> String {
     format!("[vajra budget] {action}: session cost ${spent:.4} exceeds cap ${cap:.2}\n")
 }
 
+/// The same warning when Claude Code gave no figure for the run, so the only number is Vajra's own
+/// token estimate (S189 review rec 3): it is never called the session's cost.
+pub fn format_budget_estimate_warning(estimate: f64, cap: f64, kill: bool) -> String {
+    let action = if kill { "KILLED" } else { "WARNING" };
+    format!(
+        "[vajra budget] {action}: Vajra's own token estimate ~${estimate:.2} exceeds cap ${cap:.2} \
+         (no cost from Claude Code for this run — the estimate is not the charge on your bill)\n"
+    )
+}
+
 fn parse_budget_section(content: &str) -> Option<BudgetConfig> {
     let mut in_budget = false;
     let mut cap_usd: Option<f64> = None;
@@ -174,5 +184,14 @@ mod tests {
     fn format_warning_shows_killed_for_kill_mode() {
         let msg = format_budget_warning(5.0, 1.0, true);
         assert!(msg.contains("KILLED"));
+    }
+
+    #[test]
+    fn s189_an_estimate_over_the_cap_is_never_called_the_session_cost() {
+        let msg = format_budget_estimate_warning(23.91, 5.0, false);
+        assert!(msg.contains("WARNING: Vajra's own token estimate ~$23.91 exceeds cap $5.00"));
+        assert!(msg.contains("no cost from Claude Code for this run"));
+        assert!(!msg.contains("session cost"));
+        assert!(format_budget_estimate_warning(9.0, 1.0, true).contains("KILLED"));
     }
 }
