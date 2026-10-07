@@ -39,9 +39,13 @@ a hook's input, the transcript) and makes the receipt use it; where the tool giv
 
 ## Design
 design-significant: yes
-- Extends ADR-0004 (meter and receipt) and the S77/S78 "the tool's own cost is authoritative" decision to
-  interactive runs; may touch ADR-0003 (the `--settings` injector) if the figure arrives through a hook or the
-  status line. The design-advisor names the record and the shape after the researcher's finding.
+- Changes the receipt's interface: `meter_session` takes the launch time, `SessionCost` gains Claude Code's own session record as a separate source, and the headline rule changes. Recorded as an S189 addendum to ADR-0004 (meter and receipt), which also writes down the S66/S77/S78 rule that until now lived only in code comments: the tool's own figure wins, and a guess is never the headline. This DEVIATES from ADR-0004 §2.8, whose headline was the token-formula total; the addendum replaces that rule. ADR-0003 is unchanged: no hook, no status line, no change to `--settings`.
+- Source (researcher, S189): Claude Code (2.1.275 and later) appends a `cost-state` line with the running `totalCostUSD` to the main transcript at each normal exit. The headline is picked by one resolver, in this order: the transcript's `type:"result"` `total_cost_usd`, then the captured `-p` result stream (S78, unchanged), then this run's share of the cost-state total, then none. The cost-state figure is kept in its own field, so it can never block the `-p` stream.
+- This run's share is the last cost-state total minus the last total written before the first line timestamped at or after launch (0 if there is none). There is no figure if the last cost-state line comes before that line (crash or kill), if no line from this run has a readable timestamp, if the share is negative, or if the total is not a finite number. Totals are never added up. If there is no baseline and the record's `startTime` is before launch (a fork, or a resume Vajra did not see), the headline says no cost for this run and a labelled line shows the whole conversation's total. `vajra meter FILE` shows that labelled conversation total and subtracts nothing.
+- Nothing new is stored: the launch time already in memory is the only input, and the transcript is only read, after exit.
+- No figure: the headline reads "no cost from Claude Code for this run" and the token number is a labelled `[estimate]` line beneath it. An unknown model only ever tags the estimate line. If `hasUnknownModelCost` is true, the headline is still Claude Code's figure and says Claude Code could not price every model. No price rows are added.
+- Rejected: the status line (it would replace the user's own statusLine setting; ADR-0003 and the add-only rule); `~/.claude.json` lastCost (undocumented, one value per folder, a shared global file); a SessionStart hook writing to a file beside the transcript, now (correct but larger, needs an ADR-0003 change; deferred); recording transcript byte lengths before launch (same answer, needs a scan before Claude Code starts); adding up cost-state lines (one exit can write the line twice); headlining the conversation total on a resume (overcounts); new price rows (founder, S176/S177).
+- Named limits: crash or kill gives no figure; `/clear` still skips the meter; concurrent sessions in one folder; on a resume the estimate still counts the whole file's tokens; the `-p --resume` stream total may include earlier spend (unverified, unchanged by AC4); the transcript folder name only replaces `/` (deferred); Claude Code older than 2.1.275 gives no figure; Claude Code calls the line format internal, so a pinned 2.1.280 fixture is the tripwire.
 
 ## Carried in
 - F67 (S176 summary row; STATE 🔴). Memory: read the tool's own cost, don't grow a price list (S77–S79).
@@ -58,7 +62,20 @@ design-significant: yes
 - Run the full `cargo test` before pushing.
 
 ## Plan
-<the S189 agent writes this after the tech-lead, each step citing `covers: N`>
+1. The meter reads Claude Code's own record: `cost-state` lines parsed from the main transcript into their own
+   field (never `authoritative_dollars`); this run's share by the timestamp cut, baseline, `startTime` and
+   fail-closed rules; one resolver (result line → `-p` stream → cost-state → none); the no-figure headline and
+   the `[estimate]` line; `hasUnknownModelCost` said on the headline; `meter_session` = the whole conversation
+   (no launch time), `meter_run` = this run. Unit tests on a fixture pinned from a real 2.1.280 transcript
+   (fresh, resume, crash, fork, unknown model, `-p` still wins) (`src/meter/mod.rs`,
+   `tests/fixtures/meter/cost-state-2.1.280.jsonl`). covers: 1, 2, 3, 4
+2. The launcher hands the launch time to the meter, so an interactive `vajra claude` receipt shows this run's
+   share (`src/cli/launch.rs`). covers: 1
+3. The record: the S189 addendum to ADR-0004 (the source order, the share rules, the deviation from §2.8, the
+   named limits) (`docs/adr/0004-meter-receipt-design.md`). covers: 1, 2, 3
+4. `scripts/verify-session-189.sh` — real runs of the real binary with a stub `claude` that writes a recorded
+   transcript, each check red at 8e52d29 for its reason, the price list diffed against 8e52d29 — and
+   `scripts/demo-session-189.sh`; the full `cargo test` before the push. covers: 1, 2, 3, 4, 5
 
 ## Delta
 - `~` an interactive `vajra claude` receipt's headline cost: the tool's own figure, or "no cost known"
