@@ -2,9 +2,17 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S189 (CODE: F67 — the receipt reads Claude Code's own cost) complete on `session-189-receipt-tool-cost`; S190 next
+## Between Sessions — S190 (NO-CODE ground truth, 🟡 PARTIAL PASS) complete on `session-190-closeout`; S191 next
 
-**Next: Session 190 — the review-only session (NO-CODE, every-5th rule)** — prompt written from the founder's pick at the end of S189. Start in a fresh chat after S189's PR is merged.
+**Next: Session 191 — four small, bounded fixes from the S190 ground truth** — prompt written from the founder's pick at the end of S190 (option A). Start in a fresh chat after S190's PR is merged.
+
+## Session 190 — NO-CODE ground truth (every-5th rule) — COMPLETE
+
+- Report: `sessions/session-190-ground-truth.md`. Summary: `sessions/session-190-summary.md`. Review: `sessions/session-190-review.md` (pass 1 REJECT → pass 2 ACCEPT).
+- 13 audits run live, `delivery_progress` first. 10 S190 checklist sub-items all picked. New: N10 (`scaffold-drift.sh`'s own check false-positives on itself) · N11 (3 form-hollow deferred lines, S189) · N12 (N2 hit live this session) · N13 (heredoc hole in the session-guard).
+- **→ S191:** N2's outside-project write-guard fix (design already specified, `.ai/handoffs/session-187-design-advisor.md` recs 12–20) · the `--advance` SESSION-BOOT number-swap · verify-133 concurrency · the heredoc hole.
+- **→ backlog:** rest of N7 · F97's opt-out key · `gt_cadence_shared`'s loose assertion · S188's named gaps (accepted risk) · the older verify checks superseded by S188 (now formally RETIRED).
+- **Dropped (stale/already-decided):** F110(b) (built for a guard S188 retired) · F110 option A (already rejected, DECISION-011 S188 addendum).
 
 ## Session 189 — CODE: F67 for good — the receipt reads Claude Code's own cost — COMPLETE
 
