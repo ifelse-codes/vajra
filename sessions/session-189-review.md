@@ -113,4 +113,4 @@ Why: S83 found the close check cannot be re-run correctly once main absorbs the 
 rec 4 — Merge with a merge commit, then return to main, pull, and prune the merged `session-*` branches, in that order.
 Why: these are the three recorded gate keys. A squash merge or an early prune is the usual reason the next session (S190, the review-only session) blocks at start.
 
-**Review-Inputs-SHA:** fb28325e1d62d464258c4064e79505ca35653635ff7bd56a749e60fb142e74f5
+**Review-Inputs-SHA:** 24fad7cd41d249d2d5c09f2ba0ab8420c9788a4c5328e72ce1071c70b42a64f8
