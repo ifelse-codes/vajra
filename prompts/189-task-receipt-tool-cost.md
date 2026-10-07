@@ -77,6 +77,12 @@ design-significant: yes
    transcript, each check red at 8e52d29 for its reason, the price list diffed against 8e52d29 — and
    `scripts/demo-session-189.sh`; the full `cargo test` before the push. covers: 1, 2, 3, 4, 5
 
+## Execution
+- step 1 — done: 164e516
+- step 2 — done: 49ef0da
+- step 3 — done: 2d6ab54
+- step 4 — done: 52c88df
+
 ## Delta
 - `~` an interactive `vajra claude` receipt's headline cost: the tool's own figure, or "no cost known"
 - `~` the price-list estimate: labelled `[estimate]`, never the headline
