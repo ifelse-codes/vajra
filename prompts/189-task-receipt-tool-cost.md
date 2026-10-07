@@ -105,7 +105,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only user-fa
 - researcher rec 1 — obeyed: 164e516 (the transcript's LAST `cost-state` line is the only Claude Code source; duplicates never added; `~/.claude.json` and the status line not used) and 2146e27 (an unpriced record says "Claude Code could not price every model in this run" — the design-advisor's rec 7 wording, which claims no more than is known). The per-model `costUSD` split is not shown: refused in part — one story, the receipt already names each model; named in the ADR's limits (2d6ab54)
 - researcher rec 2 — deferred: .ai/ROADMAP.md
 - researcher rec 3 — obeyed: 164e516 (this run's share = the last total minus the last total before the cut, by file order instead of a hook baseline; `IncludesEarlierSpend` prints "Claude Code's total for this whole conversation — includes spend before this run" and no figure on top). The sum over several session ids goes with rec 2 (no hook, `/clear` still skips the meter) — deferred with it, .ai/ROADMAP.md
-- researcher rec 4 — obeyed: 164e516 (an explicit no-cost headline, never a token headline; the `[estimate]` line labelled) and 2146e27 (`cost_state_warning` names the two causes Vajra can tell apart from the log alone: no record on Claude Code 2.1.275+, or a record with no readable total). The other reasons ("session moved to the background", "predates cost records") are refused: Vajra cannot tell them apart from a crash without guessing at text (the S177 no-text-guessing rule); the ADR names them as causes instead (2d6ab54)
+- researcher rec 4 — obeyed: 164e516 (an explicit no-cost headline, never a token headline; the `[estimate]` line labelled), 2146e27 (`cost_state_warning` names "it did not end normally, or Claude Code changed how it records cost" — the causes Vajra can tell from the log without guessing which) and 328b940 (the ADR-0004 S189 addendum names the causes: a crash or kill, a session moved to the background, Claude Code older than 2.1.275; "no session started" needs no line, since with no transcript there is no receipt). A per-cause reason on the receipt is refused: Vajra cannot tell a crash from a backgrounded session from the log alone without guessing (the S177 no-text-guessing rule)
 - researcher rec 5 — deferred: .ai/ROADMAP.md
 - researcher rec 6 — deferred: .ai/ROADMAP.md
 
@@ -128,6 +128,16 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only user-fa
 - fidelity-reviewer rec 5 — obeyed: bc4e63a (the summary corrects all five: the fork, text-mode `-p`, `## Advice` now written, backlog entries in ROADMAP, "2.1.280-shaped" not "real" lines)
 - fidelity-reviewer rec 6 — obeyed: 42842ea (verify rows for the fork branch and the unpriced record, both real runs red at 8e52d29; the test-name count row removed)
 - fidelity-reviewer rec 7 — obeyed: 2b6c035 (STATE keeps F67 on the broken list as "fixed on recorded lines; no live interactive run yet", not deleted)
+
+**release-coordinator** (`.ai/handoffs/session-189-release-coordinator.md`):
+- release-coordinator rec 1 — deferred: sessions/session-189-summary.md
+  why: done before the close — the ADR names a backgrounded session and why "no session started" needs no line (328b940); researcher rec 4's answer now cites 328b940, and one release-coordinator pass 2 re-judges that answer (the other judgments copied). Deferred, not obeyed: the judge cannot judge its own recs.
+- release-coordinator rec 2 — deferred: sessions/session-189-summary.md
+  why: done — the test comment no longer calls the fixture a tripwire (328b940); the judge cannot judge its own rec.
+- release-coordinator rec 3 — deferred: sessions/session-189-summary.md
+  why: the order the builder follows at close — the full `cargo test` (697/0, run after the last code change) and `bash scripts/verify-closeout.sh` on the session branch after the stamp commit and before the push; it must exit 0.
+- release-coordinator rec 4 — deferred: .ai/SESSION-BOOT.md
+  why: the founder's steps after the PR, in his own terminal and in this order — merge with a merge commit (not squash/rebase), `git checkout main && git pull --ff-only`, `git branch -d session-189-receipt-tool-cost`, then `vajra approve 190`; written in SESSION-BOOT's Next Session line.
 
 ## Delta
 - `~` an interactive `vajra claude` receipt's headline cost: the tool's own figure, or "no cost known"
