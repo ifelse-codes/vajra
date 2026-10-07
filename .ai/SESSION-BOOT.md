@@ -1,10 +1,10 @@
 # Session Boot
 
 ## Next Session
-- **S189 — F67 for good: the receipt reads Claude Code's own cost for interactive runs** (`prompts/189-task-receipt-tool-cost.md`, DRAFT — the founder's pick, 2026-10-05). The headline is the tool's own figure or says none is known; no new price rows. S188's PR first: merge it with a merge commit; then in YOUR terminal `git checkout main && git pull --ff-only` (one command), `git branch -d session-188-approvals-before-after-check`, then `vajra approve 189`; then QUIT and relaunch Claude Code (the new after-hooks load only at launch). Start S189 in a FRESH chat.
+- **S190 — the review-only session (NO-CODE, every-5th rule)** (`prompts/190-task-ground-truth.md`, DRAFT — the founder's pick, 2026-10-07). Reviews S186–S189 and picks every S190 checklist item. S189's PR first: merge it with a merge commit; then in YOUR terminal `git checkout main && git pull --ff-only` (one command), `git branch -d session-189-receipt-tool-cost`, then `vajra approve 190`. To see the new receipt in rudra, install the new vajra (`cargo install --path .` here). Start S190 in a FRESH chat.
 
 ## Current Session
-- **Number:** 189 — IN PROGRESS on `session-189-receipt-tool-cost`. CODE: F67 — the receipt reads Claude Code's own cost (the transcript's `cost-state` line) for interactive runs; no new price rows. Prompt: `prompts/189-task-receipt-tool-cost.md`.
+- **Number:** 189 — COMPLETE on `session-189-receipt-tool-cost` (PR open). CODE: F67 — an interactive receipt's top line is Claude Code's own figure (the transcript's `cost-state` line, this run's share) or "no cost from Claude Code for this run"; the price list only feeds labelled `[estimate]` lines; no price rows (ADR-0004 S189 addendum). Proven on recorded lines and a stand-in, not a live interactive run. Summary: `sessions/session-189-summary.md`. Review: `sessions/session-189-review.md` (ACCEPT). Verify: `scripts/verify-session-189.sh` (20/20). Demo: `scripts/demo-session-189.sh`.
 
 ## Prior Session
 - **Number:** 188 — COMPLETE (merged #226). CODE: the approvals folder — the Bash word guard replaced by a before/after check; a change voids the approvals until `vajra approve NN` (DECISION-011 S188 addendum). F110 closed. Of 76 commands the old guard blocked: 45 caught after they write, 31 pass. Live run $0.03. Summary: `sessions/session-188-summary.md`. Review: `sessions/session-188-review.md`. Verify: `scripts/verify-session-188.sh` (11/11). Demo: `scripts/demo-session-188.sh`.
