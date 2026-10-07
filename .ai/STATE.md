@@ -3,17 +3,18 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S188 complete on `session-188-approvals-before-after-check` (PR open; the founder merges). Next: S189 — F67, the receipt reads Claude Code's own cost (`prompts/189-task-receipt-tool-cost.md`, DRAFT until `vajra approve 189`).**
+**None — between sessions. S189 complete on `session-189-receipt-tool-cost` (PR open; the founder merges). Next: S190 — the review-only session (NO-CODE, every-5th rule); its prompt is written from the founder's pick.**
 
-## What was done this session (S188 — CODE: the approvals folder — check what changed, not what the words say)
+## What was done this session (S189 — CODE: F67 for good — the receipt reads Claude Code's own cost)
 
-- **The founder's plan (2026-10-05), DECISION-011 S188 addendum:** the approvals guard no longer reads Bash commands. It saves `.ai/approvals`' state before every guarded tool call — Bash, Edit, Write, MultiEdit, NotebookEdit, not MCP tools — (PreToolUse, keyed by `tool_use_id`, outside the folder) and compares after it (PostToolUse + PostToolUseFailure). A change lists the records present in `.ai/approvals/voided.json` (gitignored); `approved()` reads a listed record as missing (names lower-cased; an unreadable marker voids all); the AI is told in plain words (exit 2). `vajra approve NN` un-lists NN and every earlier session; the launch-time writers un-list what they write. `--steps` and the Analyst gate say why a record on disk does not count.
-- **F110 CLOSED:** reading the folder, or writing ABOUT it (heredoc, commit message, a read joined to another command), is never blocked. The Write-tool path block is unchanged.
-- **Counted:** of the 76 corpus commands the start guard (43305fd) blocked before they ran, 45 really write and are now caught AFTER they run; 31 wrote nothing and now pass. LOST (named): a write into another project's folder; a change undone inside one command (the sharpest: forge, run a gate, remove — in ONE command).
-- **Projects:** scaffold settings run the guard after every call too; `--sync-fleet` adds both after groups once, keeps a project's own after hooks. New Hard Rule "Approvals are the founder's" (reaches every scaffold through build.rs). rudra gets it on its next sync.
-- **Live run** (founder's yes, Haiku, $0.03): a write in a failing command fired PostToolUseFailure once with the Pre call's id; the agent got the message verbatim; a read raised nothing; under `vajra claude` the after check ran once.
-- N2 → backlog wording also fixed in the S187 summary (D1). Verify-188 11/11 · demo 8/8 · full `cargo test` 687/0.
-- **One cold review, ACCEPT (10/12 · 2 PARTIAL); its 5 recs fixed in-session** — the serious one: the void failed OPEN (a forge plus a file named `--x`, or `chmod a-w` on the folder, left no void while the message said "no longer count"); now it fails closed or says "STILL count". `--sync-fleet` now says to restart Claude Code (until then Bash writes are neither blocked nor caught).
+- **The source (researcher):** Claude Code 2.1.275+ appends `{"type":"cost-state","totalCostUSD":…,"startTime":…,"modelUsage":…,"hasUnknownModelCost":…}` to the MAIN transcript at each normal exit — a running total across resumes (one exit can write it twice). S77 found no cost because the line did not exist yet. Status line rejected (the user's); `~/.claude.json` `lastCost` = same numbers, cross-check only.
+- **The receipt (ADR-0004 S189 addendum, deviates from §2.8):** one resolver — result line / `-p` stream (unchanged), then this run's share of the cost-state total (last total − last total before the first line stamped at/after launch), then none. No figure → top line "no cost from Claude Code for this run", no dollar sign; the token number only on labelled `[estimate]` lines. Fail-closed: no cut, no record from this run, a bad total, a negative share → no figure; no baseline + `startTime` before launch → no figure + a labelled whole-conversation total. `vajra meter FILE` shows the whole conversation, labelled. No price rows added.
+- **Review fixes (one cold pass, ACCEPT 10/14 · 3 PARTIAL · 1 NOT-BUILT; all 7 recs fixed):** a missing/unreadable record on 2.1.275+ is named in a `[vajra warn]` line (the format-change signal); the split line labelled `[estimate] split:`; the budget line says "Vajra's own token estimate", never "session cost"; fork assumption named; verify rows for the fork branch and the unpriced record.
+- Verify-189 20/20 (real `vajra claude`/`vajra meter` runs against a stand-in `claude`, each fix red at 8e52d29) · demo 7/7 · full `cargo test` 697/0 · $0.
+
+## Previous session (S188 — CODE: the approvals folder — check what changed, merged #226)
+
+- The approvals guard no longer reads Bash commands: it saves `.ai/approvals`' state before every guarded tool call and compares after; a change voids those approvals until `vajra approve NN` (DECISION-011 S188 addendum). F110 closed. Live run $0.03.
 
 ## Previous session (S187 — CODE: the guard message and the S190 leftovers, merged #224)
 
@@ -49,6 +50,7 @@
 - **A project's ground truth leads with the project (S179, F93):** vision → roadmap → `delivery_progress`; Vajra's two self-usage audits are withheld from projects (`build.rs` `OMIT_AUDITS`).
 - **The controls reach existing projects (S182):** `--sync-fleet` ships and WIRES the approvals guard, reports a missing `session_rules_from`; `--allow-all=NN` is per session. rudra has them (uncommitted there).
 - **The approvals folder is checked by what changed (S188, DECISION-011 S188 addendum):** an AI read is never blocked; a write by a guarded tool call (Bash, Edit, Write, MultiEdit, NotebookEdit — not MCP tools) is caught after it runs and voids those approvals until `vajra approve NN`; a Write/Edit there is blocked before it runs. Bar-raising, not tamper-proof.
+- **The receipt's top line is Claude Code's own figure, or says it has none (S189, ADR-0004 S189 addendum):** an interactive `vajra claude` run shows this run's share of the transcript's `cost-state` total; `-p` still reads the result stream; the price list only feeds labelled `[estimate]` lines. Proven on recorded lines and a stand-in, not yet on a live interactive run.
 - **The founder's controls are hard for the agent to type (S181, DECISION-011):** approval is a record from `vajra approve NN` (or the launch-time yes), a waiver names its checks and a reason, a stamp dies when its text is edited, the type is a strict field, and the next review-only session is derived, not hand-kept. Bar-raising, not tamper-proof.
 - **The close runs CI's lint on CI's Rust version (S183, F101; not CI's tests, not Linux):** one pinned toolchain (`rust-toolchain.toml`) and one lint script (`scripts/ci-lint.sh`) for CI and the close gate; projects declare `lint_command:`. Unchecked `obeyed:` claims in a project WARN with the count (F104); `vajra next --steps` names the session type at the start (F105).
 - **`vajra init` never hangs on a silent pipe (S184, F103):** 10 s per answer, then defaults, named on stderr; piped answers and a terminal work as before.
@@ -65,7 +67,7 @@
 - **🟡 F55's `cwd` assumption:** still unverified live — no rudra session has used a worktree yet (S06 didn't either).
 - **🟡 The guards' old-vs-new check is a list (S173):** named shapes × triggers; a spelling nobody listed is not covered.
 - **🟡 Parked LOW (S173):** F47 copied jargon · F56 the session guard cannot tell a command runs in another project · F57 the Coder check reads only `1. …` plan steps.
-- **🔴 F67 (S176, PARKED by founder, 3rd time S177):** the receipt prices `claude-opus-5-5` at the unknown-model ceiling — rudra S07/S08/S09 read ~$48.68/~$62.71/~$118.69, ~5× over. Founder: no new price rows; fix permanently by reading the tool's own cost for interactive runs.
+- **🟡 F67 — fixed on recorded lines; no live interactive run yet (S189; was 🔴 since S176):** the receipt read `claude-opus-5-5` at the unknown-model ceiling (~5× over: rudra S07/S08/S09 ~$48.68/~$62.71/~$118.69). S189 makes the top line Claude Code's own `cost-state` figure, no price rows. Stays here until one real interactive receipt (rudra or here) shows Claude Code's figure — and a `--continue` and a fork behave as the stand-in assumes.
 - **🟡 F70-residual (S176, disclosed):** nothing at close re-runs the Planner — a mid-session brief wipe is caught only when someone runs `--check-plan`/`--steps`/`--stations`; deleting the `covers:` markers or the whole `## Plan` still passes (S68 class). A close re-run needs the founder's yes.
 - **🟡 S177 disclosed:** Vajra's OWN close gate still matches only `**CODE**` (own paperwork, not changed); `ground_truth_next_session` is agent-writable and unguarded (a key = N session loses its CODE checks); the key is read as the first digits on its line (LOW).
 - **🟡 F75 (S177, LOW):** the design-advisor proposed a 4-file commit no agent can make (≤3-file hook); the plan-advisor overruled it.
@@ -86,22 +88,24 @@
 - **🟡 S187 found / disclosed:** `vajra next --advance` still rewrites SESSION-BOOT by number swap (S170's bug): it turned "186" into "187" across old text; S187's closeout rebuilt it by hand · the session guard reads a session number in an edit's TEXT as starting that session (blocked S187's own TASK.md edit; the way past: put the text in a file) · the approvals guard blocked S187's own work four times (one retry each) — F110 stays open; the guard's block now says how · N5 named, not closed · the rest of N7 (verify-176/178/179, demo-176/178/179/184/186) → backlog, S190 checklist.
 - **🟡 N2 — KNOWN ISSUE, backlog (founder, 2026-10-05):** in a review-only session the ground-truth Write guard blocks writes OUTSIDE the project (a scratch note, a throwaway test repo). Vajra's own repo only; workaround: put the commands in a script file. Fix some time in a future session (design: S187 design-advisor recs 12–20).
 - **🟡 S188 disclosed (named, not closed — DECISION-011 S188 addendum):** a gate run in the SAME command as a forge reads it as approved (removed afterwards or not), and a change undone inside one command is not seen (the old guard blocked the plain spelling of both) · the void is this machine's only: a caught forged record that gets committed counts in any other checkout · after `--sync-fleet`, until Claude Code restarts, Bash writes are neither blocked nor caught (it says so) · a write between pairs looks like the founder (a background job, `run_in_background`, an interrupted command's child, a hook killed by its timeout) · the before record (user's temp folder) can be edited · a write into ANOTHER project's `.ai/approvals` is no longer blocked and never caught · MCP tools are not watched · the founder's own `vajra approve` DURING an AI command is flagged (the message says run it again), and a `git checkout`/`pull`/`stash` that moves a committed record counts as a change · an existing project's `.gitignore` gets no `voided.json` line (S171 append-once). Proven live once (Haiku `-p`); interactive sessions, subagents and `run_in_background` not run live.
+- **🟡 S189 disclosed (named, not closed — ADR-0004 S189 addendum):** a fork is ASSUMED to keep Claude Code's `startTime` (if it resets it while carrying the parent's total, the receipt would show the parent's spend as this run's — the one way left for a wrong number with a "this run" label) · `/clear` (two transcripts) and two sessions in one folder still skip the receipt · on a resume the `[estimate]` lines count the whole file · `find_session_jsonl` names the transcript folder by replacing only `/` (Claude Code replaces every non-alphanumeric; `.`, `_`, space → no receipt) and ignores `CLAUDE_CONFIG_DIR` · no SessionStart-hook session-id match · text-mode `-p` now shows the log's figure (untested) · Claude Code's figure is its own list-price total, not an invoice · `tests/gt_cadence_shared.rs` reads this repo's real summary and goes red on the words it looks for (hit again in S189; reworded).
 - **🟡 Older verify scripts superseded by S188 (left as history, like verify-175):** verify-182 (1), verify-186 (23) and verify-187 (1) checks assert a Bash write is blocked BEFORE it runs — they fail today by design; verify-186 AC3 and verify-187's AC1 corpus check PASS HOLLOW (their `cargo test` filter names tests S188 merged — 0 tests run). → backlog, S190 checklist.
 - **🟡 Not tested:** Windows; a real light-background terminal. **Zero external users**; prove-then-cut-cost arc unstarted; Autopilot Rung 2/3 incomplete.
 - **🟡 Backlog carry-forwards** — D2 inner-session gap + waiver path (S161) · crew advice impact F13 · S154-QA 1–3 · S156-FR r1/r2 · S157-FR r2 · S159-FR r1 · S161-FR 2–4 · S164-QA r1 · verify-158 source grep · no gate against new hollow verify checks · Releaser NoBranch blind spot · init.rs hand-typed scaffold scope · waiver BLOCK paths untested.
 
 ## What Is In Progress
 
-- Nothing. S188 complete on its branch; S189's prompt is written from the founder's pick (F67).
+- Nothing. S189 complete on its branch; S190's prompt is written from the founder's pick.
 
 ## Active PRs
 
-- S188's PR (the founder merges). S187 merged as #224 (+ closeout #225).
+- S189's PR (the founder merges). S188 merged as #226.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S189 | $0 | No paid run. 5 fleet dispatches (tech-lead, researcher, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer) |
 | S188 | $0.03 | One live run (Haiku, `vajra claude -p`, founder's yes) proving the after-check in real Claude Code. 5 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of all 30 obeyed answers ×2 — pass 1 found one mismatch, pass 2 re-judged it; one more pass-2 attempt cut off by the usage limit) |
 | S187 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, release-coordinator as the judge of all 22 obeyed answers) |
 | S186 | $0 | No paid run. 5 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer ×2, release-coordinator as the judge of every obeyed answer) |

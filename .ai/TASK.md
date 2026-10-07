@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S188 (CODE: the approvals folder — check what changed) complete on `session-188-approvals-before-after-check`; S189 next
+## Between Sessions — S189 (CODE: F67 — the receipt reads Claude Code's own cost) complete on `session-189-receipt-tool-cost`; S190 next
 
-**Next: Session 189 — F67 for good: the receipt reads Claude Code's own cost for interactive runs** (founder pick, 2026-10-05) — `prompts/189-task-receipt-tool-cost.md`, DRAFT until `vajra approve 189`. Start in a fresh chat after S188's PR is merged.
+**Next: Session 190 — the review-only session (NO-CODE, every-5th rule)** — prompt written from the founder's pick at the end of S189. Start in a fresh chat after S189's PR is merged.
+
+## Session 189 — CODE: F67 for good — the receipt reads Claude Code's own cost — COMPLETE
+
+- Brief: `prompts/189-task-receipt-tool-cost.md`. Summary: `sessions/session-189-summary.md`. Review: `sessions/session-189-review.md` (one cold pass, ACCEPT). Decision: ADR-0004 S189 addendum.
+- Shipped: the meter reads the transcript's `cost-state` record (this run's share; one resolver; fail-closed) · the no-figure top line has no dollar sign · labelled `[estimate]` lines · a missing record named in a warning · the budget line calls an estimate an estimate · no price rows. Verify 20/20 · demo 7/7 · `cargo test` 697/0 · $0.
+- **→ backlog, S190 checklist:** the paid live check (`/clear`, `--continue`, a fork) · a SessionStart-hook session-id match · `find_session_jsonl`'s folder name and `CLAUDE_CONFIG_DIR` · `gt_cadence_shared` reads the real summary.
 
 ## Session 188 — CODE: the approvals folder — check what changed, not what the words say — COMPLETE
 
