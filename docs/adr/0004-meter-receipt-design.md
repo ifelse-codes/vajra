@@ -379,3 +379,80 @@ After these: the design phase is **complete**. The next phase is implementation 
 ## 8. Method note
 
 Three lenses reached consensus on all structural decisions in Round 1. Cross-examination produced two refinements: (1) compact-first receipt format (Practitioner); (2) `command_prefix`-only sidecar (Practitioner, G12). Red-Team produced two amendments: (1) schema drift → warn+estimate rather than hard error (Attack 3); (2) G10 cwd-slug conformance test (Attack 1). G11 (tripwire release gate) and G12 (no content in sidecar) added as new guardrails. No reversals.
+
+---
+
+## S189 addendum — the headline is Claude Code's own figure, or says it has none (F67)
+
+**Status:** accepted 2026-10-07 (S189, the founder's pick; prompt `prompts/189-task-receipt-tool-cost.md`).
+**Deviates from §2.8:** §2.8 made the token-formula figure the headline (`$0.0859  total`). This addendum
+**replaces that headline rule**. §3.1's "the transcript is authoritative" now means: the transcript's own
+cost record is, Vajra's token arithmetic is not. ADR-0003 is unchanged — no hook, no status line, no change
+to `--settings`.
+
+**Written down for the first time (S66 / S77 / S78 lived only in code comments):** the tool's own figure wins,
+and a guess is never the headline. S66 made a transcript `type:"result"` `total_cost_usd` the headline; S77
+found an interactive transcript carries no such line and made the receipt say so; S78 captured a `-p` run's
+result stream.
+
+**The new source (S189 researcher).** Claude Code 2.1.275 and later appends a
+`{"type":"cost-state","sessionId":…,"totalCostUSD":…,"startTime":<epoch ms>,"modelUsage":{…},"hasUnknownModelCost":…}`
+line to the MAIN transcript at each normal exit (never to `subagents/*.jsonl`; subagent spend is inside the
+total). The total is the conversation's RUNNING total: a resumed conversation has one line per finished run
+(4.65 → 13.94 → 17.51 → 25.60 in one real transcript), and one exit can write the line twice with the same total.
+Claude Code's own docs call the line format internal, so `tests/fixtures/meter/cost-state-2.1.280.jsonl` (built
+around real 2.1.280 lines) is the tripwire, in the spirit of G11.
+
+**Source order — one resolver (`SessionCost::headline_dollars`):**
+1. the transcript's `type:"result"` `total_cost_usd` (S66);
+2. the captured `-p` result stream (S78) — both held in `authoritative_dollars`;
+3. this run's share of the `cost-state` total — held in its OWN field (`tool_record`), so it can never stop
+   `apply_captured_cost` filling an empty `authoritative_dollars` (a `-p` run writes a cost-state line too);
+4. none.
+
+**This run's share (`cost_state_record`), fail-closed — any doubt is "no figure", never a number with the wrong
+label:**
+- the cut is the first line whose `timestamp` reads, in the strict UTC shape `YYYY-MM-DDTHH:MM:SS[.f…]Z`, at or
+  after Vajra's launch time (no date crate; an unreadable stamp is skipped). No such line → no figure;
+- the last cost-state line must come after the cut — otherwise this run wrote none (a crash or a kill) → no figure;
+- the share is the last total minus the last total written before the cut (0 when there is none); totals are
+  never added up;
+- a total that is not a finite number ≥ 0, or a negative share → no figure;
+- no earlier total in the file and a `startTime` before the launch, or none (a fork, or a resume whose earlier
+  record is missing) → the headline says no cost for this run, and a labelled line shows Claude Code's total for
+  the whole conversation, "includes spend before this run".
+
+**Nothing new is stored.** The launch time already in memory (`session_start`) is the only input; the transcript
+is only read, after Claude Code exits (§2.1). `vajra meter FILE` has no launch time: it shows the last total
+labelled "Claude Code's own total for this whole conversation (every run in this file)" and subtracts nothing.
+
+**Receipt wording.** With a figure: ` $X  what this run cost — Claude Code's own figure  (models)`; when
+`hasUnknownModelCost` is true the headline adds "Claude Code could not price every model in this run" (whether
+Claude Code counts that model as $0 is unverified, so nothing more is claimed). With none:
+` no cost from Claude Code for this run  (models)` — no dollar sign. The token figure only ever rides the line
+beneath: `~$Y  [estimate…]  Vajra's own estimate from the tokens — not the charge on your bill`; an unknown model
+tags that line only. **No price rows are added** (founder, S176/S177): the price list stays the estimate's, and the
+estimate is never the headline.
+
+**Rejected:** the status line's `cost.total_cost_usd` (Vajra would have to inject a `statusLine`, replacing the
+user's own); `~/.claude.json` `lastCost` (undocumented, one value per folder that the last session to exit
+overwrites, a shared global file — the same numbers, kept as a cross-check only); a SessionStart hook recording the
+session id now (correct but larger, needs an ADR-0003 addendum — deferred); recording transcript sizes before launch
+(same answer, needs a scan before Claude Code starts); adding up cost-state lines (one exit can write two);
+headlining the conversation total on a resume (overcounts every earlier run); new price rows.
+
+**Named limits (named, not closed):**
+- a crash or kill writes no cost-state → no figure;
+- `/clear` makes two transcripts newer than the launch, and the meter still skips with "multiple sessions
+  detected" (unchanged); concurrent sessions in one folder, likewise;
+- on a resume the `[estimate]` line still counts the whole file's tokens (existing behaviour, now beside a
+  headline that covers only this run);
+- a `-p --resume` stream total may include earlier spend (the SDK restores totals on resume) — unchanged, unverified;
+- `find_session_jsonl` names the transcript folder by replacing only `/`, while Claude Code replaces every
+  non-alphanumeric character (a project path with `.`, `_` or a space is not found) and honours
+  `CLAUDE_CONFIG_DIR` — deferred (S189 researcher rec 6);
+- Claude Code older than 2.1.275 writes no cost-state → no figure;
+- the per-model `costUSD` split is not shown;
+- the figure is Claude Code's own client-side list-price total, not an invoice; on a subscription it is notional;
+- the `/clear` + `--continue` behaviour is proven on recorded lines only — a live check is the founder's call
+  (S189 researcher rec 5).
