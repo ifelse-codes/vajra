@@ -275,14 +275,15 @@ fn wait_and_meter(
         std::process::exit(status.code().unwrap_or(1));
     }
 
-    if let Some(cost) = session_cost {
-        check_budget_cap(cost)?;
+    if let Some((cost, estimated)) = session_cost {
+        check_budget_cap(cost, estimated)?;
     }
 
     Ok(())
 }
 
-fn check_budget_cap(session_cost: f64) -> Result<()> {
+/// `estimated`: Claude Code gave no figure, so `session_cost` is Vajra's token estimate (S189).
+fn check_budget_cap(session_cost: f64, estimated: bool) -> Result<()> {
     let constraints_path = std::env::current_dir()
         .ok()
         .map(|d| d.join(".ai/CONSTRAINTS.yaml"));
@@ -292,7 +293,14 @@ fn check_budget_cap(session_cost: f64) -> Result<()> {
 
     match budget::check_budget(config.as_ref(), session_cost) {
         BudgetVerdict::OverBudget { spent, cap, kill } => {
-            eprint!("{}", budget::format_budget_warning(spent, cap, kill));
+            if estimated {
+                eprint!(
+                    "{}",
+                    budget::format_budget_estimate_warning(spent, cap, kill)
+                );
+            } else {
+                eprint!("{}", budget::format_budget_warning(spent, cap, kill));
+            }
             if kill {
                 std::process::exit(2);
             }
@@ -305,12 +313,13 @@ fn check_budget_cap(session_cost: f64) -> Result<()> {
 /// `captured_cost` is the authoritative `total_cost_usd` teed from a headless run's result stream
 /// (S78), or `None` for interactive/text-mode runs. When present it supersedes the transcript's
 /// absent figure (the transcript never carries one — S77), so the receipt headline becomes the
-/// real bill instead of "no authoritative cost available".
+/// real bill instead of the no-cost headline; for an interactive run the meter reads Claude Code's own
+/// `cost-state` record instead (S189).
 fn print_receipt(
     session_start: SystemTime,
     stats_path: &Path,
     captured_cost: Option<f64>,
-) -> Option<f64> {
+) -> Option<(f64, bool)> {
     let compression_stats = meter::read_compression_stats(stats_path);
 
     let jsonl = match meter::find_session_jsonl(session_start) {
@@ -324,7 +333,7 @@ fn print_receipt(
             }
             // No transcript to meter, but a headless run may still have teed its own cost — report
             // it rather than dropping the one authoritative figure we have (S78).
-            return captured_cost;
+            return captured_cost.map(|c| (c, false));
         }
     };
 
@@ -339,15 +348,14 @@ fn print_receipt(
             // Feed the tool's own end-of-session cost into the S66 authoritative path before we
             // read/format anything (so the headline, budget, and warnings all agree) — S78.
             cost.apply_captured_cost(captured_cost);
-            // Budget against the authoritative charge when known (transcript or captured stream),
-            // else the estimate — never the inflated token recompute of an unknown model (S66).
+            // Budget against the tool's own figure when known; else the estimate, said as one (S189).
             let total = cost.billed_dollars();
             eprint!("\n{}", meter::format_receipt(&cost));
-            Some(total)
+            Some((total, cost.headline_dollars().is_none()))
         }
         Err(e) => {
             eprintln!("\n[vajra] meter error: {e}");
-            captured_cost
+            captured_cost.map(|c| (c, false))
         }
     }
 }
