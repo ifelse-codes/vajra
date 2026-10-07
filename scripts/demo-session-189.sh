@@ -2,8 +2,8 @@
 # Session 189 demo — F67 for good: the receipt reads Claude Code's own cost.
 # A terminal deck (DECISION-009): run it bare in a terminal; piped it prints every slide + the markers.
 # Every receipt below is a REAL `vajra claude` run — today's binary and the one at the commit S189
-# started from (8e52d29) — launched against a stand-in `claude` that writes a run log built around REAL
-# Claude Code 2.1.280 cost-state lines, for $0.
+# started from (8e52d29) — launched against a stand-in `claude` that writes a run log in the shape Claude
+# Code 2.1.280 writes (a cut-down cost-state line around one real transcript's totals), for $0.
 set -uo pipefail   # no -e: a live check that fails must be SHOWN, not abort the demo
 KIT="$(cd "$(dirname "$0")" && pwd)/demo-kit.sh"
 [ -f "$KIT" ] || { echo "demo: $KIT is missing — run: vajra init --sync-fleet" >&2; exit 1; }
@@ -40,9 +40,9 @@ ts=$(stamp "$(now_ms)")
 model="${STUB_MODEL:-claude-opus-5-5}"
 {
   printf '{"type":"queue-operation","operation":"enqueue","timestamp":"%s","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8"}\n' "$ts"
-  printf '{"type":"assistant","uuid":"s189-%s","timestamp":"%s","requestId":"req_s189_%s","message":{"id":"msg_s189_%s","model":"%s","role":"assistant","content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":622,"cache_creation_input_tokens":251857,"cache_read_input_tokens":8306752,"output_tokens":51811,"cache_creation":{"ephemeral_1h_input_tokens":251857,"ephemeral_5m_input_tokens":0}}}}\n' "$$" "$ts" "$$" "$$" "$model"
+  printf '{"type":"assistant","uuid":"s189-%s","timestamp":"%s","version":"2.1.280","requestId":"req_s189_%s","message":{"id":"msg_s189_%s","model":"%s","role":"assistant","content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":622,"cache_creation_input_tokens":251857,"cache_read_input_tokens":8306752,"output_tokens":51811,"cache_creation":{"ephemeral_1h_input_tokens":251857,"ephemeral_5m_input_tokens":0}}}}\n' "$$" "$ts" "$$" "$$" "$model"
   printf '{"type":"last-prompt","lastPrompt":"ok","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8"}\n'
-  [ -z "${STUB_CRASH:-}" ] && printf '{"type":"cost-state","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8","totalCostUSD":%s,"startTime":%s,"modelUsage":{"%s":{"costUSD":%s}},"hasUnknownModelCost":false}\n' "$STUB_TOTAL" "$start" "$model" "$STUB_TOTAL"
+  [ -z "${STUB_CRASH:-}" ] && printf '{"type":"cost-state","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8","totalCostUSD":%s,"startTime":%s,"modelUsage":{"%s":{"costUSD":%s}},"hasUnknownModelCost":%s}\n' "$STUB_TOTAL" "$start" "$model" "$STUB_TOTAL" "${STUB_UNPRICED:-false}"
 } >> "$log"
 for a in "$@"; do [ "$a" = -p ] && printf '{"type":"result","subtype":"success","total_cost_usd":%s}\n' "$STUB_P_TOTAL"; done
 exit 0
@@ -76,7 +76,7 @@ slide_story() {
     "Your ask (parked 3 times).|Fix it for good — read the tool's own cost, don't keep adding price rows." \
     "The find.|Claude Code 2.1.275+ adds a 'cost-state' line to the run log at every normal exit: its own total, per model. S77 found nothing because the line did not exist yet." \
     "This run only.|A resumed chat keeps a running total (4.65 → 13.94 → …). Vajra subtracts what was already there when it started." \
-    "Fails safe.|Crash, old Claude Code, an odd timestamp, a fork → 'no cost from Claude Code for this run', never a wrong number." \
+    "Fails safe.|Crash, old Claude Code, an odd timestamp, a resume missing its earlier total → 'no cost from Claude Code for this run'. A crash on a new Claude Code is also named in a warning." \
     "Nothing to set up.|No new setting, no status line change, no price rows. rudra gets it the next time it runs vajra claude (after the new vajra is installed)."
   dk_caption "run log = the transcript file Claude Code keeps for each chat, under ~/.claude/projects/."
 }
@@ -136,7 +136,7 @@ slide_scorecard() {
     "rudra's last run log (2026-10-03): Claude Code's own total|\$29.89 (recorded; old receipts read ~5× that kind of run)" \
     "the full cargo test, before the push|see the summary"
   dk_verdict "HONEST NOTES" \
-    "Proven on a stand-in claude that writes REAL 2.1.280 lines — not yet on a live interactive run. /clear still skips the receipt (two logs), and the [estimate] line on a resumed chat still counts the whole log." \
+    "Proven on a stand-in claude that writes 2.1.280-shaped lines around real totals — not yet on a live interactive run. A fork is assumed to keep Claude Code's start time (unverified). /clear still skips the receipt (two logs), and the [estimate] line on a resumed chat still counts the whole log." \
     "Claude Code's figure is its own list-price total, not your invoice; on a subscription it is notional. Its line format is internal and may change — then the receipt says 'no cost', never a wrong number."
 }
 

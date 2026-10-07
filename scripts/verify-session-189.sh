@@ -4,8 +4,10 @@
 # exits. The receipt's headline is now that figure — this run's share of it — or says plainly that
 # Claude Code gave none; the price-list number only ever rides a labelled `[estimate]` line.
 # Every check RUNS the real thing: the real `vajra claude` (and `vajra meter`) binary, launched against
-# a stand-in `claude` that writes a run log built around REAL 2.1.280 cost-state lines
-# (tests/fixtures/meter/cost-state-2.1.280.jsonl), for $0. Each fix is run again at the commit S189
+# a stand-in `claude` that writes a run log in the shape Claude Code 2.1.280 writes — a cut-down
+# cost-state line (the fields Vajra reads) around the real totals of one real transcript — for $0. The
+# unit-test fixture (tests/fixtures/meter/cost-state-2.1.280.jsonl) carries two real cost-state lines;
+# its second 13.94 line (one exit writing twice) and its token counts are made up. Each fix is run again at the commit S189
 # started from (8e52d29, pinned), where it must go red for the reason it names (S122). Nothing greps
 # source; the price list is compared with the start commit's, entry by entry.
 set -uo pipefail
@@ -27,7 +29,9 @@ OLD_VAJRA="$ROOT/target/s189-old/release/vajra"
 # The stand-in `claude`: it writes a run log the way Claude Code does — every line stamped after the
 # launch, then (unless STUB_CRASH) the cost-state record at exit. STUB_TOTAL is the running total it
 # records; STUB_SEED is an earlier run log to resume (copied in first, so this run appends to it);
-# STUB_MODEL is the model it answers as; a `-p` launch also prints the result stream.
+# STUB_MODEL is the model it answers as; STUB_UNPRICED=true marks the record as not fully priced by
+# Claude Code; STUB_SEED_START moves Claude Code's own start time; a `-p` launch also prints the result
+# stream. Each line names Claude Code 2.1.280, as a real one does.
 mkdir -p "$T/bin"
 cat > "$T/bin/claude" <<'EOF'
 #!/usr/bin/env bash
@@ -42,9 +46,9 @@ ts=$(stamp "$(now_ms)")
 model="${STUB_MODEL:-claude-opus-5-5}"
 {
   printf '{"type":"queue-operation","operation":"enqueue","timestamp":"%s","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8"}\n' "$ts"
-  printf '{"type":"assistant","uuid":"s189-%s","timestamp":"%s","requestId":"req_s189_%s","message":{"id":"msg_s189_%s","model":"%s","role":"assistant","content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":622,"cache_creation_input_tokens":251857,"cache_read_input_tokens":8306752,"output_tokens":51811,"cache_creation":{"ephemeral_1h_input_tokens":251857,"ephemeral_5m_input_tokens":0}}}}\n' "$$" "$ts" "$$" "$$" "$model"
+  printf '{"type":"assistant","uuid":"s189-%s","timestamp":"%s","version":"2.1.280","requestId":"req_s189_%s","message":{"id":"msg_s189_%s","model":"%s","role":"assistant","content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":622,"cache_creation_input_tokens":251857,"cache_read_input_tokens":8306752,"output_tokens":51811,"cache_creation":{"ephemeral_1h_input_tokens":251857,"ephemeral_5m_input_tokens":0}}}}\n' "$$" "$ts" "$$" "$$" "$model"
   printf '{"type":"last-prompt","lastPrompt":"ok","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8"}\n'
-  [ -z "${STUB_CRASH:-}" ] && printf '{"type":"cost-state","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8","totalCostUSD":%s,"startTime":%s,"modelUsage":{"%s":{"costUSD":%s}},"hasUnknownModelCost":false}\n' "$STUB_TOTAL" "$start" "$model" "$STUB_TOTAL"
+  [ -z "${STUB_CRASH:-}" ] && printf '{"type":"cost-state","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8","totalCostUSD":%s,"startTime":%s,"modelUsage":{"%s":{"costUSD":%s}},"hasUnknownModelCost":%s}\n' "$STUB_TOTAL" "$start" "$model" "$STUB_TOTAL" "${STUB_UNPRICED:-false}"
 } >> "$log"
 for a in "$@"; do [ "$a" = -p ] && printf '{"type":"result","subtype":"success","total_cost_usd":%s}\n' "$STUB_P_TOTAL"; done
 exit 0
@@ -56,7 +60,9 @@ chmod +x "$T/bin/claude"
 launch() {
   local bin="$1" name="$2"; shift 2
   local envs=(); while [ "$1" != -- ]; do envs+=("$1"); shift; done; shift
-  local p="$T/$name-$(basename "$(dirname "$(dirname "$bin")")")"; rm -rf "$p"; mkdir -p "$p/home" "$p/proj"
+  local p="$T/$name-$(basename "$(dirname "$(dirname "$bin")")")"; rm -rf "$p"; mkdir -p "$p/home" "$p/proj/.ai"
+  local e; for e in ${envs[@]+"${envs[@]}"}; do case "$e" in CAP=*)
+    printf 'budget:\n  cap_usd: %s\n  mode: warn\n' "${e#CAP=}" > "$p/proj/.ai/CONSTRAINTS.yaml" ;; esac; done
   (cd "$p/proj" && env HOME="$p/home" PATH="$T/bin:$PATH" VAJRA_SKIP_AUTH_CHECK=1 STUB_TOTAL=4.648155399999999 \
      STUB_P_TOTAL=0.4211 ${envs[@]+"${envs[@]}"} "$bin" claude "$@" 2>&1 >/dev/null </dev/null)
 }
@@ -127,12 +133,48 @@ if printf '%s\n' "$OLD" | headline | grep -q 'estimated'; then
   ok "vajra meter FILE red at $OLD_SHA: $(printf '%s\n' "$OLD" | headline | sed 's/^ *//' | cut -c1-20)"
 else bad "vajra meter at $OLD_SHA: $(printf '%s\n' "$OLD" | headline)"; fi
 
-# --- 8 (AC5): the meter's tests run and pass (the S189 cases are new, so this row runs at HEAD only) ---
-if cargo test -q --lib meter:: > "$T/t.out" 2>&1; then
-  n=$(grep -E '^test result: ok' "$T/t.out" | awk '{s+=$4} END {print s+0}')
-  s=$(cargo test -q --lib meter::tests::s189 -- --list 2>/dev/null | grep -c ': test$')
-  [ "$s" -ge 8 ] && ok "AC5 the meter's tests pass ($n tests, $s of them S189's fixture cases)" || bad "AC5 only $s S189 tests listed"
-else bad "AC5 cargo test meter"; tail -15 "$T/t.out"; fi
+# --- 8 (review rec 6): a fork, or a resume missing its earlier total — Claude Code's own start time is
+# before the launch and nothing in the log to subtract: never headlined as this run's cost ---
+NEW=$(launch "$VAJRA" fork STUB_SEED_START=1790227599460 STUB_TOTAL=13.94323919999999 --)
+OLD=$(launch "$OLD_VAJRA" fork STUB_SEED_START=1790227599460 STUB_TOTAL=13.94323919999999 --)
+H=$(printf '%s\n' "$NEW" | headline); B=$(printf '%s\n' "$NEW" | after_headline)
+if printf '%s' "$H" | grep -q '^ no cost from Claude Code for this run' && ! printf '%s' "$H" | grep -q '\$' \
+   && printf '%s' "$B" | grep -q "\$13\.94  Claude Code's total for this whole conversation — includes spend before this run"; then
+  ok "fork / unseen resume: no figure on top; the whole conversation's \$13.94 on its own labelled line"
+else bad "fork: headline '$H' / beneath '$B'"; fi
+if printf '%s\n' "$OLD" | headline | grep -q '^ ~\$[0-9.]*  estimated'; then
+  ok "fork red at $OLD_SHA: the headline was a dollar estimate ($(printf '%s\n' "$OLD" | headline | sed 's/^ *//' | cut -c1-20))"
+else bad "fork at $OLD_SHA: $(printf '%s\n' "$OLD" | headline)"; fi
+
+# --- 9 (review rec 6): Claude Code's record says it could not price every model — still its figure, and said ---
+NEW=$(launch "$VAJRA" unpriced STUB_UNPRICED=true STUB_MODEL=claude-opus-9 --)
+OLD=$(launch "$OLD_VAJRA" unpriced STUB_UNPRICED=true STUB_MODEL=claude-opus-9 --)
+if printf '%s\n' "$NEW" | headline | grep -q '^ \$4\.65  what this run cost — Claude Code.s own figure' \
+   && printf '%s\n' "$NEW" | grep -q '^ *Claude Code could not price every model in this run'; then
+  ok "hasUnknownModelCost: headline is Claude Code's \$4.65 and says it could not price every model"
+else bad "unpriced: $(printf '%s\n' "$NEW" | headline)"; fi
+if printf '%s\n' "$OLD" | headline | grep -q '^ ~\$[0-9.]*  estimated  (opus-9'; then
+  ok "hasUnknownModelCost red at $OLD_SHA: $(printf '%s\n' "$OLD" | headline | sed 's/^ *//' | cut -c1-20)"
+else bad "unpriced at $OLD_SHA: $(printf '%s\n' "$OLD" | headline)"; fi
+
+# --- 10 (review rec 1): Claude Code 2.1.280 wrote no record for this run — named, not a silent "no cost" ---
+NEW=$(launch "$VAJRA" drift STUB_CRASH=1 --) ; OLD=$(launch "$OLD_VAJRA" drift STUB_CRASH=1 --)
+if printf '%s\n' "$NEW" | grep -q '^\[vajra warn\] Claude Code 2\.1\.280 records its own cost when it exits, but this run log has none'; then
+  ok "a missing record is named: '$(printf '%s\n' "$NEW" | grep -m1 'Claude Code 2.1.280 records' | cut -c14-80)…'"
+else bad "drift warning missing"; fi
+if ! printf '%s\n' "$OLD" | grep -q 'records its own cost'; then
+  ok "missing-record warning red at $OLD_SHA: nothing said"
+else bad "drift at $OLD_SHA"; fi
+
+# --- 11 (review rec 3): over the budget cap with no figure — the number is called an estimate, not the cost ---
+NEW=$(launch "$VAJRA" cap CAP=5.00 STUB_CRASH=1 --) ; OLD=$(launch "$OLD_VAJRA" cap CAP=5.00 STUB_CRASH=1 --)
+if printf '%s\n' "$NEW" | grep -q "^\[vajra budget\] WARNING: Vajra's own token estimate ~\$23\.91 exceeds cap \$5\.00 (no cost from Claude Code" \
+   && ! printf '%s\n' "$NEW" | grep -q 'session cost'; then
+  ok "budget: '$(printf '%s\n' "$NEW" | grep -m1 'vajra budget' | cut -c1-72)…'"
+else bad "budget now: $(printf '%s\n' "$NEW" | grep 'vajra budget')"; fi
+if printf '%s\n' "$OLD" | grep -q '^\[vajra budget\] WARNING: session cost \$23\.91[0-9]* exceeds cap'; then
+  ok "budget red at $OLD_SHA: the estimate was called the session cost"
+else bad "budget at $OLD_SHA: $(printf '%s\n' "$OLD" | grep 'vajra budget')"; fi
 
 echo "----"
 echo "verify-session-189: $PASS passed, $FAIL failed"
