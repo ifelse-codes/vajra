@@ -400,8 +400,12 @@ result stream.
 line to the MAIN transcript at each normal exit (never to `subagents/*.jsonl`; subagent spend is inside the
 total). The total is the conversation's RUNNING total: a resumed conversation has one line per finished run
 (4.65 → 13.94 → 17.51 → 25.60 in one real transcript), and one exit can write the line twice with the same total.
-Claude Code's own docs call the line format internal, so `tests/fixtures/meter/cost-state-2.1.280.jsonl` (built
-around real 2.1.280 lines) is the tripwire, in the spirit of G11.
+Claude Code's own docs call the line format internal. `tests/fixtures/meter/cost-state-2.1.280.jsonl` (two real
+2.1.280 cost-state lines; its duplicate line and token counts are made up) pins Vajra's OWN reading of the
+format — it cannot notice Claude Code changing it (S189 review rec 1). What can: the receipt names a
+`cost-state` line with no readable `totalCostUSD`, and a run whose lines name Claude Code 2.1.275 or later that
+wrote no record for this run, in a `[vajra warn]` line (`cost_state_warning`) — so a format change shows up as a
+warning on every receipt, not as a silent "no cost".
 
 **Source order — one resolver (`SessionCost::headline_dollars`):**
 1. the transcript's `type:"result"` `total_cost_usd` (S66);
@@ -421,17 +425,25 @@ label:**
 - no earlier total in the file and a `startTime` before the launch, or none (a fork, or a resume whose earlier
   record is missing) → the headline says no cost for this run, and a labelled line shows Claude Code's total for
   the whole conversation, "includes spend before this run".
+  **Assumed, not verified:** that a fork (`--fork-session`, `/branch`) keeps the parent's `startTime`. If Claude
+  Code resets it while carrying the parent's total, the share rule would headline the parent's spend as this
+  run's cost (S189 review rec 4) — the one way left for a wrong number with the right label. The founder's
+  live check (researcher rec 5) is to include a fork.
 
 **Nothing new is stored.** The launch time already in memory (`session_start`) is the only input; the transcript
 is only read, after Claude Code exits (§2.1). `vajra meter FILE` has no launch time: it shows the last total
 labelled "Claude Code's own total for this whole conversation (every run in this file)" and subtracts nothing.
 
+**Budget line.** When the headline has no figure, the budget check (ADR-0005's cap) still compares Vajra's token
+estimate, but its line calls it "Vajra's own token estimate … (no cost from Claude Code for this run)", never
+"session cost" (S189 review rec 3).
+
 **Receipt wording.** With a figure: ` $X  what this run cost — Claude Code's own figure  (models)`; when
 `hasUnknownModelCost` is true the headline adds "Claude Code could not price every model in this run" (whether
 Claude Code counts that model as $0 is unverified, so nothing more is claimed). With none:
 ` no cost from Claude Code for this run  (models)` — no dollar sign. The token figure only ever rides the line
-beneath: `~$Y  [estimate…]  Vajra's own estimate from the tokens — not the charge on your bill`; an unknown model
-tags that line only. **No price rows are added** (founder, S176/S177): the price list stays the estimate's, and the
+beneath: `~$Y  [estimate…]  Vajra's own estimate from the tokens — not the charge on your bill`, and its split
+line starts `[estimate] split:`; an unknown model tags the estimate only. **No price rows are added** (founder, S176/S177): the price list stays the estimate's, and the
 estimate is never the headline.
 
 **Rejected:** the status line's `cost.total_cost_usd` (Vajra would have to inject a `statusLine`, replacing the
@@ -454,5 +466,7 @@ headlining the conversation total on a resume (overcounts every earlier run); ne
 - Claude Code older than 2.1.275 writes no cost-state → no figure;
 - the per-model `costUSD` split is not shown;
 - the figure is Claude Code's own client-side list-price total, not an invoice; on a subscription it is notional;
-- the `/clear` + `--continue` behaviour is proven on recorded lines only — a live check is the founder's call
-  (S189 researcher rec 5).
+- the `/clear` + `--continue` + fork behaviour is proven on recorded lines and a stand-in only — a live check is
+  the founder's call (S189 researcher rec 5, review rec 4);
+- a text-mode `-p` run (no `--output-format`) has no result stream, so it now shows the cost-state figure where
+  it used to show the estimate — a change toward the tool's own figure, not covered by a check.
