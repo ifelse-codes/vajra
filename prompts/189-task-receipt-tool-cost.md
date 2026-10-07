@@ -83,6 +83,16 @@ design-significant: yes
 - step 3 — done: 2d6ab54
 - step 4 — done: 52c88df
 
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `researcher` (required; deliverable 1 was an open fact),
+`design-advisor` (required; design-significant: yes), `fidelity-reviewer` (required; the one cold close review),
+`release-coordinator` (required; the one judge of every `obeyed:` answer).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the 4 deliverables and 5 ACs restate the founder's own F67 ask (S176/S177), so a ~0.4M pass would only restate them and push the ~4.0M crew to ~4.4M.
+plan-advisor: skipped — the tech-lead deferred it on budget: one story, the Planner gate already checks `covers: N`, and its rec 1 gave the one order that mattered (~0.4M more).
+implementation-advisor: skipped — the tech-lead deferred it on budget: reading meter, launch, the receipt tests and the injector is ~1.0M (crew to ~5.0M); the design-advisor's shape and the real-run AC1–AC4 checks stand in for it.
+qa-specialist: skipped — the tech-lead deferred it on budget: AC5 already requires real-run checks red at the start commit; the author wrote verify-189 and the fidelity-reviewer read it (~0.8M saved).
+demo-producer: skipped — the tech-lead deferred it on budget: the only user-facing change is the receipt's top line, which the fidelity-reviewer read (~0.5M saved).
+
 ## Delta
 - `~` an interactive `vajra claude` receipt's headline cost: the tool's own figure, or "no cost known"
 - `~` the price-list estimate: labelled `[estimate]`, never the headline
