@@ -50,4 +50,4 @@ None this session — no code and no commits before close, so this session produ
 
 **Verdict:** ACCEPT
 
-**Review-Inputs-SHA:** _(stamped at closeout, after the handoffs and this review are committed — the hash covers the prompt plus every committed change outside sessions/, prompts/, and the synced .ai/ paperwork, which for a NO-CODE session is an empty code diff)_
+**Review-Inputs-SHA:** 1e41a404f4f73454b5cc5c5970704d20b494479877894a68e6718b9fc91bb003
