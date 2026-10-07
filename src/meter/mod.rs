@@ -180,7 +180,7 @@ impl SessionCost {
     /// output — the headless `-p` `type:"result"` stdout line (S78). The on-disk transcript the
     /// meter reads never carries this figure (S77 root cause), so on real headless runs the
     /// launcher captures the result stream and hands the value here. The stream figure IS the real
-    /// bill, so it supersedes the "no authoritative cost available" state: the field is set and the
+    /// bill, so it supersedes the no-cost state (S77; S189 wording): the field is set and the
     /// authoritative-absent warning is dropped. A transcript that already carried its own
     /// `total_cost_usd` is left untouched (it is equally authoritative — no double-source override).
     /// `None` (interactive run, or text-mode headless with no result line) is a no-op: S77's honest
@@ -278,6 +278,66 @@ pub fn cost_state_record(content: &str, launch_ms: Option<u64>) -> Option<ToolRe
         }),
         None => Some(ToolRecord::IncludesEarlierSpend { dollars: total }),
     }
+}
+
+/// A warning when Claude Code SHOULD have recorded its own cost but Vajra cannot read one (S189
+/// fidelity rec 1). Failing closed keeps a wrong number off the receipt, but on its own it would
+/// also hide Claude Code changing the record's format: every receipt would quietly say "no cost".
+/// So: a `cost-state` line with no readable `totalCostUSD`, or — with a launch time — a run whose
+/// lines name Claude Code 2.1.275 or later and that wrote no `cost-state` line after the cut, is
+/// named. `None` when there is nothing to say.
+pub fn cost_state_warning(content: &str, launch_ms: Option<u64>) -> Option<String> {
+    let mut cut_seen = launch_ms.is_none();
+    let mut record_after_cut = false;
+    let mut newest: Option<(u64, u64, u64, String)> = None;
+    for line in content.lines() {
+        let Ok(v) = serde_json::from_str::<serde_json::Value>(line) else {
+            continue;
+        };
+        if v["type"].as_str() == Some("cost-state") {
+            if !v["totalCostUSD"]
+                .as_f64()
+                .is_some_and(|t| t.is_finite() && t >= 0.0)
+            {
+                return Some(
+                    "Claude Code's cost record in this run log has no total Vajra can read — Claude \
+                     Code may have changed how it records cost, so this vajra needs an update"
+                        .into(),
+                );
+            }
+            record_after_cut |= cut_seen;
+            continue;
+        }
+        if !cut_seen {
+            cut_seen = v["timestamp"]
+                .as_str()
+                .and_then(parse_utc_ms)
+                .zip(launch_ms)
+                .is_some_and(|(t, l)| t >= l);
+        }
+        if cut_seen {
+            if let Some(ver) = v["version"].as_str() {
+                let parts: Vec<u64> = ver.split('.').map_while(|p| p.parse().ok()).collect();
+                if let [a, b, c, ..] = parts[..] {
+                    if !newest
+                        .as_ref()
+                        .is_some_and(|n| (a, b, c) <= (n.0, n.1, n.2))
+                    {
+                        newest = Some((a, b, c, ver.to_string()));
+                    }
+                }
+            }
+        }
+    }
+    let (a, b, c, ver) = newest?;
+    if launch_ms.is_some() && !record_after_cut && (a, b, c) >= (2, 1, 275) {
+        return Some(format!(
+            "Claude Code {ver} records its own cost when it exits, but this run log has none for \
+             this run — it did not end normally, or Claude Code changed how it records cost (then \
+             this vajra needs an update)"
+        ));
+    }
+    None
 }
 
 /// Unix milliseconds from the one timestamp shape Claude Code writes, `YYYY-MM-DDTHH:MM:SS[.f…]Z`
@@ -482,6 +542,12 @@ pub fn meter_run(
     if authoritative_dollars.is_none() && !tool_has_figure {
         warnings.push(NO_REPORTED_COST_WARNING.into());
     }
+    if let Some(w) = fs::read_to_string(main_jsonl)
+        .ok()
+        .and_then(|text| cost_state_warning(&text, launch_ms))
+    {
+        warnings.push(w);
+    }
 
     Ok(SessionCost {
         session_id,
@@ -657,11 +723,10 @@ pub fn format_receipt(cost: &SessionCost) -> String {
         })
         .collect();
 
-    // Headline = the authoritative `total_cost_usd` when the JSONL carried it; the token recompute
-    // is then demoted to a labeled `[estimate]` line beneath it. When NO authoritative figure
-    // exists, the headline is NOT a dollar total at all — it says "no authoritative cost available"
-    // and the token estimate rides a clearly-secondary `~$… token estimate` line (S77, criterion 2:
-    // an estimate is never presented as a total). The estimate tag also flags any unknown model
+    // Headline = the tool's own figure (`headline_dollars`: the result line or `-p` stream, then this
+    // run's share of Claude Code's `cost-state` total — S66/S78/S189); the token recompute is always
+    // a labelled `[estimate]` line beneath it. With no figure the headline has NO dollar sign — "no
+    // cost from Claude Code for this run" (S189; S77 first said so). The estimate tag also flags any unknown model
     // whose rate fell back to the unknown-model upper bound (S66) — though S77 priced fable-5 and
     // S79 corrected opus, so the S76 fixture now shows the plain `[estimate]` tag at real rates.
     let estimate_tag = if cost.unknown_models.is_empty() {
@@ -749,7 +814,7 @@ pub fn format_receipt(cost: &SessionCost) -> String {
         + total_tokens.cache_write_1h as f64 * primary_input * 2.0)
         / 1e6;
     out.push_str(&format!(
-        "         new text ${:.2} · replies ${:.2} · re-reading context ${:.2} · saving context ${:.2}\n",
+        "         [estimate] split: new text ${:.2} · replies ${:.2} · re-reading context ${:.2} · saving context ${:.2}\n",
         input_cost, output_cost, cache_r_cost, cache_w_cost
     ));
 
@@ -1672,5 +1737,31 @@ mod tests {
         );
         assert!(!receipt.contains("Claude Code's own figure"), "{receipt}");
         assert_eq!(cost.billed_dollars(), 0.4211);
+    }
+
+    #[test]
+    fn s189_a_missing_or_unreadable_record_is_named_not_silent() {
+        let launch = Some(s189_ms("2026-09-24T11:49:40.000Z"));
+        // Run 2 names Claude Code 2.1.280 and wrote no cost-state line: named.
+        let crashed: String = s189_lines(|i, _| i < 11);
+        let w = cost_state_warning(&crashed, launch).expect("a crash on 2.1.280 is named");
+        assert!(
+            w.contains("Claude Code 2.1.280 records its own cost"),
+            "{w}"
+        );
+        // A record whose total is not a number: the format may have changed — named.
+        let renamed = S189_FIXTURE.replace("\"totalCostUSD\"", "\"totalCostUsd\"");
+        assert!(cost_state_warning(&renamed, launch)
+            .unwrap()
+            .contains("may have changed"));
+        // A normal run, or Claude Code before 2.1.275: nothing to say.
+        assert_eq!(cost_state_warning(S189_FIXTURE, launch), None);
+        let old = crashed.replace("\"version\":\"2.1.280\"", "\"version\":\"2.1.200\"");
+        assert_eq!(cost_state_warning(&old, launch), None);
+        // And it reaches the receipt.
+        let cost = s189_meter("drift", &crashed, Some("2026-09-24T11:49:40.000Z"));
+        assert!(
+            format_receipt(&cost).contains("[vajra warn] Claude Code 2.1.280 records its own cost")
+        );
     }
 }
