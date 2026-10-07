@@ -328,7 +328,13 @@ fn print_receipt(
         }
     };
 
-    match meter::meter_session(&jsonl.0, jsonl.1.as_deref(), compression_stats) {
+    // The launch time lets the meter cut Claude Code's own running total to this run's share (S189).
+    match meter::meter_run(
+        &jsonl.0,
+        jsonl.1.as_deref(),
+        compression_stats,
+        Some(session_start),
+    ) {
         Ok(mut cost) => {
             // Feed the tool's own end-of-session cost into the S66 authoritative path before we
             // read/format anything (so the headline, budget, and warnings all agree) — S78.
