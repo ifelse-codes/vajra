@@ -99,11 +99,11 @@ every adopted rec is built in S191 or was done in the report.
   why: adopted — Goal 3, "release is not a problem yet" stands unchanged.
 - release-coordinator rec 2 — deferred: sessions/session-190-ground-truth.md
   why: adopted — Goal 3, `cargo publish` stays the founder's own call, not a routine step.
-- release-coordinator rec 3 — deferred: backlog
+- release-coordinator rec 3 — deferred: .ai/ROADMAP.md
   why: cosmetic wording-only fix (an inline `why:` already findable in ROADMAP's S189 row) — LOW severity, no
   session can usefully be named for a one-line wording touch; bundle it whenever `prompts/189-task-receipt-tool-cost.md`
   is next opened for another reason.
-- release-coordinator rec 4 — deferred: backlog
+- release-coordinator rec 4 — deferred: .ai/ROADMAP.md
   why: external blocker — rudra S18 is paused on rudra's own data API, not a Vajra decision; no session can be
   named until that clears. Re-raised at the next ground truth if still blocked.
 
