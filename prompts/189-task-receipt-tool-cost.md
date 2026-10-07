@@ -93,6 +93,42 @@ implementation-advisor: skipped — the tech-lead deferred it on budget: reading
 qa-specialist: skipped — the tech-lead deferred it on budget: AC5 already requires real-run checks red at the start commit; the author wrote verify-189 and the fidelity-reviewer read it (~0.8M saved).
 demo-producer: skipped — the tech-lead deferred it on budget: the only user-facing change is the receipt's top line, which the fidelity-reviewer read (~0.5M saved).
 
+**tech-lead** (`.ai/handoffs/session-189-tech-lead.md`):
+- tech-lead rec 1 — obeyed: c936a1c (the researcher's finding was recorded by `vajra next --role researcher` before a line of the Design was written; the Design and Plan landed in bcc0ada, one commit earlier than the handoff files themselves). The finding was a real figure (the transcript's `cost-state` line), so the capture path is Claude Code's own record, not an invented one; where it is absent the honest branch ships too (164e516)
+- tech-lead rec 2 — obeyed: 164e516 and 49ef0da (Vajra reads the transcript after exit; no statusLine, no hook, no `--settings` change — ADR-0003 untouched; the status line is rejected in the ADR-0004 S189 addendum, 2d6ab54)
+- tech-lead rec 3 — obeyed: 164e516 (`tests/fixtures/meter/cost-state-2.1.280.jsonl`, small, no secrets — two real cost-state lines from this repo's own transcript, the rest made up and said so) and 52c88df (verify AC1 red at 8e52d29 because the headline shows the price-list number); no paid run
+- tech-lead rec 4 — obeyed: 52c88df (verify AC3: `claude-opus-9`, no price row, no record → no figure on the headline; the price list compared with 8e52d29 row by row)
+- tech-lead rec 5 — obeyed: 52c88df (verify AC4: a `-p` stream-json run's top line is the same at 8e52d29 and today) and 164e516 (`s189_the_p_stream_still_wins_over_the_transcript_record`)
+- tech-lead rec 6 — obeyed: cc684fc (this section's skip lines for the five deferred roles, with the budget reasons); researcher → design-advisor → build → one fidelity-reviewer (ACCEPT, no second pass) → one release-coordinator after this section answers every rec
+
+**researcher** (`.ai/handoffs/session-189-researcher.md`):
+- researcher rec 1 — obeyed: 164e516 (the transcript's LAST `cost-state` line is the only Claude Code source; duplicates never added; `~/.claude.json` and the status line not used) and 2146e27 (an unpriced record says "Claude Code could not price every model in this run" — the design-advisor's rec 7 wording, which claims no more than is known). The per-model `costUSD` split is not shown: refused in part — one story, the receipt already names each model; named in the ADR's limits (2d6ab54)
+- researcher rec 2 — deferred: .ai/ROADMAP.md
+- researcher rec 3 — obeyed: 164e516 (this run's share = the last total minus the last total before the cut, by file order instead of a hook baseline; `IncludesEarlierSpend` prints "Claude Code's total for this whole conversation — includes spend before this run" and no figure on top). The sum over several session ids goes with rec 2 (no hook, `/clear` still skips the meter) — deferred with it, .ai/ROADMAP.md
+- researcher rec 4 — obeyed: 164e516 (an explicit no-cost headline, never a token headline; the `[estimate]` line labelled) and 2146e27 (`cost_state_warning` names the two causes Vajra can tell apart from the log alone: no record on Claude Code 2.1.275+, or a record with no readable total). The other reasons ("session moved to the background", "predates cost records") are refused: Vajra cannot tell them apart from a crash without guessing at text (the S177 no-text-guessing rule); the ADR names them as causes instead (2d6ab54)
+- researcher rec 5 — deferred: .ai/ROADMAP.md
+- researcher rec 6 — deferred: .ai/ROADMAP.md
+
+**design-advisor** (`.ai/handoffs/session-189-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 2d6ab54 (the S189 addendum inside ADR-0004; it writes down the S66/S77/S78 rule and says it replaces §2.8's headline rule; no new record)
+- design-advisor rec 2 — obeyed: 164e516 (`SessionCost::tool_record`, its own field; `headline_dollars` is the one resolver — result line / `-p` stream, then cost-state, then none; `billed_dollars` returns it or the estimate)
+- design-advisor rec 3 — obeyed: 164e516 (`cost_state_record`: the cut, the baseline, the finite/≥0 and negative-share rules, the last line only; `s189_no_record_from_this_run_means_no_figure`, `s189_a_resumed_run_is_its_own_share_and_duplicates_are_never_added`)
+- design-advisor rec 4 — obeyed: 164e516 (`ToolRecord::IncludesEarlierSpend` when no baseline and `startTime` is before the launch or absent; `s189_spend_from_before_this_run_is_never_called_this_runs_cost`) and 42842ea (the same, run for real in verify-189)
+- design-advisor rec 5 — obeyed: 164e516 (`meter_session` = no launch time = `WholeConversation`, labelled "every run in this file") and 52c88df (verify's `vajra meter FILE` row, red at 8e52d29)
+- design-advisor rec 6 — obeyed: 164e516 (`parse_utc_ms`, the strict UTC shape, no date crate; `s189_timestamps_read_only_in_the_shape_claude_code_writes`: one real stamp, seven malformed)
+- design-advisor rec 7 — obeyed: 164e516 (the no-figure headline has no dollar sign; `NO_REPORTED_COST_WARNING` rewritten; the unpriced note on the headline; the two old headline assertions changed and the commit says why)
+- design-advisor rec 8 — obeyed: 164e516 (the fixture + the fresh, resume and crash cases) and 52c88df (red at 8e52d29). Its "tripwire" claim was wrong (fidelity rec 1): a pinned fixture cannot see Claude Code change; the missing-record warning is the signal now (2146e27, 3c973c1)
+- design-advisor rec 9 — obeyed: 2d6ab54 and 3c973c1 (every limit listed in the ADR addendum, the fork start time added); the deferrals answered above with .ai/ROADMAP.md
+
+**fidelity-reviewer** (`.ai/handoffs/session-189-fidelity-reviewer.md`):
+- fidelity-reviewer rec 1 — obeyed: 2146e27 (`cost_state_warning`: a `[vajra warn]` line when a run on Claude Code 2.1.275+ leaves no record, or a record has no readable total; `s189_a_missing_or_unreadable_record_is_named_not_silent`; verify row 10, red at 8e52d29 — 42842ea) and 3c973c1 (the ADR and the Design stop calling the fixture a tripwire)
+- fidelity-reviewer rec 2 — obeyed: 2146e27 (the split line reads `[estimate] split: new text $… · replies $…`)
+- fidelity-reviewer rec 3 — obeyed: 4947a15 (`format_budget_estimate_warning`: "Vajra's own token estimate ~$X exceeds cap … (no cost from Claude Code for this run …)", never "session cost"; verify row 11, red at 8e52d29 — 42842ea)
+- fidelity-reviewer rec 4 — obeyed: 3c973c1 (the ADR names the fork `startTime` assumption as the one way left for a wrong number with the right label, and puts a fork in the founder's live check) — the live check itself is deferred with researcher rec 5
+- fidelity-reviewer rec 5 — obeyed: bc4e63a (the summary corrects all five: the fork, text-mode `-p`, `## Advice` now written, backlog entries in ROADMAP, "2.1.280-shaped" not "real" lines)
+- fidelity-reviewer rec 6 — obeyed: 42842ea (verify rows for the fork branch and the unpriced record, both real runs red at 8e52d29; the test-name count row removed)
+- fidelity-reviewer rec 7 — obeyed: 2b6c035 (STATE keeps F67 on the broken list as "fixed on recorded lines; no live interactive run yet", not deleted)
+
 ## Delta
 - `~` an interactive `vajra claude` receipt's headline cost: the tool's own figure, or "no cost known"
 - `~` the price-list estimate: labelled `[estimate]`, never the headline
