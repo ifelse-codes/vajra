@@ -454,7 +454,10 @@ session id now (correct but larger, needs an ADR-0003 addendum — deferred); re
 headlining the conversation total on a resume (overcounts every earlier run); new price rows.
 
 **Named limits (named, not closed):**
-- a crash or kill writes no cost-state → no figure;
+- a crash or kill writes no cost-state → no figure; so does a session moved to the background (agent view),
+  whose process exits before Claude Code's cost is final — Vajra cannot tell the two apart from the log, so
+  the warning names both causes without guessing which (S189 researcher rec 4). "No session started" needs
+  no line: with no transcript there is no receipt at all;
 - `/clear` makes two transcripts newer than the launch, and the meter still skips with "multiple sessions
   detected" (unchanged); concurrent sessions in one folder, likewise;
 - on a resume the `[estimate]` line still counts the whole file's tokens (existing behaviour, now beside a

@@ -1489,7 +1489,8 @@ mod tests {
     // ─── S189: Claude Code's own `cost-state` record (F67) ─────────────────────────────────────
     // Fixture: two runs of one conversation, built around the REAL `cost-state` lines of a Claude
     // Code 2.1.280 transcript (4.648… after run 1, 13.943… after run 2, written twice at one exit).
-    // A tripwire too (design-advisor rec 8): Claude Code calls the line format internal.
+    // It pins Vajra's OWN reading of the format only — it cannot see Claude Code change it; the
+    // missing-record warning (`cost_state_warning`) is that signal (S189 review rec 1).
 
     const S189_FIXTURE: &str = include_str!("../../tests/fixtures/meter/cost-state-2.1.280.jsonl");
     const S189_RUN1: f64 = 4.648155399999999;
