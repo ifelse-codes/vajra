@@ -60,6 +60,55 @@ design-significant: no
 ## Plan
 <the S190 agent writes this after the tech-lead>
 
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` and `release-coordinator` (required by the
+tech-lead; design-advisor also gate-mandated past session 133), `fidelity-reviewer` (gate-mandated past session
+131; two cold passes — pass 1 REJECT, pass 2 ACCEPT). No code and no commits before close, so no `obeyed:` line:
+every adopted rec is built in S191 or was done in the report.
+
+**tech-lead** (`.ai/handoffs/session-190-tech-lead.md`):
+- tech-lead rec 1 — deferred: sessions/session-190-ground-truth.md
+  why: done — each required role (design-advisor, fidelity-reviewer, release-coordinator) was briefed with a
+  named, narrow file list, not "read the repo" (see each dispatch prompt's source list).
+- tech-lead rec 2 — deferred: sessions/session-190-ground-truth.md
+  why: done — fidelity-reviewer was dispatched only after the draft report existed, fed the prompt's
+  Deliverables/Acceptance plus the diff, never the draft author's own narrative.
+- tech-lead rec 3 — deferred: sessions/session-190-ground-truth.md
+  why: done — the release-coordinator's one pass judged every `deferred:`/`refused:` disposition in S186–S189
+  in a single pass (folded into finding N11), not one judge per claim.
+- tech-lead rec 4 — deferred: sessions/session-190-ground-truth.md
+  why: done — all three required roles' handoffs recorded via `vajra next --role ... --from ...`, independently
+  provenance-verified (`vajra next --check-fidelity-handoff 190` and `--check-design-handoff 190` both READY).
+
+**design-advisor** (`.ai/handoffs/session-190-design-advisor.md`):
+- design-advisor rec 1 — deferred: sessions/session-190-ground-truth.md
+  why: adopted verbatim — Goal 2 row 10, "Drop both".
+- design-advisor rec 2 — deferred: sessions/session-190-ground-truth.md
+  why: adopted verbatim — Goal 2 row 10, option A stays rejected per DECISION-011 S188 addendum.
+- design-advisor rec 3 — deferred: prompts/191-task-small-fixes.md
+  why: adopted as S191 Deliverable 2 / Plan step 1 (anchor the SESSION-BOOT number replace on the field).
+- design-advisor rec 4 — deferred: prompts/191-task-small-fixes.md
+  why: adopted as S191 Deliverable 4 / Plan step 4 (the heredoc fix, with the old-vs-new corpus discipline).
+- design-advisor rec 5 — deferred: prompts/191-task-small-fixes.md
+  why: adopted as S191 Deliverable 3 / Plan step 2 (verify-133's per-invocation fixture path).
+- design-advisor rec 6 — deferred: prompts/191-task-small-fixes.md
+  why: adopted as S191 Deliverable 1 / Plan step 3 (build the already-specified N2 fix, recs 12–20).
+
+**release-coordinator** (`.ai/handoffs/session-190-release-coordinator.md`):
+- release-coordinator rec 1 — deferred: sessions/session-190-ground-truth.md
+  why: adopted — Goal 3, "release is not a problem yet" stands unchanged.
+- release-coordinator rec 2 — deferred: sessions/session-190-ground-truth.md
+  why: adopted — Goal 3, `cargo publish` stays the founder's own call, not a routine step.
+- release-coordinator rec 3 — deferred: .ai/ROADMAP.md
+  why: cosmetic wording-only fix (an inline `why:` already findable in ROADMAP's S189 row) — LOW severity, no
+  session can usefully be named for a one-line wording touch; bundle it whenever `prompts/189-task-receipt-tool-cost.md`
+  is next opened for another reason.
+- release-coordinator rec 4 — deferred: .ai/ROADMAP.md
+  why: external blocker — rudra S18 is paused on rudra's own data API, not a Vajra decision; no session can be
+  named until that clears. Re-raised at the next ground truth if still blocked.
+
 ## Delta
-- `+` `sessions/session-190-ground-truth.md`
+- `+` `sessions/session-190-ground-truth.md`, `sessions/session-190-review.md`, `sessions/session-190-summary.md`
+- `+` `.ai/handoffs/session-190-{tech-lead,design-advisor,release-coordinator,fidelity-reviewer}.md`
 - `~` the S190 checklist items: each picked (fix / keep / drop)
+- `+` `prompts/191-task-small-fixes.md`
