@@ -30,13 +30,17 @@
 set -uo pipefail
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT"
+# S191: this run's fixture checkout goes on every way out (a ^C or a failed check included).
+S133_WT=""; S133_PT=""
+trap '[ -n "$S133_PT" ] && rm -rf "$S133_PT"; [ -n "$S133_WT" ] && { git worktree remove --force "$S133_WT" >/dev/null 2>&1 || rm -rf "$S133_WT"; git worktree prune >/dev/null 2>&1; }' EXIT
 
 # shellcheck source=scripts/lib-tally.sh
 source "$ROOT/scripts/lib-tally.sh"
 
 SESSION="133"
 TS=$(date -u +%Y%m%dT%H%M%SZ)
-ARTIFACTS=".ai/verify/session-${SESSION}/${TS}"
+# S191: the pid keeps two runs started in the same second out of each other's logs.
+ARTIFACTS=".ai/verify/session-${SESSION}/${TS}-$$"
 mkdir -p "$ARTIFACTS"
 
 VAJRA="$ROOT/target/release/vajra"
@@ -417,6 +421,11 @@ scaffold_binds_a_fresh_project() {
 run_check "scaffold-binds-a-fresh-project-at-session-1" exec scaffold_binds_a_fresh_project
 
 # --- 10. the falsifiability fixture is real: RED on each bypass, GREEN on renaming ------------------
+# S191 review rec 3: each run builds into its OWN target dir. A shared one is wrong even with a lock:
+# both checkouts share one fingerprint, and cargo judges "fresh" by the mtimes of the files it last
+# built — the OTHER checkout's — so run A ran run B's binary (seen at S191: both runs red). The dir is
+# seeded by a copy-on-write clone of target/s133-probes (APFS `cp -c`; Linux reflink), so registry
+# dependencies are not rebuilt; with no clone support it builds cold.
 mandate_green() { ( cd "$1" && cargo test -q --lib mandate::tests:: 2>&1 | grep -q "test result: ok" ); }
 
 # A bypass probe that silently no-ops reports false comfort (S127), and a bypass that fails to
@@ -448,11 +457,27 @@ expect_test_red() { # worktree, test name
 fixture_fails_for_the_right_reason() {
   # Measured at S132, reused: the SAME `cargo test` takes ~12s in a worktree under the repo's
   # gitignored `target/` and more than TEN MINUTES in one under $TMPDIR.
-  local WT="$ROOT/target/s133-fixture-wt"; local rc=0
-  rm -rf "$WT"; git worktree prune
+  # S191: one checkout per run (was one fixed path, so two runs at once shared its index.lock).
+  # It stays under target/ for the speed above; a killed run's checkout is cleared by the next run.
+  local WT="$ROOT/target/s133-fixture-wt-$$"; local rc=0 old
+  for old in "$ROOT"/target/s133-fixture-wt-*; do
+    [ -d "$old" ] || continue
+    kill -0 "${old##*-}" 2>/dev/null && continue   # (the pre-S191 fixed path is never touched)
+    git worktree remove --force "$old" >/dev/null 2>&1 || rm -rf "$old"
+  done
+  rm -rf "$WT"; git worktree prune; S133_WT="$WT"
   git worktree add --detach -q "$WT" HEAD 2>/dev/null || { echo "FAIL: no clean-room worktree"; return 1; }
   local D="$WT/src/mandate/mod.rs"
-  local PROBE_TARGET="$ROOT/target/s133-probes"
+  local PROBE_TARGET="$ROOT/target/s133-probes-$$"
+  for old in "$ROOT"/target/s133-probes-*; do
+    [ -d "$old" ] && ! kill -0 "${old##*-}" 2>/dev/null && rm -rf "$old"
+  done
+  rm -rf "$PROBE_TARGET"; S133_PT="$PROBE_TARGET"
+  if [ -d "$ROOT/target/s133-probes" ]; then
+    cp -Rc "$ROOT/target/s133-probes" "$PROBE_TARGET" 2>/dev/null \
+      || cp -R --reflink=always "$ROOT/target/s133-probes" "$PROBE_TARGET" 2>/dev/null \
+      || rm -rf "$PROBE_TARGET"
+  fi
   mkdir -p "$PROBE_TARGET"
   export CARGO_TARGET_DIR="$PROBE_TARGET"
 
@@ -662,7 +687,7 @@ help_lists_seven() {
 }
 run_check "no-eighth-command" behav help_lists_seven
 
-( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
+( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}-$$" "latest" ) 2>/dev/null || true
 
 echo ""
 echo "=== Session 133 Verify Summary ==="

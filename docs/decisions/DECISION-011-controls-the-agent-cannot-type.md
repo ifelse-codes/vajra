@@ -287,3 +287,80 @@ the before record inside the folder or the tracked tree; keeping the word checks
   reported as "NOT voided — these approvals STILL count".
 - The hook scripts (Stop, UserPromptSubmit, SessionStart, or a PreToolUse hook racing the save) are files the AI can
   edit, and what they write lands outside any pair (the same class as a write between pairs).
+
+## S191 addendum — two guards loosened, each for one stated class (2026-10-08)
+
+DECISION-011's S186 addendum set the rule: loosening a text or path guard is a REMOVAL and needs a class-level
+argument. S191 loosens two guards. Each argument is here, next to that rule.
+
+### §1 — the ground-truth Write guard lets a write outside the project through (N2)
+
+This records the guard's outside-pass for the first time; no earlier record holds the ground-truth Write guard's
+design, so nothing here amends one. Designed at S187 (`.ai/handoffs/session-187-design-advisor.md` recs 12–20),
+built at S191 (`.ai/handoffs/session-191-design-advisor.md` recs 2–6).
+
+- **Before:** during a ground truth, `scripts/hook-pre-write.sh` blocked every Write not on its allowlist — including
+  a scratch note or a throwaway test file outside the project (N2, found S185, hit live S190).
+- **Now:** a Write passes when the guard can PROVE the target is outside the project folder. Both the project root
+  and the target's folder are resolved through every symlink (`CDPATH= cd -P -- … && pwd -P`); then the target's
+  folder is walked up to `/` and any step that IS the root by device and inode (`[ "$d" -ef "$r" ]`) refuses —
+  this catches spellings `cd -P` does not resolve, such as macOS's `/System/Volumes/Data/…` firmlink (found by
+  S191's cold review: the first build passed an inside file spelled that way; verify row red at 64248b9). Only an absolute,
+  printable-ASCII path with no `.` or `..` part qualifies — refused before the allowlist runs, which also closes
+  `/proj/.ai/../src/x.rs` passing as `*/.ai/*` (open before S191). A leaf that is a link, has more than one hard
+  link, or is not a plain file refuses. The compare is lower-cased on both sides (macOS disks ignore case) and needs
+  a `/` boundary (`proj2` is not inside `proj`). A root that resolves to `/` or not at all refuses. Every step fails
+  closed (exit 2; exit 1 does not block). A folder that does not exist yet refuses, and the message says the way
+  past: `mkdir -p` it in Bash, then write again. Placement: inside the `GT_PW=1` branch, which runs after the
+  approvals guard on every Write, so the approvals guard is never skipped.
+- **Class-level argument:** in a ground truth, Bash blocks only commit, push and PR, so the agent can already write
+  any path — inside or outside — through the shell. Letting an outside Write through gives it no write path Bash
+  does not already have. The guard is a speed bump for the Write tool, not a sandbox.
+- **Limits, named, not closed:** a parallel tool call can swap a checked folder for a link between the check and the
+  write; "outside the folder" is not "outside the repo" (another worktree or clone of the same repo counts as
+  outside); a link inside the project that points out (`/proj/vendor -> /elsewhere`) counts as outside, because the
+  write really lands outside; a link on the allowlisted paths (`.ai/`, `scripts/`, …) is not checked, as before
+  S191; a non-ASCII path refuses even when it is outside — but that refusal covers only the TYPED path: a symlink
+  target or a project root with non-ASCII in it is folded by ASCII-only `tr`, so the inode walk is the only
+  check that sees a differently-normalised spelling of an inside folder. `hook-pre-write.sh` is Vajra's own — `vajra init` ships no
+  copy, so this changes nothing in a project.
+- **Rejected:** walking up to the nearest folder that exists (the rest of the path goes unchecked); refusing every
+  link in the path (blocks macOS `/tmp`, S186); `realpath`/`readlink -f` (not in macOS bash 3.2 / BSD); folding case
+  with a Unicode table (cannot match the disk's own rules; refusing a non-ASCII TYPED path closes it for the typed path only; the inode walk covers the rest).
+- **Proof:** `scripts/verify-session-191.sh` runs 21 cases (the firmlink row against 64248b9) against the real hook at the start commit and at the tip:
+  four outside writes block at the start and pass now; the `..` path passes at the start and blocks now; every
+  inside spelling (logical, physical, root given physically, changed case, a linked ancestor, a leaf link, a hard
+  link) blocks at both.
+
+### §2 — the one-session-per-chat guard stops reading ONE heredoc shape's body (N13)
+
+- **Before:** `scripts/hook-session-guard.sh` read a heredoc body as command text. Writing a note that only
+  mentions `git checkout -b session-NN-…` or `vajra next --advance` (`cat > notes.md <<'EOF' … EOF`) could block as
+  starting the next session — it blocked S187's own TASK.md edit (N13).
+- **Now:** one shape loses its body from what the guard reads (SCAN): the WHOLE command is a single `cat > PATH`,
+  `cat >> PATH`, `cat <<'W' > PATH`, `cat <<'W' >> PATH`, `tee [-a] PATH` (with an optional `> /dev/null`) writing a
+  heredoc whose delimiter is QUOTED (`'W'` or `"W"`) to one plain path (`[A-Za-z0-9_./-]`, an optional `~/`), and
+  nothing but whitespace comes after the first line exactly equal to the delimiter. Opener and terminator lines are
+  still read. Every other shape is read exactly as before: an unquoted delimiter, `<<-`, two heredocs, a pipe, `;`,
+  `&&`, `$`, a backtick or quote on the opener line, anything after the terminator. EXTRA (every `$( )`, backtick,
+  `eval`/`sh -c` body) is still read from the raw command and can only add a reason to block. No perl → nothing is
+  removed.
+- **This deviates from the S173 rule** that this guard's reading may only ever add (KNOWLEDGE, S173: a heredoc
+  exception was tried and removed, "each version hid something a shell runs"). It deviates for this one guard and
+  this one shape only.
+- **Class-level argument (three parts):** (1) with a quoted delimiter neither bash nor zsh expands anything in the
+  body — no `$( )`, backticks or variables — so the body is literal data, the same text the Write tool could write,
+  and this guard never reads Write calls; (2) only the opener line can hand the body to a program, and the strict
+  shape hands it only to `cat`/`tee` and one plain file; (3) nothing after the terminator rules out
+  `cat > run.sh <<'W' … W` then `bash run.sh` in the same command. S173's breaks were all `$( … )`-wrapped or
+  unquoted heredocs; none of them fits the shape.
+- **Limits, named, not closed:** the guard trusts that `cat` and `tee` are the real programs — a shell function or
+  alias of that name in the user's shell is not seen; a quoted-heredoc note whose body has a backticked or
+  `$( )`-wrapped checkout still blocks through EXTRA (a false block kept on purpose — removing it is a second
+  loosening); zsh is not exercised by the proof (its heredoc rules are the same for this shape). The hook ships to
+  projects (`vajra init`, and `--sync-fleet` rewrites an unedited copy), so a project gets this change on its next
+  sync with a binary built from S191 or later.
+- **Proof:** `scripts/verify-session-191.sh` under macOS `/bin/bash` 3.2: seven declared-shape commands pass now and
+  blocked at the start commit; 25 named must-block cases (the design-advisor's rec 10, one per clause) block at both;
+  S173's whole list × both triggers plus three heredoc-then-run shapes (66 commands) give the SAME exit at both; with
+  perl gone the declared shape still blocks; a note from another chat records no owner.
