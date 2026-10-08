@@ -302,7 +302,10 @@ built at S191 (`.ai/handoffs/session-191-design-advisor.md` recs 2–6).
 - **Before:** during a ground truth, `scripts/hook-pre-write.sh` blocked every Write not on its allowlist — including
   a scratch note or a throwaway test file outside the project (N2, found S185, hit live S190).
 - **Now:** a Write passes when the guard can PROVE the target is outside the project folder. Both the project root
-  and the target's folder are resolved through every link (`CDPATH= cd -P -- … && pwd -P`). Only an absolute,
+  and the target's folder are resolved through every symlink (`CDPATH= cd -P -- … && pwd -P`); then the target's
+  folder is walked up to `/` and any step that IS the root by device and inode (`[ "$d" -ef "$r" ]`) refuses —
+  this catches spellings `cd -P` does not resolve, such as macOS's `/System/Volumes/Data/…` firmlink (found by
+  S191's cold review: the first build passed an inside file spelled that way; verify row red at 64248b9). Only an absolute,
   printable-ASCII path with no `.` or `..` part qualifies — refused before the allowlist runs, which also closes
   `/proj/.ai/../src/x.rs` passing as `*/.ai/*` (open before S191). A leaf that is a link, has more than one hard
   link, or is not a plain file refuses. The compare is lower-cased on both sides (macOS disks ignore case) and needs
@@ -317,12 +320,14 @@ built at S191 (`.ai/handoffs/session-191-design-advisor.md` recs 2–6).
   write; "outside the folder" is not "outside the repo" (another worktree or clone of the same repo counts as
   outside); a link inside the project that points out (`/proj/vendor -> /elsewhere`) counts as outside, because the
   write really lands outside; a link on the allowlisted paths (`.ai/`, `scripts/`, …) is not checked, as before
-  S191; a non-ASCII path refuses even when it is outside. `hook-pre-write.sh` is Vajra's own — `vajra init` ships no
+  S191; a non-ASCII path refuses even when it is outside — but that refusal covers only the TYPED path: a symlink
+  target or a project root with non-ASCII in it is folded by ASCII-only `tr`, so the inode walk is the only
+  check that sees a differently-normalised spelling of an inside folder. `hook-pre-write.sh` is Vajra's own — `vajra init` ships no
   copy, so this changes nothing in a project.
 - **Rejected:** walking up to the nearest folder that exists (the rest of the path goes unchecked); refusing every
   link in the path (blocks macOS `/tmp`, S186); `realpath`/`readlink -f` (not in macOS bash 3.2 / BSD); folding case
   with a Unicode table (cannot match the disk's own rules; refusing non-ASCII closes that case).
-- **Proof:** `scripts/verify-session-191.sh` runs 20 cases against the real hook at the start commit and at the tip:
+- **Proof:** `scripts/verify-session-191.sh` runs 21 cases (the firmlink row against 64248b9) against the real hook at the start commit and at the tip:
   four outside writes block at the start and pass now; the `..` path passes at the start and blocks now; every
   inside spelling (logical, physical, root given physically, changed case, a linked ancestor, a leaf link, a hard
   link) blocks at both.

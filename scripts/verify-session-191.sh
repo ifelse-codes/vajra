@@ -69,6 +69,16 @@ n2 "non-ASCII path"                      2 2 "$O/é.md"
 n2 "a folder that does not exist yet"    2 2 "$O/nope/n.md"
 n2 "allowlisted .ai/ still passes"       0 0 "$P/.ai/notes.md"
 n2 "the ground-truth report still passes" 0 0 "$P/sessions/session-185-ground-truth.md"
+# Cold review rec 1: `cd -P` resolves symlinks, not macOS firmlinks — at 64248b9 (S191's first N2 commit)
+# an inside file spelled /System/Volumes/Data/… passed. Now the folder walk compares by inode (`-ef`).
+MIDH="$T/midhooks"; mkdir -p "$MIDH"; cp "$OLDH"/lib-ground-truth.sh "$OLDH"/hook-approvals-guard.sh "$MIDH/"
+git show 64248b9:scripts/hook-pre-write.sh > "$MIDH/hook-pre-write.sh"
+if [ -d "/System/Volumes/Data$PP" ]; then
+  n=$(pw scripts "/System/Volumes/Data$PP/src/x.rs"); m=$(pw "$MIDH" "/System/Volumes/Data$PP/src/x.rs")
+  [ "$n" = 2 ] && [ "$m" = 0 ] && ok "AC1 inside, through the /System/Volumes/Data firmlink: new 2, at 64248b9 0 (review rec 1)"     || bad "AC1 firmlink spelling: new $n (want 2), at 64248b9 $m (want 0)"
+else
+  echo "SKIP: no /System/Volumes/Data$PP on this machine (not macOS APFS) — the firmlink row cannot run"
+fi
 pw scripts "$O/nope/n.md" >/dev/null
 grep -q "mkdir -p '$O/nope'" "$T/pw.err" && ok "AC1 the missing-folder block names the way past (mkdir -p, then write)" \
   || bad "AC1 the missing-folder block does not name mkdir -p: $(cat "$T/pw.err")"

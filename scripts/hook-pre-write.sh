@@ -107,6 +107,15 @@ gt_outside() { # path
   r=$(LC_ALL=C tr '[:upper:]' '[:lower:]' <<<"$r") || return 1
   t=$(LC_ALL=C tr '[:upper:]' '[:lower:]' <<<"$t") || return 1
   case "$t" in "$r"|"$r"/*) return 1 ;; esac
+  # S191 review rec 1: `cd -P` resolves symlinks only, so a macOS firmlink spelling
+  # (/System/Volumes/Data/Users/…) of an inside folder passed the compare above. Walk the target's
+  # folder up to `/` and refuse if any step IS the root (`-ef`: same device and inode).
+  local d="$p"
+  while :; do
+    [ "$d" -ef "$r" ] && return 1
+    [ "$d" = / ] && break
+    d="${d%/*}"; [ -n "$d" ] || d=/
+  done
   return 0
 }
 
