@@ -1,6 +1,6 @@
 # Session 191 — Independent Fidelity Review
 
-One cold pass by a fresh fidelity-reviewer dispatch, not the builder. Recorded verbatim through `vajra next --role fidelity-reviewer` (`.ai/handoffs/session-191-fidelity-reviewer.md`). Verdict ACCEPT, 9 of 9 SHIPPED. Its five recs are answered in the prompt's `## Advice`: rec 1 (the firmlink hole — confirmed live before fixing: an inside file spelled `/System/Volumes/Data/…` exited 0) and recs 2, 3, 5 fixed in-session (23971d5, b0ef01b); rec 4 refused with a reason. No second pass (an ACCEPT; founder rule: no review loops).
+One cold pass by a fresh fidelity-reviewer dispatch, not the builder. Recorded verbatim through `vajra next --role fidelity-reviewer` (`.ai/handoffs/session-191-fidelity-reviewer.md`). Verdict ACCEPT, 9 of 9 SHIPPED. Its five recs are answered in the prompt's `## Advice`: rec 1 (the firmlink hole — confirmed live before fixing: an inside file spelled `/System/Volumes/Data/…` exited 0) and recs 2, 3, 5 fixed in-session (23971d5; aecfd25 for rec 3 — a first try, b0ef01b, made it worse; b0ef01b for rec 5); rec 4 refused with a reason. No second pass (an ACCEPT; founder rule: no review loops).
 
 **Verdict:** ACCEPT
 **Count:** 9 of 9 SHIPPED

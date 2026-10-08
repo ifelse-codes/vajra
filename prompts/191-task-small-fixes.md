@@ -123,7 +123,7 @@ Cut line (prompt guardrail, repeated from above): if step 4 is not green with it
 - step 3 — done: 64248b9
 - step 4 — done: 1d43183
 - step 5 — done: 1445896
-- step 6 — done: <sha>
+- step 6 — done: 17d49a3
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required; design-significant: yes),
@@ -141,9 +141,9 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only on-scre
 - tech-lead rec 2 — obeyed: 1d43183 (an allow-list of one exact shape — the design-advisor's rec 7 made it stricter: a quoted delimiter only, nothing after the terminator; every other shape, `| bash` / `bash <<` / `sh -s` / `source /dev/stdin` / `| xargs` / `ssh`, stays read; EXTRA still from the raw command; no perl → nothing removed)
 - tech-lead rec 3 — obeyed: 1445896 (verify-191 AC4: S173's whole list, incl. the bash 3.2 `)"` case and the `git commit -m "$(cat <<'EOF' …)"` form, under /bin/bash 3.2; both keep blocking)
 - tech-lead rec 4 — obeyed: c44bbd6 (the real S188 line as a literal; a line with no `**Number:**` and the same digits before the field, both unchanged)
-- tech-lead rec 5 — obeyed: 96d4b86 (one checkout per run, removed by an EXIT trap on every way out, then `git worktree prune`; three concurrent rounds run by hand, all green, no leftovers). refused in part: `mktemp -d` — the checkout stays under `target/` with the pid in its name, because verify-133's own note measured its `cargo test` at >10 min in a checkout under $TMPDIR vs ~12 s under `target/`; and verify-191 runs one concurrent round, not three, to stay inside the 600 s close bound (a round is ~80 s; three were run by hand)
+- tech-lead rec 5 — obeyed: 96d4b86 (one checkout per run, removed by an EXIT trap on every way out, then `git worktree prune`; three concurrent rounds run by hand, all green, no leftovers — on the 96d4b86 version; after the build-folder fix, aecfd25, two rounds: one by hand and verify-191's own). refused in part: `mktemp -d` — the checkout stays under `target/` with the pid in its name, because verify-133's own note measured its `cargo test` at >10 min in a checkout under $TMPDIR vs ~12 s under `target/`; and verify-191 runs one concurrent round, not three, to stay inside the 600 s close bound (a round is ~80 s; three were run by hand)
 - tech-lead rec 6 — refused: the rec said item 4 reaches only NEW projects. Checked (design-advisor rec 12): `hook-session-guard.sh` is in `SYNC_HOOKS` (src/cli/init.rs:25), and `--sync-fleet` rewrites an unedited stamped copy (`StaleRender`, src/cli/init.rs:226). So an existing project gets it on its next sync with a vajra built from S191+; the summary and DECISION-011 S191 addendum §2 (1d43183) say that instead
-- tech-lead rec 7 — obeyed: design-advisor → build → one fidelity-reviewer → one release-coordinator after this section; the skip lines above carry the budget reasons
+- tech-lead rec 7 — obeyed: 8effeb1 (design-advisor → build → one fidelity-reviewer → one release-coordinator after this section; the skip lines above carry the budget reasons)
 
 **design-advisor** (`.ai/handoffs/session-191-design-advisor.md`):
 - design-advisor rec 1 — obeyed: 64248b9 and 1d43183 (one "S191 addendum" inside DECISION-011, §1 N2 and §2 heredoc; §1 says it records the guard's outside-pass for the first time)
@@ -157,14 +157,34 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only on-scre
 - design-advisor rec 9 — obeyed: 1d43183 (EXTRA unchanged, from the raw command; the KNOWLEDGE line names the kept false block: a backticked or `$( )` checkout inside even the quoted shape)
 - design-advisor rec 10 — obeyed: 1445896 ((a)–(d), (f) and (g) as named cases and S173's list × both triggers; (e) the pass-6 decoy forms are in S173's list, and the pass-7 L1 case is two rows: a `$( )` checkout and the declared shape, from another chat at L1, record no owner)
 - design-advisor rec 11 — obeyed: 1d43183 (DECISION-011 S191 addendum §2) and this commit (`## Design` and `## Guardrails` corrected above)
-- design-advisor rec 12 — obeyed: checked src/cli/init.rs (`SYNC_HOOKS` + `StaleRender`); hook-pre-write.sh is not shipped to projects (§1 says so), hook-session-guard.sh is, on the next `--sync-fleet` (§2 says so, 1d43183)
+- design-advisor rec 12 — obeyed: 1d43183 (checked src/cli/init.rs (`SYNC_HOOKS` + `StaleRender`); hook-pre-write.sh is not shipped to projects (§1 says so), hook-session-guard.sh is, on the next `--sync-fleet` (§2 says so))
 
 **fidelity-reviewer** (`.ai/handoffs/session-191-fidelity-reviewer.md`):
-- fidelity-reviewer rec 1 — obeyed: 23971d5 (confirmed live first: an inside file spelled `/System/Volumes/Data/…` exited 0 at 64248b9; `gt_outside` now also walks the target's folder up to `/` and refuses any step that `-ef` the root; the string compare stays as a first check; verify-191 AC1 firmlink row, new 2 / 64248b9 0)
+- fidelity-reviewer rec 1 — obeyed: 23971d5 (confirmed live first: an inside file spelled `/System/Volumes/Data/…` exited 0 at 64248b9; `gt_outside` now also walks the target's folder up to `/` and refuses any step that `-ef` the root; the string compare stays as a first check; the firmlink verify row that shows the hole, on a /private/tmp project, landed in aecfd25; 3952a6d makes the walk compare against the as-resolved root, not the lower-cased copy)
 - fidelity-reviewer rec 2 — obeyed: 23971d5 (DECISION-011 S191 addendum §1 says "every symlink", names the inode walk and the firmlink find, and says the non-ASCII refusal covers only the typed path) and the summary (corrected at closeout)
 - fidelity-reviewer rec 3 — obeyed: aecfd25 (each verify-133 run builds into its OWN `target/s133-probes-<pid>`, seeded by a copy-on-write clone of `target/s133-probes` and removed by the EXIT trap; the sweep no longer touches the pre-S191 `target/s133-fixture-wt`). The first try, a lock round each build-and-run (b0ef01b), made BOTH concurrent runs red: the two checkouts share one cargo fingerprint and cargo judges "fresh" by the mtimes of the other checkout's files, so a run tested the other's binary. The rec's own first option was the right one; the lock is gone
 - fidelity-reviewer rec 4 — refused: the rec asked for AC1 rows with `CLAUDE_PROJECT_DIR=/` and an unresolvable root, wanting exit 2. Through the real hook neither can reach the ground-truth branch: ground truth is decided from `$ROOT/.ai/CONSTRAINTS.yaml` and the git branch at `$ROOT`, and `/` (or a root `cd -P` cannot enter) has neither, so the hook exits 0 before `gt_outside` runs (tried live: both exit 0 as "not a ground truth"). A row would test a path the hook never takes; the `[ "$r" != "/" ]` line stays as defence in depth
 - fidelity-reviewer rec 5 — obeyed: b0ef01b (`update_session_boot` returns whether a line moved; `--advance` prints a warning naming the missing `**Number:** NN` line instead of "updated"; the unit test asserts a second call moves nothing)
+
+**release-coordinator** (`.ai/handoffs/session-191-release-coordinator.md` — the one judge; it cannot judge its own recs, so each is answered here and left unjudged):
+- release-coordinator rec 1 — deferred: prompts/191-task-small-fixes.md
+  why: done — tech-lead rec 7 now leads with 8effeb1 and design-advisor rec 12 with 1d43183, the exact shas its judgment lines name.
+- release-coordinator rec 2 — deferred: prompts/191-task-small-fixes.md
+  why: done at closeout — `## Execution` step 6 names the closeout-sync commit.
+- release-coordinator rec 3 — deferred: sessions/session-191-summary.md
+  why: done in 3952a6d (DECISION-011's Rejected bullet, the hook comment, verify-191's timing note) and the review header (aecfd25 named for rec 3). The same commit fixed a bug found while doing it: the inode walk compared against the lower-cased root (would fail open on a case-sensitive disk).
+- release-coordinator rec 4 — deferred: sessions/session-191-summary.md
+  why: done — the summary and tech-lead rec 5's answer say the three hand rounds were on 96d4b86, and two rounds (one by hand, one in verify-191) ran on aecfd25.
+- release-coordinator rec 5 — deferred: .ai/SESSION-BOOT.md
+  why: done — the founder pruned `session-190-closeout` with `-d`; `--advance` ran with this branch's binary; the SESSION-BOOT diff moved only `**Number:** 190 → 191`; committed with `.ai/approvals/session-191.json`.
+- release-coordinator rec 6 — deferred: sessions/session-191-review.md
+  why: the order followed: this handoff recorded, closeout sync, S192 prompt, these answers, then `verify-closeout.sh --inputs-sha 191` last.
+- release-coordinator rec 7 — deferred: sessions/session-191-summary.md
+  why: the full `verify-closeout.sh 191` runs on this branch before the PR is merged (verify-191 ~5 min of the 600 s bound).
+- release-coordinator rec 8 — deferred: .ai/SESSION-BOOT.md
+  why: the founder's steps — push, PR, merge with a merge commit; written in SESSION-BOOT's Next Session.
+- release-coordinator rec 9 — deferred: .ai/SESSION-BOOT.md
+  why: the founder's steps after the merge — fetch, `git checkout main && git pull --ff-only`, `git branch -d session-191-small-fixes`; the four local files stay out of git.
 
 ## Delta
 - `+` the ground-truth write guard's physical-resolution outside-pass (N2) + DECISION-011 S191 addendum

@@ -22,7 +22,8 @@ and green now. Item 4 (the risky one) was green with its corpus well inside the 
 - **`--advance`'s number swap.** Only the number right after `**Number:**` moves; the real S188 line (which names
   188 five more times — the prompt said six; six in all) keeps the other five.
 - **verify-133 twice at once.** Each run gets its own fixture checkout (under `target/`, pid in the name, removed by
-  an EXIT trap) and its own log folder. At f37b0fe two runs at once both fail; now 3 rounds by hand, all green.
+  an EXIT trap) and its own log folder. At f37b0fe two runs at once both fail. After the review fix (each run its own build folder, aecfd25), two
+  concurrent rounds green — one by hand, one in verify-191. (Three earlier hand rounds were on 96d4b86, before that fix.)
 
 ## Fidelity map
 
@@ -34,7 +35,7 @@ and green now. Item 4 (the risky one) was green with its corpus well inside the 
 | D4 | the session guard stops reading a heredoc body, unless fed to a shell | SHIPPED (narrower than worded) | 1d43183; verify AC4. Narrower on purpose (design-advisor rec 7): only a quoted-delimiter `cat`/`tee` file write passes — an UNQUOTED `<<EOF` note still blocks, because the shell expands `$( )` in it |
 | AC1 | inside blocks via physical / linked / `..` paths; outside passes; rec 19's cases, red at start where they apply | SHIPPED | verify AC1: 4 outside cases block at f37b0fe, pass now; `..` passes at f37b0fe, blocks now; every inside spelling blocks at both |
 | AC2 | the real S188 line advances with the other 188s untouched | SHIPPED | `update_session_boot_leaves_prose_numbers_alone` (the line copied from `.ai/SESSION-BOOT.md` at 976ba05, checked by verify) |
-| AC3 | two concurrent runs both pass | SHIPPED | verify AC3 (one round in verify — the 600 s close bound; three rounds by hand) |
+| AC3 | two concurrent runs both pass | SHIPPED | verify AC3 (one round in verify — the 600 s close bound) + one round by hand, both on aecfd25 |
 | AC4 | the plain-file heredoc passes; typed checkout and `| bash` heredoc block; old-vs-new corpus | SHIPPED | verify AC4: 7 shape rows pass now/blocked before; 25 must-block rows; 66-command corpus unchanged; no-perl and L1 rows |
 | AC5 | verify-191 green; `cargo test` in full | SHIPPED | verify 65/65; `cargo test` 699/0 (after the review fixes) |
 
@@ -63,10 +64,10 @@ and green now. Item 4 (the risky one) was green with its corpus well inside the 
 - **Reaching rudra:** `hook-session-guard.sh` ships to projects. An unedited copy is rewritten by
   `vajra init --sync-fleet` — but only with a vajra built from S191 or later; nothing here installs it.
   (The tech-lead's rec 6 said "only new projects"; that was checked and is wrong — refused in `## Advice`.)
-- verify-191 runs the verify-133 race once, not three times.
+- verify-191 runs the verify-133 race once, not three times; verify-191 takes ~5 min of the 10-min close bound.
 - **A fifth S190 pick was not in this prompt:** S190's report and review picked `find_session_jsonl`'s folder
   naming (`src/meter/mod.rs:879`; a project path with `.`, `_` or a space gets no receipt) "→ S191", but the
-  approved S191 prompt names four items. Not built; put to the founder at the S191 check-in.
+  approved S191 prompt names four items. Not built; the founder folded it into S192 (2026-10-08).
 
 ## Fakest green
 
@@ -84,6 +85,8 @@ the argument is the shell's own rule (a quoted delimiter expands nothing).
   (the founder's step).
 
 ## Next — 3 ranked candidates
+
+**Founder's pick (2026-10-08): option 1 + option 2 together** — prove the receipt live by running rudra next with an S191+ vajra ("see the amount is the correct or at least the new one"), with the transcript-folder fix folded in → `prompts/192-task-prove-the-receipt.md`.
 
 1. **(Recommended) Prove the receipt live (S189 carries).** One tiny paid interactive `vajra claude` run with
    `/clear`, `--continue` and a fork, to settle the fork start-time assumption and the SessionStart session-id gap.
