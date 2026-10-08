@@ -421,7 +421,19 @@ scaffold_binds_a_fresh_project() {
 run_check "scaffold-binds-a-fresh-project-at-session-1" exec scaffold_binds_a_fresh_project
 
 # --- 10. the falsifiability fixture is real: RED on each bypass, GREEN on renaming ------------------
-mandate_green() { ( cd "$1" && cargo test -q --lib mandate::tests:: 2>&1 | grep -q "test result: ok" ); }
+# S191 review rec 3: every run builds into ONE target/s133-probes, and both checkouts produce the same
+# test-binary name — cargo drops its lock before running tests, so run A could run run B's mutated
+# binary. One build-and-run at a time across runs (a mkdir lock; a dead owner's lock is taken over).
+probe_lock() {
+  local L="$ROOT/target/s133-probes.lock" o
+  until mkdir "$L" 2>/dev/null; do
+    o=$(cat "$L/pid" 2>/dev/null); [ -n "$o" ] && ! kill -0 "$o" 2>/dev/null && rm -rf "$L"
+    sleep 0.2
+  done
+  echo $$ > "$L/pid"
+}
+probe_unlock() { rm -rf "$ROOT/target/s133-probes.lock"; }
+mandate_green() { local rc; probe_lock; ( cd "$1" && cargo test -q --lib mandate::tests:: 2>&1 | grep -q "test result: ok" ); rc=$?; probe_unlock; return $rc; }
 
 # A bypass probe that silently no-ops reports false comfort (S127), and a bypass that fails to
 # COMPILE is not a falsification either (S122). Each probe asserts (a) the exact source it means to
@@ -439,7 +451,7 @@ apply_bypass() {   # file, fixed-string-to-replace, replacement
 }
 expect_test_red() { # worktree, test name
   local LOG; LOG="$(mktemp)"
-  ( cd "$1" && cargo test -q --lib "$2" ) > "$LOG" 2>&1
+  probe_lock; ( cd "$1" && cargo test -q --lib "$2" ) > "$LOG" 2>&1; probe_unlock
   if grep -qE "error\[E[0-9]+\]|could not compile" "$LOG"; then
     echo "PROBE FAIL: the bypass broke the BUILD, so the red proves nothing"; sed -n '1,5p' "$LOG"; rm -f "$LOG"; return 1
   fi
@@ -455,9 +467,9 @@ fixture_fails_for_the_right_reason() {
   # S191: one checkout per run (was one fixed path, so two runs at once shared its index.lock).
   # It stays under target/ for the speed above; a killed run's checkout is cleared by the next run.
   local WT="$ROOT/target/s133-fixture-wt-$$"; local rc=0 old
-  for old in "$ROOT"/target/s133-fixture-wt "$ROOT"/target/s133-fixture-wt-*; do
+  for old in "$ROOT"/target/s133-fixture-wt-*; do
     [ -d "$old" ] || continue
-    case "$old" in *-wt-*) kill -0 "${old##*-}" 2>/dev/null && continue ;; esac
+    kill -0 "${old##*-}" 2>/dev/null && continue   # (the pre-S191 fixed path is never touched)
     git worktree remove --force "$old" >/dev/null 2>&1 || rm -rf "$old"
   done
   rm -rf "$WT"; git worktree prune; S133_WT="$WT"

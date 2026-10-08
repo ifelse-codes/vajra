@@ -1927,7 +1927,7 @@ fn run_advance() -> Result<()> {
     fs::write(root.join(".ai/SESSION"), format!("{next:02}\n"))
         .context("failed to write .ai/SESSION")?;
 
-    update_session_boot(&root, current, next)?;
+    let boot_moved = update_session_boot(&root, current, next)?;
 
     let next_prompt = find_next_prompt(&root, next);
     if let Some(ref prompt_path) = next_prompt {
@@ -1938,7 +1938,15 @@ fn run_advance() -> Result<()> {
     eprintln!();
     eprintln!("Advanced: session {current:02} → {next:02}");
     eprintln!("  .ai/SESSION updated");
-    eprintln!("  .ai/SESSION-BOOT.md updated");
+    if boot_moved {
+        eprintln!("  .ai/SESSION-BOOT.md updated");
+    } else {
+        // S191 review rec 5: the anchored swap moves only `**Number:** {current}`; say so when no
+        // line had that shape, instead of claiming an update that did not happen.
+        eprintln!(
+            "  warning: .ai/SESSION-BOOT.md has no `**Number:** {current:02}` line — its session number was not moved"
+        );
+    }
     if let Some(ref prompt_path) = next_prompt {
         eprintln!("  prompt pointer → {prompt_path}");
     } else {
@@ -1948,7 +1956,8 @@ fn run_advance() -> Result<()> {
     Ok(())
 }
 
-fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<()> {
+/// Returns whether any `**Number:**` line moved.
+fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<bool> {
     let path = root.join(".ai/SESSION-BOOT.md");
     let content = fs::read_to_string(&path).context("failed to read .ai/SESSION-BOOT.md")?;
 
@@ -1964,8 +1973,9 @@ fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<()> {
         updated
     };
 
+    let moved = updated != content;
     fs::write(&path, updated).context("failed to write .ai/SESSION-BOOT.md")?;
-    Ok(())
+    Ok(moved)
 }
 
 /// S191: swap only the number token right after `**Number:**`, and only when it is `current`.
@@ -2353,7 +2363,11 @@ mod tests {
         )
         .unwrap();
 
-        update_session_boot(tmp.path(), 8, 9).unwrap();
+        assert!(update_session_boot(tmp.path(), 8, 9).unwrap());
+        assert!(
+            !update_session_boot(tmp.path(), 8, 9).unwrap(),
+            "nothing left to move"
+        );
 
         let result = fs::read_to_string(ai.join("SESSION-BOOT.md")).unwrap();
         assert!(result.contains("**Number:** 09"));
