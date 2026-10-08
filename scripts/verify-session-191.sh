@@ -244,7 +244,8 @@ done
 
 # ==============================================================================================
 # AC3 — verify-session-133.sh twice at once. At f37b0fe both runs share one fixture checkout and go
-# red on it; now each run has its own and both pass. (~80 s per pair; the old pair runs first.)
+# red on it; now each run has its own and both pass. (~80 s for the old pair, ~3 min for the new one —
+# each new run clones and rebuilds its own build folder; the old pair runs first.)
 # ==============================================================================================
 git show "$OLD_SHA:scripts/verify-session-133.sh" > "$T/v133-old.sh"
 pair() { # pair <script> <tag> → "rcA rcB"
@@ -268,7 +269,8 @@ echo "WHAT THIS NEVER EXERCISED — stated, not buried:"
 echo "  * a real Claude Code Write call during a real ground truth (the hook is driven with its JSON input)"
 echo "  * zsh, or a user's shell function/alias named cat or tee (the guard trusts they are the real programs)"
 echo "  * a parallel call swapping a checked folder for a link between the check and the write (named limit)"
-echo "  * more than one concurrent round of verify-133 (three rounds were run by hand at S191, all green)"
+echo "  * more than one concurrent round of verify-133 here (one more round was run by hand on the same version, green)
+  * a case-SENSITIVE disk (the inode walk uses the as-resolved root; only macOS APFS, case-insensitive, was run)"
 echo ""
 if [ "$FAIL" -eq 0 ]; then echo "ALL GREEN ($PASS pass, $FAIL fail)"; exit 0
 else echo "RED ($PASS pass, $FAIL fail)"; exit 1; fi

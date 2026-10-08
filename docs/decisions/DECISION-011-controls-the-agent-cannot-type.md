@@ -326,7 +326,7 @@ built at S191 (`.ai/handoffs/session-191-design-advisor.md` recs 2–6).
   copy, so this changes nothing in a project.
 - **Rejected:** walking up to the nearest folder that exists (the rest of the path goes unchecked); refusing every
   link in the path (blocks macOS `/tmp`, S186); `realpath`/`readlink -f` (not in macOS bash 3.2 / BSD); folding case
-  with a Unicode table (cannot match the disk's own rules; refusing non-ASCII closes that case).
+  with a Unicode table (cannot match the disk's own rules; refusing a non-ASCII TYPED path closes it for the typed path only; the inode walk covers the rest).
 - **Proof:** `scripts/verify-session-191.sh` runs 21 cases (the firmlink row against 64248b9) against the real hook at the start commit and at the tip:
   four outside writes block at the start and pass now; the `..` path passes at the start and blocks now; every
   inside spelling (logical, physical, root given physically, changed case, a linked ancestor, a leaf link, a hard

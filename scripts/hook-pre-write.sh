@@ -84,14 +84,15 @@ gt_plain_path() { # path
 }
 
 # S191 (N2): 0 only when the target is PROVABLY outside the project folder. The root and the
-# target's folder are both resolved through every link; a leaf that is a link, a hard link or not a
+# target's folder are both resolved through every symlink; a leaf that is a link, a hard link or not a
 # plain file refuses; the compare is lower-cased (macOS disks ignore case) on a `/` boundary. Any
 # step that fails returns 1, and the caller refuses. GT_WHY names a missing folder.
 gt_outside() { # path
-  local f="$1" r p parent leaf h t
+  local f="$1" r r0 p parent leaf h t
   GT_WHY=""
   r=$(CDPATH= cd -P -- "$ROOT" 2>/dev/null && pwd -P) || r=""
   [ -n "$r" ] && [ "$r" != "/" ] || return 1
+  r0="$r"   # as resolved — the inode walk below needs a real path, not the lower-cased copy
   parent="${f%/*}"; leaf="${f##*/}"
   [ -n "$parent" ] || parent="/"
   [ -n "$leaf" ] || return 1
@@ -112,7 +113,7 @@ gt_outside() { # path
   # folder up to `/` and refuse if any step IS the root (`-ef`: same device and inode).
   local d="$p"
   while :; do
-    [ "$d" -ef "$r" ] && return 1
+    [ "$d" -ef "$r0" ] && return 1
     [ "$d" = / ] && break
     d="${d%/*}"; [ -n "$d" ] || d=/
   done
