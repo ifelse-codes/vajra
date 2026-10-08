@@ -30,13 +30,17 @@
 set -uo pipefail
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT"
+# S191: this run's fixture checkout goes on every way out (a ^C or a failed check included).
+S133_WT=""
+trap '[ -n "$S133_WT" ] && { git worktree remove --force "$S133_WT" >/dev/null 2>&1 || rm -rf "$S133_WT"; git worktree prune >/dev/null 2>&1; }' EXIT
 
 # shellcheck source=scripts/lib-tally.sh
 source "$ROOT/scripts/lib-tally.sh"
 
 SESSION="133"
 TS=$(date -u +%Y%m%dT%H%M%SZ)
-ARTIFACTS=".ai/verify/session-${SESSION}/${TS}"
+# S191: the pid keeps two runs started in the same second out of each other's logs.
+ARTIFACTS=".ai/verify/session-${SESSION}/${TS}-$$"
 mkdir -p "$ARTIFACTS"
 
 VAJRA="$ROOT/target/release/vajra"
@@ -448,8 +452,15 @@ expect_test_red() { # worktree, test name
 fixture_fails_for_the_right_reason() {
   # Measured at S132, reused: the SAME `cargo test` takes ~12s in a worktree under the repo's
   # gitignored `target/` and more than TEN MINUTES in one under $TMPDIR.
-  local WT="$ROOT/target/s133-fixture-wt"; local rc=0
-  rm -rf "$WT"; git worktree prune
+  # S191: one checkout per run (was one fixed path, so two runs at once shared its index.lock).
+  # It stays under target/ for the speed above; a killed run's checkout is cleared by the next run.
+  local WT="$ROOT/target/s133-fixture-wt-$$"; local rc=0 old
+  for old in "$ROOT"/target/s133-fixture-wt "$ROOT"/target/s133-fixture-wt-*; do
+    [ -d "$old" ] || continue
+    case "$old" in *-wt-*) kill -0 "${old##*-}" 2>/dev/null && continue ;; esac
+    git worktree remove --force "$old" >/dev/null 2>&1 || rm -rf "$old"
+  done
+  rm -rf "$WT"; git worktree prune; S133_WT="$WT"
   git worktree add --detach -q "$WT" HEAD 2>/dev/null || { echo "FAIL: no clean-room worktree"; return 1; }
   local D="$WT/src/mandate/mod.rs"
   local PROBE_TARGET="$ROOT/target/s133-probes"
@@ -662,7 +673,7 @@ help_lists_seven() {
 }
 run_check "no-eighth-command" behav help_lists_seven
 
-( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
+( cd ".ai/verify/session-${SESSION}" && ln -sfn "${TS}-$$" "latest" ) 2>/dev/null || true
 
 echo ""
 echo "=== Session 133 Verify Summary ==="
