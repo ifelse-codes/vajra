@@ -287,3 +287,42 @@ the before record inside the folder or the tracked tree; keeping the word checks
   reported as "NOT voided — these approvals STILL count".
 - The hook scripts (Stop, UserPromptSubmit, SessionStart, or a PreToolUse hook racing the save) are files the AI can
   edit, and what they write lands outside any pair (the same class as a write between pairs).
+
+## S191 addendum — two guards loosened, each for one stated class (2026-10-08)
+
+DECISION-011's S186 addendum set the rule: loosening a text or path guard is a REMOVAL and needs a class-level
+argument. S191 loosens two guards. Each argument is here, next to that rule.
+
+### §1 — the ground-truth Write guard lets a write outside the project through (N2)
+
+This records the guard's outside-pass for the first time; no earlier record holds the ground-truth Write guard's
+design, so nothing here amends one. Designed at S187 (`.ai/handoffs/session-187-design-advisor.md` recs 12–20),
+built at S191 (`.ai/handoffs/session-191-design-advisor.md` recs 2–6).
+
+- **Before:** during a ground truth, `scripts/hook-pre-write.sh` blocked every Write not on its allowlist — including
+  a scratch note or a throwaway test file outside the project (N2, found S185, hit live S190).
+- **Now:** a Write passes when the guard can PROVE the target is outside the project folder. Both the project root
+  and the target's folder are resolved through every link (`CDPATH= cd -P -- … && pwd -P`). Only an absolute,
+  printable-ASCII path with no `.` or `..` part qualifies — refused before the allowlist runs, which also closes
+  `/proj/.ai/../src/x.rs` passing as `*/.ai/*` (open before S191). A leaf that is a link, has more than one hard
+  link, or is not a plain file refuses. The compare is lower-cased on both sides (macOS disks ignore case) and needs
+  a `/` boundary (`proj2` is not inside `proj`). A root that resolves to `/` or not at all refuses. Every step fails
+  closed (exit 2; exit 1 does not block). A folder that does not exist yet refuses, and the message says the way
+  past: `mkdir -p` it in Bash, then write again. Placement: inside the `GT_PW=1` branch, which runs after the
+  approvals guard on every Write, so the approvals guard is never skipped.
+- **Class-level argument:** in a ground truth, Bash blocks only commit, push and PR, so the agent can already write
+  any path — inside or outside — through the shell. Letting an outside Write through gives it no write path Bash
+  does not already have. The guard is a speed bump for the Write tool, not a sandbox.
+- **Limits, named, not closed:** a parallel tool call can swap a checked folder for a link between the check and the
+  write; "outside the folder" is not "outside the repo" (another worktree or clone of the same repo counts as
+  outside); a link inside the project that points out (`/proj/vendor -> /elsewhere`) counts as outside, because the
+  write really lands outside; a link on the allowlisted paths (`.ai/`, `scripts/`, …) is not checked, as before
+  S191; a non-ASCII path refuses even when it is outside. `hook-pre-write.sh` is Vajra's own — `vajra init` ships no
+  copy, so this changes nothing in a project.
+- **Rejected:** walking up to the nearest folder that exists (the rest of the path goes unchecked); refusing every
+  link in the path (blocks macOS `/tmp`, S186); `realpath`/`readlink -f` (not in macOS bash 3.2 / BSD); folding case
+  with a Unicode table (cannot match the disk's own rules; refusing non-ASCII closes that case).
+- **Proof:** `scripts/verify-session-191.sh` runs 20 cases against the real hook at the start commit and at the tip:
+  four outside writes block at the start and pass now; the `..` path passes at the start and blocks now; every
+  inside spelling (logical, physical, root given physically, changed case, a linked ancestor, a leaf link, a hard
+  link) blocks at both.

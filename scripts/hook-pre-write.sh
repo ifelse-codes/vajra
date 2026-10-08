@@ -62,15 +62,66 @@ if [ "$GT_PW" -eq 1 ] && [ "${VAJRA_GT_WAIVER:-}" = "$SESSION_NUM" ]; then
   GT_PW=0
 fi
 
+# One way to refuse, as before S191: warn at L1, otherwise block (exit 2 — exit 1 does not block).
+gt_refuse() { # why
+  if [ "$MATURITY" = "L1" ]; then
+    echo "[HOOK WARNING] Ground Truth Session $SESSION_NUM: edit to $FILE (L1 report-only, not blocking)"
+  else
+    echo "[HOOK BLOCK] Ground Truth Session $SESSION_NUM forbids edits to $FILE$1" >&2
+    exit 2
+  fi
+}
+
+# S191 (N2, DECISION-011 S191 addendum §1): a path Vajra can reason about — absolute, printable
+# ASCII, no `.`/`..` segment. Anything else is refused before the allowlist, so
+# `/proj/.ai/../src/x.rs` no longer passes as `*/.ai/*`.
+gt_plain_path() { # path
+  case "$1" in /*) ;; *) return 1 ;; esac
+  case "$1" in */../*|*/..|*/./*|*/.|*/) return 1 ;; esac
+  case "$1" in *$'\n'*) return 1 ;; esac
+  LC_ALL=C grep -q '[^ -~]' <<<"$1"
+  [ $? -eq 1 ]   # 1 = no byte outside space..~ ; 0 (found one) or 2 (grep failed) refuse
+}
+
+# S191 (N2): 0 only when the target is PROVABLY outside the project folder. The root and the
+# target's folder are both resolved through every link; a leaf that is a link, a hard link or not a
+# plain file refuses; the compare is lower-cased (macOS disks ignore case) on a `/` boundary. Any
+# step that fails returns 1, and the caller refuses. GT_WHY names a missing folder.
+gt_outside() { # path
+  local f="$1" r p parent leaf h t
+  GT_WHY=""
+  r=$(CDPATH= cd -P -- "$ROOT" 2>/dev/null && pwd -P) || r=""
+  [ -n "$r" ] && [ "$r" != "/" ] || return 1
+  parent="${f%/*}"; leaf="${f##*/}"
+  [ -n "$parent" ] || parent="/"
+  [ -n "$leaf" ] || return 1
+  if [ ! -d "$parent" ]; then GT_WHY=missing; return 1; fi
+  p=$(CDPATH= cd -P -- "$parent" 2>/dev/null && pwd -P) || p=""
+  [ -n "$p" ] || return 1
+  if [ -e "$f" ] || [ -L "$f" ]; then
+    [ ! -L "$f" ] && [ -f "$f" ] || return 1
+    h=$(find "$f" -prune -links +1 2>/dev/null) || h=ERR
+    [ -z "$h" ] || return 1
+  fi
+  t="${p%/}/$leaf"
+  r=$(LC_ALL=C tr '[:upper:]' '[:lower:]' <<<"$r") || return 1
+  t=$(LC_ALL=C tr '[:upper:]' '[:lower:]' <<<"$t") || return 1
+  case "$t" in "$r"|"$r"/*) return 1 ;; esac
+  return 0
+}
+
 if [ "$GT_PW" -eq 1 ]; then
+  gt_plain_path "$FILE" \
+    || gt_refuse " (Vajra can only check an absolute, plain-ASCII path with no '.' or '..' part)"
   case "$FILE" in
     */sessions/session-*-ground-truth.md|*/sessions/session-*-review.md|*/reviewer/*|*/.ai/*|*/scripts/*) : ;;
     *)
-      if [ "$MATURITY" = "L1" ]; then
-        echo "[HOOK WARNING] Ground Truth Session $SESSION_NUM: edit to $FILE (L1 report-only, not blocking)"
-      else
-        echo "[HOOK BLOCK] Ground Truth Session $SESSION_NUM forbids edits to $FILE" >&2
-        exit 2
+      if ! gt_outside "$FILE"; then
+        if [ "$GT_WHY" = missing ]; then
+          gt_refuse ": the folder ${FILE%/*} does not exist yet, so Vajra cannot check that the file is outside the project. If it is outside, create the folder first in Bash (mkdir -p '${FILE%/*}'), then write again."
+        else
+          gt_refuse " (a file outside the project folder is allowed)"
+        fi
       fi
       ;;
   esac
