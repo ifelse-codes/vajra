@@ -52,3 +52,40 @@ Why: the old `replace` also changed forms like `**Number:** S190` or `**Number:*
 **Verdict:** ACCEPT
 
 Every requirement was built as specified and is checked by tests that can go red for the reason they name. The firmlink hole (rec 1) is a gap in the S187-specified design, bounded by the guard's own stated limit ("speed bump; Bash can already write"). It should still not be described as "proven outside" until rec 1 or rec 2 lands.
+
+## The release-coordinator (the one judge of every `obeyed:` answer)
+
+Pass 1 judged all 24 answers AGREE but wrote its verdict lines inside a code block, which the obeyed gate skips by design (S127), so they did not count. Pass 2 (`.ai/handoffs/session-191-release-coordinator.md`) replaced it: the same verdicts as plain lines, after re-checking the four answers changed since; it made no new recs. Pass 1's nine recs are quoted verbatim below; each is answered in the prompt's `## Advice`.
+
+rec 1 — Rewrite the two Advice lines that name no commit so a real sha comes first: `tech-lead rec 7 — obeyed: 8effeb1 (…)` and `design-advisor rec 12 — obeyed: 1d43183 (…)`.
+Why: the gate reads only the leading hex of the answer. Today it reads "de" and "c", which name no commit, so both count as unanswered and block. My judgment lines above are recorded against exactly 8effeb1 and 1d43183. Any other sha leaves those two unjudged, and silence blocks.
+
+rec 2 — Fill Execution step 6 with a real commit sha (the closeout-sync commit), not `<sha>`.
+Why: the Coder gate records nothing for a placeholder, so step 6 stays untraced and the close blocks.
+
+rec 3 — While the closeout is open, fix four stale bits of wording:
+- DECISION-011:329 → say the non-ASCII refusal "closes it for a typed path only".
+- `hook-pre-write.sh:87` comment → "every symlink".
+- The review header's "(23971d5, b0ef01b)" → add aecfd25 for rec 3.
+- verify-191:247's "~80 s per pair" → the real figure.
+Why: the record still makes the overclaim that fidelity-reviewer rec 2 asked to remove ("a label is not a fix"), and two lines point at the wrong commit and a stale time. These are text-only edits. Do them before the stamp.
+
+rec 4 — Either re-run the verify-133 concurrent pair three times by hand on the current tip, or say in the summary and Advice that the three green rounds were run on 96d4b86.
+Why: those rounds tested the shared-build-folder version. The review showed that version could run the other run's binary, and the fix (aecfd25) came after them.
+
+rec 5 — Founder, in your terminal: `git branch -d session-190-closeout` (lower-case `-d`, never `-D`). Then run `--advance` with a vajra built from THIS branch (for example `cargo run -q -- next --advance`). Then check that the SESSION-BOOT diff changes only `**Number:** 190 → 191`. Then commit the advance together with `.ai/approvals/session-191.json`, as S186 and S187 did.
+Why: `-d` refuses to delete a branch that is not merged, which covers the gate's blind spot (a branch deleted before its merge looks the same as one deleted after). An installed vajra is pre-S191; I infer this because S191 is not merged. It would rewrite every "190" on SESSION-BOOT line 7, which is exactly the bug this session fixed. The 191 approval record is the only one still untracked.
+
+rec 6 — Record this handoff. Then do the closeout sync (STATE, ROADMAP, SESSION-BOOT, TASK) and draft the S192 prompt. Then answer this handoff's recs in Advice and commit. Run `bash scripts/verify-closeout.sh --inputs-sha 191` LAST, paste the result as `**Review-Inputs-SHA:**` in the review, and commit.
+Why: the hash covers the committed prompt plus every file the diff does not exclude, and `.ai/handoffs/` and `.ai/approvals/` are not excluded (`verify-closeout.sh:1110-1123`). Any Advice edit, handoff or approval record added after the stamp makes it stale. Only `sessions/` and the synced `.ai/*` files are safe after it.
+
+rec 7 — Run the full `bash scripts/verify-closeout.sh 191` on the branch, before any merge. It must exit 0, and check that the verify step finishes under 600 s.
+Why: the branch-point comparison breaks once main contains the branch. The QA gate kills a run that passes 600 s and blocks, and verify-191 now carries a ~3-minute concurrent pair.
+
+rec 8 — Founder: push the branch, open the PR, and merge it with a merge commit (no squash, no rebase), only after the green close and the recorded ACCEPT.
+Why: `require_merged_prior` checks that the branch is merged by ancestry. A squash leaves the branch tip outside main, so S192's gate blocks and `git branch -d` refuses.
+
+rec 9 — Founder, after the merge: `git fetch`, then `git checkout main && git pull --ff-only`, then `git branch -d session-191-small-fixes`. Leave `.claude/launch.json`, `first-mate.html`, `sessions/session-137-scatter-render.html` and `vajra-cto-audit-2026-07-22.html` out of every commit.
+Why: `require_main_synced` is only as fresh as the last fetch. Today local main = origin/main = f37b0fe according to `FETCH_HEAD`, but that fetch dates from S190. `require_pruned` needs the merged branch gone. The founder's rule keeps local artifacts out of git.
+
+**Question for the founder (not a step):** existing projects such as rudra get the S191 session-guard change only from a vajra built from S191 or later, on their next `--sync-fleet`. Whether and when to build or publish such a version is your call.
