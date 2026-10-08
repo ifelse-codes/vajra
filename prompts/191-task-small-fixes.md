@@ -159,6 +159,13 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only on-scre
 - design-advisor rec 11 — obeyed: 1d43183 (DECISION-011 S191 addendum §2) and this commit (`## Design` and `## Guardrails` corrected above)
 - design-advisor rec 12 — obeyed: checked src/cli/init.rs (`SYNC_HOOKS` + `StaleRender`); hook-pre-write.sh is not shipped to projects (§1 says so), hook-session-guard.sh is, on the next `--sync-fleet` (§2 says so, 1d43183)
 
+**fidelity-reviewer** (`.ai/handoffs/session-191-fidelity-reviewer.md`):
+- fidelity-reviewer rec 1 — obeyed: 23971d5 (confirmed live first: an inside file spelled `/System/Volumes/Data/…` exited 0 at 64248b9; `gt_outside` now also walks the target's folder up to `/` and refuses any step that `-ef` the root; the string compare stays as a first check; verify-191 AC1 firmlink row, new 2 / 64248b9 0)
+- fidelity-reviewer rec 2 — obeyed: 23971d5 (DECISION-011 S191 addendum §1 says "every symlink", names the inode walk and the firmlink find, and says the non-ASCII refusal covers only the typed path) and the summary (corrected at closeout)
+- fidelity-reviewer rec 3 — obeyed: aecfd25 (each verify-133 run builds into its OWN `target/s133-probes-<pid>`, seeded by a copy-on-write clone of `target/s133-probes` and removed by the EXIT trap; the sweep no longer touches the pre-S191 `target/s133-fixture-wt`). The first try, a lock round each build-and-run (b0ef01b), made BOTH concurrent runs red: the two checkouts share one cargo fingerprint and cargo judges "fresh" by the mtimes of the other checkout's files, so a run tested the other's binary. The rec's own first option was the right one; the lock is gone
+- fidelity-reviewer rec 4 — refused: the rec asked for AC1 rows with `CLAUDE_PROJECT_DIR=/` and an unresolvable root, wanting exit 2. Through the real hook neither can reach the ground-truth branch: ground truth is decided from `$ROOT/.ai/CONSTRAINTS.yaml` and the git branch at `$ROOT`, and `/` (or a root `cd -P` cannot enter) has neither, so the hook exits 0 before `gt_outside` runs (tried live: both exit 0 as "not a ground truth"). A row would test a path the hook never takes; the `[ "$r" != "/" ]` line stays as defence in depth
+- fidelity-reviewer rec 5 — obeyed: b0ef01b (`update_session_boot` returns whether a line moved; `--advance` prints a warning naming the missing `**Number:** NN` line instead of "updated"; the unit test asserts a second call moves nothing)
+
 ## Delta
 - `+` the ground-truth write guard's physical-resolution outside-pass (N2) + DECISION-011 S191 addendum
 - `~` `update_session_boot` (anchors the number replace on the field, not the line)
