@@ -89,3 +89,5 @@ rec 9 — Founder, after the merge: `git fetch`, then `git checkout main && git 
 Why: `require_main_synced` is only as fresh as the last fetch. Today local main = origin/main = f37b0fe according to `FETCH_HEAD`, but that fetch dates from S190. `require_pruned` needs the merged branch gone. The founder's rule keeps local artifacts out of git.
 
 **Question for the founder (not a step):** existing projects such as rudra get the S191 session-guard change only from a vajra built from S191 or later, on their next `--sync-fleet`. Whether and when to build or publish such a version is your call.
+
+**Review-Inputs-SHA:** 70ff5dbb80928dbd917901b5c052ba3e20cc5317244183021dd7d43a5582f1f7
