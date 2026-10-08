@@ -49,6 +49,13 @@ design-significant: yes
 - Cites `docs/adr/0004-meter-receipt-design.md` — its S189 addendum (the resolver order, the fail-closed rules,
   the named fork assumption). AC3 changes how the meter finds a transcript; any SessionStart-hook design needs an
   ADR-0003 addendum (S189 researcher rec 2) and the founder's yes first.
+- **Deviates from ADR-0004 §2.2** (recorded in its S192 addendum): `derive_cwd_slug` (replace only `/`) and the
+  newest-anywhere fallback are replaced by Claude Code 2.1.280's own rule — every UTF-16 unit outside
+  `[A-Za-z0-9]` → `-`, over 200 cut + hashed, under `$CLAUDE_CONFIG_DIR/projects` else `$HOME/.claude/projects`.
+  One helper in `src/meter/mod.rs` serves the meter, `vajra meter --all` and dispatch's provenance lookup; only
+  dispatch keeps `VAJRA_CLAUDE_PROJECTS_DIR`. The S189 share rule is unchanged. Rejected: three separate edits; a
+  prefix match on long names; the newest-anywhere fallback; the meter reading `VAJRA_CLAUDE_PROJECTS_DIR`; a
+  SessionStart hook this session (named, not closed).
 
 ## Carried in
 - **Founder rulings:** read the tool's own cost, never grow the price list (S176/S189); no per-claim `obeyed:`

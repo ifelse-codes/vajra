@@ -473,3 +473,42 @@ headlining the conversation total on a resume (overcounts every earlier run); ne
   the founder's call (S189 researcher rec 5, review rec 4);
 - a text-mode `-p` run (no `--output-format`) has no result stream, so it now shows the cost-state figure where
   it used to show the estimate — a change toward the tool's own figure, not covered by a check.
+
+## S192 addendum — the transcript folder is Claude Code's own name for it
+
+**Deviates from §2.2.** `derive_cwd_slug` (replace only `/`) and §2.2's "search every project, pick the newest"
+fallback are replaced and rejected. Claude Code 2.1.280's own code (read from its binary, `kT` and `we`) names a
+project's transcript folder thus, and `meter::cc_folder_name` / `meter::cc_project_dir` copy it:
+- the root is `$CLAUDE_CONFIG_DIR/projects` when that is set and not empty, else `$HOME/.claude/projects`;
+- the folder is every UTF-16 unit of the working path that is not an ASCII letter or digit replaced by `-`
+  (so `é` → `-`, an emoji → `--`); a name over 200 characters is cut to 200 and gets `-` plus the base-36
+  absolute value of Claude Code's 32-bit string hash (`(h << 5) - h + unit`, a plain JS function, not the
+  runtime's — the expected names in the unit tests come from running Claude Code's own function under node);
+- `CLAUDE_CODE_PROJECT_DIR_NAME` replaces the folder name only when `CLAUDE_CONFIG_DIR` is set and the name
+  is `[A-Za-z0-9_-]{1,64}` and not a reserved Windows name — as Claude Code does.
+
+One helper serves the meter's `find_session_jsonl`, `vajra meter --all` and dispatch's handoff-provenance lookup
+(`project_dir_for` — the same bug made every helper handoff of a repo at such a path unverifiable).
+`VAJRA_CLAUDE_PROJECTS_DIR` stays dispatch's test seam only; the meter never reads it (it would widen a
+disclosed redirect to the receipt and the budget check). Closes the S189 named limit on the folder name.
+
+Evidence: on the founder's machine the rule reproduces 12 of 12 real transcript folders (each transcript's own
+`cwd` field against its folder name); the old rule matched 9. The S189 share rule is unchanged; the founder's live
+rudra runs (S192: $6.90 and $22.96 on the receipt, Claude Code's `cost-state` 6.8959 and 22.9620) and a plain
+`claude --resume` that appended the same total with the same `startTime` are pinned by unit tests in that shape
+(a resume that sent nothing → no figure; with messages and no new spend → $0.00; with new spend → only the difference).
+
+**Rejected:** fixing only `find_session_jsonl` (three copies of one rule is how dispatch inherited it); failing
+closed on long names instead of copying the hash (S192 design-advisor rec 4 — Claude Code's hash is a plain
+function, copied and checked, and a wrong hash can only miss a folder, never find another project's); a prefix
+match on long names (can pick a sibling project); §2.2's newest-anywhere fallback (reads another project's log).
+
+**Named limits (named, not closed):**
+- Claude Code maps different paths to one folder (`/x/my.app`, `/x/my_app`, `/x/my app` → `-x-my-app`); the
+  exactly-one-new-transcript rule skips the concurrent case, but a run that wrote no transcript while another
+  project sharing the folder did would read the other's;
+- another Claude Code version may name folders differently; the folder is then not found and there is no
+  receipt (never a wrong one);
+- an empty `CLAUDE_CONFIG_DIR` counts as unset (Claude Code would use a relative `projects` folder);
+- the SessionStart session-id match (S189 researcher rec 2) is still not built: `/clear` and two sessions in one
+  folder skip the receipt.
