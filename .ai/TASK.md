@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S190 (NO-CODE ground truth, 🟡 PARTIAL PASS) complete on `session-190-closeout`; S191 next
+## Between Sessions — S191 (CODE, four small fixes) complete on `session-191-small-fixes`; S192 next
 
-**Next: Session 191 — four small, bounded fixes from the S190 ground truth** — prompt written from the founder's pick at the end of S190 (option A). Start in a fresh chat after S190's PR is merged.
+**Next: Session 192 — prove the receipt live, through rudra** (`prompts/192-task-prove-the-receipt.md`, DRAFT — the founder's pick, 2026-10-08). Start in a fresh chat after S191's PR is merged and `vajra approve 192`.
+
+## Session 191 — CODE: four small, bounded fixes from the S190 review — COMPLETE
+
+- Brief: `prompts/191-task-small-fixes.md`. Summary: `sessions/session-191-summary.md`. Review: `sessions/session-191-review.md` (one cold pass, ACCEPT 9/9). Decision: DECISION-011 S191 addendum.
+- Shipped: N2 (ground-truth Writes outside the project pass; inode walk; `..` hole closed) · N13 (one quoted heredoc shape read as data) · `--advance` anchored number swap + warning · verify-133 safe twice at once. Verify 65/65 · demo 8/8 · `cargo test` 699/0.
+- **→ S192 (founder):** `find_session_jsonl` folder naming, missed by S191's prompt.
 
 ## Session 190 — NO-CODE ground truth (every-5th rule) — COMPLETE
 
