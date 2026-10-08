@@ -1952,18 +1952,9 @@ fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<()> {
     let path = root.join(".ai/SESSION-BOOT.md");
     let content = fs::read_to_string(&path).context("failed to read .ai/SESSION-BOOT.md")?;
 
-    let current_str = format!("{current:02}");
-    let next_str = format!("{next:02}");
-
     let updated: String = content
         .lines()
-        .map(|line| {
-            if line.contains("**Number:**") {
-                line.replace(&current_str, &next_str)
-            } else {
-                line.to_string()
-            }
-        })
+        .map(|line| swap_boot_number(line, current, next))
         .collect::<Vec<_>>()
         .join("\n");
 
@@ -1975,6 +1966,25 @@ fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<()> {
 
     fs::write(&path, updated).context("failed to write .ai/SESSION-BOOT.md")?;
     Ok(())
+}
+
+/// S191: swap only the number token right after `**Number:**`, and only when it is `current`.
+/// The old `line.replace` rewrote every copy of the digits on the line, so a line naming
+/// `session-188-summary.md` came out naming `session-189-summary.md` (S170's bug, hit S187/S188).
+fn swap_boot_number(line: &str, current: u32, next: u32) -> String {
+    const FIELD: &str = "**Number:**";
+    let Some(at) = line.find(FIELD) else {
+        return line.to_string();
+    };
+    let after = at + FIELD.len();
+    let rest = &line[after..];
+    let start = after + (rest.len() - rest.trim_start().len());
+    let digits = line[start..].bytes().take_while(u8::is_ascii_digit).count();
+    let end = start + digits;
+    match line[start..end].parse::<u32>() {
+        Ok(n) if n == current => format!("{}{next:02}{}", &line[..start], &line[end..]),
+        _ => line.to_string(),
+    }
 }
 
 /// Print a gate's reasons. S173 F51: for a session the human already merged, rudra's advance
@@ -2348,5 +2358,50 @@ mod tests {
         let result = fs::read_to_string(ai.join("SESSION-BOOT.md")).unwrap();
         assert!(result.contains("**Number:** 09"));
         assert!(!result.contains("**Number:** 08"));
+    }
+
+    /// S191 AC2: the real S188 line (`.ai/SESSION-BOOT.md` at 976ba05) names "188" five more times
+    /// (the prompt says six; it is six in all, counting the number field).
+    /// Only the number after `**Number:**` moves; the other five stay byte-for-byte.
+    #[test]
+    fn update_session_boot_leaves_prose_numbers_alone() {
+        let s188 = "- **Number:** 188 — COMPLETE (merged #226). CODE: the approvals folder — the Bash word guard replaced by a before/after check; a change voids the approvals until `vajra approve NN` (DECISION-011 S188 addendum). F110 closed. Of 76 commands the old guard blocked: 45 caught after they write, 31 pass. Live run $0.03. Summary: `sessions/session-188-summary.md`. Review: `sessions/session-188-review.md`. Verify: `scripts/verify-session-188.sh` (11/11). Demo: `scripts/demo-session-188.sh`.";
+        let tmp = tempfile::tempdir().unwrap();
+        let ai = tmp.path().join(".ai");
+        fs::create_dir_all(&ai).unwrap();
+        let prior = "- **Number:** 187 — CLOSED. Names 188 in prose.";
+        fs::write(
+            ai.join("SESSION-BOOT.md"),
+            format!("# Session Boot\n{s188}\n{prior}\n"),
+        )
+        .unwrap();
+
+        update_session_boot(tmp.path(), 188, 189).unwrap();
+
+        let result = fs::read_to_string(ai.join("SESSION-BOOT.md")).unwrap();
+        let want = s188.replacen("**Number:** 188", "**Number:** 189", 1);
+        assert_eq!(result, format!("# Session Boot\n{want}\n{prior}\n"));
+        assert_eq!(want.matches("188").count(), 5);
+    }
+
+    #[test]
+    fn swap_boot_number_only_swaps_an_exact_match() {
+        assert_eq!(
+            swap_boot_number("**Number:** 1880", 188, 189),
+            "**Number:** 1880"
+        );
+        assert_eq!(
+            swap_boot_number("**Number:**  08 x", 8, 9),
+            "**Number:**  09 x"
+        );
+        assert_eq!(swap_boot_number("no field 188", 188, 189), "no field 188");
+        assert_eq!(
+            swap_boot_number("S188 - **Number:** 188", 188, 189),
+            "S188 - **Number:** 189"
+        );
+        assert_eq!(
+            swap_boot_number("**Number:** TBD 188", 188, 189),
+            "**Number:** TBD 188"
+        );
     }
 }
