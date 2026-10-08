@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 // ─── pricing (compiled-in, update binary on price change) ──────────
 
@@ -871,13 +871,96 @@ pub fn read_compression_stats(path: &Path) -> Option<CompressionStats> {
 
 // ─── JSONL discovery ───────────────────────────────────────────────
 
+/// Claude Code's longest transcript folder name before it cuts and adds a hash.
+const CC_FOLDER_NAME_MAX: usize = 200;
+
+/// The transcript folder name Claude Code gives a project path (S192; read from Claude Code
+/// 2.1.280's own code, `kT`): every UTF-16 unit that is not an ASCII letter or digit becomes `-`;
+/// a name over 200 characters is cut to 200 and gets `-` plus a base-36 hash of the path (its
+/// `(h << 5) - h + unit` 32-bit string hash, absolute value). Before S192 Vajra replaced only `/`,
+/// so a path with `.`, `_` or a space found no transcript and got no receipt.
+pub fn cc_folder_name(project_path: &str) -> String {
+    let units: Vec<u16> = project_path.encode_utf16().collect();
+    let name: String = units
+        .iter()
+        .map(|&u| match u8::try_from(u) {
+            Ok(b) if b.is_ascii_alphanumeric() => b as char,
+            _ => '-',
+        })
+        .collect();
+    if name.len() <= CC_FOLDER_NAME_MAX {
+        return name;
+    }
+    let mut h: i32 = 0;
+    for &u in &units {
+        h = (h << 5).wrapping_sub(h).wrapping_add(i32::from(u));
+    }
+    format!(
+        "{}-{}",
+        &name[..CC_FOLDER_NAME_MAX],
+        base36(i64::from(h).unsigned_abs())
+    )
+}
+
+fn base36(mut n: u64) -> String {
+    const DIGITS: &[u8; 36] = b"0123456789abcdefghijklmnopqrstuvwxyz";
+    let mut out = Vec::new();
+    loop {
+        out.push(DIGITS[(n % 36) as usize]);
+        n /= 36;
+        if n == 0 {
+            break;
+        }
+    }
+    out.reverse();
+    String::from_utf8(out).expect("base-36 digits are ASCII")
+}
+
+/// Where Claude Code keeps a project's transcripts (S192, Claude Code 2.1.280):
+/// `$CLAUDE_CONFIG_DIR/projects` when that is set and not empty, else `$HOME/.claude/projects`;
+/// the folder is `CLAUDE_CODE_PROJECT_DIR_NAME` when Claude Code would use it (only with
+/// `CLAUDE_CONFIG_DIR` set, and only `[A-Za-z0-9_-]{1,64}` that is not a reserved Windows name),
+/// else [`cc_folder_name`]. `env` reads one variable — tests pass a map, never the real
+/// environment (cargo runs tests in parallel).
+pub fn cc_project_dir(
+    project_path: &Path,
+    env: &dyn Fn(&str) -> Option<String>,
+) -> Option<PathBuf> {
+    let config = env("CLAUDE_CONFIG_DIR").filter(|v| !v.is_empty());
+    let root = match &config {
+        Some(dir) => PathBuf::from(dir),
+        None => PathBuf::from(env("HOME").filter(|v| !v.is_empty())?).join(".claude"),
+    };
+    let fixed_name = config
+        .as_ref()
+        .and_then(|_| env("CLAUDE_CODE_PROJECT_DIR_NAME"))
+        .filter(|n| cc_valid_dir_name(n));
+    let name = fixed_name.unwrap_or_else(|| cc_folder_name(&project_path.to_string_lossy()));
+    Some(root.join("projects").join(name))
+}
+
+fn cc_valid_dir_name(n: &str) -> bool {
+    let shape = (1..=64).contains(&n.len())
+        && n.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_');
+    let lower = n.to_ascii_lowercase();
+    let reserved = matches!(lower.as_str(), "con" | "prn" | "aux" | "nul")
+        || ((lower.starts_with("com") || lower.starts_with("lpt"))
+            && lower.len() == 4
+            && lower.as_bytes()[3].is_ascii_digit());
+    shape && !reserved
+}
+
+/// [`cc_project_dir`] read from this process's environment.
+pub fn cc_project_dir_from_env(project_path: &Path) -> Option<PathBuf> {
+    cc_project_dir(project_path, &|k| std::env::var(k).ok())
+}
+
 pub fn find_session_jsonl(
     session_start: std::time::SystemTime,
 ) -> Option<(std::path::PathBuf, Option<std::path::PathBuf>)> {
     let cwd = std::env::current_dir().ok()?;
-    let home = dirs_or_home()?;
-    let slug = cwd.to_string_lossy().replace('/', "-");
-    let project_dir = home.join(".claude/projects").join(&slug);
+    let project_dir = cc_project_dir_from_env(&cwd)?;
 
     let candidates = find_jsonl_candidates(&project_dir, session_start);
 
@@ -923,10 +1006,6 @@ fn find_jsonl_candidates(
         })
         .map(|e| e.path())
         .collect()
-}
-
-fn dirs_or_home() -> Option<std::path::PathBuf> {
-    std::env::var_os("HOME").map(std::path::PathBuf::from)
 }
 
 #[cfg(test)]
@@ -1764,5 +1843,138 @@ mod tests {
         assert!(
             format_receipt(&cost).contains("[vajra warn] Claude Code 2.1.280 records its own cost")
         );
+    }
+
+    // ─── S192: Claude Code's transcript folder name ───────────────────
+    // Expected names below were produced by running Claude Code 2.1.280's own `kT` (copied from
+    // its binary) under node — not by re-reading this module.
+
+    #[test]
+    fn s192_folder_name_replaces_every_non_alphanumeric_like_claude_code() {
+        assert_eq!(
+            cc_folder_name("/Users/suman/my proj_v2.0/rudra"),
+            "-Users-suman-my-proj-v2-0-rudra"
+        );
+        assert_eq!(cc_folder_name("/private/tmp/x"), "-private-tmp-x");
+        // One `-` per UTF-16 unit: `é` is one unit, the emoji two.
+        assert_eq!(cc_folder_name("/Users/é/😀"), "-Users-----");
+    }
+
+    #[test]
+    fn s192_a_name_over_200_is_cut_and_hashed_like_claude_code() {
+        let long = format!("/Users/suman/{}proj", "a_very.long folder/".repeat(12));
+        let name = cc_folder_name(&long);
+        assert_eq!(name.len(), 207);
+        assert!(name.ends_with("-a-very-long-fold-tbpnli"), "{name}");
+    }
+
+    fn env_of<'a>(pairs: &'a [(&'a str, &'a str)]) -> impl Fn(&str) -> Option<String> + 'a {
+        move |k| {
+            pairs
+                .iter()
+                .find(|(n, _)| *n == k)
+                .map(|(_, v)| v.to_string())
+        }
+    }
+
+    #[test]
+    fn s192_project_dir_honours_claude_config_dir() {
+        let p = Path::new("/w/my proj_v2.0");
+        assert_eq!(
+            cc_project_dir(p, &env_of(&[("HOME", "/h")])),
+            Some(PathBuf::from("/h/.claude/projects/-w-my-proj-v2-0"))
+        );
+        assert_eq!(
+            cc_project_dir(p, &env_of(&[("HOME", "/h"), ("CLAUDE_CONFIG_DIR", "/cfg")])),
+            Some(PathBuf::from("/cfg/projects/-w-my-proj-v2-0"))
+        );
+        // Empty counts as unset; no HOME and no config folder → nowhere to look.
+        assert_eq!(
+            cc_project_dir(p, &env_of(&[("HOME", "/h"), ("CLAUDE_CONFIG_DIR", "")])),
+            Some(PathBuf::from("/h/.claude/projects/-w-my-proj-v2-0"))
+        );
+        assert_eq!(cc_project_dir(p, &env_of(&[])), None);
+    }
+
+    #[test]
+    fn s192_project_dir_name_override_only_where_claude_code_uses_it() {
+        let p = Path::new("/w/x");
+        // Only with CLAUDE_CONFIG_DIR set.
+        assert_eq!(
+            cc_project_dir(
+                p,
+                &env_of(&[("HOME", "/h"), ("CLAUDE_CODE_PROJECT_DIR_NAME", "mine")])
+            ),
+            Some(PathBuf::from("/h/.claude/projects/-w-x"))
+        );
+        assert_eq!(
+            cc_project_dir(
+                p,
+                &env_of(&[
+                    ("CLAUDE_CONFIG_DIR", "/cfg"),
+                    ("CLAUDE_CODE_PROJECT_DIR_NAME", "mine")
+                ])
+            ),
+            Some(PathBuf::from("/cfg/projects/mine"))
+        );
+        // A name Claude Code refuses falls back to the folder name.
+        for bad in ["has.dot", "nul", "COM1", ""] {
+            let pairs = [
+                ("CLAUDE_CONFIG_DIR", "/cfg"),
+                ("CLAUDE_CODE_PROJECT_DIR_NAME", bad),
+            ];
+            assert_eq!(
+                cc_project_dir(p, &env_of(&pairs)),
+                Some(PathBuf::from("/cfg/projects/-w-x")),
+                "{bad}"
+            );
+        }
+    }
+
+    /// S192 live evidence, copied in shape (no real transcript): after a vajra run wrote its
+    /// cost-state total, a `claude --resume` that sent nothing appended a `last-prompt` line, a
+    /// `file-history-snapshot` with no timestamp and two more cost-state lines with the SAME total
+    /// and SAME startTime. A receipt for that resume must not show the whole $22.96 as this run's.
+    #[test]
+    fn s192_a_resume_that_sent_nothing_never_shows_the_earlier_total_as_this_run() {
+        let text = r#"{"type":"user","timestamp":"2026-10-08T16:45:21.760Z","message":{"content":"hi"}}
+{"type":"cost-state","totalCostUSD":22.9619658,"startTime":1791477921760,"hasUnknownModelCost":false}
+{"type":"cost-state","totalCostUSD":22.9619658,"startTime":1791477921760,"hasUnknownModelCost":false}
+{"type":"last-prompt"}
+{"type":"file-history-snapshot"}
+{"type":"cost-state","totalCostUSD":22.9619658,"startTime":1791477921760,"hasUnknownModelCost":false}
+{"type":"cost-state","totalCostUSD":22.9619658,"startTime":1791477921760,"hasUnknownModelCost":false}"#;
+        let resume_launch = s189_ms("2026-10-08T17:59:00.000Z");
+        assert_eq!(cost_state_record(text, Some(resume_launch)), None);
+    }
+
+    /// S192 design-advisor rec 6 (a)/(c): a resume that DID send messages. Its share is the last
+    /// total minus the total already in the log — $0.00 when nothing new was spent, the difference
+    /// when something was; never the whole conversation's $22.96.
+    #[test]
+    fn s192_a_resume_with_messages_shows_only_what_it_added() {
+        let run1 = r#"{"type":"user","timestamp":"2026-10-08T16:45:21.760Z","message":{"content":"hi"}}
+{"type":"cost-state","totalCostUSD":22.9619658,"startTime":1791477921760,"hasUnknownModelCost":false}
+{"type":"cost-state","totalCostUSD":22.9619658,"startTime":1791477921760,"hasUnknownModelCost":false}"#;
+        let resume = |total: &str| {
+            format!(
+                "{run1}\n{{\"type\":\"user\",\"timestamp\":\"2026-10-08T18:00:00.000Z\",\"message\":{{\"content\":\"again\"}}}}\n\
+                 {{\"type\":\"cost-state\",\"totalCostUSD\":{total},\"startTime\":1791477921760,\"hasUnknownModelCost\":false}}"
+            )
+        };
+        let launch = Some(s189_ms("2026-10-08T17:59:00.000Z"));
+        assert_eq!(
+            cost_state_record(&resume("22.9619658"), launch),
+            Some(ToolRecord::ThisRun {
+                dollars: 0.0,
+                unpriced: false
+            })
+        );
+        match cost_state_record(&resume("24.4619658"), launch) {
+            Some(ToolRecord::ThisRun { dollars, .. }) => {
+                assert!((dollars - 1.5).abs() < 1e-9, "{dollars}")
+            }
+            other => panic!("{other:?}"),
+        }
     }
 }

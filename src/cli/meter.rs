@@ -55,10 +55,9 @@ fn run_baseline(dir_arg: Option<String>) -> Result<()> {
     Ok(())
 }
 
-/// `~/.claude/projects/<cwd-slug>` — the same layout the meter discovers (CC replaces `/` with `-`).
+/// This folder's transcripts — the same lookup the meter uses (S192: Claude Code's own folder name
+/// and `CLAUDE_CONFIG_DIR`).
 fn default_project_dir() -> Option<PathBuf> {
-    let home = std::env::var_os("HOME").map(PathBuf::from)?;
     let cwd = std::env::current_dir().ok()?;
-    let slug = cwd.to_string_lossy().replace('/', "-");
-    Some(home.join(".claude/projects").join(slug))
+    meter::cc_project_dir_from_env(&cwd)
 }
