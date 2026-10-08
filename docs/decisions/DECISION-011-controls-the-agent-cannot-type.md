@@ -326,3 +326,36 @@ built at S191 (`.ai/handoffs/session-191-design-advisor.md` recs 2–6).
   four outside writes block at the start and pass now; the `..` path passes at the start and blocks now; every
   inside spelling (logical, physical, root given physically, changed case, a linked ancestor, a leaf link, a hard
   link) blocks at both.
+
+### §2 — the one-session-per-chat guard stops reading ONE heredoc shape's body (N13)
+
+- **Before:** `scripts/hook-session-guard.sh` read a heredoc body as command text. Writing a note that only
+  mentions `git checkout -b session-NN-…` or `vajra next --advance` (`cat > notes.md <<'EOF' … EOF`) could block as
+  starting the next session — it blocked S187's own TASK.md edit (N13).
+- **Now:** one shape loses its body from what the guard reads (SCAN): the WHOLE command is a single `cat > PATH`,
+  `cat >> PATH`, `cat <<'W' > PATH`, `cat <<'W' >> PATH`, `tee [-a] PATH` (with an optional `> /dev/null`) writing a
+  heredoc whose delimiter is QUOTED (`'W'` or `"W"`) to one plain path (`[A-Za-z0-9_./-]`, an optional `~/`), and
+  nothing but whitespace comes after the first line exactly equal to the delimiter. Opener and terminator lines are
+  still read. Every other shape is read exactly as before: an unquoted delimiter, `<<-`, two heredocs, a pipe, `;`,
+  `&&`, `$`, a backtick or quote on the opener line, anything after the terminator. EXTRA (every `$( )`, backtick,
+  `eval`/`sh -c` body) is still read from the raw command and can only add a reason to block. No perl → nothing is
+  removed.
+- **This deviates from the S173 rule** that this guard's reading may only ever add (KNOWLEDGE, S173: a heredoc
+  exception was tried and removed, "each version hid something a shell runs"). It deviates for this one guard and
+  this one shape only.
+- **Class-level argument (three parts):** (1) with a quoted delimiter neither bash nor zsh expands anything in the
+  body — no `$( )`, backticks or variables — so the body is literal data, the same text the Write tool could write,
+  and this guard never reads Write calls; (2) only the opener line can hand the body to a program, and the strict
+  shape hands it only to `cat`/`tee` and one plain file; (3) nothing after the terminator rules out
+  `cat > run.sh <<'W' … W` then `bash run.sh` in the same command. S173's breaks were all `$( … )`-wrapped or
+  unquoted heredocs; none of them fits the shape.
+- **Limits, named, not closed:** the guard trusts that `cat` and `tee` are the real programs — a shell function or
+  alias of that name in the user's shell is not seen; a quoted-heredoc note whose body has a backticked or
+  `$( )`-wrapped checkout still blocks through EXTRA (a false block kept on purpose — removing it is a second
+  loosening); zsh is not exercised by the proof (its heredoc rules are the same for this shape). The hook ships to
+  projects (`vajra init`, and `--sync-fleet` rewrites an unedited copy), so a project gets this change on its next
+  sync with a binary built from S191 or later.
+- **Proof:** `scripts/verify-session-191.sh` under macOS `/bin/bash` 3.2: seven declared-shape commands pass now and
+  blocked at the start commit; 25 named must-block cases (the design-advisor's rec 10, one per clause) block at both;
+  S173's whole list × both triggers plus three heredoc-then-run shapes (66 commands) give the SAME exit at both; with
+  perl gone the declared shape still blocks; a note from another chat records no owner.

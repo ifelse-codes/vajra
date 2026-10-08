@@ -76,7 +76,35 @@ vajra_extra() {
     while (/(?:^|[^\w])(?:eval|(?:ba|z|da|k)?sh\s+(?:-\w+\s+)*-c)\s+(["\x27])(.*?)\1/gs) { print "\n$2" }
   ' <<<"$1" 2>/dev/null || true   # no perl → the pre-S173 rule alone (pass 6: it used to exit 127)
 }
-SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
+# S191 (DECISION-011 S191 addendum §2): ONE shape loses its heredoc body from SCAN — the whole command
+# is a single `cat`/`tee` writing a QUOTED-delimiter heredoc to one plain file path, and nothing comes
+# after the terminator. A quoted delimiter means no shell expands anything in the body, so it is data
+# (the same text a Write call could write, which this guard never reads). Prints the opener line and
+# the terminator; any other shape prints nothing and fails, and SCAN reads the command as before.
+# No perl → nothing removed. EXTRA still reads the raw command, so it can only add a reason to block.
+vajra_strip_heredoc() {
+  perl -0777 -ne '
+    my @l = split /\n/, $_, -1;
+    my $op = shift @l;
+    my $p = qr{(?:~/)?[A-Za-z0-9_./-]+};
+    my $h = qr{<<[ \t]*(?|\x27([A-Za-z_][A-Za-z0-9_]*)\x27|"([A-Za-z_][A-Za-z0-9_]*)")};
+    my $null = qr{[ \t]+>[ \t]*/dev/null};
+    exit 1 unless defined $op && (
+         $op =~ /\A[ \t]*cat[ \t]+>>?[ \t]*$p[ \t]+$h[ \t]*\z/
+      || $op =~ /\A[ \t]*cat[ \t]+$h[ \t]+>>?[ \t]*$p[ \t]*\z/
+      || $op =~ /\A[ \t]*tee(?:[ \t]+-a)?[ \t]+$p(?:$null)?[ \t]+$h[ \t]*\z/
+      || $op =~ /\A[ \t]*tee(?:[ \t]+-a)?[ \t]+$p[ \t]+$h$null[ \t]*\z/ );
+    my $d = $1;
+    my $i = 0;
+    $i++ while $i < @l && $l[$i] ne $d;   # the shell ends the body at the FIRST line equal to it
+    exit 1 if $i >= @l;
+    exit 1 if grep { !/\A[ \t]*\z/ } @l[$i + 1 .. $#l];
+    print "$op\n$d\n";
+  ' <<<"$1" 2>/dev/null
+}
+SRC=$(vajra_strip_heredoc "$CMD") || SRC="$CMD"
+[ -n "$SRC" ] || SRC="$CMD"
+SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$SRC")
 EXTRA=$(vajra_extra "$CMD")
 
 # Fire on a session ADVANCE — two shapes, one meaning ("this chat crosses N -> N+1"):
