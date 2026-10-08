@@ -31,8 +31,8 @@ set -uo pipefail
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT"
 # S191: this run's fixture checkout goes on every way out (a ^C or a failed check included).
-S133_WT=""
-trap '[ -n "$S133_WT" ] && { git worktree remove --force "$S133_WT" >/dev/null 2>&1 || rm -rf "$S133_WT"; git worktree prune >/dev/null 2>&1; }' EXIT
+S133_WT=""; S133_PT=""
+trap '[ -n "$S133_PT" ] && rm -rf "$S133_PT"; [ -n "$S133_WT" ] && { git worktree remove --force "$S133_WT" >/dev/null 2>&1 || rm -rf "$S133_WT"; git worktree prune >/dev/null 2>&1; }' EXIT
 
 # shellcheck source=scripts/lib-tally.sh
 source "$ROOT/scripts/lib-tally.sh"
@@ -421,19 +421,12 @@ scaffold_binds_a_fresh_project() {
 run_check "scaffold-binds-a-fresh-project-at-session-1" exec scaffold_binds_a_fresh_project
 
 # --- 10. the falsifiability fixture is real: RED on each bypass, GREEN on renaming ------------------
-# S191 review rec 3: every run builds into ONE target/s133-probes, and both checkouts produce the same
-# test-binary name — cargo drops its lock before running tests, so run A could run run B's mutated
-# binary. One build-and-run at a time across runs (a mkdir lock; a dead owner's lock is taken over).
-probe_lock() {
-  local L="$ROOT/target/s133-probes.lock" o
-  until mkdir "$L" 2>/dev/null; do
-    o=$(cat "$L/pid" 2>/dev/null); [ -n "$o" ] && ! kill -0 "$o" 2>/dev/null && rm -rf "$L"
-    sleep 0.2
-  done
-  echo $$ > "$L/pid"
-}
-probe_unlock() { rm -rf "$ROOT/target/s133-probes.lock"; }
-mandate_green() { local rc; probe_lock; ( cd "$1" && cargo test -q --lib mandate::tests:: 2>&1 | grep -q "test result: ok" ); rc=$?; probe_unlock; return $rc; }
+# S191 review rec 3: each run builds into its OWN target dir. A shared one is wrong even with a lock:
+# both checkouts share one fingerprint, and cargo judges "fresh" by the mtimes of the files it last
+# built — the OTHER checkout's — so run A ran run B's binary (seen at S191: both runs red). The dir is
+# seeded by a copy-on-write clone of target/s133-probes (APFS `cp -c`; Linux reflink), so registry
+# dependencies are not rebuilt; with no clone support it builds cold.
+mandate_green() { ( cd "$1" && cargo test -q --lib mandate::tests:: 2>&1 | grep -q "test result: ok" ); }
 
 # A bypass probe that silently no-ops reports false comfort (S127), and a bypass that fails to
 # COMPILE is not a falsification either (S122). Each probe asserts (a) the exact source it means to
@@ -451,7 +444,7 @@ apply_bypass() {   # file, fixed-string-to-replace, replacement
 }
 expect_test_red() { # worktree, test name
   local LOG; LOG="$(mktemp)"
-  probe_lock; ( cd "$1" && cargo test -q --lib "$2" ) > "$LOG" 2>&1; probe_unlock
+  ( cd "$1" && cargo test -q --lib "$2" ) > "$LOG" 2>&1
   if grep -qE "error\[E[0-9]+\]|could not compile" "$LOG"; then
     echo "PROBE FAIL: the bypass broke the BUILD, so the red proves nothing"; sed -n '1,5p' "$LOG"; rm -f "$LOG"; return 1
   fi
@@ -475,7 +468,16 @@ fixture_fails_for_the_right_reason() {
   rm -rf "$WT"; git worktree prune; S133_WT="$WT"
   git worktree add --detach -q "$WT" HEAD 2>/dev/null || { echo "FAIL: no clean-room worktree"; return 1; }
   local D="$WT/src/mandate/mod.rs"
-  local PROBE_TARGET="$ROOT/target/s133-probes"
+  local PROBE_TARGET="$ROOT/target/s133-probes-$$"
+  for old in "$ROOT"/target/s133-probes-*; do
+    [ -d "$old" ] && ! kill -0 "${old##*-}" 2>/dev/null && rm -rf "$old"
+  done
+  rm -rf "$PROBE_TARGET"; S133_PT="$PROBE_TARGET"
+  if [ -d "$ROOT/target/s133-probes" ]; then
+    cp -Rc "$ROOT/target/s133-probes" "$PROBE_TARGET" 2>/dev/null \
+      || cp -R --reflink=always "$ROOT/target/s133-probes" "$PROBE_TARGET" 2>/dev/null \
+      || rm -rf "$PROBE_TARGET"
+  fi
   mkdir -p "$PROBE_TARGET"
   export CARGO_TARGET_DIR="$PROBE_TARGET"
 

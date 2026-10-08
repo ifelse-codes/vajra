@@ -73,11 +73,17 @@ n2 "the ground-truth report still passes" 0 0 "$P/sessions/session-185-ground-tr
 # an inside file spelled /System/Volumes/Data/… passed. Now the folder walk compares by inode (`-ef`).
 MIDH="$T/midhooks"; mkdir -p "$MIDH"; cp "$OLDH"/lib-ground-truth.sh "$OLDH"/hook-approvals-guard.sh "$MIDH/"
 git show 64248b9:scripts/hook-pre-write.sh > "$MIDH/hook-pre-write.sh"
-if [ -d "/System/Volumes/Data$PP" ]; then
-  n=$(pw scripts "/System/Volumes/Data$PP/src/x.rs"); m=$(pw "$MIDH" "/System/Volumes/Data$PP/src/x.rs")
-  [ "$n" = 2 ] && [ "$m" = 0 ] && ok "AC1 inside, through the /System/Volumes/Data firmlink: new 2, at 64248b9 0 (review rec 1)"     || bad "AC1 firmlink spelling: new $n (want 2), at 64248b9 $m (want 0)"
+# The project sits under /private/tmp: there `cd -P` keeps the /System/Volumes/Data spelling (under
+# /private/var it happens to resolve it, so a /var project cannot show the hole).
+FP="$O/fproj"; mkdir -p "$FP/src" "$FP/.ai"; echo x > "$FP/src/x.rs"; cp "$P/.ai/CONSTRAINTS.yaml" "$FP/.ai/"
+( cd "$FP" && git init -q && git checkout -q -b session-185-x )
+FPP=$(cd -P "$FP" && pwd -P)
+if [ -d "/System/Volumes/Data$FPP" ]; then
+  n=$(pw scripts "/System/Volumes/Data$FPP/src/x.rs" "$FP"); m=$(pw "$MIDH" "/System/Volumes/Data$FPP/src/x.rs" "$FP")
+  [ "$n" = 2 ] && [ "$m" = 0 ] && ok "AC1 inside, through the /System/Volumes/Data firmlink: new 2, at 64248b9 0 (review rec 1)" \
+    || bad "AC1 firmlink spelling: new $n (want 2), at 64248b9 $m (want 0)"
 else
-  echo "SKIP: no /System/Volumes/Data$PP on this machine (not macOS APFS) — the firmlink row cannot run"
+  echo "SKIP: no /System/Volumes/Data$FPP on this machine (not macOS APFS) — the firmlink row cannot run"
 fi
 pw scripts "$O/nope/n.md" >/dev/null
 grep -q "mkdir -p '$O/nope'" "$T/pw.err" && ok "AC1 the missing-folder block names the way past (mkdir -p, then write)" \
@@ -254,8 +260,8 @@ else
 fi
 r=$(pair scripts/verify-session-133.sh new)
 [ "$r" = "0 0" ] && ok "AC3 two runs at once both pass (exits: $r)" || bad "AC3 two runs at once: exits $r (want 0 0)"
-left=$(ls -d "$ROOT"/target/s133-fixture-wt* 2>/dev/null | wc -l | tr -d ' ')
-[ "$left" = 0 ] && ok "AC3 no fixture checkout left behind" || bad "AC3 $left fixture checkout(s) left behind"
+left=$(ls -d "$ROOT"/target/s133-fixture-wt-* "$ROOT"/target/s133-probes-* 2>/dev/null | wc -l | tr -d ' ')
+[ "$left" = 0 ] && ok "AC3 no per-run checkout or build folder left behind" || bad "AC3 $left per-run checkout(s)/build folder(s) left behind"
 
 echo ""
 echo "WHAT THIS NEVER EXERCISED — stated, not buried:"
