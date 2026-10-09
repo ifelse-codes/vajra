@@ -90,6 +90,7 @@ whole-conversation total as no figure (it is the tool's figure for exactly that 
 - step 1 — done: 0c99011
 - step 2 — done: 78d02af
 - step 3 — done: a25f05e
+- step 4 — done: e536175
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (narrow, for F117 — tech-lead rec 4: the fix
