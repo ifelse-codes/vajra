@@ -86,12 +86,18 @@ it committed the advance before noticing F118, so the repair is a second commit.
 
 ## Next — 3 ranked candidates
 
+**Founder (2026-10-09): no pick yet.** "We won't pick next session work now." S194's prompt is written at S194's start,
+from his pick. (Option 3 was first offered as the `/clear` session-id hook, which he had ruled low priority on
+2026-10-09. It was replaced before the close.) The full roadmap went to him as a field-notes page.
+
+
 1. **(Recommended) rudra's next session (its S20 is a review-only session).** The founder runs it under `vajra claude`;
    we read what it finds and see the new receipt live. Why: real work finds what fixtures cannot, and a project's
    review-only session is a path rudra has walked only once (S15). Risk: a review session may find little in Vajra.
 2. **Fix the three known bugs (F116, F118, F119).** The approval record reminder the agent sees, `--advance` moving the
    old entry down, and the design step reading the prompt's "no design needed". Why: each one is something a user meets,
    and all are small. Risk: little new learning, and three fixes in one session.
-3. **The session-id hook: a receipt for `/clear` and a fork's own share.** A SessionStart hook records the run's session
-   ids, and the meter reads exactly those logs. Why: the last two receipt gaps. Risk: touches every project's settings,
-   so it needs an ADR-0003 addendum and the founder's yes first.
+3. **Cut the cost: the boot diet (F4) and a KNOWLEDGE.md trim.** Every session loads about 100k tokens of Vajra's own
+   notes before any work. Measure the saving with the cost box, which is now trusted. Why: the founder's next build
+   (S140 order: prove it works, then cut cost). Risk: early by his own rule (2026-10-09: rudra sessions until he is
+   confident).

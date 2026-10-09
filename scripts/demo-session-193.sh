@@ -119,11 +119,11 @@ slide_scorecard() {
 
 slide_next() {
   dk_section next "where this sits · what's next"
-  dk_h2 "Next"
+  dk_h2 "Next — no pick yet (founder, 2026-10-09)"
   dk_table " |Option|Why pick it · the risk" \
     "1|rudra's next session (its S20 is a review session)|real work finds what fixtures cannot · risk: a review-only run may find little in Vajra" \
     "2|fix the three known bugs (F116, F118, F119)|small, each one a user meets · risk: little new learning" \
-    "3|the session-id hook (receipt for /clear + a fork's share)|the last receipt gaps · risk: touches every project's settings; a design first"
+    "3|cut the cost: the boot diet (F4) + a KNOWLEDGE.md trim|your next build · risk: early by your own rule"
   dk_table "word|meaning" \
     "receipt|the cost box vajra prints when a Claude run ends" \
     "estimate|Vajra's own guess from token counts × its price list" \
