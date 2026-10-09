@@ -126,3 +126,5 @@ judge: design-advisor rec 4 — AGREE — the refusal's reason is real. The ADR 
 judge: fidelity-reviewer rec 6 — AGREE — deferred to /Users/suman/playground/vajra/prompts/193-task-rudra-s19.md. The file exists and carries both checks that can be re-run later (lines 52-54): the transcript-folder conformance count and the hash under node.
 
 judge verdict: 21 AGREE, 0 DISAGREE
+
+**Review-Inputs-SHA:** 35eb3888b6c351f39a6491f3f8ddd446997d5330a47242ff4e9e3e8dd6ace033
