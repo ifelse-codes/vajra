@@ -1866,6 +1866,11 @@ mod tests {
         let name = cc_folder_name(&long);
         assert_eq!(name.len(), 207);
         assert!(name.ends_with("-a-very-long-fold-tbpnli"), "{name}");
+        // The boundary, as Claude Code compares it (`<= 200` keeps the name whole).
+        let at = format!("/{}", "a".repeat(199));
+        assert_eq!(cc_folder_name(&at), format!("-{}", "a".repeat(199)));
+        let over = format!("/{}", "a".repeat(200));
+        assert_eq!(cc_folder_name(&over), format!("-{}-b6ymvl", "a".repeat(199)));
     }
 
     fn env_of<'a>(pairs: &'a [(&'a str, &'a str)]) -> impl Fn(&str) -> Option<String> + 'a {
