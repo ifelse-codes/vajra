@@ -76,7 +76,7 @@ real_tmpdir() { ( cd "$(mktemp -d)" && pwd -P ); }
 # matching `tool_use` call — three independently-checked facts, not one hand-typed blob.
 build_real_dispatch_fixture() {
   local PROJROOT="$1" REPOROOT="$2" SESSION_BRANCH="$3" TOOL_ID="$4"
-  local SLUG; SLUG="$(echo "$REPOROOT" | sed 's#/#-#g')"
+  local SLUG; SLUG="$(echo "$REPOROOT" | sed 's#[^A-Za-z0-9]#-#g')"
   local PROJ="$PROJROOT/$SLUG"
   local UUID="sess-uuid-fixture"
   mkdir -p "$PROJ/$UUID/subagents"

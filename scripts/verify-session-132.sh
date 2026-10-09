@@ -66,7 +66,7 @@ real_tmpdir() { ( cd "$(mktemp -d)" && pwd -P ); }
 # a parent transcript recording the matching `tool_use` call.
 build_real_dispatch_fixture() {
   local PROJROOT="$1" REPOROOT="$2" SESSION_BRANCH="$3" TOOL_ID="$4" ROLE="${5:-fidelity-reviewer}"
-  local SLUG; SLUG="$(echo "$REPOROOT" | sed 's#/#-#g')"
+  local SLUG; SLUG="$(echo "$REPOROOT" | sed 's#[^A-Za-z0-9]#-#g')"
   local PROJ="$PROJROOT/$SLUG"
   local UUID="sess-uuid-fixture-$ROLE"
   mkdir -p "$PROJ/$UUID/subagents"
