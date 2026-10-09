@@ -84,3 +84,5 @@ Why: the tech-lead brief asked this reviewer to run it at both ends. I have no s
 - /Users/suman/playground/vajra/.ai/ROADMAP.md (765–784)
 - /Users/suman/playground/vajra/src/approval/mod.rs (311), /Users/suman/playground/vajra/src/nextstep/mod.rs (128–135)
 - /Users/suman/playground/vajra/.ai/approvals/session-193.json (untracked, rec 1)
+
+**Review-Inputs-SHA:** 6ecdbc01d509efc8d869bbcd1f94026035ca0c5ad1abf3d90b52c87b1bbcf72a
