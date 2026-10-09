@@ -498,6 +498,19 @@ rudra runs (S192: $6.90 and $22.96 on the receipt, Claude Code's `cost-state` 6.
 `claude --resume` that appended the same total with the same `startTime` are pinned by unit tests in that shape
 (a resume that sent nothing → no figure; with messages and no new spend → $0.00; with new spend → only the difference).
 
+**Live runs (S192, founder's machine, Claude Code 2.1.280, Haiku, folder `~/vajra s192_test.dir`):**
+- fresh run: receipt $0.02 = cost-state $0.0160 · `--continue`: receipt $0.01 = $0.0245 − $0.0160 (this run's
+  share) · both found the folder only through the new name (it has a space, `.` and `_`);
+- **a fork keeps the parent's `startTime` — S189's assumption is now verified.** The fork's new log copies the
+  parent's lines but not its cost-state lines, and its own cost-state carries the parent's running total
+  ($0.0286 after $0.0245). The receipt said "no cost from Claude Code for this run" with the whole conversation's
+  $0.03 labelled as such — correct by the S189 rule; the fork's own share ($0.0041) is not shown (the fork's log
+  names its parent in no pinned field — named, not closed);
+- **`/clear` starts a new log whose cost-state restarts at $0 with its own `startTime`** (one run left four logs:
+  $0.0256 + $0.0163 + $0.0164 + $0.0162). The receipt skipped ("multiple sessions detected") — no wrong number,
+  but no receipt. Summing every new log would also sum a second session in the same folder; the safe fix is the
+  SessionStart session-id match (S189 researcher rec 2) — named, not closed, the founder's call.
+
 **Rejected:** fixing only `find_session_jsonl` (three copies of one rule is how dispatch inherited it); failing
 closed on long names instead of copying the hash (S192 design-advisor rec 4 — Claude Code's hash is a plain
 function, copied and checked, and a wrong hash can only miss a folder, never find another project's); a prefix
@@ -511,4 +524,5 @@ match on long names (can pick a sibling project); §2.2's newest-anywhere fallba
   receipt (never a wrong one);
 - an empty `CLAUDE_CONFIG_DIR` counts as unset (Claude Code would use a relative `projects` folder);
 - the SessionStart session-id match (S189 researcher rec 2) is still not built: `/clear` and two sessions in one
-  folder skip the receipt.
+  folder skip the receipt (proven live above);
+- a fork's own share is not shown (whole conversation, labelled).

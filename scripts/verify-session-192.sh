@@ -93,8 +93,8 @@ else bad "AC3 CLAUDE_CONFIG_DIR at $OLD_SHA still found the log: $(printf '%s\n'
 # The expected names in these tests were produced by Claude Code 2.1.280's own `kT` under node; the
 # resume test copies the shape the founder's `claude --resume` left in rudra's log (no transcript).
 OUT=$(cargo test -q --lib s192_ 2>&1)
-if printf '%s\n' "$OUT" | grep -q 'test result: ok. 6 passed'; then
-  ok "unit: 6 s192 tests ran and passed (names incl. a >200 hashed one, CLAUDE_CONFIG_DIR, the name override, the resume shape)"
+if printf '%s\n' "$OUT" | grep -q 'test result: ok. 7 passed'; then
+  ok "unit: 7 s192 tests ran and passed (names incl. a >200 hashed one, CLAUDE_CONFIG_DIR, the name override, the live resume and fork shapes)"
 else bad "unit s192: $(printf '%s\n' "$OUT" | grep 'test result' | head -1)"; fi
 
 echo "verify-session-192: $PASS passed, $FAIL failed"

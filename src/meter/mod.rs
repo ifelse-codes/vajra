@@ -1977,4 +1977,24 @@ mod tests {
             other => panic!("{other:?}"),
         }
     }
+
+    /// S192 live fork (`--continue --fork-session`, Claude Code 2.1.280): the fork's new log copies
+    /// the parent's lines (their old timestamps) but NOT its cost-state lines, and its own cost-state
+    /// keeps the PARENT's `startTime` and running total ($0.0245 before, $0.0286 after). S189's
+    /// assumption held: the receipt must say "includes earlier spend", never $0.0286 as this run's.
+    #[test]
+    fn s192_a_live_fork_keeps_the_parents_start_and_is_never_this_runs_figure() {
+        let fork = r#"{"type":"user","timestamp":"2026-10-09T03:01:37.124Z","message":{"content":"hi"}}
+{"type":"user","timestamp":"2026-10-09T03:01:48.107Z","message":{"content":"hi"}}
+{"type":"user","timestamp":"2026-10-09T03:02:04.898Z","message":{"content":"bye"}}
+{"type":"cost-state","totalCostUSD":0.028615099999999997,"startTime":1791514893813,"hasUnknownModelCost":false}
+{"type":"cost-state","totalCostUSD":0.028615099999999997,"startTime":1791514893813,"hasUnknownModelCost":false}"#;
+        let launch = Some(s189_ms("2026-10-09T03:02:00.000Z"));
+        assert_eq!(
+            cost_state_record(fork, launch),
+            Some(ToolRecord::IncludesEarlierSpend {
+                dollars: 0.028615099999999997
+            })
+        );
+    }
 }
