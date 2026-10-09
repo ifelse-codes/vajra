@@ -122,3 +122,10 @@ demo-producer: skipped — the tech-lead deferred it on budget: the founder watc
 - design-advisor rec 6 — obeyed: cf672d4 (named, not closed: the compression saving priced from the list; `hasUnknownModelCost` may undercount with no estimate beside it; a fork keeps the whole-file estimate; plus the no-figure budget check)
 - design-advisor rec 7 — obeyed: 78d02af (the two tests flipped, not deleted — one renamed to `authoritative_total_is_the_headline_and_no_estimate_is_shown`; one new test `s193_the_estimate_shows_only_without_a_figure_from_claude_code` covers WholeConversation, IncludesEarlierSpend, no record and a late stream figure as four cases in one test)
 - design-advisor rec 8 — obeyed: a25f05e (rows 1–5 as proposed: fresh opus-5-5 run — body exactly 3 lines; `-p`; `vajra meter FILE`; crash + fork controls; the price list. The controls compare the lines as a set, because the unknown-model warning now prints last — said in the script)
+
+**fidelity-reviewer** (`.ai/handoffs/session-193-fidelity-reviewer.md`) — one cold pass, ACCEPT 6 of 6:
+- fidelity-reviewer rec 1 — obeyed: f216287 (`.ai/approvals/session-192.json` and `session-193.json` committed unchanged, as S188–S191 committed theirs; `git add` changes nothing in the folder, and `vajra next --steps` still reads S193 as approved)
+- fidelity-reviewer rec 2 — obeyed: bca1219 (verify-193 row 4b: a stand-in reply with no cache-tier split — the real binary shows "cache tier split unavailable" at d2ec218 and drops it beside the $37.27 figure; a crash control keeps it)
+- fidelity-reviewer rec 3 — obeyed: bca1219 (AC3 is printed as a `RECORD:` line and not counted: verify-193 11 passed + 1 record) and dbed581 (the summary, STATE and TASK restate the count and the fakest green)
+- fidelity-reviewer rec 4 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 5 — obeyed: bca1219 (verify-193 re-run at the tip after the review: 11 passed, 0 failed, plus 1 record; the summary corrected from 10/10)
