@@ -40,9 +40,12 @@ log="$dir/69ecb30e-f3ea-4691-84aa-4fe8e8630ef8.jsonl"
 [ -n "${STUB_STATS:-}" ] && printf '{"lines_in":18,"lines_out":1,"command":"cargo"}\n' >> "$VAJRA_SESSION_STATS"
 ts=$(stamp "$(now_ms)")
 model="${STUB_MODEL:-claude-opus-5-5}"
+# STUB_NOTIER=1: the reply carries only the total cache-write count, no 5m/1h split (review rec 2).
+tiers=',"cache_creation":{"ephemeral_1h_input_tokens":251857,"ephemeral_5m_input_tokens":0}'
+[ -n "${STUB_NOTIER:-}" ] && tiers=''
 {
   printf '{"type":"queue-operation","operation":"enqueue","timestamp":"%s","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8"}\n' "$ts"
-  printf '{"type":"assistant","uuid":"s193-%s","timestamp":"%s","version":"2.1.280","requestId":"req_s193_%s","message":{"id":"msg_s193_%s","model":"%s","role":"assistant","content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":622,"cache_creation_input_tokens":251857,"cache_read_input_tokens":8306752,"output_tokens":51811,"cache_creation":{"ephemeral_1h_input_tokens":251857,"ephemeral_5m_input_tokens":0}}}}\n' "$$" "$ts" "$$" "$$" "$model"
+  printf '{"type":"assistant","uuid":"s193-%s","timestamp":"%s","version":"2.1.280","requestId":"req_s193_%s","message":{"id":"msg_s193_%s","model":"%s","role":"assistant","content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":622,"cache_creation_input_tokens":251857,"cache_read_input_tokens":8306752,"output_tokens":51811%s}}}\n' "$$" "$ts" "$$" "$$" "$model" "$tiers"
   printf '{"type":"last-prompt","lastPrompt":"ok","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8"}\n'
   [ -z "${STUB_CRASH:-}" ] && printf '{"type":"cost-state","sessionId":"69ecb30e-f3ea-4691-84aa-4fe8e8630ef8","totalCostUSD":%s,"startTime":%s,"modelUsage":{"%s":{"costUSD":%s}},"hasUnknownModelCost":%s}\n' "$STUB_TOTAL" "$start" "$model" "$STUB_TOTAL" "${STUB_UNPRICED:-false}"
 } >> "$log"
@@ -111,19 +114,29 @@ for c in "crash STUB_CRASH=1" "fork STUB_SEED_START=1700000000000"; do
   else bad "control $name: now vs $OLD_SHA"$'\n'"$(diff <(printf '%s\n' "$OLD" | sort) <(printf '%s\n' "$NEW" | sort))"; fi
 done
 
+# --- 4b (review rec 2): a reply with no cache-tier split — the "cache tier split unavailable" warning
+# describes only the estimate, so with a figure it goes; with no figure (a crash) it stays ---
+TIERW='cache tier split unavailable'
+NEW=$(launch "$VAJRA" notier STUB_NOTIER=1 --); OLD=$(launch "$OLD_VAJRA" notier STUB_NOTIER=1 --)
+if printf '%s\n' "$NEW" | headline | grep -q "^ \$37\.27  what this run cost" && ! has "$NEW" "$TIERW" && has "$OLD" "$TIERW"; then
+  ok "F117 no tier split: no '$TIERW' warning beside the \$37.27 figure (at $OLD_SHA it was there)"
+else bad "F117 no tier split: now / at $OLD_SHA:"$'\n'"$NEW"$'\n'"$OLD"; fi
+NEW=$(launch "$VAJRA" notier-crash STUB_NOTIER=1 STUB_CRASH=1 --)
+if has "$NEW" "$TIERW" && has "$NEW" '[estimate] split:'; then
+  ok "control no tier split + crash (no figure): the warning stays with the estimate"
+else bad "control no tier split + crash:"$'\n'"$NEW"; fi
+
 # --- 5 (standing rule): no new price rows — the price list equals the start commit's, entry by entry ---
 rows() { awk '/^const MODEL_PRICING/,/^\];/' | grep -E 'prefix:|_per_mtok:' | tr -d ' ' ; }
 if diff <(git show "$OLD_SHA:src/meter/mod.rs" | rows) <(rows < src/meter/mod.rs) >/dev/null; then
   ok "the price list has the same $(rows < src/meter/mod.rs | grep -c prefix:) rows as $OLD_SHA — none added for Opus 5.5"
 else bad "the price list changed since $OLD_SHA"; fi
 
-# --- 6 (AC3): rudra S19's receipt against Claude Code's own total (recorded numbers, not a live read) ---
-# The founder's receipt top line was $37.27; the run log's last cost-state totalCostUSD was 37.272349799999986
-# and ~/.claude.json lastCost the same (read 2026-10-09; the log stays on his machine, S126).
-if [ "$(printf '%.2f' 37.272349799999986)" = 37.27 ]; then
-  ok "AC3 rudra S19: receipt \$37.27 = cost-state 37.2723498 = lastCost 37.2723498 (rounded to the cent)"
-else bad "AC3 rounding"; fi
+# --- AC3: rudra S19's receipt against Claude Code's own total — a RECORD, not a check (review rec 3) ---
+# Read by hand on 2026-10-09 from the founder's run log, which stays on his machine (S126). Nothing here can
+# re-read it, so this line cannot fail and is not counted as a pass.
+echo "RECORD: AC3 rudra S19 (fresh run): receipt \$37.27 · cost-state totalCostUSD 37.272349799999986 · ~/.claude.json lastCost 37.272349799999986"
 
 echo "----"
-echo "verify-session-193: $PASS passed, $FAIL failed"
+echo "verify-session-193: $PASS passed, $FAIL failed (plus 1 RECORD line, not a check)"
 [ "$FAIL" = 0 ]
