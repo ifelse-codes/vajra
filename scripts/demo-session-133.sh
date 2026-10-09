@@ -139,7 +139,7 @@ rm -f "$TMP/.ai/handoffs/session-133-design-advisor.md"
 
 label "case 5 — a REAL dispatch: PASSES, and the gate names the provenance it accepted"
 PROJROOT="$TMP/fake-cc-projects"
-SLUG="$(echo "$TMP" | sed 's#/#-#g')"; PROJ="$PROJROOT/$SLUG"; UUID="demo-uuid"
+SLUG="$(echo "$TMP" | sed 's#[^A-Za-z0-9]#-#g')"; PROJ="$PROJROOT/$SLUG"; UUID="demo-uuid"
 mkdir -p "$PROJ/$UUID/subagents"
 printf '{"agentType":"design-advisor","toolUseId":"toolu_01DEMOREAL"}' > "$PROJ/$UUID/subagents/agent-x1.meta.json"
 printf '{"gitBranch":"session-133-demo-subject","type":"user"}\n' > "$PROJ/$UUID/subagents/agent-x1.jsonl"
