@@ -73,6 +73,11 @@ pub(crate) const NO_REPORTED_COST_WARNING: &str =
      [estimate] line is Vajra's own estimate from the tokens in the transcript, not the charge on \
      your bill";
 
+/// Describes only Vajra's token estimate, so the receipt drops it with the estimate when Claude
+/// Code gave its own figure (S193, F117 — design-advisor rec 4). Matched by text: one place.
+pub(crate) const CACHE_TIER_ESTIMATE_WARNING: &str =
+    "[estimated] cache tier split unavailable; using midpoint estimate";
+
 const WEB_SEARCH_PER_REQUEST: f64 = 0.01;
 const WEB_FETCH_PER_REQUEST: f64 = 0.01;
 const TOKENS_PER_LINE_ESTIMATE: f64 = 12.0;
@@ -165,6 +170,15 @@ impl SessionCost {
         self.headline_dollars().unwrap_or(self.total_dollars)
     }
 
+    /// The one place that decides "Claude Code gave its own figure" (S193, F117): a result-line /
+    /// `-p` stream total, or a `cost-state` figure for what the receipt shows. When true, the
+    /// receipt prints that figure only — Vajra's token estimate and the warnings about it are not
+    /// shown (ADR-0004 S193 addendum).
+    pub fn has_tool_figure(&self) -> bool {
+        self.authoritative_dollars.is_some()
+            || self.tool_record.as_ref().is_some_and(ToolRecord::is_figure)
+    }
+
     /// The one source-order resolver (S189): the transcript's `type:"result"` figure or the
     /// captured `-p` stream (both in `authoritative_dollars`, S66/S78), then this run's share of
     /// Claude Code's `cost-state` total, then none. A whole-conversation total is never this run's
@@ -210,6 +224,15 @@ pub enum ToolRecord {
     /// The total started before this launch and no earlier total is in the file to subtract (a
     /// fork, or a resume whose earlier record is missing): this run's share is unknown.
     IncludesEarlierSpend { dollars: f64 },
+}
+
+impl ToolRecord {
+    /// Claude Code's own figure for exactly what the receipt shows (S193, F117): this run's share,
+    /// or — in `vajra meter FILE`, which shows the whole file — the whole conversation's total. A
+    /// total that includes spend before this run is not a figure for this run.
+    pub fn is_figure(&self) -> bool {
+        matches!(self, Self::ThisRun { .. } | Self::WholeConversation { .. })
+    }
 }
 
 /// Read Claude Code's own `cost-state` record from a main transcript's text (S189, ADR-0004 S189
@@ -518,13 +541,9 @@ pub fn meter_run(
         _ => (None, None),
     };
 
-    if !unknown_models.is_empty() {
-        warnings.push(format!(
-            "model(s) {} not in pricing table — token estimate uses an intentional upper-bound \
-             rate, not real rates; trust the authoritative total, not the estimate",
-            unknown_models.join(", ")
-        ));
-    }
+    // The unknown-model warning is written by `format_receipt`, not here (S193): a `-p` stream
+    // figure arrives after this returns (`apply_captured_cost`), and with a figure there is no
+    // estimate for the warning to describe.
     // Claude Code's own record (S189). Main transcript only — subagent files carry none, and their
     // spend is already inside Claude Code's total.
     let launch_ms = launch.and_then(|t| {
@@ -535,10 +554,7 @@ pub fn meter_run(
     let tool_record = fs::read_to_string(main_jsonl)
         .ok()
         .and_then(|text| cost_state_record(&text, launch_ms));
-    let tool_has_figure = matches!(
-        tool_record,
-        Some(ToolRecord::ThisRun { .. } | ToolRecord::WholeConversation { .. })
-    );
+    let tool_has_figure = tool_record.as_ref().is_some_and(ToolRecord::is_figure);
     if authoritative_dollars.is_none() && !tool_has_figure {
         warnings.push(NO_REPORTED_COST_WARNING.into());
     }
@@ -674,9 +690,7 @@ fn parse_cache_tiers(usage: &serde_json::Value, warnings: &mut Vec<String>) -> (
             let fallback = get_u64(usage, "cache_creation_input_tokens");
             if fallback > 0 {
                 let estimated = (fallback as f64 * 0.615) as u64;
-                warnings.push(
-                    "[estimated] cache tier split unavailable; using midpoint estimate".into(),
-                );
+                warnings.push(CACHE_TIER_ESTIMATE_WARNING.into());
                 (estimated, fallback - estimated)
             } else {
                 (0, 0)
@@ -724,8 +738,9 @@ pub fn format_receipt(cost: &SessionCost) -> String {
         .collect();
 
     // Headline = the tool's own figure (`headline_dollars`: the result line or `-p` stream, then this
-    // run's share of Claude Code's `cost-state` total — S66/S78/S189); the token recompute is always
-    // a labelled `[estimate]` line beneath it. With no figure the headline has NO dollar sign — "no
+    // run's share of Claude Code's `cost-state` total — S66/S78/S189); the token recompute is a
+    // labelled `[estimate]` line beneath it ONLY when there is no such figure (S193, F117). With no
+    // figure the headline has NO dollar sign — "no
     // cost from Claude Code for this run" (S189; S77 first said so). The estimate tag also flags any unknown model
     // whose rate fell back to the unknown-model upper bound (S66) — though S77 priced fable-5 and
     // S79 corrected opus, so the S76 fixture now shows the plain `[estimate]` tag at real rates.
@@ -739,21 +754,22 @@ pub fn format_receipt(cost: &SessionCost) -> String {
     };
     let models = model_summary.join(" · ");
     // One resolver picks the source (S189): the tool's own figure for this run, else no dollar
-    // sign at all on the headline. The token figure only ever rides the `[estimate]` line beneath.
+    // sign at all on the headline. The token figure only ever rides the `[estimate]` line beneath,
+    // and only on a receipt with no figure (S193).
     let estimate_line = format!(
         "         ~${:.2}  {}  Vajra's own estimate from the tokens — not the charge on your bill\n",
         cost.total_dollars, estimate_tag
     );
     let unpriced_note = "\n         Claude Code could not price every model in this run";
+    // S193 (F117, ADR-0004 S193 addendum): when Claude Code gave its own figure, that figure is
+    // the whole cost story — no token estimate, no split, no warning about the estimate. rudra
+    // S19 printed $37.27 (to the cent) over a ~$167.44 upper-bound estimate.
+    let has_figure = cost.has_tool_figure();
     match (cost.authoritative_dollars, &cost.tool_record) {
         (Some(authoritative), _) => {
             out.push_str(&format!(
                 " ${:.2}  what this run cost  ({})\n",
                 authoritative, models
-            ));
-            out.push_str(&format!(
-                "         ${:.2}  Vajra's own estimate from tokens  {}\n",
-                cost.total_dollars, estimate_tag
             ));
         }
         (None, Some(ToolRecord::ThisRun { dollars, unpriced })) => {
@@ -763,7 +779,6 @@ pub fn format_receipt(cost: &SessionCost) -> String {
                 models,
                 if *unpriced { unpriced_note } else { "" }
             ));
-            out.push_str(&estimate_line);
         }
         (None, Some(ToolRecord::WholeConversation { dollars, unpriced })) => {
             out.push_str(&format!(
@@ -772,7 +787,6 @@ pub fn format_receipt(cost: &SessionCost) -> String {
                 models,
                 if *unpriced { unpriced_note } else { "" }
             ));
-            out.push_str(&estimate_line);
         }
         (None, Some(ToolRecord::IncludesEarlierSpend { dollars })) => {
             out.push_str(&format!(
@@ -813,10 +827,12 @@ pub fn format_receipt(cost: &SessionCost) -> String {
     let cache_w_cost = (total_tokens.cache_write_5m as f64 * primary_input * 1.25
         + total_tokens.cache_write_1h as f64 * primary_input * 2.0)
         / 1e6;
-    out.push_str(&format!(
-        "         [estimate] split: new text ${:.2} · replies ${:.2} · re-reading context ${:.2} · saving context ${:.2}\n",
-        input_cost, output_cost, cache_r_cost, cache_w_cost
-    ));
+    if !has_figure {
+        out.push_str(&format!(
+            "         [estimate] split: new text ${:.2} · replies ${:.2} · re-reading context ${:.2} · saving context ${:.2}\n",
+            input_cost, output_cost, cache_r_cost, cache_w_cost
+        ));
+    }
 
     if let Some(ref stats) = cost.compression {
         out.push_str(&format!(
@@ -836,7 +852,20 @@ pub fn format_receipt(cost: &SessionCost) -> String {
 
     out.push_str("─────────────────────────────────────────────────────────\n");
 
-    for w in &cost.warnings {
+    let mut warnings: Vec<String> = cost
+        .warnings
+        .iter()
+        .filter(|w| !(has_figure && *w == CACHE_TIER_ESTIMATE_WARNING))
+        .cloned()
+        .collect();
+    if !has_figure && !cost.unknown_models.is_empty() {
+        warnings.push(format!(
+            "model(s) {} not in pricing table — token estimate uses an intentional upper-bound \
+             rate, not real rates; trust the authoritative total, not the estimate",
+            cost.unknown_models.join(", ")
+        ));
+    }
+    for w in &warnings {
         out.push_str(&format!("[vajra warn] {}\n", w));
     }
 
@@ -1265,7 +1294,7 @@ mod tests {
     }
 
     #[test]
-    fn authoritative_total_is_the_headline_estimate_is_labeled() {
+    fn authoritative_total_is_the_headline_and_no_estimate_is_shown() {
         let dir = std::env::temp_dir().join("vajra-test-authoritative");
         let _ = fs::create_dir_all(&dir);
         let jsonl_path = dir.join("auth-session.jsonl");
@@ -1287,27 +1316,23 @@ mod tests {
         );
 
         let receipt = format_receipt(&result);
-        // Headline = authoritative; estimate present but labeled; upper-bound mispricing disclosed.
+        // Headline = authoritative, and it is the whole cost story (S193, F117): no token
+        // estimate, no upper-bound tag, no split, no warning about an estimate nobody is shown.
         assert!(
             receipt.contains("$1.27  what this run cost"),
             "receipt: {receipt}"
         );
-        assert!(
-            receipt.contains("Vajra's own estimate"),
-            "receipt: {receipt}"
-        );
-        assert!(
-            receipt.contains("priced at the unknown-model upper bound"),
-            "receipt: {receipt}"
-        );
-        assert!(
-            result
-                .warnings
-                .iter()
-                .any(|w| w.contains("not in pricing table")),
-            "unknown-model warning expected: {:?}",
-            result.warnings
-        );
+        for gone in [
+            "Vajra's own estimate",
+            "priced at the unknown-model upper bound",
+            "[estimate] split",
+            "not in pricing table",
+        ] {
+            assert!(
+                !receipt.contains(gone),
+                "{gone:?} with a real figure: {receipt}"
+            );
+        }
         // The inflated estimate must never appear as the headline `total`.
         assert!(
             !receipt.contains(&format!("${:.4}  total", result.total_dollars)),
@@ -1651,9 +1676,10 @@ mod tests {
                 .starts_with(" $4.65  what this run cost — Claude Code's own figure"),
             "receipt: {receipt}"
         );
+        // S193 (F117): with Claude Code's own figure, no token estimate beneath it.
         assert!(
-            receipt.lines().nth(2).unwrap().contains("[estimate"),
-            "the token figure stays, labelled: {receipt}"
+            !receipt.contains("[estimate"),
+            "estimate beside a real figure: {receipt}"
         );
         assert!(!cost.warnings.iter().any(|w| w == NO_REPORTED_COST_WARNING));
     }
@@ -1767,6 +1793,53 @@ mod tests {
             " $13.94  Claude Code's own total for this whole conversation (every run in this file)"
         ));
         assert!(!receipt.contains("what this run cost"), "{receipt}");
+    }
+
+    /// S193 (F117, ADR-0004 S193 addendum): Vajra's token estimate, its split and the warnings
+    /// about it appear only on a receipt with no figure from Claude Code.
+    #[test]
+    fn s193_the_estimate_shows_only_without_a_figure_from_claude_code() {
+        let estimate_bits = ["[estimate", "[estimate] split", "Vajra's own estimate"];
+        // `vajra meter FILE`: the whole-conversation total is the figure for what it shows.
+        let file = format_receipt(&s189_meter("s193-file", S189_FIXTURE, None));
+        for bit in estimate_bits {
+            assert!(
+                !file.contains(bit),
+                "{bit:?} beside a whole-file figure: {file}"
+            );
+        }
+        // A fork (no figure for this run): the estimate and its split stay.
+        let run2 = s189_lines(|i, _| i >= 6);
+        let fork = format_receipt(&s189_meter(
+            "s193-fork",
+            &run2,
+            Some("2026-09-24T11:49:40.000Z"),
+        ));
+        for bit in estimate_bits {
+            assert!(fork.contains(bit), "{bit:?} missing with no figure: {fork}");
+        }
+        // No record at all, unknown model: estimate, split, the unknown-model warning, the
+        // cache-tier warning.
+        let opus9 = s189_lines(|i, _| i < 5).replace("claude-opus-5-5", "claude-opus-9");
+        let mut none = s189_meter("s193-none", &opus9, Some("2026-09-24T05:26:39.000Z"));
+        none.warnings.push(CACHE_TIER_ESTIMATE_WARNING.into());
+        let r = format_receipt(&none);
+        for bit in estimate_bits
+            .iter()
+            .chain(&["not in pricing table", CACHE_TIER_ESTIMATE_WARNING])
+        {
+            assert!(r.contains(bit), "{bit:?} missing with no figure: {r}");
+        }
+        // The same run given a late `-p` stream figure: every estimate line and both warnings go.
+        none.apply_captured_cost(Some(1.25));
+        let r = format_receipt(&none);
+        assert!(r.contains(" $1.25  what this run cost"), "{r}");
+        for bit in estimate_bits
+            .iter()
+            .chain(&["not in pricing table", CACHE_TIER_ESTIMATE_WARNING])
+        {
+            assert!(!r.contains(bit), "{bit:?} beside a stream figure: {r}");
+        }
     }
 
     #[test]
