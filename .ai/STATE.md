@@ -3,14 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S192 complete on `session-192-prove-the-receipt` (PR open; the founder merges). Next: S193 — rudra session 19 under the trusted receipt (founder pick, 2026-10-09).**
+**None — between sessions. S193 complete on `session-193-rudra-s19` (PR open; the founder merges). Next: S194 — NOT PICKED YET (founder, 2026-10-09: "we won't pick next session work now"); its prompt is written at its start from his pick. S195 = the next review-only session.**
 
-## What was done this session (S192 — CODE, interactive: prove the receipt live, through rudra)
+## What was done this session (S193 — INTERACTIVE: rudra session 19 under the trusted receipt)
 
-- **Live evidence (no capture committed):** rudra runs through an S191+ vajra — receipt $6.90 = cost-state 6.8958896, $22.96 = 22.9619658 (= `~/.claude.json` lastCost). Founder's Haiku runs: fresh $0.02 = $0.0160 · `--continue` $0.01 = $0.0245 − $0.0160 · fork: "no cost for this run" + whole conversation $0.03 labelled. **A fork keeps the parent's `startTime`** and running total — S189's assumption verified. `/clear` starts a new log whose cost restarts at $0 → the receipt skips ("multiple sessions detected").
-- **The folder name (ADR-0004 S192 addendum, deviates from §2.2):** `meter::cc_folder_name` / `cc_project_dir` copy Claude Code 2.1.280's own code — every UTF-16 unit outside `[A-Za-z0-9]` → `-`, >200 cut + Claude Code's own 32-bit hash, `$CLAUDE_CONFIG_DIR/projects` else `~/.claude/projects`, `CLAUDE_CODE_PROJECT_DIR_NAME` where Claude Code uses it. Used by the meter, `vajra meter --all` and dispatch's handoff provenance (a repo at `~/my_app` had every handoff unverifiable). 12/12 real folders on the founder's Mac (old rule 9). 7 old verify/demo fixtures + `tests/stamp_gate.rs` follow the rule.
-- Verify-192 6/6 (real `vajra claude` at the tip and at 0a58fb5, a plain-folder control) · demo 5/5 · `cargo test` 706/0 · verify-132/133/135 green; verify-131 2 checks stale since S181/S135 (left as history).
-- **Named, not closed (founder, 2026-10-09: "leave it named"):** `/clear` gets no receipt; a fork's own share is not shown.
+- **rudra S19 (the founder's run, $37.27):** receipt $37.27 = the run log's `cost-state` 37.2723498 = `~/.claude.json` lastCost (a fresh run). Close green; log: 0 WAIVED, 2 WARN (unchecked `obeyed:` claims, no `lint_command:` — both expected); 2 blocks, both correct (read-first pause; the publish guard stopped the agent's merge).
+- **F117 FIXED (ADR-0004 S193 addendum, deviates from the S189 "Receipt wording"):** with Claude Code's own figure (result line / `-p` stream, this run's cost-state share, or `vajra meter FILE`'s whole-file total) the receipt shows only that figure — no `[estimate]` line, no split, no "not in pricing table" or cache-tier warning. One predicate (`SessionCost::has_tool_figure`, `ToolRecord::is_figure`). No figure (a crash, a fork) → unchanged.
+- **Parked as known bugs (founder; ROADMAP § Backlog "🐞 KNOWN BUGS — TO FIX", S195 checklist):** F116 the approval record is left out of git at close (the "commit it" line reaches only the founder's terminal) · F118 `--advance` leaves the old session's text under the new number · F119 `--steps` shows ✗ for design on a no-design prompt.
+- Verify-193 10/10 (each fix red at d2ec218) · demo 5/5 · `cargo test` 709/0 · verify-189 20/20 · verify-192 8/8 · ci-lint clean.
+- The founder got the whole roadmap as a field-notes page (his own copy in ~/Documents; not in the repo).
+
+## Previous session (S192 — CODE, interactive: prove the receipt live, through rudra, merged #230)
+
+- rudra $6.90/$22.96 = Claude Code's own cost-state; fresh/`--continue`/fork proven live (a fork keeps `startTime`); the transcript folder named by Claude Code's own rule + `CLAUDE_CONFIG_DIR` (ADR-0004 S192 addendum). Named, not closed: `/clear` gets no receipt; a fork's own share is not shown.
 
 ## Previous session (S191 — CODE: four small, bounded fixes, merged #229)
 
@@ -65,7 +70,7 @@
 - **A project's ground truth leads with the project (S179, F93):** vision → roadmap → `delivery_progress`; Vajra's two self-usage audits are withheld from projects (`build.rs` `OMIT_AUDITS`).
 - **The controls reach existing projects (S182):** `--sync-fleet` ships and WIRES the approvals guard, reports a missing `session_rules_from`; `--allow-all=NN` is per session. rudra has them (uncommitted there).
 - **The approvals folder is checked by what changed (S188, DECISION-011 S188 addendum):** an AI read is never blocked; a write by a guarded tool call (Bash, Edit, Write, MultiEdit, NotebookEdit — not MCP tools) is caught after it runs and voids those approvals until `vajra approve NN`; a Write/Edit there is blocked before it runs. Bar-raising, not tamper-proof.
-- **The receipt's top line is Claude Code's own figure, or says it has none (S189, ADR-0004 S189 addendum):** an interactive `vajra claude` run shows this run's share of the transcript's `cost-state` total; `-p` still reads the result stream; the price list only feeds labelled `[estimate]` lines. **Proven live S192** (rudra, fresh, `--continue`, fork), and found in any folder Claude Code names (S192 addendum).
+- **The receipt's top line is Claude Code's own figure, or says it has none (S189, ADR-0004 S189 addendum):** an interactive `vajra claude` run shows this run's share of the transcript's `cost-state` total; `-p` still reads the result stream; the price list only feeds labelled `[estimate]` lines. **Proven live S192** (rudra, fresh, `--continue`, fork), and found in any folder Claude Code names (S192 addendum). **S193 (F117):** with that figure the receipt shows nothing else — the token estimate appears only when Claude Code gave no figure; rudra S19 $37.27 = cost-state.
 - **The founder's controls are hard for the agent to type (S181, DECISION-011):** approval is a record from `vajra approve NN` (or the launch-time yes), a waiver names its checks and a reason, a stamp dies when its text is edited, the type is a strict field, and the next review-only session is derived, not hand-kept. Bar-raising, not tamper-proof.
 - **The close runs CI's lint on CI's Rust version (S183, F101; not CI's tests, not Linux):** one pinned toolchain (`rust-toolchain.toml`) and one lint script (`scripts/ci-lint.sh`) for CI and the close gate; projects declare `lint_command:`. Unchecked `obeyed:` claims in a project WARN with the count (F104); `vajra next --steps` names the session type at the start (F105).
 - **`vajra init` never hangs on a silent pipe (S184, F103):** 10 s per answer, then defaults, named on stderr; piped answers and a terminal work as before.
@@ -83,6 +88,8 @@
 - **🟡 The guards' old-vs-new check is a list (S173):** named shapes × triggers; a spelling nobody listed is not covered.
 - **🟡 Parked LOW (S173):** F47 copied jargon · F56 the session guard cannot tell a command runs in another project · F57 the Coder check reads only `1. …` plan steps.
 - **🟢 F67 — PROVEN LIVE S192 (was 🔴 S176, 🟡 S189):** rudra $6.90/$22.96 and the fresh/`--continue` runs equal Claude Code's own `cost-state`; a fork is labelled whole-conversation (it keeps the parent's `startTime`). Left named (founder 2026-10-09): `/clear` gets no receipt, a fork's own share is not shown.
+- **🟡 S193 known bugs (founder: park, "file it so we don't miss it"; ROADMAP backlog, S195 checklist):** F116 the founder's approval record is left out of git at close — rudra S19 needed PR #23, Vajra's own `session-192.json` was never committed (`vajra approve`'s "Commit it with the session" reaches only the founder's terminal; the agent sees only "never write to `.ai/approvals/`") · F118 `vajra next --advance` swaps the `**Number:**` token but leaves the old session's text under it and drops it from Prior (fixed by hand, `beae153`) · F119 `vajra next --steps` reads the Architect station, so a `design-significant: no` prompt shows ✗ while `--check-design` says READY.
+- **🟡 S193 disclosed (ADR-0004 S193 addendum):** the `~$… saved` compression line is still priced from the price list (opus-5-5 at the upper bound) · with `hasUnknownModelCost` the figure may undercount and no estimate is shown beside it · a fork keeps the whole-file estimate · the stale ROADMAP rows S119 and S167 still say "Next" (→ S195).
 - **🟡 F70-residual (S176, disclosed):** nothing at close re-runs the Planner — a mid-session brief wipe is caught only when someone runs `--check-plan`/`--steps`/`--stations`; deleting the `covers:` markers or the whole `## Plan` still passes (S68 class). A close re-run needs the founder's yes.
 - **🟡 S177 disclosed:** Vajra's OWN close gate still matches only `**CODE**` (own paperwork, not changed); `ground_truth_next_session` is agent-writable and unguarded (a key = N session loses its CODE checks); the key is read as the first digits on its line (LOW).
 - **🟡 F75 (S177, LOW):** the design-advisor proposed a 4-file commit no agent can make (≤3-file hook); the plan-advisor overruled it.
@@ -112,16 +119,17 @@
 
 ## What Is In Progress
 
-- Nothing. S192 complete on its branch; S193's prompt is written from the founder's pick.
+- Nothing. S193 complete on its branch. The next session is not picked yet (founder, 2026-10-09).
 
 ## Active PRs
 
-- S192's PR (the founder merges). S191 merged as #229.
+- S193's PR (the founder merges). S192 merged as #230.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S193 | $0 | No paid run by the agent; the founder's rudra S19 run was $37.27 (Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F117 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |
 | S192 | ~$0.10 (founder's Haiku runs) | No paid run by the agent. The founder's rudra runs ($6.90 + $22.96, his own work) and three Haiku check runs. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, release-coordinator as the judge of all 15 answers) |
 | S191 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of all 24 answers) |
 | S190 | $0 | No paid run. NO-CODE ground truth. 4 fleet dispatches (tech-lead, design-advisor, release-coordinator; fidelity-reviewer — two passes, pass 1 REJECT → pass 2 ACCEPT) |

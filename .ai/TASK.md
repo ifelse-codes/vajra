@@ -2,9 +2,16 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S192 (CODE, interactive: prove the receipt live) complete on `session-192-prove-the-receipt`; S193 next
+## Between Sessions — S193 (INTERACTIVE: rudra S19 under the trusted receipt) complete on `session-193-rudra-s19`; the next session is not picked yet
 
-**Next: Session 193 — rudra session 19 under the trusted receipt** (`prompts/193-task-rudra-s19.md`, DRAFT — the founder's pick, 2026-10-09). Start in a fresh chat after S192's PR is merged and `vajra approve 193`.
+**Next: Session 194 — NOT PICKED YET** (founder, 2026-10-09: "we won't pick next session work now"). The three ranked options are at the end of `sessions/session-193-summary.md`; write its prompt from his pick at its start, in a fresh chat, after S193's PR is merged. S195 = the next review-only session.
+
+## Session 193 — INTERACTIVE: rudra session 19 under the trusted receipt — COMPLETE
+
+- Brief: `prompts/193-task-rudra-s19.md`. Summary: `sessions/session-193-summary.md`. Review: `sessions/session-193-review.md`. Decision: ADR-0004 S193 addendum (deviates from the S189 "Receipt wording").
+- rudra S19: receipt $37.27 = Claude Code's own cost-state (fresh run). Findings F116–F119 with the founder's calls.
+- Shipped: **F117** — with Claude Code's own figure the receipt shows only that figure (no estimate, split or pricing warning). Verify 10/10 · demo 5/5 · `cargo test` 709/0.
+- **Parked as known bugs (founder):** F116 (approval record left out of git) · F118 (`--advance` keeps the old text) · F119 (design ✗ on a no-design prompt) → ROADMAP backlog, S195 checklist.
 
 ## Session 192 — CODE, interactive: prove the receipt live, through rudra — COMPLETE
 
