@@ -113,7 +113,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only on-scre
 - tech-lead rec 3 — obeyed: 9c9d96d (the rule checked against every real folder on this machine: 12 of 12, old rule 9) and 348c938 (the long-name rule read from Claude Code 2.1.280's own code; a wrong hash can only miss a folder → no receipt, never another project's)
 - tech-lead rec 4 — obeyed: 348c938 (`cc_project_dir` takes the environment as a reader argument; no test sets an env var) and e9cc912 (order: `VAJRA_CLAUDE_PROJECTS_DIR` in dispatch only, then `$CLAUDE_CONFIG_DIR/projects`, then `~/.claude/projects`)
 - tech-lead rec 5 — obeyed: 348c938 (`s192_a_resume_that_sent_nothing_never_shows_the_earlier_total_as_this_run`: the live resume shape gives no figure, never $22.96; the S189 rule was already right)
-- tech-lead rec 6 — obeyed: 3fbe5e0 (ADR-0004 S192 addendum names the `/clear` gap as proven live, not closed; no hook, no ADR-0003 addendum) and eeddc24 (the summary records that the founder's call was asked and not yet given)
+- tech-lead rec 6 — obeyed: 3fbe5e0 (ADR-0004 S192 addendum names the `/clear` gap as proven live, not closed; no hook, no ADR-0003 addendum) and a4f7009 (the founder's call, given 2026-10-09 — "leave it named" — in the ADR addendum and the summary)
 - tech-lead rec 7 — obeyed: 9c9d96d (design-advisor before the dispatch change and the addendum), then the build, one fidelity-reviewer, one release-coordinator after this section; the skip lines above carry the budget reasons
 
 **design-advisor** (`.ai/handoffs/session-192-design-advisor.md`):
@@ -133,3 +133,8 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only on-scre
 - fidelity-reviewer rec 4 — obeyed: a4f7009 (verify-192 row "AC3 right reason": a log filed under the old name in `my proj_v2.0` — the 0a58fb5 binary shows $6.90, today's none)
 - fidelity-reviewer rec 5 — obeyed: a4f7009 (no log found → `[vajra] no receipt: no Claude Code log from this run in <folder>`; verify-192 row "rec 5", silent at 0a58fb5)
 - fidelity-reviewer rec 6 — deferred: prompts/193-task-rudra-s19.md
+
+**release-coordinator** (`.ai/handoffs/session-192-release-coordinator.md`) — the one judge: 21 AGREE, 0 DISAGREE:
+- release-coordinator rec 1 — deferred: sessions/session-192-review.md
+- release-coordinator rec 2 — deferred: .ai/SESSION-BOOT.md
+- release-coordinator rec 3 — deferred: .ai/SESSION-BOOT.md
