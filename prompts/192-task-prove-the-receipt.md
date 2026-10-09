@@ -125,3 +125,11 @@ demo-producer: skipped — the tech-lead deferred it on budget: the only on-scre
 - design-advisor rec 6 — obeyed: 348c938 ((a) a resume with messages and no new spend → `ThisRun{0.0}`; (b) only cost-state lines after launch → `None`; (c) new spend → `ThisRun{1.5}`) and 3fbe5e0 ((d) the live fork shape → `IncludesEarlierSpend`). (a) checks the record, not the rendered "$0.00" line
 - design-advisor rec 7 — obeyed: 3fbe5e0 (named, not closed; the live `/clear` run printed "multiple sessions detected"; no ADR-0003 addendum, no hook)
 - design-advisor rec 8 — obeyed: 9c9d96d and 3fbe5e0 (ADR-0004 S192 addendum: (i) deviates from §2.2; (ii) the long-name rule — copied, per rec 4's answer; (iii) `VAJRA_CLAUDE_PROJECTS_DIR` is dispatch's only; (iv) the shared-folder limit; (v) the live fork, `--continue` and `/clear` results, replacing S189's "assumed, not verified")
+
+**fidelity-reviewer** (`.ai/handoffs/session-192-fidelity-reviewer.md`):
+- fidelity-reviewer rec 1 — obeyed: 88dda00 (verify-189, demo-189 and verify-178 give the fake log folder Claude Code's name AND the old `/`-only name, because each compares against an older binary that uses the old rule; run at the tip: verify-189 20/20, demo-189 green, verify-178's rec 3 row passes and its 4 other red rows are older than S192 — S181's LEGACY-stamp lines and an unloaded `vajra_waiver_ok` — recorded in the summary, 956ab0d)
+- fidelity-reviewer rec 2 — obeyed: a4f7009 (the founder's call, given 2026-10-09 after this review started — "leave it named" — in the ADR-0004 S192 addendum) and 0b1adda (in the summary; AC4 stands on that call)
+- fidelity-reviewer rec 3 — obeyed: 956ab0d (re-run at the final tip: verify-192 8/8, full `cargo test` 706/0, `scripts/ci-lint.sh` clean, demo 5/5; the summary's numbers updated)
+- fidelity-reviewer rec 4 — obeyed: a4f7009 (verify-192 row "AC3 right reason": a log filed under the old name in `my proj_v2.0` — the 0a58fb5 binary shows $6.90, today's none)
+- fidelity-reviewer rec 5 — obeyed: a4f7009 (no log found → `[vajra] no receipt: no Claude Code log from this run in <folder>`; verify-192 row "rec 5", silent at 0a58fb5)
+- fidelity-reviewer rec 6 — deferred: prompts/193-task-rudra-s19.md

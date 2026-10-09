@@ -49,6 +49,9 @@ design-significant: no
   (ADR-0004 S192 addendum); the fix, if ever, is the SessionStart session-id match (S189 researcher rec 2).
 - **From S192:** `scripts/verify-session-131.sh` has 2 stale checks (pre-S181 grep text; the S135 crew gate) — left
   as history (Vajra's own paperwork).
+- **From S192's review (rec 6, deferred):** re-runnable oracles for the folder rule — a local check of each
+  transcript's `cwd` against its folder name, and Claude Code's long-name hash under node. Backlog unless a
+  rudra finding needs it.
 - **Founder rulings:** read the tool's own cost, never grow the price list; one release-coordinator judges all
   `obeyed:` answers; the close does not run `cargo test` separately; no new policing of Vajra's own paperwork.
 - **Kept in backlog:** the rest of N7; F97's opt-out key; `tests/gt_cadence_shared.rs`'s loose assertion; S188's
