@@ -526,3 +526,45 @@ match on long names (can pick a sibling project); §2.2's newest-anywhere fallba
 - the SessionStart session-id match (S189 researcher rec 2) is still not built: `/clear` and two sessions in one
   folder skip the receipt (proven live above);
 - a fork's own share is not shown (whole conversation, labelled).
+
+## S193 addendum — with Claude Code's own figure, the receipt shows only that figure (F117)
+
+**Deviates from the S189 addendum's "Receipt wording"** — only its estimate rule ("the token figure only ever rides
+the line beneath"). The source order, the share rule, "no price rows are added" and the S192 folder rule stand.
+
+**Why (founder, 2026-10-09, F117).** rudra S19's receipt printed ` $37.27  what this run cost — Claude Code's own
+figure` — equal to the transcript's `cost-state` 37.2723498 and `~/.claude.json` `lastCost` — with
+`~$167.44 [estimate · opus-5-5 priced at the unknown-model upper bound …]`, an `[estimate] split:` line and a
+"not in pricing table" warning beneath it: a number 4.5× the real one beside it. The founder's call: when Claude
+Code gives its own figure, show only that; estimates appear only when there is no real figure.
+
+**The rule.** One predicate, `SessionCost::has_tool_figure()` (built on `ToolRecord::is_figure()`), decides:
+- **a figure** — a result-line / `-p` stream total (`authoritative_dollars`), this run's `cost-state` share
+  (`ThisRun`, even when Claude Code says it could not price every model), or the whole-conversation total that
+  `vajra meter FILE` shows (`WholeConversation` — that receipt describes the whole file, so the total is Claude
+  Code's figure for exactly what is shown);
+- **no figure** — no record, or `IncludesEarlierSpend` (a fork / a total from before this run).
+
+With a figure the receipt prints the headline (plus "Claude Code could not price every model" when it says so),
+the compression lines and every other warning — and NOT the `[estimate]` line, the `[estimate] split:` line, the
+"not in pricing table" warning or the "cache tier split unavailable" warning (both describe only the estimate).
+With no figure, nothing changed. The unknown-model warning is written when the receipt is printed, not when the
+transcript is read, so a `-p` stream figure captured after the read drops it too. The same predicate feeds the
+"Claude Code did not record what this run cost" warning, replacing a second hand-written match.
+
+**Rejected:** a shrunk one-line estimate (the founder said drop it) · keeping the estimate when Claude Code reports
+`hasUnknownModelCost` (for that model the estimate is only the upper-bound guess) · an opus-5-5 price row (standing
+rule: read the tool's own cost, never grow the price list) · treating `meter FILE`'s whole-conversation total as no
+figure · dropping the estimate for `IncludesEarlierSpend` too (there is no figure for this run).
+
+**Named, not closed:**
+- the `~$… saved` compression line is still priced from the price list — for opus-5-5 the unknown-model upper
+  bound — disclosed only by its own "est." text (kept, founder);
+- when Claude Code reports `hasUnknownModelCost` its figure may undercount, and no estimate is shown beside it
+  (the headline note says so);
+- `IncludesEarlierSpend` (a fork) still shows the whole-file token estimate beside "no cost from Claude Code for
+  this run" — unchanged from S189;
+- the budget check still compares the estimate against the cap when there is no figure (unchanged).
+
+Evidence: `scripts/verify-session-193.sh` (the real binary, a stand-in `claude`, against the binary built at the
+start commit); unit test `s193_the_estimate_shows_only_without_a_figure_from_claude_code`.
