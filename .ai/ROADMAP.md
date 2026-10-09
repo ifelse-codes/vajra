@@ -763,6 +763,25 @@ station credit.
 
 ## Backlog
 
+**🐞 KNOWN BUGS — TO FIX (founder, 2026-10-09: "file what we parked as known bug and bug to fix so we don't miss them").**
+Minor, parked in S193 (rudra S19). Not fixed yet; each is a real bug a user can meet. **Carry → backlog — reason: the
+founder picks when; on the S195 ground-truth checklist.**
+- **F116 — the approval record is left out of git at close.** rudra S19 merged without
+  `.ai/approvals/session-19.json`; it took a second PR (#23) after the founder asked. Vajra's own
+  `.ai/approvals/session-192.json` was never committed either. **Why:** "Commit it with the session" is printed only to
+  the founder's terminal by `vajra approve` (`src/approval/mod.rs:311`); the agent never sees it (0 mentions in the
+  run's log), and it does see "the AI never writes to `.ai/approvals/`", so it leaves the file alone. S16–S18 got it in
+  only by riding a Vajra-upgrade commit. **Fix idea:** `vajra next --steps` / boot say "approved ✓ — not in git yet;
+  commit it with the session" (a reminder, not a block).
+- **F118 — `vajra next --advance` leaves the old session's text under the new number.** S193's advance wrote
+  "**Number:** 193 — COMPLETE on `session-192-…`" + S192's whole story into SESSION-BOOT's `## Current Session`, and
+  S192 dropped out of `## Prior Session` (fixed by hand, `beae153`). S191 made the swap touch only the number token;
+  nothing moves the old entry down. Vajra's own layout; rudra's SESSION-BOOT has a different shape and was not hit.
+- **F119 — the step list shows ✗ for design when the prompt says none is needed.** `vajra next --steps` reads the
+  Architect station (`src/nextstep/mod.rs:128`, `passed("Architect")`), which is ABSENT for `design-significant: no`,
+  while `vajra next --check-design 193` says READY. The step text itself says "(or the prompt says it needs none)", and
+  its how-to tells the agent to cite a design record it does not need. Any project's no-design session meets it.
+
 **The active queue is FINISHING THE MVP** (C→B→A: team-voice ✓ → installable v0.1 = S106 → fleet).
 The machinery-freeze rule is **RETIRED** (S103 pivot). Items below get pulled when they serve the MVP
 or when a founder-run real-world test breaks them; the installability instrument (S106) is now the
