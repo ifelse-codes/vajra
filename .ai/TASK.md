@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S191 (CODE, four small fixes) complete on `session-191-small-fixes`; S192 next
+## Between Sessions — S192 (CODE, interactive: prove the receipt live) complete on `session-192-prove-the-receipt`; S193 next
 
-**Next: Session 192 — prove the receipt live, through rudra** (`prompts/192-task-prove-the-receipt.md`, DRAFT — the founder's pick, 2026-10-08). Start in a fresh chat after S191's PR is merged and `vajra approve 192`.
+**Next: Session 193 — rudra session 19 under the trusted receipt** (`prompts/193-task-rudra-s19.md`, DRAFT — the founder's pick, 2026-10-09). Start in a fresh chat after S192's PR is merged and `vajra approve 193`.
+
+## Session 192 — CODE, interactive: prove the receipt live, through rudra — COMPLETE
+
+- Brief: `prompts/192-task-prove-the-receipt.md`. Summary: `sessions/session-192-summary.md`. Review: `sessions/session-192-review.md`. Decision: ADR-0004 S192 addendum (deviates from §2.2).
+- Shipped: live receipt evidence (rudra $6.90/$22.96; fresh, `--continue`, fork) · a fork keeps `startTime` (verified) · Claude Code's own folder-name rule + `CLAUDE_CONFIG_DIR` in the meter, `vajra meter --all` and dispatch provenance (12/12 real folders; old rule 9). Verify 6/6 · demo 5/5 · `cargo test` 706/0.
+- **Named, not closed (founder, 2026-10-09: "leave it named"):** `/clear` gets no receipt; a fork's own share is not shown — the SessionStart session-id match if ever picked.
 
 ## Session 191 — CODE: four small, bounded fixes from the S190 review — COMPLETE
 
