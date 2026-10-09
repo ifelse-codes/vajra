@@ -41,8 +41,22 @@ Read every close log for `WAIVED`, `N/A` and `WARN` FIRST, never just PASS (S178
 | AC4 | No Vajra commit touches rudra; rudra's own commits are the founder's. `cargo test` passes in full. |
 
 ## Design
-design-significant: no
-- No design until a finding needs one; a finding that does gets the design-advisor and a cited record first.
+design-significant: yes
+
+Cites docs/adr/0004-meter-receipt-design.md (S189 addendum, "Receipt wording") and DEVIATES from it:
+S189 kept Vajra's token recompute as a labelled [estimate] line beneath Claude Code's own figure.
+The founder's F117 call (rudra S19: $37.27 headline beside a ~$167.44 upper-bound estimate) replaces
+that: when Claude Code gave its own figure — a result-line / -p stream total, this run's cost-state
+share, or the whole-conversation total `vajra meter FILE` shows — the receipt prints only that
+headline and the compression lines; the [estimate] line, the [estimate] split line and the
+"not in pricing table" warning appear only when there is no figure (no record, or a fork /
+earlier-spend total). One SessionCost predicate decides "has a figure", used by both the receipt
+and the no-reported-cost warning; the unknown-model warning is decided at render time so a late
+-p stream figure also suppresses it. No price rows are added. Recorded as an S193 addendum to
+ADR-0004. Rejected: a shrunk estimate line (founder said drop), keeping it on hasUnknownModelCost
+(same upper-bound guess), a new opus-5-5 price row (standing rule), treating meter FILE's
+whole-conversation total as no figure (it is the tool's figure for exactly that scope).
+(From the design-advisor, `.ai/handoffs/session-193-design-advisor.md`.)
 
 ## Carried in
 - **Founder calls (2026-10-09):** `/clear` gets no receipt and a fork's own share is not shown — named, not closed
@@ -71,3 +85,53 @@ design-significant: no
 ## Delta
 - `+` rudra S19 findings (F116…) with the founder's calls
 - `~` whatever they show is wrong
+
+## Execution
+- step 1 — done: 0c99011
+- step 2 — done: 78d02af
+- step 3 — done: a25f05e
+- step 4 — done: e536175
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (narrow, for F117 — tech-lead rec 4: the fix
+changes the receipt for every project, under ADR-0004). Required at close: `fidelity-reviewer` (the one cold review),
+`release-coordinator` (the one judge of every `obeyed:` answer).
+
+researcher: skipped — the tech-lead deferred it on budget: the evidence is rudra S19's own close logs, receipt and transcript on this machine, and S192 already proved the receipt live (~0.4M saved).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the founder co-wrote the deliverables and AC1–AC4 and brings the findings himself (~0.3M would buy a restatement).
+plan-advisor: skipped — the tech-lead deferred it on budget: the Plan covers AC1–AC4 with `covers: N`; the real order depends on findings that do not exist yet (~0.3M).
+implementation-advisor: skipped — the tech-lead deferred it on budget: no code is approved yet; its recs 3 and 5 name the traps (red for the right reason, the full cargo test before push) (~0.6M).
+qa-specialist: skipped — the tech-lead deferred it on budget: AC2 makes every fix's check real-run and red at the start commit, and the fidelity-reviewer re-runs verify-193 at both ends (~0.6M).
+demo-producer: skipped — the tech-lead deferred it on budget: the founder watches his own rudra run and its receipt; the summary records both (~0.3M).
+
+**tech-lead** (`.ai/handoffs/session-193-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 0c99011 (F116–F119 filed with evidence and the founder's calls before any code; rudra S19's close log read for WAIVED / N/A / WARN first: 0 waived, 1 N/A inside a PASS line, 2 WARN — both expected)
+- tech-lead rec 2 — obeyed: a25f05e (verify-193 row "AC3": receipt $37.27 · cost-state 37.272349799999986 · `~/.claude.json` lastCost 37.272349799999986; a fresh run — not a resume, a fork or a `/clear`)
+- tech-lead rec 3 — obeyed: a25f05e (every F117 row runs the built binary against a stand-in `claude` in a temp folder, red at d2ec218 with F117's own lines — the upper-bound `[estimate` line, the split, the pricing warning; rudra is never touched)
+- tech-lead rec 4 — obeyed: 130ee2d (F117 changes the receipt for every project → the design-advisor dispatched narrowly, ADR-0004 cited, design-significant: yes) and cf672d4 (the S193 addendum)
+- tech-lead rec 5 — obeyed: a25f05e (full `cargo test --release` 709 passed / 0 failed before any push; not added to the close)
+- tech-lead rec 6 — obeyed: a25f05e (not triggered — the founder approved F117; F116/F118/F119 parked as he said, no fix invented; verify-193 still records AC3's numbers, row 6)
+- tech-lead rec 7 — obeyed: 35c2197 (the six skip lines carry the money reasons) and 130ee2d (the design-advisor only after rec 4 triggered); then the build, one fidelity-reviewer, one release-coordinator after this section
+
+**design-advisor** (`.ai/handoffs/session-193-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 78d02af (`ToolRecord::is_figure` + `SessionCost::has_tool_figure`: authoritative, ThisRun, WholeConversation; the no-reported-cost check in `meter_run` reuses `is_figure` instead of its own `matches!`)
+- design-advisor rec 2 — obeyed: 78d02af (with a figure: no `[estimate` line — incl. the authoritative arm's "Vajra's own estimate from tokens" — no split, no pricing warning; headline, unpriced note, compression lines and other warnings kept)
+- design-advisor rec 3 — obeyed: 78d02af (the unknown-model warning is written in `format_receipt` when there is no figure; unit test case "a late `-p` stream figure" drops it)
+- design-advisor rec 4 — obeyed: 78d02af (`CACHE_TIER_ESTIMATE_WARNING` is one constant; the receipt leaves it out when there is a figure)
+- design-advisor rec 5 — obeyed: 130ee2d (design-significant: yes, `## Design` cites ADR-0004's S189 addendum and says it deviates) and cf672d4 (ADR-0004 S193 addendum replaces only the estimate rule)
+- design-advisor rec 6 — obeyed: cf672d4 (named, not closed: the compression saving priced from the list; `hasUnknownModelCost` may undercount with no estimate beside it; a fork keeps the whole-file estimate; plus the no-figure budget check)
+- design-advisor rec 7 — obeyed: 78d02af (the two tests flipped, not deleted — one renamed to `authoritative_total_is_the_headline_and_no_estimate_is_shown`; one new test `s193_the_estimate_shows_only_without_a_figure_from_claude_code` covers WholeConversation, IncludesEarlierSpend, no record and a late stream figure as four cases in one test)
+- design-advisor rec 8 — obeyed: a25f05e (rows 1–5 as proposed: fresh opus-5-5 run — body exactly 3 lines; `-p`; `vajra meter FILE`; crash + fork controls; the price list. The controls compare the lines as a set, because the unknown-model warning now prints last — said in the script)
+
+**fidelity-reviewer** (`.ai/handoffs/session-193-fidelity-reviewer.md`) — one cold pass, ACCEPT 6 of 6:
+- fidelity-reviewer rec 1 — obeyed: f216287 (`.ai/approvals/session-192.json` and `session-193.json` committed unchanged, as S188–S191 committed theirs; `git add` changes nothing in the folder, and `vajra next --steps` still reads S193 as approved)
+- fidelity-reviewer rec 2 — obeyed: bca1219 (verify-193 row 4b: a stand-in reply with no cache-tier split — the real binary shows "cache tier split unavailable" at d2ec218 and drops it beside the $37.27 figure; a crash control keeps it)
+- fidelity-reviewer rec 3 — obeyed: bca1219 (AC3 is printed as a `RECORD:` line and not counted: verify-193 11 passed + 1 record) and dbed581 (the summary, STATE and TASK restate the count and the fakest green)
+- fidelity-reviewer rec 4 — deferred: .ai/ROADMAP.md
+- fidelity-reviewer rec 5 — obeyed: bca1219 (verify-193 re-run at the tip after the review: 11 passed, 0 failed, plus 1 record; the summary corrected from 10/10)
+
+**release-coordinator** (`.ai/handoffs/session-193-release-coordinator.md`) — the one judge: 20 AGREE, 0 DISAGREE:
+- release-coordinator rec 1 — deferred: sessions/session-193-review.md
+- release-coordinator rec 2 — deferred: .ai/SESSION-BOOT.md
+- release-coordinator rec 3 — deferred: .ai/SESSION-BOOT.md
+- release-coordinator rec 4 — deferred: .ai/SESSION-BOOT.md
