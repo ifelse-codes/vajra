@@ -967,6 +967,12 @@ pub fn find_session_jsonl(
     if candidates.len() != 1 {
         if candidates.len() > 1 {
             eprintln!("[vajra] multiple sessions detected — skipping meter (run vajra meter <id> manually)");
+        } else {
+            // S192 review rec 5: a receipt that cannot be sure says so — name where it looked.
+            eprintln!(
+                "[vajra] no receipt: no Claude Code log from this run in {}",
+                project_dir.display()
+            );
         }
         return None;
     }

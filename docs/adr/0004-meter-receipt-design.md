@@ -509,7 +509,7 @@ rudra runs (S192: $6.90 and $22.96 on the receipt, Claude Code's `cost-state` 6.
 - **`/clear` starts a new log whose cost-state restarts at $0 with its own `startTime`** (one run left four logs:
   $0.0256 + $0.0163 + $0.0164 + $0.0162). The receipt skipped ("multiple sessions detected") — no wrong number,
   but no receipt. Summing every new log would also sum a second session in the same folder; the safe fix is the
-  SessionStart session-id match (S189 researcher rec 2) — named, not closed, the founder's call.
+  SessionStart session-id match (S189 researcher rec 2) — named, not closed. **Founder's call (2026-10-09): "leave it named"** — built only if that hook is picked later.
 
 **Rejected:** fixing only `find_session_jsonl` (three copies of one rule is how dispatch inherited it); failing
 closed on long names instead of copying the hash (S192 design-advisor rec 4 — Claude Code's hash is a plain
