@@ -41,8 +41,22 @@ Read every close log for `WAIVED`, `N/A` and `WARN` FIRST, never just PASS (S178
 | AC4 | No Vajra commit touches rudra; rudra's own commits are the founder's. `cargo test` passes in full. |
 
 ## Design
-design-significant: no
-- No design until a finding needs one; a finding that does gets the design-advisor and a cited record first.
+design-significant: yes
+
+Cites docs/adr/0004-meter-receipt-design.md (S189 addendum, "Receipt wording") and DEVIATES from it:
+S189 kept Vajra's token recompute as a labelled [estimate] line beneath Claude Code's own figure.
+The founder's F117 call (rudra S19: $37.27 headline beside a ~$167.44 upper-bound estimate) replaces
+that: when Claude Code gave its own figure — a result-line / -p stream total, this run's cost-state
+share, or the whole-conversation total `vajra meter FILE` shows — the receipt prints only that
+headline and the compression lines; the [estimate] line, the [estimate] split line and the
+"not in pricing table" warning appear only when there is no figure (no record, or a fork /
+earlier-spend total). One SessionCost predicate decides "has a figure", used by both the receipt
+and the no-reported-cost warning; the unknown-model warning is decided at render time so a late
+-p stream figure also suppresses it. No price rows are added. Recorded as an S193 addendum to
+ADR-0004. Rejected: a shrunk estimate line (founder said drop), keeping it on hasUnknownModelCost
+(same upper-bound guess), a new opus-5-5 price row (standing rule), treating meter FILE's
+whole-conversation total as no figure (it is the tool's figure for exactly that scope).
+(From the design-advisor, `.ai/handoffs/session-193-design-advisor.md`.)
 
 ## Carried in
 - **Founder calls (2026-10-09):** `/clear` gets no receipt and a fork's own share is not shown — named, not closed
@@ -73,10 +87,10 @@ design-significant: no
 - `~` whatever they show is wrong
 
 ## Advice
-Roles dispatched: `tech-lead` (mandatory, first). Required at close: `fidelity-reviewer` (the one cold review),
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (narrow, for F117 — tech-lead rec 4: the fix
+changes the receipt for every project, under ADR-0004). Required at close: `fidelity-reviewer` (the one cold review),
 `release-coordinator` (the one judge of every `obeyed:` answer).
 
-design-advisor: skipped — the tech-lead deferred it on budget: design-significant: no and no finding exists yet to design (~0.5M, ~1.6M → ~2.1M); its rec 4 dispatches it narrowly if an approved finding changes a guard, the receipt or `vajra init` for every project.
 researcher: skipped — the tech-lead deferred it on budget: the evidence is rudra S19's own close logs, receipt and transcript on this machine, and S192 already proved the receipt live (~0.4M saved).
 requirements-analyst: skipped — the tech-lead deferred it on budget: the founder co-wrote the deliverables and AC1–AC4 and brings the findings himself (~0.3M would buy a restatement).
 plan-advisor: skipped — the tech-lead deferred it on budget: the Plan covers AC1–AC4 with `covers: N`; the real order depends on findings that do not exist yet (~0.3M).
