@@ -129,3 +129,9 @@ demo-producer: skipped — the tech-lead deferred it on budget: the founder watc
 - fidelity-reviewer rec 3 — obeyed: bca1219 (AC3 is printed as a `RECORD:` line and not counted: verify-193 11 passed + 1 record) and dbed581 (the summary, STATE and TASK restate the count and the fakest green)
 - fidelity-reviewer rec 4 — deferred: .ai/ROADMAP.md
 - fidelity-reviewer rec 5 — obeyed: bca1219 (verify-193 re-run at the tip after the review: 11 passed, 0 failed, plus 1 record; the summary corrected from 10/10)
+
+**release-coordinator** (`.ai/handoffs/session-193-release-coordinator.md`) — the one judge: 20 AGREE, 0 DISAGREE:
+- release-coordinator rec 1 — deferred: sessions/session-193-review.md
+- release-coordinator rec 2 — deferred: .ai/SESSION-BOOT.md
+- release-coordinator rec 3 — deferred: .ai/SESSION-BOOT.md
+- release-coordinator rec 4 — deferred: .ai/SESSION-BOOT.md
