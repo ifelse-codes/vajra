@@ -88,7 +88,7 @@ score $? exec "case 2: a fabricated dispatch id is refused, not silently accepte
 
 label "case 3 — a REAL dispatch (the S111/S117/S123 evidentiary shape) writes VERIFIED provenance"
 PROJ="$TMP/fake-cc-projects"
-SLUG="$(echo "$TMP" | sed 's#/#-#g')"
+SLUG="$(echo "$TMP" | sed 's#[^A-Za-z0-9]#-#g')"
 mkdir -p "$PROJ/$SLUG/sess-uuid-demo/subagents"
 printf '{"agentType":"fidelity-reviewer","toolUseId":"toolu_01DEMOFIXTURE"}' \
   > "$PROJ/$SLUG/sess-uuid-demo/subagents/agent-x1.meta.json"

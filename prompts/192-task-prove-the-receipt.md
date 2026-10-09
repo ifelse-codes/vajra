@@ -49,6 +49,13 @@ design-significant: yes
 - Cites `docs/adr/0004-meter-receipt-design.md` — its S189 addendum (the resolver order, the fail-closed rules,
   the named fork assumption). AC3 changes how the meter finds a transcript; any SessionStart-hook design needs an
   ADR-0003 addendum (S189 researcher rec 2) and the founder's yes first.
+- **Deviates from ADR-0004 §2.2** (recorded in its S192 addendum): `derive_cwd_slug` (replace only `/`) and the
+  newest-anywhere fallback are replaced by Claude Code 2.1.280's own rule — every UTF-16 unit outside
+  `[A-Za-z0-9]` → `-`, over 200 cut + hashed, under `$CLAUDE_CONFIG_DIR/projects` else `$HOME/.claude/projects`.
+  One helper in `src/meter/mod.rs` serves the meter, `vajra meter --all` and dispatch's provenance lookup; only
+  dispatch keeps `VAJRA_CLAUDE_PROJECTS_DIR`. The S189 share rule is unchanged. Rejected: three separate edits; a
+  prefix match on long names; the newest-anywhere fallback; the meter reading `VAJRA_CLAUDE_PROJECTS_DIR`; a
+  SessionStart hook this session (named, not closed).
 
 ## Carried in
 - **Founder rulings:** read the tool's own cost, never grow the price list (S176/S189); no per-claim `obeyed:`
@@ -80,3 +87,54 @@ design-significant: yes
 - `~` `find_session_jsonl` (Claude Code's folder naming; `CLAUDE_CONFIG_DIR`)
 - `+` the live receipt evidence (summary numbers, no captures committed)
 - `~` whatever the live runs show is wrong in `src/meter/` (ADR-0004 S189 addendum updated if the resolver changes)
+
+## Execution
+- step 1 — done: 348c938
+- step 2 — done: eeddc24
+- step 3 — done: 3fbe5e0
+- step 4 — done: e9cc912
+- step 5 — done: 9d872b8
+- step 6 — done: eeddc24
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required; design-significant: yes),
+`fidelity-reviewer` (required; the one cold close review), `release-coordinator` (required; the one judge of every
+`obeyed:` answer).
+researcher: skipped — the tech-lead deferred it on budget: the open facts were checkable on this machine (the folders in ~/.claude/projects, Claude Code's own code, the tiny runs' logs) and S189 rec 6 had done the research; ~0.4M would take the ~2.6M crew to ~3.0M on a day the account already paid ~$29.86 for two rudra runs.
+requirements-analyst: skipped — the tech-lead deferred it on budget: the 5 deliverables and AC1–AC5 restate the founder's S191 pick and AC1 was already evidenced; ~0.3M would buy only a restatement.
+plan-advisor: skipped — the tech-lead deferred it on budget: the Plan already covers every AC with `covers: N`, and its rec 1 gave the one order that mattered (~0.3M more).
+implementation-advisor: skipped — the tech-lead deferred it on budget: one naming rule plus an env var in the meter; its recs 2–4 named the traps (three copies, env vars in tests, the long path); ~0.6M takes the crew to ~3.2M.
+qa-specialist: skipped — the tech-lead deferred it on budget: AC3/AC4 already make verify-192 run each fix red at the start commit, and the fidelity-reviewer re-runs it (~0.6M saved).
+demo-producer: skipped — the tech-lead deferred it on budget: the only on-screen change is the receipt's top line, which the founder read live five times (~0.3M saved).
+
+**tech-lead** (`.ai/handoffs/session-192-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 348c938 (Deliverable 4 built first, $0); the founder's yes asked before any paid run and given by his running the scripts; Deliverable 5 last (e9cc912, 3fbe5e0)
+- tech-lead rec 2 — obeyed: 348c938 (one shared function in src/meter/mod.rs; the meter and `vajra meter --all`) and e9cc912 (dispatch's `project_dir_for`); dispatch kept in scope, not named
+- tech-lead rec 3 — obeyed: 9c9d96d (the rule checked against every real folder on this machine: 12 of 12, old rule 9) and 348c938 (the long-name rule read from Claude Code 2.1.280's own code; a wrong hash can only miss a folder → no receipt, never another project's)
+- tech-lead rec 4 — obeyed: 348c938 (`cc_project_dir` takes the environment as a reader argument; no test sets an env var) and e9cc912 (order: `VAJRA_CLAUDE_PROJECTS_DIR` in dispatch only, then `$CLAUDE_CONFIG_DIR/projects`, then `~/.claude/projects`)
+- tech-lead rec 5 — obeyed: 348c938 (`s192_a_resume_that_sent_nothing_never_shows_the_earlier_total_as_this_run`: the live resume shape gives no figure, never $22.96; the S189 rule was already right)
+- tech-lead rec 6 — obeyed: 3fbe5e0 (ADR-0004 S192 addendum names the `/clear` gap as proven live, not closed; no hook, no ADR-0003 addendum) and a4f7009 (the founder's call, given 2026-10-09 — "leave it named" — in the ADR addendum and the summary)
+- tech-lead rec 7 — obeyed: 9c9d96d (design-advisor before the dispatch change and the addendum), then the build, one fidelity-reviewer, one release-coordinator after this section; the skip lines above carry the budget reasons
+
+**design-advisor** (`.ai/handoffs/session-192-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 348c938 and e9cc912 (one helper in src/meter/mod.rs serves all three callers). refused in part: the four-function shape — one `cc_project_dir(path, env)` takes the environment as a reader, which keeps it testable without env vars AND covers `CLAUDE_CODE_PROJECT_DIR_NAME`, the third variable Claude Code reads; it returns `Option`, with no `TooLong` error, because long names are named, not refused (rec 4). Commit 1 also carried src/cli/meter.rs and verify-192 (3 files)
+- design-advisor rec 2 — obeyed: e9cc912 (the meter never reads `VAJRA_CLAUDE_PROJECTS_DIR`; dispatch reads it first, then `CLAUDE_CONFIG_DIR`, then HOME). The empty value: Claude Code's `??` would keep "" (a relative folder); Vajra counts it as unset — named in the ADR-0004 S192 addendum (9c9d96d)
+- design-advisor rec 3 — obeyed: 348c938 (per UTF-16 unit via `u8::try_from`; Claude Code's regex has no `u` flag, read from its code; `é` → `-`, emoji → `--` tested; no canonicalize)
+- design-advisor rec 4 — refused: the rec guessed the long-name hash comes from the runtime. Claude Code 2.1.280's own code shows it is `AQ`, a plain JS function (`(r<<5)-r+charCodeAt|0`); `Bun.hash` is a different function (`_se`). It is copied and checked against Claude Code's own function under node (348c938), with the 200/201 boundary (91e992c). A wrong hash can only miss a folder (no receipt), never find a sibling project's, so it meets the rec's own safety reason; no prefix match, no newest-anywhere fallback
+- design-advisor rec 5 — obeyed: 9c9d96d (the conformance run on this machine — 12 folders with a `cwd` field, 12 match, the old rule 9 — recorded in the ADR-0004 S192 addendum and the summary; no transcript committed) and 348c938 (pairs incl. `.`, `_`, space, `/private/tmp`); the `.claude` case is covered by the conformance run (`-Users-suman--claude-projects-…`), not a unit pair
+- design-advisor rec 6 — obeyed: 348c938 ((a) a resume with messages and no new spend → `ThisRun{0.0}`; (b) only cost-state lines after launch → `None`; (c) new spend → `ThisRun{1.5}`) and 3fbe5e0 ((d) the live fork shape → `IncludesEarlierSpend`). (a) checks the record, not the rendered "$0.00" line
+- design-advisor rec 7 — obeyed: 3fbe5e0 (named, not closed; the live `/clear` run printed "multiple sessions detected"; no ADR-0003 addendum, no hook)
+- design-advisor rec 8 — obeyed: 9c9d96d and 3fbe5e0 (ADR-0004 S192 addendum: (i) deviates from §2.2; (ii) the long-name rule — copied, per rec 4's answer; (iii) `VAJRA_CLAUDE_PROJECTS_DIR` is dispatch's only; (iv) the shared-folder limit; (v) the live fork, `--continue` and `/clear` results, replacing S189's "assumed, not verified")
+
+**fidelity-reviewer** (`.ai/handoffs/session-192-fidelity-reviewer.md`):
+- fidelity-reviewer rec 1 — obeyed: 88dda00 (verify-189, demo-189 and verify-178 give the fake log folder Claude Code's name AND the old `/`-only name, because each compares against an older binary that uses the old rule; run at the tip: verify-189 20/20, demo-189 green, verify-178's rec 3 row passes and its 4 other red rows are older than S192 — S181's LEGACY-stamp lines and an unloaded `vajra_waiver_ok` — recorded in the summary, 956ab0d)
+- fidelity-reviewer rec 2 — obeyed: a4f7009 (the founder's call, given 2026-10-09 after this review started — "leave it named" — in the ADR-0004 S192 addendum) and 0b1adda (in the summary; AC4 stands on that call)
+- fidelity-reviewer rec 3 — obeyed: 956ab0d (re-run at the final tip: verify-192 8/8, full `cargo test` 706/0, `scripts/ci-lint.sh` clean, demo 5/5; the summary's numbers updated)
+- fidelity-reviewer rec 4 — obeyed: a4f7009 (verify-192 row "AC3 right reason": a log filed under the old name in `my proj_v2.0` — the 0a58fb5 binary shows $6.90, today's none)
+- fidelity-reviewer rec 5 — obeyed: a4f7009 (no log found → `[vajra] no receipt: no Claude Code log from this run in <folder>`; verify-192 row "rec 5", silent at 0a58fb5)
+- fidelity-reviewer rec 6 — deferred: prompts/193-task-rudra-s19.md
+
+**release-coordinator** (`.ai/handoffs/session-192-release-coordinator.md`) — the one judge: 21 AGREE, 0 DISAGREE:
+- release-coordinator rec 1 — deferred: sessions/session-192-review.md
+- release-coordinator rec 2 — deferred: .ai/SESSION-BOOT.md
+- release-coordinator rec 3 — deferred: .ai/SESSION-BOOT.md

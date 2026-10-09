@@ -51,9 +51,9 @@ fn fixture(roles: &[(&str, &str)]) -> Fixture {
             .unwrap()
             .success());
     }
-    // Claude Code names the project dir by the repo path with `/` -> `-`.
+    // Claude Code names the project dir by the repo path, every non-alphanumeric char -> `-` (S192).
     let canon = fs::canonicalize(&repo).unwrap();
-    let pdir = projects.join(canon.to_string_lossy().replace('/', "-"));
+    let pdir = projects.join(vajractl::meter::cc_folder_name(&canon.to_string_lossy()));
     let uuid = "sess-uuid-1";
     let sub = pdir.join(uuid).join("subagents");
     fs::create_dir_all(&sub).unwrap();

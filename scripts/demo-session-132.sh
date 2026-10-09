@@ -71,7 +71,7 @@ HAND
 PROJROOT="$TMP/fake-cc-projects"
 build_dispatch() {
   local ROLE="$1" TOOL_ID="$2"
-  local SLUG; SLUG="$(echo "$TMP" | sed 's#/#-#g')"
+  local SLUG; SLUG="$(echo "$TMP" | sed 's#[^A-Za-z0-9]#-#g')"
   local PROJ="$PROJROOT/$SLUG" UUID="uuid-$ROLE"
   mkdir -p "$PROJ/$UUID/subagents"
   printf '{"agentType":"%s","toolUseId":"%s"}' "$ROLE" "$TOOL_ID" > "$PROJ/$UUID/subagents/agent-x1.meta.json"

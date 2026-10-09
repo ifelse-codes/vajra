@@ -20,6 +20,7 @@
 //! `project_dir` so tests never touch the real machine's Claude Code history or race on a shared
 //! env var.
 
+use crate::meter;
 use serde_json::Value;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -251,23 +252,17 @@ pub fn cross_check(
 // shared env var (avoiding both a slow/foreign-data test and a parallel-test race).
 // ---------------------------------------------------------------------------
 
-/// `~/.claude/projects`, or `VAJRA_CLAUDE_PROJECTS_DIR` when set — the SAME override
-/// `scripts/check-subagent-cost-fields.sh` already uses (S111), not a second env var for the same
-/// root.
-pub fn claude_projects_root() -> Option<PathBuf> {
-    if let Ok(p) = std::env::var("VAJRA_CLAUDE_PROJECTS_DIR") {
-        return Some(PathBuf::from(p));
-    }
-    let home = std::env::var_os("HOME")?;
-    Some(PathBuf::from(home).join(".claude/projects"))
-}
-
-/// `<projects-root>/<repo-path-slug>` — the exact scheme `vajra meter`'s `default_project_dir`
-/// already uses (CC replaces `/` with `-`), so a repo checked out anywhere still resolves.
+/// A repo's Claude Code transcript folder. `VAJRA_CLAUDE_PROJECTS_DIR`, when set, replaces the
+/// projects root — the SAME override `scripts/check-subagent-cost-fields.sh` already uses (S111), a
+/// test seam for provenance only (the meter never reads it, ADR-0004 S192 addendum). Otherwise it is
+/// where Claude Code itself keeps it (`meter::cc_project_dir`: `CLAUDE_CONFIG_DIR`). Either way the
+/// folder is Claude Code's own name for the path (S192: before, only `/` was replaced, so a repo at a
+/// path with `.`, `_` or a space had every handoff read as unverifiable).
 pub fn project_dir_for(repo_root: &Path) -> Option<PathBuf> {
-    let projects = claude_projects_root()?;
-    let slug = repo_root.to_string_lossy().replace('/', "-");
-    Some(projects.join(slug))
+    if let Ok(p) = std::env::var("VAJRA_CLAUDE_PROJECTS_DIR") {
+        return Some(PathBuf::from(p).join(meter::cc_folder_name(&repo_root.to_string_lossy())));
+    }
+    meter::cc_project_dir_from_env(repo_root)
 }
 
 /// Parse one `agent-<id>.meta.json`'s `agentType` + `toolUseId`. `None` on anything malformed —
