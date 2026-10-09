@@ -71,3 +71,15 @@ design-significant: no
 ## Delta
 - `+` rudra S19 findings (F116…) with the founder's calls
 - `~` whatever they show is wrong
+
+## Advice
+Roles dispatched: `tech-lead` (mandatory, first). Required at close: `fidelity-reviewer` (the one cold review),
+`release-coordinator` (the one judge of every `obeyed:` answer).
+
+design-advisor: skipped — the tech-lead deferred it on budget: design-significant: no and no finding exists yet to design (~0.5M, ~1.6M → ~2.1M); its rec 4 dispatches it narrowly if an approved finding changes a guard, the receipt or `vajra init` for every project.
+researcher: skipped — the tech-lead deferred it on budget: the evidence is rudra S19's own close logs, receipt and transcript on this machine, and S192 already proved the receipt live (~0.4M saved).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the founder co-wrote the deliverables and AC1–AC4 and brings the findings himself (~0.3M would buy a restatement).
+plan-advisor: skipped — the tech-lead deferred it on budget: the Plan covers AC1–AC4 with `covers: N`; the real order depends on findings that do not exist yet (~0.3M).
+implementation-advisor: skipped — the tech-lead deferred it on budget: no code is approved yet; its recs 3 and 5 name the traps (red for the right reason, the full cargo test before push) (~0.6M).
+qa-specialist: skipped — the tech-lead deferred it on budget: AC2 makes every fix's check real-run and red at the start commit, and the fidelity-reviewer re-runs verify-193 at both ends (~0.6M).
+demo-producer: skipped — the tech-lead deferred it on budget: the founder watches his own rudra run and its receipt; the summary records both (~0.3M).
