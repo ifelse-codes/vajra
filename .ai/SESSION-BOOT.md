@@ -1,7 +1,7 @@
 # Session Boot
 
 ## Next Session
-- **S193 — rudra session 19 under the trusted receipt** (`prompts/193-task-rudra-s19.md`, DRAFT — the founder's pick, 2026-10-09). S192's PR first: merge it with a merge commit; then in YOUR terminal `git checkout main && git pull --ff-only`, `git branch -d session-192-prove-the-receipt`, `cargo install --path .`, then `vajra approve 193`. In rudra: `vajra init --sync-fleet`, `vajra approve 19`. Start S193 in a FRESH chat.
+- **S193 — rudra session 19 under the trusted receipt** (`prompts/193-task-rudra-s19.md`, DRAFT — the founder's pick, 2026-10-09). S192's PR first: merge it with a merge commit; then in YOUR terminal `git checkout main && git fetch --prune && git pull --ff-only`, `git branch -d session-192-prove-the-receipt` (lowercase -d), `cargo install --path .`, then `vajra approve 193`. In rudra: `vajra init --sync-fleet`, `vajra approve 19`. Start S193 in a FRESH chat.
 
 ## Current Session
 - **Number:** 192 — COMPLETE on `session-192-prove-the-receipt` (PR open). CODE, interactive: the receipt proven live — rudra $6.90/$22.96 = Claude Code's own cost-state; fresh $0.02, `--continue` $0.01 (this run's share), a fork labelled whole-conversation ($0.03; **a fork keeps the parent's `startTime`**, S189's assumption verified); `/clear` skips (named, founder 2026-10-09). The transcript folder is named by Claude Code's own rule (every non-alphanumeric → `-`, >200 hashed, `CLAUDE_CONFIG_DIR`) in the meter, `vajra meter --all` and dispatch's handoff provenance. ADR-0004 S192 addendum. Summary: `sessions/session-192-summary.md`. Review: `sessions/session-192-review.md`. Verify: `scripts/verify-session-192.sh` (6/6). Demo: `scripts/demo-session-192.sh` (5/5).
