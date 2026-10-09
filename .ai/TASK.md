@@ -10,7 +10,7 @@
 
 - Brief: `prompts/193-task-rudra-s19.md`. Summary: `sessions/session-193-summary.md`. Review: `sessions/session-193-review.md`. Decision: ADR-0004 S193 addendum (deviates from the S189 "Receipt wording").
 - rudra S19: receipt $37.27 = Claude Code's own cost-state (fresh run). Findings F116–F119 with the founder's calls.
-- Shipped: **F117** — with Claude Code's own figure the receipt shows only that figure (no estimate, split or pricing warning). Verify 10/10 · demo 5/5 · `cargo test` 709/0.
+- Shipped: **F117** — with Claude Code's own figure the receipt shows only that figure (no estimate, split or pricing warning). Verify 11/11 + 1 record · demo 5/5 · `cargo test` 709/0.
 - **Parked as known bugs (founder):** F116 (approval record left out of git) · F118 (`--advance` keeps the old text) · F119 (design ✗ on a no-design prompt) → ROADMAP backlog, S195 checklist.
 
 ## Session 192 — CODE, interactive: prove the receipt live, through rudra — COMPLETE

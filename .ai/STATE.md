@@ -10,7 +10,7 @@
 - **rudra S19 (the founder's run, $37.27):** receipt $37.27 = the run log's `cost-state` 37.2723498 = `~/.claude.json` lastCost (a fresh run). Close green; log: 0 WAIVED, 2 WARN (unchecked `obeyed:` claims, no `lint_command:` — both expected); 2 blocks, both correct (read-first pause; the publish guard stopped the agent's merge).
 - **F117 FIXED (ADR-0004 S193 addendum, deviates from the S189 "Receipt wording"):** with Claude Code's own figure (result line / `-p` stream, this run's cost-state share, or `vajra meter FILE`'s whole-file total) the receipt shows only that figure — no `[estimate]` line, no split, no "not in pricing table" or cache-tier warning. One predicate (`SessionCost::has_tool_figure`, `ToolRecord::is_figure`). No figure (a crash, a fork) → unchanged.
 - **Parked as known bugs (founder; ROADMAP § Backlog "🐞 KNOWN BUGS — TO FIX", S195 checklist):** F116 the approval record is left out of git at close (the "commit it" line reaches only the founder's terminal) · F118 `--advance` leaves the old session's text under the new number · F119 `--steps` shows ✗ for design on a no-design prompt.
-- Verify-193 10/10 (each fix red at d2ec218) · demo 5/5 · `cargo test` 709/0 · verify-189 20/20 · verify-192 8/8 · ci-lint clean.
+- Verify-193 11/11 + 1 record (each fix red at d2ec218) · demo 5/5 · `cargo test` 709/0 · verify-189 20/20 · verify-192 8/8 · ci-lint clean.
 - The founder got the whole roadmap as a field-notes page (his own copy in ~/Documents; not in the repo).
 
 ## Previous session (S192 — CODE, interactive: prove the receipt live, through rudra, merged #230)

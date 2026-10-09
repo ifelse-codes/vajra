@@ -56,8 +56,8 @@ rudra S19's receipt would now read:
 | D1 findings list F116… with evidence + the founder's call | SHIPPED | the table above; ROADMAP `0c99011` |
 | D2 a fix for every finding he said yes to, each with a test that fails without it | SHIPPED | F117: `78d02af`; verify-193 rows 1–3 red at d2ec218 with F117's own lines; unit test `s193_the_estimate_shows_only_without_a_figure_from_claude_code` |
 | AC1 every finding has evidence and a founder call in the summary | SHIPPED | Findings table |
-| AC2 every fix has a real-run check in verify-193, no source greps, red at the start commit | SHIPPED | `scripts/verify-session-193.sh` 10/10. It runs `vajra claude` / `vajra meter` and builds d2ec218. The one file read is the price-list comparison against the start commit (row 5, as S189 did) |
-| AC3 the rudra S19 receipt's top line recorded against Claude Code's own total | SHIPPED | the AC3 table; verify-193 row 6 records the numbers (it cannot re-read his log, S126) |
+| AC2 every fix has a real-run check in verify-193, no source greps, red at the start commit | SHIPPED | `scripts/verify-session-193.sh` 11/11 + 1 record line. It runs `vajra claude` / `vajra meter` and builds d2ec218. The one file read is the price-list comparison against the start commit (row 5, as S189 did) |
+| AC3 the rudra S19 receipt's top line recorded against Claude Code's own total | SHIPPED | the AC3 table; verify-193 prints them as a RECORD line, not a pass (it cannot re-read his log, S126) |
 | AC4 no Vajra commit touches rudra; full `cargo test` passes | SHIPPED | every commit is in this repo; `cargo test --release` 709 passed / 0 failed |
 
 Also run at the tip: verify-189 20/20 and verify-192 8/8 (older receipt checks, unchanged), demo-193 5/5,
@@ -73,10 +73,11 @@ Also run at the tip: verify-189 20/20 and verify-192 8/8 (older receipt checks, 
 
 ## Fakest green
 
-verify-193 row 6 ("AC3"). It compares numbers typed into the script, not the founder's live log, so it cannot go red.
-The real check was done by hand this session (the commands' output is in the chat, not committed, S126). Second: row
-1 proves the new receipt on a stand-in `claude`, not on a real Claude Code exit. The founder's next real run is the
-live proof.
+AC3. The receipt-vs-Claude-Code comparison was done by hand from the founder's run log, which stays on his machine
+(S126). After review rec 3, verify-193 prints it as a `RECORD:` line and does not count it as a pass, but the numbers
+are still the author's word. Second: rows 1–3 prove the new receipt against a stand-in `claude`, not a real Claude Code
+exit. The founder's next real run is the live proof (review rec 4). The cache-tier warning had only a hand-injected
+unit test; review rec 2 added a real-run row (row 4b).
 
 ## Process
 
