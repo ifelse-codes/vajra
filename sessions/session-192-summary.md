@@ -13,7 +13,7 @@ Yes. S189's receipt is now proven on real runs, and the one receipt bug S190 pic
 | AC1 rudra receipt = Claude Code's figure | ✅ two rudra runs through a vajra built 2 min after S191's merge (21:14, `0a58fb5` 21:12; `vajra --version` 0.2.0 in both): run c7785031 receipt **$6.90** = cost-state 6.8958896; run d8cc560a **$22.96** = 22.9619658 = `~/.claude.json` lastCost 22.9619658. Fresh sessions, so share = total. rudra had S191's session guard (byte-equal to Vajra's but for the stamp line). |
 | AC2 `/clear`, `--continue`, a fork | ✅ founder's runs, Haiku, `~/vajra s192_test.dir`: fresh **$0.02** = $0.0160 · `--continue` **$0.01** = $0.0245 − $0.0160 · fork: "no cost from Claude Code for this run" + whole conversation **$0.03** labelled ($0.0286). **A fork keeps the parent's `startTime`** (1791514893813 in both logs) and carries the parent's running total — S189's assumption verified. `/clear`: each clear starts a new log whose cost-state restarts at $0 with its own `startTime` (one run: 4 logs, $0.0256 + $0.0163 + $0.0164 + $0.0162); the receipt skipped ("multiple sessions detected"). A first try of the continue/fork runs was spoiled by typed-ahead keys (a `/clear` within 25 ms of launch) and a second by two bugs in the agent's own script (bash 3.2 rejects `read -t 0.2`; a new folder's trust prompt defaults to "No, exit"); the third try is the evidence. |
 | AC3 folder name + `CLAUDE_CONFIG_DIR` | ✅ `meter::cc_folder_name` / `cc_project_dir` copy Claude Code 2.1.280's own code (`kT`, `we`, read from its binary): every UTF-16 unit outside `[A-Za-z0-9]` → `-`, over 200 cut + hashed, `$CLAUDE_CONFIG_DIR/projects` else `~/.claude/projects`, `CLAUDE_CODE_PROJECT_DIR_NAME` where Claude Code uses it. Expected names in the tests come from running Claude Code's own function under node. On this Mac the rule reproduces **12 of 12** real folders (each log's own `cwd`); the old rule 9. Live: the founder's runs in `vajra s192_test.dir` (space, `.`, `_`) got receipts. verify-192 shows both red at `0a58fb5`, with a plain-folder control green on both binaries. |
-| AC4 gaps fixed or named | ✅ fixed: the same `/`-only rule in dispatch's handoff provenance (`project_dir_for`) — a repo at `~/my_app` had every helper handoff unverifiable; 7 old verify/demo fixtures + `tests/stamp_gate.rs` build fake folders by the new rule. Named, not closed (founder's call asked, see below): `/clear` gets no receipt; a fork's own share is not shown. |
+| AC4 gaps fixed or named | ✅ fixed: the same `/`-only rule in dispatch's handoff provenance (`project_dir_for`) — a repo at `~/my_app` had every helper handoff unverifiable; 7 old verify/demo fixtures + `tests/stamp_gate.rs` build fake folders by the new rule. Named, not closed (founder's call 2026-10-09: leave it named): `/clear` gets no receipt; a fork's own share is not shown. |
 | AC5 verify + cargo test | ✅ `scripts/verify-session-192.sh` 6/6 · full `cargo test` 706 passed, 0 failed · demo 5/5 live checks. |
 
 **rudra-run numbers recorded here, no capture committed** (S126 rule).
@@ -32,7 +32,7 @@ Yes. S189's receipt is now proven on real runs, and the one receipt bug S190 pic
 
 - **`/clear` gets no receipt** (live). Summing every new log would also sum a second session in the same folder; the
   safe fix is the SessionStart session-id match (S189 researcher rec 2) — needs an ADR-0003 addendum and the
-  founder's yes. Recommended as next option 2. **The founder has not yet given his call on it**; it stays named.
+  founder's yes. **Founder's call (2026-10-09): "leave it named"** — fixed only if the session-id hook is picked later.
 - **A fork's own share is not shown** — the receipt shows the whole conversation, labelled. The fork's log names its
   parent in no pinned field; same session-id design.
 - Claude Code puts `/x/my.app`, `/x/my_app`, `/x/my app` in one folder; a run that wrote no log while a twin did
@@ -57,6 +57,8 @@ Crew: tech-lead (mandatory) → design-advisor (required) → fidelity-reviewer 
 scripts look red, and two script bugs that cost the founder two re-runs.
 
 ## Next — 3 ranked candidates
+
+**Founder's pick (2026-10-09): option 1** — rudra's next session (rudra S19) → `prompts/193-task-rudra-s19.md`.
 
 1. **(Recommended) rudra's next session, under the trusted receipt.** The founder runs his next rudra session with this
    branch's vajra; we read what it finds. Why: real work finds what fixtures cannot, and the receipt is now
