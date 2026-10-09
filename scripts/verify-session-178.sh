@@ -75,11 +75,13 @@ done
 # fixture repo whose Claude Code history points at Vajra's own; plus a fidelity-reviewer handoff whose
 # dispatch id is made up — the rudra S13 recovery shape. OLD: no note. NEW: the note.
 CC_PROJECTS="${VAJRA_CLAUDE_PROJECTS_DIR:-$HOME/.claude/projects}"
-REAL_CC="$CC_PROJECTS/$(printf '%s' "$ROOT" | tr '/' '-')"
+REAL_CC="$CC_PROJECTS/$(printf '%s' "$ROOT" | sed 's#[^A-Za-z0-9]#-#g')"   # S192: Claude Code's own folder name
 if [ -f .ai/handoffs/session-178-tech-lead.md ] && [ -d "$REAL_CC" ]; then
   X="$T/site2"; mkdir -p "$X/prompts" "$X/.ai/handoffs" "$T/cc" && ( cd "$X" && git init -q )
   XR="$(cd "$X" && git rev-parse --show-toplevel)"
-  ln -s "$REAL_CC" "$T/cc/$(printf '%s' "$XR" | tr '/' '-')"
+  # S192: the new name (every non-alphanumeric → `-`) for today's vajra, the old (`/` only) for the old one.
+  ln -s "$REAL_CC" "$T/cc/$(printf '%s' "$XR" | sed 's#[^A-Za-z0-9]#-#g')"
+  [ -e "$T/cc/$(printf '%s' "$XR" | tr '/' '-')" ] || ln -s "$REAL_CC" "$T/cc/$(printf '%s' "$XR" | tr '/' '-')"
   cp prompts/178-task-keep-testing.md "$X/prompts/"
   cp .ai/handoffs/session-178-tech-lead.md "$X/.ai/handoffs/"
   sed -e 's/^role: tech-lead/role: fidelity-reviewer/' \

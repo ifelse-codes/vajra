@@ -32,7 +32,10 @@ cat > "$DK_TMP/bin/claude" <<'EOF'
 now_ms() { perl -MTime::HiRes=time -e 'printf "%d\n", time()*1000'; }
 stamp() { perl -MPOSIX=strftime -e 'my $m=shift; printf "%s.%03dZ\n", strftime("%Y-%m-%dT%H:%M:%S", gmtime(int($m/1000))), $m%1000' "$1"; }
 start=$(now_ms); sleep 0.05
-dir="$HOME/.claude/projects/$(pwd -P | tr / -)"; mkdir -p "$dir"
+# S192: Claude Code names the folder by replacing every non-alphanumeric character; the binary at the
+# start commit replaced only `/`. The folder gets the new name, linked under the old one, so each finds it.
+here="$(pwd -P)"; dir="$HOME/.claude/projects/$(printf '%s' "$here" | perl -pe 's/[^A-Za-z0-9]/-/g')"; mkdir -p "$dir"
+olddir="$HOME/.claude/projects/$(printf '%s' "$here" | tr / -)"; [ -e "$olddir" ] || ln -s "$dir" "$olddir"
 log="$dir/69ecb30e-f3ea-4691-84aa-4fe8e8630ef8.jsonl"
 [ -n "${STUB_SEED:-}" ] && cp "$STUB_SEED" "$log"
 [ -n "${STUB_SEED_START:-}" ] && start="$STUB_SEED_START"
