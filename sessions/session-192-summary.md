@@ -12,9 +12,9 @@ Yes. S189's receipt is now proven on real runs, and the one receipt bug S190 pic
 |---|---|
 | AC1 rudra receipt = Claude Code's figure | ✅ two rudra runs through a vajra built 2 min after S191's merge (21:14, `0a58fb5` 21:12; `vajra --version` 0.2.0 in both): run c7785031 receipt **$6.90** = cost-state 6.8958896; run d8cc560a **$22.96** = 22.9619658 = `~/.claude.json` lastCost 22.9619658. Fresh sessions, so share = total. rudra had S191's session guard (byte-equal to Vajra's but for the stamp line). |
 | AC2 `/clear`, `--continue`, a fork | ✅ founder's runs, Haiku, `~/vajra s192_test.dir`: fresh **$0.02** = $0.0160 · `--continue` **$0.01** = $0.0245 − $0.0160 · fork: "no cost from Claude Code for this run" + whole conversation **$0.03** labelled ($0.0286). **A fork keeps the parent's `startTime`** (1791514893813 in both logs) and carries the parent's running total — S189's assumption verified. `/clear`: each clear starts a new log whose cost-state restarts at $0 with its own `startTime` (one run: 4 logs, $0.0256 + $0.0163 + $0.0164 + $0.0162); the receipt skipped ("multiple sessions detected"). A first try of the continue/fork runs was spoiled by typed-ahead keys (a `/clear` within 25 ms of launch) and a second by two bugs in the agent's own script (bash 3.2 rejects `read -t 0.2`; a new folder's trust prompt defaults to "No, exit"); the third try is the evidence. |
-| AC3 folder name + `CLAUDE_CONFIG_DIR` | ✅ `meter::cc_folder_name` / `cc_project_dir` copy Claude Code 2.1.280's own code (`kT`, `we`, read from its binary): every UTF-16 unit outside `[A-Za-z0-9]` → `-`, over 200 cut + hashed, `$CLAUDE_CONFIG_DIR/projects` else `~/.claude/projects`, `CLAUDE_CODE_PROJECT_DIR_NAME` where Claude Code uses it. Expected names in the tests come from running Claude Code's own function under node. On this Mac the rule reproduces **12 of 12** real folders (each log's own `cwd`); the old rule 9. Live: the founder's runs in `vajra s192_test.dir` (space, `.`, `_`) got receipts. verify-192 shows both red at `0a58fb5`, with a plain-folder control green on both binaries. |
-| AC4 gaps fixed or named | ✅ fixed: the same `/`-only rule in dispatch's handoff provenance (`project_dir_for`) — a repo at `~/my_app` had every helper handoff unverifiable; 7 old verify/demo fixtures + `tests/stamp_gate.rs` build fake folders by the new rule. Named, not closed (founder's call 2026-10-09: leave it named): `/clear` gets no receipt; a fork's own share is not shown. |
-| AC5 verify + cargo test | ✅ `scripts/verify-session-192.sh` 6/6 · full `cargo test` 706 passed, 0 failed · demo 5/5 live checks. |
+| AC3 folder name + `CLAUDE_CONFIG_DIR` | ✅ `meter::cc_folder_name` / `cc_project_dir` copy Claude Code 2.1.280's own code (`kT`, `we`, read from its binary): every UTF-16 unit outside `[A-Za-z0-9]` → `-`, over 200 cut + hashed, `$CLAUDE_CONFIG_DIR/projects` else `~/.claude/projects`, `CLAUDE_CODE_PROJECT_DIR_NAME` where Claude Code uses it. Expected names in the tests come from running Claude Code's own function under node. On this Mac the rule reproduces **12 of 12** real folders (each log's own `cwd`); the old rule 9. Live: the founder's runs in `vajra s192_test.dir` (space, `.`, `_`) got receipts. verify-192 shows both red at `0a58fb5`, with a plain-folder control green on both binaries and a right-reason row (a log under the old name: the `0a58fb5` binary finds it, today's does not — review rec 4). |
+| AC4 gaps fixed or named | ✅ fixed: the same `/`-only rule in dispatch's handoff provenance (`project_dir_for`) — a repo at `~/my_app` had every helper handoff unverifiable; 10 old verify/demo fixtures + `tests/stamp_gate.rs` build fake folders by the new rule (3 of them — verify-189, demo-189, verify-178 — found by the cold review; they give the folder both names, so the old binary they compare against still finds it). When no log is found, the receipt now says where it looked (`[vajra] no receipt: no Claude Code log from this run in …`, review rec 5) instead of staying silent. Named, not closed (founder's call 2026-10-09: leave it named): `/clear` gets no receipt; a fork's own share is not shown. |
+| AC5 verify + cargo test | ✅ at the final tip: `scripts/verify-session-192.sh` 8/8 · full `cargo test` 706 passed, 0 failed · `scripts/ci-lint.sh` clean · demo 5/5 live checks. verify-189 20/20 and demo-189 green after their fixture fix. |
 
 **rudra-run numbers recorded here, no capture committed** (S126 rule).
 
@@ -40,12 +40,17 @@ Yes. S189's receipt is now proven on real runs, and the one receipt bug S190 pic
   An empty `CLAUDE_CONFIG_DIR` counts as unset.
 - `scripts/verify-session-131.sh` stays red on 2 checks that were already stale (a grep for the pre-S181
   provenance text, an advance now stopped by the S135 crew gate) — the S192 part passes there (provenance
-  **verified**, verdict READY). verify-132/133/135 green after the fixture change. Not repaired: Vajra's own
+  **verified**, verdict READY). verify-132/133/135 green after the fixture change. `scripts/verify-session-178.sh` has 4 red checks, all older than
+  S192 (3 "other text changed" rows whose only added lines are S181's LEGACY-stamp notes; AC6 (b) calls
+  `vajra_waiver_ok`, which it never loads); the row S192 touched (rec 3) passes. Not repaired: Vajra's own
   paperwork (2026-09-15 rule).
 
 ## Fakest green
 
-The long-name hash (over 200 characters) is checked against Claude Code's own function run under node, never against
+The cold review named two: (1) AC4's ✅ while the founder's `/clear` call was still asked-not-given — given since
+(2026-10-09, "leave it named"), so AC4 now stands; (2) the oracles: the long-name expectations and the "12 of 12"
+count come from Claude Code's function and this machine, but nothing in the repo re-derives them (review rec 6 →
+backlog). Also: the long-name hash (over 200 characters) is checked against Claude Code's own function run under node, never against
 a real folder: no path on this machine is that long. If a Claude Code build computes it differently, such a project
 gets no receipt — fail-closed, but unproven live.
 
