@@ -155,3 +155,12 @@ demo-producer: skipped — the tech-lead deferred it on budget: the founder watc
 - design-advisor rec 7 — obeyed: 301f875 (`TPL_GITHOOK_PRE_MERGE_COMMIT` include_str!, `fxs` in `files()`, `SYNC_HOOKS`, executable via `fxs`, `!.githooks/pre-merge-commit` in Cargo.toml; the init tests list it — the 0o755 mode is checked by verify-194 row 3's `-x`) and 2cb027d (verify-194 row 4: `--sync-fleet` on a 7e8210e project writes it executable and it stops the merge; row 5: `cargo package --list`)
 - design-advisor rec 8 — obeyed: b014bf5 (the S172 sentence struck through, pointing at the S194 addendum, which names fast-forward, `reset --hard`, `branch -f`, `update-ref`, `--no-verify`, no `core.hooksPath`; the L3 guard not touched) and 2cb027d (verify-194 prints the KNOWN GAP line)
 - design-advisor rec 9 — obeyed: 052d338 (`starts_with_json_object` runs before `repo_root()` and any write; `tests/role_refuses_transcript.rs`: file and stdin refused, an existing handoff byte-for-byte, a brief with a fenced json block still records — 3 of 4 red at the start)
+
+**fidelity-reviewer** (`.ai/handoffs/session-194-fidelity-reviewer.md`) — one cold pass, ACCEPT 4 SHIPPED / 2 PARTIAL:
+- fidelity-reviewer rec 1 — obeyed: 56b4693 (the reader takes the newest run since launch that WROTE a result and names a later result-less run after it; verify-194 row 1b — a full RED close, then `--fidelity-only` a second later — red before this commit with "started … but wrote no result", passes after; unit test `s194_a_later_partial_run_does_not_hide_the_red`)
+- fidelity-reviewer rec 2 — obeyed: 97fac97 (ADR-0004 S194 addendum: "this run" = newest run with a result, the focused modes named as a cause, the early-stop limit named) and 6aea9bf (the summary's state list and limits say the same)
+- fidelity-reviewer rec 3 — obeyed: 6aea9bf (F122's call in the asked form, the founder's words: "Park for S195", 2026-10-12)
+- fidelity-reviewer rec 4 — obeyed: 6aea9bf (`.ai/approvals/session-194.json` committed unchanged; the F116 sighting added to the summary's findings)
+- fidelity-reviewer rec 5 — deferred: .ai/SESSION-BOOT.md
+- fidelity-reviewer rec 6 — obeyed: 6aea9bf (the demo's next slide lists the summary's three ranked options, in order) and 8c48fac (its rule slide names the partial-run case)
+- fidelity-reviewer rec 7 — obeyed: 97fac97 (DECISION-007: "every route that makes a merge commit"; a human's non-fast-forward `git pull` on local main is named as refused too)
