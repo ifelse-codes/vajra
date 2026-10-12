@@ -101,7 +101,10 @@ fn s194_a_transcript_file_is_refused_and_nothing_is_written() {
     let file = write(&r.dir, "agent.output", TRANSCRIPT);
     let (ok, out) = vajra(&r, &["next", "--role", "tech-lead", "--from", &file], None);
     assert!(!ok, "a transcript must be refused: {out}");
-    assert!(out.contains("is a transcript, not a findings brief"), "{out}");
+    assert!(
+        out.contains("is a transcript, not a findings brief"),
+        "{out}"
+    );
     assert!(!handoff(&r).exists(), "nothing may be written");
 }
 
@@ -114,7 +117,10 @@ fn s194_a_transcript_on_stdin_is_refused_too() {
         Some(TRANSCRIPT),
     );
     assert!(!ok, "a transcript must be refused: {out}");
-    assert!(out.contains("is a transcript, not a findings brief"), "{out}");
+    assert!(
+        out.contains("is a transcript, not a findings brief"),
+        "{out}"
+    );
     assert!(!handoff(&r).exists(), "nothing may be written");
 }
 
@@ -129,7 +135,11 @@ fn s194_an_existing_handoff_is_left_byte_for_byte() {
     let file = write(&r.dir, "agent.output", TRANSCRIPT);
     let (ok, out) = vajra(&r, &["next", "--role", "tech-lead", "--from", &file], None);
     assert!(!ok, "a transcript must be refused: {out}");
-    assert_eq!(fs::read(handoff(&r)).unwrap(), before, "the handoff changed");
+    assert_eq!(
+        fs::read(handoff(&r)).unwrap(),
+        before,
+        "the handoff changed"
+    );
 }
 
 #[test]
@@ -139,5 +149,8 @@ fn s194_a_brief_quoting_a_json_block_still_records() {
     let (ok, out) = vajra(&r, &["next", "--role", "tech-lead", "--from", &brief], None);
     assert!(ok, "a markdown brief must record: {out}");
     let text = fs::read_to_string(handoff(&r)).unwrap();
-    assert!(text.contains("rec 1 — read the close log for WAIVED first."), "{text}");
+    assert!(
+        text.contains("rec 1 — read the close log for WAIVED first."),
+        "{text}"
+    );
 }

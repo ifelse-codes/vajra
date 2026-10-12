@@ -308,5 +308,8 @@ fn s194_merging_into_a_session_branch_is_not_policed() {
         .status
         .success());
     let (ok, out) = merge(d.path(), "session-02-y", &[CLAUDE]);
-    assert!(ok, "agent merging a 5-file branch into its session branch: {out}");
+    assert!(
+        ok,
+        "agent merging a 5-file branch into its session branch: {out}"
+    );
 }
