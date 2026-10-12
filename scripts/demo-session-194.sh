@@ -128,11 +128,11 @@ slide_scorecard() {
 
 slide_next() {
   dk_section next "where this sits · what's next"
-  dk_h2 "Next — S195 is review-only (every 5th session)"
+  dk_h2 "Next — 3 ranked options (the same as the summary)"
   dk_table " |Option|Why pick it · the risk" \
-    "1|S195 review-only, then rudra S21 on Opus with the new exit box|S195 is the rule; then see F121 live · risk: S21 waits on licensed data" \
-    "2|after S195: F125 + F116/F118/F119, the known-bug session|each one a user meets · risk: F125 needs a design" \
-    "3|after S195: cut the cost (boot diet F4 + KNOWLEDGE trim)|your next build · risk: early by your own rule"
+    "1|S195 — the review-only session (every 5th): S191–S194, the Haiku question, the known bugs|it is the rule; rudra S20 raised a real direction question · risk: none, no code" \
+    "2|after S195: rudra S21 on Opus, synced, with the new exit box|F121's live proof · risk: S21 waits on licensed futures data" \
+    "3|after S195: the known-bug session — F125 first, then F116/F118/F119|each one a user meets · risk: F125 needs a design"
   dk_table "word|meaning" \
     "close check|the list of checks a session must pass to be done" \
     "exit box|what vajra prints when a Claude run ends: the cost, and now the close result" \
