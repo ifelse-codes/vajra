@@ -43,6 +43,8 @@ mkdir -p "$T/bin"
 cat > "$T/bin/claude" <<'STUB'
 #!/usr/bin/env bash
 [ -n "${STUB_CLOSE:-}" ] && bash scripts/verify-closeout.sh >/dev/null 2>&1
+# STUB_PARTIAL=1: then a focused mode in a later second, as reviewer/SKILL.md tells agents to (review rec 1).
+[ -n "${STUB_PARTIAL:-}" ] && sleep 1.1 && bash scripts/verify-closeout.sh --fidelity-only 1 >/dev/null 2>&1
 exit 0
 STUB
 chmod +x "$T/bin/claude"
@@ -72,6 +74,13 @@ R=$(ls -d "$P"/.ai/verify/closeout/2*/ 2>/dev/null | tail -1)
 if [ -n "$R" ] && [ ! -e "$R/result" ] && ! has "$OLD" 'close check'; then
   ok "F121 red at $OLD_SHA: the close check ran ($(basename "$R")) but wrote no result, and the exit box said nothing of it"
 else bad "F121 at $OLD_SHA:"$'\n'"$OLD"; fi
+
+# --- 1b (F121, review rec 1): a full RED close, then a partial mode — the RED must still show ---
+P=$(project "$VAJRA" f121-partial); NEW=$(launch "$VAJRA" "$P" STUB_CLOSE=1 STUB_PARTIAL=1)
+N_RUNS=$(ls -d "$P"/.ai/verify/closeout/2*/ 2>/dev/null | wc -l | tr -d ' ')
+if [ "$N_RUNS" -ge 2 ] && printf '%s\n' "$NEW" | grep -qE '^ close check: RED — [0-9]+ of [0-9]+ failed .*a later run .* wrote no result'; then
+  ok "F121 a later --fidelity-only run (no result) does not hide the RED: the box keeps it and names the later run"
+else bad "F121 RED then partial ($N_RUNS run folders):"$'\n'"$NEW"; fi
 
 # --- 2 (F121 control): no close check during the run → it says so, never GREEN ---
 P=$(project "$VAJRA" f121-none); NEW=$(launch "$VAJRA" "$P")

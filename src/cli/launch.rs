@@ -326,8 +326,8 @@ impl CloseCheck {
         match self {
             CloseCheck::NotRun => "close check: not run during this run".to_string(),
             CloseCheck::NoResult { stamp } => format!(
-                "close check: started {} but wrote no result (it stopped early, or the project's \
-                 script is older — run `vajra init --sync-fleet`) · {}",
+                "close check: started {} but wrote no result (a focused mode such as --fidelity-only, \
+                 it stopped early, or the project's script is older — run `vajra init --sync-fleet`) · {}",
                 stamp_time(stamp),
                 folder(stamp)
             ),
@@ -400,23 +400,63 @@ fn utc_stamp(t: SystemTime) -> String {
 }
 
 /// The newest run folder stamped at or after `since` is this run's close check.
-fn read_close_check(closeout_dir: &Path, since: &str) -> CloseCheck {
-    let newest = std::fs::read_dir(closeout_dir)
+/// The close check's verdict for this run, plus — when newer run folders wrote no result — the
+/// newest of them, so a later partial run is named instead of hiding the verdict.
+#[derive(Debug, PartialEq)]
+struct CloseReport {
+    check: CloseCheck,
+    later_without_result: Option<String>,
+}
+
+impl CloseReport {
+    fn line(&self) -> String {
+        match &self.later_without_result {
+            None => self.check.line(),
+            Some(later) => format!(
+                "{} · a later run at {} wrote no result (a focused mode such as --fidelity-only, \
+                 or it stopped early)",
+                self.check.line(),
+                stamp_time(later)
+            ),
+        }
+    }
+}
+
+/// The newest run folder stamped at or after `since` that WROTE a result is this run's verdict.
+/// Review rec 1 (S194): every focused mode (`--fidelity-only`, `--attest-only`, …) makes a dated
+/// folder and exits before the result is written, so "the newest folder" alone let a later
+/// partial run hide a full run's RED behind "wrote no result".
+fn read_close_check(closeout_dir: &Path, since: &str) -> CloseReport {
+    let mut stamps: Vec<String> = std::fs::read_dir(closeout_dir)
         .into_iter()
         .flatten()
         .flatten()
         .filter(|e| e.path().is_dir())
         .filter_map(|e| e.file_name().into_string().ok())
         .filter(|n| is_run_stamp(n) && n.as_str() >= since)
-        .max();
-    let Some(stamp) = newest else {
-        return CloseCheck::NotRun;
+        .collect();
+    stamps.sort_unstable_by(|a, b| b.cmp(a));
+    let Some(newest) = stamps.first().cloned() else {
+        return CloseReport {
+            check: CloseCheck::NotRun,
+            later_without_result: None,
+        };
     };
-    match std::fs::read_to_string(closeout_dir.join(&stamp).join("result")) {
-        Err(_) => CloseCheck::NoResult { stamp },
-        Ok(text) => {
-            parse_close_result(&text, stamp.clone()).unwrap_or(CloseCheck::Unreadable { stamp })
+    for stamp in &stamps {
+        if let Ok(text) = std::fs::read_to_string(closeout_dir.join(stamp).join("result")) {
+            let check =
+                parse_close_result(&text, stamp.clone()).unwrap_or(CloseCheck::Unreadable {
+                    stamp: stamp.clone(),
+                });
+            return CloseReport {
+                check,
+                later_without_result: (*stamp != newest).then_some(newest),
+            };
         }
+    }
+    CloseReport {
+        check: CloseCheck::NoResult { stamp: newest },
+        later_without_result: None,
     }
 }
 
@@ -718,7 +758,7 @@ mod tests {
         let d = tempfile::tempdir().unwrap();
         run_folder(d.path(), "20261011T120000Z", Some(GREEN_RESULT));
         assert_eq!(
-            read_close_check(d.path(), "20261012T030000Z"),
+            read_close_check(d.path(), "20261012T030000Z").check,
             CloseCheck::NotRun
         );
         assert_eq!(
@@ -753,7 +793,7 @@ mod tests {
         ] {
             let d = tempfile::tempdir().unwrap();
             run_folder(d.path(), "20261012T035332Z", Some(&bad));
-            let got = read_close_check(d.path(), "20261012T030000Z");
+            let got = read_close_check(d.path(), "20261012T030000Z").check;
             assert_eq!(
                 got,
                 CloseCheck::Unreadable {
@@ -779,5 +819,29 @@ mod tests {
         assert!(read_close_check(d.path(), "20261012T030000Z")
             .line()
             .starts_with("close check: GREEN with 2 WARN"));
+    }
+
+    #[test]
+    fn s194_a_later_partial_run_does_not_hide_the_red() {
+        // Review rec 1: a full RED close, then `--fidelity-only` in a later second (a folder, no result).
+        let d = tempfile::tempdir().unwrap();
+        run_folder(d.path(), "20261012T035332Z", Some(RED_RESULT));
+        run_folder(d.path(), "20261012T035340Z", None);
+        let r = read_close_check(d.path(), "20261012T030000Z");
+        assert!(matches!(r.check, CloseCheck::Red { fail: 5, .. }), "{r:?}");
+        let line = r.line();
+        assert!(
+            line.starts_with("close check: RED — 5 of 22 failed"),
+            "{line}"
+        );
+        assert!(
+            line.ends_with("a later run at 03:53:40Z wrote no result (a focused mode such as --fidelity-only, or it stopped early)"),
+            "{line}"
+        );
+        // A later FULL run that wrote a result still wins, with no note.
+        run_folder(d.path(), "20261012T035400Z", Some(GREEN_RESULT));
+        let r = read_close_check(d.path(), "20261012T030000Z");
+        assert_eq!(r.later_without_result, None);
+        assert!(r.line().starts_with("close check: GREEN — 22 passed"));
     }
 }
