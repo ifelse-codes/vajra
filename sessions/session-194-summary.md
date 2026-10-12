@@ -72,7 +72,7 @@ refuses findings whose first non-blank line parses as a JSON object, and writes 
 | AC1 every finding has evidence and a founder call | SHIPPED | the Findings table (F120–F125; F116/F118/F119 sightings) |
 | AC2 every fix has a real-run check in verify-194, no source greps, red at the start commit | SHIPPED | `scripts/verify-session-194.sh` 11/11 + 1 RECORD: real `vajra init` / `vajra claude` / `git merge` / `--sync-fleet` / `vajra next`, each fix also run at 7e8210e |
 | AC3 the rudra S20 receipt recorded against Claude Code's own total, and whether it shows the estimate lines | SHIPPED | the AC3 table; verify-194 prints it as a `RECORD:` line, not a pass |
-| AC4 no Vajra commit touches rudra; full `cargo test` passes | SHIPPED | every commit is in this repo (rudra was only read); `cargo test --release` 719 passed / 0 failed |
+| AC4 no Vajra commit touches rudra; full `cargo test` passes | SHIPPED | every commit is in this repo (rudra was only read); `cargo test --release` 720 passed / 0 failed |
 
 Also: demo-194 5/5 live checks.
 
