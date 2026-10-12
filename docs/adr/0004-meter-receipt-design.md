@@ -586,12 +586,15 @@ saw it.
   `pass:`, `fail:`, `warn:`, `failed:` (the failed checks' names). The binary reads only this file — never the
   screen text, the per-check logs (no common shape) or the transcript.
 - "This run" = the newest run folder whose stamp (`%Y%m%dT%H%M%SZ`, compared as a fixed-width string) is at or after
-  the second `vajra claude` started. The `latest` link is not trusted (it may predate the launch; in Vajra's own
+  the second `vajra claude` started **and that wrote a result** (S194 review rec 1: every focused mode —
+  `--fidelity-only`, `--attest-only`, `--crew-only`, `--scripts-only`, `--check-exec-shas` — makes a dated folder and
+  exits before the result, so a later partial run hid a full run's RED). A newer folder with no result is named after
+  the verdict: `· a later run at HH:MM:SSZ wrote no result (a focused mode such as --fidelity-only, or it stopped early)`. The `latest` link is not trusted (it may predate the launch; in Vajra's own
   repo it is a real folder from August).
 - One line, below the box, even when no cost could be read; `VAJRA_QUIET=1` hides it with the receipt:
   `close check: RED — 5 of 22 failed (…names…) · <folder>` · `close check: GREEN — 22 passed · <folder>` (or
-  `GREEN with N WARN … read the WARN rows`) · `close check: started HH:MM:SSZ but wrote no result (it stopped early,
-  or the project's script is older — run vajra init --sync-fleet)` · `close check: not run during this run`.
+  `GREEN with N WARN … read the WARN rows`) · `close check: started HH:MM:SSZ but wrote no result (a focused mode such as
+  --fidelity-only, it stopped early, or the project's script is older — run vajra init --sync-fleet)` · `close check: not run during this run`.
 - A file that does not parse exactly — wrong version, unknown verdict, a missing or non-number field, an extra line,
   GREEN with failures, RED whose `fail:` differs from the number of names — is `result unreadable — not counted as
   GREEN`.
@@ -605,6 +608,8 @@ saw it.
 - the agent can write a fake result file (bar-raising, not tamper-proof, as DECISION-011);
 - a WAIVED check counts as a pass in the totals (read the logs for WAIVED, S178);
 - after a resume, only close checks since that launch count;
+- a full run that stopped early after an earlier RED shows that earlier RED plus the "later run wrote no result" note,
+  not a fresh verdict; the `session:` field is written but not compared with the current session;
 - an existing project gets the result file only after `vajra init --sync-fleet` (until then: "wrote no result").
 
 Evidence: `scripts/verify-session-194.sh` rows 1–2 (a `vajra init` project whose stand-in `claude` runs the

@@ -1758,11 +1758,12 @@ not this finding. It ships like the belt's other two files (include_str!, scaffo
 executable, un-excluded in Cargo.toml).
 
 Rejected: calling pre-commit from the hook; `git merge` in the L3 text match (another command-text classifier —
-S173 needed seven REJECTs on exactly that; the git hook covers every route, `git pull` included); git's
+S173 needed seven REJECTs on exactly that; the git hook covers every route that makes a merge commit, `git pull` included); git's
 reference-transaction hook (fires on the human's fast-forward `git pull` on main and on fetches); blocking agents
 only (against the 2026-09-21 rule).
 
-Named, not closed: anything that moves main without a new commit fires no hook — a fast-forward merge,
+Named, not closed: a human's non-fast-forward `git pull` on local main is now refused too (by the same
+2026-09-21 rule; `git pull --ff-only` is untouched). Anything that moves main without a new commit fires no hook — a fast-forward merge,
 `git reset --hard`, `git branch -f main`, `git update-ref`; `git merge --no-verify` skips the hook; the hook works
 only where `core.hooksPath` is `.githooks`. pre-push still stops the push to main (it did, twice, in rudra S20).
 
