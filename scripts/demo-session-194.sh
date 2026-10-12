@@ -91,6 +91,7 @@ slide_rule() {
   dk_table "During this run, the close check…|The exit box says" \
     "ran and failed|close check: RED — 5 of 22 failed (names) · its folder" \
     "ran and passed|close check: GREEN — 22 passed" \
+    "failed, then a focused mode (--fidelity-only) ran later|the RED stays · a later run at … wrote no result" \
     "started but stopped early (or the project's script is old)|started … but wrote no result — run vajra init --sync-fleet" \
     "did not run|close check: not run during this run" \
     "left a result Vajra cannot read exactly|result unreadable — not counted as GREEN"
