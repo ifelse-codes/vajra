@@ -60,9 +60,43 @@ design-significant: no
   DECISION-007, DECISION-011) in the report.
 
 ## Plan
-<the S195 agent writes this after the tech-lead>
+1. Run every required audit live and paste the output into `sessions/session-195-ground-truth.md`, `delivery_progress` first; the four live-evidence audits (stranger-check, scaffold-drift, `--stations`, `--dogfood-age`) before the rest. covers: 1
+2. Answer the Haiku question from rudra S20's own evidence as recorded in `sessions/session-194-summary.md` (tool counts, the RED tally, F122), with the design-advisor's view on (a)–(d). covers: 2
+3. Give every S195 checklist item a pick (fix → session, keep → why, drop/retire → reason), with the design-advisor's designs for F125, F123, F121 and N10. covers: 3
+4. Put the report to the founder; record his sign-off and his A/B/C pick in the report before any code resumes. covers: 4
+
+## Execution
+- step 1 — done: 026323a
+- step 2 — done: 026323a
+- step 3 — done: 026323a
+- step 4 — done: <sha>
 
 ## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required; gate-mandated past S133, one narrow pass
+on the design-type picks), `fidelity-reviewer` (gate-mandated past S131, one cold pass on the report),
+`release-coordinator` (required; the one judge of every `obeyed:` answer, and stranger_check / Goal 4).
+
+researcher: skipped — the tech-lead deferred it on budget: the Haiku evidence is already in the S194 summary (210/210 Haiku replies, 0 Agent calls, RED 17/5); a broad model-comparison brief is kept for the rudra S21 Opus-vs-Haiku comparison (~250k).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the prompt already lists 13 audits, the checklist and 4 acceptance lines; restating them buys no artifact (~100k).
+plan-advisor: skipped — the tech-lead deferred it on budget: the plan is "fill one report", no multi-step build to sequence (~100k).
+implementation-advisor: skipped — the tech-lead deferred it on budget: no source edits are allowed in a review-only session (~120k).
+qa-specialist: skipped — the tech-lead deferred it on budget: no verify-195 script; the evidence is live command output pasted into the report (~100k).
+demo-producer: skipped — the tech-lead deferred it on budget: a review-only session produces no demo script (~80k).
+
+**tech-lead** (`.ai/handoffs/session-195-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 026323a (Goal 2 quotes the S194 summary's tool counts, RED 17/5 and F122's self-written ACCEPT; its options table has a "Class" column separating a user's-project gate from policing Vajra's paperwork; (c) weighed and picked first)
+- tech-lead rec 2 — obeyed: 026323a (stranger-check 21/0, scaffold-drift 19/3, `--stations` 191–195, `--dogfood-age` pasted as run; the 22 `WAIVED` matches in close logs since 2026-10-07 read and named as quoted text, not waived checks)
+- tech-lead rec 3 — obeyed: 026323a (one design-advisor pass, dispatched after the draft picks, given only F125, F123, F121, the Haiku options and N10; its 5 recs folded into the report, handoff recorded in the same commit)
+- tech-lead rec 4 — obeyed: <sha> (the fidelity-reviewer dispatched after the report commit 026323a, fed the prompt's Deliverables/Acceptance and that diff only)
+- tech-lead rec 5 — obeyed: <sha> (one release-coordinator pass judges every `obeyed:` line below, judge lines unfenced as `obeyed-check … implemented:`)
+- tech-lead rec 6 — obeyed: c5aade9 (the tech-lead handoff recorded via `vajra next --role --from` a scratch file holding its hand-back text, never the `.output` transcript) and 026323a (the report's header and N16 say this session ran on `session-195-closeout` — the F125 opening — named, not closed)
+
+**design-advisor** (`.ai/handoffs/session-195-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 026323a (checklist row 1: F125's pick carries the design — the `-closeout` opening opens only on a founder's `vajra approve NN --close` record, amends DECISION-011, the fix session is design-significant: yes; the wider no-`session-NN` hole filed as N17)
+- design-advisor rec 2 — obeyed: 026323a (checklist row 5: F123's routes kept named with the reflog, pre-push and the two rejected closings as the reason; no record change)
+- design-advisor rec 3 — obeyed: 026323a (checklist row 6: F121 kept named; live proof first, then a Stop hook showing the newest unseen result via `systemMessage`, amending ADR-0004)
+- design-advisor rec 4 — obeyed: 026323a (Goal 2: (c) as a README "tested with" fact in the founder's words, the launch-time model check dropped with its two reasons and the first draft's correction named; (d) next in its own design session; (b) as a standing GT question; (a) rejected)
+- design-advisor rec 5 — obeyed: 026323a (checklist row 12: N10 → keep check 6, a `# source-claim: <why>` marker on the line, added to the 3 lines, in the known-bug session; "no record covers check 6 yet")
 
 ## Delta
 - `+` `sessions/session-195-ground-truth.md`, `sessions/session-195-review.md`, `sessions/session-195-summary.md`
