@@ -69,7 +69,7 @@ design-significant: no
 - step 1 — done: 026323a
 - step 2 — done: 026323a
 - step 3 — done: 026323a
-- step 4 — done: <sha>
+- step 4 — done: 1c35ab7
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required; gate-mandated past S133, one narrow pass
@@ -88,8 +88,8 @@ demo-producer: skipped — the tech-lead deferred it on budget: a review-only se
 - tech-lead rec 2 — obeyed: 026323a (stranger-check 21/0, scaffold-drift 19/3, `--stations` 191–195, `--dogfood-age` pasted as run; the 22 `WAIVED` matches in close logs since 2026-10-07 read and named as quoted text, not waived checks)
 - tech-lead rec 3 — obeyed: 026323a (one design-advisor pass, dispatched after the draft picks, given only F125, F123, F121, the Haiku options and N10; its 5 recs folded into the report, handoff recorded in the same commit)
 - tech-lead rec 4 — obeyed: 1ac59b6 (the fidelity-reviewer dispatched after the report commit 026323a, fed the prompt's Goal/Deliverables/Acceptance and that report only, told to ignore Plan/Advice; its verdict and recs in `sessions/session-195-review.md`)
-- tech-lead rec 5 — obeyed: <sha> (one release-coordinator pass judges every `obeyed:` line below, judge lines unfenced as `obeyed-check … implemented:`)
-- tech-lead rec 6 — obeyed: c5aade9 (the tech-lead handoff recorded via `vajra next --role --from` a scratch file holding its hand-back text, never the `.output` transcript) and 026323a (the report's header and N16 say this session ran on `session-195-closeout` — the F125 opening — named, not closed)
+- tech-lead rec 5 — obeyed: 7453cdc (one release-coordinator pass judged every `obeyed:` line, judge lines unfenced as `obeyed-check … implemented:` in `.ai/handoffs/session-195-release-coordinator.md`; its 2 mismatches fixed, then the same judge re-judged — no per-claim judges)
+- tech-lead rec 6 — obeyed: 7453cdc (all three required roles now have handoffs recorded by `vajra next --role --from` a scratch file holding the hand-back text, never a `.output` transcript — design-advisor 026323a, fidelity-reviewer 1ac59b6, release-coordinator 7453cdc, each with a `verified: toolu_…; text-sha` header) and 026323a (the report's header and N16 say this session ran on `session-195-closeout` — the F125 opening — named, not closed)
 
 **design-advisor** (`.ai/handoffs/session-195-design-advisor.md`):
 - design-advisor rec 1 — obeyed: 026323a (checklist row 1: F125's pick carries the design — the `-closeout` opening opens only on a founder's `vajra approve NN --close` record, amends DECISION-011, the fix session is design-significant: yes; the wider no-`session-NN` hole filed as N17)
@@ -109,4 +109,11 @@ demo-producer: skipped — the tech-lead deferred it on budget: a review-only se
 - fidelity-reviewer rec 3 — obeyed: 1ac59b6 (Goal 2: blocks stop, the close check detects and stops nothing, steps need a model that follows them; option (a) re-argued on detection vs prevention)
 - fidelity-reviewer rec 4 — obeyed: 1ac59b6 (checklist rows 13 and 15 read "Propose drop (retire, superseded) — founder's call")
 - fidelity-reviewer rec 5 — obeyed: 1ac59b6 ("the known-bug session" = S196 if B, else S197, stated above the checklist; F125's row names `vajra approve NN --close` as a new founder command)
-- fidelity-reviewer rec 6 — obeyed: 1ac59b6 (dogfood_staleness answers the STATE.md question — STATE keeps no dogfood-date entry; dogfood_check backs its claim with the cost rows and drops "best dogfood cycle since S171")
+- fidelity-reviewer rec 6 — obeyed: 1ac59b6 (dogfood_staleness answers the STATE.md question — STATE keeps no dogfood-date entry; dogfood_check backs its claim with the cost rows) and 1c35ab7 (the meta-check's leftover "best dogfood cycle since S171" replaced with "a cycle with four real rudra runs"; the report and review now say the first fix missed that copy)
+
+**release-coordinator** (`.ai/handoffs/session-195-release-coordinator.md`) — the one judge; pass 1: 14 implemented, 2 mismatch (both fixed above):
+- release-coordinator rec 1 — obeyed: 1c35ab7 (the "best dogfood cycle" copy in the meta-check replaced) and 7453cdc (its handoff recorded, so tech-lead rec 6 is answered again citing it)
+- release-coordinator rec 2 — obeyed: 1c35ab7 (Goal 4: "matches Claude Code's own `cost-state` figure (not the bill) on 4 rudra runs, one project, one machine; `/clear` and a fork's own share still named")
+- release-coordinator rec 3 — obeyed: 1c35ab7 ("the same count S185 recorded (S190 gave none)") and db9b07f (STATE's release line now says "none of S167–S194", with the S195 re-check numbers; `cargo publish` left as the founder's parked call)
+- release-coordinator rec 4 — deferred: sessions/session-195-summary.md
+  why: the ship order is written as the summary's "Ship steps" (db9b07f) and followed from here — the stamp last, the full `verify-closeout.sh` before the push, the PR; the merge, sync and prune are the founder's after this session (SESSION-BOOT's Next Session, 3230561), checked again at S196's boot. Untracked `first-mate.html`, `vajra-cto-audit-*.html`, `.claude/launch.json`, the S137 scatter file are left out.
