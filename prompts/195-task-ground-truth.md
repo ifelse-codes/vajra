@@ -87,7 +87,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: a review-only se
 - tech-lead rec 1 — obeyed: 026323a (Goal 2 quotes the S194 summary's tool counts, RED 17/5 and F122's self-written ACCEPT; its options table has a "Class" column separating a user's-project gate from policing Vajra's paperwork; (c) weighed and picked first)
 - tech-lead rec 2 — obeyed: 026323a (stranger-check 21/0, scaffold-drift 19/3, `--stations` 191–195, `--dogfood-age` pasted as run; the 22 `WAIVED` matches in close logs since 2026-10-07 read and named as quoted text, not waived checks)
 - tech-lead rec 3 — obeyed: 026323a (one design-advisor pass, dispatched after the draft picks, given only F125, F123, F121, the Haiku options and N10; its 5 recs folded into the report, handoff recorded in the same commit)
-- tech-lead rec 4 — obeyed: <sha> (the fidelity-reviewer dispatched after the report commit 026323a, fed the prompt's Deliverables/Acceptance and that diff only)
+- tech-lead rec 4 — obeyed: 1ac59b6 (the fidelity-reviewer dispatched after the report commit 026323a, fed the prompt's Goal/Deliverables/Acceptance and that report only, told to ignore Plan/Advice; its verdict and recs in `sessions/session-195-review.md`)
 - tech-lead rec 5 — obeyed: <sha> (one release-coordinator pass judges every `obeyed:` line below, judge lines unfenced as `obeyed-check … implemented:`)
 - tech-lead rec 6 — obeyed: c5aade9 (the tech-lead handoff recorded via `vajra next --role --from` a scratch file holding its hand-back text, never the `.output` transcript) and 026323a (the report's header and N16 say this session ran on `session-195-closeout` — the F125 opening — named, not closed)
 
@@ -102,3 +102,11 @@ demo-producer: skipped — the tech-lead deferred it on budget: a review-only se
 - `+` `sessions/session-195-ground-truth.md`, `sessions/session-195-review.md`, `sessions/session-195-summary.md`
 - `~` the S195 checklist items: each picked (fix / keep / drop)
 - `+` `prompts/196-task-<slug>.md`
+
+**fidelity-reviewer** (`.ai/handoffs/session-195-fidelity-reviewer.md`) — one cold pass, ACCEPT 6 SHIPPED / 1 PARTIAL / 1 pending:
+- fidelity-reviewer rec 1 — obeyed: 1ac59b6 (knowledge_staleness, state_drift, roadmap_alignment, cost_review, dogfood_check, constitution_review, constraint_violation_review each now show the command and its raw output or tally line)
+- fidelity-reviewer rec 2 — obeyed: 1ac59b6 (stranger_check recoloured 🔴: the script's 21/0 GREEN kept beside the reach result 0 stars / 0 forks / 0 issues / crates.io 0.1.0, 19 downloads)
+- fidelity-reviewer rec 3 — obeyed: 1ac59b6 (Goal 2: blocks stop, the close check detects and stops nothing, steps need a model that follows them; option (a) re-argued on detection vs prevention)
+- fidelity-reviewer rec 4 — obeyed: 1ac59b6 (checklist rows 13 and 15 read "Propose drop (retire, superseded) — founder's call")
+- fidelity-reviewer rec 5 — obeyed: 1ac59b6 ("the known-bug session" = S196 if B, else S197, stated above the checklist; F125's row names `vajra approve NN --close` as a new founder command)
+- fidelity-reviewer rec 6 — obeyed: 1ac59b6 (dogfood_staleness answers the STATE.md question — STATE keeps no dogfood-date entry; dogfood_check backs its claim with the cost rows and drops "best dogfood cycle since S171")
