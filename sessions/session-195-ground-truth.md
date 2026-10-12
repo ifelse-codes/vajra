@@ -13,7 +13,7 @@
 | Did Vajra get better since S190? | 🟢 **Yes.** Four small fixes (S191); the cost line now equals Claude Code's own number on four real runs ($6.90, $22.96, $37.27, $1.49 — S192–S194); the exit box now says if the close check went RED (S194); a merge commit onto main is stopped (S194). |
 | Did it reach anyone new? | 🔴 **No.** 0 stars, 0 forks, 0 issues; crates.io still 0.1.0 with 19 downloads — the same count S185 recorded (S190 gave none). Your ruling stands: release is not a problem yet. |
 | The Haiku run (rudra S20) — what did it show? | 🔴 **On a cheap model, every step that is only an instruction got skipped**, and the agent told you "fully closed" over a RED check. Only what Vajra *blocks* held. Answer below: say which models Vajra supports, and make the truth impossible to miss — not more rules. |
-| Can you be confident yet? | 🟡 **On the cost line: yes** (exact on 4 real runs). **On the close: not yet** — the fix that shows RED at exit (F121) has never run in a real session. One synced rudra run on Opus proves it. |
+| Can you be confident yet? | 🟡 **On the cost line: yes** — it matches Claude Code's own figure (not the bill) on 4 rudra runs; `/clear` and forks still named. **On the close: not yet** — the fix that shows RED at exit (F121) has never run in a real session. One synced rudra run on Opus proves it. |
 | Red again (not new) | `scaffold-drift.sh` is red for the second review in a row — now on 3 lines, all its own false alarm (N10, carried from S190). An audit that is always red trains everyone to skip it. |
 | Overall | 🟡 **PARTIAL PASS.** Steadier for its one user; the close is the weak link; reach still zero by your choice. |
 
@@ -138,7 +138,8 @@ RED, `required-crew` FAIL) — detected, not stopped; the failure was that nobod
   and "best dogfood cycle" replaced with what the cost table backs (the meta-check copy was missed in the first fix;
   the release-coordinator's judge pass caught it, fixed after). `sessions/session-195-review.md`.
 - **The release-coordinator** (the one judge): pass 1 — 14 implemented, 2 mismatch (the missed "best dogfood" copy;
-  tech-lead rec 6 cited before its handoff existed); both fixed, pass 2 below the Advice.
+  tech-lead rec 6 cited before its handoff existed); both fixed; pass 2 (17 implemented, 0 mismatch) replaced pass 1 in its handoff. It could not grade its own recs 1–3,
+  so the fidelity-reviewer judged those (its handoff, "Judge lines").
 
 ## Three options for next (A/B/C)
 

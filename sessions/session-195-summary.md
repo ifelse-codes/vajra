@@ -41,7 +41,10 @@ guard was off all session — the F125 opening it reviews (N16), as S185 and S19
 ## Cost
 $0 in this repo (no paid run — NO-CODE). Fleet dispatches: 4 — tech-lead, design-advisor, fidelity-reviewer (one
 cold pass, ACCEPT, 6 recs applied), release-coordinator (the one judge: pass 1 14 implemented / 2 mismatch, both
-fixed; pass 2 re-judged).
+fixed; pass 2: 17 implemented, 0 mismatch). It cannot grade its own recs 1–3, so the fidelity-reviewer judged
+those (3 implemented; its leftover note — the glance's unqualified "cost: yes" — fixed). **Agent slip, disclosed:** the
+reviewer's and judge's answers were first appended below `## Delta`, where the obeyed check never read them (it
+showed READY on 11 lines); moving `## Delta` above `## Advice` exposed the 3 ungraded recs.
 
 ## 3 ranked next candidates
 
