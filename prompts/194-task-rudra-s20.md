@@ -50,10 +50,45 @@ Read every close log for `WAIVED`, `N/A` and `WARN` FIRST, never just PASS (S178
 | AC4 | No Vajra commit touches rudra; rudra's own commits are the founder's. `cargo test` passes in full. |
 
 ## Design
-design-significant: no
+design-significant: yes
 
-No fix is approved yet, so there is no design to record. If a finding the founder approves changes a shared rule
-(the receipt, the guard, the close, the scaffold), this flips to `yes` and cites the ADR it touches, as S193 did.
+Cites docs/adr/0004-meter-receipt-design.md (§2.8 receipt format; S193 addendum) for F121, and
+docs/decisions/DECISION-007-agent-fleet.md (§2 the handoff contract; the S172 addendum and the
+2026-09-21 founder decision on the git belt) for F120 and F123. Recorded as an S194 addendum in each.
+
+F121 — the exit box shows the latest close check. verify-closeout.sh (Vajra's own and the scaffold copy)
+also writes one fixed-format file, `.ai/verify/closeout/<stamp>/result` (a version line, `verdict:
+GREEN|RED`, `pass:`, `fail:`, `warn:`, `failed:`), as its last step. On exit `vajra claude` reads only that
+file — never screen text, logs or the transcript. "This run" = the newest run folder stamped at or after
+the launch second. The line prints below the receipt box (§2.8), from src/cli/launch.rs, even when the cost
+cannot be read: RED with the failed names / GREEN / started but wrote no result / not run during this run.
+A file that does not parse exactly is unreadable, never GREEN. VAJRA_QUIET=1 hides it with the receipt.
+
+F123 — a merge commit on main is stopped. New standalone `.githooks/pre-merge-commit` that checks only
+main|master and blocks everyone (the 2026-09-21 rule); it does not call pre-commit. Ships like pre-commit
+and pre-push (include_str!, `fxs`, SYNC_HOOKS, executable, Cargo.toml `!` line). Closes the S172 addendum's
+"Vajra does not ship pre-merge-commit".
+
+F120 — `--role --from` refuses a transcript: if the first non-blank line parses as a JSON object
+(serde_json), nothing is written, it exits non-zero, and says to pass the helper's handback text. A fourth
+fail-closed case on DECISION-007 §2's list.
+
+Deviation: the receipt box (ADR-0004) was cost-only; it now carries one line that is not about cost. The
+meter API and format_receipt do not change.
+
+Rejected: reading stdout/logs/transcript for "RED (" (text guessing); trusting the `latest` link; re-running
+the close at exit; a Stop hook judging the agent's words; calling pre-commit from the merge hook (its cap and
+approval check would police merging main into a session branch); `git merge` in the L3 text match;
+reference-transaction (fires on the human's ff pull); extracting the handback from the transcript (a guess
+tied to Claude Code's format); key-name detection; a size cap; warn-and-write.
+
+Named, not closed: F121 shows the truth, it does not stop an agent saying "fully closed"; the box appears
+only at exit (a GitHub merge before exit misses it); the agent can write a fake result file; WAIVED counts as
+a pass in the totals; after a resume only runs since this launch count. F123: fast-forward, `reset --hard`,
+`branch -f`, `update-ref`, `git merge --no-verify`, and a repo without `core.hooksPath` fire no hook; pre-push
+still stops the push to main. F120: a brief that starts with prose and has a transcript pasted lower down
+is not caught.
+(From the design-advisor, `.ai/handoffs/session-194-design-advisor.md`.)
 
 ## Carried in
 - **From S193:** fidelity-reviewer rec 4 (live proof of F117 on the next real run) — this session. F116, F118, F119
