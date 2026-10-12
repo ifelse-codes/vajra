@@ -1,9 +1,9 @@
 ---
 role: fidelity-reviewer
 session: 195
-agent: claude-code-subagent (verified: toolu_01DPFuqbV7X7CrcGp1WGwbnf; text-sha: 0aa84d0e915ab239e842960556543886faf7cee74b85072d046b52db0e3ce2b9)
-source-sha: 0dc1124c56a6ed95697563adc8ddc5e6a16e5efe6d63a81fb9d650d201648fbb
-captured: 2026-10-12T17:37:37Z
+agent: claude-code-subagent (verified: toolu_01DPFuqbV7X7CrcGp1WGwbnf; text-sha: d74acf75d512c1d09558e63a6e0c47fe8ac987ca829a21958f635ba7b4489127)
+source-sha: 224f0037d3ea0fc3611c9fe88c4f7d931c1c8c39878c2e7d7442713685fbd33b
+captured: 2026-10-12T17:47:08Z
 cost_usd: null
 ---
 
@@ -56,6 +56,14 @@ rec 6 — Answer the `dogfood_staleness` question about STATE.md, and either bac
 
 Files: /Users/suman/playground/vajra/sessions/session-195-ground-truth.md, /Users/suman/playground/vajra/prompts/195-task-ground-truth.md, /Users/suman/playground/vajra/sessions/session-194-summary.md, /Users/suman/playground/vajra/scripts/hook-pre-bash.sh
 
+## Judge lines (release-coordinator recs, judged after the review)
+
+How I checked: I can't run git, so I couldn't read 1c35ab7's diff directly. `.git/logs/HEAD` shows 1c35ab7 exists, with the message "the judge's two mismatches fixed in the report". It also shows 7453cdc ("release-coordinator handoff") and db9b07f ("STATE snapshot"). I judged against the current text of `sessions/session-195-ground-truth.md` and `.ai/STATE.md`. The release-coordinator's original wording for recs 1–3 is gone: pass 2 replaced pass 1 in its handoff and keeps only pointers to the cited lines. So I judged each rec by what its disposition says it asked for.
+
+obeyed-check release-coordinator rec 1 — implemented: 1c35ab7 — The meta-check (report lines 39–40) now says `dogfood_staleness` reads 🔴 "in a cycle with four real rudra runs through `vajra claude`". The "best dogfood cycle" claim is gone from the meta-check, and the release-coordinator handoff exists (its record is commit 7453cdc).
+obeyed-check release-coordinator rec 2 — implemented: 1c35ab7 — Goal 4 (lines 105–107) narrows "cost: yes" to "matches Claude Code's own `cost-state` figure (not the bill) on 4 rudra runs, one project, one machine", with `/clear` and a fork's share still named. A leftover copy remains: glance line 16 still says "On the cost line: yes (exact on 4 real runs)" with no qualifier, so it should be narrowed the same way.
+obeyed-check release-coordinator rec 3 — implemented: 1c35ab7 — Glance line 14 now reads "the same count S185 recorded (S190 gave none)", and `.ai/STATE.md:94` says a stranger's install "gets none of S167–S194 (re-checked S195: crates.io `vajractl` max 0.1.0, 19 downloads; 0 stars, 0 issues)" (that change is in db9b07f). I could not check the S185 count itself, since that source was outside what I was allowed to read.
+
 ## Handoff Delta
-- `+` new: first fidelity-reviewer handoff for this session (6847 bytes of findings)
-- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against
+- `~` re-run: fidelity-reviewer handoff replaced (8690 bytes now vs 6834 bytes prior)
+- prior stage: this session's earlier fidelity-reviewer handoff

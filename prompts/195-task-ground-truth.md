@@ -71,6 +71,11 @@ design-significant: no
 - step 3 — done: 026323a
 - step 4 — done: 1c35ab7
 
+## Delta
+- `+` `sessions/session-195-ground-truth.md`, `sessions/session-195-review.md`, `sessions/session-195-summary.md`
+- `~` the S195 checklist items: each picked (fix / keep / drop)
+- `+` `prompts/196-task-<slug>.md`
+
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required; gate-mandated past S133, one narrow pass
 on the design-type picks), `fidelity-reviewer` (gate-mandated past S131, one cold pass on the report),
@@ -97,11 +102,6 @@ demo-producer: skipped — the tech-lead deferred it on budget: a review-only se
 - design-advisor rec 3 — obeyed: 026323a (checklist row 6: F121 kept named; live proof first, then a Stop hook showing the newest unseen result via `systemMessage`, amending ADR-0004)
 - design-advisor rec 4 — obeyed: 026323a (Goal 2: (c) as a README "tested with" fact in the founder's words, the launch-time model check dropped with its two reasons and the first draft's correction named; (d) next in its own design session; (b) as a standing GT question; (a) rejected)
 - design-advisor rec 5 — obeyed: 026323a (checklist row 12: N10 → keep check 6, a `# source-claim: <why>` marker on the line, added to the 3 lines, in the known-bug session; "no record covers check 6 yet")
-
-## Delta
-- `+` `sessions/session-195-ground-truth.md`, `sessions/session-195-review.md`, `sessions/session-195-summary.md`
-- `~` the S195 checklist items: each picked (fix / keep / drop)
-- `+` `prompts/196-task-<slug>.md`
 
 **fidelity-reviewer** (`.ai/handoffs/session-195-fidelity-reviewer.md`) — one cold pass, ACCEPT 6 SHIPPED / 1 PARTIAL / 1 pending:
 - fidelity-reviewer rec 1 — obeyed: 1ac59b6 (knowledge_staleness, state_drift, roadmap_alignment, cost_review, dogfood_check, constitution_review, constraint_violation_review each now show the command and its raw output or tally line)
