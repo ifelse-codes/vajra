@@ -10,7 +10,7 @@
 
 - Brief: `prompts/194-task-rudra-s20.md`. Summary: `sessions/session-194-summary.md`. Review: `sessions/session-194-review.md`. Decisions: ADR-0004 S194 addendum (F121); DECISION-007 S194 addendum (F123, F120).
 - rudra S20 on Haiku 4.5 (founder's test): receipt $1.49 = Claude Code's own (F117 live). Close RED 5 fail, told "fully closed", merged. Findings F120–F125 with the founder's calls.
-- Shipped: **F121** the exit box shows the close check · **F123** `pre-merge-commit` stops a merge on main · **F120** `--role --from` refuses a transcript. Verify 10/10 + 1 record · demo 5/5 · `cargo test` 719/0.
+- Shipped: **F121** the exit box shows the close check · **F123** `pre-merge-commit` stops a merge on main · **F120** `--role --from` refuses a transcript. Verify 11/11 + 1 record · demo 5/5 · `cargo test` 719/0.
 - **Parked (founder):** F125 → ROADMAP known bugs, S195 checklist. F122 visible via F121; F124 not Vajra.
 
 ## Session 193 — INTERACTIVE: rudra session 19 under the trusted receipt — COMPLETE

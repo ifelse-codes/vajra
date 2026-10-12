@@ -12,7 +12,7 @@
 - **F123 FIXED (DECISION-007 S194 addendum):** `.githooks/pre-merge-commit` stops a merge commit on main/master for everyone; scaffolded + on `SYNC_HOOKS`; packaged.
 - **F120 FIXED (DECISION-007 S194 addendum):** `vajra next --role --from` refuses findings whose first line is a JSON object (a raw transcript) and writes nothing.
 - **F122** (no helpers ran) visible through F121's `failed:` names · **F124** (an S21 prompt written against the founder's word) not Vajra's · **F125 parked** (the review-only guard turns off on any `-closeout` branch the agent names) → ROADMAP known bugs. F118 + F119 seen again.
-- Verify-194 10/10 + 1 record (each fix red at 7e8210e) · demo 5/5 · `cargo test` 719/0.
+- Verify-194 11/11 + 1 record (each fix red at 7e8210e) · demo 5/5 · `cargo test` 719/0.
 
 ## Previous session (S193 — INTERACTIVE: rudra session 19 under the trusted receipt, merged #231)
 
