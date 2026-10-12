@@ -1,10 +1,13 @@
 # Session Boot
 
 ## Next Session
-- **S194 — NOT PICKED YET** (founder, 2026-10-09: "we won't pick next session work now"). S193's PR first: merge it with a merge commit; then in YOUR terminal `git checkout main && git fetch --prune && git pull --ff-only`, `git branch -d session-193-rudra-s19` (lowercase -d), `cargo install --path .`. In a FRESH chat: pick from the three options in `sessions/session-193-summary.md` (1 ★ rudra S20 · 2 the three known bugs · 3 cut the cost); the agent writes its prompt from the pick, then you run `vajra approve 194`. S195 = review-only.
+- **S195 — review-only (ground truth, NO-CODE)**, derived by `scripts/lib-ground-truth.sh`. Its prompt is written at S194's close.
 
 ## Current Session
-- **Number:** 193 — COMPLETE on `session-193-rudra-s19` (PR open). INTERACTIVE: rudra S19 under the trusted receipt — $37.27 = Claude Code's own cost-state. **F117 fixed:** with Claude Code's own figure the receipt shows only that figure (ADR-0004 S193 addendum). F116/F118/F119 parked as known bugs (ROADMAP backlog, S195 checklist). Summary: `sessions/session-193-summary.md`. Review: `sessions/session-193-review.md`. Verify: `scripts/verify-session-193.sh` (11/11 + 1 record). Demo: `scripts/demo-session-193.sh` (5/5).
+- **Number:** 194 — IN PROGRESS on `session-194-rudra-s20`. INTERACTIVE: rudra S20 (its ground-truth, review-only session) under `vajra claude`, founder-run; findings F120… with his calls; the live proof of S193's F117 receipt fix. Prompt: `prompts/194-task-rudra-s20.md`. Founder pick 2026-10-12 (option 1 of the S193 summary).
+
+## Prior Session
+- **Number:** 193 — CLOSED (merged #231). INTERACTIVE: rudra S19 under the trusted receipt — $37.27 = Claude Code's own cost-state. **F117 fixed:** with Claude Code's own figure the receipt shows only that figure (ADR-0004 S193 addendum). F116/F118/F119 parked as known bugs (ROADMAP backlog, S195 checklist). Summary: `sessions/session-193-summary.md`. Review: `sessions/session-193-review.md`. Verify: `scripts/verify-session-193.sh` (11/11 + 1 record). Demo: `scripts/demo-session-193.sh` (5/5).
 
 ## Prior Session
 - **Number:** 192 — CLOSED (merged #230). CODE, interactive: the receipt proven live — rudra $6.90/$22.96 = Claude Code's own cost-state; fresh $0.02, `--continue` $0.01 (this run's share), a fork labelled whole-conversation ($0.03; **a fork keeps the parent's `startTime`**, S189's assumption verified); `/clear` skips (named, founder 2026-10-09). The transcript folder is named by Claude Code's own rule (every non-alphanumeric → `-`, >200 hashed, `CLAUDE_CONFIG_DIR`) in the meter, `vajra meter --all` and dispatch's handoff provenance. ADR-0004 S192 addendum. Summary: `sessions/session-192-summary.md`. Review: `sessions/session-192-review.md`. Verify: `scripts/verify-session-192.sh` (6/6). Demo: `scripts/demo-session-192.sh` (5/5).
