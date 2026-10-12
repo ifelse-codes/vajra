@@ -50,6 +50,8 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     // edited itself reports Drifted and waits for `--overwrite-drifted`.
     (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
     (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
+    // S194 (F123): a merge commit runs pre-merge-commit, not pre-commit — the belt's third file.
+    (".githooks/pre-merge-commit", TPL_GITHOOK_PRE_MERGE_COMMIT),
 ];
 
 /// The canonical STAMPED render of one hook — a shell-comment `vajra-render-sha:` trailing line over
@@ -1813,6 +1815,7 @@ fn files(
         // founder's rudra sync shipped every other fix and left the old human-blocking belt behind.
         fxs(".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
         fxs(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
+        fxs(".githooks/pre-merge-commit", TPL_GITHOOK_PRE_MERGE_COMMIT),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         // S167 (DECISION-009): the demo template + the drawing kit it sources are on `SYNC_HOOKS`,
         // scaffolded stamped so a fresh `init` + immediate `--sync-fleet` reports them `UpToDate`.
@@ -2307,6 +2310,8 @@ const TPL_HOOK_APPROVALS_GUARD: &str = include_str!("../../scripts/hook-approval
 // files are un-excluded there (per-file negation) so they ship with `cargo install`.
 const TPL_GITHOOK_PRE_COMMIT: &str = include_str!("../../.githooks/pre-commit");
 const TPL_GITHOOK_PRE_PUSH: &str = include_str!("../../.githooks/pre-push");
+// S194 (F123): no merge commit on main/master — `git merge` never runs pre-commit.
+const TPL_GITHOOK_PRE_MERGE_COMMIT: &str = include_str!("../../.githooks/pre-merge-commit");
 
 // The scaffold's `.gitignore` — the session-guard writes the owning chat's id into
 // `.ai/.session-owner`, a local-only record that must never be committed.
@@ -3110,6 +3115,7 @@ mod tests {
         for (rel, canonical) in [
             (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
             (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
+            (".githooks/pre-merge-commit", TPL_GITHOOK_PRE_MERGE_COMMIT),
         ] {
             let hook = dir.path().join(rel);
             assert!(hook.exists(), "{rel} not scaffolded");
@@ -4443,6 +4449,7 @@ mod tests {
         // to reach existing projects), so the belt is expected — a full scaffold is still not.
         assert!(dir.path().join(".githooks/pre-commit").exists());
         assert!(dir.path().join(".githooks/pre-push").exists());
+        assert!(dir.path().join(".githooks/pre-merge-commit").exists());
         for unwanted in [".ai/CONSTRAINTS.yaml", ".ai/SESSION", "prompts", "sessions"] {
             assert!(
                 !dir.path().join(unwanted).exists(),

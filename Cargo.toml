@@ -21,6 +21,7 @@ exclude = [
   ".githooks/",
   "!.githooks/pre-commit",
   "!.githooks/pre-push",
+  "!.githooks/pre-merge-commit",
   "docs/",
   "e2e-proof/",
   "Formula/",
