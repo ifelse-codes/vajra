@@ -65,6 +65,7 @@ none adds a new claim):
 - rec 5 — "the known-bug session" = S196 if B, else S197; F125's design names `vajra approve NN --close` as a new
   founder command.
 - rec 6 — the STATE.md dogfood question answered (STATE keeps no dogfood-date entry); "best dogfood cycle" replaced
-  with what the cost table backs.
+  with what the cost table backs (in dogfood_check at 1ac59b6; the meta-check's copy was missed then and replaced
+  after the release-coordinator's judge pass caught it).
 
 **Verdict:** ACCEPT

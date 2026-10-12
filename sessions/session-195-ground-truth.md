@@ -11,7 +11,7 @@
 | Question | Answer |
 |---|---|
 | Did Vajra get better since S190? | 🟢 **Yes.** Four small fixes (S191); the cost line now equals Claude Code's own number on four real runs ($6.90, $22.96, $37.27, $1.49 — S192–S194); the exit box now says if the close check went RED (S194); a merge commit onto main is stopped (S194). |
-| Did it reach anyone new? | 🔴 **No.** 0 stars, 0 forks, 0 issues; crates.io still 0.1.0 with 19 downloads — the same numbers as S185/S190. Your ruling stands: release is not a problem yet. |
+| Did it reach anyone new? | 🔴 **No.** 0 stars, 0 forks, 0 issues; crates.io still 0.1.0 with 19 downloads — the same count S185 recorded (S190 gave none). Your ruling stands: release is not a problem yet. |
 | The Haiku run (rudra S20) — what did it show? | 🔴 **On a cheap model, every step that is only an instruction got skipped**, and the agent told you "fully closed" over a RED check. Only what Vajra *blocks* held. Answer below: say which models Vajra supports, and make the truth impossible to miss — not more rules. |
 | Can you be confident yet? | 🟡 **On the cost line: yes** (exact on 4 real runs). **On the close: not yet** — the fix that shows RED at exit (F121) has never run in a real session. One synced rudra run on Opus proves it. |
 | Red again (not new) | `scaffold-drift.sh` is red for the second review in a row — now on 3 lines, all its own false alarm (N10, carried from S190). An audit that is always red trains everyone to skip it. |
@@ -36,8 +36,8 @@
 | scaffold_drift_check | 🔴 | `bash scripts/scaffold-drift.sh` → **19 passed, 3 failed, exit 1.** All three are check 6 ("no hollow `grep.*src/.*\.rs`"): `verify-session-189.sh:120` and `verify-session-193.sh:132` print a row count inside an `ok "…"` message *after* a real `diff` already passed; `verify-session-191.sh:103` greps the test file for a fixture line next to a test that is proven RED at the old commit. **All three are the heuristic's false alarm (N10, found S190, carried).** The real drift checks (rules, audits, provenance, packaging) all pass. |
 
 **Meta-check — did this audit's own mechanism miss a kind of drift?** Yes, three:
-1. **Two instruments now read the opposite of reality.** `dogfood_staleness` says 🔴 during the best dogfood cycle
-   since S171 (blind to rudra, N5); `scaffold_drift_check` says 🔴 on its own false alarm (N10). An audit that is
+1. **Two instruments now read the opposite of reality.** `dogfood_staleness` says 🔴 in a cycle with four real
+   rudra runs through `vajra claude` (blind to rudra, N5); `scaffold_drift_check` says 🔴 on its own false alarm (N10). An audit that is
    wrong in a known direction for two cycles is worse than no audit — the reader learns to skip the colour.
 2. **`pipeline_advance_check` cannot fail any more** in this repo: 12 sessions running at 8/8. It counts that the
    paperwork exists, not that the session was good. rudra S20 — the one session that *was* bad — would need its
@@ -102,7 +102,9 @@ RED, `required-crew` FAIL) — detected, not stopped; the failure was that nobod
 
 ## Goal 4 — Point at the user: can the founder be confident yet?
 
-- **The cost line — yes.** Four real runs, four exact matches with Claude Code's own figure (S192–S194). F67 is closed.
+- **The cost line — yes, in this sense:** it matches Claude Code's own `cost-state` figure (not the bill) on 4 rudra
+  runs, one project, one machine (S192–S194); `/clear` and a fork's own share are still named, not closed (row 16).
+  F67 is closed.
 - **The close — not yet.** rudra S20 is the only real test of "trust the result", and it failed: the agent said
   "fully closed" over a RED check. F121 shows the truth at exit and F123 stops the merge commit — **neither has run in
   a real session** (verify-194 used a stand-in `claude`).
@@ -133,7 +135,10 @@ RED, `required-crew` FAIL) — detected, not stopped; the failure was that nobod
 - **Cold review (one pass, ACCEPT, 6 recs, all applied):** pasted output for 7 audit rows · stranger_check recoloured
   · the close check called "detects, stops nothing", not a block · N11/verify-131 as proposals · the known-bug
   session numbered by the pick, and F125's design named a new founder command · the STATE dogfood question answered
-  and "best dogfood cycle" replaced with what the cost table backs. `sessions/session-195-review.md`.
+  and "best dogfood cycle" replaced with what the cost table backs (the meta-check copy was missed in the first fix;
+  the release-coordinator's judge pass caught it, fixed after). `sessions/session-195-review.md`.
+- **The release-coordinator** (the one judge): pass 1 — 14 implemented, 2 mismatch (the missed "best dogfood" copy;
+  tech-lead rec 6 cited before its handoff existed); both fixed, pass 2 below the Advice.
 
 ## Three options for next (A/B/C)
 
@@ -144,3 +149,13 @@ RED, `required-crew` FAIL) — detected, not stopped; the failure was that nobod
 | C | **S196 — design: Vajra runs the reviewer itself** (Haiku option d) | A design session: the record for Vajra launching the required cold review at close, on a model it picks; plus the README "tested with" line (option c) for the founder's words | The root fix for "the agent graded itself" — what makes the promise true on a cheap model | Design only, nothing runs yet; per-close cost works against "cut cost" |
 
 **Sign-off needed:** approve this report, and pick A/B/C.
+
+## Founder rulings on this report (2026-10-12)
+
+- **Report:** approved as written — all 13 audits, the Haiku answer, every checklist pick, N14–N17; the two proposed
+  drops (N11, verify-131's two stale checks) accepted. Given through the session's question prompt ("Approve as
+  written"), transcribed here by the agent — the session approval record (`.ai/approvals/session-195.json`,
+  `vajra approve 195`) is the founder-run record; this sign-off line is text the agent typed (the limit F125's design
+  would close with `vajra approve NN --close`).
+- **Next:** option **A** — S196 = rudra S21 on Opus, after `vajra init --sync-fleet` in rudra: see F121's exit line
+  and F123 live, compare with S20. The known-bug session (F125 first) is therefore **S197**.
