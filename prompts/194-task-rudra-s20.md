@@ -118,6 +118,10 @@ is not caught.
 - `~` whatever they show is wrong
 
 ## Execution
+- step 1 — done: ca6eedc
+- step 2 — done: 9d6892e
+- step 3 — done: cb39ba7
+- step 4 — done: f0279e0
 
 ## Advice
 Roles dispatched: `tech-lead` (mandatory, first). Required at close: `fidelity-reviewer` (the one cold review),
@@ -132,3 +136,22 @@ qa-specialist: skipped — the tech-lead deferred it on budget: AC2 makes every 
 demo-producer: skipped — the tech-lead deferred it on budget: the founder watches his own rudra run and its receipt; the summary records both (~0.3M).
 
 **tech-lead** (`.ai/handoffs/session-194-tech-lead.md`):
+- tech-lead rec 1 — obeyed: ca6eedc (F120–F124 filed with evidence and the founder's calls before any code; rudra S20's close log read for WAIVED / N/A / WARN first: 0 waived, 1 N/A, RED 17/5; F118 and F119 sightings added to their existing entries, no new numbers)
+- tech-lead rec 2 — obeyed: ca6eedc (the AC3 table: receipt $1.49 · cost-state 1.4903203999999999 · `~/.claude.json` lastCost 1.4903203999999999; a fresh run; no `[estimate` line, no split, no pricing warning) and 2cb027d (printed as a `RECORD:` line, not counted)
+- tech-lead rec 3 — obeyed: f5801dd (the ground-truth path checked from the transcript: the cadence agreed S20 is review-only, but the guard was off all session on a `-closeout` branch — F125, reported and parked on the founder's call, not fixed)
+- tech-lead rec 4 — obeyed: 2cb027d (every fix's check runs the real binary in a temp project — `vajra init`, `vajra claude` with a stand-in `claude`, `git merge`, `vajra next` — red at 7e8210e with that finding's own result; rudra is never the fixture)
+- tech-lead rec 5 — obeyed: 08fedd8 (F121/F123/F120 change the receipt box, the git belt and the handoff contract for every project → design-significant: yes, the design-advisor dispatched narrowly, ADR-0004 and DECISION-007 cited) and b014bf5 (the S194 addenda)
+- tech-lead rec 6 — obeyed: 9d6892e (the full `cargo test --release` ran before any push: 719 passed / 0 failed; not added to the close)
+- tech-lead rec 7 — obeyed: f0279e0 (not triggered — the founder approved three fixes; the summary still says what F121 cannot do, and verify-194 keeps AC3 as a RECORD line)
+- tech-lead rec 8 — obeyed: 168564f (the six skip lines carry the money reasons) and 08fedd8 (the design-advisor only after rec 5 triggered); then the build, one fidelity-reviewer, one release-coordinator after this section
+
+**design-advisor** (`.ai/handoffs/session-194-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 08fedd8 (design-significant: yes; ADR-0004 for F121, DECISION-007 for F120/F123) and b014bf5 (an S194 addendum in each; the ADR one says the box now carries a line that is not about cost)
+- design-advisor rec 2 — obeyed: 9d6892e (both `verify-closeout.sh` and `verify-closeout-scaffold.sh` write `<stamp>/result` last, via a temp file, beside the `latest` line; the binary reads only that file) and 2cb027d (verify-194 row 2: the scaffolded script in a temp project writes `verdict: RED` and a `failed:` line whose count equals `fail:`; at 7e8210e no file)
+- design-advisor rec 3 — obeyed: 9d6892e (newest folder whose fixed-width stamp is at or after the launch second; RED / GREEN / GREEN with WARN / no result / not run / unreadable; unit tests `s194_*` cover cases a–e, plus the stamp format)
+- design-advisor rec 4 — obeyed: 9d6892e (reader and printing in `src/cli/launch.rs` after `print_receipt`, printed even with no transcript; `meter::format_receipt` unchanged) and 2cb027d (verify-194 row 1 has no cost log at all and still shows `close check: RED`)
+- design-advisor rec 5 — obeyed: b014bf5 (the ADR-0004 addendum's "Named, not closed" list: shows not stops, only at exit, the agent can write the file, WAIVED counts as a pass, a resume counts only since its launch, a project needs `--sync-fleet`)
+- design-advisor rec 6 — obeyed: 301f875 (standalone `.githooks/pre-merge-commit`, branch check only, blocks everyone, no `--no-verify` in its message) and a1115e9 (`tests/commit_belt.rs`: on main, agent and human, main unchanged; a 5-file branch merged into a session branch with `CLAUDECODE=1` passes)
+- design-advisor rec 7 — obeyed: 301f875 (`TPL_GITHOOK_PRE_MERGE_COMMIT` include_str!, `fxs` in `files()`, `SYNC_HOOKS`, executable via `fxs`, `!.githooks/pre-merge-commit` in Cargo.toml; the init tests list it — the 0o755 mode is checked by verify-194 row 3's `-x`) and 2cb027d (verify-194 row 4: `--sync-fleet` on a 7e8210e project writes it executable and it stops the merge; row 5: `cargo package --list`)
+- design-advisor rec 8 — obeyed: b014bf5 (the S172 sentence struck through, pointing at the S194 addendum, which names fast-forward, `reset --hard`, `branch -f`, `update-ref`, `--no-verify`, no `core.hooksPath`; the L3 guard not touched) and 2cb027d (verify-194 prints the KNOWN GAP line)
+- design-advisor rec 9 — obeyed: 052d338 (`starts_with_json_object` runs before `repo_root()` and any write; `tests/role_refuses_transcript.rs`: file and stdin refused, an existing handoff byte-for-byte, a brief with a fenced json block still records — 3 of 4 red at the start)
