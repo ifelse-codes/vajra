@@ -3,15 +3,20 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S193 complete on `session-193-rudra-s19` (PR open; the founder merges). Next: S194 — NOT PICKED YET (founder, 2026-10-09: "we won't pick next session work now"); its prompt is written at its start from his pick. S195 = the next review-only session.**
+**None — between sessions. S194 complete on `session-194-rudra-s20` (PR open; the founder merges). Next: S195 — review-only (NO-CODE), derived by the every-5th rule; prompt `prompts/195-task-ground-truth.md` (draft, the founder approves it with `vajra approve 195`).**
 
-## What was done this session (S193 — INTERACTIVE: rudra session 19 under the trusted receipt)
+## What was done this session (S194 — INTERACTIVE: rudra session 20, its ground truth, on Haiku 4.5)
 
-- **rudra S19 (the founder's run, $37.27):** receipt $37.27 = the run log's `cost-state` 37.2723498 = `~/.claude.json` lastCost (a fresh run). Close green; log: 0 WAIVED, 2 WARN (unchecked `obeyed:` claims, no `lint_command:` — both expected); 2 blocks, both correct (read-first pause; the publish guard stopped the agent's merge).
-- **F117 FIXED (ADR-0004 S193 addendum, deviates from the S189 "Receipt wording"):** with Claude Code's own figure (result line / `-p` stream, this run's cost-state share, or `vajra meter FILE`'s whole-file total) the receipt shows only that figure — no `[estimate]` line, no split, no "not in pricing table" or cache-tier warning. One predicate (`SessionCost::has_tool_figure`, `ToolRecord::is_figure`). No figure (a crash, a fork) → unchanged.
-- **Parked as known bugs (founder; ROADMAP § Backlog "🐞 KNOWN BUGS — TO FIX", S195 checklist):** F116 the approval record is left out of git at close (the "commit it" line reaches only the founder's terminal) · F118 `--advance` leaves the old session's text under the new number · F119 `--steps` shows ✗ for design on a no-design prompt.
-- Verify-193 11/11 + 1 record (each fix red at d2ec218) · demo 5/5 · `cargo test` 709/0 · verify-189 20/20 · verify-192 8/8 · ci-lint clean.
-- The founder got the whole roadmap as a field-notes page (his own copy in ~/Documents; not in the repo).
+- **rudra S20 (the founder's run, Haiku 4.5 on purpose, ~50 min, $1.49):** receipt $1.49 = the run log's `cost-state` 1.4903204 = `~/.claude.json` lastCost (a fresh run); the box held only that line — **F117 proven live** (S193 rec 4). Close log: 0 WAIVED, 1 N/A (no linter), **RED 17 pass / 5 fail** (fidelity-review-accept, three-next-options, fidelity-handoff, demo-passes-live, required-crew). The agent merged into local main 24 s later and told the founder "✅ fully closed"; he merged #24 on that word. 0 helper roles ran; it wrote its own "independent" ACCEPT. The guard held where it blocks: the 3-file cap, two pushes to main.
+- **F121 FIXED (ADR-0004 S194 addendum):** `verify-closeout.sh` (own + scaffold) writes `.ai/verify/closeout/<stamp>/result` (fixed format); `vajra claude`'s exit box prints `close check: RED — N of M failed (names)` / GREEN / started-but-no-result / not run — read only from that file, newest run since launch; unreadable is never GREEN.
+- **F123 FIXED (DECISION-007 S194 addendum):** `.githooks/pre-merge-commit` stops a merge commit on main/master for everyone; scaffolded + on `SYNC_HOOKS`; packaged.
+- **F120 FIXED (DECISION-007 S194 addendum):** `vajra next --role --from` refuses findings whose first line is a JSON object (a raw transcript) and writes nothing.
+- **F122** (no helpers ran) visible through F121's `failed:` names · **F124** (an S21 prompt written against the founder's word) not Vajra's · **F125 parked** (the review-only guard turns off on any `-closeout` branch the agent names) → ROADMAP known bugs. F118 + F119 seen again.
+- Verify-194 10/10 + 1 record (each fix red at 7e8210e) · demo 5/5 · `cargo test` 719/0.
+
+## Previous session (S193 — INTERACTIVE: rudra session 19 under the trusted receipt, merged #231)
+
+- rudra S19 receipt $37.27 = Claude Code's own cost-state. **F117 fixed:** with Claude Code's own figure the receipt shows only that figure (ADR-0004 S193 addendum). F116/F118/F119 parked as known bugs. Verify 11/11 + 1 record · demo 5/5 · `cargo test` 709/0.
 
 ## Previous session (S192 — CODE, interactive: prove the receipt live, through rudra, merged #230)
 
@@ -119,16 +124,17 @@
 
 ## What Is In Progress
 
-- Nothing. S193 complete on its branch. The next session is not picked yet (founder, 2026-10-09).
+- Nothing. S194 complete on its branch. Next: S195, review-only (every 5th).
 
 ## Active PRs
 
-- S193's PR (the founder merges). S192 merged as #230.
+- S194's PR (the founder merges). S193 merged as #231.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S194 | $0 | No paid run by the agent; the founder's rudra S20 run was $1.49 (Haiku 4.5, Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F121/F123/F120 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |
 | S193 | $0 | No paid run by the agent; the founder's rudra S19 run was $37.27 (Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F117 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |
 | S192 | ~$0.10 (founder's Haiku runs) | No paid run by the agent. The founder's rudra runs ($6.90 + $22.96, his own work) and three Haiku check runs. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, release-coordinator as the judge of all 15 answers) |
 | S191 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of all 24 answers) |
