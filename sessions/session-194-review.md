@@ -114,3 +114,5 @@ rec 7 — In the DECISION-007 S194 addendum, change "the git hook covers every r
 - /Users/suman/playground/vajra/.ai/handoffs/session-194-tech-lead.md
 - /Users/suman/playground/vajra/.ai/handoffs/session-194-design-advisor.md
 - /Users/suman/playground/vajra/reviewer/SKILL.md
+
+**Review-Inputs-SHA:** 6568d7ea0e58bca6efa708fa698248fb20200a2e8fb39f186a0ff100d4bb3761
