@@ -308,11 +308,27 @@ fn run_clean_room_close(name: Option<&String>, path: Option<&String>) -> Result<
     }
 }
 
+/// True when the first non-blank line parses as a JSON object — the shape of a JSON-lines
+/// transcript, never of a findings brief (S194, F120). Parsed, not pattern-matched.
+fn starts_with_json_object(findings: &str) -> bool {
+    findings
+        .lines()
+        .find(|l| !l.trim().is_empty())
+        .map(|l| {
+            matches!(
+                serde_json::from_str::<serde_json::Value>(l.trim()),
+                Ok(serde_json::Value::Object(_))
+            )
+        })
+        .unwrap_or(false)
+}
+
 /// `vajra next --role <name> --from <findings-file>` — the fleet's handoff governance (S109,
 /// DECISION-007). A native Claude Code subagent (scaffolded by `vajra init` from the canonical
 /// `fleet::ROLES`) returns a findings brief; Vajra wraps it into a delta-tracked, validated handoff
 /// in the `.ai/` spine. Fails closed on: unknown role · missing `--from` · missing/empty findings ·
-/// a handoff that would not validate. `--from -` reads findings from stdin.
+/// a handoff that would not validate · a transcript given as findings (S194). `--from -` reads
+/// findings from stdin.
 fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
     let name = name.context("usage: vajra next --role <name> --from <findings-file>")?;
     let role = fleet::resolve_role(name).ok_or_else(|| {
@@ -327,6 +343,17 @@ fn run_role_handoff(name: Option<&String>, args: &[String]) -> Result<()> {
     let findings = read_findings(&from)?;
     if findings.trim().is_empty() {
         bail!("findings are empty — nothing to record (fail closed)");
+    }
+    // S194 (F120): a helper's raw transcript is not its findings. Given the subagent's `.output`
+    // file, this command once wrote all 221,597 bytes of it — the user's email, the helper's whole
+    // system prompt — into the handoff. Structural check, before anything is written: a brief is
+    // prose, a transcript's first line is a JSON object.
+    if starts_with_json_object(&findings) {
+        bail!(
+            "{from} is a transcript, not a findings brief — its first line is a JSON object. \
+             Nothing was written. Pass the helper's final handback text instead: save it to a \
+             file, or pipe it in with `--from -`."
+        );
     }
     let root = repo_root()?;
     let session = current_session(&root)

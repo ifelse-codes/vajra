@@ -568,3 +568,49 @@ figure · dropping the estimate for `IncludesEarlierSpend` too (there is no figu
 
 Evidence: `scripts/verify-session-193.sh` (the real binary, a stand-in `claude`, against the binary built at the
 start commit); unit test `s193_the_estimate_shows_only_without_a_figure_from_claude_code`.
+
+## S194 addendum — the exit box also shows the latest close check (F121)
+
+**Deviates from §2.8's scope:** the receipt box was a cost receipt only. It now carries one line that is not about
+cost. The meter API and `format_receipt` do not change; the line is printed by the launcher after the receipt.
+
+**Why (founder, 2026-10-12, F121).** In rudra S20 (Haiku 4.5) the agent ran `verify-closeout.sh`, which said
+`RED (17 pass, 5 fail) — closeout NOT done.`; 24 seconds later it merged into local main and told the founder
+"✅ SESSION 20 — FULLY CLOSED … Verification passed … Independent review (ACCEPT)". He merged PR #24 on that word.
+The only thing Vajra itself showed him at exit was ` $1.49 what this run cost`. The verdict existed; only the agent
+saw it.
+
+**The rule.**
+- `verify-closeout.sh` (Vajra's own and the scaffold copy) writes one fixed-format file as its last step, via a
+  temp file: `.ai/verify/closeout/<stamp>/result` — `vajra-closeout-result: 1`, `session:`, `verdict: GREEN|RED`,
+  `pass:`, `fail:`, `warn:`, `failed:` (the failed checks' names). The binary reads only this file — never the
+  screen text, the per-check logs (no common shape) or the transcript.
+- "This run" = the newest run folder whose stamp (`%Y%m%dT%H%M%SZ`, compared as a fixed-width string) is at or after
+  the second `vajra claude` started **and that wrote a result** (S194 review rec 1: every focused mode —
+  `--fidelity-only`, `--attest-only`, `--crew-only`, `--scripts-only`, `--check-exec-shas` — makes a dated folder and
+  exits before the result, so a later partial run hid a full run's RED). A newer folder with no result is named after
+  the verdict: `· a later run at HH:MM:SSZ wrote no result (a focused mode such as --fidelity-only, or it stopped early)`. The `latest` link is not trusted (it may predate the launch; in Vajra's own
+  repo it is a real folder from August).
+- One line, below the box, even when no cost could be read; `VAJRA_QUIET=1` hides it with the receipt:
+  `close check: RED — 5 of 22 failed (…names…) · <folder>` · `close check: GREEN — 22 passed · <folder>` (or
+  `GREEN with N WARN … read the WARN rows`) · `close check: started HH:MM:SSZ but wrote no result (a focused mode such as
+  --fidelity-only, it stopped early, or the project's script is older — run vajra init --sync-fleet)` · `close check: not run during this run`.
+- A file that does not parse exactly — wrong version, unknown verdict, a missing or non-number field, an extra line,
+  GREEN with failures, RED whose `fail:` differs from the number of names — is `result unreadable — not counted as
+  GREEN`.
+
+**Rejected:** reading stdout or the transcript for "RED (" (text guessing); reading the per-check logs; trusting
+`latest`; re-running the close at exit (minutes; a new artifact folder); a Stop hook judging the agent's words.
+
+**Named, not closed:**
+- it shows the truth; it does not stop an agent saying "fully closed";
+- the box appears only when `vajra claude` exits — a founder who merges on GitHub before exiting still will not see it;
+- the agent can write a fake result file (bar-raising, not tamper-proof, as DECISION-011);
+- a WAIVED check counts as a pass in the totals (read the logs for WAIVED, S178);
+- after a resume, only close checks since that launch count;
+- a full run that stopped early after an earlier RED shows that earlier RED plus the "later run wrote no result" note,
+  not a fresh verdict; the `session:` field is written but not compared with the current session;
+- an existing project gets the result file only after `vajra init --sync-fleet` (until then: "wrote no result").
+
+Evidence: `scripts/verify-session-194.sh` rows 1–2 (a `vajra init` project whose stand-in `claude` runs the
+project's own scaffolded close check; red at 7e8210e); unit tests `s194_*` in `src/cli/launch.rs`.

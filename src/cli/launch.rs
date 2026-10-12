@@ -264,7 +264,15 @@ fn wait_and_meter(
     let status = status.context("failed to wait on claude")?;
 
     let session_cost = if std::env::var("VAJRA_QUIET").ok().as_deref() != Some("1") {
-        print_receipt(session_start, stats_path, captured_cost)
+        let cost = print_receipt(session_start, stats_path, captured_cost);
+        // S194 (F121): the close check's verdict, from Vajra — not from the agent's summary.
+        // Printed even when the cost could not be read.
+        let closeout = project_root().join(".ai/verify/closeout");
+        eprintln!(
+            " {}",
+            read_close_check(&closeout, &utc_stamp(session_start)).line()
+        );
+        cost
     } else {
         None
     };
@@ -280,6 +288,230 @@ fn wait_and_meter(
     }
 
     Ok(())
+}
+
+// ── S194 (F121): the close check at exit ─────────────────────────────────────────────────────
+// rudra S20's close check went RED (5 fail) and only the agent saw it; it told the founder "fully
+// closed" and he merged on that word. `verify-closeout.sh` now writes one fixed-format `result`
+// file into its run folder; the exit box reads only that file — never the screen text, the
+// per-check logs or the transcript (ADR-0004 S194 addendum). Named, not closed: it shows the
+// truth, it does not stop an agent claiming otherwise; the agent could write the file itself.
+
+/// What the close check said during this run.
+#[derive(Debug, PartialEq)]
+enum CloseCheck {
+    NotRun,
+    NoResult {
+        stamp: String,
+    },
+    Unreadable {
+        stamp: String,
+    },
+    Green {
+        pass: u32,
+        warn: u32,
+        stamp: String,
+    },
+    Red {
+        pass: u32,
+        fail: u32,
+        failed: Vec<String>,
+        stamp: String,
+    },
+}
+
+impl CloseCheck {
+    fn line(&self) -> String {
+        let folder = |stamp: &str| format!(".ai/verify/closeout/{stamp}");
+        match self {
+            CloseCheck::NotRun => "close check: not run during this run".to_string(),
+            CloseCheck::NoResult { stamp } => format!(
+                "close check: started {} but wrote no result (a focused mode such as --fidelity-only, \
+                 it stopped early, or the project's script is older — run `vajra init --sync-fleet`) · {}",
+                stamp_time(stamp),
+                folder(stamp)
+            ),
+            CloseCheck::Unreadable { stamp } => format!(
+                "close check: result unreadable — not counted as GREEN · {}/result",
+                folder(stamp)
+            ),
+            CloseCheck::Green {
+                pass,
+                warn: 0,
+                stamp,
+            } => {
+                format!("close check: GREEN — {pass} passed · {}", folder(stamp))
+            }
+            CloseCheck::Green { pass, warn, stamp } => format!(
+                "close check: GREEN with {warn} WARN — {pass} passed; read the WARN rows · {}",
+                folder(stamp)
+            ),
+            CloseCheck::Red {
+                pass,
+                fail,
+                failed,
+                stamp,
+            } => format!(
+                "close check: RED — {fail} of {} failed ({}) · {}",
+                pass + fail,
+                failed.join(", "),
+                folder(stamp)
+            ),
+        }
+    }
+}
+
+/// A run folder's name: `%Y%m%dT%H%M%SZ`, fixed width, so names compare as times.
+fn is_run_stamp(name: &str) -> bool {
+    let b = name.as_bytes();
+    b.len() == 16
+        && b[8] == b'T'
+        && b[15] == b'Z'
+        && b[..8].iter().chain(&b[9..15]).all(u8::is_ascii_digit)
+}
+
+/// "HH:MM:SSZ" out of a run stamp.
+fn stamp_time(stamp: &str) -> String {
+    format!("{}:{}:{}Z", &stamp[9..11], &stamp[11..13], &stamp[13..15])
+}
+
+/// `t` as a run stamp, UTC (civil-from-days; no date dependency).
+fn utc_stamp(t: SystemTime) -> String {
+    let secs = t
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0);
+    let (days, rem) = (secs.div_euclid(86_400), secs.rem_euclid(86_400));
+    let z = days + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = yoe + era * 400 + i64::from(m <= 2);
+    format!(
+        "{y:04}{m:02}{d:02}T{:02}{:02}{:02}Z",
+        rem / 3600,
+        rem % 3600 / 60,
+        rem % 60
+    )
+}
+
+/// The newest run folder stamped at or after `since` is this run's close check.
+/// The close check's verdict for this run, plus — when newer run folders wrote no result — the
+/// newest of them, so a later partial run is named instead of hiding the verdict.
+#[derive(Debug, PartialEq)]
+struct CloseReport {
+    check: CloseCheck,
+    later_without_result: Option<String>,
+}
+
+impl CloseReport {
+    fn line(&self) -> String {
+        match &self.later_without_result {
+            None => self.check.line(),
+            Some(later) => format!(
+                "{} · a later run at {} wrote no result (a focused mode such as --fidelity-only, \
+                 or it stopped early)",
+                self.check.line(),
+                stamp_time(later)
+            ),
+        }
+    }
+}
+
+/// The newest run folder stamped at or after `since` that WROTE a result is this run's verdict.
+/// Review rec 1 (S194): every focused mode (`--fidelity-only`, `--attest-only`, …) makes a dated
+/// folder and exits before the result is written, so "the newest folder" alone let a later
+/// partial run hide a full run's RED behind "wrote no result".
+fn read_close_check(closeout_dir: &Path, since: &str) -> CloseReport {
+    let mut stamps: Vec<String> = std::fs::read_dir(closeout_dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter(|e| e.path().is_dir())
+        .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|n| is_run_stamp(n) && n.as_str() >= since)
+        .collect();
+    stamps.sort_unstable_by(|a, b| b.cmp(a));
+    let Some(newest) = stamps.first().cloned() else {
+        return CloseReport {
+            check: CloseCheck::NotRun,
+            later_without_result: None,
+        };
+    };
+    for stamp in &stamps {
+        if let Ok(text) = std::fs::read_to_string(closeout_dir.join(stamp).join("result")) {
+            let check =
+                parse_close_result(&text, stamp.clone()).unwrap_or(CloseCheck::Unreadable {
+                    stamp: stamp.clone(),
+                });
+            return CloseReport {
+                check,
+                later_without_result: (*stamp != newest).then_some(newest),
+            };
+        }
+    }
+    CloseReport {
+        check: CloseCheck::NoResult { stamp: newest },
+        later_without_result: None,
+    }
+}
+
+/// The result file, exactly as verify-closeout.sh writes it — anything else is unreadable, and
+/// unreadable is never GREEN.
+fn parse_close_result(text: &str, stamp: String) -> Option<CloseCheck> {
+    let mut lines = text.lines();
+    // `key: value`, or a bare `key:` for an empty value (`failed:` on a GREEN run).
+    let mut field = |key: &str| {
+        let line = lines.next()?.strip_prefix(key)?;
+        match line.strip_prefix(": ") {
+            Some(v) => Some(v.to_string()),
+            None if line == ":" => Some(String::new()),
+            None => None,
+        }
+    };
+    if field("vajra-closeout-result")?.as_str() != "1" {
+        return None;
+    }
+    let _session = field("session")?;
+    let verdict = field("verdict")?;
+    let pass: u32 = field("pass")?.parse().ok()?;
+    let fail: u32 = field("fail")?.parse().ok()?;
+    let warn: u32 = field("warn")?.parse().ok()?;
+    let failed: Vec<String> = field("failed")?
+        .split_whitespace()
+        .map(str::to_string)
+        .collect();
+    if lines.next().is_some() {
+        return None;
+    }
+    match verdict.as_str() {
+        "GREEN" if fail == 0 && failed.is_empty() => Some(CloseCheck::Green { pass, warn, stamp }),
+        "RED" if fail > 0 && failed.len() == fail as usize => Some(CloseCheck::Red {
+            pass,
+            fail,
+            failed,
+            stamp,
+        }),
+        _ => None,
+    }
+}
+
+/// The project the run was launched in: git's top level, else the launch folder.
+fn project_root() -> std::path::PathBuf {
+    Command::new("git")
+        .args(["rev-parse", "--show-toplevel"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| std::path::PathBuf::from(s.trim()))
+        .filter(|p| !p.as_os_str().is_empty())
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_default()
 }
 
 /// `estimated`: Claude Code gave no figure, so `session_cost` is Vajra's token estimate (S189).
@@ -486,5 +718,130 @@ mod tests {
         )
         .unwrap();
         assert!(auth_evidence(None, Some(home.path())));
+    }
+
+    // ── S194 (F121): the close check at exit ──────────────────────────────────────────────
+
+    const RED_RESULT: &str = "vajra-closeout-result: 1\nsession: 20\nverdict: RED\npass: 17\nfail: 5\nwarn: 0\nfailed: fidelity-review-accept three-next-options fidelity-handoff demo-passes-live required-crew\n";
+    const GREEN_RESULT: &str = "vajra-closeout-result: 1\nsession: 20\nverdict: GREEN\npass: 22\nfail: 0\nwarn: 0\nfailed: \n";
+
+    fn run_folder(dir: &Path, stamp: &str, result: Option<&str>) {
+        fs::create_dir_all(dir.join(stamp)).unwrap();
+        if let Some(r) = result {
+            fs::write(dir.join(stamp).join("result"), r).unwrap();
+        }
+    }
+
+    #[test]
+    fn s194_utc_stamp_matches_the_close_scripts_folder_names() {
+        let t = std::time::UNIX_EPOCH + std::time::Duration::from_secs(1_791_777_212);
+        assert_eq!(utc_stamp(t), "20261012T035332Z");
+        assert_eq!(utc_stamp(std::time::UNIX_EPOCH), "19700101T000000Z");
+        assert!(is_run_stamp("20261012T035332Z"));
+        assert!(!is_run_stamp("latest") && !is_run_stamp("20261012T035332"));
+    }
+
+    #[test]
+    fn s194_a_red_close_check_after_launch_is_shown_with_its_failed_names() {
+        let d = tempfile::tempdir().unwrap();
+        run_folder(d.path(), "20261012T035332Z", Some(RED_RESULT));
+        let line = read_close_check(d.path(), "20261012T030000Z").line();
+        assert_eq!(
+            line,
+            "close check: RED — 5 of 22 failed (fidelity-review-accept, three-next-options, \
+             fidelity-handoff, demo-passes-live, required-crew) · .ai/verify/closeout/20261012T035332Z"
+        );
+    }
+
+    #[test]
+    fn s194_a_close_check_from_before_launch_is_not_this_runs() {
+        let d = tempfile::tempdir().unwrap();
+        run_folder(d.path(), "20261011T120000Z", Some(GREEN_RESULT));
+        assert_eq!(
+            read_close_check(d.path(), "20261012T030000Z").check,
+            CloseCheck::NotRun
+        );
+        assert_eq!(
+            read_close_check(&d.path().join("missing"), "20261012T030000Z").line(),
+            "close check: not run during this run"
+        );
+    }
+
+    #[test]
+    fn s194_a_run_with_no_result_file_is_not_green() {
+        let d = tempfile::tempdir().unwrap();
+        run_folder(d.path(), "20261012T035332Z", None);
+        let line = read_close_check(d.path(), "20261012T030000Z").line();
+        assert!(
+            line.starts_with("close check: started 03:53:32Z but wrote no result"),
+            "{line}"
+        );
+        assert!(line.contains("vajra init --sync-fleet"), "{line}");
+    }
+
+    #[test]
+    fn s194_a_result_that_does_not_parse_exactly_is_unreadable_never_green() {
+        for bad in [
+            GREEN_RESULT.replace("verdict: GREEN", "verdict: PASSED"),
+            GREEN_RESULT.replace("fail: 0\n", ""),
+            GREEN_RESULT.replace("pass: 22", "pass: lots"),
+            GREEN_RESULT.replace("vajra-closeout-result: 1", "vajra-closeout-result: 2"),
+            GREEN_RESULT.replace("fail: 0", "fail: 1"),
+            RED_RESULT.replace("fail: 5", "fail: 4"),
+            format!("{GREEN_RESULT}extra: line\n"),
+            String::new(),
+        ] {
+            let d = tempfile::tempdir().unwrap();
+            run_folder(d.path(), "20261012T035332Z", Some(&bad));
+            let got = read_close_check(d.path(), "20261012T030000Z").check;
+            assert_eq!(
+                got,
+                CloseCheck::Unreadable {
+                    stamp: "20261012T035332Z".into()
+                },
+                "{bad:?}"
+            );
+            assert!(got.line().contains("not counted as GREEN"));
+        }
+    }
+
+    #[test]
+    fn s194_the_newest_close_check_of_this_run_wins() {
+        let d = tempfile::tempdir().unwrap();
+        run_folder(d.path(), "20261012T035332Z", Some(RED_RESULT));
+        run_folder(d.path(), "20261012T040500Z", Some(GREEN_RESULT));
+        assert_eq!(
+            read_close_check(d.path(), "20261012T030000Z").line(),
+            "close check: GREEN — 22 passed · .ai/verify/closeout/20261012T040500Z"
+        );
+        let warned = GREEN_RESULT.replace("warn: 0", "warn: 2");
+        run_folder(d.path(), "20261012T041000Z", Some(&warned));
+        assert!(read_close_check(d.path(), "20261012T030000Z")
+            .line()
+            .starts_with("close check: GREEN with 2 WARN"));
+    }
+
+    #[test]
+    fn s194_a_later_partial_run_does_not_hide_the_red() {
+        // Review rec 1: a full RED close, then `--fidelity-only` in a later second (a folder, no result).
+        let d = tempfile::tempdir().unwrap();
+        run_folder(d.path(), "20261012T035332Z", Some(RED_RESULT));
+        run_folder(d.path(), "20261012T035340Z", None);
+        let r = read_close_check(d.path(), "20261012T030000Z");
+        assert!(matches!(r.check, CloseCheck::Red { fail: 5, .. }), "{r:?}");
+        let line = r.line();
+        assert!(
+            line.starts_with("close check: RED — 5 of 22 failed"),
+            "{line}"
+        );
+        assert!(
+            line.ends_with("a later run at 03:53:40Z wrote no result (a focused mode such as --fidelity-only, or it stopped early)"),
+            "{line}"
+        );
+        // A later FULL run that wrote a result still wins, with no note.
+        run_folder(d.path(), "20261012T035400Z", Some(GREEN_RESULT));
+        let r = read_close_check(d.path(), "20261012T030000Z");
+        assert_eq!(r.later_without_result, None);
+        assert!(r.line().starts_with("close check: GREEN — 22 passed"));
     }
 }

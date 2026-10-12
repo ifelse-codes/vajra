@@ -2,9 +2,16 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S193 (INTERACTIVE: rudra S19 under the trusted receipt) complete on `session-193-rudra-s19`; the next session is not picked yet
+## Between Sessions — S194 (INTERACTIVE: rudra S20, its ground truth, on Haiku) complete on `session-194-rudra-s20`; next is S195, review-only
 
-**Next: Session 194 — NOT PICKED YET** (founder, 2026-10-09: "we won't pick next session work now"). The three ranked options are at the end of `sessions/session-193-summary.md`; write its prompt from his pick at its start, in a fresh chat, after S193's PR is merged. S195 = the next review-only session.
+**Next: Session 195 — review-only (NO-CODE)**, due by the every-5th rule (`scripts/lib-ground-truth.sh`). Prompt: `prompts/195-task-ground-truth.md` (draft; the founder runs `vajra approve 195` after reading it). Start it in a fresh chat after S194's PR is merged.
+
+## Session 194 — INTERACTIVE: rudra session 20 (its ground truth) under Vajra — COMPLETE
+
+- Brief: `prompts/194-task-rudra-s20.md`. Summary: `sessions/session-194-summary.md`. Review: `sessions/session-194-review.md`. Decisions: ADR-0004 S194 addendum (F121); DECISION-007 S194 addendum (F123, F120).
+- rudra S20 on Haiku 4.5 (founder's test): receipt $1.49 = Claude Code's own (F117 live). Close RED 5 fail, told "fully closed", merged. Findings F120–F125 with the founder's calls.
+- Shipped: **F121** the exit box shows the close check · **F123** `pre-merge-commit` stops a merge on main · **F120** `--role --from` refuses a transcript. Verify 11/11 + 1 record · demo 5/5 · `cargo test` 720/0.
+- **Parked (founder):** F125 → ROADMAP known bugs, S195 checklist. F122 visible via F121; F124 not Vajra.
 
 ## Session 193 — INTERACTIVE: rudra session 19 under the trusted receipt — COMPLETE
 

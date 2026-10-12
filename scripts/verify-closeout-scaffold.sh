@@ -49,7 +49,7 @@ case "${1:-}" in
   *) mkdir -p "$ARTIFACTS" ;;
 esac
 
-PASS=0; FAIL=0; RESULTS=()
+PASS=0; FAIL=0; RESULTS=(); FAILED_NAMES=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
 # --- session file names: padded or not (S171, founder's rudra test) -------------------
 # Vajra writes session files zero-padded — session 1 is `session-01-…` — but N here is the
@@ -64,7 +64,7 @@ spath() {   # spath <prefix> <suffix>  ->  the session-numbered path to use
   else printf '%s' "$p"; fi
 }
 
-bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); }
+bad() { RESULTS+=("$(printf '%-34s %s' "$1" FAIL)"); FAIL=$((FAIL+1)); FAILED_NAMES+=("$1"); }
 # S183 (F101): a row that is neither a pass nor a fail must SAY so in the table, not only in its
 # log — a WARN or N/A hidden under PASS is what S178 read as green.
 WARNS=0
@@ -1231,6 +1231,19 @@ check_required_crew
 check_claimed_evidence
 check_review_attestation
 
+# S194 (F121): the one machine-readable result. `vajra claude` reads it at exit and prints it below
+# the receipt, so the human hears the verdict from Vajra, not from the agent's summary. Fixed
+# format; the binary reads nothing else (no screen text, no per-check logs). Written last, via a
+# temp file, so a run that stops early leaves no result rather than half of one.
+{
+  echo "vajra-closeout-result: 1"
+  echo "session: ${N:-?}"
+  if [ "$FAIL" -eq 0 ]; then echo "verdict: GREEN"; else echo "verdict: RED"; fi
+  echo "pass: $PASS"
+  echo "fail: $FAIL"
+  echo "warn: ${WARNS:-0}"
+  echo "failed: ${FAILED_NAMES[*]+${FAILED_NAMES[*]}}"
+} > "$ARTIFACTS/result.tmp" 2>/dev/null && mv -f "$ARTIFACTS/result.tmp" "$ARTIFACTS/result" 2>/dev/null || true
 ( cd ".ai/verify/closeout" && ln -sfn "${TS}" "latest" ) 2>/dev/null || true
 
 echo ""
