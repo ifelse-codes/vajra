@@ -1396,7 +1396,7 @@ performs locally does not count — and falls back to LOCAL main when there is n
 its own message. **Corrected by this session's cold review (rec 1):** an earlier draft of this
 addendum claimed the agent "cannot set" that fact. It can, in a repo with no `origin/<main>`:
 `git checkout main && git merge <branch>` runs no pre-commit hook (git would run `pre-merge-commit`,
-which Vajra does not ship) and no PreToolUse guard (`hook-pre-bash.sh` lists `git commit`, `git
+~~which Vajra does not ship~~ — **ships since S194, see the S194 addendum**) and no PreToolUse guard (`hook-pre-bash.sh` lists `git commit`, `git
 push`, `git reset --hard`, `git branch -D` — not `git merge`). Disclosed, not fenced. When it is, the Options/Coder/Advice/Fidelity/Mandate/Crew/Obeyed gates print
 `already merged by you — …; reporting, not blocking`, and the slow live QA and demo re-runs are
 skipped entirely (after a merge, `main` IS the after-state, so a demo comparing against it inverts —
@@ -1744,3 +1744,41 @@ deleted comes back, and sync's output says so. A strict opt-out key → S188, by
 workflow audits — undoes S179's project-first order); a second key like `required_audits_added:` (no reader
 knows it; two lists drift); a second `required_audits:` line (a duplicate key every `grep -m1` reader
 misses); a YAML parse-and-rewrite (drops the project's comments and reorders its keys).
+
+## S194 addendum — the git belt stops a merge commit on main (F123); `--role --from` refuses a transcript (F120)
+
+**F123 (founder, 2026-10-12).** rudra S20's agent ran `git checkout main && git merge --no-ff <branch>` 24 seconds
+after its close check went RED. A merge commit runs git's `pre-merge-commit` hook, never `pre-commit`, so the
+belt's "not on main" check never saw it; the L3 guard reads only `git commit`. The S172 addendum above had named
+this hole ("Disclosed, not fenced"). Vajra now ships `.githooks/pre-merge-commit`: a standalone check of the
+current branch against main|master that blocks everyone, human or agent — the same rule as pre-commit's first check
+and the 2026-09-21 founder decision ("nobody commits on main/master"). It does not call pre-commit: pre-commit's
+3-file cap and approval check would also stop an agent merging main INTO its session branch, which is new policing,
+not this finding. It ships like the belt's other two files (include_str!, scaffolded stamped, on `SYNC_HOOKS`,
+executable, un-excluded in Cargo.toml).
+
+Rejected: calling pre-commit from the hook; `git merge` in the L3 text match (another command-text classifier —
+S173 needed seven REJECTs on exactly that; the git hook covers every route, `git pull` included); git's
+reference-transaction hook (fires on the human's fast-forward `git pull` on main and on fetches); blocking agents
+only (against the 2026-09-21 rule).
+
+Named, not closed: anything that moves main without a new commit fires no hook — a fast-forward merge,
+`git reset --hard`, `git branch -f main`, `git update-ref`; `git merge --no-verify` skips the hook; the hook works
+only where `core.hooksPath` is `.githooks`. pre-push still stops the push to main (it did, twice, in rudra S20).
+
+**F120 (founder, 2026-10-12).** Given a subagent's raw `.output` transcript, `vajra next --role tech-lead --from`
+wrote all 221,597 bytes of it — the user's email, the helper's whole system prompt — into the handoff and said
+"validated: OK". A fourth fail-closed case joins §2's list: if the first non-blank line of the findings parses as a
+JSON object (serde_json, not a `{` check), nothing is written, the command exits non-zero, and it says to pass the
+helper's handback text (a file, or `--from -`). The check runs before anything is written, so an existing handoff
+stays byte-for-byte.
+
+Rejected: extracting the handback from the transcript (ties Vajra to Claude Code's transcript format and makes it
+choose which message is "the brief" — a guess, and against "Vajra governs, never authors"); detecting Claude Code's
+key names; requiring every line to be JSON (one cut-off line defeats it); a size cap; warning and writing anyway
+(the harm happens at the write).
+
+Named, not closed: a findings file that starts with prose and has a transcript pasted lower down is not caught.
+
+Evidence: `scripts/verify-session-194.sh` rows 3–6 (real `vajra init`, real `git merge`, `--sync-fleet` on a
+project scaffolded at 7e8210e; red at 7e8210e); `tests/commit_belt.rs` `s194_*`; `tests/role_refuses_transcript.rs`.
