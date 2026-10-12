@@ -3,7 +3,9 @@
 //! S171 changed `.githooks/pre-commit` and `.githooks/pre-push` so they stop the AGENT and let
 //! the human through. The cases were checked by hand once and nothing ran them again. These tests
 //! install the real hook files into a temp repo (`core.hooksPath`) and drive real `git commit` /
-//! the real pre-push script, with the agent markers set and unset.
+//! the real pre-push script, with the agent markers set and unset. S194 (F123) adds
+//! `.githooks/pre-merge-commit`: a merge commit never runs pre-commit, so `git merge` on main
+//! slipped past the belt in rudra S20.
 
 use std::fs;
 use std::path::Path;
@@ -50,7 +52,7 @@ fn repo() -> tempfile::TempDir {
     }
     let hooks = root.join(".githooks");
     fs::create_dir_all(&hooks).unwrap();
-    for name in ["pre-commit", "pre-push"] {
+    for name in ["pre-commit", "pre-push", "pre-merge-commit"] {
         fs::copy(hook(name), hooks.join(name)).unwrap();
         #[cfg(unix)]
         {
@@ -232,4 +234,79 @@ fn pushing_main_stops_the_agent_and_notes_the_human() {
     assert!(ok && out.contains("Pushing anyway"), "human: {out}");
     let (ok, out) = push("refs/heads/session-07-x", &[CLAUDE]);
     assert!(ok && out.is_empty(), "agent pushing its branch: {out}");
+}
+
+// ── S194 (F123): a merge commit on main ─────────────────────────────────────
+
+/// `git merge --no-ff <branch>` with exactly `env` set. Returns (ok, output).
+fn merge(root: &Path, branch: &str, env: &[(&str, &str)]) -> (bool, String) {
+    let mut cmd = Command::new("git");
+    cmd.args(["merge", "--no-ff", "-m", "merge", branch])
+        .current_dir(root)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null");
+    for v in BELT_VARS {
+        cmd.env_remove(v);
+    }
+    for (k, v) in env {
+        cmd.env(k, v);
+    }
+    let out = cmd.output().expect("git merge runs");
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    if !out.status.success() {
+        git(root, &["merge", "--abort"]);
+    }
+    (out.status.success(), text)
+}
+
+fn head(root: &Path) -> String {
+    String::from_utf8_lossy(&git(root, &["rev-parse", "HEAD"]).stdout)
+        .trim()
+        .to_string()
+}
+
+/// A session branch with one human commit of `files` files, then back on `back_to`.
+fn branch_with_work(root: &Path, branch: &str, files: usize, back_to: &str) {
+    assert!(git(root, &["checkout", "-qb", branch]).status.success());
+    let (ok, out) = commit(root, files, &[]);
+    assert!(ok, "human commit on {branch}: {out}");
+    assert!(git(root, &["checkout", "-q", back_to]).status.success());
+}
+
+#[test]
+fn s194_a_merge_commit_on_main_is_stopped_for_the_agent_and_the_human() {
+    let d = repo();
+    branch_with_work(d.path(), "session-01-x", 1, "main");
+    let before = head(d.path());
+    let (ok, out) = merge(
+        d.path(),
+        "session-01-x",
+        &[CLAUDE, ("VAJRA_ALLOW_COMMIT", "01")],
+    );
+    assert!(
+        !ok && out.contains("Vajra stopped this merge: you are on 'main'"),
+        "agent merge on main: {out}"
+    );
+    assert_eq!(head(d.path()), before, "main moved");
+    let (ok, out) = merge(d.path(), "session-01-x", &[]);
+    assert!(
+        !ok && out.contains("Vajra stopped this merge: you are on 'main'"),
+        "human merge on main: {out}"
+    );
+    assert_eq!(head(d.path()), before, "main moved");
+}
+
+#[test]
+fn s194_merging_into_a_session_branch_is_not_policed() {
+    // The new hook checks the branch only: no 3-file cap, no approval marker on a merge.
+    let d = repo();
+    branch_with_work(d.path(), "session-02-y", 5, "main");
+    assert!(git(d.path(), &["checkout", "-qb", "session-03-z"])
+        .status
+        .success());
+    let (ok, out) = merge(d.path(), "session-02-y", &[CLAUDE]);
+    assert!(ok, "agent merging a 5-file branch into its session branch: {out}");
 }
