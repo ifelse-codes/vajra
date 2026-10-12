@@ -141,7 +141,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: the founder watc
 - tech-lead rec 3 — obeyed: f5801dd (the ground-truth path checked from the transcript: the cadence agreed S20 is review-only, but the guard was off all session on a `-closeout` branch — F125, reported and parked on the founder's call, not fixed)
 - tech-lead rec 4 — obeyed: 2cb027d (every fix's check runs the real binary in a temp project — `vajra init`, `vajra claude` with a stand-in `claude`, `git merge`, `vajra next` — red at 7e8210e with that finding's own result; rudra is never the fixture)
 - tech-lead rec 5 — obeyed: 08fedd8 (F121/F123/F120 change the receipt box, the git belt and the handoff contract for every project → design-significant: yes, the design-advisor dispatched narrowly, ADR-0004 and DECISION-007 cited) and b014bf5 (the S194 addenda)
-- tech-lead rec 6 — obeyed: 9d6892e (the full `cargo test --release` ran before any push: 719 passed / 0 failed; not added to the close)
+- tech-lead rec 6 — obeyed: 9d6892e (the full `cargo test --release` ran before any push: 719 passed / 0 failed; run again after review rec 1's code change 56b4693: 720 passed / 0 failed, d6e73f5; not added to the close; CI on the PR is the evidence the founder waits for)
 - tech-lead rec 7 — obeyed: f0279e0 (not triggered — the founder approved three fixes; the summary still says what F121 cannot do, and verify-194 keeps AC3 as a RECORD line)
 - tech-lead rec 8 — obeyed: 168564f (the six skip lines carry the money reasons) and 08fedd8 (the design-advisor only after rec 5 triggered); then the build, one fidelity-reviewer, one release-coordinator after this section
 
@@ -164,3 +164,10 @@ demo-producer: skipped — the tech-lead deferred it on budget: the founder watc
 - fidelity-reviewer rec 5 — deferred: .ai/SESSION-BOOT.md
 - fidelity-reviewer rec 6 — obeyed: 6aea9bf (the demo's next slide lists the summary's three ranked options, in order) and 8c48fac (its rule slide names the partial-run case)
 - fidelity-reviewer rec 7 — obeyed: 97fac97 (DECISION-007: "every route that makes a merge commit"; a human's non-fast-forward `git pull` on local main is named as refused too)
+
+**release-coordinator** (`.ai/handoffs/session-194-release-coordinator.md`) — the one judge: 23 implemented, 0 mismatch:
+- release-coordinator rec 1 — deferred: sessions/session-194-review.md
+- release-coordinator rec 2 — deferred: sessions/session-194-review.md
+- release-coordinator rec 3 — deferred: .ai/SESSION-BOOT.md
+- release-coordinator rec 4 — deferred: .ai/SESSION-BOOT.md
+- release-coordinator rec 5 — deferred: .ai/SESSION-BOOT.md
