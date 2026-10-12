@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S194 (INTERACTIVE: rudra S20, its ground truth, on Haiku) complete on `session-194-rudra-s20`; next is S195, review-only
+## Between Sessions — S195 (NO-CODE ground truth) complete on `session-195-closeout`; next is S196, rudra S21 on Opus
 
-**Next: Session 195 — review-only (NO-CODE)**, due by the every-5th rule (`scripts/lib-ground-truth.sh`). Prompt: `prompts/195-task-ground-truth.md` (draft; the founder runs `vajra approve 195` after reading it). Start it in a fresh chat after S194's PR is merged.
+**Next: Session 196 — INTERACTIVE: rudra S21 on Opus, after `vajra init --sync-fleet`** (founder pick A). Prompt: `prompts/196-task-rudra-s21.md` (draft; the founder runs `vajra approve 196` after reading it). Start it in a fresh chat after S195's PR is merged.
+
+## Session 195 — NO-CODE ground truth (every 5th) — COMPLETE (🟡 PARTIAL, founder approved as written)
+
+- Brief: `prompts/195-task-ground-truth.md`. Report: `sessions/session-195-ground-truth.md`. Review: `sessions/session-195-review.md` (one cold pass, ACCEPT). Summary: `sessions/session-195-summary.md`.
+- Haiku answer: blocks stopped, the close check detected and stopped nothing, instruction-only steps skipped → (c) README "tested with" fact (founder's words), then (d) Vajra runs the required reviewer itself; not (a).
+- **→ S197:** F125 first (`vajra approve NN --close` opens `-closeout`; N17), then F116, F118, F119, N10. **Dropped (founder):** N11, verify-131's stale checks. **New:** N14–N17.
 
 ## Session 194 — INTERACTIVE: rudra session 20 (its ground truth) under Vajra — COMPLETE
 
