@@ -13,6 +13,13 @@ session_type: CODE
 Fix the bugs parked on ROADMAP's "🐞 KNOWN BUGS — TO FIX" list that the S195 ground truth sent here — each one a
 thing a user meets — with F125 first, because it lets an agent switch off the review-only guard by naming its branch.
 
+## Founder call in-session (2026-10-14)
+- **F125's premise was wrong.** Found at the start of S197: user projects never HAD the review-only no-code guard.
+  It lives only in Vajra's own `scripts/hook-pre-bash.sh` / `hook-pre-write.sh`; `vajra init` / `--sync-fleet`
+  ship neither (rudra's `.claude/settings.json` + `.ai/hooks/` have no ground-truth block at all). So rudra S20's
+  `-closeout` branch switched nothing off — the rule was text only. The founder chose: **ship the guard to every
+  project**, with `vajra approve NN --close` as the only way to open it (Vajra too), and **move F118 out** to make room.
+
 ## Deliverables
 1. **F125 + N17 — the review-only guard cannot be switched off by a branch name the agent picks.** Today
    `hook-pre-bash.sh`'s `*-closeout) GT=0` turns the ground-truth guard off on any `-closeout` branch (rudra S20 made
@@ -22,7 +29,8 @@ thing a user meets — with F125 first, because it lets an agent switch off the 
    committed" (the ROADMAP fix idea). N17 is fixed with it or named with a reason.
 2. **F116 — the approval record is left out of git at close.** `vajra next --steps` / boot say "approved ✓ — not in
    git yet; commit it with the session" (a reminder, not a block). Seen in rudra S19, S21 and Vajra's own S192.
-3. **F118 — `vajra next --advance` leaves the old session's text under the new number.** The advance moves the old
+3. **F118 — MOVED OUT by the founder (2026-10-14, above): stays on ROADMAP's known-bug list for a later session.**
+   Was: **`vajra next --advance` leaves the old session's text under the new number.** The advance moves the old
    `## Current Session` entry down to `## Prior Session` instead of number-swapping it in place (Vajra's own
    SESSION-BOOT layout; a project with another shape is left alone and told).
 4. **F119 — the step list shows ✗ for design when the prompt says none is needed.** `--steps` agrees with
@@ -33,9 +41,9 @@ thing a user meets — with F125 first, because it lets an agent switch off the 
 ## Acceptance
 | AC | Check |
 |---|---|
-| AC1 | F125: on a `-closeout` branch with no founder record, a ground-truth session's commit / push / PR is still blocked; with the record it opens. A branch with no `session-NN` (N17) is blocked or its gap named in the addendum. Real runs in a temp `vajra init` project. |
+| AC1 | F125: in a temp `vajra init` project (and after `--sync-fleet` on an older one), a ground-truth session's code edit / commit / push / PR is blocked — on a `-closeout` branch too — until the founder's `vajra approve NN --close` record exists; with it, it opens. A branch with no `session-NN` (N17) is blocked or its gap named in the addendum. Real runs. |
 | AC2 | F116: `vajra next --steps` names an approval record that exists but is not in git, and stops naming it once committed. |
-| AC3 | F118: `vajra next --advance` on a SESSION-BOOT shaped like Vajra's moves the old entry to `## Prior Session` and leaves no old text under the new number. |
+| AC3 | F118 moved out (founder, 2026-10-14): ROADMAP's known-bug list still names it, with the founder's call and no session number claimed fixed. |
 | AC4 | F119: `--steps NN` shows ✓ for design on a `design-significant: no` prompt that `--check-design NN` calls READY. |
 | AC5 | N10: `bash scripts/scaffold-drift.sh` exits 0 on Vajra; a hollow source grep without the marker still fails check 6. |
 | AC6 | Every fix has a real-run check in `scripts/verify-session-197.sh` (no source greps), red at the start commit. Full `cargo test` passes before push; the push itself goes through the S196 push belt (close GREEN on the pushed commit). |
@@ -67,7 +75,32 @@ design-significant: yes
 - Fixes only what is listed; a new bug found on the way is filed, not fixed.
 
 ## Plan
-<the S197 agent writes this after the tech-lead>
+1. F119: `--steps` ticks design when the prompt records `design-significant: no` (the `--check-design` reading).
+   covers: 4
+2. F116: `--steps` names an approval record that is not in the last commit, until it is; this session's own
+   record is the live case.
+   covers: 2
+3. N10: `scaffold-drift.sh` check 6 skips a line carrying `# source-claim: <why>`; the three current lines carry it.
+   covers: 5
+4. F125 + N17 record: the DECISION-011 S197 addendum (design-advisor's text), committed before the guard code.
+   covers: 1
+5. F125 the opening: `vajra approve NN --close` writes `session-NN-close.json`; `vajra next --check-close-record NN`
+   reads it the way an approval is read (void, lower-case); unit tests.
+   covers: 1
+6. F125 + N17 the guard: `scripts/hook-ground-truth-guard.sh` (the GT parts of hook-pre-bash/pre-write, no suffix
+   exemption, no `VAJRA_GT_WAIVER`, an unnumbered branch uses HEAD's `.ai/SESSION` + 1); Vajra's two hooks call it;
+   `vajra init` / `--sync-fleet` ship and wire it; the boot hooks drop the suffix too; AGENTS.md text.
+   covers: 1
+7. F118 moved out: ROADMAP's known-bug list keeps it, with the founder's call.
+   covers: 3
+8. `scripts/verify-session-197.sh` — real runs, each red at eceb6d5; full `cargo test` before push; push through
+   the S196 belt after a GREEN close.
+   covers: 6
+
+## Execution
+- step 1 — done: 336786d
+- step 2 — done: 946a967
+- step 3 — done: 34cebf4
 
 ## Delta
 - `~` F125 + N17: the `-closeout` opening needs something the agent cannot type
