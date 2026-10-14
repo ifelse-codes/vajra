@@ -71,7 +71,7 @@ session NN. GREEN with WARN passes. A person gets a `Note:` and the push goes on
 | The close result says which commit it checked (format 2: `head:`, `clean:`, taken at start and end), in both close scripts | `5c2f840` | `tests/push_belt.rs` last case: the scaffold's own close script writes `head:` = HEAD, `clean: yes` |
 | The exit box reads formats 1 and 2 | `5c2f840` | `s196_a_format_2_result_is_read_like_format_1`; verify-196 row 9 (59719f8's binary: "result unreadable") |
 | `.githooks/pre-push`: refuses RED / older / unclean / other-session / missing / old-format, each with its reason and the way through; fails closed | `08024f3` | `tests/push_belt.rs` 9 real `git push` runs to a bare remote; verify-196 rows 1–8 |
-| The two readers agree on the 15 format-2 cases tested (incl. `+30` and CRLF, review rec 4) | `c1aa1d6` + the rec-4 commit | `s196_the_push_belt_and_the_exit_box_agree_on_every_format_2_result` (13 cases) |
+| The two readers agree on the 15 format-2 cases tested (incl. `+30` and CRLF, review rec 4) | `c1aa1d6` + the rec-4 commit | `s196_the_push_belt_and_the_exit_box_agree_on_every_format_2_result` (15 cases) |
 | Records + the close-step text | `604cd29`, `dba3721` | DECISION-007 / ADR-0004 S196 addenda; Releaser step: "run it LAST … until GREEN" |
 | verify + demo | `c6545ee`, `f300f4b` | verify-196 **10/10** (each fix row red at 59719f8) · demo 5/5 · `cargo test` **734 / 0** at the tip after the review fixes (732 / 0 before them) |
 
@@ -93,6 +93,11 @@ and a PR can then be opened from it · rudra gets it only after `vajra init --sy
 
 **Fakest green:** the push belt trusts a file. A GREEN result the agent writes by hand passes, and `--no-verify`
 skips the hook. It stops an agent that follows the steps; it does not stop one that sets out to cheat.
+
+## For the founder (not a step)
+
+- Delete the old remote branches `session-165-closeout` and `session-187-closeout` on GitHub? They block nothing
+  (release-coordinator rec 6).
 
 ## Process
 

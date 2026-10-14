@@ -777,6 +777,7 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   run's log), and it does see "the AI never writes to `.ai/approvals/`", so it leaves the file alone. S16–S18 got it in
   only by riding a Vajra-upgrade commit. **Fix idea:** `vajra next --steps` / boot say "approved ✓ — not in git yet;
   commit it with the session" (a reminder, not a block).
+  **Seen again in rudra S21** (S196): `.ai/approvals/session-21.json` still untracked after PR #25's merge.
 - **F118 — `vajra next --advance` leaves the old session's text under the new number.** S193's advance wrote
   "**Number:** 193 — COMPLETE on `session-192-…`" + S192's whole story into SESSION-BOOT's `## Current Session`, and
   S192 dropped out of `## Prior Session` (fixed by hand, `beae153`). S191 made the swap touch only the number token;
