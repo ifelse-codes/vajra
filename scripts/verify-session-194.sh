@@ -64,7 +64,8 @@ if printf '%s\n' "$LINE" | grep -qE '^ close check: RED — [0-9]+ of [0-9]+ fai
    && has "$NEW" 'no receipt'; then
   ok "F121 exit box: '$(printf '%s' "$LINE" | sed 's/^ //' | cut -c1-70)…' — shown with no cost log at all"
 else bad "F121 exit box now:"$'\n'"$NEW"; fi
-if [ -n "$R" ] && sed -n 1p "$R/result" | grep -qx 'vajra-closeout-result: 1' && grep -qx 'verdict: RED' "$R/result" \
+# S196 (F127): the format moved to 2 (adds head + clean for the push belt); both are this check's shape.
+if [ -n "$R" ] && sed -n 1p "$R/result" | grep -qxE 'vajra-closeout-result: [12]' && grep -qx 'verdict: RED' "$R/result" \
    && grep -q '^failed: .*required-crew' "$R/result" \
    && [ "$(sed -n 's/^fail: //p' "$R/result")" = "$(sed -n 's/^failed: //p' "$R/result" | wc -w | tr -d ' ')" ]; then
   ok "F121 the project's scaffolded close check wrote $(basename "$R")/result: verdict RED, fail = the number of names on 'failed:'"
