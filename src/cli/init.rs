@@ -33,6 +33,13 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
         ".ai/hooks/hook-approvals-guard.sh",
         TPL_HOOK_APPROVALS_GUARD,
     ),
+    // S197 (F125, DECISION-011 S197 addendum): the review-only guard. Projects never had one, while
+    // their Hard Rules said "No code in Ground Truth — Hook-enforced". The SAME file Vajra's own
+    // hook-pre-bash.sh / hook-pre-write.sh call — one source.
+    (
+        ".ai/hooks/hook-ground-truth-guard.sh",
+        TPL_HOOK_GROUND_TRUTH_GUARD,
+    ),
     // S146 (DECISION-007 S146 addendum): the close-gate is a ShellComment-stamped pure-render shell
     // script — the same shape as the hooks above. Adding it to SYNC_HOOKS gives adopters the
     // four-state upgrade path (Missing/UpToDate/StaleRender/Drifted) so `--sync-fleet` can push a
@@ -1805,6 +1812,10 @@ fn files(
             ".ai/hooks/hook-approvals-guard.sh",
             TPL_HOOK_APPROVALS_GUARD,
         ),
+        fxs(
+            ".ai/hooks/hook-ground-truth-guard.sh",
+            TPL_HOOK_GROUND_TRUTH_GUARD,
+        ),
         // Git-level belt (S43): tracked pre-commit/pre-push, an independent L2 layer
         // (git-native) beneath the L3 .claude/ hooks. Byte-identical to the vajra repo's
         // own .githooks/* (one source via include_str!); activated by core.hooksPath, set
@@ -2222,6 +2233,10 @@ const TPL_CLAUDE_SETTINGS: &str = r#"{
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-approvals-guard.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.ai/hooks/hook-ground-truth-guard.sh\""
           }
         ]
       }
@@ -2301,6 +2316,11 @@ const TPL_HOOK_COMMIT_GUARD: &str = include_str!("../../scripts/hook-commit-guar
 // PostToolUse and PostToolUseFailure groups in the settings template (one matcher for all three), so
 // `--sync-fleet` can add them to an old project without touching the others.
 const TPL_HOOK_APPROVALS_GUARD: &str = include_str!("../../scripts/hook-approvals-guard.sh");
+
+// Canonical review-only guard (S197, F125) — no code, commits, pushes or PRs in a ground-truth session
+// until the founder's `vajra approve NN --close` record. A second entry in the PreToolUse
+// `Bash|Edit|Write|MultiEdit|NotebookEdit` group of the settings template; no Post group.
+const TPL_HOOK_GROUND_TRUTH_GUARD: &str = include_str!("../../scripts/hook-ground-truth-guard.sh");
 
 // Canonical git-level hooks (S43) — the SAME files the vajra repo runs, embedded verbatim
 // so the scaffolded copy can never drift (S22 one-source pattern). An independent L2 belt
