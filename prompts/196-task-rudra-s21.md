@@ -163,3 +163,12 @@ demo-producer: skipped — the tech-lead deferred it on budget: the founder watc
 - fidelity-reviewer rec 4 — obeyed: 3ee35ec (`parse_close_result` refuses a `\r` anywhere and a non-digit in `pass`/`fail`/`warn`, like the hook; the cross-reader test gains `pass: +30` and a CRLF file — 15 cases, both readers agree; the summary's "cannot drift" reworded to what the cases prove, 16811d4)
 - fidelity-reviewer rec 5 — obeyed: 16811d4 (the S20 cost cell sources S194's AC3; the two WARN rows moved out of the findings table into "close-log notes, not findings", marked as the agent's notes)
 - fidelity-reviewer rec 6 — refused: the full close must run on the final stamped tip, and a commit cannot record its own close. verify-196 10/0 at the tip is in 16811d4. `.githooks/pre-push` refuses an agent's push unless the newest result for the exact pushed sha says GREEN, clean, session 196 — so the push itself is the check (release-coordinator rec 3).
+
+**release-coordinator** (`.ai/handoffs/session-196-release-coordinator.md`) — the one judge: 21 implemented, 4 mismatch, re-answered above:
+- release-coordinator rec 1 — obeyed: dd069f4 (tech-lead recs 2 and 4 re-answered as `refused:` for the part the founder did not paste, the done part named with 64695d3)
+- release-coordinator rec 2 — obeyed: dd069f4 (tech-lead rec 7 re-cited to 16811d4, the 734/0 at the tip)
+- release-coordinator rec 3 — obeyed: dd069f4 (fidelity-reviewer rec 6 re-answered as `refused:` with the reason the brief gives)
+- release-coordinator rec 4 — obeyed: d8441da (the rudra S21 sighting added to the ROADMAP F116 entry; the summary's agreement test now says 15 cases)
+- release-coordinator rec 5 — refused: a commit cannot record the order that comes after it. The order is followed as written — the stamp after the last prompt or handoff change, the close after the stamp, nothing committed between the close and the push — and the push belt refuses the agent's push if the close is not GREEN on that exact commit.
+- release-coordinator rec 6 — deferred: sessions/session-196-summary.md (a founder question, not a session step: whether to delete the remote branches `session-165-closeout` and `session-187-closeout` on GitHub — asked in this session's closing message and listed in the summary)
+
