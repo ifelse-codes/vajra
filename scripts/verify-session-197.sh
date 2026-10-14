@@ -72,9 +72,18 @@ else bad "F125 at $OLD_SHA: the old scaffold had a ground-truth guard after all"
 # --- 2 (F125): Vajra's own hook — the -closeout branch no longer switches it off ---
 N=$(hook "$P" "$ROOT/scripts/hook-pre-bash.sh" "$T/new-bin" Bash command "git commit -m report")
 O=$(hook "$P" "$OLD_WT/scripts/hook-pre-bash.sh" "$T/new-bin" Bash command "git commit -m report")
-if [ "${N%%|*}" = 2 ] && has "$N" 'Ground Truth Session 5' && [ "${O%%|*}" = 0 ]; then
-  ok "F125 Vajra's own hook-pre-bash.sh blocks the commit on session-05-closeout; at $OLD_SHA the same call passed (the '*-closeout) GT=0' exemption)"
-else bad "F125 own hook: new=${N%%|*} old=${O%%|*}"$'\n'"$N"; fi
+NW=$(hook "$P" "$ROOT/scripts/hook-pre-write.sh" "$T/new-bin" Write file_path "$P/src/main.rs")
+OW=$(hook "$P" "$OLD_WT/scripts/hook-pre-write.sh" "$T/new-bin" Write file_path "$P/src/main.rs")
+# Positive control (review rec 5): the SAME old hooks in the SAME project do block on a plain session-05 branch,
+# so their pass on -closeout comes from the exemption, not from a hook that cannot run here.
+(cd "$P" && human git checkout -qb session-05-x)
+OC=$(hook "$P" "$OLD_WT/scripts/hook-pre-bash.sh" "$T/new-bin" Bash command "git commit -m report")
+OCW=$(hook "$P" "$OLD_WT/scripts/hook-pre-write.sh" "$T/new-bin" Write file_path "$P/src/main.rs")
+(cd "$P" && human git checkout -q session-05-closeout)
+if [ "${N%%|*}" = 2 ] && has "$N" 'Ground Truth Session 5' && [ "${NW%%|*}" = 2 ] && [ "${O%%|*}" = 0 ] && [ "${OW%%|*}" = 0 ] \
+   && [ "${OC%%|*}" = 2 ] && [ "${OCW%%|*}" = 2 ]; then
+  ok "F125 Vajra's own hook-pre-bash.sh and hook-pre-write.sh block a commit and a src/ write on session-05-closeout; at $OLD_SHA both passed there, and blocked on session-05-x (the '*-closeout' exemption)"
+else bad "F125 own hooks: bash new=${N%%|*} old=${O%%|*} ctl=${OC%%|*} · write new=${NW%%|*} old=${OW%%|*} ctl=${OCW%%|*}"$'\n'"$N"; fi
 
 # --- 3 (F125): writes — the report and .ai/ notes pass, code is blocked, before the record ---
 W1=$(hook "$P" "$P/.ai/hooks/hook-ground-truth-guard.sh" "$T/new-bin" Write file_path "$P/src/main.rs")
@@ -107,9 +116,12 @@ else bad "F125 forged record: rc=${R%%|*}"$'\n'"$R"$'\n'"$(cat "$P/.ai/approvals
 # --- 6 (N17): a branch with no session number uses HEAD's committed .ai/SESSION + 1 ---
 P=$(project "$VAJRA" n17); (cd "$P" && human git checkout -qb notes && echo 9 > .ai/SESSION)
 R=$(gg "$P" "git commit -am notes")
-PO=$(project "$VAJRA" n17-old); (cd "$PO" && human git checkout -qb notes)
+PO=$(project "$VAJRA" n17-old)
+(cd "$PO" && human git checkout -qb session-05-x)
+OC=$(hook "$PO" "$OLD_WT/scripts/hook-pre-bash.sh" "$T/new-bin" Bash command "git commit -am notes")   # positive control
+(cd "$PO" && human git checkout -qb notes)
 O=$(hook "$PO" "$OLD_WT/scripts/hook-pre-bash.sh" "$T/new-bin" Bash command "git commit -am notes")
-if [ "${R%%|*}" = 2 ] && has "$R" 'Ground Truth Session 5' && [ "${O%%|*}" = 0 ]; then
+if [ "${R%%|*}" = 2 ] && has "$R" 'Ground Truth Session 5' && [ "${O%%|*}" = 0 ] && [ "${OC%%|*}" = 2 ]; then
   ok "N17 on a branch named 'notes' (HEAD's .ai/SESSION = 4; the working-tree file edited to 9) the commit is blocked as session 5; at $OLD_SHA it passed"
 else bad "N17: new=${R%%|*} old=${O%%|*}"$'\n'"$R"; fi
 
@@ -121,6 +133,26 @@ if [ -f "$P/.ai/hooks/hook-ground-truth-guard.sh" ] && [ "${R%%|*}" = 2 ] \
    && jq -e '[.hooks.PreToolUse[] | select(.matcher|test("NotebookEdit")) | .hooks[].command] | any(test("hook-ground-truth-guard"))' "$P/.claude/settings.json" >/dev/null; then
   ok "F125 '--sync-fleet' on a project scaffolded at $OLD_SHA ships the guard, wires it in the Bash|Edit|Write group, and it blocks"
 else bad "F125 sync: rc=${R%%|*} $(jq -c '.hooks.PreToolUse' "$P/.claude/settings.json" 2>&1)"; fi
+
+# --- 7b (F125, review rec 1 — founder: fix it now): a branch with ANOTHER session's number is refused ---
+P=$(project "$VAJRA" wrongnum)
+B1=$(gg "$P" "git checkout -b session-06-x"); B2=$(gg "$P" "git switch -c session-201-report")
+B3=$(gg "$P" "git branch session-06-x && git checkout session-06-x"); B4=$(gg "$P" "git checkout -b session-05-report")
+O=$(hook "$P" "$OLD_WT/scripts/hook-pre-bash.sh" "$T/new-bin" Bash command "git checkout -b session-06-x")
+if [ "${B1%%|*}" = 2 ] && [ "${B2%%|*}" = 2 ] && [ "${B3%%|*}" = 2 ] && [ "${B4%%|*}" = 0 ] && has "$B1" "another session's branch" \
+   && [ "${O%%|*}" = 0 ]; then
+  ok "F125 during ground truth 5: making or moving to session-06 / session-201 branches is refused, session-05-report is not; at $OLD_SHA nothing refused it"
+else bad "F125 wrong number: b1=${B1%%|*} b2=${B2%%|*} b3=${B3%%|*} own=${B4%%|*} old=${O%%|*}"$'\n'"$B1"; fi
+
+# --- 7c (review recs 2 + 4): a project's own scripts/ code is not writable; an unknown tool name is judged by shape ---
+S1=$(hook "$P" "$P/.ai/hooks/hook-ground-truth-guard.sh" "$T/new-bin" Write file_path "$P/scripts/build.sh")
+S2=$(hook "$P" "$P/.ai/hooks/hook-ground-truth-guard.sh" "$T/new-bin" Write file_path "$P/scripts/verify-session-05.sh")
+U1=$(hook "$P" "$P/.ai/hooks/hook-ground-truth-guard.sh" "$T/new-bin" SomeNewShell command "git commit -m x")
+(cd "$P" && human git checkout -qb session-05-y)
+OS=$(hook "$P" "$OLD_WT/scripts/hook-pre-write.sh" "$T/new-bin" Write file_path "$P/scripts/build.sh")
+if [ "${S1%%|*}" = 2 ] && [ "${S2%%|*}" = 0 ] && [ "${U1%%|*}" = 2 ] && [ "${OS%%|*}" = 0 ]; then
+  ok "F125 scripts/build.sh is blocked, the session's verify script is not; an unknown tool carrying a command is judged as Bash; at $OLD_SHA scripts/ was open even on a plain session-05 branch"
+else bad "F125 allowlist/tool: build=${S1%%|*} verify=${S2%%|*} unknown=${U1%%|*} old-plain=${OS%%|*}"$'\n'"$S1"$'\n'"$U1"; fi
 
 # --- 8 (F116, AC2): an approval record that is not in git is named until it is committed ---
 P=$(project "$VAJRA" f116 6); founder "$P" "$VAJRA" approve 7

@@ -32,12 +32,16 @@ case "$(printf '%s' "$INPUT" | jq -r '.hook_event_name // ""' 2>/dev/null)" in
   PostToolUse*) exit 0 ;;   # a Pre guard only; wired in no Post group, silent if it ever is
 esac
 TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null || echo "")
-# No tool name (a hand-fed or older payload): judge by what the input carries, never let it through.
-if [ -z "$TOOL" ]; then
-  if printf '%s' "$INPUT" | jq -e '.tool_input.command' >/dev/null 2>&1; then TOOL=Bash
-  elif printf '%s' "$INPUT" | jq -e '.tool_input.file_path // .tool_input.notebook_path' >/dev/null 2>&1; then TOOL=Write
-  fi
-fi
+# A tool name this guard does not know (none, a hand-fed payload, a new tool): judge by what the input
+# carries, never let it through on the name alone (S197 review rec 4).
+case "$TOOL" in
+  Bash|Edit|Write|MultiEdit|NotebookEdit) ;;
+  *)
+    if printf '%s' "$INPUT" | jq -e '.tool_input.command' >/dev/null 2>&1; then TOOL=Bash
+    elif printf '%s' "$INPUT" | jq -e '.tool_input.file_path // .tool_input.notebook_path' >/dev/null 2>&1; then TOOL=Write
+    fi
+    ;;
+esac
 
 # S181: one shared ground-truth answer (scripts/lib-ground-truth.sh; in a scaffold: .ai/hooks/).
 for _d in "$(dirname "${BASH_SOURCE[0]}")" "$ROOT/scripts" "$ROOT/.ai/hooks"; do
@@ -146,6 +150,14 @@ gt_outside() { # path
 case "$TOOL" in
   Bash)
     CMD=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo "")
+    # S197 review rec 1 (founder: fix it now): a branch carrying ANOTHER session's number would switch this
+    # guard off (it reads the number from the branch). Making or moving to one is refused while it is on.
+    if printf '%s' "$CMD" | grep -qE 'git[[:space:]].*(checkout|switch|branch|worktree)'; then
+      for _n in $(printf '%s' "$CMD" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' || true); do
+        [ "$NUM" != "?" ] && [ "$((10#$_n))" -eq "$NUM" ] && continue
+        refuse "forbids moving to another session's branch (session-$_n) — the guard reads the session from the branch name."
+      done
+    fi
     case "$CMD" in
       *"git commit"*|*"git push"*|*"gh pr create"*|*"gh pr merge"*|*"glab mr create"*|*"glab mr merge"*|*"git commit --amend"*|*"git rebase"*)
         refuse "forbids commits/pushes/PR ops/rebases."
@@ -162,7 +174,9 @@ case "$TOOL" in
     gt_plain_path "$FILE" \
       || refuse "forbids edits to $FILE (Vajra can only check an absolute, plain-ASCII path with no '.' or '..' part)"
     case "$FILE" in
-      */sessions/session-*-ground-truth.md|*/sessions/session-*-review.md|*/reviewer/*|*/.ai/*|*/scripts/*) : ;;
+      # S197 review rec 2: `*/scripts/*` reached any project's own scripts/ code; only the session's own
+      # verify and demo scripts stay writable there.
+      */sessions/session-*-ground-truth.md|*/sessions/session-*-review.md|*/reviewer/*|*/.ai/*|*/scripts/verify-session-*|*/scripts/demo-session-*) : ;;
       *)
         if ! gt_outside "$FILE"; then
           if [ "$GT_WHY" = missing ]; then
