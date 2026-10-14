@@ -100,21 +100,18 @@ if [ -n "$HAND_EDITED" ]; then
   printf '%s' "$HAND_EDITED" | sed 's/^/    /'
 fi
 
-case "$BRANCH" in
-  *-closeout|*-enforcement) : ;;
-  *)
-    SESSION_NUM=$(echo "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
-    if [[ "$SESSION_NUM" =~ ^[0-9]+$ ]] && [ "$((10#$SESSION_NUM))" -gt 0 ]; then
-      IS_GT=0
-      vajra_is_ground_truth "$SESSION_NUM" "$ROOT" && IS_GT=1
-      if [ -n "${VAJRA_GT_NOTE:-}" ]; then echo ""; echo "[REMINDER] $VAJRA_GT_NOTE"; fi
-      if [ "$IS_GT" -eq 1 ]; then
-        echo ""
-        echo "[REMINDER] Session $SESSION_NUM is GROUND TRUTH. No code, no commits, no PRs."
-      fi
-    fi
-  ;;
-esac
+# S197 (F125): a branch name opens nothing — no `-closeout` / `-enforcement` exemption.
+SESSION_NUM=$(echo "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
+if [[ "$SESSION_NUM" =~ ^[0-9]+$ ]] && [ "$((10#$SESSION_NUM))" -gt 0 ]; then
+  IS_GT=0
+  vajra_is_ground_truth "$SESSION_NUM" "$ROOT" && IS_GT=1
+  if [ -n "${VAJRA_GT_NOTE:-}" ]; then echo ""; echo "[REMINDER] $VAJRA_GT_NOTE"; fi
+  if [ "$IS_GT" -eq 1 ]; then
+    echo ""
+    echo "[REMINDER] Session $SESSION_NUM is GROUND TRUTH. No code, no commits, no PRs."
+    echo "  Hook-enforced until the founder reads the report and types \`vajra approve $((10#$SESSION_NUM)) --close\` in their own terminal."
+  fi
+fi
 
 # Commit pre-authorization (S99) — the S97 Rung-1 blocker (b): an unattended `-p` run has no chat
 # channel to receive an approval token, so it can never commit and the Coder station can never

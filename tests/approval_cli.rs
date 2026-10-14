@@ -168,6 +168,8 @@ fn the_agents_write_tools_are_blocked_and_shell_writes_caught_after() {
     let d = tempfile::tempdir().unwrap();
     fs::create_dir_all(d.path().join(".ai")).unwrap();
     fs::write(d.path().join(".ai/CONSTRAINTS.yaml"), "maturity: L2\n").unwrap();
+    // S197: every real project has a session counter; without one the ground-truth guard stays on.
+    fs::write(d.path().join(".ai/SESSION"), "181\n").unwrap();
     let f = d.path().join(".ai/approvals/session-181.json");
     let w = format!(r#"{{"tool_input":{{"file_path":"{}"}}}}"#, f.display());
     assert_eq!(hook("hook-pre-write.sh", d.path(), &w), 2, "Write tool");
