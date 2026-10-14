@@ -21,22 +21,25 @@ opening, and **move F118 out**.
 
 | Fix | What a user sees now | Commits |
 |---|---|---|
-| **F125** | Every project gets `.ai/hooks/hook-ground-truth-guard.sh` (init + `--sync-fleet`, wired in the PreToolUse `Bash\|Edit\|Write\|MultiEdit\|NotebookEdit` group). In a review-only session: code edits, commits, pushes, PRs are blocked; the report and `.ai/` notes are written. No branch name opens it (`-closeout` / `-enforcement` exemptions and `VAJRA_GT_WAIVER` retired). Only the founder's `vajra approve NN --close` opens it; a forged record is voided by the S188 check; an older `vajra` that ignores the flag stays closed. | `efd7ad2` (DECISION-011 S197 addendum) · `140542b` · `09b7c39` · `0c41f5f` · `8f32889` · `9c494c7` |
+| **F125** | Every project gets `.ai/hooks/hook-ground-truth-guard.sh` (init + `--sync-fleet`, wired in the PreToolUse `Bash\|Edit\|Write\|MultiEdit\|NotebookEdit` group). In a review-only session: code edits, commits, pushes, PRs are blocked; the report and `.ai/` notes are written. No branch name opens it (`-closeout` / `-enforcement` exemptions and `VAJRA_GT_WAIVER` retired; after the cold review, a `git checkout`/`switch`/`branch`/`worktree` naming another session's number is refused too — founder: "fix it now"). Under `scripts/` only the session's verify/demo scripts are writable. Only the founder's `vajra approve NN --close` opens it; a forged record is voided by the S188 check; an older `vajra` that ignores the flag stays closed. | `efd7ad2` (DECISION-011 S197 addendum) · `140542b` · `09b7c39` · `0c41f5f` · `8f32889` · `9c494c7` · review fixes `1c8452a` · `1fde8fc` |
 | **N17** | A branch with no `session-NN` uses HEAD's committed `.ai/SESSION` + 1 (the agent cannot move it while commits are blocked); unreadable → guard on. | `09b7c39` |
 | **F116** | `vajra next --steps` says "approved — `.ai/approvals/session-NN.json` is not in git yet; commit it" until it is in the last commit (a reminder; the step stays ✓). Proven live on this branch (`3b50dc9`). | `946a967` |
 | **F119** | `--steps` ticks design on `design-significant: no`, as `--check-design` says READY; an unrecorded marker still does not. | `336786d` |
 | **N10** | `scaffold-drift.sh` check 6 skips a line carrying `# source-claim: <why>` (non-empty why); the three false alarms carry it; drift 20/0. | `34cebf4` · `cd13fc6` |
 
-**Evidence:** `scripts/verify-session-197.sh` 11/11 — every row a real run (real `vajra init` projects, the
-scaffolded hook fed Claude Code's JSON, `vajra approve` in a pseudo-terminal, real `vajra next`, the real drift
-script), and each red at `eceb6d5` for its own reason. `scripts/demo-session-197.sh` 5/5 live checks. Full
-`cargo test` 735 passed / 0 failed; `scripts/ci-lint.sh` clean.
+**Evidence:** `scripts/verify-session-197.sh` 13/13 — every row a real run (real `vajra init` projects, the
+scaffolded hook fed Claude Code's JSON, Vajra's own two hooks, `vajra approve` in a pseudo-terminal, real
+`vajra next`, the real drift script). Rows 1, 2, 6, 7b, 7c, 8, 9, 10 also run at `eceb6d5` and go red there for
+their own reason (rows 2 and 6 with a positive control: the old hooks DO block on a plain `session-05-x` branch).
+Rows 3, 4, 5, 7 test behaviour that has no old counterpart — at `eceb6d5` a project had no guard at all (row 1).
+`scripts/demo-session-197.sh` 5/5 live checks. Full `cargo test` 735 passed / 0 failed at `1c8452a`;
+`scripts/ci-lint.sh` clean.
 
 ## Fidelity map
 
 | Prompt item | Grade | Evidence |
 |---|---|---|
-| D1 / AC1 F125 + N17 | SHIPPED | verify rows 1–7: blocked in a fresh project on `session-05-closeout` (commit/push/PR), red at `eceb6d5` (no guard file, no wiring); Vajra's own hook no longer exempts `-closeout`; report allowed, `src/` blocked; record opens it, old `vajra` does not; forged record voided; N17 blocked as session 5; `--sync-fleet` on an old project wires it |
+| D1 / AC1 F125 + N17 | SHIPPED (review: PARTIAL → the wrong-number route closed, row 7b) | verify rows 1–7c: blocked in a fresh project on `session-05-closeout` (commit/push/PR), red at `eceb6d5` (no guard file, no wiring); Vajra's own hook no longer exempts `-closeout`; report allowed, `src/` blocked; record opens it, old `vajra` does not; forged record voided; N17 blocked as session 5; `--sync-fleet` on an old project wires it |
 | D2 / AC2 F116 | SHIPPED | verify row 8; live on this branch before/after `3b50dc9` |
 | D3 / AC3 F118 | MOVED OUT (founder) | ROADMAP known bugs: still open, founder's call, next GT checklist (`b3695d4`); seen again at this session's own advance (`aad6381`) |
 | D4 / AC4 F119 | SHIPPED | verify row 9 |
@@ -45,7 +48,9 @@ script), and each red at `eceb6d5` for its own reason. `scripts/demo-session-197
 
 **Not built:** F118. rec 10 of the design-advisor (a `--steps` line for the close record) — see `## Advice`.
 
-**Fakest green:** row 4's "the founder's terminal" is `script -q /dev/null` — a pseudo-terminal any agent can
+**Fakest green:** the review's pick was "no branch name opens it" while a branch with ANOTHER session's number
+still did — closed after the review for any command that names it (row 7b); a name hidden in a shell variable still
+gets past (named). Next: row 4's "the founder's terminal" is `script -q /dev/null` — a pseudo-terminal any agent can
 also start. The record is bar-raising, not tamper-proof (DECISION-011 already names "fake a terminal"). Also: the
 guard reads command TEXT (`g=git; $g commit` gets through), and the agent can edit `.ai/hooks/` or put another
 `vajra` first on PATH — all named in the addendum's Limit.
