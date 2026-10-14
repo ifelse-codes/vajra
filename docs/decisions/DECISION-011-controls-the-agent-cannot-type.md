@@ -386,7 +386,13 @@ switched nothing off; there was nothing to switch.
    sign-off before code resumes, until now a word in chat, is now a file. It is not an approval of the session, and
    an approval of the session does not open the guard; `--allow-all` and `VAJRA_APPROVE` open nothing here.
 3. **A branch name opens nothing.** The `-closeout` and `-enforcement` exemptions are gone from every hook. A
-   ground-truth session number stays guarded until its record counts.
+   ground-truth session number stays guarded until its record counts. While it is on, a `git checkout` / `switch` /
+   `branch` / `worktree` command naming ANOTHER session's `session-NN` is refused (the cold review's rec 1; the
+   founder, 2026-10-14: "fix it now") — the guard reads the session from the branch, so moving to `session-201-x`
+   during ground truth 200 would have switched it off.
+3a. **The write allowlist** keeps the report, the review, `reviewer/`, `.ai/` and outside-the-project files; under
+   `scripts/` only `verify-session-*` and `demo-session-*` (review rec 2 — `*/scripts/*` reached a project's own code).
+   A tool name the guard does not know is judged by what its input carries (review rec 4).
 4. **No number in the branch (N17).** The guard uses HEAD's committed `.ai/SESSION` plus one (the working-tree file
    only when HEAD has none). Commits are blocked, so the agent cannot move HEAD's counter. If neither can be read,
    the guard is on.
@@ -401,9 +407,18 @@ switched nothing off; there was nothing to switch.
 - Keeping `VAJRA_GT_WAIVER`: a second way to open the guard, and it needs a relaunch.
 
 **Limit — bar-raising, not tamper-proof. Named, not closed:**
-- A branch carrying the wrong number (`session-196-x` during ground truth 195) is not seen as a ground truth.
-- The Bash check reads command text, so a spelling it does not match (`g=git; $g commit`) gets through. The push
-  belt still checks pushes of `session-NN` branches.
+- A branch carrying the wrong number is refused only when the command NAMES it (`b=session-196-x; git checkout -b
+  "$b"` gets through), and a branch made before the ground truth started is not seen as one.
+- The Bash check reads command text, so a spelling it does not match gets through — not only tricks
+  (`g=git; $g commit`) but everyday ones: `git -C <dir> commit`, or `git worktree add` and then edits outside the
+  project. The push belt still checks pushes of `session-NN` branches.
+- The allowlist matches path shapes anywhere in the path (`*/.ai/*`, `*/reviewer/*`), not anchored to the project
+  root: anchoring would false-block wherever the path Claude Code sends and `CLAUDE_PROJECT_DIR` are spelled
+  differently (`/var` vs `/private/var`), which the outside-pass resolves and the allowlist does not.
+- The guard's own settings are agent-writable during a ground truth (`.ai/*` is allowlisted): `maturity: L1` turns
+  it into a warning, a moved `ground_truth_next_session` makes the session not a ground truth, and the working-tree
+  `.ai/SESSION` is used when HEAD has none. A missing `lib-ground-truth.sh` falls back to every 5th, ignoring an
+  override key. If the founder commits an advance during ground truth N, an unnumbered branch reads N+1.
 - Bash can still write any file (S191 §1). `.ai/hooks/` and `scripts/` are on the Write allowlist, so the agent can
   edit the guard itself, or put another `vajra` first on PATH.
 - A forged record written between two watched tool calls (a background job) looks like the founder's (the S188
