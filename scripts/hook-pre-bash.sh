@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PreToolUse(Bash): warns on destructive cmds; blocks commits during Ground Truth.
+# PreToolUse(Bash): warns on destructive cmds; blocks commits during Ground Truth (hook-ground-truth-guard.sh).
 # Respects maturity level from CONSTRAINTS.yaml (L1 = warn-only, L2/L3 = can block).
 
 set -euo pipefail
@@ -40,54 +40,14 @@ elif [ "${MATURITY:-L2}" != "L1" ]; then
   exit 2
 fi
 
-# Ground Truth detection
-GT=0; GT_NUM=""
-# S181: one shared ground-truth answer (scripts/lib-ground-truth.sh; in a scaffold: .ai/hooks/).
-for _d in "$(dirname "${BASH_SOURCE[0]}")" "$ROOT/scripts" "$ROOT/.ai/hooks"; do
-  [ -f "$_d/lib-ground-truth.sh" ] && { . "$_d/lib-ground-truth.sh"; break; }
-done
-type vajra_is_ground_truth >/dev/null 2>&1 || {
-  echo "[vajra] lib-ground-truth.sh not found — using every-5th only. Run: vajra init --sync-fleet" >&2
-  vajra_is_ground_truth() { [ $((10#${1:-0} % 5)) -eq 0 ] && [ $((10#${1:-0})) -gt 0 ]; }
-}
-case "$BRANCH" in
-  *-closeout|*-enforcement) GT=0 ;;
-  *)
-    SNUM=$(echo "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
-    if [[ "$SNUM" =~ ^[0-9]+$ ]] && [ "$((10#$SNUM))" -gt 0 ]; then
-      if vajra_is_ground_truth "$SNUM" "$ROOT"; then GT=1; GT_NUM="$SNUM"; fi
-    fi
-  ;;
-esac
-
-# S134 founder waiver — see the matching block in hook-pre-write.sh for the full rationale.
-# Founder-held, set in the LAUNCH environment, and scoped to ONE session number so it cannot
-# outlive the session it was granted for. Loud on purpose.
-if [ "$GT" -eq 1 ] && [ "${VAJRA_GT_WAIVER:-}" = "$GT_NUM" ]; then
-  echo "[HOOK] Ground Truth Session $GT_NUM WAIVED by founder (VAJRA_GT_WAIVER=$GT_NUM) — commits allowed" >&2
-  GT=0
-fi
-
-# Block commits/pushes/PRs during Ground Truth
-if [ "$GT" -eq 1 ]; then
-  gt_block() {
-    if [ "$MATURITY" = "L1" ]; then
-      echo "[HOOK WARNING] Ground Truth Session $GT_NUM: $1 (L1 report-only, not blocking)"
-    else
-      echo "[HOOK BLOCK] Ground Truth Session $GT_NUM $1" >&2
-      exit 2
-    fi
-  }
-  case "$CMD" in
-    *"git commit"*|*"git push"*|*"gh pr create"*|*"gh pr merge"*|*"glab mr create"*|*"glab mr merge"*|*"git commit --amend"*|*"git rebase"*)
-      gt_block "forbids commits/pushes/PR ops/rebases."
-      ;;
-    *"git"*)
-      if echo "$CMD" | grep -qE 'git (commit|push|merge|rebase|cherry-pick|reset|revert|stash)'; then
-        gt_block "forbids git state changes."
-      fi
-      ;;
-  esac
+# S197 (F125, DECISION-011 S197 addendum): the review-only guard — one source, shipped to every project.
+# A branch name opens nothing; only the founder's `vajra approve NN --close` record does.
+_GG="$(dirname "${BASH_SOURCE[0]}")/hook-ground-truth-guard.sh"
+if [ -f "$_GG" ]; then
+  printf '%s' "$INPUT" | bash "$_GG" || exit $?
+elif [ "${MATURITY:-L2}" != "L1" ]; then
+  echo "[HOOK BLOCK] hook-ground-truth-guard.sh is missing next to $(basename "$0") — cannot check (fail-closed)." >&2
+  exit 2
 fi
 
 exit 0

@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S196 (INTERACTIVE: rudra S21 + F127) complete on `session-196-rudra-s21`; next is S197, the known-bug session
+## Between Sessions — S197 (CODE: the known-bug session) complete on `session-197-known-bugs`; next is S198, the known-bug leftovers
 
-**Next: Session 197 — CODE: the known-bug session — F125 + N17 first, then F116, F118, F119, N10** (founder pick 1). Prompt: `prompts/197-task-known-bugs.md` (draft; the founder runs `vajra approve 197` after reading it). Start it in a fresh chat after S196's PR is merged.
+**Next: Session 198 — CODE: the known-bug leftovers — F118 + N18** (founder pick 2). Prompt: `prompts/198-task-known-bug-leftovers.md` (draft; the founder runs `vajra approve 198` after reading it). Start it in a fresh chat after S197's PR is merged.
+
+## Session 197 — CODE: the known-bug session — COMPLETE
+
+- Brief: `prompts/197-task-known-bugs.md`. Summary: `sessions/session-197-summary.md`. Review: `sessions/session-197-review.md` (one cold pass, ACCEPT 10/12; all 9 recs answered). Decision: DECISION-011 S197 addendum.
+- **F125 premise corrected** (founder, 2026-10-14): user projects never had the review-only guard. Shipped: one `hook-ground-truth-guard.sh` via `vajra init` / `--sync-fleet`; no branch name opens it; only `vajra approve NN --close` does (`vajra next --check-close-record NN`). N17, F116, F119, N10 fixed. Verify 13/13 · demo 5/5 · `cargo test` 735/0.
+- **Moved out (founder):** F118 → known bugs, now S198. **Filed:** N18; design-advisor rec 10 (a `--steps` line for the close record) → ROADMAP known bugs.
 
 ## Session 196 — INTERACTIVE: rudra S21 on Opus, synced — COMPLETE
 

@@ -101,9 +101,19 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
                  cannot (a chat \"approved\" is not the record); ask them"
             ),
         };
+        // S197 (F116): approved, but the record is not in the last commit — the founder's
+        // terminal was told "commit it with the session", the agent never was. A reminder, not
+        // a block: the step stays ✓ and names the file until it is committed.
+        let what = match crate::approval::record_not_in_git(root, session) {
+            Some(rel) => format!(
+                "the founder has approved this session — {rel} is not in git yet; commit it with \
+                 this session's work"
+            ),
+            None => "the founder has approved this session".to_string(),
+        };
         Step::new(
             crate::approval::approved(root, session).is_some(),
-            "the founder has approved this session",
+            what,
             how,
         )
     }))
@@ -125,11 +135,16 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         Step::new(state == "declared", "the prompt says its session type", how)
     }))
     .chain([
+        // S197 (F119): a `design-significant: no` prompt is READY at `--check-design`, but the
+        // Architect station reads it ABSENT (it was not moved through), so this step showed ✗ and
+        // told the agent to cite a record it does not need. Done = the station passed, or the
+        // prompt says no design is needed — the step's own words.
         Step::new(
-            passed("Architect"),
+            passed("Architect") || design_not_needed(root, session),
             "the design is recorded (or the prompt says it needs none)",
             format!(
-                "set `design-significant:` and write `## Design` citing a real record, then: \
+                "under the prompt's `## Design`, put `design-significant: no` (a pure fix) — or \
+                 `design-significant: yes` and a rationale citing a real record — then: \
                  vajra next --check-design {nn}"
             ),
         ),
@@ -266,6 +281,14 @@ fn session_type_state(root: &Path, session: u32) -> Option<String> {
     } else {
         state
     })
+}
+
+/// S197 (F119): the prompt records `design-significant: no` — the same reading `--check-design`
+/// calls READY. An UNRECORDED marker is not "says it needs none": `--check-design` warns on it.
+fn design_not_needed(root: &Path, session: u32) -> bool {
+    crate::architect::design_gate(root, session)
+        .report
+        .is_some_and(|r| matches!(r.significance, crate::architect::Significance::No(_)))
 }
 
 /// True when a prompt file for `session` exists (`prompts/NN-task-*.md`, padded like everything
@@ -472,6 +495,33 @@ mod tests {
             None,
             "below session_rules_from: no step"
         );
+    }
+
+    /// S197 (F119): `design-significant: no` ticks the design step, as `--check-design` calls it
+    /// READY; an unrecorded marker or `yes` with no `## Design` body does not.
+    #[test]
+    fn design_step_agrees_with_check_design_on_no() {
+        let d = repo();
+        let r = d.path();
+        let design_step = |r: &Path| {
+            steps(r, 3)
+                .into_iter()
+                .find(|s| s.what.starts_with("the design is recorded"))
+                .unwrap()
+        };
+        let prompt = r.join("prompts/03-task-x.md");
+        fs::write(&prompt, "## Goal\nfix\n").unwrap();
+        assert!(
+            !design_step(r).done,
+            "unrecorded marker is not 'needs none'"
+        );
+        fs::write(&prompt, "## Goal\nfix\n## Design\ndesign-significant: no\n").unwrap();
+        assert!(design_step(r).done, "`no` = the prompt says it needs none");
+        assert!(crate::architect::design_gate(r, 3).reasons.is_empty());
+        fs::write(&prompt, "## Goal\nfix\ndesign-significant: yes\n").unwrap();
+        let s = design_step(r);
+        assert!(!s.done, "`yes` with no `## Design` is not done");
+        assert!(s.how.contains("design-significant: no"), "how = {}", s.how);
     }
 
     fn repo() -> TempDir {
@@ -692,6 +742,57 @@ mod tests {
             .status
             .success();
         assert!(ok, "git {args:?}");
+    }
+
+    /// S197 (F116): an approval record that exists but is not in the last commit is named on the
+    /// (still ✓) step, and stops being named once it is committed. Not a git tree: never named.
+    #[test]
+    fn the_list_names_an_approval_record_not_in_git() {
+        let d = repo();
+        let r = d.path();
+        fs::create_dir_all(r.join(".ai/approvals")).unwrap();
+        fs::write(
+            r.join(".ai/CONSTRAINTS.yaml"),
+            "session:\n  session_rules_from: 5\n",
+        )
+        .unwrap();
+        fs::write(
+            r.join(".ai/approvals/session-07.json"),
+            r#"{"session": 7, "method": "approve-command", "at_unix": 1}"#,
+        )
+        .unwrap();
+        let approval = || {
+            steps(r, 7)
+                .into_iter()
+                .find(|s| s.what.contains("founder has approved"))
+                .unwrap()
+        };
+        let s = approval();
+        assert!(
+            s.done && !s.what.contains("not in git"),
+            "no git: {}",
+            s.what
+        );
+        git_in(r, &["init", "-q", "-b", "main"]);
+        fs::write(r.join("README"), "x").unwrap();
+        git_in(r, &["add", "README"]);
+        git_in(r, &["commit", "-qm", "first"]);
+        let s = approval();
+        assert!(s.done, "a reminder, not a block");
+        assert!(
+            s.what
+                .contains(".ai/approvals/session-07.json is not in git yet"),
+            "{}",
+            s.what
+        );
+        git_in(r, &["add", ".ai/approvals/session-07.json"]);
+        assert!(
+            approval().what.contains("not in git"),
+            "staged is not committed"
+        );
+        git_in(r, &["commit", "-qm", "the record"]);
+        let s = approval();
+        assert!(s.done && !s.what.contains("not in git"), "{}", s.what);
     }
 
     /// A repo on main whose listed sessions' summaries are committed (= their closes merged).

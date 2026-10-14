@@ -364,3 +364,65 @@ built at S191 (`.ai/handoffs/session-191-design-advisor.md` recs 2–6).
   blocked at the start commit; 25 named must-block cases (the design-advisor's rec 10, one per clause) block at both;
   S173's whole list × both triggers plus three heredoc-then-run shapes (66 commands) give the SAME exit at both; with
   perl gone the declared shape still blocks; a note from another chat records no owner.
+
+## S197 addendum — the review-only guard reaches every project, and only the founder opens it (2026-10-14)
+
+**Deviates from** the S191 addendum §1 ("`vajra init` ships no copy") and `.ai/AGENTS.md`'s "exempt by suffix"
+line. **Retires** the S134 `VAJRA_GT_WAIVER`. **Follows** decision 2 and the S188 addendum. Designed by the S197
+design-advisor (`.ai/handoffs/session-197-design-advisor.md`). Founder's call, 2026-10-14, after F125: user
+projects never had the ground-truth guard — it lived only in Vajra's own `hook-pre-bash.sh` / `hook-pre-write.sh`
+— yet every scaffold's Hard Rules said "No code in Ground Truth — Hook-enforced". rudra S20's `-closeout` branch
+switched nothing off; there was nothing to switch.
+
+1. **One guard, one source.** `scripts/hook-ground-truth-guard.sh` holds the ground-truth checks of
+   `hook-pre-bash.sh` (commit, push, PR, rebase and other git state changes) and of `hook-pre-write.sh` (the
+   allowlist and the S191 outside-the-project pass), unchanged. Vajra's two hooks call it after the approvals guard.
+   `vajra init` ships the same bytes as `.ai/hooks/hook-ground-truth-guard.sh` in the PreToolUse
+   `Bash|Edit|Write|MultiEdit|NotebookEdit` group, and `--sync-fleet` adds it through the S182 add-only merge.
+2. **The opening is a founder record.** `vajra approve NN --close` writes `.ai/approvals/session-NN-close.json`. It
+   is refused where `vajra approve` is refused. The guard asks `vajra next --check-close-record NN`, which reads the
+   record the way an approval is read: listed in the S188 void means not counted, and a void it cannot read means
+   closed. A missing binary, an older binary without the flag, or any error also means closed. The founder's
+   sign-off before code resumes, until now a word in chat, is now a file. It is not an approval of the session, and
+   an approval of the session does not open the guard; `--allow-all` and `VAJRA_APPROVE` open nothing here.
+3. **A branch name opens nothing.** The `-closeout` and `-enforcement` exemptions are gone from every hook. A
+   ground-truth session number stays guarded until its record counts. While it is on, a `git checkout` / `switch` /
+   `branch` / `worktree` command naming ANOTHER session's `session-NN` is refused (the cold review's rec 1; the
+   founder, 2026-10-14: "fix it now") — the guard reads the session from the branch, so moving to `session-201-x`
+   during ground truth 200 would have switched it off.
+3a. **The write allowlist** keeps the report, the review, `reviewer/`, `.ai/` and outside-the-project files; under
+   `scripts/` only `verify-session-*` and `demo-session-*` (review rec 2 — `*/scripts/*` reached a project's own code).
+   A tool name the guard does not know is judged by what its input carries (review rec 4).
+4. **No number in the branch (N17).** The guard uses HEAD's committed `.ai/SESSION` plus one (the working-tree file
+   only when HEAD has none). Commits are blocked, so the agent cannot move HEAD's counter. If neither can be read,
+   the guard is on.
+5. **Unchanged:** L1 warns and L2/L3 block; the write allowlist; the close gate (no new row — no new policing of
+   Vajra's own paperwork); the push belt.
+
+**Rejected:**
+- The report being on disk, or committed: the agent writes it, and the commit is the thing that is blocked.
+- Shipping the two whole hooks: the approvals guard would run twice in projects, and Vajra-only warnings would come
+  along.
+- A jq copy of the void reader: two readers of one format (lower-casing, unreadable-means-void would drift).
+- Keeping `VAJRA_GT_WAIVER`: a second way to open the guard, and it needs a relaunch.
+
+**Limit — bar-raising, not tamper-proof. Named, not closed:**
+- A branch carrying the wrong number is refused only when the command NAMES it (`b=session-196-x; git checkout -b
+  "$b"` gets through), and a branch made before the ground truth started is not seen as one.
+- The Bash check reads command text, so a spelling it does not match gets through — not only tricks
+  (`g=git; $g commit`) but everyday ones: `git -C <dir> commit`, or `git worktree add` and then edits outside the
+  project. The push belt still checks pushes of `session-NN` branches.
+- The allowlist matches path shapes anywhere in the path (`*/.ai/*`, `*/reviewer/*`), not anchored to the project
+  root: anchoring would false-block wherever the path Claude Code sends and `CLAUDE_PROJECT_DIR` are spelled
+  differently (`/var` vs `/private/var`), which the outside-pass resolves and the allowlist does not.
+- The guard's own settings are agent-writable during a ground truth (`.ai/*` is allowlisted): `maturity: L1` turns
+  it into a warning, a moved `ground_truth_next_session` makes the session not a ground truth, and the working-tree
+  `.ai/SESSION` is used when HEAD has none. A missing `lib-ground-truth.sh` falls back to every 5th, ignoring an
+  override key. If the founder commits an advance during ground truth N, an unnumbered branch reads N+1.
+- Bash can still write any file (S191 §1). `.ai/hooks/` (and, under `scripts/`, the verify/demo scripts) are on the
+  Write allowlist, so the agent can
+  edit the guard itself, or put another `vajra` first on PATH.
+- A forged record written between two watched tool calls (a background job) looks like the founder's (the S188
+  limit).
+- A branch with no number cut from an older commit takes that commit's number.
+- The guard runs only from the next Claude Code launch after `--sync-fleet`.

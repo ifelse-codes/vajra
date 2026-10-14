@@ -62,6 +62,13 @@ fn session_path(root: &Path, n: u32) -> PathBuf {
     dir(root).join(format!("session-{n:02}.json"))
 }
 
+/// S197 (F125, DECISION-011 S197 addendum): the founder's sign-off of a ground-truth report — the
+/// only thing that opens the review-only guard. Its own name, so `session_of` never reads it and
+/// `vajra approve MM` never un-lists it.
+fn close_path(root: &Path, n: u32) -> PathBuf {
+    dir(root).join(format!("session-{n:02}-close.json"))
+}
+
 fn allow_all_path(root: &Path) -> PathBuf {
     dir(root).join("allow-all.launch")
 }
@@ -242,6 +249,36 @@ pub fn approved(root: &Path, n: u32) -> Option<Approved> {
     None
 }
 
+/// S197 (F116): session `n` is approved by its own record file (`vajra approve NN` or the launch-time
+/// yes), but that file is not in the last commit — `vajra approve` says "commit it with the
+/// session", and only the founder's terminal saw that (rudra S19/S21, Vajra's own S192). Returns
+/// the record's repo path to name. `None` when not approved by a file, when allow-all approved it
+/// (a live-launch record, never committed), or when this is not a git work tree. A reminder only.
+pub fn record_not_in_git(root: &Path, n: u32) -> Option<String> {
+    if !matches!(
+        approved(root, n),
+        Some(Approved::Command | Approved::LaunchEnv)
+    ) {
+        return None;
+    }
+    let git = |args: &[&str]| {
+        std::process::Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(args)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .is_ok_and(|s| s.success())
+    };
+    if !git(&["rev-parse", "--is-inside-work-tree"]) {
+        return None;
+    }
+    let rel = format!(".ai/approvals/{}", file_name(&session_path(root, n)));
+    (!git(&["cat-file", "-e", &format!("HEAD:{rel}")])).then_some(rel)
+}
+
 /// The allow-all record counts only for the session it names (S182), and only while the launch that
 /// wrote it is still running. A record with no `session` (written before S182) approves nothing.
 fn allow_all_live(root: &Path, n: u32) -> bool {
@@ -313,6 +350,48 @@ pub fn approve(root: &Path, n: u32, marked: bool, stdin_is_terminal: bool) -> Re
     ))
 }
 
+/// S197 (F125): `vajra approve NN --close` — the founder signed off ground-truth session NN's report;
+/// the review-only guard opens for NN. Same refusals as `vajra approve`; un-lists only its own name.
+pub fn approve_close(root: &Path, n: u32, marked: bool, stdin_is_terminal: bool) -> Result<String> {
+    if let Some(why) = refusal(marked, stdin_is_terminal) {
+        bail!("vajra approve refused: {why}");
+    }
+    fs::create_dir_all(dir(root)).context("cannot create .ai/approvals")?;
+    let p = close_path(root, n);
+    let body = serde_json::json!({ "session": n, "method": "close-command", "at_unix": now() });
+    fs::write(&p, serde_json::to_string_pretty(&body)? + "\n")
+        .with_context(|| format!("cannot write {}", p.display()))?;
+    let name = file_name(&p).to_lowercase();
+    unlist(root, |listed| listed == name)?;
+    Ok(format!(
+        "signed off ground-truth session {n}'s report — recorded in {} (human, own terminal). The \
+         review-only guard is open for session {n}. Commit it with the session.",
+        p.strip_prefix(root).unwrap_or(&p).display()
+    ))
+}
+
+/// S197 (F125): does the founder's close record for session `n` count? `Err` says why not. Read the
+/// way an approval is read: the S188 void lists it (or cannot be read) → it does not count.
+pub fn close_record(root: &Path, n: u32) -> std::result::Result<(), String> {
+    let p = close_path(root, n);
+    let rel = format!(".ai/approvals/{}", file_name(&p));
+    let text = fs::read_to_string(&p)
+        .map_err(|_| format!("no founder sign-off for session {n} ({rel} is missing)"))?;
+    if is_void(root, &file_name(&p)) {
+        return Err(format!(
+            "{rel} does not count — an AI command changed .ai/approvals (listed in .ai/approvals/{VOID_FILE})"
+        ));
+    }
+    let v: serde_json::Value =
+        serde_json::from_str(&text).map_err(|_| format!("{rel} is not a record Vajra wrote"))?;
+    if v.get("session").and_then(|s| s.as_u64()) != Some(n as u64)
+        || v.get("method").and_then(|m| m.as_str()) != Some("close-command")
+    {
+        return Err(format!("{rel} is not a close record for session {n}"));
+    }
+    Ok(())
+}
+
 /// Launch-time records, written by the launcher from the founder's own env/flags. Called only when
 /// the launcher itself is unmarked — a marked launcher (an agent running `vajra claude`) gets nothing.
 pub fn record_launch_env(root: &Path, n: u32) -> Result<PathBuf> {
@@ -355,15 +434,21 @@ pub fn stdin_is_terminal() -> bool {
 
 /// The `vajra approve NN` command line.
 pub fn run(args: &[String]) -> Result<()> {
-    let n: u32 = match args {
-        [a] => a
-            .trim()
-            .parse()
-            .map_err(|_| anyhow::anyhow!("usage: vajra approve <session number>"))?,
-        _ => bail!("usage: vajra approve <session number>"),
+    const USAGE: &str = "usage: vajra approve <session number> [--close]";
+    let (num, close) = match args {
+        [a] => (a, false),
+        [a, f] if f == "--close" => (a, true),
+        [f, a] if f == "--close" => (a, true),
+        _ => bail!(USAGE),
     };
+    let n: u32 = num.trim().parse().map_err(|_| anyhow::anyhow!(USAGE))?;
     let root = std::env::current_dir()?;
-    println!("{}", approve(&root, n, is_marked(), stdin_is_terminal())?);
+    let out = if close {
+        approve_close(&root, n, is_marked(), stdin_is_terminal())?
+    } else {
+        approve(&root, n, is_marked(), stdin_is_terminal())?
+    };
+    println!("{out}");
     Ok(())
 }
 
@@ -378,6 +463,46 @@ mod tests {
         assert!(approve(d.path(), 181, false, false).is_err(), "no terminal");
         assert!(!dir(d.path()).exists(), "a refusal writes nothing");
         assert_eq!(approved(d.path(), 181), None);
+    }
+
+    /// S197 (F125): the close record opens only its own session; a session approval is not one;
+    /// the void counts; `vajra approve MM` never un-lists it.
+    #[test]
+    fn the_close_record_is_read_like_an_approval() {
+        let d = tempfile::tempdir().unwrap();
+        let r = d.path();
+        assert!(approve_close(r, 195, true, true).is_err(), "marked");
+        assert!(approve_close(r, 195, false, false).is_err(), "no terminal");
+        assert!(close_record(r, 195).is_err());
+        approve(r, 195, false, true).unwrap();
+        assert!(
+            close_record(r, 195).is_err(),
+            "an approval is not a sign-off"
+        );
+        approve_close(r, 195, false, true).unwrap();
+        assert!(close_record(r, 195).is_ok());
+        assert!(close_record(r, 200).is_err(), "one session only");
+        assert_eq!(session_of("session-195-close.json"), None);
+        fs::write(void_path(r), r#"{"listed": ["SESSION-195-CLOSE.json"]}"#).unwrap();
+        assert!(
+            close_record(r, 195).is_err(),
+            "listed (any case) does not count"
+        );
+        approve(r, 196, false, true).unwrap();
+        assert!(
+            close_record(r, 195).is_err(),
+            "approving a later session un-lists no close record"
+        );
+        fs::write(void_path(r), "not json").unwrap();
+        assert!(close_record(r, 195).is_err(), "an unreadable void = closed");
+        approve_close(r, 195, false, true).unwrap();
+        assert!(close_record(r, 195).is_ok(), "the founder signs off again");
+        fs::write(
+            close_path(r, 195),
+            r#"{"session":195,"method":"approve-command"}"#,
+        )
+        .unwrap();
+        assert!(close_record(r, 195).is_err(), "wrong method");
     }
 
     #[test]

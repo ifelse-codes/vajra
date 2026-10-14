@@ -100,8 +100,9 @@ cargo test -q --lib -- update_session_boot swap_boot_number >"$T/ac2.log" 2>&1 \
   && grep -q "3 passed" "$T/ac2.log" && ok "AC2 the three SESSION-BOOT tests pass at the tip" \
   || bad "AC2 the SESSION-BOOT tests at the tip — $(tail -3 "$T/ac2.log")"
 REAL188=$(git show 976ba05:.ai/SESSION-BOOT.md | grep -F '**Number:** 188 — COMPLETE (merged #226)')
-grep -qF "$REAL188" src/cli/next.rs && ok "AC2 the test's fixture is the real S188 line (.ai/SESSION-BOOT.md at 976ba05)" \
-  || bad "AC2 the test's fixture is not the real S188 line"
+if grep -qF "$REAL188" src/cli/next.rs; then  # source-claim: the claim IS the test fixture's text; the tests above run it
+  ok "AC2 the test's fixture is the real S188 line (.ai/SESSION-BOOT.md at 976ba05)"
+else bad "AC2 the test's fixture is not the real S188 line"; fi
 perl -0777 -ne 'print $1 if /(    \/\/\/ S191 AC2:.*?\n    }\n)/s' src/cli/next.rs > "$T/ac2.rs"
 perl -0777 -i -pe 'BEGIN { local $/; open F, "<", "'"$T/ac2.rs"'"; $t = <F> } s/\}\s*\z/$t}\n/' "$OLD_WT/src/cli/next.rs"
 (cd "$OLD_WT" && CARGO_TARGET_DIR="$ROOT/target/s191-old" cargo test -q --lib -- update_session_boot_leaves_prose_numbers_alone) >"$T/ac2-old.log" 2>&1

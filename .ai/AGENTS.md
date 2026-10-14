@@ -97,7 +97,7 @@ Step 7 is not finished until the agent has:
 
 Run every audit in `CONSTRAINTS.yaml#ground_truth.required_audits`, answering its question list. **Meta-check: did this audit's own mechanism miss a kind of drift?** (Auditing rule-following while ignoring the vision is the exact trap — rules serve the vision, not the reverse.) Output: `sessions/session-NN-ground-truth.md`. User signs off before code resumes.
 
-Hooks (`hook-pre-bash.sh`, `hook-pre-write.sh`) enforce. Authorized hardening goes on a `session-NN-closeout` or `session-NN-enforcement` branch (exempt by suffix).
+Hooks (`hook-ground-truth-guard.sh`, shipped to every project) enforce. A branch name opens nothing: code, commits, pushes and PRs stay blocked until the founder reads the report and types `vajra approve NN --close` in their own terminal (DECISION-011 S197).
 
 ---
 
@@ -109,7 +109,7 @@ Hooks (`hook-pre-bash.sh`, `hook-pre-write.sh`) enforce. Authorized hardening go
 | Max 2 error retries | 3rd failure → escalate |
 | No autonomous commits | Wait for approval token |
 | No `main` commits | Branch first |
-| No code in Ground Truth | Hook-enforced |
+| No code in Ground Truth | Hook-enforced; only the founder's `vajra approve NN --close` opens it |
 | Verification = exit 0 | Never leave red |
 | State is snapshot | Never append history |
 | Max 1 story per session | Larger → split |

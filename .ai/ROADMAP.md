@@ -711,7 +711,8 @@ station credit.
 | S194 | **Complete** | **Session 194 — INTERACTIVE: rudra session 20 (its ground truth, run on Haiku 4.5 on purpose)** (`prompts/194-task-rudra-s20.md`). Receipt $1.49 = Claude Code's own cost-state, one line, no estimate (F117 live proof, S193 rec 4 ✓). rudra's close went RED (5 fail) but the agent said "fully closed" and the founder merged. **Fixed:** F121 the exit box shows the latest close check (ADR-0004 S194 addendum) · F123 `.githooks/pre-merge-commit` stops a merge commit on main · F120 `--role --from` refuses a raw transcript (DECISION-007 S194 addendum). **F122** made visible by F121; **F124** not Vajra; **F125 → known bugs** (founder: park). Verify 11/11 + 1 record · `cargo test` 720/0. `sessions/session-194-summary.md`. |
 | S195 | **Complete** | **Session 195 — NO-CODE ground truth (every 5th), 🟡 PARTIAL PASS, founder approved as written** (`sessions/session-195-ground-truth.md`). 13 audits live; stranger_check 🔴 on reach (script 21/0 green), dogfood_staleness 🔴 (blind to rudra), scaffold_drift 🔴 (N10's false alarm). **Haiku answer:** blocks stopped, the close check detected and stopped nothing, instruction-only steps skipped → (c) README "tested with" fact, then (d) Vajra runs the required reviewer itself; not (a). **Picks:** F125/F116/F118/F119/N10 → S197; N11 + verify-131 stale checks dropped (founder). New N14–N17. Founder pick: A. |
 | S196 | **Complete** | **Session 196 — INTERACTIVE: rudra S21 on Opus, synced** (`prompts/196-task-rudra-s21.md`). Opus ran every instruction-only step (4 helpers, 18 `vajra next`, real review), close GREEN 21/0, "fully closed" true; $19.21 = Claude Code's own cost-state. F121's box could only show after the merge; F123 not exercised. **F127 fixed (founder: "no pr creation till it is not green"):** `.githooks/pre-push` stops an agent's push of a session branch without a GREEN close for that exact commit; result format 2 (`head:`, `clean:`) (DECISION-007 + ADR-0004 S196 addenda). **F126 → known bugs** (founder: park). Verify 10/10 · demo 5/5 · `cargo test` 732/0. `sessions/session-196-summary.md`. |
-| S197 | Planned | **The known-bug session:** F125 first (the `-closeout` opening needs a founder `vajra approve NN --close` record, DECISION-011 addendum, design-significant: yes; N17 with it), then F116, F118, F119, N10 (`# source-claim:` marker on check 6). |
+| S197 | **Complete** | **Session 197 — CODE: the known-bug session** (`prompts/197-task-known-bugs.md`). **F125 premise corrected:** user projects never had the review-only guard; founder (2026-10-14): ship it to every project — one `hook-ground-truth-guard.sh` via `vajra init` / `--sync-fleet`, no branch name opens it (the `-closeout`/`-enforcement` exemptions, `VAJRA_GT_WAIVER` and — after the cold review — a branch with another session's number), only the founder's `vajra approve NN --close` does (DECISION-011 S197 addendum). **N17** (unnumbered branch → HEAD's `.ai/SESSION` + 1), **F116**, **F119**, **N10** fixed. **F118 moved out** (founder) — still a known bug. N18 filed. Review ACCEPT 10/12. `sessions/session-197-summary.md`. |
+| S198 | Planned | **The known-bug leftovers** (founder pick at S197): F118 (`--advance` moves the old Current Session entry to Prior Session) + N18 (check 6 sorts by session number, not a path field). `prompts/198-task-known-bug-leftovers.md`. |
 | S180 | **Complete** | **Session 180 — NO-CODE ground truth, 🟡 PARTIAL.** `sessions/session-180-ground-truth.md` (commit `0b42dfe`). S174 fixes landed (F58/F59/F60; F48/53/54 untraced). 5 PRs since S175, all founder-driven, 0 outside users (fine — not GTM-ready). N1 cadence key would end all future ground truths; Goal 0 design for un-typeable approvals; other tools one at a time (OpenCode, omp, a third), later. |
 | S171-parked | **Parked — policing (founder 2026-09-15: "no more policing")** | Not a session. These are loopholes in Vajra's checks on its OWN paperwork; no outside user meets them. Revisit only if a real user hits one. Next real work = what a new user gets (release 0.2.0 for real, first-run experience). **Parked items (kept for the record):** (1) **S169 cold review pass 1 rec 3** — a `done:` sha must belong to THIS session (reachable from the session branch, not from its merge-base), and the rule must survive merge + prune (the Releaser NoBranch blind spot); today `git cat-file -e` accepts any old real commit. (2) **S168 cold review recs 1–3**, parked on the S169 row and not built there: correct DECISION-010's "what the gate proves" sentence · a live disclosed-floor row (zero checks + hand-printed `check-passed`/`complete` → READY) in verify + demo · replace or relabel verify-168's markdown-grep checks AC5a–e / AC10a. (3) Decide at S170 whether `execution-shas-filled` should refuse `VAJRA_CLOSEOUT_WAIVER` for CODE sessions (S169's disclosed fakest green). (4) **S169 cold review pass 2 recs 7–10** — the claim match is words only: add a no-claim fixture (`Verdict: pending` + "acceptance criteria" → passes), match `\b(accept|reject)(ed)?\b` and `review …: ACCEPT` with a `Cold review: ACCEPT` dodge fixture, pad `check_fidelity_review` + `check_review_attestation` (`session-01-review.md`), and update the comments + DECISION-007 wording to the shipped match. Risk if left: a waived NO-CODE/DOCUMENT close whose summary mentions a past verdict cannot pass (no waiver path). |
 
@@ -770,7 +771,7 @@ station credit.
 **🐞 KNOWN BUGS — TO FIX (founder, 2026-10-09: "file what we parked as known bug and bug to fix so we don't miss them").**
 Minor, parked in S193 (rudra S19). Not fixed yet; each is a real bug a user can meet. **Carry → backlog — reason: the
 founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-approved): F125, F116, F118, F119 and N10 → S197; F123's routes kept named; `latest` folder → a one-time hand fix with the founder's yes.**
-- **F116 — the approval record is left out of git at close.** rudra S19 merged without
+- **F116 — FIXED S197** (`vajra next --steps` names a record not in the last commit). Was: **the approval record is left out of git at close.** rudra S19 merged without
   `.ai/approvals/session-19.json`; it took a second PR (#23) after the founder asked. Vajra's own
   `.ai/approvals/session-192.json` was never committed either. **Why:** "Commit it with the session" is printed only to
   the founder's terminal by `vajra approve` (`src/approval/mod.rs:311`); the agent never sees it (0 mentions in the
@@ -778,22 +779,34 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   only by riding a Vajra-upgrade commit. **Fix idea:** `vajra next --steps` / boot say "approved ✓ — not in git yet;
   commit it with the session" (a reminder, not a block).
   **Seen again in rudra S21** (S196): `.ai/approvals/session-21.json` still untracked after PR #25's merge.
-- **F118 — `vajra next --advance` leaves the old session's text under the new number.** S193's advance wrote
+- **F118 — STILL OPEN. Moved out of S197 by the founder (2026-10-14) to make room for F125's wider fix. Carry →
+  S198 (founder pick at S197's close, `prompts/198-task-known-bug-leftovers.md`). Seen again at S197's own advance
+  (`aad6381`).** **`vajra next --advance` leaves the old session's text under the new number.** S193's advance wrote
   "**Number:** 193 — COMPLETE on `session-192-…`" + S192's whole story into SESSION-BOOT's `## Current Session`, and
   S192 dropped out of `## Prior Session` (fixed by hand, `beae153`). S191 made the swap touch only the number token;
   nothing moves the old entry down. Vajra's own layout; rudra's SESSION-BOOT has a different shape and was not hit.
-- **F119 — the step list shows ✗ for design when the prompt says none is needed.** `vajra next --steps` reads the
+- **F119 — FIXED S197** (`--steps` ticks design on `design-significant: no`). Was: **the step list shows ✗ for design when the prompt says none is needed.** `vajra next --steps` reads the
   Architect station (`src/nextstep/mod.rs:128`, `passed("Architect")`), which is ABSENT for `design-significant: no`,
   while `vajra next --check-design 193` says READY. The step text itself says "(or the prompt says it needs none)", and
   its how-to tells the agent to cite a design record it does not need. Any project's no-design session meets it.
 - **F118 + F119 seen again in S194** (`8185209` repaired SESSION-BOOT by hand; `--steps 194` ✗ design with
   `design-significant: no`). Same causes as above.
-- **F125 — a review-only session's no-code guard turns off on any `-closeout` branch, and the agent picks the
-  name** (founder, 2026-10-12: park). rudra S20's agent created `session-20-ground-truth-closeout` at 03:17:43Z, before
+- **F125 — FIXED S197, premise corrected** (DECISION-011 S197 addendum): user projects never HAD the guard — it lived
+  only in Vajra's own hooks. Now one guard ships to every project, no branch name opens it, only the founder's
+  `vajra approve NN --close` does; N17 (no `session-NN` in the branch) uses HEAD's `.ai/SESSION` + 1. Was: **a
+  review-only session's no-code guard turns off on any `-closeout` branch, and the agent picks the name** (founder, 2026-10-12: park). rudra S20's agent created `session-20-ground-truth-closeout` at 03:17:43Z, before
   any work, so `hook-pre-bash.sh`'s `*-closeout) GT=0` held for the whole session: its commits, a merge onto main and
   a PR all passed the ground-truth guard (S194 summary). The `-closeout` opening exists so the next prompt can be
   written at close. Same class as S69's "jurisdiction is self-granted". **Fix idea (needs its own design):** tie the
   opening to something the agent cannot name — e.g. the session's ground-truth report already committed.
+- **N18 — `scaffold-drift.sh` check 6 sorts verify scripts by the 3rd `-`-separated field of the FULL path**
+  (found S197 writing verify row 10). In a folder whose path has dashes (the old-version checkouts,
+  `…/vajra-old-checkouts/<pid>-<sha>/`) it picks the wrong "last 10". LOW. **Carry → backlog — reason: the founder
+  picks when; on the S200 ground-truth checklist.**
+- **S197 design-advisor rec 10 — on a review-only session, `vajra next --steps` has no line for the founder's sign-off
+  (`vajra approve NN --close`), and F116's "not in git" note does not name the close record.** Deferred from S197
+  (the review had started; the guard's own block message already names the command). **Carry → backlog — reason:
+  the founder picks when; on the S200 ground-truth checklist.**
 - **F126 — a founder change after the review has no place in the project** (founder, 2026-10-14: park; S200
   checklist). In rudra S21, after the close and the stamp, the founder re-scoped S22; the agent kept the old S22
   prompt in git ("changing it now would undo today's sign-off"), saved the new plan only in Claude Code's private

@@ -381,3 +381,8 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 ## S196 — permanent facts
 
 - **An agent cannot push a `session-NN-…` branch until the close is GREEN on that exact commit (S196, F127, DECISION-007 S196 addendum):** `.githooks/pre-push` reads the newest `.ai/verify/closeout/<stamp>/result` (format 2: `head:` + `clean:`) whose `head:` equals the pushed sha. So the order at close is fixed: the stamp, then `bash scripts/verify-closeout.sh NN` with nothing uncommitted, then the push — any commit after the close needs one more close. A person's push is only noted. The close result's start-and-end `git status --porcelain --untracked-files=no` must be empty (untracked files do not count).
+
+## S197 — permanent facts
+
+- **A review-only (ground-truth) session is guarded in every project by `hook-ground-truth-guard.sh` (S197, F125, DECISION-011 S197 addendum):** Vajra's own `scripts/` copy is called by `hook-pre-bash.sh` / `hook-pre-write.sh`; projects get `.ai/hooks/hook-ground-truth-guard.sh` from `vajra init` / `--sync-fleet`. Before S197 projects had NO such guard. No branch name opens it; only the founder's `vajra approve NN --close` (`.ai/approvals/session-NN-close.json`), read by `vajra next --check-close-record NN`. So in Vajra's own ground truths: write the report, show the founder, wait for `--close`, THEN commit — a `-closeout` branch no longer helps.
+- **Agent shell commands that MENTION another session number are blocked by the session guard** (S197 hit it with a "S200" in a ROADMAP edit): write the script/message with the Write tool to a scratch file and run it from there (`python3 file`, `git commit -F file`).
