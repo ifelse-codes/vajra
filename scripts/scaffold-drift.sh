@@ -292,6 +292,9 @@ echo ""
 # file (not piped from echo), which proves only that a string exists in source — not that
 # the code behaves as intended (S163 finding; closed retroactively for 154/157/158).
 # Flagging new occurrences here lets the CI catch them early.
+# S197 (N10): a line that reads source on purpose — a display count after a real diff, a fixture's
+# text — opts out with `# source-claim: <why>` ON THE LINE ITSELF, with a non-empty why. The check
+# stays; an unmarked or reason-less grep still fails. (Limit: the marker is matched as text.)
 echo "--- 6. no hollow grep.*src/.*\.rs in the last 10 verify scripts ---"
 VERIFY_SCRIPTS="$(ls -1 "$ROOT/scripts/verify-session-"*.sh 2>/dev/null \
   | grep -v verify-session-template \
@@ -304,6 +307,7 @@ while IFS= read -r script; do
   HITS="$(awk '
     /^[[:space:]]*#/ { next }          # skip comment lines
     /echo[^|]*\|/ { next }             # skip echo … | grep pipelines
+    /[[:space:]]#[[:space:]]*source-claim:[[:space:]]*[^[:space:]]/ { next }  # S197 N10: declared, with a why
     /grep/ && /src\// && /\.rs/ { print FILENAME ":" NR ": " $0 }
   ' "$script" 2>/dev/null || true)"
   if [ -n "$HITS" ]; then

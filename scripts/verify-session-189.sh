@@ -117,7 +117,7 @@ else bad "AC3 at $OLD_SHA: $(printf '%s\n' "$OLD" | headline)"; fi
 # --- 5 (deliverable 3): no new price rows — the price list equals the start commit's, entry by entry ---
 rows() { awk '/^const MODEL_PRICING/,/^\];/' | grep -E 'prefix:|_per_mtok:' | tr -d ' ' ; }
 if diff <(git show "$OLD_SHA:src/meter/mod.rs" | rows) <(rows < src/meter/mod.rs) >/dev/null; then
-  ok "deliverable 3: the price list has the same $(rows < src/meter/mod.rs | grep -c prefix:) rows as $OLD_SHA, the same rates — none added for Opus 5.5 or any model"
+  ok "deliverable 3: the price list has the same $(rows < src/meter/mod.rs | grep -c prefix:) rows as $OLD_SHA, the same rates — none added for Opus 5.5 or any model"  # source-claim: a display count; the diff above already compared the file
 else bad "deliverable 3: the price list changed since $OLD_SHA"; fi
 
 # --- 6 (AC4): a -p run — the result stream still wins, unchanged from the start commit ---

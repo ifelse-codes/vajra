@@ -129,7 +129,7 @@ else bad "control no tier split + crash:"$'\n'"$NEW"; fi
 # --- 5 (standing rule): no new price rows — the price list equals the start commit's, entry by entry ---
 rows() { awk '/^const MODEL_PRICING/,/^\];/' | grep -E 'prefix:|_per_mtok:' | tr -d ' ' ; }
 if diff <(git show "$OLD_SHA:src/meter/mod.rs" | rows) <(rows < src/meter/mod.rs) >/dev/null; then
-  ok "the price list has the same $(rows < src/meter/mod.rs | grep -c prefix:) rows as $OLD_SHA — none added for Opus 5.5"
+  ok "the price list has the same $(rows < src/meter/mod.rs | grep -c prefix:) rows as $OLD_SHA — none added for Opus 5.5"  # source-claim: a display count; the diff above already compared the file
 else bad "the price list changed since $OLD_SHA"; fi
 
 # --- AC3: rudra S19's receipt against Claude Code's own total — a RECORD, not a check (review rec 3) ---
