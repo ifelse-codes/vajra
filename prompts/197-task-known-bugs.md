@@ -147,3 +147,14 @@ demo-producer: skipped — the tech-lead deferred it on budget: bug fixes shown 
 - design-advisor rec 10 — deferred: .ai/ROADMAP.md
 - design-advisor rec 11 — obeyed: 9c494c7 (every listed case is a verify row in a temp `vajra init` project, red at eceb6d5)
 - design-advisor rec 12 — obeyed: 336786d (F119 reuses `architect::design_gate`), 946a967 (F116 follows the S187 step) and 34cebf4 (N10: no record covers check 6 yet — said in the script's own comment)
+
+**fidelity-reviewer** (`.ai/handoffs/session-197-fidelity-reviewer.md`, one cold pass, ACCEPT 10/12):
+- fidelity-reviewer rec 1 — obeyed: 1c8452a (founder, 2026-10-14: "fix it now" — while the guard is on, a `git checkout`/`switch`/`branch`/`worktree` command naming another session's `session-NN` is refused; verify row 7b: session-06 and session-201 refused, session-05-report allowed, red at eceb6d5; a name hidden in a variable is named in the addendum, 1fde8fc)
+- fidelity-reviewer rec 2 — obeyed: 1c8452a (under `scripts/` only `verify-session-*` and `demo-session-*` stay writable; verify row 7c) and 1fde8fc (the root-anchoring half is named in the addendum's Limit with its reason: the allowlist does not resolve paths, so `/var` vs `/private/var` spellings would false-block)
+- fidelity-reviewer rec 3 — obeyed: 1fde8fc (the Limit names the agent-writable `.ai/CONSTRAINTS.yaml` — `maturity: L1`, a moved `ground_truth_next_session` — the working-tree `.ai/SESSION` fallback, the missing-lib fallback and a founder-committed advance)
+- fidelity-reviewer rec 4 — obeyed: 1c8452a (a tool name outside the five is judged by its input's shape; verify row 7c: an unknown tool carrying a command is blocked as Bash)
+- fidelity-reviewer rec 5 — obeyed: 1c8452a (rows 2 and 6 gain positive controls: the eceb6d5 hooks block on a plain `session-05-x` branch in the same project)
+- fidelity-reviewer rec 6 — obeyed: 1c8452a (row 2 runs Vajra's own `hook-pre-write.sh` on a `src/` write, new and at eceb6d5) and 7443202 (the summary says which rows run at eceb6d5 and which have no old counterpart)
+- fidelity-reviewer rec 7 — obeyed: 7443202 (the full `cargo test` 735/0 at the tip in the summary; the push through the S196 belt is recorded in the summary after it happens)
+- fidelity-reviewer rec 8 — obeyed: 1fde8fc (`git -C <dir> commit` and `git worktree add` + edits outside the project named in the spelling limit)
+- fidelity-reviewer rec 9 — obeyed: 1fde8fc (the S197 ROADMAP row rewritten: F118 moved out, not among the fixes)

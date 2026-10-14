@@ -44,7 +44,7 @@ Rows 3, 4, 5, 7 test behaviour that has no old counterpart — at `eceb6d5` a pr
 | D3 / AC3 F118 | MOVED OUT (founder) | ROADMAP known bugs: still open, founder's call, next GT checklist (`b3695d4`); seen again at this session's own advance (`aad6381`) |
 | D4 / AC4 F119 | SHIPPED | verify row 9 |
 | D5 / AC5 N10 | SHIPPED | verify row 10: exit 0 here; an unmarked grep and a reason-less marker both still fail |
-| AC6 real-run checks, cargo test, push via the S196 belt | SHIPPED except the push, which happens after the close (below) | verify 11/11; cargo test 735/0 |
+| AC6 real-run checks, cargo test, push via the S196 belt | SHIPPED except the push, which happens after the close (below) | verify 13/13; cargo test 735/0 |
 
 **Not built:** F118. rec 10 of the design-advisor (a `--steps` line for the close record) — see `## Advice`.
 
@@ -79,3 +79,5 @@ guard reads command TEXT (`g=git; $g commit` gets through), and the agent can ed
 3. **Design: Vajra runs the required reviewer itself (Haiku answer d),** plus the README "tested with" line in the
    founder's words (c). Why: the root fix for "the agent graded itself" on a cheap model. Risk: design only; every
    close then costs money.
+
+**Founder pick (2026-10-14): option 2** — the known-bug leftovers; prompt written: `prompts/198-task-known-bug-leftovers.md`.
