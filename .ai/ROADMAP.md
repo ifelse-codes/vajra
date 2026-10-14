@@ -798,6 +798,14 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   a PR all passed the ground-truth guard (S194 summary). The `-closeout` opening exists so the next prompt can be
   written at close. Same class as S69's "jurisdiction is self-granted". **Fix idea (needs its own design):** tie the
   opening to something the agent cannot name — e.g. the session's ground-truth report already committed.
+- **N18 — `scaffold-drift.sh` check 6 sorts verify scripts by the 3rd `-`-separated field of the FULL path**
+  (found S197 writing verify row 10). In a folder whose path has dashes (the old-version checkouts,
+  `…/vajra-old-checkouts/<pid>-<sha>/`) it picks the wrong "last 10". LOW. **Carry → backlog — reason: the founder
+  picks when; on the S200 ground-truth checklist.**
+- **S197 design-advisor rec 10 — on a review-only session, `vajra next --steps` has no line for the founder's sign-off
+  (`vajra approve NN --close`), and F116's "not in git" note does not name the close record.** Deferred from S197
+  (the review had started; the guard's own block message already names the command). **Carry → backlog — reason:
+  the founder picks when; on the S200 ground-truth checklist.**
 - **F126 — a founder change after the review has no place in the project** (founder, 2026-10-14: park; S200
   checklist). In rudra S21, after the close and the stamp, the founder re-scoped S22; the agent kept the old S22
   prompt in git ("changing it now would undo today's sign-off"), saved the new plan only in Claude Code's private
