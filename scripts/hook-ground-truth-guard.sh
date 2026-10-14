@@ -52,6 +52,7 @@ BRANCH=$(cd "$ROOT" && git branch --show-current 2>/dev/null || true)
 NUM=$(printf '%s' "$BRANCH" | grep -oE 'session-[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
 GT=0
 if [[ "$NUM" =~ ^[0-9]+$ ]] && [ "$((10#$NUM))" -gt 0 ]; then
+  NUM=$((10#$NUM))
   vajra_is_ground_truth "$NUM" "$ROOT" && GT=1
 else
   # N17: no session number in the branch name.
@@ -81,7 +82,9 @@ else
     *) OPEN_WHY="this vajra cannot read the founder's sign-off (update vajra: cargo install vajractl)" ;;
   esac
 fi
-HOW="Write the report (sessions/session-${NUM}-ground-truth.md) and show it to the founder; only they open this, by typing \`vajra approve ${NUM} --close\` in their OWN terminal ($OPEN_WHY)."
+REPORT="sessions/session-${NUM}-ground-truth.md"
+[ "$NUM" = "?" ] || REPORT=$(printf 'sessions/session-%02d-ground-truth.md' "$NUM")
+HOW="Write the report ($REPORT) and show it to the founder; only they open this, by typing \`vajra approve ${NUM} --close\` in their OWN terminal ($OPEN_WHY)."
 
 refuse() { # what
   if [ "$MATURITY" = "L1" ]; then
