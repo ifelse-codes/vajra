@@ -48,6 +48,11 @@ case "${1:-}" in
   --inputs-sha|--ledger|--ledger-verify) ARTIFACTS="$(mktemp -d)" || exit 1; trap 'rm -rf "$ARTIFACTS"' EXIT ;;
   *) mkdir -p "$ARTIFACTS" ;;
 esac
+# S196 (F127): which commit this run checked, and whether the tracked files matched it — the push
+# belt (.githooks/pre-push) lets a session branch out only on a GREEN for the exact commit pushed.
+# Taken now and again at the end: `clean: yes` only if both are clean and HEAD did not move.
+CLOSE_HEAD0="$(git rev-parse HEAD 2>/dev/null || echo none)"
+CLOSE_DIRTY0="$(git status --porcelain --untracked-files=no 2>/dev/null || echo unreadable)"
 
 PASS=0; FAIL=0; RESULTS=(); FAILED_NAMES=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
@@ -1387,12 +1392,21 @@ check_release_coordinator
 check_review_attestation
 
 # S194 (F121): the one machine-readable result. `vajra claude` reads it at exit and prints it below
-# the receipt, so the human hears the verdict from Vajra, not from the agent's summary. Fixed
+# the receipt, so the human hears the verdict from Vajra, not from the agent's summary. S196 (F127):
+# format 2 adds `head:` + `clean:`, and .githooks/pre-push is its second reader. Fixed
 # format; the binary reads nothing else (no screen text, no per-check logs). Written last, via a
 # temp file, so a run that stops early leaves no result rather than half of one.
+CLOSE_CLEAN=no
+if [ -z "$CLOSE_DIRTY0" ] && [ "$CLOSE_HEAD0" != none ] \
+   && [ "$(git rev-parse HEAD 2>/dev/null || echo none)" = "$CLOSE_HEAD0" ] \
+   && [ -z "$(git status --porcelain --untracked-files=no 2>/dev/null || echo unreadable)" ]; then
+  CLOSE_CLEAN=yes
+fi
 {
-  echo "vajra-closeout-result: 1"
+  echo "vajra-closeout-result: 2"
   echo "session: ${N:-?}"
+  echo "head: $CLOSE_HEAD0"
+  echo "clean: $CLOSE_CLEAN"
   if [ "$FAIL" -eq 0 ]; then echo "verdict: GREEN"; else echo "verdict: RED"; fi
   echo "pass: $PASS"
   echo "fail: $FAIL"

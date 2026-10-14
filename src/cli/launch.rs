@@ -473,10 +473,28 @@ fn parse_close_result(text: &str, stamp: String) -> Option<CloseCheck> {
             None => None,
         }
     };
-    if field("vajra-closeout-result")?.as_str() != "1" {
+    // S196 (F127): format 2 adds `head:` + `clean:` after `session:` for the push belt
+    // (.githooks/pre-push, the file's second reader). Both formats read; any other is unreadable.
+    let version = field("vajra-closeout-result")?;
+    if version != "1" && version != "2" {
         return None;
     }
     let _session = field("session")?;
+    if version == "2" {
+        let head = field("head")?;
+        let hex = |n: usize| {
+            head.len() == n
+                && head
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        };
+        if !(hex(40) || hex(64) || head == "none") {
+            return None;
+        }
+        if !matches!(field("clean")?.as_str(), "yes" | "no") {
+            return None;
+        }
+    }
     let verdict = field("verdict")?;
     let pass: u32 = field("pass")?.parse().ok()?;
     let fail: u32 = field("fail")?.parse().ok()?;
@@ -725,6 +743,32 @@ mod tests {
     const RED_RESULT: &str = "vajra-closeout-result: 1\nsession: 20\nverdict: RED\npass: 17\nfail: 5\nwarn: 0\nfailed: fidelity-review-accept three-next-options fidelity-handoff demo-passes-live required-crew\n";
     const GREEN_RESULT: &str = "vajra-closeout-result: 1\nsession: 20\nverdict: GREEN\npass: 22\nfail: 0\nwarn: 0\nfailed: \n";
 
+    // S196 (F127): format 2, as both close scripts now write it.
+    const GREEN_V2: &str = "vajra-closeout-result: 2\nsession: 196\nhead: 59719f8e0c1d2b3a4f5e6d7c8b9a0f1e2d3c4b5a\nclean: yes\nverdict: GREEN\npass: 30\nfail: 0\nwarn: 1\nfailed: \n";
+
+    #[test]
+    fn s196_a_format_2_result_is_read_like_format_1() {
+        let d = tempfile::tempdir().unwrap();
+        run_folder(d.path(), "20261014T120000Z", Some(GREEN_V2));
+        assert_eq!(
+            read_close_check(d.path(), "20261014T110000Z").check,
+            CloseCheck::Green {
+                pass: 30,
+                warn: 1,
+                stamp: "20261014T120000Z".into()
+            }
+        );
+        let red = RED_RESULT.replace(
+            "vajra-closeout-result: 1\nsession: 20\n",
+            "vajra-closeout-result: 2\nsession: 20\nhead: none\nclean: no\n",
+        );
+        run_folder(d.path(), "20261014T130000Z", Some(&red));
+        assert!(matches!(
+            read_close_check(d.path(), "20261014T110000Z").check,
+            CloseCheck::Red { fail: 5, .. }
+        ));
+    }
+
     fn run_folder(dir: &Path, stamp: &str, result: Option<&str>) {
         fs::create_dir_all(dir.join(stamp)).unwrap();
         if let Some(r) = result {
@@ -785,7 +829,10 @@ mod tests {
             GREEN_RESULT.replace("verdict: GREEN", "verdict: PASSED"),
             GREEN_RESULT.replace("fail: 0\n", ""),
             GREEN_RESULT.replace("pass: 22", "pass: lots"),
-            GREEN_RESULT.replace("vajra-closeout-result: 1", "vajra-closeout-result: 2"),
+            GREEN_RESULT.replace("vajra-closeout-result: 1", "vajra-closeout-result: 3"),
+            GREEN_V2.replace("head: ", "head: 12"),
+            GREEN_V2.replace("clean: yes", "clean: maybe"),
+            GREEN_V2.replace("clean: yes\n", ""),
             GREEN_RESULT.replace("fail: 0", "fail: 1"),
             RED_RESULT.replace("fail: 5", "fail: 4"),
             format!("{GREEN_RESULT}extra: line\n"),
