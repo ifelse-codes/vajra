@@ -101,6 +101,11 @@ design-significant: yes
 - step 1 — done: 336786d
 - step 2 — done: 946a967
 - step 3 — done: 34cebf4
+- step 4 — done: efd7ad2
+- step 5 — done: 140542b
+- step 6 — done: 8f32889
+- step 7 — done: b3695d4
+- step 8 — done: 9c494c7
 
 ## Delta
 - `~` F125 + N17: the `-closeout` opening needs something the agent cannot type
