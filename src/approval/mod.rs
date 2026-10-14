@@ -242,6 +242,36 @@ pub fn approved(root: &Path, n: u32) -> Option<Approved> {
     None
 }
 
+/// S197 (F116): session `n` is approved by its own record file (`vajra approve NN` or the launch-time
+/// yes), but that file is not in the last commit — `vajra approve` says "commit it with the
+/// session", and only the founder's terminal saw that (rudra S19/S21, Vajra's own S192). Returns
+/// the record's repo path to name. `None` when not approved by a file, when allow-all approved it
+/// (a live-launch record, never committed), or when this is not a git work tree. A reminder only.
+pub fn record_not_in_git(root: &Path, n: u32) -> Option<String> {
+    if !matches!(
+        approved(root, n),
+        Some(Approved::Command | Approved::LaunchEnv)
+    ) {
+        return None;
+    }
+    let git = |args: &[&str]| {
+        std::process::Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(args)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .is_ok_and(|s| s.success())
+    };
+    if !git(&["rev-parse", "--is-inside-work-tree"]) {
+        return None;
+    }
+    let rel = format!(".ai/approvals/{}", file_name(&session_path(root, n)));
+    (!git(&["cat-file", "-e", &format!("HEAD:{rel}")])).then_some(rel)
+}
+
 /// The allow-all record counts only for the session it names (S182), and only while the launch that
 /// wrote it is still running. A record with no `session` (written before S182) approves nothing.
 fn allow_all_live(root: &Path, n: u32) -> bool {

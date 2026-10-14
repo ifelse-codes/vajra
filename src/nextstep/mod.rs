@@ -101,9 +101,19 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
                  cannot (a chat \"approved\" is not the record); ask them"
             ),
         };
+        // S197 (F116): approved, but the record is not in the last commit — the founder's
+        // terminal was told "commit it with the session", the agent never was. A reminder, not
+        // a block: the step stays ✓ and names the file until it is committed.
+        let what = match crate::approval::record_not_in_git(root, session) {
+            Some(rel) => format!(
+                "the founder has approved this session — {rel} is not in git yet; commit it with \
+                 this session's work"
+            ),
+            None => "the founder has approved this session".to_string(),
+        };
         Step::new(
             crate::approval::approved(root, session).is_some(),
-            "the founder has approved this session",
+            what,
             how,
         )
     }))
@@ -732,6 +742,57 @@ mod tests {
             .status
             .success();
         assert!(ok, "git {args:?}");
+    }
+
+    /// S197 (F116): an approval record that exists but is not in the last commit is named on the
+    /// (still ✓) step, and stops being named once it is committed. Not a git tree: never named.
+    #[test]
+    fn the_list_names_an_approval_record_not_in_git() {
+        let d = repo();
+        let r = d.path();
+        fs::create_dir_all(r.join(".ai/approvals")).unwrap();
+        fs::write(
+            r.join(".ai/CONSTRAINTS.yaml"),
+            "session:\n  session_rules_from: 5\n",
+        )
+        .unwrap();
+        fs::write(
+            r.join(".ai/approvals/session-07.json"),
+            r#"{"session": 7, "method": "approve-command", "at_unix": 1}"#,
+        )
+        .unwrap();
+        let approval = || {
+            steps(r, 7)
+                .into_iter()
+                .find(|s| s.what.contains("founder has approved"))
+                .unwrap()
+        };
+        let s = approval();
+        assert!(
+            s.done && !s.what.contains("not in git"),
+            "no git: {}",
+            s.what
+        );
+        git_in(r, &["init", "-q", "-b", "main"]);
+        fs::write(r.join("README"), "x").unwrap();
+        git_in(r, &["add", "README"]);
+        git_in(r, &["commit", "-qm", "first"]);
+        let s = approval();
+        assert!(s.done, "a reminder, not a block");
+        assert!(
+            s.what
+                .contains(".ai/approvals/session-07.json is not in git yet"),
+            "{}",
+            s.what
+        );
+        git_in(r, &["add", ".ai/approvals/session-07.json"]);
+        assert!(
+            approval().what.contains("not in git"),
+            "staged is not committed"
+        );
+        git_in(r, &["commit", "-qm", "the record"]);
+        let s = approval();
+        assert!(s.done && !s.what.contains("not in git"), "{}", s.what);
     }
 
     /// A repo on main whose listed sessions' summaries are committed (= their closes merged).
