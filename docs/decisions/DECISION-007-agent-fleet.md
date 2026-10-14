@@ -1783,3 +1783,45 @@ Named, not closed: a findings file that starts with prose and has a transcript p
 
 Evidence: `scripts/verify-session-194.sh` rows 3–6 (real `vajra init`, real `git merge`, `--sync-fleet` on a
 project scaffolded at 7e8210e; red at 7e8210e); `tests/commit_belt.rs` `s194_*`; `tests/role_refuses_transcript.rs`.
+
+## S196 addendum — the push belt stops an agent's RED session branch (F127)
+
+**Why (founder, 2026-10-14, F127).** rudra S20's close was RED (5 failed) and its branch was still pushed, a PR
+opened and merged on GitHub, and S21 started on top with no word from Vajra. The only reader of the close result was
+the exit box (ADR-0004 S194), which shows when the chat ends — in rudra S21 that was after the merge. The founder:
+"no pr creation till it is not green, till all review is pass from agents".
+
+**The rule.** A PR needs a pushed branch, so the push is the one door every PR route passes (`gh pr create`, the
+web UI, a GUI client). `.githooks/pre-push` refuses an **agent's** push of `refs/heads/session-NN-*` (the remote or
+the local ref) unless the newest `.ai/verify/closeout/<stamp>/result` whose `head:` equals the sha being pushed says
+`verdict: GREEN`, `clean: yes` and `session: NN` (base 10, from the branch name — never `.ai/SESSION` or a guess).
+GREEN with WARN passes — a WARN is not a fail — and the count is printed. A missing, older, RED, unclean,
+other-session or unreadable result each gets its own reason and the way through ("run the close until it says
+GREEN, then push"; an old format names `vajra init --sync-fleet`), plus "stop and tell the founder — do not push
+around it". Anything the check cannot answer is a refusal (fail closed). The hook reads the file itself, in bash
+3.2, exactly as `parse_close_result` does — no `vajra` binary on the push path.
+
+**A person is noted, not stopped (founder's call, 2026-10-14).** Asked "should it stop your own push too?", he
+chose "only the agent". A human shell gets the same reason as a `Note:` and the push goes on — the S171 split, kept.
+
+**Unchanged — the guard only adds:** the main/master rule; deletes (an all-zero local sha); tags; and a branch not
+named `session-NN-…`, ungoverned on purpose (founder, 2026-09-21; asked again 2026-10-14, kept). No new override
+(DECISION-011): no environment variable, no approval record.
+
+Rejected: re-running the close inside the push (minutes of live verify and demo inside a push the agent's tool call
+may time out on; another branch cannot be checked); guarding `gh pr create` by command text (S177/S188; misses the
+web UI); GitHub branch protection or required CI (rudra has no CI; Vajra is local-first); every branch (reverses the
+2026-09-21 rule); accepting a GREEN on an ancestor when only `sessions/` or `.ai/` changed (an exclusion list is the
+hole, S122); blocking on WARN; parsing through the `vajra` binary (version skew → the S132 hollow-pass trap).
+
+Named, not closed: the agent can write a GREEN result file, or type `git push --no-verify` where the publish guard is
+off (Vajra's own repo) — bar-raising, not tamper-proof; untracked files are not counted in `clean:`, so a close that
+read an uncommitted file can still push; a waiver typed inline is a GREEN; the hook runs only where
+`core.hooksPath` is `.githooks`; a non-session branch name skips it (N17 → S197) — so does a push to
+`HEAD:refs/heads/<any other name>` or a bare `session-NN` with no trailing `-`; a session branch the founder
+pushes RED is on the remote and a PR can then be opened from it; "agent" means one of `CLAUDECODE`,
+`CLAUDE_CODE_ENTRYPOINT`, `CURSOR_TRACE_ID`, `VAJRA_AGENT` is set — an agent that unsets them (`env -u`) or a tool
+that sets none is treated as a person and only noted (the main/master rule has the same limit) (S196 review rec 3).
+
+Evidence: `tests/push_belt.rs` (9 real `git push` runs from a real scaffold to a bare remote, incl. the scaffold's
+own close script writing the result the hook reads); `tests/commit_belt.rs`; `scripts/verify-session-196.sh`.

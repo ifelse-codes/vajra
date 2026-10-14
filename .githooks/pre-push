@@ -1,11 +1,23 @@
 #!/usr/bin/env bash
-# Tracked pre-push: keeps the AGENT off main/master.
+# Tracked pre-push: keeps the AGENT off main/master, and off GitHub with a session branch whose
+# close check is not GREEN.
 #
 # S171 (founder's first-run test): this used to refuse every push to main, the human's included.
 # After a session was merged locally, that left the work stranded — pushing main was refused and
 # a pull request was no longer possible, because main already had the commits. A person pushing
 # their own main now gets a note, not a wall; an agent shell is still stopped. Same layering as
 # .githooks/pre-commit: this belt is auditable, the L3 publish guard has the teeth.
+#
+# S196 (F127, founder 2026-10-14: "no pr creation till it is not green"): a pull request needs a
+# pushed branch, so a `session-NN-…` branch is pushed only when the close check's own result file
+# (.ai/verify/closeout/<stamp>/result, format 2) says GREEN for the EXACT commit being pushed, with
+# the tracked files clean, for session NN. GREEN with WARN passes — a WARN is not a fail. The agent
+# is stopped; a person gets a note and the push goes on (founder's call, the S171 split). A branch
+# not named `session-NN-…` is not checked — ungoverned on purpose (founder, 2026-09-21).
+# HONEST LIMIT: the result is a file the agent could write, `git push --no-verify` skips every hook,
+# and "agent" means one of the four markers below is set — an agent that unsets them (`env -u
+# CLAUDECODE`) or a tool that sets none is treated as a person and only noted. Bar-raising, not
+# tamper-proof (DECISION-007 S196 addendum).
 
 set -euo pipefail
 
@@ -13,6 +25,87 @@ agent_shell=0
 if [ -n "${CLAUDECODE:-}${CLAUDE_CODE_ENTRYPOINT:-}${CURSOR_TRACE_ID:-}${VAJRA_AGENT:-}" ]; then
   agent_shell=1
 fi
+
+# One result file, read exactly as `vajra claude`'s exit box reads it (src/cli/launch.rs
+# parse_close_result): fixed lines in a fixed order, nothing after them; GREEN means 0 failed and
+# no names, RED means as many names as failures. Sets R_SESSION R_HEAD R_CLEAN R_VERDICT R_PASS
+# R_FAIL R_WARN R_FAILED R_VERSION. Returns 0 for a readable format-2 file, 1 for anything else
+# (a format-1 file has no head, so it never matches a commit).
+read_result() {
+  local f="$1" i=0 line key val n
+  R_VERSION=""; R_SESSION=""; R_HEAD=""; R_CLEAN=""; R_VERDICT=""; R_PASS=""; R_FAIL=""; R_WARN=""; R_FAILED=""
+  local keys="vajra-closeout-result session head clean verdict pass fail warn failed"
+  [ -f "$f" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    i=$((i + 1))
+    key=$(printf '%s\n' $keys | sed -n "${i}p")
+    [ -n "$key" ] || return 1
+    case "$line" in
+      "$key: "*) val="${line#"$key: "}" ;;
+      "$key:")   val="" ;;
+      *) return 1 ;;
+    esac
+    case "$key" in
+      vajra-closeout-result) R_VERSION="$val"; [ "$val" = 2 ] || return 1 ;;
+      session) R_SESSION="$val" ;;
+      head)    R_HEAD="$val"; printf '%s' "$val" | grep -Eqx '[0-9a-f]{40}|[0-9a-f]{64}|none' || return 1 ;;
+      clean)   R_CLEAN="$val"; case "$val" in yes|no) ;; *) return 1 ;; esac ;;
+      verdict) R_VERDICT="$val" ;;
+      pass)    R_PASS="$val"; printf '%s' "$val" | grep -Eqx '[0-9]+' || return 1 ;;
+      fail)    R_FAIL="$val"; printf '%s' "$val" | grep -Eqx '[0-9]+' || return 1 ;;
+      warn)    R_WARN="$val"; printf '%s' "$val" | grep -Eqx '[0-9]+' || return 1 ;;
+      failed)  R_FAILED="$val" ;;
+    esac
+  done < "$f"
+  [ "$i" -eq 9 ] || return 1
+  n=$(printf '%s\n' $R_FAILED | grep -c . || true)
+  case "$R_VERDICT" in
+    GREEN) [ "$R_FAIL" -eq 0 ] && [ "$n" -eq 0 ] ;;
+    RED)   [ "$R_FAIL" -gt 0 ] && [ "$n" -eq "$R_FAIL" ] ;;
+    *) return 1 ;;
+  esac
+}
+
+# Why session NN's branch may not be pushed at $1, or exactly `OK` when it may. Anything else —
+# including nothing at all, if this stopped part-way — is a refusal (fail closed).
+close_check_refusal() {
+  local sha="$1" nn="$2" root dir stamp newest="" newest_ok=0 short
+  short="${sha:0:7}"
+  root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  dir="$root/.ai/verify/closeout"
+  # Newest first: the stamps are UTC `YYYYMMDDTHHMMSSZ`, so name order is time order.
+  for stamp in $(ls -1 "$dir" 2>/dev/null | grep -E '^[0-9]{8}T[0-9]{6}Z$' | sort -r); do
+    [ -f "$dir/$stamp/result" ] || continue
+    if read_result "$dir/$stamp/result"; then
+      if [ -z "$newest" ]; then newest="$stamp"; newest_ok=1; fi
+      [ "$R_HEAD" = "$sha" ] || continue
+      if ! printf '%s' "$R_SESSION" | grep -Eqx '[0-9]+' || [ "$((10#$R_SESSION))" -ne "$((10#$nn))" ]; then
+        echo "the close check at .ai/verify/closeout/$stamp checked session $R_SESSION; this branch is session $((10#$nn))'s — run \`bash scripts/verify-closeout.sh\` for this session, then push"
+      elif [ "$R_CLEAN" != yes ]; then
+        echo "the close check at .ai/verify/closeout/$stamp ran with uncommitted changes to tracked files (or a commit landed while it ran) — commit them, run \`bash scripts/verify-closeout.sh\` again, then push"
+      elif [ "$R_VERDICT" = RED ]; then
+        echo "the close check is RED — $R_FAIL failed ($R_FAILED) · .ai/verify/closeout/$stamp — fix them, commit, run \`bash scripts/verify-closeout.sh\` until it says GREEN, then push"
+      else
+        if [ "$R_WARN" -gt 0 ]; then
+          echo "Vajra: close check GREEN with $R_WARN WARN on $short — push allowed; read the WARN rows · .ai/verify/closeout/$stamp" >&2
+        else
+          echo "Vajra: close check GREEN on $short — push allowed · .ai/verify/closeout/$stamp" >&2
+        fi
+        echo OK
+      fi
+      return 0
+    elif [ -z "$newest" ]; then
+      newest="$stamp"
+    fi
+  done
+  if [ -z "$newest" ]; then
+    echo "no close check has run on $short — run \`bash scripts/verify-closeout.sh\` until it says GREEN, then push"
+  elif [ "$newest_ok" = 0 ]; then
+    echo "the newest close result (.ai/verify/closeout/$newest/result) is in an old or unreadable format — run \`vajra init --sync-fleet\`, then the close check again"
+  else
+    echo "the last close check did not run on $short, the commit you are pushing (a commit landed after it) — run \`bash scripts/verify-closeout.sh\` again, then push"
+  fi
+}
 
 blocked=0
 while read -r localref localsha remoteref remotesha; do
@@ -28,6 +121,25 @@ while read -r localref localsha remoteref remotesha; do
         echo "      and open a pull request, so the work has a review trail. Pushing anyway."
       fi ;;
   esac
+  # S196 (F127): a session branch carries its session's close check. A delete pushes no commit.
+  case "$localsha" in *[!0]*) ;; *) continue ;; esac
+  nn=""
+  for ref in "$remoteref" "$localref"; do
+    if [[ "$ref" =~ ^refs/heads/session-([0-9]+)- ]]; then nn="${BASH_REMATCH[1]}"; break; fi
+  done
+  [ -n "$nn" ] || continue
+  why="$(close_check_refusal "$localsha" "$nn" || true)"
+  [ "$why" = OK ] && continue
+  [ -n "$why" ] || why="the close result could not be checked (the check stopped part-way)"
+  if [ "$agent_shell" = 1 ]; then
+    echo "Vajra stopped this push of '${remoteref#refs/heads/}': $why."
+    echo "  A pull request opens only after the close is GREEN (founder, 2026-10-14)."
+    echo "  If you think the check is wrong, stop and tell the founder — do not push around it."
+    blocked=1
+  else
+    echo "Note: '${remoteref#refs/heads/}' — $why."
+    echo "      A pull request should open only after the close is GREEN (founder, 2026-10-14). Pushing anyway."
+  fi
 done
 
 exit "$blocked"

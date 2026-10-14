@@ -3,15 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S195 complete on `session-195-closeout` (PR open; the founder merges). Next: S196 — INTERACTIVE, rudra S21 on Opus after `vajra init --sync-fleet` (founder pick A); prompt `prompts/196-task-rudra-s21.md` (draft, the founder approves it with `vajra approve 196`).**
+**None — between sessions. S196 complete on `session-196-rudra-s21` (PR open; the founder merges). Next: S197 — CODE, the known-bug session (founder pick 1); prompt `prompts/197-task-known-bugs.md` (draft, the founder approves it with `vajra approve 197`).**
 
-## What was done this session (S195 — NO-CODE ground truth, 🟡 PARTIAL PASS, founder approved as written)
+## What was done this session (S196 — INTERACTIVE: rudra S21 on Opus, and F127)
 
-- `sessions/session-195-ground-truth.md`: 13 audits live, `delivery_progress` first. 🔴: stranger_check (script 21/0 GREEN, reach zero: 0 stars, crates.io 0.1.0, 19 downloads), dogfood_staleness (blind to rudra, N5), scaffold_drift_check (19/3, all N10's own false alarm). Paperwork 61% of commits, flat vs S186–S189. 0 commits over 3 files.
-- **The Haiku answer:** blocks (3-file cap, pre-push) stopped; the close check detected every skip and stopped nothing; instruction-only steps were skipped. Order: (c) a README "tested with" fact in the founder's words (no launch-time model check — the model changes mid-run, a model list is the price-list mistake) → (d) Vajra runs the required reviewer itself (own design session, new DECISION or DECISION-007 deviation) → (b) a standing GT question. Not (a).
-- **Picks:** F125 → S197 first (the `-closeout` opening needs a founder `vajra approve NN --close` record; amends DECISION-011; N17 the no-`session-NN` hole) · F116, F118, F119, N10 (`# source-claim:` marker) → S197 · F123 routes kept named · F121: live proof first, then a Stop hook showing the newest unseen result (ADR-0004) · N11 + verify-131's stale checks DROPPED (founder) · the rest kept with reasons.
-- **Goal 4:** cost line trusted (matches Claude Code's own figure on 4 rudra runs); the close not yet — rudra S21 decides. New findings N14–N17. This session ran on `session-195-closeout` from its first command, so its own no-code guard was off (N16 = F125).
-- Crew: tech-lead, design-advisor (5 recs), fidelity-reviewer (one cold pass, ACCEPT, 6 recs applied), release-coordinator (the one judge; pass 1 2 mismatch → fixed → pass 2).
+- **rudra S21 (the founder's run, Opus 5.5, 312/312 replies, $19.21 = cost-state = `~/.claude.json` lastCost):** 4 helpers (tech-lead, design-advisor, qa-specialist, fidelity-reviewer), 18 `vajra next` calls, every handoff `verified: toolu_…`; close GREEN 21/0 · 2 WARN · 1 N/A (0 WAIVED); "fully closed" true. Haiku S20 ran none of these. F121's exit box could only show after PR #25's merge (the "only at exit" limit, live; the founder did not paste it). F123 not exercised (fast-forward only).
+- **F127 FIXED (DECISION-007 + ADR-0004 S196 addenda):** a RED close stopped nothing (rudra S20's RED branch was pushed, PR'd, merged). `.githooks/pre-push` now refuses an agent's push of `session-NN-…` unless the newest close result for that exact sha says GREEN, `clean: yes`, session NN; a person gets a note (founder's call); non-session branches unchecked (2026-09-21 rule kept). Close result format 2 adds `head:` + `clean:`; the exit box reads 1 and 2; both readers agree on 15 cases.
+- **F126 parked** (a founder change after the review has no place in the project) → ROADMAP known bugs, S200 checklist. F116 seen again in rudra S21.
+- Verify-196 10/10 + 4 records (each fix row red at 59719f8) · demo 5/5 · `cargo test` 734/0. Named, not closed: a hand-written GREEN file, `--no-verify`, unset agent markers, untracked files, non-session names.
+- Crew: tech-lead, design-advisor (10 recs), fidelity-reviewer (pass 1 ACCEPT 5/8 → fixes → pass 2 ACCEPT 6/8, judges the release-coordinator's recs), release-coordinator (the one judge; 4 mismatch → re-answered).
+
+## Previous session (S195 — NO-CODE ground truth, 🟡 PARTIAL PASS, merged #233)
+
+- 13 audits live; the Haiku answer ((c) README "tested with", then (d) Vajra runs the reviewer itself); F125/F116/F118/F119/N10 → S197; N14–N17. `sessions/session-195-ground-truth.md`.
 
 ## Previous session (S194 — INTERACTIVE: rudra session 20, its ground truth, on Haiku 4.5, merged #232)
 
@@ -132,11 +136,11 @@
 
 ## What Is In Progress
 
-- Nothing. S195 complete on its branch. Next: S196, rudra S21 on Opus (founder pick A); then S197 the known-bug session (F125 first).
+- Nothing. S196 complete on its branch. Next: S197, the known-bug session (founder pick 1): F125 + N17 first.
 
 ## Active PRs
 
-- S195's PR (the founder merges). S194 merged as #232.
+- S196's PR (the founder merges). S195 merged as #233.
 
 ## Cost Tracking
 

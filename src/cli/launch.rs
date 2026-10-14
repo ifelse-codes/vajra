@@ -463,6 +463,17 @@ fn read_close_check(closeout_dir: &Path, since: &str) -> CloseReport {
 /// The result file, exactly as verify-closeout.sh writes it — anything else is unreadable, and
 /// unreadable is never GREEN.
 fn parse_close_result(text: &str, stamp: String) -> Option<CloseCheck> {
+    // S196 review rec 4: as strict as the push belt's reader — `lines()` would hide a `\r`, and
+    // `u32::from_str` would take `+5`.
+    if text.contains('\r') {
+        return None;
+    }
+    let num = |v: String| -> Option<u32> {
+        if v.is_empty() || !v.bytes().all(|b| b.is_ascii_digit()) {
+            return None;
+        }
+        v.parse().ok()
+    };
     let mut lines = text.lines();
     // `key: value`, or a bare `key:` for an empty value (`failed:` on a GREEN run).
     let mut field = |key: &str| {
@@ -473,14 +484,32 @@ fn parse_close_result(text: &str, stamp: String) -> Option<CloseCheck> {
             None => None,
         }
     };
-    if field("vajra-closeout-result")?.as_str() != "1" {
+    // S196 (F127): format 2 adds `head:` + `clean:` after `session:` for the push belt
+    // (.githooks/pre-push, the file's second reader). Both formats read; any other is unreadable.
+    let version = field("vajra-closeout-result")?;
+    if version != "1" && version != "2" {
         return None;
     }
     let _session = field("session")?;
+    if version == "2" {
+        let head = field("head")?;
+        let hex = |n: usize| {
+            head.len() == n
+                && head
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        };
+        if !(hex(40) || hex(64) || head == "none") {
+            return None;
+        }
+        if !matches!(field("clean")?.as_str(), "yes" | "no") {
+            return None;
+        }
+    }
     let verdict = field("verdict")?;
-    let pass: u32 = field("pass")?.parse().ok()?;
-    let fail: u32 = field("fail")?.parse().ok()?;
-    let warn: u32 = field("warn")?.parse().ok()?;
+    let pass: u32 = num(field("pass")?)?;
+    let fail: u32 = num(field("fail")?)?;
+    let warn: u32 = num(field("warn")?)?;
     let failed: Vec<String> = field("failed")?
         .split_whitespace()
         .map(str::to_string)
@@ -725,6 +754,91 @@ mod tests {
     const RED_RESULT: &str = "vajra-closeout-result: 1\nsession: 20\nverdict: RED\npass: 17\nfail: 5\nwarn: 0\nfailed: fidelity-review-accept three-next-options fidelity-handoff demo-passes-live required-crew\n";
     const GREEN_RESULT: &str = "vajra-closeout-result: 1\nsession: 20\nverdict: GREEN\npass: 22\nfail: 0\nwarn: 0\nfailed: \n";
 
+    // S196 (F127): format 2, as both close scripts now write it.
+    const GREEN_V2: &str = "vajra-closeout-result: 2\nsession: 196\nhead: 59719f8e0c1d2b3a4f5e6d7c8b9a0f1e2d3c4b5a\nclean: yes\nverdict: GREEN\npass: 30\nfail: 0\nwarn: 1\nfailed: \n";
+
+    #[test]
+    fn s196_a_format_2_result_is_read_like_format_1() {
+        let d = tempfile::tempdir().unwrap();
+        run_folder(d.path(), "20261014T120000Z", Some(GREEN_V2));
+        assert_eq!(
+            read_close_check(d.path(), "20261014T110000Z").check,
+            CloseCheck::Green {
+                pass: 30,
+                warn: 1,
+                stamp: "20261014T120000Z".into()
+            }
+        );
+        let red = RED_RESULT.replace(
+            "vajra-closeout-result: 1\nsession: 20\n",
+            "vajra-closeout-result: 2\nsession: 20\nhead: none\nclean: no\n",
+        );
+        run_folder(d.path(), "20261014T130000Z", Some(&red));
+        assert!(matches!(
+            read_close_check(d.path(), "20261014T110000Z").check,
+            CloseCheck::Red { fail: 5, .. }
+        ));
+    }
+
+    /// The push belt's own reader (`read_result` in .githooks/pre-push), run by bash on one file:
+    /// true when it reads the file as a well-formed format-2 result.
+    fn hook_reads(file: &Path) -> bool {
+        let hook = Path::new(env!("CARGO_MANIFEST_DIR")).join(".githooks/pre-push");
+        let script = format!(
+            "eval \"$(sed -n '/^read_result() {{/,/^}}/p' '{}')\"; read_result \"$1\"",
+            hook.display()
+        );
+        Command::new("bash")
+            .args(["-c", &script, "_"])
+            .arg(file)
+            .status()
+            .expect("bash runs")
+            .success()
+    }
+
+    #[test]
+    fn s196_the_push_belt_and_the_exit_box_agree_on_every_format_2_result() {
+        // Design-advisor rec 5: two readers of one file must not drift. Format 1 is the exit box's
+        // alone (it has no head, so the belt never matches it) and is left out.
+        let red = RED_RESULT.replace(
+            "vajra-closeout-result: 1\nsession: 20\n",
+            "vajra-closeout-result: 2\nsession: 20\nhead: none\nclean: no\n",
+        );
+        let cases = [
+            GREEN_V2.to_string(),
+            red.clone(),
+            format!("{GREEN_V2}extra: line\n"),
+            GREEN_V2.replace("fail: 0", "fail: 1"),
+            red.replace("fail: 5", "fail: 4"),
+            GREEN_V2.replace("head: ", "head: 12"),
+            GREEN_V2.replace("head: 59719f8e", "head: 59719F8E"),
+            GREEN_V2.replace("clean: yes", "clean: maybe"),
+            GREEN_V2.replace("clean: yes\n", ""),
+            GREEN_V2.replace("verdict: GREEN", "verdict: PASSED"),
+            GREEN_V2.replace("pass: 30", "pass: lots"),
+            GREEN_V2.replace("vajra-closeout-result: 2", "vajra-closeout-result: 3"),
+            GREEN_V2.replace("pass: 30", "pass: +30"),
+            GREEN_V2.replace('\n', "\r\n"),
+            String::new(),
+        ];
+        let mut readable = 0;
+        for (i, text) in cases.iter().enumerate() {
+            let d = tempfile::tempdir().unwrap();
+            run_folder(d.path(), "20261014T120000Z", Some(text));
+            let binary = !matches!(
+                read_close_check(d.path(), "20261014T110000Z").check,
+                CloseCheck::Unreadable { .. }
+            );
+            let hook = hook_reads(&d.path().join("20261014T120000Z/result"));
+            assert_eq!(
+                binary, hook,
+                "case {i}: exit box {binary}, push belt {hook}:\n{text}"
+            );
+            readable += usize::from(binary);
+        }
+        assert_eq!(readable, 2, "exactly the GREEN and the RED read");
+    }
+
     fn run_folder(dir: &Path, stamp: &str, result: Option<&str>) {
         fs::create_dir_all(dir.join(stamp)).unwrap();
         if let Some(r) = result {
@@ -785,7 +899,10 @@ mod tests {
             GREEN_RESULT.replace("verdict: GREEN", "verdict: PASSED"),
             GREEN_RESULT.replace("fail: 0\n", ""),
             GREEN_RESULT.replace("pass: 22", "pass: lots"),
-            GREEN_RESULT.replace("vajra-closeout-result: 1", "vajra-closeout-result: 2"),
+            GREEN_RESULT.replace("vajra-closeout-result: 1", "vajra-closeout-result: 3"),
+            GREEN_V2.replace("head: ", "head: 12"),
+            GREEN_V2.replace("clean: yes", "clean: maybe"),
+            GREEN_V2.replace("clean: yes\n", ""),
             GREEN_RESULT.replace("fail: 0", "fail: 1"),
             RED_RESULT.replace("fail: 5", "fail: 4"),
             format!("{GREEN_RESULT}extra: line\n"),
