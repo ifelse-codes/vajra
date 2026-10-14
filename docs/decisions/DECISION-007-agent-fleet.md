@@ -1817,8 +1817,11 @@ hole, S122); blocking on WARN; parsing through the `vajra` binary (version skew 
 Named, not closed: the agent can write a GREEN result file, or type `git push --no-verify` where the publish guard is
 off (Vajra's own repo) — bar-raising, not tamper-proof; untracked files are not counted in `clean:`, so a close that
 read an uncommitted file can still push; a waiver typed inline is a GREEN; the hook runs only where
-`core.hooksPath` is `.githooks`; a non-session branch name skips it (N17 → S197); a session branch the founder
-pushes RED is on the remote and a PR can then be opened from it.
+`core.hooksPath` is `.githooks`; a non-session branch name skips it (N17 → S197) — so does a push to
+`HEAD:refs/heads/<any other name>` or a bare `session-NN` with no trailing `-`; a session branch the founder
+pushes RED is on the remote and a PR can then be opened from it; "agent" means one of `CLAUDECODE`,
+`CLAUDE_CODE_ENTRYPOINT`, `CURSOR_TRACE_ID`, `VAJRA_AGENT` is set — an agent that unsets them (`env -u`) or a tool
+that sets none is treated as a person and only noted (the main/master rule has the same limit) (S196 review rec 3).
 
 Evidence: `tests/push_belt.rs` (9 real `git push` runs from a real scaffold to a bare remote, incl. the scaffold's
 own close script writing the result the hook reads); `tests/commit_belt.rs`; `scripts/verify-session-196.sh`.

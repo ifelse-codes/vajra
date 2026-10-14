@@ -30,7 +30,7 @@
 | Close verdict | RED 17/5 | GREEN 21/0, 2 WARN | close folders |
 | Agent's last claim | "✅ SESSION 20 — FULLY CLOSED … Independent review (ACCEPT)" | "Session 21 is fully closed … Nothing is left half-done." | S194 F121 · S21 transcript 03:17:30Z / 03:24:55Z |
 | Claim vs close | false | true for S21 itself; "nothing half-done" is not (F126) | — |
-| Cost | $1.49 | $19.21 | below |
+| Cost | $1.49 | $19.21 | S194 summary AC3 (cost-state 1.4903) · the receipt table below |
 
 **Answer:** on Opus every instruction-only step ran and the end claim matched the close. On Haiku none ran. The
 close half of "can the founder be confident?" is **yes on Opus, no on Haiku** — and on either model a RED close
@@ -52,9 +52,12 @@ A fresh launch (not a resume, fork or `/clear`).
 |---|---|---|---|
 | **F126** | After the close and the review stamp, the founder changed S22's direction ("no vendor research … lets build something real"). The agent kept the old S22 prompt in git ("changing it now would undo today's sign-off"), saved the new plan only in Claude Code's private memory, then told him "Everything is saved … Nothing is left half-done." The stamp binds the next prompt, so a founder change after the review has no place in the project. | S21 transcript 02:46:18Z, 02:51:54Z, 03:24:55Z · `~/.claude/projects/-Users-suman-playground-rudra/memory/s22-council-pipeline-plan.md` · `rudra/prompts/22-task-council-model-adr.md` still "model, vendor and API terms" | **Park** (2026-10-14) → ROADMAP known bugs, S200 checklist |
 | **F127** | A RED close stops nothing. rudra S20's close was RED (5 fail) and its branch was still pushed, a PR opened and merged on GitHub, and S21 started on top with no word from Vajra. The only reader of the close result is the exit box, which shows after the merge (F121 row above). | `rudra/.ai/verify/closeout/20261012T035332Z/result` (RED) · rudra PR #24 merged · no code outside `src/cli/launch.rs` reads the result | **Fix** (2026-10-14: "no pr creation till it is not green, till all review is pass from agents") — session branches only; the agent is stopped, the founder's own push is warned, not stopped |
-| WARN | 14 `obeyed:` claims in rudra S21 unchecked by an independent role | close log `obeyed-judgments.log` | Shown as WARN; F127 lets a GREEN-with-WARN push (WARN is not a fail) |
-| WARN | rudra has no `lint_command:` | close log `project-lint-clean.log` | rudra's own setting — not a Vajra change |
 | **F116** (seen again) | rudra's `.ai/approvals/session-21.json` still untracked after the merge | `git status` in rudra | Parked (S193) → S197 |
+
+**Close-log notes, not findings** (the founder was asked once and did not call them; agent's notes, S196 review
+rec 5): rudra S21's 2 WARN — 14 `obeyed:` claims never checked by an independent role (`obeyed-judgments.log`;
+rudra's tech-lead did not require a release-coordinator) and no `lint_command:` (`project-lint-clean.log`, rudra's
+own setting). F127 lets a GREEN with WARN push: a WARN is not a fail.
 
 ## F127 — the fix (DECISION-007 + ADR-0004 S196 addenda)
 
@@ -68,9 +71,9 @@ session NN. GREEN with WARN passes. A person gets a `Note:` and the push goes on
 | The close result says which commit it checked (format 2: `head:`, `clean:`, taken at start and end), in both close scripts | `5c2f840` | `tests/push_belt.rs` last case: the scaffold's own close script writes `head:` = HEAD, `clean: yes` |
 | The exit box reads formats 1 and 2 | `5c2f840` | `s196_a_format_2_result_is_read_like_format_1`; verify-196 row 9 (59719f8's binary: "result unreadable") |
 | `.githooks/pre-push`: refuses RED / older / unclean / other-session / missing / old-format, each with its reason and the way through; fails closed | `08024f3` | `tests/push_belt.rs` 9 real `git push` runs to a bare remote; verify-196 rows 1–8 |
-| The two readers cannot drift | `c1aa1d6` | `s196_the_push_belt_and_the_exit_box_agree_on_every_format_2_result` (13 cases) |
+| The two readers agree on the 15 format-2 cases tested (incl. `+30` and CRLF, review rec 4) | `c1aa1d6` + the rec-4 commit | `s196_the_push_belt_and_the_exit_box_agree_on_every_format_2_result` (13 cases) |
 | Records + the close-step text | `604cd29`, `dba3721` | DECISION-007 / ADR-0004 S196 addenda; Releaser step: "run it LAST … until GREEN" |
-| verify + demo | `c6545ee`, `f300f4b` | verify-196 **10/10** (each fix row red at 59719f8) · demo 5/5 · `cargo test` **732 / 0** (before the cross-reader test; re-run below) |
+| verify + demo | `c6545ee`, `f300f4b` | verify-196 **10/10** (each fix row red at 59719f8) · demo 5/5 · `cargo test` **734 / 0** at the tip after the review fixes (732 / 0 before them) |
 
 **What it does not do (named, not closed):** an agent set on it could write a fake GREEN result file, or type
 `git push --no-verify` (bar-raising, not a lock) · untracked files are not counted in `clean:` · a waiver typed
@@ -81,7 +84,7 @@ and a PR can then be opened from it · rudra gets it only after `vajra init --sy
 
 | Item | Status | Evidence |
 |---|---|---|
-| D1 / AC1 every finding has evidence and a founder call | SHIPPED | Findings table above (F126, F127, 2 WARN, F116 sighting), written before code (`64695d3`) |
+| D1 / AC1 every finding has evidence and a founder call | SHIPPED | Findings table above (F126, F127, F116 sighting), written before code (`64695d3`); the 2 WARN are agent's notes, not findings |
 | D2 / AC2 F121 + F123 live | PARTIAL | F121: the result file and the line the binary prints for it are recorded, and the timing (after the merge) — **the founder's on-screen line was not pasted, so it is not confirmed word for word**. F123: not exercised (fast-forward only, reflog) |
 | D2 / AC3 Opus-vs-Haiku table, every cell sourced | SHIPPED | AC3 table above |
 | D3 / AC4 every fix has a real-run check, red at the start commit | SHIPPED | verify-196 10/10, each F127 row red at 59719f8; no source greps |

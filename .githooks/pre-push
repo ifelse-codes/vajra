@@ -14,8 +14,10 @@
 # the tracked files clean, for session NN. GREEN with WARN passes — a WARN is not a fail. The agent
 # is stopped; a person gets a note and the push goes on (founder's call, the S171 split). A branch
 # not named `session-NN-…` is not checked — ungoverned on purpose (founder, 2026-09-21).
-# HONEST LIMIT: the result is a file the agent could write, and `git push --no-verify` skips every
-# hook — bar-raising, not tamper-proof (DECISION-007 S196 addendum).
+# HONEST LIMIT: the result is a file the agent could write, `git push --no-verify` skips every hook,
+# and "agent" means one of the four markers below is set — an agent that unsets them (`env -u
+# CLAUDECODE`) or a tool that sets none is treated as a person and only noted. Bar-raising, not
+# tamper-proof (DECISION-007 S196 addendum).
 
 set -euo pipefail
 
