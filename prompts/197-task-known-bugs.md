@@ -113,3 +113,37 @@ design-significant: yes
 - `+` a DECISION-011 S197 addendum
 
 ## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (required — F125 + N17, before any guard code).
+Required at close: `fidelity-reviewer` (the one cold review), `release-coordinator` (the one judge of every
+`obeyed:` answer).
+
+researcher: skipped — the tech-lead deferred it on budget: every bug's evidence was already in ROADMAP's known-bug list and the S195 ground truth (~0.2M; crew ~1.9M → ~2.1M).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the founder picked this list and AC1–AC6 give one real-run check per bug (~0.15M would restate it).
+plan-advisor: skipped — the tech-lead deferred it on budget: the order was set by the prompt and the plan is short fixes, each with `covers: N` (~0.15M).
+implementation-advisor: skipped — the tech-lead deferred it on budget: the design-advisor named files and test rows down to line numbers; tech-lead recs 4–6 name the traps (~0.4M).
+qa-specialist: skipped — the tech-lead deferred it on budget: AC6 makes every verify row a real run, red at eceb6d5, and the fidelity-reviewer reads verify-197 at close (~0.4M).
+demo-producer: skipped — the tech-lead deferred it on budget: bug fixes shown in verify output and the summary; the demo is the template's seven sections with live hook runs (~0.2M).
+
+**tech-lead** (`.ai/handoffs/session-197-tech-lead.md`):
+- tech-lead rec 1 — obeyed: efd7ad2 (the design-advisor ran before any F125 code; the DECISION-011 S197 addendum committed before the record command 140542b and the guard 09b7c39)
+- tech-lead rec 2 — obeyed: 140542b (`vajra approve NN --close` writes a record in `.ai/approvals/`, read with the same void rules as an approval; the S188 before/after check catches a forged one with no new code — verify row 5)
+- tech-lead rec 3 — obeyed: 8f32889 (the founder widened it: projects had no copy, so the guard now ships via `vajra init` / `--sync-fleet` and is wired in settings; Vajra's two hooks call the same file, 09b7c39; AC1 proven in temp `vajra init` projects, 9c494c7)
+- tech-lead rec 4 — obeyed: 9c494c7 (11 rows, each a real run of the built binary or the scaffolded hook, each red at eceb6d5 for its own reason; AC5 has both halves: exit 0 here, an unmarked and a reason-less grep still fail)
+- tech-lead rec 5 — obeyed: 3b50dc9 (`.ai/approvals/session-197.json` committed; `--steps` named it before that commit and not after — the live case)
+- tech-lead rec 6 — obeyed: 048805a (full `cargo test` 735 passed / 0 failed at the tip, recorded in the summary; the order stamp → close → push is followed at close, and the summary records whether the belt let the GREEN push through)
+- tech-lead rec 7 — obeyed: 2bd229e (F118 moved out in writing — the founder's call when F125 widened; ROADMAP keeps it with a destination, b3695d4)
+- tech-lead rec 8 — obeyed: 2bd229e (the design-advisor recorded from its handback text before the build; one fidelity-reviewer and one release-coordinator after this section; `## Delta` above `## Advice`; the skip lines above carry the money reasons)
+
+**design-advisor** (`.ai/handoffs/session-197-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 09b7c39 (one `scripts/hook-ground-truth-guard.sh` holding the moved checks, called by Vajra's two hooks after the approvals guard) and 8f32889 (shipped as `.ai/hooks/hook-ground-truth-guard.sh`, a second entry in the PreToolUse `Bash|Edit|Write|MultiEdit|NotebookEdit` group, no Post group)
+- design-advisor rec 2 — obeyed: 140542b (`session-NN-close.json`, method `close-command`, same refusals as `vajra approve`, un-lists only its own name; a unit test pins that `vajra approve MM` never un-lists it)
+- design-advisor rec 3 — obeyed: 140542b (`vajra next --check-close-record NN`, exit 0/1, one reader of the void) and 09b7c39 (no `vajra`, an error, or an older binary that ignores the flag → closed: the hook needs the exact sign-off line, not exit 0 alone — verify row 4)
+- design-advisor rec 4 — refused: its "session-start says so when the record counts" half — the boot hook does not call the binary, and the guard's own block message already says why it is closed and how it opens; the rest is built: the `-closeout` / `-enforcement` exemptions removed from all four hooks (09b7c39, 0c41f5f), AGENTS.md's section text and Hard Rule reworded (8f32889), and the reminder names `vajra approve NN --close` (0c41f5f).
+- design-advisor rec 5 — obeyed: 09b7c39 (`VAJRA_GT_WAIVER` no longer read by any guard; named retired in the addendum, efd7ad2)
+- design-advisor rec 6 — obeyed: 09b7c39 (no `session-NN` in the branch → HEAD's committed `.ai/SESSION` + 1, else the working-tree file, else the guard is on — verify row 6 edits the working-tree file to 9 and is still guarded as session 5)
+- design-advisor rec 7 — obeyed: efd7ad2 (the wrong-number branch named in the addendum's Limit list, not fixed)
+- design-advisor rec 8 — obeyed: 09b7c39 (the allowlist moved unchanged; verify row 3: `src/` blocked, the report and `.ai/` written, 9c494c7)
+- design-advisor rec 9 — obeyed: 09b7c39 (no close-gate row; L1 warns, L2/L3 block; `VAJRA_GUARD_MATURITY` read; the jq preflight kept; only the close record opens it — not `--allow-all` or `VAJRA_APPROVE`)
+- design-advisor rec 10 — deferred: .ai/ROADMAP.md
+- design-advisor rec 11 — obeyed: 9c494c7 (every listed case is a verify row in a temp `vajra init` project, red at eceb6d5)
+- design-advisor rec 12 — obeyed: 336786d (F119 reuses `architect::design_gate`), 946a967 (F116 follows the S187 step) and 34cebf4 (N10: no record covers check 6 yet — said in the script's own comment)
