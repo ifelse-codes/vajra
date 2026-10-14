@@ -769,6 +769,63 @@ mod tests {
         ));
     }
 
+    /// The push belt's own reader (`read_result` in .githooks/pre-push), run by bash on one file:
+    /// true when it reads the file as a well-formed format-2 result.
+    fn hook_reads(file: &Path) -> bool {
+        let hook = Path::new(env!("CARGO_MANIFEST_DIR")).join(".githooks/pre-push");
+        let script = format!(
+            "eval \"$(sed -n '/^read_result() {{/,/^}}/p' '{}')\"; read_result \"$1\"",
+            hook.display()
+        );
+        Command::new("bash")
+            .args(["-c", &script, "_"])
+            .arg(file)
+            .status()
+            .expect("bash runs")
+            .success()
+    }
+
+    #[test]
+    fn s196_the_push_belt_and_the_exit_box_agree_on_every_format_2_result() {
+        // Design-advisor rec 5: two readers of one file must not drift. Format 1 is the exit box's
+        // alone (it has no head, so the belt never matches it) and is left out.
+        let red = RED_RESULT.replace(
+            "vajra-closeout-result: 1\nsession: 20\n",
+            "vajra-closeout-result: 2\nsession: 20\nhead: none\nclean: no\n",
+        );
+        let cases = [
+            GREEN_V2.to_string(),
+            red.clone(),
+            format!("{GREEN_V2}extra: line\n"),
+            GREEN_V2.replace("fail: 0", "fail: 1"),
+            red.replace("fail: 5", "fail: 4"),
+            GREEN_V2.replace("head: ", "head: 12"),
+            GREEN_V2.replace("head: 59719f8e", "head: 59719F8E"),
+            GREEN_V2.replace("clean: yes", "clean: maybe"),
+            GREEN_V2.replace("clean: yes\n", ""),
+            GREEN_V2.replace("verdict: GREEN", "verdict: PASSED"),
+            GREEN_V2.replace("pass: 30", "pass: lots"),
+            GREEN_V2.replace("vajra-closeout-result: 2", "vajra-closeout-result: 3"),
+            String::new(),
+        ];
+        let mut readable = 0;
+        for (i, text) in cases.iter().enumerate() {
+            let d = tempfile::tempdir().unwrap();
+            run_folder(d.path(), "20261014T120000Z", Some(text));
+            let binary = !matches!(
+                read_close_check(d.path(), "20261014T110000Z").check,
+                CloseCheck::Unreadable { .. }
+            );
+            let hook = hook_reads(&d.path().join("20261014T120000Z/result"));
+            assert_eq!(
+                binary, hook,
+                "case {i}: exit box {binary}, push belt {hook}:\n{text}"
+            );
+            readable += usize::from(binary);
+        }
+        assert_eq!(readable, 2, "exactly the GREEN and the RED read");
+    }
+
     fn run_folder(dir: &Path, stamp: &str, result: Option<&str>) {
         fs::create_dir_all(dir.join(stamp)).unwrap();
         if let Some(r) = result {
