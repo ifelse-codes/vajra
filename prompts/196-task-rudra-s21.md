@@ -109,9 +109,49 @@ design-significant: yes
    `cargo test` before push; no commit touches rudra.
    covers: 4, 5
 
+## Execution
+- step 1 — done: 64695d3
+- step 2 — done: 08024f3
+- step 3 — done: 604cd29
+- step 4 — done: c6545ee
+
 ## Delta
 - `+` rudra S21 findings (F126…) with the founder's calls
 - `+` F121 and F123 live results; the Opus-vs-Haiku comparison
 - `~` whatever they show is wrong
 
 ## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `design-advisor` (narrow, after the founder's yes to F127 —
+tech-lead rec 6). Required at close: `fidelity-reviewer` (the one cold review), `release-coordinator` (the one judge
+of every `obeyed:` answer).
+
+researcher: skipped — the tech-lead deferred it on budget: AC3's table comes from rudra S21's own transcript and close logs plus S194's summary, read in this session (~0.4M saved; crew ~1.6M → ~2.0M otherwise, on top of a $19 Opus run).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the founder picked this session and AC1–AC5 copy S194's accepted shape (~0.3M would restate a prompt he chose).
+plan-advisor: skipped — the tech-lead deferred it on budget: the Plan covers AC1–AC5 with `covers: N` and was written after the findings existed (~0.3M).
+implementation-advisor: skipped — the tech-lead deferred it on budget: one fix, designed by the design-advisor down to files and test rows; recs 5 and 7 name the traps (~0.6M).
+qa-specialist: skipped — the tech-lead deferred it on budget: AC4 makes every row a real run, red at the start commit, and the fidelity-reviewer re-runs verify-196 at both ends (~0.6M).
+demo-producer: skipped — the tech-lead deferred it on budget: the founder watched his own rudra run; the demo is the template's seven sections with live pushes (~0.3M).
+
+**tech-lead** (`.ai/handoffs/session-196-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 64695d3 (F126/F127 with evidence and the founder's calls, written before any code; rudra S21's close log read WAIVED / N/A / WARN first: 0 / 1 / 2, then GREEN 21/0; the F116 sighting added to its existing entry, no new number, not fixed)
+- tech-lead rec 2 — obeyed: 64695d3 (F121: the result file's contents beside the line the binary prints for it, labelled as not pasted by the founder; the exit box could only show after PR #25's merge — written up as the "only at exit" limit, named, not closed; F123 "not exercised" from rudra's reflog: fast-forward only)
+- tech-lead rec 3 — obeyed: 64695d3 (the Opus-vs-Haiku table from counts: Agent calls by role, 18 `vajra next` calls, every handoff's `verified: toolu_…`, the agent's last message quoted beside the close verdict; the Haiku column from S194's summary)
+- tech-lead rec 4 — obeyed: 64695d3 (cost-state 19.2086772 = `~/.claude.json` lastCost 19.2086772, same session id, a fresh launch; vajra's top line was not pasted by the founder, so it is recorded as missing, not guessed)
+- tech-lead rec 5 — obeyed: c6545ee (every verify row runs the built binary in a temp `vajra init` project with a real `git push` to a bare remote, and each fix row goes red at 59719f8 for its own reason; rudra is never the fixture)
+- tech-lead rec 6 — obeyed: 6e481e9 (design-significant: yes once F127 was approved; the design-advisor dispatched once with a narrow brief; DECISION-007 and ADR-0004 cited) and 604cd29 (an S196 addendum on each)
+- tech-lead rec 7 — obeyed: 01c0f9e (the full `cargo test` ran before any push: 732 passed / 0 failed, recorded in the summary; not added to the close)
+- tech-lead rec 8 — obeyed: 64695d3 (not triggered — the founder said yes to F127; F121/F123/AC3 are still RECORD lines in verify-196, c6545ee, not counted as passes)
+- tech-lead rec 9 — obeyed: 6e481e9 (the design-advisor only after rec 6 triggered, recorded from its handback text) and 01c0f9e (the skip lines above carry the money reasons; one fidelity-reviewer, then one release-coordinator, after this section, with `## Delta` above `## Advice`)
+
+**design-advisor** (`.ai/handoffs/session-196-design-advisor.md`):
+- design-advisor rec 1 — obeyed: 6e481e9 (`design-significant: yes` and a real `## Design` from its draft, before the fix landed)
+- design-advisor rec 2 — obeyed: 08024f3 (shape A: the hook reads the result file; the re-run inside the push rejected, its reasons in the Design and the DECISION-007 addendum)
+- design-advisor rec 3 — obeyed: 5c2f840 (format 2 in both close scripts, `head:` + `clean:` after `session:`, taken at the start and the end; `parse_close_result` reads 1 and 2; the "v2 unreadable" test now uses v3, plus bad head / clean cases)
+- design-advisor rec 4 — refused: its "human and agent alike" half — the founder chose "Only the agent" on 2026-10-14 (a person gets a `Note:` and the push goes on, recorded in the DECISION-007 S196 addendum, 604cd29). The rest of rec 4 is built in 08024f3: session branches only, deletes and tags skipped, the main/master rule unchanged, the newest result for the exact sha, base-10 session match from the branch name, GREEN with WARN passes and prints the count.
+- design-advisor rec 5 — obeyed: 08024f3 (the hook parses in bash 3.2, v2 only, fixed order, fail closed — an unexpected stop is a refusal) and c1aa1d6 (one test feeds 13 format-2 cases to the exit box and to the hook's own `read_result` and requires them to agree)
+- design-advisor rec 6 — obeyed: 08024f3 (each refusal names its reason and the way through: no result, an older commit, RED with names, `clean: no`, another session, an old format → `--sync-fleet`; the agent's says "A pull request opens only after the close is GREEN" and "stop and tell the founder"; with the founder's agent-only call, a person gets the reason as a note instead of the `--no-verify` line)
+- design-advisor rec 7 — obeyed: 08024f3 (no environment variable, no approval record; the founder's own push is never stopped) and 604cd29 (DECISION-011 cited; the inline-waiver GREEN disclosed)
+- design-advisor rec 8 — obeyed: 08024f3 (`tests/push_belt.rs`: real scaffold, bare remote, real `git push` — RED, GREEN+WARN, older commit, later RED wins, `clean: no`, other session, none, format 1, the founder's push, `quick-fix`, a delete, the scaffold's own close script) and c6545ee (verify-196 rows, red at 59719f8)
+- design-advisor rec 9 — obeyed: dba3721 (the Releaser step: "run it LAST, with everything committed, until it says GREEN — the push … is refused otherwise"; the `pre-push` row in `.githooks/README.md`)
+- design-advisor rec 10 — obeyed: 604cd29 (DECISION-007 S196 addendum, primary, and ADR-0004 S196 addendum, each stating its deviations and the named-not-closed list; every commit ≤ 3 files)
+
