@@ -463,6 +463,17 @@ fn read_close_check(closeout_dir: &Path, since: &str) -> CloseReport {
 /// The result file, exactly as verify-closeout.sh writes it — anything else is unreadable, and
 /// unreadable is never GREEN.
 fn parse_close_result(text: &str, stamp: String) -> Option<CloseCheck> {
+    // S196 review rec 4: as strict as the push belt's reader — `lines()` would hide a `\r`, and
+    // `u32::from_str` would take `+5`.
+    if text.contains('\r') {
+        return None;
+    }
+    let num = |v: String| -> Option<u32> {
+        if v.is_empty() || !v.bytes().all(|b| b.is_ascii_digit()) {
+            return None;
+        }
+        v.parse().ok()
+    };
     let mut lines = text.lines();
     // `key: value`, or a bare `key:` for an empty value (`failed:` on a GREEN run).
     let mut field = |key: &str| {
@@ -496,9 +507,9 @@ fn parse_close_result(text: &str, stamp: String) -> Option<CloseCheck> {
         }
     }
     let verdict = field("verdict")?;
-    let pass: u32 = field("pass")?.parse().ok()?;
-    let fail: u32 = field("fail")?.parse().ok()?;
-    let warn: u32 = field("warn")?.parse().ok()?;
+    let pass: u32 = num(field("pass")?)?;
+    let fail: u32 = num(field("fail")?)?;
+    let warn: u32 = num(field("warn")?)?;
     let failed: Vec<String> = field("failed")?
         .split_whitespace()
         .map(str::to_string)
@@ -806,6 +817,8 @@ mod tests {
             GREEN_V2.replace("verdict: GREEN", "verdict: PASSED"),
             GREEN_V2.replace("pass: 30", "pass: lots"),
             GREEN_V2.replace("vajra-closeout-result: 2", "vajra-closeout-result: 3"),
+            GREEN_V2.replace("pass: 30", "pass: +30"),
+            GREEN_V2.replace('\n', "\r\n"),
             String::new(),
         ];
         let mut readable = 0;

@@ -339,3 +339,46 @@ fn the_scaffolds_own_close_check_writes_what_the_push_belt_reads() {
     assert!(!ok && !arrived(&remote, BRANCH), "{out}");
     assert!(out.contains("the close check is RED"), "{out}");
 }
+
+#[test]
+fn the_scaffolds_own_close_check_says_unclean_when_a_tracked_file_is_changed() {
+    // Review rec 2 (S196's fakest green): the real writer, not a typed `clean: no`. A tracked file is
+    // edited and left uncommitted; the close script must say so, and the push must name it.
+    let (_t, root, remote) = project();
+    let state = root.join(".ai/STATE.md");
+    let mut s = fs::read_to_string(&state).unwrap();
+    s.push_str("\nan edit nobody committed\n");
+    fs::write(&state, s).unwrap();
+    let bin = Path::new(env!("CARGO_BIN_EXE_vajra")).parent().unwrap();
+    let path = format!(
+        "{}:{}",
+        bin.display(),
+        std::env::var("PATH").unwrap_or_default()
+    );
+    let mut cmd = Command::new("bash");
+    cmd.args(["scripts/verify-closeout.sh", "1"])
+        .current_dir(&root)
+        .env("PATH", path)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null");
+    for v in BELT_VARS {
+        cmd.env_remove(v);
+    }
+    cmd.output().unwrap();
+    let closeout = root.join(".ai/verify/closeout");
+    let stamp = fs::read_dir(&closeout)
+        .unwrap()
+        .filter_map(|e| e.ok())
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .filter(|n| n.ends_with('Z'))
+        .max()
+        .expect("the close made its folder");
+    let written = fs::read_to_string(closeout.join(&stamp).join("result")).unwrap();
+    assert_eq!(written.lines().nth(3), Some("clean: no"), "{written}");
+
+    let (ok, out) = push(&root, BRANCH, &[AGENT]);
+    assert!(!ok && !arrived(&remote, BRANCH), "{out}");
+    assert!(
+        out.contains("uncommitted changes to tracked files"),
+        "{out}"
+    );
+}
