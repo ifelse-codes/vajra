@@ -419,7 +419,8 @@ switched nothing off; there was nothing to switch.
   it into a warning, a moved `ground_truth_next_session` makes the session not a ground truth, and the working-tree
   `.ai/SESSION` is used when HEAD has none. A missing `lib-ground-truth.sh` falls back to every 5th, ignoring an
   override key. If the founder commits an advance during ground truth N, an unnumbered branch reads N+1.
-- Bash can still write any file (S191 §1). `.ai/hooks/` and `scripts/` are on the Write allowlist, so the agent can
+- Bash can still write any file (S191 §1). `.ai/hooks/` (and, under `scripts/`, the verify/demo scripts) are on the
+  Write allowlist, so the agent can
   edit the guard itself, or put another `vajra` first on PATH.
 - A forged record written between two watched tool calls (a background job) looks like the founder's (the S188
   limit).

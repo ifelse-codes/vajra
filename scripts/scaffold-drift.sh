@@ -290,7 +290,8 @@ echo ""
 # ---- 6. hollow-grep scan in the last 10 verify scripts --------------------------------
 # A "hollow" source-proximity grep is a line that runs `grep` directly against a src/*.rs
 # file (not piped from echo), which proves only that a string exists in source — not that
-# the code behaves as intended (S163 finding; closed retroactively for 154/157/158).
+# the code behaves as intended (S163 finding; closed retroactively for 154/157/158). No design record
+# covers check 6 yet — the S163 finding is its only source.
 # Flagging new occurrences here lets the CI catch them early.
 # S197 (N10): a line that reads source on purpose — a display count after a real diff, a fixture's
 # text — opts out with `# source-claim: <why>` ON THE LINE ITSELF, with a non-empty why. The check

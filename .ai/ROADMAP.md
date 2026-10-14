@@ -780,7 +780,7 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   commit it with the session" (a reminder, not a block).
   **Seen again in rudra S21** (S196): `.ai/approvals/session-21.json` still untracked after PR #25's merge.
 - **F118 — STILL OPEN. Moved out of S197 by the founder (2026-10-14) to make room for F125's wider fix. Carry →
-  backlog — reason: the founder picks when; on the S200 ground-truth checklist. Seen again at S197's own advance
+  S198 (founder pick at S197's close, `prompts/198-task-known-bug-leftovers.md`). Seen again at S197's own advance
   (`aad6381`).** **`vajra next --advance` leaves the old session's text under the new number.** S193's advance wrote
   "**Number:** 193 — COMPLETE on `session-192-…`" + S192's whole story into SESSION-BOOT's `## Current Session`, and
   S192 dropped out of `## Prior Session` (fixed by hand, `beae153`). S191 made the swap touch only the number token;
