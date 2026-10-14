@@ -56,6 +56,55 @@ A fresh launch (not a resume, fork or `/clear`).
 | WARN | rudra has no `lint_command:` | close log `project-lint-clean.log` | rudra's own setting — not a Vajra change |
 | **F116** (seen again) | rudra's `.ai/approvals/session-21.json` still untracked after the merge | `git status` in rudra | Parked (S193) → S197 |
 
-## F127 — the fix
+## F127 — the fix (DECISION-007 + ADR-0004 S196 addenda)
 
-<filled in as it lands>
+**The rule.** A pull request needs a pushed branch, so `.githooks/pre-push` stops an **agent's** push of a
+`session-NN-…` branch unless the close check said GREEN for **that exact commit**, with tracked files clean, for
+session NN. GREEN with WARN passes. A person gets a `Note:` and the push goes on (founder's call). A branch not named
+`session-NN-…` is not checked (founder, 2026-09-21, kept). No new override.
+
+| Part | Commit | Proof |
+|---|---|---|
+| The close result says which commit it checked (format 2: `head:`, `clean:`, taken at start and end), in both close scripts | `5c2f840` | `tests/push_belt.rs` last case: the scaffold's own close script writes `head:` = HEAD, `clean: yes` |
+| The exit box reads formats 1 and 2 | `5c2f840` | `s196_a_format_2_result_is_read_like_format_1`; verify-196 row 9 (59719f8's binary: "result unreadable") |
+| `.githooks/pre-push`: refuses RED / older / unclean / other-session / missing / old-format, each with its reason and the way through; fails closed | `08024f3` | `tests/push_belt.rs` 9 real `git push` runs to a bare remote; verify-196 rows 1–8 |
+| The two readers cannot drift | `c1aa1d6` | `s196_the_push_belt_and_the_exit_box_agree_on_every_format_2_result` (13 cases) |
+| Records + the close-step text | `604cd29`, `dba3721` | DECISION-007 / ADR-0004 S196 addenda; Releaser step: "run it LAST … until GREEN" |
+| verify + demo | `c6545ee`, `f300f4b` | verify-196 **10/10** (each fix row red at 59719f8) · demo 5/5 · `cargo test` **732 / 0** (before the cross-reader test; re-run below) |
+
+**What it does not do (named, not closed):** an agent set on it could write a fake GREEN result file, or type
+`git push --no-verify` (bar-raising, not a lock) · untracked files are not counted in `clean:` · a waiver typed
+inline is a GREEN · a non-session branch name skips it (N17 → S197) · your own RED push goes through with a note —
+and a PR can then be opened from it · rudra gets it only after `vajra init --sync-fleet`.
+
+## Fidelity map
+
+| Item | Status | Evidence |
+|---|---|---|
+| D1 / AC1 every finding has evidence and a founder call | SHIPPED | Findings table above (F126, F127, 2 WARN, F116 sighting), written before code (`64695d3`) |
+| D2 / AC2 F121 + F123 live | PARTIAL | F121: the result file and the line the binary prints for it are recorded, and the timing (after the merge) — **the founder's on-screen line was not pasted, so it is not confirmed word for word**. F123: not exercised (fast-forward only, reflog) |
+| D2 / AC3 Opus-vs-Haiku table, every cell sourced | SHIPPED | AC3 table above |
+| D3 / AC4 every fix has a real-run check, red at the start commit | SHIPPED | verify-196 10/10, each F127 row red at 59719f8; no source greps |
+| AC5 no Vajra commit touches rudra; full `cargo test` before push | SHIPPED | `git diff --stat main` lists only Vajra files; rudra read, never written |
+| The receipt (watch item) | PARTIAL | cost-state = lastCost = $19.2087; **vajra's top line not pasted**, so "nothing else in the box" is not confirmed |
+
+**Fakest green:** the push belt trusts a file. A GREEN result the agent writes by hand passes, and `--no-verify`
+skips the hook. It stops an agent that follows the steps; it does not stop one that sets out to cheat.
+
+## Process
+
+Crew: tech-lead (mandatory, first) → design-advisor (narrow, once the founder said yes to F127 — tech-lead rec 6)
+→ fidelity-reviewer (one cold pass) → release-coordinator (the one judge of every `obeyed:` answer). Each handoff
+recorded from the handback text. Founder calls taken with one question set (branches · his own push · F126).
+
+## Next — 3 ranked options
+
+1. **(Recommended) S197 — the known-bug session.** F125 first (the `-closeout` opening needs `vajra approve NN
+   --close`; N17 with it), then F116, F118, F119, N10. Why: each is a thing a user meets, and N17 is the one way
+   around the new push belt (a branch not named for a session). Risk: F125's design could grow — split F118 out.
+2. **rudra S22, synced — the push belt's first real run.** `vajra init --sync-fleet` in rudra, then a real session
+   to close: does the agent's push wait for GREEN? Why: F127 has only run in temp projects. Risk: S22 is a real
+   build (the AI research pipeline) — long and paid.
+3. **Design: Vajra runs the required reviewer itself (Haiku answer d),** plus the README "tested with" line in the
+   founder's words (c). Why: the root fix for "the agent graded itself" on a cheap model. Risk: design only; every
+   close then costs money.
