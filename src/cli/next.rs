@@ -67,6 +67,21 @@ pub fn run(args: &[String]) -> Result<()> {
     if let Some(i) = args.iter().position(|a| a == "--check-design") {
         return run_check_design(args.get(i + 1));
     }
+    // S197 (F125, DECISION-011 S197 addendum): the review-only guard asks this whether the founder
+    // signed off session NN's report (`vajra approve NN --close`). Exit 0 = it counts; 1 = it does not.
+    if let Some(i) = args.iter().position(|a| a == "--check-close-record") {
+        let session = parse_session(args.get(i + 1), "--check-close-record")?;
+        match crate::approval::close_record(&repo_root()?, session) {
+            Ok(()) => {
+                println!("the founder signed off session {session}'s report — the review-only guard is open");
+                return Ok(());
+            }
+            Err(why) => {
+                println!("{why}");
+                std::process::exit(1);
+            }
+        }
+    }
     // The Mandate gate (S133) rides `vajra next` — no 8th command. Deliberately NOT folded into
     // `--check-design`: that flag binds on the session being advanced INTO and asks whether the
     // prompt's `## Design` rationale is substantive; this one binds on the session being CLOSED
