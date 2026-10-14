@@ -82,3 +82,5 @@ Why: answered `refused:` with a reason: a commit cannot record its own close, an
 - /Users/suman/playground/vajra/src/cli/launch.rs (lines 465–476)
 - /Users/suman/playground/vajra/.githooks/pre-push
 - /Users/suman/playground/vajra/docs/decisions/DECISION-007-agent-fleet.md (lines 1787–1825)
+
+**Review-Inputs-SHA:** 1a3bf9947511cda05da5fd31ce949fe577b7a9b82b6897d60ffe02f8db0e2a93
