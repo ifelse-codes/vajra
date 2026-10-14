@@ -130,7 +130,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: bug fixes shown 
 - tech-lead rec 3 — obeyed: 8f32889 (the founder widened it: projects had no copy, so the guard now ships via `vajra init` / `--sync-fleet` and is wired in settings; Vajra's two hooks call the same file, 09b7c39; AC1 proven in temp `vajra init` projects, 9c494c7)
 - tech-lead rec 4 — obeyed: 9c494c7 (11 rows, each a real run of the built binary or the scaffolded hook, each red at eceb6d5 for its own reason; AC5 has both halves: exit 0 here, an unmarked and a reason-less grep still fail)
 - tech-lead rec 5 — obeyed: 3b50dc9 (`.ai/approvals/session-197.json` committed; `--steps` named it before that commit and not after — the live case)
-- tech-lead rec 6 — obeyed: 048805a (full `cargo test` 735 passed / 0 failed at the tip, recorded in the summary; the order stamp → close → push is followed at close, and the summary records whether the belt let the GREEN push through)
+- tech-lead rec 6 — deferred: prompts/198-task-known-bug-leftovers.md
 - tech-lead rec 7 — obeyed: 2bd229e (F118 moved out in writing — the founder's call when F125 widened; ROADMAP keeps it with a destination, b3695d4)
 - tech-lead rec 8 — obeyed: 2bd229e (the design-advisor recorded from its handback text before the build; one fidelity-reviewer and one release-coordinator after this section; `## Delta` above `## Advice`; the skip lines above carry the money reasons)
 
@@ -146,7 +146,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: bug fixes shown 
 - design-advisor rec 9 — obeyed: 09b7c39 (no close-gate row; L1 warns, L2/L3 block; `VAJRA_GUARD_MATURITY` read; the jq preflight kept; only the close record opens it — not `--allow-all` or `VAJRA_APPROVE`)
 - design-advisor rec 10 — deferred: .ai/ROADMAP.md
 - design-advisor rec 11 — obeyed: 9c494c7 (every listed case is a verify row in a temp `vajra init` project, red at eceb6d5)
-- design-advisor rec 12 — obeyed: 336786d (F119 reuses `architect::design_gate`), 946a967 (F116 follows the S187 step) and 34cebf4 (N10: no record covers check 6 yet — said in the script's own comment)
+- design-advisor rec 12 — obeyed: 336786d (F119 reuses `architect::design_gate`), 946a967 (F116 follows the S187 step) and 2180dfd (N10: check 6's comment now says no design record covers it yet — the S163 finding is its only source)
 
 **fidelity-reviewer** (`.ai/handoffs/session-197-fidelity-reviewer.md`, one cold pass, ACCEPT 10/12):
 - fidelity-reviewer rec 1 — obeyed: 1c8452a (founder, 2026-10-14: "fix it now" — while the guard is on, a `git checkout`/`switch`/`branch`/`worktree` command naming another session's `session-NN` is refused; verify row 7b: session-06 and session-201 refused, session-05-report allowed, red at eceb6d5; a name hidden in a variable is named in the addendum, 1fde8fc)
@@ -155,6 +155,6 @@ demo-producer: skipped — the tech-lead deferred it on budget: bug fixes shown 
 - fidelity-reviewer rec 4 — obeyed: 1c8452a (a tool name outside the five is judged by its input's shape; verify row 7c: an unknown tool carrying a command is blocked as Bash)
 - fidelity-reviewer rec 5 — obeyed: 1c8452a (rows 2 and 6 gain positive controls: the eceb6d5 hooks block on a plain `session-05-x` branch in the same project)
 - fidelity-reviewer rec 6 — obeyed: 1c8452a (row 2 runs Vajra's own `hook-pre-write.sh` on a `src/` write, new and at eceb6d5) and 7443202 (the summary says which rows run at eceb6d5 and which have no old counterpart)
-- fidelity-reviewer rec 7 — obeyed: 7443202 (the full `cargo test` 735/0 at the tip in the summary; the push through the S196 belt is recorded in the summary after it happens)
+- fidelity-reviewer rec 7 — deferred: prompts/198-task-known-bug-leftovers.md
 - fidelity-reviewer rec 8 — obeyed: 1fde8fc (`git -C <dir> commit` and `git worktree add` + edits outside the project named in the spelling limit)
 - fidelity-reviewer rec 9 — obeyed: 1fde8fc (the S197 ROADMAP row rewritten: F118 moved out, not among the fixes)

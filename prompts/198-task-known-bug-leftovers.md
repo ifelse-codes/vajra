@@ -44,6 +44,11 @@ design-significant: no
 - **From S197 (founder calls, 2026-10-14):** F125 + N17 fixed — the review-only guard ships to every project and only
   `vajra approve NN --close` opens it (DECISION-011 S197 addendum); F116, F119, N10 fixed. F118 was moved out of
   S197 to make room. rudra needs `vajra init --sync-fleet` and a Claude Code restart to get the guard.
+- **Carried from S197 (its release-coordinator rec 1):** record whether S197's GREEN push went through the S196
+  push belt — S197's tech-lead rec 6 and fidelity-reviewer rec 7 asked for it, and no S197 commit can show a push
+  that happens after its own close. Write it into S197's summary (sessions/) at this session's start, from the
+  founder's S197 pull-request page or `git log origin/session-197-known-bugs`. S197's full `cargo test` (735/0) is in its
+  summary already (7443202).
 - **Kept in backlog (ROADMAP known bugs):** S197 design-advisor rec 10 (a `--steps` line for the close record) ·
   F126 · the rest of N7 · F97's opt-out key · `tests/gt_cadence_shared.rs`'s loose assertion · S188's named gaps ·
   F123/F127's named routes. **Parked:** non-Claude tools (F91/F94/F95); release.
