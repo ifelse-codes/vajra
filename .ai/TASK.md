@@ -2,9 +2,16 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S195 (NO-CODE ground truth) complete on `session-195-closeout`; next is S196, rudra S21 on Opus
+## Between Sessions — S196 (INTERACTIVE: rudra S21 + F127) complete on `session-196-rudra-s21`; next is S197, the known-bug session
 
-**Next: Session 196 — INTERACTIVE: rudra S21 on Opus, after `vajra init --sync-fleet`** (founder pick A). Prompt: `prompts/196-task-rudra-s21.md` (draft; the founder runs `vajra approve 196` after reading it). Start it in a fresh chat after S195's PR is merged.
+**Next: Session 197 — CODE: the known-bug session — F125 + N17 first, then F116, F118, F119, N10** (founder pick 1). Prompt: `prompts/197-task-known-bugs.md` (draft; the founder runs `vajra approve 197` after reading it). Start it in a fresh chat after S196's PR is merged.
+
+## Session 196 — INTERACTIVE: rudra S21 on Opus, synced — COMPLETE
+
+- Brief: `prompts/196-task-rudra-s21.md`. Summary: `sessions/session-196-summary.md`. Review: `sessions/session-196-review.md` (pass 2 ACCEPT 6/8). Decisions: DECISION-007 + ADR-0004 S196 addenda.
+- rudra S21 on Opus: 4 helpers, 18 `vajra next`, real review, close GREEN 21/0, "fully closed" true; $19.21 = cost-state = lastCost. Opus vs Haiku (S20): every instruction-only step ran vs none.
+- **F127 fixed** (founder, 2026-10-14): an agent's push of a `session-NN-…` branch needs a GREEN close for that exact commit (format 2: `head:` + `clean:`); a person gets a note; non-session branches unchecked (2026-09-21 rule kept). Verify 10/10 · demo 5/5 · `cargo test` 734/0.
+- **Parked (founder):** F126 (a founder change after the review has no place in the project) → known bugs, S200 checklist. F116 seen again. Open question: delete remote `session-165-closeout` / `session-187-closeout`?
 
 ## Session 195 — NO-CODE ground truth (every 5th) — COMPLETE (🟡 PARTIAL, founder approved as written)
 
