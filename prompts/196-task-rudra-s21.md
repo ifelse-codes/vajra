@@ -58,10 +58,25 @@ Read every close log for `WAIVED`, `N/A` and `WARN` FIRST, never just PASS (S178
 | AC5 | No Vajra commit touches rudra; rudra's own commits are the founder's. `cargo test` passes in full before push. |
 
 ## Design
-design-significant: no
-- No change is approved before the run. If a finding the founder says yes to changes a shared rule (the receipt box,
-  the git belt, the handoff contract, the guards), switch this to `yes`, dispatch the design-advisor narrowly, and
-  record an addendum on ADR-0004 / DECISION-007 / DECISION-011 (S194 tech-lead rec 5 pattern).
+design-significant: yes
+- Switched from `no` after the founder's yes to F127 (2026-10-14: "no pr creation till it is not green, till all
+  review is pass from agents"). Narrow design-advisor dispatch: `.ai/handoffs/session-196-design-advisor.md`.
+- F127: a PR needs a pushed branch, so the push is the one door every PR route passes (gh, the web UI, a GUI client).
+  `.githooks/pre-push` refuses an AGENT's push of `refs/heads/session-NN-*` unless the newest
+  `.ai/verify/closeout/<stamp>/result` whose `head:` equals the pushed sha says `verdict: GREEN`, `clean: yes`,
+  `session: NN`. GREEN with WARN passes (WARN is not a fail; the count is printed). A person gets a note and the push
+  goes on (founder's call, 2026-10-14 — the S171 split). Deletes, tags, non-session branches (founder 2026-09-21:
+  ungoverned on purpose) and the main/master rule are unchanged — the guard only adds.
+- Result format 2 (ADR-0004 S196 addendum): `head:` + `clean:` after `session:`, taken at the start and the end of
+  the run (`clean: yes` only if both are clean and HEAD did not move). The binary reads 1 and 2; the hook only 2.
+- Session number from the branch name, never `.ai/SESSION` or a guess. No new override (DECISION-011): the founder's
+  own push is never stopped; an agent told "stop and tell the founder".
+- Records: DECISION-007 S196 addendum (the push belt — primary) and ADR-0004 S196 addendum (result v2, a second
+  reader). Rejected: re-running the close inside the push (minutes; time-outs) · guarding `gh pr create` by command
+  text (S177/S188) · GitHub CI (rudra has none; local-first) · every branch (reverses 2026-09-21).
+- Named, not closed: the agent can write a GREEN result file or type `git push --no-verify` (bar-raising, not
+  tamper-proof) · untracked files are not counted in `clean:` · an inline waiver is a GREEN · a non-session branch
+  name skips it (N17, S197).
 
 ## Carried in
 - **From S195 (founder-approved report):** F125 → S197 first (design: the `-closeout` opening needs a founder
@@ -82,7 +97,17 @@ design-significant: no
 - No paid run by the agent without the founder's yes. No transcript or run capture committed (S126).
 
 ## Plan
-<the S196 agent writes this after the tech-lead>
+1. Read rudra S21's close logs (WAIVED/N/A/WARN first), transcript, git and cost records; write the findings with the
+   founder's calls, F121/F123 live results, the receipt and the Opus-vs-Haiku table into the summary before any code.
+   covers: 1, 2, 3
+2. F127 the push belt: result format 2 in both close scripts, the exit box reads 1 and 2, `.githooks/pre-push`
+   refuses an agent's session-branch push without a GREEN for that commit; real-push tests in `tests/push_belt.rs`.
+   covers: 4
+3. The records: DECISION-007 + ADR-0004 S196 addenda; the Releaser step text and `.githooks/README.md`.
+   covers: 4
+4. `scripts/verify-session-196.sh` (each F127 row a real push, red at the start commit) and the demo; full
+   `cargo test` before push; no commit touches rudra.
+   covers: 4, 5
 
 ## Delta
 - `+` rudra S21 findings (F126…) with the founder's calls
