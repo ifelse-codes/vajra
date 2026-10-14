@@ -232,8 +232,18 @@ fn pushing_main_stops_the_agent_and_notes_the_human() {
     assert!(!ok, "master is main too: {out}");
     let (ok, out) = push("refs/heads/main", &[]);
     assert!(ok && out.contains("Pushing anyway"), "human: {out}");
+    // S196 (F127): an agent's session branch now needs a GREEN close for the commit it pushes —
+    // the `1111…` sha here has none, so it is stopped (tests/push_belt.rs has the real pushes).
     let (ok, out) = push("refs/heads/session-07-x", &[CLAUDE]);
-    assert!(ok && out.is_empty(), "agent pushing its branch: {out}");
+    assert!(
+        !ok && out.contains("A pull request opens only after the close is GREEN"),
+        "agent pushing its branch: {out}"
+    );
+    let (ok, out) = push("refs/heads/quick-fix", &[CLAUDE]);
+    assert!(
+        ok && out.is_empty(),
+        "a non-session branch is not checked (2026-09-21): {out}"
+    );
 }
 
 // ── S194 (F123): a merge commit on main ─────────────────────────────────────
