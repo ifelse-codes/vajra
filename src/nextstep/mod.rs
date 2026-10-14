@@ -218,8 +218,9 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         Step::new(
             passed("Releaser"),
             "the work is merged and the branch is gone",
-            "run scripts/verify-closeout.sh ON THE BRANCH first — since S172 nothing re-checks \
-             it after the merge — then push the branch and open the pull request yourself when the \
+            "run scripts/verify-closeout.sh ON THE BRANCH, LAST, with everything committed, until it \
+             says GREEN — the push of a session branch is refused otherwise (S196), and anything \
+             committed after it needs one more run — then push the branch and open the pull request yourself when the \
              launch gave VAJRA_ALLOW_COMMIT=NN (S173) — `git push -u origin <branch>`, then \
              `gh pr create --title \"…\" --body-file sessions/session-NN-summary.md` — ask the human to merge it, then prune the \
              branch. If main has commits GitHub lacks, `vajra next --release NN` names them — tell \
