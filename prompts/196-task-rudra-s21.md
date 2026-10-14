@@ -170,5 +170,5 @@ demo-producer: skipped — the tech-lead deferred it on budget: the founder watc
 - release-coordinator rec 3 — obeyed: dd069f4 (fidelity-reviewer rec 6 re-answered as `refused:` with the reason the brief gives)
 - release-coordinator rec 4 — obeyed: d8441da (the rudra S21 sighting added to the ROADMAP F116 entry; the summary's agreement test now says 15 cases)
 - release-coordinator rec 5 — refused: a commit cannot record the order that comes after it. The order is followed as written — the stamp after the last prompt or handoff change, the close after the stamp, nothing committed between the close and the push — and the push belt refuses the agent's push if the close is not GREEN on that exact commit.
-- release-coordinator rec 6 — deferred: sessions/session-196-summary.md (a founder question, not a session step: whether to delete the remote branches `session-165-closeout` and `session-187-closeout` on GitHub — asked in this session's closing message and listed in the summary)
+- release-coordinator rec 6 — deferred: sessions/session-196-summary.md
 
