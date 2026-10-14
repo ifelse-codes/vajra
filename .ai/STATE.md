@@ -3,15 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S196 complete on `session-196-rudra-s21` (PR open; the founder merges). Next: S197 — CODE, the known-bug session (founder pick 1); prompt `prompts/197-task-known-bugs.md` (draft, the founder approves it with `vajra approve 197`).**
+**None — between sessions. S197 complete on `session-197-known-bugs` (PR open; the founder merges). Next: S198 — CODE, the known-bug leftovers F118 + N18 (founder pick 2); prompt `prompts/198-task-known-bug-leftovers.md` (draft, the founder approves it with `vajra approve 198`).**
 
-## What was done this session (S196 — INTERACTIVE: rudra S21 on Opus, and F127)
+## What was done this session (S197 — CODE: the known-bug session)
 
-- **rudra S21 (the founder's run, Opus 5.5, 312/312 replies, $19.21 = cost-state = `~/.claude.json` lastCost):** 4 helpers (tech-lead, design-advisor, qa-specialist, fidelity-reviewer), 18 `vajra next` calls, every handoff `verified: toolu_…`; close GREEN 21/0 · 2 WARN · 1 N/A (0 WAIVED); "fully closed" true. Haiku S20 ran none of these. F121's exit box could only show after PR #25's merge (the "only at exit" limit, live; the founder did not paste it). F123 not exercised (fast-forward only).
-- **F127 FIXED (DECISION-007 + ADR-0004 S196 addenda):** a RED close stopped nothing (rudra S20's RED branch was pushed, PR'd, merged). `.githooks/pre-push` now refuses an agent's push of `session-NN-…` unless the newest close result for that exact sha says GREEN, `clean: yes`, session NN; a person gets a note (founder's call); non-session branches unchecked (2026-09-21 rule kept). Close result format 2 adds `head:` + `clean:`; the exit box reads 1 and 2; both readers agree on 15 cases.
-- **F126 parked** (a founder change after the review has no place in the project) → ROADMAP known bugs, S200 checklist. F116 seen again in rudra S21.
-- Verify-196 10/10 + 4 records (each fix row red at 59719f8) · demo 5/5 · `cargo test` 734/0. Named, not closed: a hand-written GREEN file, `--no-verify`, unset agent markers, untracked files, non-session names.
-- Crew: tech-lead, design-advisor (10 recs), fidelity-reviewer (pass 1 ACCEPT 5/8 → fixes → pass 2 ACCEPT 6/8, judges the release-coordinator's recs), release-coordinator (the one judge; 4 mismatch → re-answered).
+- **F125 premise corrected (founder, 2026-10-14):** user projects never HAD the review-only (ground-truth) guard — it lived only in Vajra's own `hook-pre-bash.sh` / `hook-pre-write.sh`, while every scaffold's Hard Rules said "Hook-enforced". Founder: ship it to every project, move F118 out.
+- **Shipped (DECISION-011 S197 addendum):** one `scripts/hook-ground-truth-guard.sh` (Vajra's two hooks call it; `vajra init` / `--sync-fleet` ship it as `.ai/hooks/hook-ground-truth-guard.sh`, wired in the PreToolUse `Bash|Edit|Write|MultiEdit|NotebookEdit` group). No branch name opens it: `-closeout`/`-enforcement` and `VAJRA_GT_WAIVER` retired, and a git checkout/switch/branch/worktree naming another session's number is refused (cold review rec 1, founder: "fix it now"). Only `vajra approve NN --close` opens it, read by `vajra next --check-close-record NN` (the S188 void counts; an older vajra stays closed). N17: an unnumbered branch uses HEAD's `.ai/SESSION` + 1.
+- **F116** `--steps` names an approval record not in the last commit · **F119** `--steps` ticks design on `design-significant: no` · **N10** scaffold-drift check 6 takes `# source-claim: <why>` (drift 20/0).
+- Verify-197 13/13 (real runs; rows 1, 2, 6, 7b, 7c, 8–10 red at eceb6d5) · demo 5/5 · `cargo test` 735/0 · CI lint clean. Review: one cold pass ACCEPT 10/12; all 9 recs answered. Crew: tech-lead, design-advisor, fidelity-reviewer, release-coordinator (the judge).
+- **Filed:** N18 (check 6 sorts by a field of the full path) · design-advisor rec 10 (a `--steps` line for the close record). **Seen again:** F118 at this session's own advance (`aad6381`, fixed by hand at close).
+
+## Previous session (S196 — INTERACTIVE: rudra S21 on Opus, and F127, merged #234)
+
+- rudra S21 on Opus: 4 helpers, 18 `vajra next`, close GREEN 21/0, $19.21 = cost-state. **F127:** `.githooks/pre-push` stops an agent's push of a session branch without a GREEN close for that exact commit (DECISION-007 + ADR-0004 S196 addenda). F126 parked.
 
 ## Previous session (S195 — NO-CODE ground truth, 🟡 PARTIAL PASS, merged #233)
 
@@ -88,6 +92,7 @@
 - **The controls reach existing projects (S182):** `--sync-fleet` ships and WIRES the approvals guard, reports a missing `session_rules_from`; `--allow-all=NN` is per session. rudra has them (uncommitted there).
 - **The approvals folder is checked by what changed (S188, DECISION-011 S188 addendum):** an AI read is never blocked; a write by a guarded tool call (Bash, Edit, Write, MultiEdit, NotebookEdit — not MCP tools) is caught after it runs and voids those approvals until `vajra approve NN`; a Write/Edit there is blocked before it runs. Bar-raising, not tamper-proof.
 - **The receipt's top line is Claude Code's own figure, or says it has none (S189, ADR-0004 S189 addendum):** an interactive `vajra claude` run shows this run's share of the transcript's `cost-state` total; `-p` still reads the result stream; the price list only feeds labelled `[estimate]` lines. **Proven live S192** (rudra, fresh, `--continue`, fork), and found in any folder Claude Code names (S192 addendum). **S193 (F117):** with that figure the receipt shows nothing else — the token estimate appears only when Claude Code gave no figure; rudra S19 $37.27 = cost-state.
+- **A review-only session is hook-enforced in every project (S197, DECISION-011 S197 addendum):** `.ai/hooks/hook-ground-truth-guard.sh` blocks code edits, commits, pushes and PRs until the founder's `vajra approve NN --close`; no branch name opens it. Bar-raising, not tamper-proof (the addendum's Limit list). rudra gets it after `--sync-fleet` + a Claude Code restart.
 - **The founder's controls are hard for the agent to type (S181, DECISION-011):** approval is a record from `vajra approve NN` (or the launch-time yes), a waiver names its checks and a reason, a stamp dies when its text is edited, the type is a strict field, and the next review-only session is derived, not hand-kept. Bar-raising, not tamper-proof.
 - **The close runs CI's lint on CI's Rust version (S183, F101; not CI's tests, not Linux):** one pinned toolchain (`rust-toolchain.toml`) and one lint script (`scripts/ci-lint.sh`) for CI and the close gate; projects declare `lint_command:`. Unchecked `obeyed:` claims in a project WARN with the count (F104); `vajra next --steps` names the session type at the start (F105).
 - **`vajra init` never hangs on a silent pipe (S184, F103):** 10 s per answer, then defaults, named on stderr; piped answers and a terminal work as before.
@@ -105,7 +110,7 @@
 - **🟡 The guards' old-vs-new check is a list (S173):** named shapes × triggers; a spelling nobody listed is not covered.
 - **🟡 Parked LOW (S173):** F47 copied jargon · F56 the session guard cannot tell a command runs in another project · F57 the Coder check reads only `1. …` plan steps.
 - **🟢 F67 — PROVEN LIVE S192 (was 🔴 S176, 🟡 S189):** rudra $6.90/$22.96 and the fresh/`--continue` runs equal Claude Code's own `cost-state`; a fork is labelled whole-conversation (it keeps the parent's `startTime`). Left named (founder 2026-10-09): `/clear` gets no receipt, a fork's own share is not shown.
-- **🟡 S193 known bugs (founder: park, "file it so we don't miss it"; ROADMAP backlog, S195 checklist):** F116 the founder's approval record is left out of git at close — rudra S19 needed PR #23, Vajra's own `session-192.json` was never committed (`vajra approve`'s "Commit it with the session" reaches only the founder's terminal; the agent sees only "never write to `.ai/approvals/`") · F118 `vajra next --advance` swaps the `**Number:**` token but leaves the old session's text under it and drops it from Prior (fixed by hand, `beae153`) · F119 `vajra next --steps` reads the Architect station, so a `design-significant: no` prompt shows ✗ while `--check-design` says READY.
+- **🟡 S193 known bugs — F116 + F119 FIXED S197; F118 still open → S198 (founder pick). Was (ROADMAP backlog, S195 checklist):** F116 the founder's approval record is left out of git at close — rudra S19 needed PR #23, Vajra's own `session-192.json` was never committed (`vajra approve`'s "Commit it with the session" reaches only the founder's terminal; the agent sees only "never write to `.ai/approvals/`") · F118 `vajra next --advance` swaps the `**Number:**` token but leaves the old session's text under it and drops it from Prior (fixed by hand, `beae153`) · F119 `vajra next --steps` reads the Architect station, so a `design-significant: no` prompt shows ✗ while `--check-design` says READY.
 - **🟡 S193 disclosed (ADR-0004 S193 addendum):** the `~$… saved` compression line is still priced from the price list (opus-5-5 at the upper bound) · with `hasUnknownModelCost` the figure may undercount and no estimate is shown beside it · a fork keeps the whole-file estimate · the stale ROADMAP rows S119 and S167 said "Next" — fixed in S195's closeout.
 - **🟡 F70-residual (S176, disclosed):** nothing at close re-runs the Planner — a mid-session brief wipe is caught only when someone runs `--check-plan`/`--steps`/`--stations`; deleting the `covers:` markers or the whole `## Plan` still passes (S68 class). A close re-run needs the founder's yes.
 - **🟡 S177 disclosed:** Vajra's OWN close gate still matches only `**CODE**` (own paperwork, not changed); `ground_truth_next_session` is agent-writable and unguarded (a key = N session loses its CODE checks); the key is read as the first digits on its line (LOW).
@@ -136,16 +141,17 @@
 
 ## What Is In Progress
 
-- Nothing. S196 complete on its branch. Next: S197, the known-bug session (founder pick 1): F125 + N17 first.
+- Nothing. S197 complete on its branch. Next: S198, the known-bug leftovers (F118 + N18).
 
 ## Active PRs
 
-- S196's PR (the founder merges). S195 merged as #233.
+- S197's PR (the founder merges). S196 merged as #234.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S197 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor — F125 + N17, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer) |
 | S195 | $0 | NO-CODE ground truth. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer, two passes) |
 | S194 | $0 | No paid run by the agent; the founder's rudra S20 run was $1.49 (Haiku 4.5, Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F121/F123/F120 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |
 | S193 | $0 | No paid run by the agent; the founder's rudra S19 run was $37.27 (Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F117 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |
