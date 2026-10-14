@@ -155,3 +155,11 @@ demo-producer: skipped — the tech-lead deferred it on budget: the founder watc
 - design-advisor rec 9 — obeyed: dba3721 (the Releaser step: "run it LAST, with everything committed, until it says GREEN — the push … is refused otherwise"; the `pre-push` row in `.githooks/README.md`)
 - design-advisor rec 10 — obeyed: 604cd29 (DECISION-007 S196 addendum, primary, and ADR-0004 S196 addendum, each stating its deviations and the named-not-closed list; every commit ≤ 3 files)
 
+
+**fidelity-reviewer** (`.ai/handoffs/session-196-fidelity-reviewer.md`) — one cold pass, ACCEPT 5 SHIPPED / 3 PARTIAL:
+- fidelity-reviewer rec 1 — obeyed: 16811d4 (the full `cargo test` re-run at the tip after the review fixes: 734 passed / 0 failed, written into the summary in place of "re-run below")
+- fidelity-reviewer rec 2 — obeyed: 3ee35ec (`tests/push_belt.rs`: the scaffold's real close script runs with an uncommitted edit to a tracked file, writes `clean: no`, and the agent's push is refused with "uncommitted changes to tracked files"; hard-coding `CLOSE_CLEAN=yes` makes it fail — checked by hand before the commit. The HEAD-moves-mid-run case was not added: no cheap way to land a commit inside a running close.)
+- fidelity-reviewer rec 3 — obeyed: 16811d4 (the hook header and the DECISION-007 S196 "named, not closed" list now say an agent that unsets the four markers, or a tool that sets none, is treated as a person and only noted; the `HEAD:refs/heads/<other>` and bare `session-NN` names added there too)
+- fidelity-reviewer rec 4 — obeyed: 3ee35ec (`parse_close_result` refuses a `\r` anywhere and a non-digit in `pass`/`fail`/`warn`, like the hook; the cross-reader test gains `pass: +30` and a CRLF file — 15 cases, both readers agree; the summary's "cannot drift" reworded to what the cases prove, 16811d4)
+- fidelity-reviewer rec 5 — obeyed: 16811d4 (the S20 cost cell sources S194's AC3; the two WARN rows moved out of the findings table into "close-log notes, not findings", marked as the agent's notes)
+- fidelity-reviewer rec 6 — obeyed: 16811d4 (verify-196 re-run at that tip: 10 passed / 0 failed; the full close runs LAST on the stamped tip, and the new push belt itself refuses this branch's push unless that close is GREEN with `head:` = the pushed commit)
