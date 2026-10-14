@@ -105,7 +105,7 @@ Crew: tech-lead (mandatory, first) → design-advisor (narrow, once the founder 
 → fidelity-reviewer (one cold pass) → release-coordinator (the one judge of every `obeyed:` answer). Each handoff
 recorded from the handback text. Founder calls taken with one question set (branches · his own push · F126).
 
-## Next — 3 ranked options
+## Next — 3 ranked candidates
 
 1. **(Recommended) S197 — the known-bug session.** F125 first (the `-closeout` opening needs `vajra approve NN
    --close`; N17 with it), then F116, F118, F119, N10. Why: each is a thing a user meets, and N17 is the one way
