@@ -614,3 +614,17 @@ saw it.
 
 Evidence: `scripts/verify-session-194.sh` rows 1–2 (a `vajra init` project whose stand-in `claude` runs the
 project's own scaffolded close check; red at 7e8210e); unit tests `s194_*` in `src/cli/launch.rs`.
+
+## S196 addendum — result format 2: `head:` and `clean:`, and a second reader (F127)
+
+**Deviates from the S194 addendum** in three stated ways: the result file now has a second reader
+(`.githooks/pre-push`, DECISION-007 S196 addendum); that reader compares `session:` with the branch's number; and the
+format is 2, so the exit box reads 1 **and** 2 (any other version stays unreadable, never GREEN).
+
+**Format 2** (both `scripts/verify-closeout.sh` and the scaffold's copy), fixed order, nothing after:
+`vajra-closeout-result: 2` · `session:` · `head:` (`git rev-parse HEAD` at the start of the run: 40 or 64 hex, or
+`none`) · `clean:` (`yes` only if `git status --porcelain --untracked-files=no` is empty at the start AND the end and
+HEAD did not move; else `no`) · `verdict:` · `pass:` · `fail:` · `warn:` · `failed:`. The exit box's line is
+unchanged.
+
+Named, not closed: untracked files are not counted in `clean:`; the file is still one the agent could write.
