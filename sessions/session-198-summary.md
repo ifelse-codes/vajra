@@ -58,7 +58,7 @@ own file layout, so the fix reaches users only if their SESSION-BOOT copies that
 - The session guard read a session number in a command's text once (the known mention class); worked around with a
   script file.
 
-## Next — 3 ranked options
+## Next — 3 ranked candidates
 
 1. **(Recommended) rudra S22, synced — the push belt and the review-only guard on a real project.** `vajra init
    --sync-fleet` in rudra, restart Claude Code, run a real session to close. Why: F127 and F125 have still only run in
