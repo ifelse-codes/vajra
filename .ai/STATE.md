@@ -154,7 +154,7 @@
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
-| S198 | $0 | No paid run. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |
+| S198 | $0 | No paid run. 4 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer; a narrow fidelity-reviewer judging the release-coordinator's own rec 1); design-advisor a recorded skip |
 | S197 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor — F125 + N17, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer) |
 | S195 | $0 | NO-CODE ground truth. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer, two passes) |
 | S194 | $0 | No paid run by the agent; the founder's rudra S20 run was $1.49 (Haiku 4.5, Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F121/F123/F120 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |
