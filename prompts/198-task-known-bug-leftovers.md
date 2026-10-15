@@ -82,7 +82,7 @@ design-significant: no
 ## Execution
 - step 1 — done: e26d59a
 - step 2 — done: bbc2948, 0087c2a
-- step 3 — done: <sha>
+- step 3 — done: 31e92e7, c2b936c
 
 ## Delta
 - `~` F118: `--advance` moves the old Current Session entry down instead of leaving it under the new number
