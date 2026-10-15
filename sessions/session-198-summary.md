@@ -61,3 +61,6 @@ own file layout, so the fix reaches users only if their SESSION-BOOT copies that
 3. **The review-only sign-off in the step list (S197 design-advisor rec 10) + F126 (a founder change after the review
    has no place).** Why: both are met by every user in every review-only session and after every late change. Risk:
    small; S200 (the next review-only session) may re-rank them anyway.
+
+**Founder pick (2026-10-15): option 2** — the design session; prompt written:
+`prompts/199-task-design-vajra-runs-the-reviewer.md`.

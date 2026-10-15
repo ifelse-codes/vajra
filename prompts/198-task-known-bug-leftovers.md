@@ -89,3 +89,20 @@ design-significant: no
 - `~` N18: check 6 sorts by session number, not by a field of the full path
 
 ## Advice
+Roles dispatched: `tech-lead` (mandatory, first). Required at close: `fidelity-reviewer` (the one cold review),
+`release-coordinator` (the one judge of every `obeyed:` answer). `design-advisor`: the recorded skip in `## Design`.
+
+researcher: skipped — the tech-lead deferred it on budget: both bugs' evidence was already in the prompt and ROADMAP's known-bug list (~0.15M; crew ~1.4M → ~1.55M).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the founder picked these two items and AC1–AC4 give each a real-run check (~0.1M would restate them).
+plan-advisor: skipped — the tech-lead deferred it on budget: a two-step plan whose order does not matter (~0.1M).
+implementation-advisor: skipped — the tech-lead deferred it on budget: its recs 2–4 name the traps (strict shape, sort by file name, real-run rows) (~0.25M).
+qa-specialist: skipped — the tech-lead deferred it on budget: AC4 makes every verify row a real run, red at 2830bb2, and the fidelity-reviewer runs them (~0.3M).
+demo-producer: skipped — the tech-lead deferred it on budget: two bug fixes shown in verify output and the summary; the demo is the template's seven sections with live runs (~0.15M).
+
+**tech-lead** (`.ai/handoffs/session-198-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 1f77083 (`design-advisor: skipped — <reason>` recorded in `## Design`; no dispatch, since the shape test needed no new rule)
+- tech-lead rec 2 — obeyed: e26d59a (`move_current_entry` checks the shape strictly and returns why it differs; any other shape gets the swap + the stderr note; the `vajra init` shape is "other shape", written in `## Design` at 1f77083 and tested as verify row 2)
+- tech-lead rec 3 — obeyed: bbc2948 (check 6 takes the NN from the file name before sorting) and 31e92e7 (row 3 runs check 6 from a checkout under `…/n-1-8/` and one under a dash-free folder and compares the 10 names)
+- tech-lead rec 4 — obeyed: 31e92e7 (rows 1–3 run the built `vajra` and the real script, each also at 2830bb2 where it goes red for its own reason; row 4 keeps S191's prose-number unit test)
+- tech-lead rec 5 — deferred: prompts/199-task-design-vajra-runs-the-reviewer.md (the push half — stamp → close → push through the S196 belt, then recorded — happens after this session's last commit, so no commit here can show it; carried in that prompt. The cargo-test half is done: 739/0 before any push, in the summary, 07e73cf)
+- tech-lead rec 6 — obeyed: 07e73cf (build, then one fidelity-reviewer, then one release-coordinator; the tech-lead recorded from its handback text, c2b936c; a skip line for each deferred role above; `## Delta` above `## Advice`; no new bug fixed on the way)
