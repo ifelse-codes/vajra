@@ -1969,7 +1969,7 @@ fn run_advance() -> Result<()> {
     fs::write(root.join(".ai/SESSION"), format!("{next:02}\n"))
         .context("failed to write .ai/SESSION")?;
 
-    let boot_moved = update_session_boot(&root, current, next)?;
+    let boot = update_session_boot(&root, current, next)?;
 
     let next_prompt = find_next_prompt(&root, next);
     if let Some(ref prompt_path) = next_prompt {
@@ -1980,14 +1980,20 @@ fn run_advance() -> Result<()> {
     eprintln!();
     eprintln!("Advanced: session {current:02} → {next:02}");
     eprintln!("  .ai/SESSION updated");
-    if boot_moved {
-        eprintln!("  .ai/SESSION-BOOT.md updated");
-    } else {
+    match boot {
+        BootUpdate::Moved => eprintln!(
+            "  .ai/SESSION-BOOT.md updated — session {current:02}'s entry is now the first `## Prior Session`"
+        ),
+        BootUpdate::Swapped(why) => eprintln!(
+            "  .ai/SESSION-BOOT.md updated — only the session number moved; the old entry was NOT moved \
+             to `## Prior Session`: {why}. (It moves only one `- **Number:** {current:02}` entry under \
+             `## Current Session` followed by `## Prior Session`.)"
+        ),
         // S191 review rec 5: the anchored swap moves only `**Number:** {current}`; say so when no
         // line had that shape, instead of claiming an update that did not happen.
-        eprintln!(
+        BootUpdate::Unchanged => eprintln!(
             "  warning: .ai/SESSION-BOOT.md has no `**Number:** {current:02}` line — its session number was not moved"
-        );
+        ),
     }
     if let Some(ref prompt_path) = next_prompt {
         eprintln!("  prompt pointer → {prompt_path}");
@@ -1998,26 +2004,112 @@ fn run_advance() -> Result<()> {
     Ok(())
 }
 
-/// Returns whether any `**Number:**` line moved.
-fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<bool> {
+/// S198 (F118): what `update_session_boot` did to `.ai/SESSION-BOOT.md`.
+#[derive(Debug, PartialEq)]
+enum BootUpdate {
+    /// Vajra's shape: the old entry is now the first `## Prior Session` block, unchanged.
+    Moved,
+    /// Any other shape: only the `**Number:**` token moved. The string says why the entry did not.
+    Swapped(String),
+    /// No `**Number:** {current}` line — nothing changed.
+    Unchanged,
+}
+
+fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<BootUpdate> {
     let path = root.join(".ai/SESSION-BOOT.md");
     let content = fs::read_to_string(&path).context("failed to read .ai/SESSION-BOOT.md")?;
 
-    let updated: String = content
+    // S198 (F118): the swap alone left the old session's whole story under the new number and
+    // dropped it from `## Prior Session` (S193, S194, S197 — each fixed by hand). On Vajra's own
+    // shape the entry moves down; any other shape (a project's own SESSION-BOOT) is never
+    // rewritten by guess — it keeps the swap and the caller says why.
+    let (updated, outcome) = match move_current_entry(&content, current, next) {
+        Ok(moved) => (moved, BootUpdate::Moved),
+        Err(why) => {
+            let swapped = swap_boot_numbers(&content, current, next);
+            if swapped == content {
+                (swapped, BootUpdate::Unchanged)
+            } else {
+                (swapped, BootUpdate::Swapped(why))
+            }
+        }
+    };
+
+    fs::write(&path, updated).context("failed to write .ai/SESSION-BOOT.md")?;
+    Ok(outcome)
+}
+
+fn keep_final_newline(content: &str, updated: String) -> String {
+    if content.ends_with('\n') && !updated.ends_with('\n') {
+        updated + "\n"
+    } else {
+        updated
+    }
+}
+
+fn swap_boot_numbers(content: &str, current: u32, next: u32) -> String {
+    let updated = content
         .lines()
         .map(|line| swap_boot_number(line, current, next))
         .collect::<Vec<_>>()
         .join("\n");
+    keep_final_newline(content, updated)
+}
 
-    let updated = if content.ends_with('\n') && !updated.ends_with('\n') {
-        updated + "\n"
-    } else {
-        updated
+/// S198 (F118): on Vajra's shape, write a fresh `- **Number:** {next} — IN PROGRESS` under
+/// `## Current Session` and put the old entry, byte-for-byte, as the first `## Prior Session`.
+/// The shape is checked strictly and fails closed (no text guessing): exactly one
+/// `## Current Session`; under it one `- **Number:** {current}` line, its indented continuation
+/// lines, then only blank lines; the next heading is `## Prior Session`. `Err` says what differed.
+fn move_current_entry(content: &str, current: u32, next: u32) -> Result<String, String> {
+    const CURRENT: &str = "## Current Session";
+    const PRIOR: &str = "## Prior Session";
+    let lines: Vec<&str> = content.lines().collect();
+
+    let heads: Vec<usize> = (0..lines.len())
+        .filter(|&i| lines[i].trim_end() == CURRENT)
+        .collect();
+    let [head] = heads[..] else {
+        return Err(format!(
+            "it has {} `{CURRENT}` headings, not one",
+            heads.len()
+        ));
     };
+    let Some(end) = (head + 1..lines.len()).find(|&i| lines[i].starts_with("## ")) else {
+        return Err(format!("no `{PRIOR}` heading follows `{CURRENT}`"));
+    };
+    if lines[end].trim_end() != PRIOR {
+        return Err(format!(
+            "the heading after `{CURRENT}` is `{}`, not `{PRIOR}`",
+            lines[end].trim_end()
+        ));
+    }
 
-    let moved = updated != content;
-    fs::write(&path, updated).context("failed to write .ai/SESSION-BOOT.md")?;
-    Ok(moved)
+    let body = &lines[head + 1..end];
+    let Some(first) = body.first() else {
+        return Err(format!("`{CURRENT}` is empty"));
+    };
+    if !first.starts_with("- **Number:** ") || swap_boot_number(first, current, next) == *first {
+        return Err(format!(
+            "the first line under `{CURRENT}` is not `- **Number:** {current:02} …`"
+        ));
+    }
+    let entry_len = 1 + body[1..]
+        .iter()
+        .take_while(|l| !l.trim().is_empty() && l.starts_with([' ', '\t']))
+        .count();
+    if body[entry_len..].iter().any(|l| !l.trim().is_empty()) {
+        return Err(format!("`{CURRENT}` holds more than one entry"));
+    }
+
+    let mut out: Vec<String> = lines[..=head].iter().map(|l| l.to_string()).collect();
+    out.push(format!("- **Number:** {next:02} — IN PROGRESS"));
+    out.push(String::new());
+    out.push(PRIOR.to_string());
+    out.extend(body[..entry_len].iter().map(|l| l.to_string()));
+    out.push(String::new());
+    out.extend(lines[end..].iter().map(|l| l.to_string()));
+    Ok(keep_final_newline(content, out.join("\n")))
 }
 
 /// S191: swap only the number token right after `**Number:**`, and only when it is `current`.
@@ -2405,9 +2497,13 @@ mod tests {
         )
         .unwrap();
 
-        assert!(update_session_boot(tmp.path(), 8, 9).unwrap());
-        assert!(
-            !update_session_boot(tmp.path(), 8, 9).unwrap(),
+        assert!(matches!(
+            update_session_boot(tmp.path(), 8, 9).unwrap(),
+            BootUpdate::Swapped(_)
+        ));
+        assert_eq!(
+            update_session_boot(tmp.path(), 8, 9).unwrap(),
+            BootUpdate::Unchanged,
             "nothing left to move"
         );
 
@@ -2438,6 +2534,67 @@ mod tests {
         let want = s188.replacen("**Number:** 188", "**Number:** 189", 1);
         assert_eq!(result, format!("# Session Boot\n{want}\n{prior}\n"));
         assert_eq!(want.matches("188").count(), 5);
+    }
+
+    /// S198 AC1 (F118): on Vajra's shape the old entry — continuation line included — becomes the
+    /// first `## Prior Session` block byte-for-byte, and `## Current Session` names only the new
+    /// number. The rest of the file is untouched.
+    #[test]
+    fn update_session_boot_moves_the_entry_on_vajras_shape() {
+        let entry = "- **Number:** 197 — COMPLETE on `session-197-x`. Names 197 and 198 in prose.\n  Verify: `scripts/verify-session-197.sh`.";
+        let before = format!(
+            "# Session Boot\n\n## Next Session\n- **S198** next.\n\n## Current Session\n{entry}\n\n## Prior Session\n- **Number:** 196 — CLOSED.\n\n**New chat.**\n"
+        );
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join(".ai")).unwrap();
+        fs::write(tmp.path().join(".ai/SESSION-BOOT.md"), &before).unwrap();
+
+        assert_eq!(
+            update_session_boot(tmp.path(), 197, 198).unwrap(),
+            BootUpdate::Moved
+        );
+
+        let after = fs::read_to_string(tmp.path().join(".ai/SESSION-BOOT.md")).unwrap();
+        assert_eq!(
+            after,
+            format!(
+                "# Session Boot\n\n## Next Session\n- **S198** next.\n\n## Current Session\n- **Number:** 198 — IN PROGRESS\n\n## Prior Session\n{entry}\n\n## Prior Session\n- **Number:** 196 — CLOSED.\n\n**New chat.**\n"
+            )
+        );
+    }
+
+    /// S198 AC2 (F118): any other shape is never rewritten by guess — the number swaps as before
+    /// and the reason the entry did not move comes back for `--advance` to print.
+    #[test]
+    fn update_session_boot_only_swaps_other_shapes() {
+        let init_shape = "# Session Boot\n\n## Current Session\n- **Number:** 01\n- **Type:** CODE\n- **Branch:** pending\n\n## Repo State Snapshot\n- x\n";
+        let two_entries = "## Current Session\n- **Number:** 05 — a\n- **Number:** 04 — b\n\n## Prior Session\n- c\n";
+        let no_prior = "## Current Session\n- **Number:** 05 — a\n\n## Next Session\n- b\n";
+        let two_heads = "## Current Session\n- **Number:** 05 — a\n\n## Current Session\n- d\n\n## Prior Session\n- c\n";
+        let cases: [(&str, u32, &str); 4] = [
+            (
+                init_shape,
+                1,
+                "is `## Repo State Snapshot`, not `## Prior Session`",
+            ),
+            (two_entries, 5, "holds more than one entry"),
+            (no_prior, 5, "not `## Prior Session`"),
+            (two_heads, 5, "2 `## Current Session` headings"),
+        ];
+        for (before, current, why_has) in cases {
+            let tmp = tempfile::tempdir().unwrap();
+            fs::create_dir_all(tmp.path().join(".ai")).unwrap();
+            fs::write(tmp.path().join(".ai/SESSION-BOOT.md"), before).unwrap();
+
+            let got = update_session_boot(tmp.path(), current, current + 1).unwrap();
+            let BootUpdate::Swapped(why) = got else {
+                panic!("{before:?} → {got:?}, want Swapped");
+            };
+            assert!(why.contains(why_has), "{why:?} lacks {why_has:?}");
+            let after = fs::read_to_string(tmp.path().join(".ai/SESSION-BOOT.md")).unwrap();
+            assert_eq!(after, swap_boot_numbers(before, current, current + 1));
+            assert_ne!(after, before);
+        }
     }
 
     #[test]

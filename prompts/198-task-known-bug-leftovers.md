@@ -39,6 +39,12 @@ design-significant: no
 - F118 follows the S191 `--advance` addendum (DECISION-011 S191) and DECISION-007's step list; N18 is a one-line
   sort fix in a check script. The design-advisor is still mandatory (S133): one narrow dispatch, or a recorded
   reasoned skip.
+- design-advisor: skipped — both fixes follow existing records (DECISION-011 S191 `--advance` addendum, DECISION-007's
+  step list) and change no shared rule; the tech-lead's rec 1 (`.ai/handoffs/session-198-tech-lead.md`) says to skip.
+- F118's shape test is strict and fails closed (tech-lead rec 2): exactly one `## Current Session` heading; under it
+  exactly one `- **Number:** <current>` line, its indented continuation lines, then only blank lines; the next heading
+  is `## Prior Session`. The `vajra init` SESSION-BOOT (several `- **…:**` lines, no `## Prior Session`) is "another
+  shape": number swap + a stderr note — no heading is invented.
 
 ## Carried in
 - **From S197 (founder calls, 2026-10-14):** F125 + N17 fixed — the review-only guard ships to every project and only
@@ -63,10 +69,54 @@ design-significant: no
 - Fixes only what is listed; a new bug found on the way is filed, not fixed.
 
 ## Plan
-<the S198 agent writes this after the tech-lead>
+1. F118: `update_session_boot` (`src/cli/next.rs`) moves the old entry to the first `## Prior Session` block on
+   Vajra's shape and writes `- **Number:** NN+1 — IN PROGRESS`; any other shape keeps the number swap and `--advance`
+   prints why the entry did not move; unit tests for both shapes and the `vajra init` shape.
+   covers: 1, 2
+2. N18: check 6 in `scripts/scaffold-drift.sh` picks the last 10 verify scripts by the number in the file name.
+   covers: 3
+3. `scripts/verify-session-198.sh` — each row a real run (the built `vajra` on a temp repo; `scaffold-drift.sh` from a
+   dashed folder), red at the start commit `2830bb2` — and the demo; full `cargo test` before the push.
+   covers: 4
+
+## Execution
+- step 1 — done: e26d59a
+- step 2 — done: bbc2948, 0087c2a
+- step 3 — done: 31e92e7, c2b936c
 
 ## Delta
 - `~` F118: `--advance` moves the old Current Session entry down instead of leaving it under the new number
 - `~` N18: check 6 sorts by session number, not by a field of the full path
 
 ## Advice
+Roles dispatched: `tech-lead` (mandatory, first). Required at close: `fidelity-reviewer` (the one cold review),
+`release-coordinator` (the one judge of every `obeyed:` answer). `design-advisor`: the recorded skip in `## Design`.
+
+researcher: skipped — the tech-lead deferred it on budget: both bugs' evidence was already in the prompt and ROADMAP's known-bug list (~0.15M; crew ~1.4M → ~1.55M).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the founder picked these two items and AC1–AC4 give each a real-run check (~0.1M would restate them).
+plan-advisor: skipped — the tech-lead deferred it on budget: a two-step plan whose order does not matter (~0.1M).
+implementation-advisor: skipped — the tech-lead deferred it on budget: its recs 2–4 name the traps (strict shape, sort by file name, real-run rows) (~0.25M).
+qa-specialist: skipped — the tech-lead deferred it on budget: AC4 makes every verify row a real run, red at 2830bb2, and the fidelity-reviewer runs them (~0.3M).
+demo-producer: skipped — the tech-lead deferred it on budget: two bug fixes shown in verify output and the summary; the demo is the template's seven sections with live runs (~0.15M).
+
+**tech-lead** (`.ai/handoffs/session-198-tech-lead.md`):
+- tech-lead rec 1 — obeyed: 1f77083 (`design-advisor: skipped — <reason>` recorded in `## Design`; no dispatch, since the shape test needed no new rule)
+- tech-lead rec 2 — obeyed: e26d59a (`move_current_entry` checks the shape strictly and returns why it differs; any other shape gets the swap + the stderr note; the `vajra init` shape is "other shape", written in `## Design` at 1f77083 and tested as verify row 2)
+- tech-lead rec 3 — obeyed: bbc2948 (check 6 takes the NN from the file name before sorting) and 31e92e7 (row 3 runs check 6 from a checkout under `…/n-1-8/` and one under a dash-free folder and compares the 10 names)
+- tech-lead rec 4 — obeyed: 31e92e7 (rows 1–3 run the built `vajra` and the real script, each also at 2830bb2 where it goes red for its own reason; row 4 keeps S191's prose-number unit test)
+- tech-lead rec 5 — deferred: prompts/199-task-design-vajra-runs-the-reviewer.md
+  Why: the push half (stamp → close → push through the S196 belt, then recorded) happens after this session's last
+  commit, so no commit here can show it; that prompt's `## Carried in` holds it. The cargo-test half is done: 737/0
+  before any push, in the summary (8199d0a).
+- tech-lead rec 6 — obeyed: 07e73cf (build, then one fidelity-reviewer, then one release-coordinator; the tech-lead recorded from its handback text, c2b936c; a skip line for each deferred role above; `## Delta` above `## Advice`; no new bug fixed on the way)
+
+**fidelity-reviewer** (`.ai/handoffs/session-198-fidelity-reviewer.md`, ACCEPT 5/6):
+- fidelity-reviewer rec 1 — obeyed: 29520f8 (verify row 4 now needs `test result: ok. 5 passed;`, so 15/25 no longer match; re-run 4/4)
+- fidelity-reviewer rec 2 — obeyed: 8199d0a (the summary's fidelity map grades AC4 PARTIAL — the push half deferred to the next session's prompt)
+- fidelity-reviewer rec 3 — obeyed: 8199d0a (filed as N19 in ROADMAP's known bugs with a fix idea and the S200 checklist destination; not fixed, per the guardrails)
+- fidelity-reviewer rec 4 — obeyed: 8199d0a (filed as N20 in ROADMAP's known bugs with a fix idea and the S200 checklist destination; not fixed)
+- fidelity-reviewer rec 5 — obeyed: 8199d0a (the builder re-ran `scripts/verify-session-198.sh` at the tip — 4/4, rows 1–3 also red at 2830bb2 inside the run — and the full `cargo test`: exit 0, 737 passed / 0 failed; that re-run found the earlier "739" was a miscount, corrected in the summary, ROADMAP and this section)
+
+**release-coordinator** (`.ai/handoffs/session-198-release-coordinator.md`, the one judge — its own recs answered here; no second judge, per the founder's "one release-coordinator"):
+- release-coordinator rec 1 — obeyed: 6a07a25 (its handoff recorded and committed before the stamp; the only commit after it is this answer, then stamp → close → push on one sha with no commit in between)
+- release-coordinator rec 2 — refused: the `implemented: <yes|no|partial>` wording was in this session's own dispatch text, typed by the builder — no Vajra file carries it (`grep -rnI 'implemented: <yes' src scripts .claude .ai/AGENTS.md` finds nothing); the parseable `implemented: <sha>` shape is already the recorded rule, so there is no product bug to file. The judge used the right shape anyway.

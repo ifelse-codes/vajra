@@ -297,10 +297,13 @@ echo ""
 # text — opts out with `# source-claim: <why>` ON THE LINE ITSELF, with a non-empty why. The check
 # stays; an unmarked or reason-less grep still fails. (Limit: the marker is matched as text.)
 echo "--- 6. no hollow grep.*src/.*\.rs in the last 10 verify scripts ---"
-VERIFY_SCRIPTS="$(ls -1 "$ROOT/scripts/verify-session-"*.sh 2>/dev/null \
-  | grep -v verify-session-template \
-  | sort -t- -k3 -n \
-  | tail -10)"
+# S198 (N18): sort by the NN in the file NAME. `sort -t- -k3` split the WHOLE path on `-`, so a
+# folder with dashes in its path (an old-version checkout, `…/<pid>-<sha>/`) sorted the wrong field.
+VERIFY_SCRIPTS="$(for f in "$ROOT/scripts/verify-session-"*.sh; do
+    n="${f##*/verify-session-}"; n="${n%.sh}"
+    case "$n" in (''|*[!0-9]*) continue ;; esac  # leading ( : bash 3.2 misreads a bare ) inside $( )
+    printf '%s\t%s\n' "$n" "$f"
+  done | sort -n -k1,1 | tail -10 | cut -f2-)"
 HOLLOW_HITS=0
 while IFS= read -r script; do
   [ -z "$script" ] && continue
@@ -317,6 +320,8 @@ while IFS= read -r script; do
   fi
 done <<< "$VERIFY_SCRIPTS"
 CHECKED_V="$(printf '%s\n' "$VERIFY_SCRIPTS" | grep -c . || true)"
+# S198 (N18): name what was scanned, so a run from any folder can be compared with another.
+echo "  scanned: $(printf '%s\n' "$VERIFY_SCRIPTS" | sed 's#.*/##' | tr '\n' ' ')"
 if [ "$HOLLOW_HITS" -eq 0 ]; then
   pass "no hollow src/*.rs greps in last $CHECKED_V verify scripts ($CHECKED_V scanned)"
 fi

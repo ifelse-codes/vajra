@@ -46,6 +46,11 @@ Rows 3, 4, 5, 7 test behaviour that has no old counterpart — at `eceb6d5` a pr
 | D5 / AC5 N10 | SHIPPED | verify row 10: exit 0 here; an unmarked grep and a reason-less marker both still fail |
 | AC6 real-run checks, cargo test, push via the S196 belt | SHIPPED except the push, which happens after the close (below) | verify 13/13; cargo test 735/0 |
 
+**The push (recorded at S198's start):** PR #235's head is `2f83693` (`gh pr view 235`, 30 commits, merged
+2026-10-14T18:22Z), and `.ai/verify/closeout/20261014T181428Z/result` records that exact commit as
+`verdict: GREEN` (25 pass, 0 fail), `clean: yes` — the condition the S196 push belt checks. The pre-push hook
+keeps no log, so whether the agent pushed (belt checked) or the founder did (note only) is not recorded.
+
 **Not built:** F118. rec 10 of the design-advisor (a `--steps` line for the close record) — see `## Advice`.
 
 **Fakest green:** the review's pick was "no branch name opens it" while a branch with ANOTHER session's number

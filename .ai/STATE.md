@@ -3,15 +3,18 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S197 complete on `session-197-known-bugs` (PR open; the founder merges). Next: S198 — CODE, the known-bug leftovers F118 + N18 (founder pick 2); prompt `prompts/198-task-known-bug-leftovers.md` (draft, the founder approves it with `vajra approve 198`).**
+**None — between sessions. S198 complete on `session-198-known-bug-leftovers` (PR open; the founder merges). Next: S199 — DOCUMENT (design only): Vajra runs the required reviewer itself (Haiku answer d) + the README "tested with" line (c) (founder pick, 2026-10-15); prompt `prompts/199-task-design-vajra-runs-the-reviewer.md` (draft, the founder approves it with `vajra approve 199`). S200 after it is the review-only session.**
 
-## What was done this session (S197 — CODE: the known-bug session)
+## What was done this session (S198 — CODE: the known-bug leftovers)
 
-- **F125 premise corrected (founder, 2026-10-14):** user projects never HAD the review-only (ground-truth) guard — it lived only in Vajra's own `hook-pre-bash.sh` / `hook-pre-write.sh`, while every scaffold's Hard Rules said "Hook-enforced". Founder: ship it to every project, move F118 out.
-- **Shipped (DECISION-011 S197 addendum):** one `scripts/hook-ground-truth-guard.sh` (Vajra's two hooks call it; `vajra init` / `--sync-fleet` ship it as `.ai/hooks/hook-ground-truth-guard.sh`, wired in the PreToolUse `Bash|Edit|Write|MultiEdit|NotebookEdit` group). No branch name opens it: `-closeout`/`-enforcement` and `VAJRA_GT_WAIVER` retired, and a git checkout/switch/branch/worktree naming another session's number is refused (cold review rec 1, founder: "fix it now"). Only `vajra approve NN --close` opens it, read by `vajra next --check-close-record NN` (the S188 void counts; an older vajra stays closed). N17: an unnumbered branch uses HEAD's `.ai/SESSION` + 1.
-- **F116** `--steps` names an approval record not in the last commit · **F119** `--steps` ticks design on `design-significant: no` · **N10** scaffold-drift check 6 takes `# source-claim: <why>` (drift 20/0).
-- Verify-197 13/13 (real runs; rows 1, 2, 6, 7b, 7c, 8–10 red at eceb6d5) · demo 5/5 · `cargo test` 735/0 · CI lint clean. Review: one cold pass ACCEPT 10/12; all 9 recs answered. Crew: tech-lead, design-advisor, fidelity-reviewer, release-coordinator (the judge).
-- **Filed:** N18 (check 6 sorts by a field of the full path) · design-advisor rec 10 (a `--steps` line for the close record). **Seen again:** F118 at this session's own advance (`aad6381`, fixed by hand at close).
+- **F118 fixed:** `vajra next --advance` on Vajra's SESSION-BOOT shape (one `## Current Session` with one `- **Number:** NN` entry + indented continuation lines, then `## Prior Session`) writes `NN+1 — IN PROGRESS` and moves the old entry, byte-for-byte, to the first `## Prior Session`; any other shape (the `vajra init` one, rudra's) keeps the S191 number swap and stderr says why (`e26d59a`). Proven live on S198's own advance (`1f77083`) — the first advance since S193 with no hand repair.
+- **N18 fixed:** `scaffold-drift.sh` check 6 picks the last 10 verify scripts by the number in the file name and prints `scanned:` (`bbc2948`); a bash 3.2 `case` inside `$( )` parse failure caught by verify row 3 and fixed (`0087c2a`).
+- Verify-198 4/4 (rows 1–3 real runs, red at 2830bb2) · demo 5/5 · full `cargo test` 737/0 · drift 20/0. Review: one cold pass ACCEPT 5/6 (AC4 PARTIAL: the push half happens after the close → S199's prompt); all 5 recs answered. Crew: tech-lead, fidelity-reviewer, release-coordinator (the judge); design-advisor a recorded skip.
+- **Filed:** N19 (`--advance` turns CRLF into LF) · N20 (the prompt-pointer rewrite reaches the moved Prior entry). S197's push recorded (`2830bb2`): PR #235 head `2f83693` = the GREEN `clean: yes` close result.
+
+## Previous session (S197 — CODE: the known-bug session, merged #235)
+
+- F125 + N17: the review-only guard ships to every project; only `vajra approve NN --close` opens it (DECISION-011 S197 addendum). F116, F119, N10 fixed; N18 filed. Verify 13/13 · `cargo test` 735/0 · review ACCEPT 10/12.
 
 ## Previous session (S196 — INTERACTIVE: rudra S21 on Opus, and F127, merged #234)
 
@@ -110,7 +113,7 @@
 - **🟡 The guards' old-vs-new check is a list (S173):** named shapes × triggers; a spelling nobody listed is not covered.
 - **🟡 Parked LOW (S173):** F47 copied jargon · F56 the session guard cannot tell a command runs in another project · F57 the Coder check reads only `1. …` plan steps.
 - **🟢 F67 — PROVEN LIVE S192 (was 🔴 S176, 🟡 S189):** rudra $6.90/$22.96 and the fresh/`--continue` runs equal Claude Code's own `cost-state`; a fork is labelled whole-conversation (it keeps the parent's `startTime`). Left named (founder 2026-10-09): `/clear` gets no receipt, a fork's own share is not shown.
-- **🟡 S193 known bugs — F116 + F119 FIXED S197; F118 still open → S198 (founder pick). Was (ROADMAP backlog, S195 checklist):** F116 the founder's approval record is left out of git at close — rudra S19 needed PR #23, Vajra's own `session-192.json` was never committed (`vajra approve`'s "Commit it with the session" reaches only the founder's terminal; the agent sees only "never write to `.ai/approvals/`") · F118 `vajra next --advance` swaps the `**Number:**` token but leaves the old session's text under it and drops it from Prior (fixed by hand, `beae153`) · F119 `vajra next --steps` reads the Architect station, so a `design-significant: no` prompt shows ✗ while `--check-design` says READY.
+- **🟢 S193 known bugs — F116 + F119 FIXED S197; F118 FIXED S198. Was (ROADMAP backlog, S195 checklist):** F116 the founder's approval record is left out of git at close — rudra S19 needed PR #23, Vajra's own `session-192.json` was never committed (`vajra approve`'s "Commit it with the session" reaches only the founder's terminal; the agent sees only "never write to `.ai/approvals/`") · F118 `vajra next --advance` swaps the `**Number:**` token but leaves the old session's text under it and drops it from Prior (fixed by hand, `beae153`) · F119 `vajra next --steps` reads the Architect station, so a `design-significant: no` prompt shows ✗ while `--check-design` says READY.
 - **🟡 S193 disclosed (ADR-0004 S193 addendum):** the `~$… saved` compression line is still priced from the price list (opus-5-5 at the upper bound) · with `hasUnknownModelCost` the figure may undercount and no estimate is shown beside it · a fork keeps the whole-file estimate · the stale ROADMAP rows S119 and S167 said "Next" — fixed in S195's closeout.
 - **🟡 F70-residual (S176, disclosed):** nothing at close re-runs the Planner — a mid-session brief wipe is caught only when someone runs `--check-plan`/`--steps`/`--stations`; deleting the `covers:` markers or the whole `## Plan` still passes (S68 class). A close re-run needs the founder's yes.
 - **🟡 S177 disclosed:** Vajra's OWN close gate still matches only `**CODE**` (own paperwork, not changed); `ground_truth_next_session` is agent-writable and unguarded (a key = N session loses its CODE checks); the key is read as the first digits on its line (LOW).
@@ -141,16 +144,17 @@
 
 ## What Is In Progress
 
-- Nothing. S197 complete on its branch. Next: S198, the known-bug leftovers (F118 + N18).
+- Nothing. S198 complete on its branch. Next: S199, the reviewer design (Haiku answer d + README line c).
 
 ## Active PRs
 
-- S197's PR (the founder merges). S196 merged as #234.
+- S198's PR (the founder merges). S197 merged as #235.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S198 | $0 | No paid run. 4 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer; a narrow fidelity-reviewer judging the release-coordinator's own rec 1); design-advisor a recorded skip |
 | S197 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor — F125 + N17, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer) |
 | S195 | $0 | NO-CODE ground truth. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer, two passes) |
 | S194 | $0 | No paid run by the agent; the founder's rudra S20 run was $1.49 (Haiku 4.5, Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F121/F123/F120 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |

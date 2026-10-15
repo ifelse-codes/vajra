@@ -2,11 +2,17 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S197 (CODE: the known-bug session) complete on `session-197-known-bugs`; next is S198, the known-bug leftovers
+## Between Sessions — S198 (CODE: the known-bug leftovers) complete on `session-198-known-bug-leftovers`; next is S199, the reviewer design
 
-**Next: Session 198 — CODE: the known-bug leftovers — F118 + N18** (founder pick 2). Prompt: `prompts/198-task-known-bug-leftovers.md` (draft; the founder runs `vajra approve 198` after reading it). Start it in a fresh chat after S197's PR is merged.
+**Next: Session 199 — DOCUMENT (design only): Vajra runs the required reviewer itself (Haiku answer d) + the README "tested with" line (c)** (founder pick, 2026-10-15). Prompt: `prompts/199-task-design-vajra-runs-the-reviewer.md` (draft; the founder runs `vajra approve 199` after reading it). Start it in a fresh chat after S198's PR is merged.
 
-## Session 197 — CODE: the known-bug session — COMPLETE
+## Session 198 — CODE: the known-bug leftovers — COMPLETE
+
+- Brief: `prompts/198-task-known-bug-leftovers.md`. Summary: `sessions/session-198-summary.md`. Review: `sessions/session-198-review.md` (one cold pass, ACCEPT 5/6; all 5 recs answered).
+- Shipped: **F118** `--advance` moves the old Current Session entry to Prior Session on Vajra's shape (other shapes: swap + why) — live on S198's own advance · **N18** check 6 sorts by the file name's number. Verify 4/4 · demo 5/5 · `cargo test` 737/0.
+- **Filed:** N19 (CRLF → LF on advance), N20 (prompt-pointer rewrite reaches the moved entry) → ROADMAP known bugs, S200 checklist.
+
+## Session 197 — CODE: the known-bug session — COMPLETE (merged #235)
 
 - Brief: `prompts/197-task-known-bugs.md`. Summary: `sessions/session-197-summary.md`. Review: `sessions/session-197-review.md` (one cold pass, ACCEPT 10/12; all 9 recs answered). Decision: DECISION-011 S197 addendum.
 - **F125 premise corrected** (founder, 2026-10-14): user projects never had the review-only guard. Shipped: one `hook-ground-truth-guard.sh` via `vajra init` / `--sync-fleet`; no branch name opens it; only `vajra approve NN --close` does (`vajra next --check-close-record NN`). N17, F116, F119, N10 fixed. Verify 13/13 · demo 5/5 · `cargo test` 735/0.
