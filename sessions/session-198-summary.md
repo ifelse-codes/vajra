@@ -22,8 +22,10 @@ at `2830bb2` it said only "updated". Row 3 (AC3): the real `scaffold-drift.sh` f
 one under a dash-free `/tmp` folder, each with a planted hollow `verify-session-199.sh` — both scan the same 10
 (equal to an independent `ls | sort -n`) and both catch 199; at `2830bb2` the dashed run missed it. Row 4: the five
 SESSION-BOOT unit tests (incl. S191's prose-number case). `scripts/demo-session-198.sh` 5/5 live checks.
-`scripts/scaffold-drift.sh` on this repo: 20/0, `scanned:` ends at verify-session-198. Full `cargo test` 739 passed /
-0 failed, exit 0 (at `c2b936c`); `scripts/ci-lint.sh` clean.
+`scripts/scaffold-drift.sh` on this repo: 20/0, `scanned:` ends at verify-session-198. Full `cargo test` 737 passed /
+0 failed, exit 0 (at `c2b936c`, and again after the review's fixes); `scripts/ci-lint.sh` clean. (An earlier "739" here
+was my miscount: the sum also caught two demo-kit lines a test prints, "✗ 1 of 1 live checks FAILED". Corrected after
+the review; the cold reviewer could not run commands, so the builder re-ran both — review rec 5.)
 
 ## Fidelity map
 
@@ -32,15 +34,22 @@ SESSION-BOOT unit tests (incl. S191's prose-number case). `scripts/demo-session-
 | D1 / AC1 F118 Vajra's shape | SHIPPED | verify row 1 (byte-for-byte `cmp`, continuation line included); live on S198's own advance (`1f77083`) |
 | D1 / AC2 F118 other shapes | SHIPPED | verify row 2 (the `vajra init` shape + two entries); unit test `update_session_boot_only_swaps_other_shapes` (4 shapes) |
 | D2 / AC3 N18 | SHIPPED | verify row 3 (dashed vs dash-free checkout, same 10, planted 199 caught; red at `2830bb2`) |
-| AC4 real-run checks, red at start; cargo test; push via the S196 belt | SHIPPED except the push, which happens after the close | rows 1–3 run the old binary/script too; no source greps (the two `src/main.rs` lines write a fixture and carry `# source-claim:`); `cargo test` 739/0 |
+| AC4 real-run checks, red at start; cargo test; push via the S196 belt | PARTIAL — the push half happens after the close; deferred to the next session's prompt (tech-lead rec 5; review rec 2) | rows 1–3 run the old binary/script too; no source greps (the two `src/main.rs` lines write a fixture and carry `# source-claim:`); `cargo test` 737/0 |
 | Carried: S197's push recorded | SHIPPED | `2830bb2` (S197 summary: PR #235 head `2f83693` = the GREEN, `clean: yes` close result; who pushed is not recorded — the hook keeps no log) |
 
 **Not built:** nothing in the prompt. **Not moved:** a project's own SESSION-BOOT (rudra's) is still only
 number-swapped — by design; it is now told so.
 
-**Fakest green:** row 4 counts "5 passed" from a `cargo test` name filter — a renamed test would drop the count and
-fail loudly, but a sixth matching test would too (brittle, not hollow). The bigger one: F118's shape test is Vajra's
+**Fakest green:** row 4 counted "5 passed" as a substring, so "15 passed" would also match (review rec 1 — now
+anchored to `test result: ok. 5 passed;`); it still counts tests rather than running the fix — rows 1–3 are the proof.
+The bigger one: F118's shape test is Vajra's
 own file layout, so the fix reaches users only if their SESSION-BOOT copies that layout; the `vajra init` one does not.
+
+## New findings (filed, not fixed)
+
+- **N19** — `--advance` turns a CRLF SESSION-BOOT into LF (pre-dates S198; breaks "byte-for-byte" on CRLF files).
+- **N20** — the advance's prompt-pointer rewrite can change a "read prompt `…`" line inside the just-moved Prior entry.
+- Both from the cold review (recs 3, 4); ROADMAP known bugs, S200 checklist.
 
 ## Process
 
