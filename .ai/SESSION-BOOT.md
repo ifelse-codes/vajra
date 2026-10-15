@@ -4,6 +4,9 @@
 - **S198 — CODE: the known-bug leftovers, F118 + N18** (founder pick 2 at S197). S197's PR first: the founder merges it, then in YOUR terminal `git checkout main && git fetch --prune && git pull --ff-only`, `git branch -d session-197-known-bugs` (lowercase -d), `cargo install --path .`, and in rudra `vajra init --sync-fleet` + a Claude Code restart (the review-only guard). In a FRESH chat: read `prompts/198-task-known-bug-leftovers.md`, run `vajra approve 198`, start S198.
 
 ## Current Session
+- **Number:** 198 — IN PROGRESS
+
+## Prior Session
 - **Number:** 197 — COMPLETE on `session-197-known-bugs` (PR open). CODE: the known-bug session. **F125 premise corrected:** user projects never had the review-only guard; founder: ship it — one `hook-ground-truth-guard.sh` via `vajra init` / `--sync-fleet`, no branch name opens it (`-closeout`/`-enforcement`, `VAJRA_GT_WAIVER`, another session's number), only `vajra approve NN --close` (DECISION-011 S197 addendum). N17, F116, F119, N10 fixed; F118 moved out (founder); N18 filed. Summary: `sessions/session-197-summary.md`. Review: `sessions/session-197-review.md` (ACCEPT 10/12, recs fixed). Verify: `scripts/verify-session-197.sh` (13/13). Demo: `scripts/demo-session-197.sh` (5/5).
 
 ## Prior Session

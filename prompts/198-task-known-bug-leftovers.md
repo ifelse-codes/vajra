@@ -39,6 +39,12 @@ design-significant: no
 - F118 follows the S191 `--advance` addendum (DECISION-011 S191) and DECISION-007's step list; N18 is a one-line
   sort fix in a check script. The design-advisor is still mandatory (S133): one narrow dispatch, or a recorded
   reasoned skip.
+- design-advisor: skipped — both fixes follow existing records (DECISION-011 S191 `--advance` addendum, DECISION-007's
+  step list) and change no shared rule; the tech-lead's rec 1 (`.ai/handoffs/session-198-tech-lead.md`) says to skip.
+- F118's shape test is strict and fails closed (tech-lead rec 2): exactly one `## Current Session` heading; under it
+  exactly one `- **Number:** <current>` line, its indented continuation lines, then only blank lines; the next heading
+  is `## Prior Session`. The `vajra init` SESSION-BOOT (several `- **…:**` lines, no `## Prior Session`) is "another
+  shape": number swap + a stderr note — no heading is invented.
 
 ## Carried in
 - **From S197 (founder calls, 2026-10-14):** F125 + N17 fixed — the review-only guard ships to every project and only
@@ -63,7 +69,20 @@ design-significant: no
 - Fixes only what is listed; a new bug found on the way is filed, not fixed.
 
 ## Plan
-<the S198 agent writes this after the tech-lead>
+1. F118: `update_session_boot` (`src/cli/next.rs`) moves the old entry to the first `## Prior Session` block on
+   Vajra's shape and writes `- **Number:** NN+1 — IN PROGRESS`; any other shape keeps the number swap and `--advance`
+   prints why the entry did not move; unit tests for both shapes and the `vajra init` shape.
+   covers: 1, 2
+2. N18: check 6 in `scripts/scaffold-drift.sh` picks the last 10 verify scripts by the number in the file name.
+   covers: 3
+3. `scripts/verify-session-198.sh` — each row a real run (the built `vajra` on a temp repo; `scaffold-drift.sh` from a
+   dashed folder), red at the start commit `2830bb2` — and the demo; full `cargo test` before the push.
+   covers: 4
+
+## Execution
+- step 1 — done: e26d59a
+- step 2 — done: bbc2948, 0087c2a
+- step 3 — done: <sha>
 
 ## Delta
 - `~` F118: `--advance` moves the old Current Session entry down instead of leaving it under the new number
