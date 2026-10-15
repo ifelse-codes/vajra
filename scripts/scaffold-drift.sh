@@ -301,7 +301,7 @@ echo "--- 6. no hollow grep.*src/.*\.rs in the last 10 verify scripts ---"
 # folder with dashes in its path (an old-version checkout, `…/<pid>-<sha>/`) sorted the wrong field.
 VERIFY_SCRIPTS="$(for f in "$ROOT/scripts/verify-session-"*.sh; do
     n="${f##*/verify-session-}"; n="${n%.sh}"
-    case "$n" in ''|*[!0-9]*) continue ;; esac
+    case "$n" in (''|*[!0-9]*) continue ;; esac  # leading ( : bash 3.2 misreads a bare ) inside $( )
     printf '%s\t%s\n' "$n" "$f"
   done | sort -n -k1,1 | tail -10 | cut -f2-)"
 HOLLOW_HITS=0
