@@ -96,7 +96,7 @@ if [ "$(scanned "$SD")" = "$EXPECT" ] && [ "$(scanned "$SN")" = "$EXPECT" ] && h
 else bad "N18 AC3: expect=[$EXPECT]"$'\n'"dashed=[$(scanned "$SD")]"$'\n'"plain=[$(scanned "$SN")]"$'\n'"old dashed:"$'\n'"$(printf '%s\n' "$OD" | grep -A3 -- '--- 6')"; fi
 
 # --- 4 (AC4): the SESSION-BOOT unit tests (both shapes, the S191 prose-number case) pass ---
-if cargo test -q --lib -- session_boot >"$T/ut.log" 2>&1 && grep -q '5 passed' "$T/ut.log"; then
+if cargo test -q --lib -- session_boot >"$T/ut.log" 2>&1 && grep -qE 'test result: ok\. 5 passed;' "$T/ut.log"; then
   ok "the five SESSION-BOOT unit tests pass (Vajra's shape, other shapes, S191's prose numbers, exact swap)"
 else bad "SESSION-BOOT unit tests — $(tail -3 "$T/ut.log")"; fi
 
