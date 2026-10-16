@@ -81,7 +81,7 @@ S2=$(signoff "$P" "$VAJRA"); SO=$(signoff "$P" "$OLD_VAJRA")
 if has "$S0" "✗ the founder has signed off" \
    && has "$S1" "✓ the founder has signed off" && has "$S1" ".ai/approvals/session-10-close.json is not in git yet" \
    && has "$S2" "✓ the founder has signed off" && ! has "$S2" "not in git" && [ -z "$SO" ]; then
-  ok "sign-off: review-only session 10 shows ✗ until the close record, ✓ naming it while not in git, ✓ after the commit; no such step at $OLD_SHA (the step's `vajra approve 10 --close` wording: unit test a_review_only_session_has_the_founders_sign_off_step)"
+  ok "sign-off: review-only session 10 shows ✗ until the close record, ✓ naming it while not in git, ✓ after the commit; no such step at $OLD_SHA (the step's close-command wording: unit test a_review_only_session_has_the_founders_sign_off_step)"
 else bad "sign-off: [$S0] [$S1] [$S2] old=[$SO]"; fi
 
 # --- 3+4 (N19 + N20, AC3/AC4): CRLF kept on both shapes and TASK.md; a Prior pointer is untouched -------
