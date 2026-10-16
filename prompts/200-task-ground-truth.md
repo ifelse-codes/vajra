@@ -65,9 +65,20 @@ Output: `sessions/session-200-ground-truth.md`. New findings listed with a sever
 design-significant: no
 - A review-only session picks designs; it builds none. Any design it picks names its record (ADR-0004,
   DECISION-007, DECISION-011) in the report.
+design-advisor: skipped — no open design fork on this checklist (every design item is named-not-closed by founder rule; `design-significant: no`); tech-lead rec 3, its allowance carried to S201.
 
 ## Plan
-<the S200 agent writes this after the tech-lead>
+(Written after the founder's `vajra approve 200 --close` — the review-only guard blocked this file until then, N26.)
+1. Run every required audit live and paste the output into `sessions/session-200-ground-truth.md`, `delivery_progress` first; the start-of-session checks (`vajra next --steps` with S199's binary, `latest`) before any file is written. covers: 1
+2. Answer the close-truth question for S196–S199 (and rudra S21) from each newest `.ai/verify/closeout/<stamp>/result`, its PR head, the summary's own words and the agent's last words at close. covers: 2
+3. Give every S200 checklist item a pick (fix → session, keep → why, drop → founder's call), "drop" set out as a real choice for N22/N23 (tech-lead rec 4). covers: 3
+4. Put the report to the founder; record his sign-off and pick; code resumes only after his `vajra approve 200 --close`. covers: 4
+
+## Execution
+- step 1 — done: ee9343a
+- step 2 — done: ee9343a
+- step 3 — done: ee9343a
+- step 4 — done: f21c831
 
 ## Delta
 - `+` `sessions/session-200-ground-truth.md`, `sessions/session-200-review.md`, `sessions/session-200-summary.md`
@@ -75,3 +86,34 @@ design-significant: no
 - `+` `prompts/201-task-<slug>.md`
 
 ## Advice
+Roles dispatched: `tech-lead` (mandatory, first), `fidelity-reviewer` (gate-mandated past S131, one cold pass on the
+report), `release-coordinator` (required; the one judge of every `obeyed:` answer).
+
+researcher: skipped — the tech-lead deferred it on budget: the close-truth question is four result files and four summaries the main session reads directly (~200k kept for the next rudra comparison).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the prompt already lists the audits, the checklist and 4 acceptance lines (~100k).
+design-advisor: skipped — the tech-lead deferred it on budget: no open design fork, `design-significant: no`; the recorded skip line is under `## Design` (~100k carried to S201).
+plan-advisor: skipped — the tech-lead deferred it on budget: the plan is "fill one report" (~80k).
+implementation-advisor: skipped — the tech-lead deferred it on budget: no source edits are allowed in a review-only session (~100k).
+qa-specialist: skipped — the tech-lead deferred it on budget: no verify-200 script; the evidence is live command output pasted into the report (~80k).
+demo-producer: skipped — the tech-lead deferred it on budget: a review-only session produces no demo (~60k).
+
+**tech-lead** (`.ai/handoffs/session-200-tech-lead.md`):
+- tech-lead rec 1 — obeyed: ee9343a (the report's "Start-of-session checks": `vajra next --steps` from the installed and from S199's binary, and `latest -> 20261016T130949Z`, both run before the report file was written; raw output pasted; N24 + N25 filed from them)
+- tech-lead rec 2 — obeyed: ee9343a (Goal 2: one row per session naming each result file, its head and verdict, the PR head from `git rev-parse <merge>^2`, the summary's and the chat's own words; the WAIVED/N/A grep over the four final close folders reported — 0 real waivers, rudra S21's 1 N/A named)
+- tech-lead rec 3 — obeyed: dd8f62f (no design-advisor dispatch; the one-line `design-advisor: skipped — <reason>` under `## Design` is in this prompt)
+- tech-lead rec 4 — obeyed: ee9343a (checklist row 1 sets out N22 "retire" as a proposed drop with the paperwork-loop reason, row 2 offers N23 keep or drop; the founder chose retire / keep — "Founder rulings")
+- tech-lead rec 5 — obeyed: d9ff0dd (order: report draft → one fidelity-reviewer pass on it → its recs applied (ee9343a) → this Advice → one release-coordinator judge pass)
+- tech-lead rec 6 — obeyed: d9ff0dd (the tech-lead and fidelity-reviewer handoffs recorded by `vajra next --role --from` a scratch file holding the hand-back text, each with a `verified: toolu_…; text-sha` header; the report was committed only after `vajra approve 200 --close`, ee9343a after f21c831's close record) and f21c831 (the tech-lead handoff committed with the approval records)
+
+**fidelity-reviewer** (`.ai/handoffs/session-200-fidelity-reviewer.md`) — one cold pass, ACCEPT 5 SHIPPED / 3 PARTIAL:
+- fidelity-reviewer rec 1 — obeyed: ee9343a (the glance row now reads "about the close check itself" and names rudra S21's false "Nothing is left half-done" — F126, fixed S199; Goal 2's rudra row carries ✗ on that claim)
+- fidelity-reviewer rec 2 — obeyed: ee9343a (checklist row 4 reads "Checked; the S199 push line is not written yet (after sign-off, N26)")
+- fidelity-reviewer rec 3 — obeyed: ee9343a (checklist row 2 points at Goal 4's next step, option A, the rudra sync)
+- fidelity-reviewer rec 4 — obeyed: ee9343a (Goal 2 says each summary has no words about its own close at its PR head and quotes where the next session recorded it — S198 `:38`, S199 `:52`)
+- fidelity-reviewer rec 5 — obeyed: ee9343a (constitution_review cites `.ai/AGENTS.md:66`, `prompts/200-task-ground-truth.md:69-70` and the step list's plan step as the places that assume the plan is written mid-review)
+
+**release-coordinator** (`.ai/handoffs/session-200-release-coordinator.md`) — the one judge; one pass: 11 implemented, 0 mismatch:
+- release-coordinator rec 1 — deferred: sessions/session-200-summary.md
+- release-coordinator rec 2 — deferred: sessions/session-200-summary.md
+- release-coordinator rec 3 — deferred: sessions/session-200-summary.md
+- release-coordinator rec 4 — deferred: sessions/session-200-summary.md

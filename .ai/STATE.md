@@ -3,15 +3,20 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S199 complete on `session-199-all-pending-bugs` (PR open; the founder merges). Next: S200 — NO-CODE ground truth (every 5th), the review of S196–S199; prompt `prompts/200-task-ground-truth.md` (the founder approves it with `vajra approve 200`, and signs the report off with `vajra approve 200 --close`).**
+**None — between sessions. S200 complete on `session-200-ground-truth` (PR open; the founder merges). Next: S201 — CODE: the S200 small fixes + the README "tested with" line; prompt `prompts/201-task-small-fixes.md` (the founder approves it with `vajra approve 201`).**
 
-## What was done this session (S199 — CODE: every pending known bug)
+## What was done this session (S200 — NO-CODE ground truth, 🟡 PARTIAL PASS)
 
-- All nine items, in the prompt's order, none moved out. **F126:** a real stamp run (throwaway checkout) — a new next prompt, a summary edit, `.ai/` TASK/STATE/ROADMAP edits leave the review's stamp; this session's own prompt, a handoff or code move it — so the step list now says a late founder change goes into git there, then one more close; no new rule (`b63e349`). **Sign-off step:** a review-only session's `--steps` shows the founder's `vajra approve NN --close`, naming the close record while it is not in git (`b63e349`).
-- **N19 + N20** (`df7bc11`): `--advance` keeps each line's own ending (CRLF stays CRLF on the move, swap and pointer rewrite); the pointer rewrite stops at the first `## Prior Session`. **N21** (`e572057`): two prompts for one session → `--advance` refuses naming both, `--steps` leads with a ✗ naming both, the shared lookup reads by name. **N14** (`c2a11bd`): a `constraint_violation_questions` block (read each close result against what the human was told); `vajra init` and `--sync-fleet` carry it.
-- `latest` is a link (founder saw the folder — 732 broken self-links + 12 old logs — and said yes; local only). `gt_cadence_shared` counts only the announcement line (`c19800d`). The rest of N7: eight scripts on `lib-old-checkout.sh` (`93b706b`, `c38ea5b`, `8216bf5`).
-- Verify-199 9/9 (each binary row red with 027e70f's binary) · demo 5/5 · full `cargo test` 743/0 · lint clean · drift 20/0. Crew: tech-lead, fidelity-reviewer, release-coordinator (the judge); design-advisor a recorded skip.
-- **Filed:** N22 (verify-178's 9 rows and demo-178's 1 check red on main — old wording comparisons). **Seen, not new:** demo-186's 2 checks red by S188's design; verify-179's rudra row red until rudra's next `--sync-fleet` (N14). S198's push recorded (`6fc23c3`).
+- All 13 required audits run live, `delivery_progress` first (`sessions/session-200-ground-truth.md`). Signed off by the founder's `vajra approve 200 --close` — the first GT sign-off that is a record (`.ai/approvals/session-200-close.json`), not a chat word. First Vajra GT with the review-only guard ON from its first command (F125's fix); it blocked the prompt's plan, the review file and the S199 push line until the sign-off (N26).
+- **Close-truth question, first use (N14):** S196, S197, S198, S199 and rudra S21 — each PR head is a GREEN, `clean: yes` result; three sessions went RED first and fixed it before the push; what the agent said about the close matched every time. rudra S21's other end claim "nothing half-done" was false (F126, fixed S199). Weak evidence while the push belt holds (meta-check 2).
+- Live: stranger-check 21/0 GREEN · scaffold-drift **20/0 GREEN** (first green GT read in three reviews; N10 fixed) · stations S196 8/8, S197 8/8, S198 7/8, S199 7/8 · `--dogfood-age` blind to rudra (N5) · reach 0 stars / 0 forks / 0 issues, crates.io 0.1.0, 19 downloads · boot 95.5 KB (S195: 79.7 KB) · paperwork 62% of commits (flat).
+- **Founder rulings:** N22 retire verify-178/demo-178 (→ S201) · N23 keep (green on rudra's next `--sync-fleet`) · next = C.
+- **New:** N24 the sign-off step is "next" before the report exists (→ S201) · N25 the installed `vajra` predates S199 (→ S201 after-merge note; reinstall) · N26 GT is report-only until sign-off (→ S205 prompt) · N27 STATE had no S196 cost row (fixed here).
+- Crew: tech-lead, fidelity-reviewer (one cold pass, ACCEPT, 5 recs applied), release-coordinator (the judge: 11 implemented, 0 mismatch); design-advisor a recorded skip.
+
+## Previous session (S199 — CODE: every pending known bug, merged #238)
+
+- All nine items: F126, the sign-off step, N19, N20, N21, N14, `latest` a link, `gt_cadence_shared`, the rest of N7. Verify 9/9 · `cargo test` 743/0 · close GREEN 25/0 at `2aab75c` (= PR #238 head).
 
 ## Previous session (S198 — CODE: the known-bug leftovers, merged #236)
 
@@ -149,19 +154,21 @@
 
 ## What Is In Progress
 
-- Nothing. S199 complete (PR open). Next: S200, the review-only session.
+- Nothing. S200 complete (PR open). Next: S201, the small fixes.
 
 ## Active PRs
 
-- S199's PR (the founder merges). S198 merged as #236.
+- S200's PR (the founder merges). S199 merged as #238.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S200 | $0 | NO-CODE ground truth. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |
 | S199 | $0 | No paid run. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |
 | S198 | $0 | No paid run. 4 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer; a narrow fidelity-reviewer judging the release-coordinator's own rec 1); design-advisor a recorded skip |
 | S197 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor — F125 + N17, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer) |
+| S196 | $0 | No paid run by the agent; the founder's rudra S21 run was $19.21 (Opus 5.5, Claude Code's own cost-state = lastCost). Row added at S200 (N27) |
 | S195 | $0 | NO-CODE ground truth. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer, two passes) |
 | S194 | $0 | No paid run by the agent; the founder's rudra S20 run was $1.49 (Haiku 4.5, Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F121/F123/F120 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |
 | S193 | $0 | No paid run by the agent; the founder's rudra S19 run was $37.27 (Claude Code's own figure, his own work). 4 fleet dispatches (tech-lead, design-advisor — narrow, for F117 — fidelity-reviewer, release-coordinator as the judge of every obeyed answer) |

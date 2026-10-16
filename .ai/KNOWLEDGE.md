@@ -391,3 +391,8 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 
 - **`vajra next --advance` moves the old SESSION-BOOT entry only on Vajra's exact shape (S198, F118):** one `## Current Session`; under it one `- **Number:** NN` line, its indented continuation lines, then blanks; the next heading `## Prior Session`. Any other shape (the `vajra init` one, rudra's) keeps the S191 number swap and stderr says why. Keep Vajra's own SESSION-BOOT in that shape, or the advance falls back.
 - **bash 3.2 cannot parse a bare `case` pattern `)` inside `$( … )`** — it reads the `)` as the end of the command substitution, and `bash -n` does NOT catch it (3.2 parses `$( )` at run time). Write the pattern with the leading paren: `case "$n" in (''|*[!0-9]*) … ;; esac`. Found by the S198 verify script's row 3 (`0087c2a`).
+
+## S200 — permanent facts
+
+- **A review-only session in Vajra's own repo is report-only until the founder's `vajra approve NN --close` (S200, N26):** the guard blocks the prompt (`## Plan`, `## Advice`), `sessions/session-NN-review.md` and every other file except `sessions/session-NN-ground-truth.md`; files outside the project and `vajra next --role` handoffs still pass. Hold crew hand-backs in the scratchpad, then record them after the sign-off. Order: report → cold review → `--close` → plan, advice, summary, closeout.
+- **The hooks and boot run the INSTALLED `vajra` (`~/.cargo/bin/vajra`), not `target/` (S200, N25):** after a merge that touches `src/`, `cargo install --path . --locked`, or the new behaviour never shows. `vajra --version` says `0.2.0` for every build, so it cannot tell them apart — compare the file's date with the merge, or run `./target/release/vajra`.
