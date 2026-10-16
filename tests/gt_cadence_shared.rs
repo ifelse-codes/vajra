@@ -149,8 +149,10 @@ fn pre_bash_blocks_commit(d: &Path) -> bool {
     c.wait_with_output().unwrap().status.code() == Some(2)
 }
 
-/// hook-prompt-submit.sh / hook-session-start.sh, run for real: do they announce a ground truth?
-fn announces_gt(script: &str, d: &Path) -> (bool, String) {
+/// hook-prompt-submit.sh / hook-session-start.sh, run for real: do they announce session `n` as a
+/// ground truth? S199 (S190): only the hooks' own announcement line counts — the old check was any
+/// "ground truth" in the whole output, which the boot files the start hook prints can contain.
+fn announces_gt(script: &str, d: &Path, n: u32) -> (bool, String) {
     let out = Command::new("bash")
         .arg(scripts().join(script))
         .env("CLAUDE_PROJECT_DIR", d)
@@ -162,7 +164,14 @@ fn announces_gt(script: &str, d: &Path) -> (bool, String) {
         String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)
     );
-    (t.to_lowercase().contains("ground truth"), t)
+    let lines = [
+        format!("[REMINDER] Session {n} is GROUND TRUTH. "),
+        format!("[reminder] Ground Truth Session {n} — "),
+    ];
+    let got = t
+        .lines()
+        .any(|l| lines.iter().any(|a| l.starts_with(a.as_str())));
+    (got, t)
 }
 
 /// hook-pre-write.sh, run for real: an edit of a source file on a ground-truth branch is blocked.
@@ -202,15 +211,15 @@ fn real_sites_agree_with_the_helper() {
             "hook-pre-bash at S{n}"
         );
         assert_eq!(pre_write_blocks(d.path()), want, "hook-pre-write at S{n}");
-        let (got, t) = announces_gt("hook-prompt-submit.sh", d.path());
+        let (got, t) = announces_gt("hook-prompt-submit.sh", d.path(), n);
         assert_eq!(got, want, "hook-prompt-submit at S{n}: {t}");
-        let (got, t) = announces_gt("hook-session-start.sh", d.path());
+        let (got, t) = announces_gt("hook-session-start.sh", d.path(), n);
         assert_eq!(got, want, "hook-session-start at S{n}: {t}");
     }
     // A passed override rolls forward at the sites too — and the sites SAY so.
     let d = project(Some(180), &[], Some(181));
     for script in ["hook-prompt-submit.sh", "hook-session-start.sh"] {
-        let (_, t) = announces_gt(script, d.path());
+        let (_, t) = announces_gt(script, d.path(), 181);
         assert!(
             t.contains("was passed") && t.contains("185"),
             "{script}: {t}"
@@ -231,4 +240,24 @@ fn real_sites_agree_with_the_helper() {
     );
     let d = project(Some(180), &[], Some(185));
     assert!(stop_hook_says_gt(d.path()) && pre_write_blocks(d.path()));
+}
+
+/// S199 (S190): a session that is NOT ground truth, whose boot files say "ground truth" in passing,
+/// is not announced as one. The old whole-output substring match read this output as an
+/// announcement — the false alarm S190 traced; the words are really there, the line is not.
+#[test]
+fn ground_truth_words_in_the_boot_files_are_not_an_announcement() {
+    let d = project(Some(180), &[180], Some(181));
+    fs::write(
+        d.path().join(".ai/SESSION-BOOT.md"),
+        "# Session Boot\n\n## Next Session\n- S185 is the next ground truth (review-only).\n",
+    )
+    .unwrap();
+    fs::write(d.path().join(".ai/SESSION"), "181\n").unwrap();
+    let (got, t) = announces_gt("hook-session-start.sh", d.path(), 181);
+    assert!(
+        t.to_lowercase().contains("ground truth"),
+        "the fixture must put the words in the output: {t}"
+    );
+    assert!(!got, "S181 is not a ground truth: {t}");
 }
