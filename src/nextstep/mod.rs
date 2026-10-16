@@ -278,9 +278,10 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
              review's stamp (S199, F126), so commit and run the close once more — then push the branch and open the pull request yourself when the \
              launch gave VAJRA_ALLOW_COMMIT=NN (S173) — `git push -u origin <branch>`, then \
              `gh pr create --title \"…\" --body-file sessions/session-NN-summary.md` — ask the human to merge it, then prune the \
-             branch. If main has commits GitHub lacks, `vajra next --release NN` names them — tell \
+             branch.REINSTALL If main has commits GitHub lacks, `vajra next --release NN` names them — tell \
              the human which ones (e.g. a Vajra sync); only the human pushes main"
-                .replace("NN", &nn),
+                .replace("NN", &nn)
+                .replace("REINSTALL", reinstall_note(root)),
         ),
     ])
     .collect()
@@ -347,6 +348,41 @@ fn review_only(root: &Path, session: u32) -> bool {
         .stderr(std::process::Stdio::null())
         .status()
         .is_ok_and(|s| s.success())
+}
+
+/// S201 (S200 N25): the founder's installed `vajra` predated S199's merge, so S200's boot ran
+/// none of S199's fixes. In Vajra's OWN repo only — read from `Cargo.toml`'s package name, never
+/// from prose — the merge step says to reinstall; in any other project a merged `src/` change has
+/// nothing to do with the installed `vajra`. A note, not a gate.
+fn reinstall_note(root: &Path) -> &'static str {
+    if is_vajra_repo(root) {
+        " If the merged branch touched src/, tell the human to run `cargo install --path . \
+         --locked` on main after pulling — or the next boot runs the old vajra."
+    } else {
+        ""
+    }
+}
+
+/// `Cargo.toml`'s `[package]` table has `name = "vajractl"` — the key's value, not a text search.
+fn is_vajra_repo(root: &Path) -> bool {
+    let Ok(toml) = std::fs::read_to_string(root.join("Cargo.toml")) else {
+        return false;
+    };
+    let mut in_package = false;
+    for line in toml.lines() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            in_package = line == "[package]";
+        } else if in_package {
+            if let Some((key, value)) = line.split_once('=') {
+                if key.trim() == "name" {
+                    let value = value.split('#').next().unwrap_or("").trim();
+                    return value == "\"vajractl\"";
+                }
+            }
+        }
+    }
+    false
 }
 
 /// S201 (S200 N24): a step the close passes N/A on a review-only session says so in its own
@@ -990,6 +1026,40 @@ mod tests {
             assert!(!code.done, "CODE: {what} is still owed");
             assert!(!code.what.contains("not needed"), "{}", code.what);
         }
+    }
+
+    /// S201 (S200 N25): the merge step says to reinstall `vajra` only in Vajra's own repo
+    /// (`Cargo.toml` package `vajractl`) — never in another project, never on a prose mention.
+    #[test]
+    fn only_vajras_own_repo_is_told_to_reinstall_after_the_merge() {
+        let d = repo();
+        let r = d.path();
+        let merge_how = || {
+            steps(r, 9)
+                .into_iter()
+                .find(|s| s.what == "the work is merged and the branch is gone")
+                .unwrap()
+                .how
+        };
+        let note = "`cargo install --path . --locked`";
+        assert!(!merge_how().contains(note), "no Cargo.toml");
+        fs::write(
+            r.join("Cargo.toml"),
+            "[package]\nname = \"rudra\" # not vajractl\n\n[dependencies]\nvajractl = \"0.2\"\n",
+        )
+        .unwrap();
+        assert!(!merge_how().contains(note), "another project");
+        fs::write(
+            r.join("Cargo.toml"),
+            "[package]\nname = \"vajractl\"\nversion = \"0.2.0\"\n\n[[bin]]\nname = \"vajra\"\n",
+        )
+        .unwrap();
+        let how = merge_how();
+        assert!(how.contains(note), "{how}");
+        assert!(
+            how.contains("prune the branch. If the merged branch touched src/"),
+            "{how}"
+        );
     }
 
     /// S199 (N21): two prompt files for one session lead the list as a ✗ step naming both — on a
