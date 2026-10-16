@@ -54,3 +54,5 @@ AC2 asks whether the summary matched. Right now the chat stands in for it.
 
 rec 5 — In `constitution_review`, cite the line in `.ai/AGENTS.md` (or the GT procedure) that assumes `## Plan`/`## Advice` are written during the review.
 N26 rests on that claim, and the row gives no evidence for it.
+
+**Review-Inputs-SHA:** 4c5dfcf514bba070ff6bee2c7b2df663ac28bd6b89f2eef39c013175eff9366e
