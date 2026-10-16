@@ -835,7 +835,7 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   human was told; `vajra init` and `--sync-fleet` carry it). **gt_cadence_shared's loose assertion — FIXED S199**
   (only the announcement line counts). **The rest of N7 — FIXED S199** (verify-176/178/179, demo-176/178/179/184/186
   use `scripts/lib-old-checkout.sh`).
-- **N22 — RETIRE (founder, S200: "Retire it") → S201 marks both scripts RETIRED as history, no rewording.** Was: `scripts/verify-session-178.sh` (9 rows) and `scripts/demo-session-178.sh` (1 check) are red on main (found S199
+- **N22 — RETIRED S201 (superseded; founder, S200: "Retire it").** Both scripts' headers say RETIRED, name the later wording changes (S181 Part 5, S184 F107, S186 F113) and stay as history; no check line changed. Was: `scripts/verify-session-178.sh` (9 rows) and `scripts/demo-session-178.sh` (1 check) are red on main (found S199
   running them for N7; main's own copies fail the same rows): its old-vs-new comparisons of `--check-crew` / `--check-design-handoff` /
   `--check-fidelity-handoff` text on rudra S12 and Vajra S176/S177 meet wording later sessions added, and its AC6 (b)
   waiver row meets today's required-crew message. LOW (a history script). **Carry → backlog — reason: the founder

@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# RETIRED (superseded) — S201, founder S200: "Retire it". Left as history; do not reword its checks.
+#   Its rows compare `vajra next --check-crew` / `--check-design-handoff` / `--check-fidelity-handoff`
+#   text, OLD binary vs NEW, and pass only when nothing but S178's own wording moved. Later sessions
+#   added wording on purpose — S181 Part 5 (stamps bound to the record text, 4addc3a, 52e2359) and
+#   named waivers, S184 F107 (the obeyed warning, 84674c8, a0c1417), S186 F113 (obeyed_blocks_from's
+#   refusal words, 62bfe63, 2f4c59d) — so those rows fail by design, not by regression. Evidence:
+#   red on main since S199 (N22; S200 report `sessions/session-200-ground-truth.md` checklist row 1:
+#   verify 17 pass / 9 fail, demo 1 check). What S178 shipped is still there: F83 (src/fleet/mod.rs),
+#   F86 (src/fidelity/mod.rs, src/mandate/mod.rs), F87 (src/crew/mod.rs, with its own unit test).
 # Session 178 demo — three close messages made true (F83, F86, F87), found by the founder's rudra
 # sessions 10–13 (two of them under other agents: omp, OpenCode). Drawn with scripts/demo-kit.sh
 # (DECISION-009/010): every claim runs live; the "before" is Vajra built from the pinned commit this
