@@ -143,3 +143,31 @@ design-significant: no
 - `~` `latest` link, `gt_cadence_shared`, the rest of N7
 
 ## Advice
+Roles dispatched: `tech-lead` (mandatory, first). Required at close: `fidelity-reviewer` (the one cold review),
+`release-coordinator` (the one judge of every `obeyed:` answer). `design-advisor`: the recorded skip in `## Design`.
+
+researcher: skipped — the tech-lead deferred it on budget: each item's evidence and code site was already in the prompt and ROADMAP's known-bug list (~0.15M; crew ~1.9M → ~2.05M).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the founder picked the list and AC1–AC10 give each item a real-run check (~0.1M would restate them).
+plan-advisor: skipped — the tech-lead deferred it on budget: the prompt fixed the order and the split rule (~0.1M).
+implementation-advisor: skipped — the tech-lead deferred it on budget: its recs 2–5 named the traps (three `lines()` rewriters, the section limit, many prompts) (~0.3M).
+qa-specialist: skipped — the tech-lead deferred it on budget: AC10 makes every verify row a real run, red at 027e70f, and the fidelity-reviewer reads them (~0.3M).
+demo-producer: skipped — the tech-lead deferred it on budget: bug fixes shown in verify output and the summary; the demo is the template's seven sections with live runs (~0.15M).
+
+**tech-lead** (`.ai/handoffs/session-199-tech-lead.md`):
+- tech-lead rec 1 — obeyed: b63e349 (a real stamp run first — a throwaway checkout, stamp, edit, commit, stamp again: next prompt, summary, TASK/STATE/ROADMAP leave it, own prompt / a handoff / code move it; then the step list's stamp and push lines say where a late founder change goes; no rule changed, so no founder question and no design-advisor) and c3cad24 (verify row 1 repeats the run)
+- tech-lead rec 2 — obeyed: df7bc11 (`lines_with_endings` in `swap_boot_numbers`, `move_current_entry` and `update_prompt_pointer`; kept, not refused; unit test on both shapes) and c3cad24 (verify row 3: a CRLF Vajra-shaped and a CRLF init-shaped SESSION-BOOT, every line still CRLF after `--advance`)
+- tech-lead rec 3 — obeyed: df7bc11 (`update_prompt_pointer` stops at the first `## Prior Session` heading; a file with none is read whole; no text guessing)
+- tech-lead rec 4 — obeyed: e572057 (`analyst::prompts_for` returns every match, sorted; `--advance` refuses on more than one naming all; `--steps` — and so the boot, which prints it — leads with a ✗ naming all, live and at hand-over)
+- tech-lead rec 5 — obeyed: c2a11bd (one question block for the existing `constraint_violation_review` audit, no check or gate) and c3cad24 (verify row 6: a fresh init has it, `--sync-fleet` adds it back, scaffold-drift exit 0)
+- tech-lead rec 6 — obeyed: c3cad24 (the founder was shown the folder — 732 broken self-links + 12 logs — and said yes before it was replaced; verify row 7; no run capture committed; the close-writes proof is this session's own close run, graded PARTIAL until then in the summary, a85470d)
+- tech-lead rec 7 — obeyed: 8216bf5 (every commit has ≤3 files — N7 split into 93b706b, c38ea5b, 8216bf5; built in the prompt's order; nothing moved out under the split rule)
+- tech-lead rec 8 — obeyed: 6fc23c3 (S198's push recorded at the start) and ec2432d (full `cargo test` 743/0 in the summary; N22 filed, not fixed) and a85470d (N23 filed); the crew ran build → one fidelity-reviewer → one release-coordinator; handoffs recorded from handback text; `## Delta` above `## Advice`
+
+**fidelity-reviewer** (`.ai/handoffs/session-199-fidelity-reviewer.md`, ACCEPT 9 SHIPPED / 2 PARTIAL):
+- fidelity-reviewer rec 1 — obeyed: a85470d (the summary's AC7 line says PARTIAL until this session's close runs — "not yet shown"; `latest` is checked again after the close)
+- fidelity-reviewer rec 2 — obeyed: a85470d (AC10 graded PARTIAL in the summary's fidelity map)
+- fidelity-reviewer rec 3 — obeyed: a85470d (N23 filed in ROADMAP's known bugs next to N22, and on the next session's checklist)
+- fidelity-reviewer rec 4 — obeyed: 5f6e232 (the next session's prompt committed with the summary's pick line, before the review's stamp)
+- fidelity-reviewer rec 5 — deferred: prompts/200-task-ground-truth.md
+  Why: it can only be checked on S200's own first `vajra next --steps`; that prompt's checklist now holds it (a85470d). S200 is review-only, so a bug it finds is filed for S201, not fixed there.
+- fidelity-reviewer rec 6 — obeyed: 37ff65f (traced: verify row 2's PASS message had `vajra approve 10 --close` in backticks inside double quotes, so bash ran it — refused here by the agent mark, but from the founder's terminal it would have written a stray close record into Vajra's repo; none was written; the message now names no command)
