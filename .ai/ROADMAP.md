@@ -837,6 +837,11 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   `--check-fidelity-handoff` text on rudra S12 and Vajra S176/S177 meet wording later sessions added, and its AC6 (b)
   waiver row meets today's required-crew message. LOW (a history script). **Carry → backlog — reason: the founder
   picks when; on the next ground-truth checklist.**
+- **N23 — `scripts/verify-session-179.sh`'s rudra row is red since S199** ("rudra's ground-truth section differs from
+  the new scaffold's"): N14 added a question block the scaffold carries and rudra does not have yet. It goes green
+  after rudra's `vajra init --sync-fleet` (the founder's call; S197's sync files are still uncommitted there). Caused
+  by S199 (review rec 3). LOW. **Carry → backlog — reason: waits on the founder's rudra sync; on the next
+  ground-truth checklist.**
 
 **The active queue is FINISHING THE MVP** (C→B→A: team-voice ✓ → installable v0.1 = S106 → fleet).
 The machinery-freeze rule is **RETIRED** (S103 pivot). Items below get pulled when they serve the MVP

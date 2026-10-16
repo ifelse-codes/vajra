@@ -29,7 +29,7 @@ review-only session 10 — ✗, then ✓ naming the close record, then ✓ after
 binary. Rows 3–4: a CRLF Vajra-shaped SESSION-BOOT + TASK.md and a CRLF `vajra init` SESSION-BOOT, advanced — every
 line still CRLF, the Prior line byte-identical, the pointers moved; `027e70f`'s binary made them LF and rewrote the
 Prior line. Row 5: two session-07 prompts — exit 1 naming both, `.ai/SESSION` unchanged, the ✗ step; `027e70f`
-advanced. Row 6: fresh init has the question; removed + `--sync-fleet` adds it; `scaffold-drift.sh` exit 0 (20/0);
+advanced. Row 6: fresh init has the question; removed + `--sync-fleet` adds it; `scaffold-drift.sh` exit 0 (20/0 when run by hand; the row prints only a tail line);
 absent from `027e70f`'s init. Row 7: `latest` is a link to a run folder. Row 8: the new test (absent at `027e70f`)
 and the file's 6 tests. Row 9: the eight scripts source the helper and none runs `git worktree add`; verify-176
 rebuilt its old binary through it (a private checkout folder), exit 0, 0 left.
@@ -45,10 +45,10 @@ rebuilt its old binary through it (a private checkout folder), exit 0, 0 left.
 | D4 / AC4 N20 | SHIPPED | verify row 4; unit test `update_prompt_pointer_leaves_prior_entries_alone` |
 | D5 / AC5 N21 | SHIPPED | verify row 5; unit test `two_prompts_for_one_session_are_named_not_picked` (live list and hand-over) |
 | D6 / AC6 N14 | SHIPPED | verify row 6 |
-| D7 / AC7 `latest` | SHIPPED | verify row 7; the founder's yes in this chat before the change; "the close check still writes" is proven by this session's own close run repointing it |
+| D7 / AC7 `latest` | PARTIAL until this session's close runs | verify row 7 (a link, to S198's run `20261015T100751Z`); the founder's yes in this chat before the change. "The close check still writes" is NOT yet shown — no close has run since the fix; this session's own close run must repoint it (review rec 1, checked after the close) |
 | D8 / AC8 gt_cadence_shared | SHIPPED | verify row 8 |
 | D9 / AC9 N7 | SHIPPED | verify row 9; all eight run (below) |
-| AC10 real-run checks, red at start; cargo test; push via the belt | SHIPPED except the push, which happens after the close | verify 9/9; cargo test above; the push is recorded at S200's start, as S198's was here |
+| AC10 real-run checks, red at start; cargo test; push via the belt | PARTIAL — the push happens after the close (review rec 2; S198 graded the same case PARTIAL) | verify 9/9; cargo test above; the push is recorded at S200's start, as S198's was here |
 | Carried: S198's push recorded | SHIPPED | `6fc23c3` (PR #236 head `a3068d2` = the GREEN, `clean: yes` close result) |
 
 **The eight N7 scripts, run after the change:** verify-176 exit 0 · demo-176 ✓ · demo-179 ✓ · demo-184 7/7 ·
@@ -71,6 +71,11 @@ proves the words are true, but nothing makes an agent follow them (rudra S21's a
   their old-vs-new comparisons meet wording later sessions added. ROADMAP known bugs, S200 checklist.
 
 ## Process
+
+- **Found by the review (rec 6), fixed:** verify row 2's PASS message had `vajra approve 10 --close` in backticks inside
+  double quotes, so bash RAN it. In this agent shell it was refused (the agent mark); from the founder's own
+  terminal it would have written a stray `.ai/approvals/session-10-close.json` into Vajra's repo. None was written
+  (`ls .ai/approvals`); the message now names no command.
 
 - Crew: tech-lead (first), fidelity-reviewer (one cold pass), release-coordinator (the one judge of `obeyed:`);
   design-advisor a recorded skip (no new rule); the other six deferred on budget by the tech-lead.

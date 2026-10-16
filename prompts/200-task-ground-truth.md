@@ -19,9 +19,12 @@ session_type: GROUND_TRUTH
    session S196–S199, read its newest `.ai/verify/closeout/<stamp>/result` and compare with what the summary and the
    agent told the founder. Name every mismatch.
 3. **The S200 checklist** — each with a pick: fix (which session), keep in backlog (why), or drop (founder's call):
-   - N22 (`scripts/verify-session-178.sh` red on main — old-vs-new wording comparisons, found S199)
-   - `scripts/verify-session-179.sh`'s rudra row (rudra's ground-truth section lags the scaffold until rudra runs
-     `vajra init --sync-fleet`; S199's N14 question made it differ)
+   - N22 (`scripts/verify-session-178.sh` / `demo-session-178.sh` red on main — old-vs-new wording, found S199)
+   - N23 (`scripts/verify-session-179.sh`'s rudra row — rudra's ground-truth section lags the scaffold until rudra
+     runs `vajra init --sync-fleet`; S199's N14 question made it differ)
+   - **S199 review rec 5 — check at this session's first `vajra next --steps`:** does the new sign-off step (✗ until
+     `vajra approve 200 --close`) become "YOUR NEXT STEP" before the report exists, hiding the later steps' how?
+     If it does, file it (a known bug for S201); this session writes no code.
    - F127's and F123's remaining routes (named, not closed; founder 2026-09-15: no more policing)
    - F97's opt-out key (S195: wait for a real request) · S188's named gaps · the `/clear` receipt gap and a fork's
      own share (founder 2026-10-09: named, not closed)
