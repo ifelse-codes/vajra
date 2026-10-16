@@ -88,7 +88,7 @@ else bad "N22: non-comment changed lines=$CODE_LINES"; fi
 WORDS='**Tested with:** Claude Code on Opus and on Haiku 4.5.'
 if grep -qF -- "$WORDS" README.md && grep -qF -- "what Vajra blocks (the 3-file cap, a push to main) held." README.md \
    && ! git show "$OLD_SHA:README.md" | grep -qF -- 'Tested with'; then
-  ok "README: the founder's \"tested with\" line (picked 2026-10-17, \"Short\") is in README.md; absent at $OLD_SHA"
+  ok "README: the picked \"tested with\" line is in README.md; absent at $OLD_SHA (who picked it is in the summary, not checkable here)"
 else bad "README: the line is missing"; fi
 
 echo "=== verify-session-201: $PASS passed, $FAIL failed ==="

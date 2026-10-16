@@ -839,8 +839,7 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
 - **N22 — RETIRED S201 (superseded; founder, S200: "Retire it").** Both scripts' headers say RETIRED, name the later wording changes (S181 Part 5, S184 F107, S186 F113) and stay as history; no check line changed. Was: `scripts/verify-session-178.sh` (9 rows) and `scripts/demo-session-178.sh` (1 check) are red on main (found S199
   running them for N7; main's own copies fail the same rows): its old-vs-new comparisons of `--check-crew` / `--check-design-handoff` /
   `--check-fidelity-handoff` text on rudra S12 and Vajra S176/S177 meet wording later sessions added, and its AC6 (b)
-  waiver row meets today's required-crew message. LOW (a history script). **Carry → backlog — reason: the founder
-  picks when; on the next ground-truth checklist.**
+  waiver row meets today's required-crew message. LOW (a history script). **Closed — retired S201 as history.**
 - **N23 — KEEP (founder, S200): goes green on the founder's next `vajra init --sync-fleet` in rudra; no Vajra fix.** `scripts/verify-session-179.sh`'s rudra row is red since S199 ("rudra's ground-truth section differs from
   the new scaffold's"): N14 added a question block the scaffold carries and rudra does not have yet. It goes green
   after rudra's `vajra init --sync-fleet` (the founder's call; S197's sync files are still uncommitted there). Caused

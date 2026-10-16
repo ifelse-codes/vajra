@@ -123,9 +123,9 @@ slide_next() {
   dk_section next "where this sits · what's next"
   dk_h2 "Next — 3 ranked options (the same as the summary)"
   dk_table " |Option|Why pick it · the risk" \
-    "1|S202 — rudra S22, synced|every fix since S196 has run only in test projects · risk: long and paid" \
-    "2|S202 — cut the start cost (boot diet)|every session loads 95 KB at start · risk: before your 'confidence first' order" \
-    "3|S202 — 'vajra --version' shows the commit|a stale install is visible at a glance · risk: small, inward"
+    "1|(your pick) pause Vajra development; use it on another project|does it help a real project, by that project's goals? · risk: no measure written down = 'it felt fine'" \
+    "2|rudra S22, synced|today's fixes on a real project · risk: still Vajra-centred, long and paid" \
+    "3|cut the start cost (boot diet)|every session loads 95 KB at start · risk: more Vajra development, which you paused"
   dk_table "word|meaning" \
     "review session|the every-5th session: a report, no code, your sign-off" \
     "step list|'vajra next --steps' — the session's to-do list, ✓ or ✗" \
