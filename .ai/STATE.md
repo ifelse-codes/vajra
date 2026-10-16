@@ -3,7 +3,7 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S198 complete on `session-198-known-bug-leftovers` (PR open; the founder merges). Next: S199 — DOCUMENT (design only): Vajra runs the required reviewer itself (Haiku answer d) + the README "tested with" line (c) (founder pick, 2026-10-15); prompt `prompts/199-task-design-vajra-runs-the-reviewer.md` (draft, the founder approves it with `vajra approve 199`). S200 after it is the review-only session.**
+**None — between sessions. S198 complete on `session-198-known-bug-leftovers` (PR open; the founder merges). Next: S199 — CODE: fix every pending known bug (founder pick, 2026-10-16; the reviewer design was dropped 2026-10-15); prompt `prompts/199-task-all-pending-bugs.md` (the founder approves it with `vajra approve 199`). S200 after it is the review-only session.**
 
 ## What was done this session (S198 — CODE: the known-bug leftovers)
 
@@ -144,7 +144,7 @@
 
 ## What Is In Progress
 
-- Nothing. S198 complete on its branch. Next: S199, the reviewer design (Haiku answer d + README line c).
+- Nothing. S198 merged (#236). Next: S199, every pending known bug.
 
 ## Active PRs
 

@@ -2,9 +2,9 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S198 (CODE: the known-bug leftovers) complete on `session-198-known-bug-leftovers`; next is S199, the reviewer design
+## Between Sessions — S198 (CODE: the known-bug leftovers) merged #236; next is S199, every pending known bug
 
-**Next: Session 199 — DOCUMENT (design only): Vajra runs the required reviewer itself (Haiku answer d) + the README "tested with" line (c)** (founder pick, 2026-10-15). Prompt: `prompts/199-task-design-vajra-runs-the-reviewer.md` (draft; the founder runs `vajra approve 199` after reading it). Start it in a fresh chat after S198's PR is merged.
+**Next: Session 199 — CODE: fix every pending known bug** (founder pick, 2026-10-16; the reviewer design was dropped 2026-10-15). Prompt: `prompts/199-task-all-pending-bugs.md` (draft; the founder runs `vajra approve 199` after reading it). Start it in a fresh chat.
 
 ## Session 198 — CODE: the known-bug leftovers — COMPLETE
 
