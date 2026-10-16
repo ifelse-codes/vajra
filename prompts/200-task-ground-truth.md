@@ -100,7 +100,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: a review-only se
 **tech-lead** (`.ai/handoffs/session-200-tech-lead.md`):
 - tech-lead rec 1 — obeyed: ee9343a (the report's "Start-of-session checks": `vajra next --steps` from the installed and from S199's binary, and `latest -> 20261016T130949Z`, both run before the report file was written; raw output pasted; N24 + N25 filed from them)
 - tech-lead rec 2 — obeyed: ee9343a (Goal 2: one row per session naming each result file, its head and verdict, the PR head from `git rev-parse <merge>^2`, the summary's and the chat's own words; the WAIVED/N/A grep over the four final close folders reported — 0 real waivers, rudra S21's 1 N/A named)
-- tech-lead rec 3 — obeyed: d9ff0dd (no design-advisor dispatch; the one-line `design-advisor: skipped — <reason>` under `## Design` is written in this prompt at the commit that records it)
+- tech-lead rec 3 — obeyed: dd8f62f (no design-advisor dispatch; the one-line `design-advisor: skipped — <reason>` under `## Design` is in this prompt)
 - tech-lead rec 4 — obeyed: ee9343a (checklist row 1 sets out N22 "retire" as a proposed drop with the paperwork-loop reason, row 2 offers N23 keep or drop; the founder chose retire / keep — "Founder rulings")
 - tech-lead rec 5 — obeyed: d9ff0dd (order: report draft → one fidelity-reviewer pass on it → its recs applied (ee9343a) → this Advice → one release-coordinator judge pass)
 - tech-lead rec 6 — obeyed: d9ff0dd (the tech-lead and fidelity-reviewer handoffs recorded by `vajra next --role --from` a scratch file holding the hand-back text, each with a `verified: toolu_…; text-sha` header; the report was committed only after `vajra approve 200 --close`, ee9343a after f21c831's close record)
