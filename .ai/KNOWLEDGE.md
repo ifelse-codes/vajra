@@ -396,3 +396,8 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 
 - **A review-only session in Vajra's own repo is report-only until the founder's `vajra approve NN --close` (S200, N26):** the guard blocks the prompt (`## Plan`, `## Advice`), `sessions/session-NN-review.md` and every other file except `sessions/session-NN-ground-truth.md`; files outside the project and `vajra next --role` handoffs still pass. Hold crew hand-backs in the scratchpad, then record them after the sign-off. Order: report → cold review → `--close` → plan, advice, summary, closeout.
 - **The hooks and boot run the INSTALLED `vajra` (`~/.cargo/bin/vajra`), not `target/` (S200, N25):** after a merge that touches `src/`, `cargo install --path . --locked`, or the new behaviour never shows. `vajra --version` says `0.2.0` for every build, so it cannot tell them apart — compare the file's date with the merge, or run `./target/release/vajra`.
+
+## S201 — permanent facts
+
+- **Vajra development is PAUSED (founder, 2026-10-17, S201):** "stop development of Vajra and use it in some other project to see if it actually helpful". The next Vajra change comes only from a finding in real use on another project that blocks that project's work; "helpful" is judged by that project's own goals, not by Vajra's checks. The backlog stays as written, unpicked.
+- **`vajra next --steps` prints a step's `how:` only for the FIRST open step (S201):** to show a later step's how in a real run, make the earlier steps done in the fixture (a recorded tech-lead, a filled `## Delta`, the approval record) — or prove it with a unit test.
