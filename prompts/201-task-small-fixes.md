@@ -91,6 +91,13 @@ design-significant: no
    GREEN → push through the belt (tech-lead recs 5, 6).
    covers: 5
 
+## Execution
+- step 1 — done: e78b02a
+- step 2 — done: 55e5d14
+- step 3 — done: d5ff467
+- step 4 — done: 5c1c295
+- step 5 — done: 1a8b7d0
+
 ## Delta
 - `~` `src/nextstep/mod.rs` (N24) · the after-merge text (N25, file named in-session) · `README.md` (the founder's line)
 - `~` `scripts/verify-session-178.sh`, `scripts/demo-session-178.sh` (RETIRED headers) · `.ai/ROADMAP.md` known bugs
