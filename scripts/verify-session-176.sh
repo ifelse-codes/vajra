@@ -9,14 +9,14 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 PASS=0; FAIL=0; SKIP=0
 ok()  { echo "PASS: $1"; PASS=$((PASS+1)); }
 bad() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
-T="$(mktemp -d)"; trap 'git worktree remove --force "$T/old" >/dev/null 2>&1; rm -rf "$T"' EXIT
+T="$(mktemp -d)"; . "$ROOT/scripts/lib-old-checkout.sh"
+trap 'vajra_old_checkout_remove "${OLD_WT:-}"; rm -rf "$T"' EXIT
 PRE_FIX=cd4302b
 
 # --- the two binaries ---------------------------------------------------------------------------
 cargo build --release -q 2>/dev/null || { bad "new build failed"; exit 1; }
 NEW="$ROOT/target/release/vajra"
-git worktree add -q --detach "$T/old" "$PRE_FIX" >/dev/null 2>&1
-( cd "$T/old" && CARGO_TARGET_DIR="$ROOT/target/verify-176-old" cargo build --release -q 2>/dev/null )
+OLD_WT=$(vajra_old_checkout "$PRE_FIX") && ( cd "$OLD_WT" && CARGO_TARGET_DIR="$ROOT/target/verify-176-old" cargo build --release -q 2>/dev/null )
 OLD="$ROOT/target/verify-176-old/release/vajra"
 [ -x "$OLD" ] && ok "old build compiled from pinned pre-fix commit $PRE_FIX" || { bad "old build missing"; exit 1; }
 
