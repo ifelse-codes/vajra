@@ -4,6 +4,9 @@
 - **S199 — CODE: fix every pending known bug** (founder pick, 2026-10-16 sprint review; the reviewer design was dropped 2026-10-15). In YOUR terminal on main (S198 merged #236, its follow-up PR merged): `git pull --ff-only`. In a FRESH chat: read `prompts/199-task-all-pending-bugs.md`, run `vajra approve 199`, start S199. S200 after it is the review-only session.
 
 ## Current Session
+- **Number:** 199 — IN PROGRESS
+
+## Prior Session
 - **Number:** 198 — COMPLETE on `session-198-known-bug-leftovers` (PR open). CODE: the known-bug leftovers. **F118 fixed:** `vajra next --advance` moves the old `## Current Session` entry, byte-for-byte, to the first `## Prior Session` on Vajra's shape (other shapes keep the number swap and say why) — live on this session's own advance. **N18 fixed:** check 6 sorts by the file name's number, prints `scanned:`. N19, N20 filed. Summary: `sessions/session-198-summary.md`. Review: `sessions/session-198-review.md` (ACCEPT 5/6, recs answered). Verify: `scripts/verify-session-198.sh` (4/4). Demo: `scripts/demo-session-198.sh` (5/5).
 
 ## Prior Session
