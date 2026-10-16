@@ -50,6 +50,7 @@ rebuilt its old binary through it (a private checkout folder), exit 0, 0 left.
 | D9 / AC9 N7 | SHIPPED | verify row 9; all eight run (below) |
 | AC10 real-run checks, red at start; cargo test; push via the belt | PARTIAL — the push happens after the close (review rec 2; S198 graded the same case PARTIAL) | verify 9/9; cargo test above; the push is recorded at S200's start, as S198's was here |
 | Carried: S198's push recorded | SHIPPED | `6fc23c3` (PR #236 head `a3068d2` = the GREEN, `clean: yes` close result) |
+| This session's own push (recorded at S200) | SHIPPED | PR #238 head `2aab75c` = `.ai/verify/closeout/20261016T130949Z/result` (GREEN 25/0, `clean: yes`); `latest` points at that folder — S200 checked it by eye before writing any file (S199 release-coordinator rec 1) |
 
 **The eight N7 scripts, run after the change:** verify-176 exit 0 · demo-176 ✓ · demo-179 ✓ · demo-184 7/7 ·
 **verify-178** 9 FAIL rows and **demo-178** 1 FAIL — main's own copies (`git show 027e70f:…`) fail the same rows:
