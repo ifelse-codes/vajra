@@ -22,9 +22,9 @@ cargo build --release -q 2>/dev/null
 NEW="$ROOT/target/release/vajra"
 OLD="${OLD_VAJRA:-$ROOT/target/s178-old/release/vajra}"
 if [ ! -x "$OLD" ]; then
-  git worktree add -q --detach "$DK_TMP/old" "$OLD_SHA" 2>/dev/null
-  ( cd "$DK_TMP/old" && CARGO_TARGET_DIR="$ROOT/target/s178-old" cargo build --release -q 2>/dev/null )
-  git worktree remove --force "$DK_TMP/old" >/dev/null 2>&1
+  . "$ROOT/scripts/lib-old-checkout.sh"
+  WT=$(vajra_old_checkout "$OLD_SHA") && ( cd "$WT" && CARGO_TARGET_DIR="$ROOT/target/s178-old" cargo build --release -q 2>/dev/null )
+  vajra_old_checkout_remove "${WT:-}"
 fi
 
 # crew BIN N → the crew check on rudra's real record for session N, the lines a person reads

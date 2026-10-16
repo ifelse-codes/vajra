@@ -21,9 +21,9 @@ cargo build --release -q 2>/dev/null
 NEW="$ROOT/target/release/vajra"
 OLD="$ROOT/target/verify-176-old/release/vajra"
 if [ ! -x "$OLD" ]; then
-  git worktree add -q --detach "$DK_TMP/old" "$OLD_SHA" >/dev/null 2>&1
-  ( cd "$DK_TMP/old" && CARGO_TARGET_DIR="$ROOT/target/verify-176-old" cargo build --release -q 2>/dev/null )
-  git worktree remove --force "$DK_TMP/old" >/dev/null 2>&1
+  . "$ROOT/scripts/lib-old-checkout.sh"
+  WT=$(vajra_old_checkout "$OLD_SHA") && ( cd "$WT" && CARGO_TARGET_DIR="$ROOT/target/verify-176-old" cargo build --release -q 2>/dev/null )
+  vajra_old_checkout_remove "${WT:-}"
 fi
 proj() { local P="$DK_TMP/p$RANDOM$RANDOM"; mkdir -p "$P/prompts" "$P/.ai"; cp "$2" "$P/prompts/$1-task-x.md"; printf '%s' "$P"; }
 plan() { ( cd "$1" && "$2" next --check-plan "$3" 2>&1 ); }
