@@ -58,9 +58,30 @@ procedure note for the S205 prompt, not code. Small, each with a real-run check 
 ## Design
 design-significant: no
 - Wording, a retirement note, a README line: no design record changes.
+- design-advisor: skipped — no design record changes and no shared rule moves; N25's one choice (the note only in
+  Vajra's own repo, read from `Cargo.toml`'s package name, not prose) is a one-line condition the tech-lead named
+  (`.ai/handoffs/session-201-tech-lead.md`, crew row + rec 2).
 
 ## Plan
-<the S201 agent writes this after the tech-lead>
+1. N24: in `src/nextstep/mod.rs` the review-only sign-off step's how starts "write
+   `sessions/session-NN-ground-truth.md` (every audit, live), then show it…" while that file is absent, today's how
+   once it exists; the QA and Demo-er steps, on a review-only session (`review_only()`, the same helper as the close
+   gate's `is_ground_truth_session`), are ✓ and say the close passes them N/A (tech-lead rec 1).
+   covers: 1
+2. N22: a RETIRED (superseded) block at the top of `scripts/verify-session-178.sh` and `scripts/demo-session-178.sh`
+   (the later wording changes, the founder's "Retire it", left as history); no line below the header moves;
+   `.ai/ROADMAP.md`'s N22 entry says RETIRED S201 (tech-lead rec 3).
+   covers: 2
+3. N25: the Releaser step's how (`src/nextstep/mod.rs`, "the work is merged and the branch is gone") adds "if the
+   merged branch touched src/, run `cargo install --path . --locked` on main" — only when `Cargo.toml`'s package is
+   `vajractl` (tech-lead rec 2).
+   covers: 3
+4. README: the founder's words (picked 2026-10-17, "Short"), after the Current Status table (tech-lead rec 4).
+   covers: 4
+5. `scripts/verify-session-201.sh` (real `vajra init` temp projects; each row red at the start commit `edb92e3` via
+   `scripts/lib-old-checkout.sh`) + `scripts/demo-session-201.sh`; full `cargo test` before the push; stamp → close
+   GREEN → push through the belt (tech-lead recs 5, 6).
+   covers: 5
 
 ## Delta
 - `~` `src/nextstep/mod.rs` (N24) · the after-merge text (N25, file named in-session) · `README.md` (the founder's line)
