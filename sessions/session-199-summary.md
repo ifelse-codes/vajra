@@ -89,3 +89,5 @@ proves the words are true, but nothing makes an agent follow them (rudra S21's a
 3. **After S200: the README "tested with" line (Haiku answer c), then the boot diet (F4).** Why: tells a user which
    models Vajra was tried on, then makes every session cheaper. Risk: the line must be in the founder's own words;
    the boot diet touches what every agent reads first.
+
+**Founder pick (2026-10-16): option 1** — the review-only session; prompt written: `prompts/200-task-ground-truth.md`.
