@@ -3,16 +3,21 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S200 complete on `session-200-ground-truth` (PR open; the founder merges). Next: S201 — CODE: the S200 small fixes + the README "tested with" line; prompt `prompts/201-task-small-fixes.md` (the founder approves it with `vajra approve 201`).**
+**None — between sessions. S201 complete on `session-201-small-fixes` (PR open; the founder merges). Vajra development is PAUSED (founder, 2026-10-17): the next session, S202 (`prompts/202-task-pause-use-elsewhere.md`), opens only with a finding from real use on another project that blocks that project's work.**
 
-## What was done this session (S200 — NO-CODE ground truth, 🟡 PARTIAL PASS)
+## What was done this session (S201 — CODE: the S200 small fixes + the README "tested with" line)
 
-- All 13 required audits run live, `delivery_progress` first (`sessions/session-200-ground-truth.md`). Signed off by the founder's `vajra approve 200 --close` — the first GT sign-off that is a record (`.ai/approvals/session-200-close.json`), not a chat word. First Vajra GT with the review-only guard ON from its first command (F125's fix); it blocked the prompt's plan, the review file and the S199 push line until the sign-off (N26).
-- **Close-truth question, first use (N14):** S196, S197, S198, S199 and rudra S21 — each PR head is a GREEN, `clean: yes` result; three sessions went RED first and fixed it before the push; what the agent said about the close matched every time. rudra S21's other end claim "nothing half-done" was false (F126, fixed S199). Weak evidence while the push belt holds (meta-check 2).
-- Live: stranger-check 21/0 GREEN · scaffold-drift **20/0 GREEN** (first green GT read in three reviews; N10 fixed) · stations S196 8/8, S197 8/8, S198 7/8, S199 7/8 · `--dogfood-age` blind to rudra (N5) · reach 0 stars / 0 forks / 0 issues, crates.io 0.1.0, 19 downloads · boot 95.5 KB (S195: 79.7 KB) · paperwork 62% of commits (flat).
-- **Founder rulings:** N22 retire verify-178/demo-178 (→ S201) · N23 keep (green on rudra's next `--sync-fleet`) · next = C.
-- **New:** N24 the sign-off step is "next" before the report exists (→ S201) · N25 the installed `vajra` predates S199 (→ S201 after-merge note; reinstall) · N26 GT is report-only until sign-off (→ S205 prompt) · N27 STATE had no S196 cost row (fixed here).
-- Crew: tech-lead, fidelity-reviewer (one cold pass, ACCEPT, 5 recs applied), release-coordinator (the judge: 11 implemented, 0 mismatch); design-advisor a recorded skip.
+- **N24:** on a review-only session the sign-off step says "write sessions/session-NN-ground-truth.md (every audit, live)" first while the report is missing; the verify and demo steps read ✓ "not needed" (the close passes them N/A — the same shared helper). A CODE session is unchanged (`e78b02a`).
+- **N22:** verify-178 / demo-178 RETIRED (superseded) as history — header comments only, naming S181 Part 5, S184 F107, S186 F113 (`55e5d14`).
+- **N25:** in Vajra's own repo (`Cargo.toml` package `vajractl`, read as a key) the merge step says `cargo install --path . --locked` after a `src/` merge; other projects never see it. A note, not a gate (`d5ff467`).
+- **README:** "Tested with: Claude Code on Opus and on Haiku 4.5 …" — the founder's "Short" draft, unchanged (`5c1c295`).
+- Verify 5/5 (each row red at `edb92e3`) · demo 6/6 · `cargo test` 745/0 · ci-lint exit 0. N28 filed (`--advance` waits on an open stdin). The approved prompt had no `## Guardrails`; one was added restating its own rules (`b527493`).
+- **Founder decision (2026-10-17):** stop Vajra development; use it on another project and judge it by that project's goals.
+- Crew: tech-lead, fidelity-reviewer (one cold pass), release-coordinator (the judge of every obeyed answer); six roles deferred on budget with reasons.
+
+## Previous session (S200 — NO-CODE ground truth, 🟡 PARTIAL PASS, merged #239)
+
+- 13 audits live; close-truth question first use (no mismatch); signed off by `vajra approve 200 --close`. N22 retire, N23 keep, pick C; N24–N27. PR #239 head `09002d8` = a GREEN 25/0 `clean: yes` close.
 
 ## Previous session (S199 — CODE: every pending known bug, merged #238)
 
@@ -154,16 +159,17 @@
 
 ## What Is In Progress
 
-- Nothing. S200 complete (PR open). Next: S201, the small fixes.
+- Nothing. S201 complete (PR open). Vajra development paused (founder, 2026-10-17).
 
 ## Active PRs
 
-- S200's PR (the founder merges). S199 merged as #238.
+- S201's PR (the founder merges). S200 merged as #239.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S201 | $0 | No paid run. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass; release-coordinator as the judge of every obeyed answer); six roles deferred on budget |
 | S200 | $0 | NO-CODE ground truth. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |
 | S199 | $0 | No paid run. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |
 | S198 | $0 | No paid run. 4 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer; a narrow fidelity-reviewer judging the release-coordinator's own rec 1); design-advisor a recorded skip |

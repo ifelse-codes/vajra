@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S200 (NO-CODE ground truth) complete, PR open; next is S201, the small fixes
+## Between Sessions — S201 complete, PR open; Vajra development PAUSED (founder, 2026-10-17)
 
-**Next: Session 201 — CODE: the S200 small fixes + the README "tested with" line.** Prompt: `prompts/201-task-small-fixes.md` (draft; the founder runs `vajra approve 201` after reading it). Start it in a fresh chat.
+**Next: Session 202 — PAUSE: no Vajra development; use Vajra on another project.** Prompt: `prompts/202-task-pause-use-elsewhere.md` (draft; the founder approves it only when he brings a finding from real use that blocks that project's work).
+
+## Session 201 — CODE: the S200 small fixes + the README "tested with" line — COMPLETE (PR open)
+
+- Brief: `prompts/201-task-small-fixes.md`. Summary: `sessions/session-201-summary.md`. Review: `sessions/session-201-review.md`.
+- Shipped: **N24** (report first; verify/demo "not needed" on a review-only session) · **N22** (verify-178/demo-178 RETIRED) · **N25** (Vajra's own merge step says reinstall) · the README "tested with" line (founder's "Short"). Verify 5/5 · demo 6/6 · `cargo test` 745/0.
+- **Filed:** N28 (`--advance` waits on an open stdin). **Founder decision:** stop Vajra development; use it on another project to see whether it helps.
 
 ## Session 200 — NO-CODE ground truth (every 5th) — COMPLETE (🟡 PARTIAL, signed off by `vajra approve 200 --close`)
 

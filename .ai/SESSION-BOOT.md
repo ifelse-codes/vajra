@@ -1,10 +1,10 @@
 # Session Boot
 
 ## Next Session
-- **S201 — CODE: the S200 small fixes + the README "tested with" line.** In YOUR terminal on main, after S200's PR merges: `git pull --ff-only`, then `cargo install --path . --locked` (N25: the installed `vajra` predated S199). In a FRESH chat: read `prompts/201-task-small-fixes.md`, run `vajra approve 201`, start S201.
+- **S202 — PAUSE: no Vajra development; use Vajra on another project** (founder, 2026-10-17). In YOUR terminal on main, after S201's PR merges: `git pull --ff-only`, then `cargo install --path . --locked` (S201 touched `src/`). Pick the project (rudra or a new one) and write down what "helpful" means before its first session. Come back to this repo only with a finding that blocks that project's work: read `prompts/202-task-pause-use-elsewhere.md`, run `vajra approve 202`, start S202 in a FRESH chat.
 
 ## Current Session
-- **Number:** 201 — IN PROGRESS
+- **Number:** 201 — COMPLETE on `session-201-small-fixes` (PR open). CODE: the S200 small fixes. **N24** a review-only session's sign-off step says "write the report" first, and its verify/demo steps read "not needed" (the close passes them N/A) · **N22** verify-178/demo-178 RETIRED as history · **N25** in Vajra's own repo the merge step says to reinstall `vajra` · the README "tested with" line in the founder's words. N28 filed. **Founder (2026-10-17): pause Vajra development; use it on another project.** Summary: `sessions/session-201-summary.md`. Review: `sessions/session-201-review.md`. Verify: `scripts/verify-session-201.sh` (5/5). Demo: `scripts/demo-session-201.sh` (6/6).
 
 ## Prior Session
 - **Number:** 200 — COMPLETE on `session-200-ground-truth` (PR open). NO-CODE ground truth, 🟡 PARTIAL PASS, signed off by the founder's `vajra approve 200 --close` (the first GT sign-off that is a record). 13 audits live; close-truth question's first use: 5 closes, no mismatch on the close check (rudra S21's "nothing half-done" named, F126). Founder: N22 retire, N23 keep, pick C. N24–N27 (N27 fixed here). Report: `sessions/session-200-ground-truth.md`. Review: `sessions/session-200-review.md`. Summary: `sessions/session-200-summary.md`.
