@@ -3,14 +3,19 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S198 complete on `session-198-known-bug-leftovers` (PR open; the founder merges). Next: S199 — CODE: fix every pending known bug (founder pick, 2026-10-16; the reviewer design was dropped 2026-10-15); prompt `prompts/199-task-all-pending-bugs.md` (the founder approves it with `vajra approve 199`). S200 after it is the review-only session.**
+**None — between sessions. S199 complete on `session-199-all-pending-bugs` (PR open; the founder merges). Next: S200 — NO-CODE ground truth (every 5th), the review of S196–S199; prompt `prompts/200-task-ground-truth.md` (the founder approves it with `vajra approve 200`, and signs the report off with `vajra approve 200 --close`).**
 
-## What was done this session (S198 — CODE: the known-bug leftovers)
+## What was done this session (S199 — CODE: every pending known bug)
 
-- **F118 fixed:** `vajra next --advance` on Vajra's SESSION-BOOT shape (one `## Current Session` with one `- **Number:** NN` entry + indented continuation lines, then `## Prior Session`) writes `NN+1 — IN PROGRESS` and moves the old entry, byte-for-byte, to the first `## Prior Session`; any other shape (the `vajra init` one, rudra's) keeps the S191 number swap and stderr says why (`e26d59a`). Proven live on S198's own advance (`1f77083`) — the first advance since S193 with no hand repair.
-- **N18 fixed:** `scaffold-drift.sh` check 6 picks the last 10 verify scripts by the number in the file name and prints `scanned:` (`bbc2948`); a bash 3.2 `case` inside `$( )` parse failure caught by verify row 3 and fixed (`0087c2a`).
-- Verify-198 4/4 (rows 1–3 real runs, red at 2830bb2) · demo 5/5 · full `cargo test` 737/0 · drift 20/0. Review: one cold pass ACCEPT 5/6 (AC4 PARTIAL: the push half happens after the close → S199's prompt); all 5 recs answered. Crew: tech-lead, fidelity-reviewer, release-coordinator (the judge); design-advisor a recorded skip.
-- **Filed:** N19 (`--advance` turns CRLF into LF) · N20 (the prompt-pointer rewrite reaches the moved Prior entry). S197's push recorded (`2830bb2`): PR #235 head `2f83693` = the GREEN `clean: yes` close result.
+- All nine items, in the prompt's order, none moved out. **F126:** a real stamp run (throwaway checkout) — a new next prompt, a summary edit, `.ai/` TASK/STATE/ROADMAP edits leave the review's stamp; this session's own prompt, a handoff or code move it — so the step list now says a late founder change goes into git there, then one more close; no new rule (`b63e349`). **Sign-off step:** a review-only session's `--steps` shows the founder's `vajra approve NN --close`, naming the close record while it is not in git (`b63e349`).
+- **N19 + N20** (`df7bc11`): `--advance` keeps each line's own ending (CRLF stays CRLF on the move, swap and pointer rewrite); the pointer rewrite stops at the first `## Prior Session`. **N21** (`e572057`): two prompts for one session → `--advance` refuses naming both, `--steps` leads with a ✗ naming both, the shared lookup reads by name. **N14** (`c2a11bd`): a `constraint_violation_questions` block (read each close result against what the human was told); `vajra init` and `--sync-fleet` carry it.
+- `latest` is a link (founder saw the folder — 732 broken self-links + 12 old logs — and said yes; local only). `gt_cadence_shared` counts only the announcement line (`c19800d`). The rest of N7: eight scripts on `lib-old-checkout.sh` (`93b706b`, `c38ea5b`, `8216bf5`).
+- Verify-199 9/9 (each binary row red with 027e70f's binary) · demo 5/5 · full `cargo test` 743/0 · lint clean · drift 20/0. Crew: tech-lead, fidelity-reviewer, release-coordinator (the judge); design-advisor a recorded skip.
+- **Filed:** N22 (verify-178's 9 rows and demo-178's 1 check red on main — old wording comparisons). **Seen, not new:** demo-186's 2 checks red by S188's design; verify-179's rudra row red until rudra's next `--sync-fleet` (N14). S198's push recorded (`6fc23c3`).
+
+## Previous session (S198 — CODE: the known-bug leftovers, merged #236)
+
+- F118 (`--advance` moves the old Current entry to Prior on Vajra's shape) + N18 (check 6 sorts by number). Verify 4/4 · `cargo test` 737/0 · review ACCEPT 5/6.
 
 ## Previous session (S197 — CODE: the known-bug session, merged #235)
 
@@ -144,16 +149,17 @@
 
 ## What Is In Progress
 
-- Nothing. S198 merged (#236). Next: S199, every pending known bug.
+- Nothing. S199 complete (PR open). Next: S200, the review-only session.
 
 ## Active PRs
 
-- S198's PR (the founder merges). S197 merged as #235.
+- S199's PR (the founder merges). S198 merged as #236.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S199 | $0 | No paid run. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |
 | S198 | $0 | No paid run. 4 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer; a narrow fidelity-reviewer judging the release-coordinator's own rec 1); design-advisor a recorded skip |
 | S197 | $0 | No paid run. 4 fleet dispatches (tech-lead, design-advisor — F125 + N17, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer) |
 | S195 | $0 | NO-CODE ground truth. 4 fleet dispatches (tech-lead, design-advisor, fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer, two passes) |
