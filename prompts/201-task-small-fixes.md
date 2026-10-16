@@ -20,6 +20,9 @@ procedure note for the S205 prompt, not code. Small, each with a real-run check 
    `sessions/session-NN-ground-truth.md` does not exist, the step's how starts with "write
    `sessions/session-NN-ground-truth.md` (every audit, live), then show it to the founder…". Once it exists, the how is
    today's. `src/nextstep/mod.rs:123-137`.
+   Same list, same session type: "the checks run and pass" and "a demo script exists" show ✗ on a review-only
+   session (S200's own list) though its close passes without them (S195 closed GREEN with neither). Say so on those
+   two steps for a review-only session, or leave them out — the close gate's own rule decides, not a new one.
 2. **N22 — retire `scripts/verify-session-178.sh` and `scripts/demo-session-178.sh` as history** (founder, 2026-10-16:
    "Retire it"). Follow the Hollow-Advice Retirement Standard the way verify-175/182/186/187 were retired: say so where
    the next reader looks (the script's header and the ROADMAP known-bug entry), with the superseding reason. No
