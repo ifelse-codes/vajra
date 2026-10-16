@@ -64,6 +64,9 @@ request (S195).
 design-significant: no
 - Fixes inside existing records: DECISION-011 (S191 advance, S197 close record), DECISION-007 (step list, S196 push
   belt), ADR-0004 (closeout result). If F126 needs a new rule, flip this to `yes` and run the design-advisor first.
+- design-advisor: skipped — every item follows an existing record (DECISION-011 S191/S197, DECISION-007's step list,
+  ADR-0004's close result) and changes no shared rule; the tech-lead (`.ai/handoffs/session-199-tech-lead.md`) defers
+  it until F126's run shows a new rule is needed, which then goes to the founder first.
 
 ## Carried in
 - **From S198 (merged #236, 2026-10-15):** F118 + N18 fixed; N19, N20 filed from its review. **Its tech-lead rec 5:**
@@ -88,7 +91,36 @@ design-significant: no
 - Item 7 touches only Vajra's own `.ai/verify/closeout/latest`, after the founder sees it.
 
 ## Plan
-<the S199 agent writes this after the tech-lead>
+1. F126: on a scratch copy, stamp + close, then make four edits (a new next-session prompt, a summary edit, a `.ai/`
+   note, this session's own prompt) and close again, recording which break the stamp (tech-lead rec 1). Then the
+   step list's stamp / close lines say where a late founder change goes and what it costs. Ask the founder first if
+   the answer needs a new rule.
+   covers: 1
+2. Sign-off line: on a review-only session `vajra next --steps` shows a `vajra approve NN --close` step (✗/✓ from
+   `approval::close_record`); the F116 not-in-git note also names `session-NN-close.json`.
+   covers: 2
+3. N19: the three SESSION-BOOT/TASK rewriters in `src/cli/next.rs` keep each line's own ending (tech-lead rec 2).
+   covers: 3
+4. N20: `update_prompt_pointer` rewrites only lines above the first `## Prior Session` heading; no such heading →
+   today's behaviour (tech-lead rec 3).
+   covers: 4
+5. N21: one sorted lookup returns every `NN-task-*.md`; with more than one, `--advance` refuses naming all, the
+   `--steps` prompt line is ✗ naming all, boot says so (tech-lead rec 4).
+   covers: 5
+6. N14: one question in `.ai/CONSTRAINTS.yaml`'s ground-truth questions; reaches a fresh `vajra init`;
+   `scaffold-drift.sh` green (tech-lead rec 5).
+   covers: 6
+7. `latest`: show the founder the folder (732 broken self-links + 12 logs from 2026-08-03, 52K), and on his yes
+   replace it with a link to the newest run; one close proves it writes and F121 reads (tech-lead rec 6).
+   covers: 7
+8. `tests/gt_cadence_shared.rs`: `announces_gt()` matches only the exact announcement line.
+   covers: 8
+9. N7 rest: verify-176/178/179 and demo-176/178/179/184/186 use `scripts/lib-old-checkout.sh` (first out under the
+   split rule).
+   covers: 9
+10. `scripts/verify-session-199.sh` — every row a real run, red at `027e70f`; the demo; full `cargo test` before the
+    push; the push through the S196 belt.
+    covers: 10
 
 ## Delta
 - `~` F126: a late founder change has a stated place
