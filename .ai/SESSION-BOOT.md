@@ -4,6 +4,9 @@
 - **S201 — CODE: the S200 small fixes + the README "tested with" line.** In YOUR terminal on main, after S200's PR merges: `git pull --ff-only`, then `cargo install --path . --locked` (N25: the installed `vajra` predated S199). In a FRESH chat: read `prompts/201-task-small-fixes.md`, run `vajra approve 201`, start S201.
 
 ## Current Session
+- **Number:** 201 — IN PROGRESS
+
+## Prior Session
 - **Number:** 200 — COMPLETE on `session-200-ground-truth` (PR open). NO-CODE ground truth, 🟡 PARTIAL PASS, signed off by the founder's `vajra approve 200 --close` (the first GT sign-off that is a record). 13 audits live; close-truth question's first use: 5 closes, no mismatch on the close check (rudra S21's "nothing half-done" named, F126). Founder: N22 retire, N23 keep, pick C. N24–N27 (N27 fixed here). Report: `sessions/session-200-ground-truth.md`. Review: `sessions/session-200-review.md`. Summary: `sessions/session-200-summary.md`.
 
 ## Prior Session

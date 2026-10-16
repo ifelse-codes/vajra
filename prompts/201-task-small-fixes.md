@@ -55,6 +55,14 @@ procedure note for the S205 prompt, not code. Small, each with a real-run check 
 - Founder decisions to respect: no new policing of Vajra's own paperwork (2026-09-15); Vajra's close does not run
   `cargo test` (2026-10-04); one release-coordinator judges all `obeyed:` answers.
 
+## Guardrails
+- Only the four items listed; a new bug found on the way is filed, not fixed (the S199 rule).
+- No paid run by the agent without the founder's yes. No transcript or run capture committed (S126).
+- No new policing of Vajra's own paperwork; N25 is a note, not a gate.
+- The README line is the founder's words only.
+- (Added in-session: the approved draft had no `## Guardrails`, so `--advance` refused it; these lines restate the
+  prompt's own rules and add none.)
+
 ## Design
 design-significant: no
 - Wording, a retirement note, a README line: no design record changes.
