@@ -2,11 +2,17 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S199 (CODE: every pending known bug) complete, PR open; next is S200, the review-only session
+## Between Sessions — S200 (NO-CODE ground truth) complete, PR open; next is S201, the small fixes
 
-**Next: Session 200 — NO-CODE ground truth (every 5th): the review of S196–S199.** Prompt: `prompts/200-task-ground-truth.md` (draft; the founder runs `vajra approve 200` after reading it, and `vajra approve 200 --close` after the report). Start it in a fresh chat.
+**Next: Session 201 — CODE: the S200 small fixes + the README "tested with" line.** Prompt: `prompts/201-task-small-fixes.md` (draft; the founder runs `vajra approve 201` after reading it). Start it in a fresh chat.
 
-## Session 199 — CODE: every pending known bug — COMPLETE
+## Session 200 — NO-CODE ground truth (every 5th) — COMPLETE (🟡 PARTIAL, signed off by `vajra approve 200 --close`)
+
+- Brief: `prompts/200-task-ground-truth.md`. Report: `sessions/session-200-ground-truth.md`. Review: `sessions/session-200-review.md` (one cold pass, ACCEPT, 5 recs applied). Summary: `sessions/session-200-summary.md`.
+- 13 audits live; close-truth (N14) first use — S196–S199 + rudra S21, no mismatch on the close check; F126 named. First Vajra GT with the guard ON from the first command.
+- **Founder:** N22 retire (→ S201), N23 keep (green on rudra's sync), pick **C**. **New:** N24 (→ S201), N25 (→ S201 note; reinstall `vajra`), N26 (→ S205 prompt), N27 (fixed here).
+
+## Session 199 — CODE: every pending known bug — COMPLETE (merged #238)
 
 - Brief: `prompts/199-task-all-pending-bugs.md`. Summary: `sessions/session-199-summary.md`. Review: `sessions/session-199-review.md`.
 - Shipped: **F126** (real stamp run; the step list says where a late founder change goes — no new rule) · the review-only **sign-off step** · **N19** CRLF kept · **N20** Prior entries untouched · **N21** two prompts refused by name · **N14** close-truth GT question · `latest` a link (founder's yes) · `gt_cadence_shared` exact · rest of **N7**. Verify 9/9 · demo 5/5 · `cargo test` 743/0.
