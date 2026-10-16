@@ -171,3 +171,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: bug fixes shown 
 - fidelity-reviewer rec 5 — deferred: prompts/200-task-ground-truth.md
   Why: it can only be checked on S200's own first `vajra next --steps`; that prompt's checklist now holds it (a85470d). S200 is review-only, so a bug it finds is filed for S201, not fixed there.
 - fidelity-reviewer rec 6 — obeyed: 37ff65f (traced: verify row 2's PASS message had `vajra approve 10 --close` in backticks inside double quotes, so bash ran it — refused here by the agent mark, but from the founder's terminal it would have written a stray close record into Vajra's repo; none was written; the message now names no command)
+
+**release-coordinator** (`.ai/handoffs/session-199-release-coordinator.md`, the one judge — 13 implemented, 0 mismatch; the deferral judged acceptable):
+- release-coordinator rec 1 — deferred: prompts/200-task-ground-truth.md
+  Why: the `latest` relink can only be seen after this session's close run, which is after its last commit; that prompt's checklist now holds the check and the record (with S199's push record), the same way S198's push was recorded at S199's start.

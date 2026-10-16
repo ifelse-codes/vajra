@@ -25,6 +25,10 @@ session_type: GROUND_TRUTH
    - **S199 review rec 5 — check at this session's first `vajra next --steps`:** does the new sign-off step (✗ until
      `vajra approve 200 --close`) become "YOUR NEXT STEP" before the report exists, hiding the later steps' how?
      If it does, file it (a known bug for S201); this session writes no code.
+   - **S199 release-coordinator rec 1 — at this session's start:** confirm `.ai/verify/closeout/latest` points at
+     S199's close-run folder (not `20261015T100751Z`) and record that stamp next to S199's push record (PR head =
+     the GREEN result) in `sessions/session-199-summary.md` — the link line hides its errors
+     (`verify-closeout.sh:1416`), so this is the eyes-on proof of S199's AC7.
    - F127's and F123's remaining routes (named, not closed; founder 2026-09-15: no more policing)
    - F97's opt-out key (S195: wait for a real request) · S188's named gaps · the `/clear` receipt gap and a fork's
      own share (founder 2026-10-09: named, not closed)
