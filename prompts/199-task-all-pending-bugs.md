@@ -122,6 +122,18 @@ design-significant: no
     push; the push through the S196 belt.
     covers: 10
 
+## Execution
+- step 1 — done: b63e349
+- step 2 — done: b63e349
+- step 3 — done: df7bc11
+- step 4 — done: df7bc11
+- step 5 — done: e572057
+- step 6 — done: c2a11bd
+- step 7 — done: c3cad24
+- step 8 — done: c19800d
+- step 9 — done: 93b706b, c38ea5b, 8216bf5
+- step 10 — done: c3cad24
+
 ## Delta
 - `~` F126: a late founder change has a stated place
 - `+` the review-only sign-off line in the step list
