@@ -4,7 +4,7 @@ One cold pass by a fresh fidelity-reviewer dispatch, not the builder (verbatim b
 
 verdict: ACCEPT
 
-**Review-Inputs-SHA:** c66bb4ebd07ace3a1b502b1bb1ff287fe7203638f08838c7e5f55dec28f38cba
+**Review-Inputs-SHA:** c4e267efb738e10bc34c0ecebf67f7e3c0831efa52e53ba242c8f6fe2566c198
 
 Fidelity review — session 201
 **Verdict:** ACCEPT
