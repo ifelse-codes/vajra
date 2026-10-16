@@ -597,17 +597,26 @@ impl GateVerdict {
     }
 }
 
-/// Find `prompts/NN-task-*.md` for a session number.
+/// Find `prompts/NN-task-*.md` for a session number. S199 (N21): with more than one, the first by
+/// name — never `read_dir` order — and `--advance` and `--steps` refuse that case by name.
 pub fn find_prompt_for(root: &Path, session: u32) -> Option<String> {
-    let prompts_dir = root.join("prompts");
+    prompts_for(root, session).into_iter().next()
+}
+
+/// Every `prompts/NN-task-*.md` for a session number, sorted by name (S199, N21).
+pub fn prompts_for(root: &Path, session: u32) -> Vec<String> {
     let prefix = format!("{session:02}-task-");
-    fs::read_dir(&prompts_dir)
-        .ok()?
+    let mut found: Vec<String> = fs::read_dir(root.join("prompts"))
+        .into_iter()
+        .flatten()
         .filter_map(|e| e.ok())
-        .find_map(|e| {
+        .filter_map(|e| {
             let name = e.file_name().to_string_lossy().to_string();
             (name.starts_with(&prefix) && name.ends_with(".md")).then(|| format!("prompts/{name}"))
         })
+        .collect();
+    found.sort();
+    found
 }
 
 /// Detect a foreign "second store" — the exact drift the S54 framing forbids (a `spec.md` or a

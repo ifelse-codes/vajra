@@ -1522,6 +1522,18 @@ fn run_advance() -> Result<()> {
     eprintln!("  branch:          {branch}");
     eprintln!();
 
+    // S199 (N21): with two prompt files for one session, which one the gates read and the pointer
+    // names was `read_dir` order — a coin toss. Name every one and stop, before anything is written.
+    let prompts = analyst::prompts_for(&root, next);
+    if prompts.len() > 1 {
+        bail!(
+            "refusing to advance: session {next:02} has {} prompt files ({}) — which one is the \
+             session's is not something to guess. Keep one and remove the others, then advance.",
+            prompts.len(),
+            prompts.join(", ")
+        );
+    }
+
     // Analyst gate (S54): the pipeline's first handoff must be governed — you cannot advance
     // INTO session N+1 unless its prompt is present, well-formed, and APPROVED (not DRAFT).
     // Fail-closed at L2/L3; advise at L1; `VAJRA_SKIP_ANALYST_GATE=1` is the documented override.
@@ -2264,20 +2276,7 @@ fn print_file(root: &Path, relative: &str) -> Result<()> {
 }
 
 fn find_next_prompt(root: &Path, next: u32) -> Option<String> {
-    let prompts_dir = root.join("prompts");
-    let prefix = format!("{next:02}-task-");
-
-    fs::read_dir(&prompts_dir)
-        .ok()?
-        .filter_map(|e| e.ok())
-        .find_map(|e| {
-            let name = e.file_name().to_string_lossy().to_string();
-            if name.starts_with(&prefix) && name.ends_with(".md") {
-                Some(format!("prompts/{name}"))
-            } else {
-                None
-            }
-        })
+    analyst::find_prompt_for(root, next)
 }
 
 fn update_prompt_pointer(root: &Path, relative: &str, new_prompt: &str) -> Result<()> {

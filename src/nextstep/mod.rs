@@ -10,8 +10,9 @@
 //!
 //! It only ever SAYS what is left. Nothing here blocks, writes, or runs a script: a checklist the
 //! agent (and the human) can read is the point, and a gate that already exists does the refusing.
-//! One narrow exception (S183, F105): the session type is read by SOURCING the shared, read-only
-//! `lib-ground-truth.sh` helper the close gates use — a second Rust reading would be a copy that drifts.
+//! One narrow exception (S183, F105): the session type — and (S199) whether the session is
+//! review-only — is read by SOURCING the shared, read-only `lib-ground-truth.sh` helper the close
+//! gates use — a second Rust reading would be a copy that drifts.
 
 use std::path::Path;
 
@@ -420,15 +421,36 @@ fn start_steps(root: &Path, next: u32, branch: &str) -> Vec<Step> {
             "you are on this session's own branch",
             format!("git checkout -b session-{next:02}-{slug} main"),
         ),
-        Step::new(
-            prompt_exists(root, next),
-            "this session's prompt exists",
-            format!(
-                "show the human the three options below, ask which one, then write \
-                 prompts/{next:02}-task-<slug>.md from the pick"
+        match two_prompts(root, next) {
+            Some(step) => step,
+            None => Step::new(
+                prompt_exists(root, next),
+                "this session's prompt exists",
+                format!(
+                    "show the human the three options below, ask which one, then write \
+                     prompts/{next:02}-task-<slug>.md from the pick"
+                ),
             ),
-        ),
+        },
     ]
+}
+
+/// S199 (N21): more than one `prompts/NN-task-*.md` — a ✗ step naming every one, since which is
+/// the session's is the human's call, not `read_dir` order. `None` with zero or one.
+fn two_prompts(root: &Path, session: u32) -> Option<Step> {
+    let all = analyst::prompts_for(root, session);
+    (all.len() > 1).then(|| {
+        Step::new(
+            false,
+            format!(
+                "this session has ONE prompt — it has {}: {}",
+                all.len(),
+                all.join(", ")
+            ),
+            "ask the human which one is this session's; remove the others (`vajra next \
+             --advance` refuses until then)",
+        )
+    })
 }
 
 /// The `<slug>` of `prompts/NN-task-<slug>.md`, when that prompt exists.
@@ -450,9 +472,12 @@ fn prompt_slug(root: &Path, session: u32) -> Option<String> {
 pub fn render(root: &Path, session: u32, branch: &str) -> String {
     let (show, merged) = session_to_show(root, session);
     let Some(done) = merged else {
+        // S199 (N21): mid-session too, two prompts for this session lead the list.
+        let mut all: Vec<Step> = two_prompts(root, session).into_iter().collect();
+        all.extend(steps(root, session));
         return format!(
             "{}{}",
-            format_steps(&steps(root, session), session),
+            format_steps(&all, session),
             format_options(root, session)
         );
     };
@@ -890,6 +915,38 @@ mod tests {
         git_in(r, &["commit", "-qm", "the record"]);
         let s = sign_off(10).unwrap();
         assert!(s.done && !s.what.contains("not in git"), "{}", s.what);
+    }
+
+    /// S199 (N21): two prompt files for one session lead the list as a ✗ step naming both — on a
+    /// live session and at a merged session's hand-over — and one prompt shows no such step.
+    #[test]
+    fn two_prompts_for_one_session_are_named_not_picked() {
+        let d = merged(&[5]);
+        let r = d.path();
+        fs::write(r.join("prompts/06-task-b.md"), "# b\n").unwrap();
+        let lists = || [render(r, 6, "session-06-b"), render(r, 5, "main")];
+        for out in lists() {
+            assert!(!out.contains("has ONE prompt"), "{out}");
+        }
+        fs::write(r.join("prompts/06-task-a.md"), "# a\n").unwrap();
+        for out in lists() {
+            assert!(
+                out.contains(
+                    "✗ this session has ONE prompt — it has 2: prompts/06-task-a.md, prompts/06-task-b.md"
+                ),
+                "{out}"
+            );
+            assert_eq!(
+                out.matches("✗ this session has ONE prompt").count(),
+                1,
+                "{out}"
+            );
+        }
+        assert_eq!(
+            analyst::find_prompt_for(r, 6).as_deref(),
+            Some("prompts/06-task-a.md"),
+            "the gates' reading is the first by name, never read_dir order"
+        );
     }
 
     /// S199 (F126): the stamp and push steps say where a late founder change goes — into git, in
