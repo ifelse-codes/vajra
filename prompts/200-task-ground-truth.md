@@ -103,7 +103,7 @@ demo-producer: skipped — the tech-lead deferred it on budget: a review-only se
 - tech-lead rec 3 — obeyed: dd8f62f (no design-advisor dispatch; the one-line `design-advisor: skipped — <reason>` under `## Design` is in this prompt)
 - tech-lead rec 4 — obeyed: ee9343a (checklist row 1 sets out N22 "retire" as a proposed drop with the paperwork-loop reason, row 2 offers N23 keep or drop; the founder chose retire / keep — "Founder rulings")
 - tech-lead rec 5 — obeyed: d9ff0dd (order: report draft → one fidelity-reviewer pass on it → its recs applied (ee9343a) → this Advice → one release-coordinator judge pass)
-- tech-lead rec 6 — obeyed: d9ff0dd (the tech-lead and fidelity-reviewer handoffs recorded by `vajra next --role --from` a scratch file holding the hand-back text, each with a `verified: toolu_…; text-sha` header; the report was committed only after `vajra approve 200 --close`, ee9343a after f21c831's close record)
+- tech-lead rec 6 — obeyed: d9ff0dd (the tech-lead and fidelity-reviewer handoffs recorded by `vajra next --role --from` a scratch file holding the hand-back text, each with a `verified: toolu_…; text-sha` header; the report was committed only after `vajra approve 200 --close`, ee9343a after f21c831's close record) and f21c831 (the tech-lead handoff committed with the approval records)
 
 **fidelity-reviewer** (`.ai/handoffs/session-200-fidelity-reviewer.md`) — one cold pass, ACCEPT 5 SHIPPED / 3 PARTIAL:
 - fidelity-reviewer rec 1 — obeyed: ee9343a (the glance row now reads "about the close check itself" and names rudra S21's false "Nothing is left half-done" — F126, fixed S199; Goal 2's rudra row carries ✗ on that claim)
@@ -111,3 +111,9 @@ demo-producer: skipped — the tech-lead deferred it on budget: a review-only se
 - fidelity-reviewer rec 3 — obeyed: ee9343a (checklist row 2 points at Goal 4's next step, option A, the rudra sync)
 - fidelity-reviewer rec 4 — obeyed: ee9343a (Goal 2 says each summary has no words about its own close at its PR head and quotes where the next session recorded it — S198 `:38`, S199 `:52`)
 - fidelity-reviewer rec 5 — obeyed: ee9343a (constitution_review cites `.ai/AGENTS.md:66`, `prompts/200-task-ground-truth.md:69-70` and the step list's plan step as the places that assume the plan is written mid-review)
+
+**release-coordinator** (`.ai/handoffs/session-200-release-coordinator.md`) — the one judge; one pass: 11 implemented, 0 mismatch:
+- release-coordinator rec 1 — deferred: sessions/session-200-summary.md
+- release-coordinator rec 2 — deferred: sessions/session-200-summary.md
+- release-coordinator rec 3 — deferred: sessions/session-200-summary.md
+- release-coordinator rec 4 — deferred: sessions/session-200-summary.md
