@@ -713,6 +713,7 @@ station credit.
 | S196 | **Complete** | **Session 196 — INTERACTIVE: rudra S21 on Opus, synced** (`prompts/196-task-rudra-s21.md`). Opus ran every instruction-only step (4 helpers, 18 `vajra next`, real review), close GREEN 21/0, "fully closed" true; $19.21 = Claude Code's own cost-state. F121's box could only show after the merge; F123 not exercised. **F127 fixed (founder: "no pr creation till it is not green"):** `.githooks/pre-push` stops an agent's push of a session branch without a GREEN close for that exact commit; result format 2 (`head:`, `clean:`) (DECISION-007 + ADR-0004 S196 addenda). **F126 → known bugs** (founder: park). Verify 10/10 · demo 5/5 · `cargo test` 732/0. `sessions/session-196-summary.md`. |
 | S197 | **Complete** | **Session 197 — CODE: the known-bug session** (`prompts/197-task-known-bugs.md`). **F125 premise corrected:** user projects never had the review-only guard; founder (2026-10-14): ship it to every project — one `hook-ground-truth-guard.sh` via `vajra init` / `--sync-fleet`, no branch name opens it (the `-closeout`/`-enforcement` exemptions, `VAJRA_GT_WAIVER` and — after the cold review — a branch with another session's number), only the founder's `vajra approve NN --close` does (DECISION-011 S197 addendum). **N17** (unnumbered branch → HEAD's `.ai/SESSION` + 1), **F116**, **F119**, **N10** fixed. **F118 moved out** (founder) — still a known bug. N18 filed. Review ACCEPT 10/12. `sessions/session-197-summary.md`. |
 | S198 | **Complete** | **Session 198 — CODE: the known-bug leftovers** (`prompts/198-task-known-bug-leftovers.md`). **F118 fixed:** `vajra next --advance` moves the old `## Current Session` entry, byte-for-byte, to the first `## Prior Session` on Vajra's shape and writes `NN — IN PROGRESS`; any other shape keeps the S191 number swap and says why — proven live on S198's own advance (`1f77083`, no hand repair). **N18 fixed:** check 6 picks the last 10 verify scripts by the number in the file name and prints the names it scanned (bash 3.2 `case` inside `$( )` caught by verify row 3). Verify 4/4, demo 5/5, `cargo test` 737/0. `sessions/session-198-summary.md`. |
+| S199 | **Complete** | **Session 199 — CODE: every pending known bug** (`prompts/199-task-all-pending-bugs.md`). All nine, none moved out. **F126:** a real stamp run — the next prompt, the summary, `.ai/` TASK/STATE/ROADMAP leave the stamp; this session's own prompt, a handoff or code move it — the step list says where a late founder change goes (no new rule). **Sign-off step** on review-only sessions · **N19** CRLF kept · **N20** Prior entries untouched · **N21** two prompts refused by name · **N14** close-truth GT question · `latest` a link (founder's yes) · `gt_cadence_shared` exact · rest of **N7**. N22, N23 filed. Verify 9/9 · demo 5/5 · `cargo test` 743/0 · review ACCEPT 9/11. `sessions/session-199-summary.md`. |
 | S180 | **Complete** | **Session 180 — NO-CODE ground truth, 🟡 PARTIAL.** `sessions/session-180-ground-truth.md` (commit `0b42dfe`). S174 fixes landed (F58/F59/F60; F48/53/54 untraced). 5 PRs since S175, all founder-driven, 0 outside users (fine — not GTM-ready). N1 cadence key would end all future ground truths; Goal 0 design for un-typeable approvals; other tools one at a time (OpenCode, omp, a third), later. |
 | S171-parked | **Parked — policing (founder 2026-09-15: "no more policing")** | Not a session. These are loopholes in Vajra's checks on its OWN paperwork; no outside user meets them. Revisit only if a real user hits one. Next real work = what a new user gets (release 0.2.0 for real, first-run experience). **Parked items (kept for the record):** (1) **S169 cold review pass 1 rec 3** — a `done:` sha must belong to THIS session (reachable from the session branch, not from its merge-base), and the rule must survive merge + prune (the Releaser NoBranch blind spot); today `git cat-file -e` accepts any old real commit. (2) **S168 cold review recs 1–3**, parked on the S169 row and not built there: correct DECISION-010's "what the gate proves" sentence · a live disclosed-floor row (zero checks + hand-printed `check-passed`/`complete` → READY) in verify + demo · replace or relabel verify-168's markdown-grep checks AC5a–e / AC10a. (3) Decide at S170 whether `execution-shas-filled` should refuse `VAJRA_CLOSEOUT_WAIVER` for CODE sessions (S169's disclosed fakest green). (4) **S169 cold review pass 2 recs 7–10** — the claim match is words only: add a no-claim fixture (`Verdict: pending` + "acceptance criteria" → passes), match `\b(accept|reject)(ed)?\b` and `review …: ACCEPT` with a `Cold review: ACCEPT` dodge fixture, pad `check_fidelity_review` + `check_review_attestation` (`session-01-review.md`), and update the comments + DECISION-007 wording to the shipped match. Risk if left: a waived NO-CODE/DOCUMENT close whose summary mentions a past verdict cannot pass (no waiver path). |
 
@@ -800,22 +801,22 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
 - **N18 — FIXED S198** (check 6 sorts by the number in the file name; prints what it scanned). Was: **`scaffold-drift.sh` check 6 sorts verify scripts by the 3rd `-`-separated field of the FULL path**
   (found S197 writing verify row 10). In a folder whose path has dashes (the old-version checkouts,
   `…/vajra-old-checkouts/<pid>-<sha>/`) it picks the wrong "last 10". LOW.
-- **N19 — `vajra next --advance` turns a CRLF SESSION-BOOT into LF** (S198 review rec 3). `str::lines()` drops the
+- **N19 — FIXED S199** (each line keeps its own ending on the move, the swap and the pointer rewrite). Was: **`vajra next --advance` turns a CRLF SESSION-BOOT into LF** (S198 review rec 3). `str::lines()` drops the
   `\r` and the file is re-joined with `\n`, so on a CRLF file F118's "old entry byte-for-byte" fails and every line
   changes. Pre-dates S198 (the S191 swap did the same). Fix idea: keep the file's line endings, or refuse to move on
   `\r` (fail closed). LOW (Windows not tested at all). **Carry → backlog — reason: the founder picks when; on the
   S200 ground-truth checklist.**
-- **N20 — the advance's prompt-pointer rewrite reaches the just-moved Prior entry** (S198 review rec 4).
+- **N20 — FIXED S199** (the rewrite stops at the first `## Prior Session` heading). Was: **the advance's prompt-pointer rewrite reaches the just-moved Prior entry** (S198 review rec 4).
   `update_prompt_pointer` rewrites the first backticked text on ANY SESSION-BOOT line containing "read prompt", so an
   old entry that says "Read prompt `prompts/NN-…`" is changed after F118 moves it down. Pre-dates S198; F118 now puts
   the old entry where it reaches. Fix idea: rewrite the pointer only in `## Next Session` / `## Current Session`.
   LOW (Vajra's own entries name prompts as "Prompt:" / "Brief:", not "Read prompt"). **Carry → backlog — reason: the
   founder picks when; on the S200 ground-truth checklist.**
-- **S197 design-advisor rec 10 — on a review-only session, `vajra next --steps` has no line for the founder's sign-off
+- **S197 design-advisor rec 10 — FIXED S199** (a `vajra approve NN --close` step on a review-only session; the not-in-git note names `session-NN-close.json`). Was: **on a review-only session, `vajra next --steps` has no line for the founder's sign-off
   (`vajra approve NN --close`), and F116's "not in git" note does not name the close record.** Deferred from S197
   (the review had started; the guard's own block message already names the command). **Carry → backlog — reason:
   the founder picks when; on the S200 ground-truth checklist.**
-- **F126 — a founder change after the review has no place in the project** (founder, 2026-10-14: park; S200
+- **F126 — FIXED S199** (a real run: the next prompt, the summary and `.ai/` STATE/TASK/ROADMAP edits leave the stamp; this session's own prompt, a handoff or code move it — the step list now says a late change goes into git there, then one more close; no new rule). Was: **a founder change after the review has no place in the project** (founder, 2026-10-14: park; S200
   checklist). In rudra S21, after the close and the stamp, the founder re-scoped S22; the agent kept the old S22
   prompt in git ("changing it now would undo today's sign-off"), saved the new plan only in Claude Code's private
   memory, and said "nothing is left half-done". Seen live: S196 summary, Findings.
@@ -823,8 +824,25 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   `git push --no-verify`, untracked files not counted in `clean:`, an inline waiver, a non-session branch name (N17).
 - **F123's remaining routes (named, not closed, DECISION-007 S194 addendum):** a fast-forward merge, `reset --hard`,
   `branch -f main`, `update-ref`, `git merge --no-verify` move main with no hook; pre-push still stops the push.
-- **Vajra's own `.ai/verify/closeout/latest` is a real folder** (from 2026-08-03) holding hundreds of links, so
+- **`latest` — FIXED S199** (the founder saw it — 732 broken self-links + 12 logs from 2026-08-03 — and said yes; now a link to the newest run). Was: **Vajra's own `.ai/verify/closeout/latest` is a real folder** (from 2026-08-03) holding hundreds of links, so
   `ln -sfn` never repoints it. Vajra-only (projects are fine); F121 does not read `latest`. Seen in S194.
+- **N21 — FIXED S199** (`--advance` refuses naming every file; `--steps` leads with a ✗ naming them; the shared
+  lookup reads the first by name). Was: two `prompts/NN-task-*.md` for one session → `find_next_prompt` took the
+  first in `read_dir` order (found 2026-10-16 writing S199's prompt).
+- **N14 — FIXED S199** (a `constraint_violation_questions` block: read each session's close result against what the
+  human was told; `vajra init` and `--sync-fleet` carry it). **gt_cadence_shared's loose assertion — FIXED S199**
+  (only the announcement line counts). **The rest of N7 — FIXED S199** (verify-176/178/179, demo-176/178/179/184/186
+  use `scripts/lib-old-checkout.sh`).
+- **N22 — `scripts/verify-session-178.sh` (9 rows) and `scripts/demo-session-178.sh` (1 check) are red on main** (found S199
+  running them for N7; main's own copies fail the same rows): its old-vs-new comparisons of `--check-crew` / `--check-design-handoff` /
+  `--check-fidelity-handoff` text on rudra S12 and Vajra S176/S177 meet wording later sessions added, and its AC6 (b)
+  waiver row meets today's required-crew message. LOW (a history script). **Carry → backlog — reason: the founder
+  picks when; on the next ground-truth checklist.**
+- **N23 — `scripts/verify-session-179.sh`'s rudra row is red since S199** ("rudra's ground-truth section differs from
+  the new scaffold's"): N14 added a question block the scaffold carries and rudra does not have yet. It goes green
+  after rudra's `vajra init --sync-fleet` (the founder's call; S197's sync files are still uncommitted there). Caused
+  by S199 (review rec 3). LOW. **Carry → backlog — reason: waits on the founder's rudra sync; on the next
+  ground-truth checklist.**
 
 **The active queue is FINISHING THE MVP** (C→B→A: team-voice ✓ → installable v0.1 = S106 → fleet).
 The machinery-freeze rule is **RETIRED** (S103 pivot). Items below get pulled when they serve the MVP

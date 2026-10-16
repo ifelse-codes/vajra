@@ -1,9 +1,12 @@
 # Session Boot
 
 ## Next Session
-- **S199 — CODE: fix every pending known bug** (founder pick, 2026-10-16 sprint review; the reviewer design was dropped 2026-10-15). In YOUR terminal on main (S198 merged #236, its follow-up PR merged): `git pull --ff-only`. In a FRESH chat: read `prompts/199-task-all-pending-bugs.md`, run `vajra approve 199`, start S199. S200 after it is the review-only session.
+- **S200 — NO-CODE ground truth (every 5th): the review of S196–S199.** In YOUR terminal on main, after S199's PR merges: `git pull --ff-only`. In a FRESH chat: read `prompts/200-task-ground-truth.md`, run `vajra approve 200`, start S200. The review-only guard blocks code, commits, pushes and PRs until you read the report and type `vajra approve 200 --close`.
 
 ## Current Session
+- **Number:** 199 — COMPLETE on `session-199-all-pending-bugs` (PR open). CODE: every pending known bug, all nine, none moved out. **F126:** a real stamp run — the next prompt, the summary, `.ai/` TASK/STATE/ROADMAP leave the stamp; this session's own prompt, a handoff or code move it — the step list says where a late founder change goes (no new rule). **Sign-off step** on review-only sessions (`vajra approve NN --close`). **N19** CRLF kept · **N20** Prior entries untouched · **N21** two prompts refused by name · **N14** a close-truth ground-truth question (ships via `--sync-fleet`) · `latest` a link (founder's yes) · `gt_cadence_shared` exact · rest of N7. N22 filed. Summary: `sessions/session-199-summary.md`. Review: `sessions/session-199-review.md`. Verify: `scripts/verify-session-199.sh` (9/9). Demo: `scripts/demo-session-199.sh` (5/5).
+
+## Prior Session
 - **Number:** 198 — COMPLETE on `session-198-known-bug-leftovers` (PR open). CODE: the known-bug leftovers. **F118 fixed:** `vajra next --advance` moves the old `## Current Session` entry, byte-for-byte, to the first `## Prior Session` on Vajra's shape (other shapes keep the number swap and say why) — live on this session's own advance. **N18 fixed:** check 6 sorts by the file name's number, prints `scanned:`. N19, N20 filed. Summary: `sessions/session-198-summary.md`. Review: `sessions/session-198-review.md` (ACCEPT 5/6, recs answered). Verify: `scripts/verify-session-198.sh` (4/4). Demo: `scripts/demo-session-198.sh` (5/5).
 
 ## Prior Session

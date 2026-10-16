@@ -22,9 +22,10 @@ export PATH="$ROOT/target/release:$PATH"
 # the binary as it was at $OLD_SHA (verify-session-186.sh builds the same one into the same place)
 OLD_VAJRA="$ROOT/target/s186-old/release/vajra"
 if [ ! -x "$OLD_VAJRA" ]; then
-  git worktree add --detach "$DK_TMP/old" "$OLD_SHA" >/dev/null 2>&1 \
-    && (cd "$DK_TMP/old" && CARGO_TARGET_DIR="$ROOT/target/s186-old" cargo build --release -q 2>/dev/null)
-  git worktree remove --force "$DK_TMP/old" >/dev/null 2>&1
+  . "$ROOT/scripts/lib-old-checkout.sh"
+  WT=$(vajra_old_checkout "$OLD_SHA") \
+    && (cd "$WT" && CARGO_TARGET_DIR="$ROOT/target/s186-old" cargo build --release -q 2>/dev/null)
+  vajra_old_checkout_remove "${WT:-}"
 fi
 git show "$OLD_SHA:scripts/hook-approvals-guard.sh" > "$DK_TMP/old-guard.sh" 2>/dev/null
 

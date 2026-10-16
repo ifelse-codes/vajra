@@ -9,7 +9,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 PASS=0; FAIL=0; SKIP=0
 ok()  { echo "PASS: $1"; PASS=$((PASS+1)); }
 bad() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
-T="$(mktemp -d)"; trap 'rm -rf "$T"; git worktree remove --force "$T.old" >/dev/null 2>&1' EXIT
+T="$(mktemp -d)"; . "$ROOT/scripts/lib-old-checkout.sh"
+trap 'rm -rf "$T"; vajra_old_checkout_remove "${OLD_WT:-}"' EXIT
 PRE_FIX=dc57eb0
 RUDRA="${RUDRA:-/Users/suman/playground/rudra}"
 NOTE="ran in an agent other than Claude Code"
@@ -20,8 +21,8 @@ cargo build --release -q 2>/dev/null || { bad "new build failed"; exit 1; }
 NEW="$ROOT/target/release/vajra"
 OLD="${OLD_VAJRA:-}"
 if [ -z "$OLD" ]; then
-  git worktree add -q --detach "$T.old" "$PRE_FIX" 2>/dev/null || { bad "cannot check out $PRE_FIX"; exit 1; }
-  ( cd "$T.old" && CARGO_TARGET_DIR="$ROOT/target/s178-old" cargo build --release -q 2>/dev/null ) \
+  OLD_WT=$(vajra_old_checkout "$PRE_FIX") || { bad "cannot check out $PRE_FIX"; exit 1; }
+  ( cd "$OLD_WT" && CARGO_TARGET_DIR="$ROOT/target/s178-old" cargo build --release -q 2>/dev/null ) \
     || { bad "old build ($PRE_FIX) failed"; exit 1; }
   OLD="$ROOT/target/s178-old/release/vajra"
 fi

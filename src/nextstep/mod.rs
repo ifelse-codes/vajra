@@ -10,8 +10,9 @@
 //!
 //! It only ever SAYS what is left. Nothing here blocks, writes, or runs a script: a checklist the
 //! agent (and the human) can read is the point, and a gate that already exists does the refusing.
-//! One narrow exception (S183, F105): the session type is read by SOURCING the shared, read-only
-//! `lib-ground-truth.sh` helper the close gates use — a second Rust reading would be a copy that drifts.
+//! One narrow exception (S183, F105): the session type — and (S199) whether the session is
+//! review-only — is read by SOURCING the shared, read-only `lib-ground-truth.sh` helper the close
+//! gates use — a second Rust reading would be a copy that drifts.
 
 use std::path::Path;
 
@@ -115,6 +116,26 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             crate::approval::approved(root, session).is_some(),
             what,
             how,
+        )
+    }))
+    // S199 (S197 design-advisor rec 10): a review-only session opens only on the founder's
+    // `vajra approve NN --close`, and no step said so — the guard's block was the first anyone heard.
+    .chain(review_only(root, session).then(|| {
+        let what = match crate::approval::close_record_not_in_git(root, session) {
+            Some(rel) => format!(
+                "the founder has signed off this review-only session's report — {rel} is not in \
+                 git yet; commit it with this session's work"
+            ),
+            None => "the founder has signed off this review-only session's report".to_string(),
+        };
+        Step::new(
+            crate::approval::close_record(root, session).is_ok(),
+            what,
+            format!(
+                "show the founder sessions/session-{nn}-ground-truth.md; only they open the \
+                 review-only guard, by typing `vajra approve {session} --close` in their OWN \
+                 terminal — until then code edits, commits, pushes and PRs are blocked"
+            ),
         )
     }))
     // S183 (F105): rudra S16 met the strict `session_type:` rule only at close, after its review was
@@ -226,8 +247,9 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             format!(
                 "after `## Advice`, `## Execution` and every handoff are committed: \
                  bash scripts/verify-closeout.sh --inputs-sha {nn} — paste it into the review as \
-                 `**Review-Inputs-SHA:** <hash>`. Any later prompt edit or commit outside \
-                 sessions/ and prompts/ moves it"
+                 `**Review-Inputs-SHA:** <hash>`. It moves on a later edit to this session's own \
+                 prompt, a handoff, or any file outside sessions/, prompts/ and .ai/'s notes \
+                 (STATE, TASK, ROADMAP, KNOWLEDGE, SESSION-BOOT, SESSION) — those it leaves alone"
             ),
         ),
         Step::new(
@@ -235,7 +257,10 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             "the work is merged and the branch is gone",
             "run scripts/verify-closeout.sh ON THE BRANCH, LAST, with everything committed, until it \
              says GREEN — the push of a session branch is refused otherwise (S196), and anything \
-             committed after it needs one more run — then push the branch and open the pull request yourself when the \
+             committed after it needs one more run. A late change from the human (a new pick, a \
+             re-scoped next session) goes into git, never only into your own memory: rewrite the \
+             next session's prompt, the summary's pick line and .ai/TASK.md — they do not move the \
+             review's stamp (S199, F126), so commit and run the close once more — then push the branch and open the pull request yourself when the \
              launch gave VAJRA_ALLOW_COMMIT=NN (S173) — `git push -u origin <branch>`, then \
              `gh pr create --title \"…\" --body-file sessions/session-NN-summary.md` — ask the human to merge it, then prune the \
              branch. If main has commits GitHub lacks, `vajra next --release NN` names them — tell \
@@ -256,13 +281,7 @@ fn session_type_state(root: &Path, session: u32) -> Option<String> {
     if session < crate::approval::rules_from(root).0 {
         return None;
     }
-    let Some(lib) = [
-        "scripts/lib-ground-truth.sh",
-        ".ai/hooks/lib-ground-truth.sh",
-    ]
-    .iter()
-    .map(|p| root.join(p))
-    .find(|p| p.is_file()) else {
+    let Some(lib) = ground_truth_helper(root) else {
         return Some("nohelper".into());
     };
     let state = std::process::Command::new("bash")
@@ -281,6 +300,38 @@ fn session_type_state(root: &Path, session: u32) -> Option<String> {
     } else {
         state
     })
+}
+
+/// The shared, read-only `lib-ground-truth.sh` the close gates and guards source: `scripts/` here,
+/// `.ai/hooks/` in a project.
+fn ground_truth_helper(root: &Path) -> Option<std::path::PathBuf> {
+    [
+        "scripts/lib-ground-truth.sh",
+        ".ai/hooks/lib-ground-truth.sh",
+    ]
+    .iter()
+    .map(|p| root.join(p))
+    .find(|p| p.is_file())
+}
+
+/// S199: is session NN a review-only (ground-truth) session — the helper's `vajra_is_ground_truth`,
+/// the same answer the review-only guard acts on, never re-implemented. No helper or no bash → no.
+fn review_only(root: &Path, session: u32) -> bool {
+    let Some(lib) = ground_truth_helper(root) else {
+        return false;
+    };
+    std::process::Command::new("bash")
+        .arg("-c")
+        .arg(r#". "$1" && vajra_is_ground_truth "$2" "$3""#)
+        .arg("vajra")
+        .arg(&lib)
+        .arg(session.to_string())
+        .arg(root)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .is_ok_and(|s| s.success())
 }
 
 /// S197 (F119): the prompt records `design-significant: no` — the same reading `--check-design`
@@ -370,15 +421,36 @@ fn start_steps(root: &Path, next: u32, branch: &str) -> Vec<Step> {
             "you are on this session's own branch",
             format!("git checkout -b session-{next:02}-{slug} main"),
         ),
-        Step::new(
-            prompt_exists(root, next),
-            "this session's prompt exists",
-            format!(
-                "show the human the three options below, ask which one, then write \
-                 prompts/{next:02}-task-<slug>.md from the pick"
+        match two_prompts(root, next) {
+            Some(step) => step,
+            None => Step::new(
+                prompt_exists(root, next),
+                "this session's prompt exists",
+                format!(
+                    "show the human the three options below, ask which one, then write \
+                     prompts/{next:02}-task-<slug>.md from the pick"
+                ),
             ),
-        ),
+        },
     ]
+}
+
+/// S199 (N21): more than one `prompts/NN-task-*.md` — a ✗ step naming every one, since which is
+/// the session's is the human's call, not `read_dir` order. `None` with zero or one.
+fn two_prompts(root: &Path, session: u32) -> Option<Step> {
+    let all = analyst::prompts_for(root, session);
+    (all.len() > 1).then(|| {
+        Step::new(
+            false,
+            format!(
+                "this session has ONE prompt — it has {}: {}",
+                all.len(),
+                all.join(", ")
+            ),
+            "ask the human which one is this session's; remove the others (`vajra next \
+             --advance` refuses until then)",
+        )
+    })
 }
 
 /// The `<slug>` of `prompts/NN-task-<slug>.md`, when that prompt exists.
@@ -400,9 +472,12 @@ fn prompt_slug(root: &Path, session: u32) -> Option<String> {
 pub fn render(root: &Path, session: u32, branch: &str) -> String {
     let (show, merged) = session_to_show(root, session);
     let Some(done) = merged else {
+        // S199 (N21): mid-session too, two prompts for this session lead the list.
+        let mut all: Vec<Step> = two_prompts(root, session).into_iter().collect();
+        all.extend(steps(root, session));
         return format!(
             "{}{}",
-            format_steps(&steps(root, session), session),
+            format_steps(&all, session),
             format_options(root, session)
         );
     };
@@ -793,6 +868,112 @@ mod tests {
         git_in(r, &["commit", "-qm", "the record"]);
         let s = approval();
         assert!(s.done && !s.what.contains("not in git"), "{}", s.what);
+    }
+
+    /// S199 (S197 design-advisor rec 10): a review-only session has a sign-off step — ✗ until the
+    /// founder's close record, ✓ after, naming the record while it is not in git. A CODE session has
+    /// no such step. The review-only answer is the real shared helper's.
+    #[test]
+    fn a_review_only_session_has_the_founders_sign_off_step() {
+        let d = repo();
+        let r = d.path();
+        fs::create_dir_all(r.join(".ai/approvals")).unwrap();
+        fs::create_dir_all(r.join("scripts")).unwrap();
+        fs::copy(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/lib-ground-truth.sh"),
+            r.join("scripts/lib-ground-truth.sh"),
+        )
+        .unwrap();
+        let sign_off = |n: u32| {
+            steps(r, n)
+                .into_iter()
+                .find(|s| s.what.contains("signed off this review-only session"))
+        };
+        assert!(sign_off(9).is_none(), "session 9 is not review-only");
+        let s = sign_off(10).expect("session 10 is review-only (every 5th)");
+        assert!(!s.done, "no close record yet");
+        assert!(s.how.contains("`vajra approve 10 --close`"), "{}", s.how);
+
+        fs::write(
+            r.join(".ai/approvals/session-10-close.json"),
+            r#"{"session": 10, "method": "close-command", "at_unix": 1}"#,
+        )
+        .unwrap();
+        git_in(r, &["init", "-q", "-b", "main"]);
+        fs::write(r.join("README"), "x").unwrap();
+        git_in(r, &["add", "README"]);
+        git_in(r, &["commit", "-qm", "first"]);
+        let s = sign_off(10).unwrap();
+        assert!(s.done, "the close record counts");
+        assert!(
+            s.what
+                .contains(".ai/approvals/session-10-close.json is not in git yet"),
+            "{}",
+            s.what
+        );
+        git_in(r, &["add", ".ai/approvals/session-10-close.json"]);
+        git_in(r, &["commit", "-qm", "the record"]);
+        let s = sign_off(10).unwrap();
+        assert!(s.done && !s.what.contains("not in git"), "{}", s.what);
+    }
+
+    /// S199 (N21): two prompt files for one session lead the list as a ✗ step naming both — on a
+    /// live session and at a merged session's hand-over — and one prompt shows no such step.
+    #[test]
+    fn two_prompts_for_one_session_are_named_not_picked() {
+        let d = merged(&[5]);
+        let r = d.path();
+        fs::write(r.join("prompts/06-task-b.md"), "# b\n").unwrap();
+        let lists = || [render(r, 6, "session-06-b"), render(r, 5, "main")];
+        for out in lists() {
+            assert!(!out.contains("has ONE prompt"), "{out}");
+        }
+        fs::write(r.join("prompts/06-task-a.md"), "# a\n").unwrap();
+        for out in lists() {
+            assert!(
+                out.contains(
+                    "✗ this session has ONE prompt — it has 2: prompts/06-task-a.md, prompts/06-task-b.md"
+                ),
+                "{out}"
+            );
+            assert_eq!(
+                out.matches("✗ this session has ONE prompt").count(),
+                1,
+                "{out}"
+            );
+        }
+        assert_eq!(
+            analyst::find_prompt_for(r, 6).as_deref(),
+            Some("prompts/06-task-a.md"),
+            "the gates' reading is the first by name, never read_dir order"
+        );
+    }
+
+    /// S199 (F126): the stamp and push steps say where a late founder change goes — into git, in
+    /// files that do not move the stamp — and that it costs one more close run.
+    #[test]
+    fn a_late_founder_change_has_a_place() {
+        let d = repo();
+        let all = steps(d.path(), 7);
+        let push = all
+            .iter()
+            .find(|s| s.what.contains("merged and the branch"))
+            .unwrap();
+        assert!(
+            push.how.contains("never only into your own memory"),
+            "{}",
+            push.how
+        );
+        assert!(
+            push.how.contains("do not move the review's stamp"),
+            "{}",
+            push.how
+        );
+        let stamp = all
+            .iter()
+            .find(|s| s.what.contains("stamp matches"))
+            .unwrap();
+        assert!(stamp.how.contains("those it leaves alone"), "{}", stamp.how);
     }
 
     /// A repo on main whose listed sessions' summaries are committed (= their closes merged).

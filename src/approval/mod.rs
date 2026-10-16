@@ -261,6 +261,18 @@ pub fn record_not_in_git(root: &Path, n: u32) -> Option<String> {
     ) {
         return None;
     }
+    not_in_head(root, &session_path(root, n))
+}
+
+/// S199 (S197 design-advisor rec 10): the same reminder for the founder's close record — signed
+/// off (`close_record` counts it), but not in the last commit. `None` otherwise.
+pub fn close_record_not_in_git(root: &Path, n: u32) -> Option<String> {
+    close_record(root, n).ok()?;
+    not_in_head(root, &close_path(root, n))
+}
+
+/// The record's repo path when this is a git work tree and the last commit lacks it.
+fn not_in_head(root: &Path, record: &Path) -> Option<String> {
     let git = |args: &[&str]| {
         std::process::Command::new("git")
             .arg("-C")
@@ -275,7 +287,7 @@ pub fn record_not_in_git(root: &Path, n: u32) -> Option<String> {
     if !git(&["rev-parse", "--is-inside-work-tree"]) {
         return None;
     }
-    let rel = format!(".ai/approvals/{}", file_name(&session_path(root, n)));
+    let rel = format!(".ai/approvals/{}", file_name(record));
     (!git(&["cat-file", "-e", &format!("HEAD:{rel}")])).then_some(rel)
 }
 

@@ -1522,6 +1522,18 @@ fn run_advance() -> Result<()> {
     eprintln!("  branch:          {branch}");
     eprintln!();
 
+    // S199 (N21): with two prompt files for one session, which one the gates read and the pointer
+    // names was `read_dir` order — a coin toss. Name every one and stop, before anything is written.
+    let prompts = analyst::prompts_for(&root, next);
+    if prompts.len() > 1 {
+        bail!(
+            "refusing to advance: session {next:02} has {} prompt files ({}) — which one is the \
+             session's is not something to guess. Keep one and remove the others, then advance.",
+            prompts.len(),
+            prompts.join(", ")
+        );
+    }
+
     // Analyst gate (S54): the pipeline's first handoff must be governed — you cannot advance
     // INTO session N+1 unless its prompt is present, well-formed, and APPROVED (not DRAFT).
     // Fail-closed at L2/L3; advise at L1; `VAJRA_SKIP_ANALYST_GATE=1` is the documented override.
@@ -2039,21 +2051,29 @@ fn update_session_boot(root: &Path, current: u32, next: u32) -> Result<BootUpdat
     Ok(outcome)
 }
 
-fn keep_final_newline(content: &str, updated: String) -> String {
-    if content.ends_with('\n') && !updated.ends_with('\n') {
-        updated + "\n"
-    } else {
-        updated
-    }
+/// S199 (N19): each line with its own ending (`\r\n`, `\n`, or `""` for a last line with none).
+/// `str::lines()` + `join("\n")` turned a CRLF file into LF on every advance; the rewriters below
+/// change a line's text only and put back the ending it came with.
+fn lines_with_endings(content: &str) -> Vec<(&str, &str)> {
+    content
+        .split_inclusive('\n')
+        .map(|l| {
+            let body = l.strip_suffix('\n').unwrap_or(l);
+            let body = if l.ends_with('\n') {
+                body.strip_suffix('\r').unwrap_or(body)
+            } else {
+                body
+            };
+            (body, &l[body.len()..])
+        })
+        .collect()
 }
 
 fn swap_boot_numbers(content: &str, current: u32, next: u32) -> String {
-    let updated = content
-        .lines()
-        .map(|line| swap_boot_number(line, current, next))
-        .collect::<Vec<_>>()
-        .join("\n");
-    keep_final_newline(content, updated)
+    lines_with_endings(content)
+        .into_iter()
+        .map(|(line, eol)| swap_boot_number(line, current, next) + eol)
+        .collect()
 }
 
 /// S198 (F118): on Vajra's shape, write a fresh `- **Number:** {next} — IN PROGRESS` under
@@ -2064,7 +2084,8 @@ fn swap_boot_numbers(content: &str, current: u32, next: u32) -> String {
 fn move_current_entry(content: &str, current: u32, next: u32) -> Result<String, String> {
     const CURRENT: &str = "## Current Session";
     const PRIOR: &str = "## Prior Session";
-    let lines: Vec<&str> = content.lines().collect();
+    let with_eol = lines_with_endings(content);
+    let lines: Vec<&str> = with_eol.iter().map(|(l, _)| *l).collect();
 
     let heads: Vec<usize> = (0..lines.len())
         .filter(|&i| lines[i].trim_end() == CURRENT)
@@ -2102,14 +2123,22 @@ fn move_current_entry(content: &str, current: u32, next: u32) -> Result<String, 
         return Err(format!("`{CURRENT}` holds more than one entry"));
     }
 
-    let mut out: Vec<String> = lines[..=head].iter().map(|l| l.to_string()).collect();
-    out.push(format!("- **Number:** {next:02} — IN PROGRESS"));
-    out.push(String::new());
-    out.push(PRIOR.to_string());
-    out.extend(body[..entry_len].iter().map(|l| l.to_string()));
-    out.push(String::new());
-    out.extend(lines[end..].iter().map(|l| l.to_string()));
-    Ok(keep_final_newline(content, out.join("\n")))
+    // N19: every kept line keeps its own ending; a new line takes the `## Current Session` line's.
+    let eol = with_eol[head].1;
+    let kept = |range: std::ops::Range<usize>| {
+        with_eol[range]
+            .iter()
+            .map(|(l, e)| format!("{l}{e}"))
+            .collect::<String>()
+    };
+    Ok([
+        kept(0..head + 1),
+        format!("- **Number:** {next:02} — IN PROGRESS{eol}{eol}{PRIOR}{eol}"),
+        kept(head + 1..head + 1 + entry_len),
+        eol.to_string(),
+        kept(end..lines.len()),
+    ]
+    .concat())
 }
 
 /// S191: swap only the number token right after `**Number:**`, and only when it is `current`.
@@ -2247,20 +2276,7 @@ fn print_file(root: &Path, relative: &str) -> Result<()> {
 }
 
 fn find_next_prompt(root: &Path, next: u32) -> Option<String> {
-    let prompts_dir = root.join("prompts");
-    let prefix = format!("{next:02}-task-");
-
-    fs::read_dir(&prompts_dir)
-        .ok()?
-        .filter_map(|e| e.ok())
-        .find_map(|e| {
-            let name = e.file_name().to_string_lossy().to_string();
-            if name.starts_with(&prefix) && name.ends_with(".md") {
-                Some(format!("prompts/{name}"))
-            } else {
-                None
-            }
-        })
+    analyst::find_prompt_for(root, next)
 }
 
 fn update_prompt_pointer(root: &Path, relative: &str, new_prompt: &str) -> Result<()> {
@@ -2270,29 +2286,27 @@ fn update_prompt_pointer(root: &Path, relative: &str, new_prompt: &str) -> Resul
         Err(_) => return Ok(()),
     };
 
-    let updated: String = content
-        .lines()
-        .map(|line| {
-            if !line.to_ascii_lowercase().contains("read prompt") {
-                return line.to_string();
+    // S199 (N20): the pointer is the CURRENT one — nothing at or below the first `## Prior Session`
+    // heading is touched (F118 moves the old entry, with its own "Read prompt `…`", down there).
+    // The heading is structure, never a guess at the text; a file without it is read whole.
+    let mut in_prior = false;
+    let updated: String = lines_with_endings(&content)
+        .into_iter()
+        .map(|(line, eol)| {
+            in_prior |= line.trim_end() == "## Prior Session";
+            if in_prior || !line.to_ascii_lowercase().contains("read prompt") {
+                return format!("{line}{eol}");
             }
             let Some(start) = line.find('`') else {
-                return line.to_string();
+                return format!("{line}{eol}");
             };
             let tail = &line[start + 1..];
             let Some(end) = tail.find('`') else {
-                return line.to_string();
+                return format!("{line}{eol}");
             };
-            format!("{}`{new_prompt}`{}", &line[..start], &tail[end + 1..])
+            format!("{}`{new_prompt}`{}{eol}", &line[..start], &tail[end + 1..])
         })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let updated = if content.ends_with('\n') && !updated.ends_with('\n') {
-        updated + "\n"
-    } else {
-        updated
-    };
+        .collect();
 
     fs::write(&path, updated).with_context(|| format!("failed to write {relative}"))?;
     Ok(())
@@ -2560,6 +2574,65 @@ mod tests {
             format!(
                 "# Session Boot\n\n## Next Session\n- **S198** next.\n\n## Current Session\n- **Number:** 198 — IN PROGRESS\n\n## Prior Session\n{entry}\n\n## Prior Session\n- **Number:** 196 — CLOSED.\n\n**New chat.**\n"
             )
+        );
+    }
+
+    /// S199 (N19): a CRLF SESSION-BOOT keeps CRLF on every line, on both paths — the move (Vajra's
+    /// shape) and the swap (any other) — and the result is the LF result with every `\n` a `\r\n`.
+    #[test]
+    fn update_session_boot_keeps_crlf_on_both_shapes() {
+        let vajra = "# Boot\n\n## Current Session\n- **Number:** 197 — done.\n  more.\n\n## Prior Session\n- **Number:** 196 — CLOSED.\n";
+        let init = "## Current Session\n- **Number:** 01\n- **Type:** CODE\n\n## Repo State Snapshot\n- x\n";
+        for (lf, current) in [(vajra, 197), (init, 1)] {
+            let crlf = lf.replace('\n', "\r\n");
+            let run = |text: &str| {
+                let tmp = tempfile::tempdir().unwrap();
+                fs::create_dir_all(tmp.path().join(".ai")).unwrap();
+                fs::write(tmp.path().join(".ai/SESSION-BOOT.md"), text).unwrap();
+                update_session_boot(tmp.path(), current, current + 1).unwrap();
+                fs::read_to_string(tmp.path().join(".ai/SESSION-BOOT.md")).unwrap()
+            };
+            let after = run(&crlf);
+            assert_eq!(after, run(lf).replace('\n', "\r\n"), "{lf:?}");
+            assert_eq!(
+                after.matches('\n').count(),
+                after.matches("\r\n").count(),
+                "a bare LF in {after:?}"
+            );
+        }
+        // A last line with no ending stays without one.
+        assert_eq!(
+            swap_boot_numbers("a\r\n**Number:** 4", 4, 5),
+            "a\r\n**Number:** 05"
+        );
+    }
+
+    /// S199 (N20): the pointer rewrite stops at the first `## Prior Session` — an old entry's
+    /// "Read prompt `…`" there is byte-for-byte unchanged; the current one above still moves. A file
+    /// with no such heading (TASK.md) is read whole, as before.
+    #[test]
+    fn update_prompt_pointer_leaves_prior_entries_alone() {
+        let boot = "## Current Session\r\n- **Read prompt:** `prompts/07-task-a.md`\r\n\r\n## Prior Session\r\n- **Number:** 06 — Read prompt `prompts/06-task-old.md` then.\r\n";
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join(".ai")).unwrap();
+        fs::write(tmp.path().join(".ai/SESSION-BOOT.md"), boot).unwrap();
+        let task = "# Task\nRead prompt `prompts/07-task-a.md`\nlater: Read prompt `prompts/07-task-a.md`\n";
+        fs::write(tmp.path().join(".ai/TASK.md"), task).unwrap();
+        for f in [".ai/SESSION-BOOT.md", ".ai/TASK.md"] {
+            update_prompt_pointer(tmp.path(), f, "prompts/08-task-b.md").unwrap();
+        }
+        let after = fs::read_to_string(tmp.path().join(".ai/SESSION-BOOT.md")).unwrap();
+        assert_eq!(
+            after,
+            boot.replace("prompts/07-task-a.md", "prompts/08-task-b.md")
+        );
+        assert!(after.ends_with(
+            "## Prior Session\r\n- **Number:** 06 — Read prompt `prompts/06-task-old.md` then.\r\n"
+        ));
+        assert_eq!(
+            fs::read_to_string(tmp.path().join(".ai/TASK.md")).unwrap(),
+            task.replace("prompts/07-task-a.md", "prompts/08-task-b.md"),
+            "no `## Prior Session` heading: every pointer line moves, as before"
         );
     }
 

@@ -2,9 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S198 (CODE: the known-bug leftovers) merged #236; next is S199, every pending known bug
+## Between Sessions — S199 (CODE: every pending known bug) complete, PR open; next is S200, the review-only session
 
-**Next: Session 199 — CODE: fix every pending known bug** (founder pick, 2026-10-16; the reviewer design was dropped 2026-10-15). Prompt: `prompts/199-task-all-pending-bugs.md` (draft; the founder runs `vajra approve 199` after reading it). Start it in a fresh chat.
+**Next: Session 200 — NO-CODE ground truth (every 5th): the review of S196–S199.** Prompt: `prompts/200-task-ground-truth.md` (draft; the founder runs `vajra approve 200` after reading it, and `vajra approve 200 --close` after the report). Start it in a fresh chat.
+
+## Session 199 — CODE: every pending known bug — COMPLETE
+
+- Brief: `prompts/199-task-all-pending-bugs.md`. Summary: `sessions/session-199-summary.md`. Review: `sessions/session-199-review.md`.
+- Shipped: **F126** (real stamp run; the step list says where a late founder change goes — no new rule) · the review-only **sign-off step** · **N19** CRLF kept · **N20** Prior entries untouched · **N21** two prompts refused by name · **N14** close-truth GT question · `latest` a link (founder's yes) · `gt_cadence_shared` exact · rest of **N7**. Verify 9/9 · demo 5/5 · `cargo test` 743/0.
+- **Filed:** N22 (verify-178 / demo-178 red on main — old wording comparisons) → ROADMAP known bugs, S200 checklist.
 
 ## Session 198 — CODE: the known-bug leftovers — COMPLETE
 

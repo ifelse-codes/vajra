@@ -37,6 +37,11 @@ the review; the cold reviewer could not run commands, so the builder re-ran both
 | AC4 real-run checks, red at start; cargo test; push via the S196 belt | PARTIAL — the push half happens after the close; deferred to the next session's prompt (tech-lead rec 5; review rec 2) | rows 1–3 run the old binary/script too; no source greps (the two `src/main.rs` lines write a fixture and carry `# source-claim:`); `cargo test` 737/0 |
 | Carried: S197's push recorded | SHIPPED | `2830bb2` (S197 summary: PR #235 head `2f83693` = the GREEN, `clean: yes` close result; who pushed is not recorded — the hook keeps no log) |
 
+**The push (recorded at S199's start):** PR #236's head is `a3068d2` (`gh pr view 236`, 17 commits, merged
+2026-10-15T11:06Z), and `.ai/verify/closeout/20261015T100751Z/result` records that exact commit as
+`verdict: GREEN` (25 pass, 0 fail), `clean: yes` — the condition the S196 push belt checks. The pre-push hook
+keeps no log, so whether the agent pushed (belt checked) or the founder did (note only) is not recorded.
+
 **Not built:** nothing in the prompt. **Not moved:** a project's own SESSION-BOOT (rudra's) is still only
 number-swapped — by design; it is now told so.
 
