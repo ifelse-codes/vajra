@@ -1,0 +1,56 @@
+---
+role: fidelity-reviewer
+session: 201
+agent: claude-code-subagent (verified: toolu_01PRaBrTXh78MgkgbmEnBJTV; text-sha: 1a0cca03563449e1ee6b16c8fcd6065a295d0f8e515096542143196a8e59afcd)
+source-sha: 03970210352a6a05f7b8d23ef56b20923b480c32db5cf50de7726dc0519d01c8
+captured: 2026-10-16T19:33:24Z
+cost_usd: null
+---
+
+# Fidelity-reviewer handoff — session 201
+
+Fidelity review — session 201
+**Verdict:** ACCEPT
+
+8 of 9 SHIPPED (1 PARTIAL, 0 NOT-BUILT). This is a faithful build of all four items, not one narrow slice presented as the whole. AC5 is PARTIAL only because of order: the close and the push come after this review.
+
+How I checked: I had no shell in this pass, only Read/Grep/Glob. So I did NOT run `bash scripts/verify-session-201.sh`, `cargo test` or `git diff edb92e3..HEAD`. I read every file the diff touches at the tip and checked the code, the unit tests and the verify/demo rows against the prompt. The "5/5", "6/6" and "745/0" figures in the summary are its own claims, unverified by me (see rec 4). From .git/objects I confirmed that commits edb92e3, e78b02a, 55e5d14, d5ff467, 5c1c295, 1a8b7d0 and b527493 exist. The 178 header's older cites live in packed objects I could not open: 84674c8/a0c1417 (S184) and 62bfe63/2f4c59d (S186) are confirmed by other records, 4addc3a is named in session-186-summary.md, and 52e2359 is not confirmed anywhere.
+
+| Req | Verdict | Evidence |
+|---|---|---|
+| D1 — N24: write the report first; verify/demo steps on review-only | SHIPPED | src/nextstep/mod.rs:135-142: if `sessions/session-{nn}-ground-truth.md` is not a file, the how is "write … (every audit, live), then show it to the founder", otherwise "show the founder …". mod.rs:206-216: QA and Demo-er are `passed(..) \|\| review_only`, and `not_needed_on_review_only` (mod.rs:390-399) adds "— not needed: the close passes it N/A on a review-only session". |
+| D2 — N22: retire verify-178/demo-178 as history | SHIPPED | Both scripts have a RETIRED (superseded) block at lines 2-10, above the original header (now line 11). It cites S181 Part 5, S184 F107 and S186 F113 with commits, S200 GT row 1 ("17 pass, 9 fail", which matches session-200-ground-truth.md:100), and where F83/F86/F87 still live. ROADMAP:839 says "N22 — RETIRED S201". Flaw: the same entry still ends (ROADMAP:842-843) "Carry → backlog — reason: the founder picks when; on the next ground-truth checklist", which contradicts RETIRED (rec 2). |
+| D3 — N25: reinstall note on the after-merge text | SHIPPED | The site is named: the merge step's how, `.replace("REINSTALL", reinstall_note(root))` at mod.rs:281-284, right after "then prune the branch.". `reinstall_note` and `is_vajra_repo` (mod.rs:357-386) read `[package]` and only its `name` key (a `#` comment is stripped), true only for `"vajractl"`. It is a note, not a gate. The "if the merged branch touched src/" condition is left to the human, as the plan and tech-lead rec 2 allowed. |
+| D4 — the README "tested with" line in the founder's words | SHIPPED | README.md:66-69 sits right after the Current Status table. The text matches the line the summary quotes word for word. That he picked it rests only on the summary's account (see the fakest green). |
+| AC1 — N24 fixtures, red at the before binary | SHIPPED | Unit test `a_review_only_session_writes_the_report_first_and_needs_no_scripts` (mod.rs:988-1029) checks: no report → starts "write sessions/session-10-ground-truth.md (every audit, live), then show it"; report present → starts "show the founder …;"; on review-only S10 both script steps are done and say "not needed"; on CODE S9 both are not done and lack "not needed". Verify rows 1-2 run the real `vajra next --steps` on a `vajra init` project and require the edb92e3 binary to say "show the founder" with no report and ✗ on both steps. Each fails for its own bug's reason, not a setup accident. It reuses the gate's helper with no new rule: `review_only()` (mod.rs:335-351) runs `vajra_is_ground_truth` from lib-ground-truth.sh, the same function `is_ground_truth_session` (verify-closeout.sh:78-86) calls, and `check_verify_demo_scripts` returns N/A on it (verify-closeout.sh:432-434; scaffold :464). Minor: AC1 says red with `0caedc3`'s binary but the script pins edb92e3. edb92e3 is S200's review-only merge on top of 0caedc3 (S199's merge), and S200 changed no src/ according to its own record. The summary does not mention the swap (rec 5). |
+| AC2 — headers say RETIRED, ROADMAP says so, nothing else changed | SHIPPED | Verify row 4 counts every +/- diff line since edb92e3 that is not `+#` and requires 0. By reading, the only change is the inserted comment block, and every line below it matches the original header (PRE_FIX=dc57eb0 / OLD_SHA=dc57eb0 untouched). Not confirmed by me with a diff run. The stale ROADMAP tail in D2 is the only flaw. |
+| AC3 — after-merge text names `cargo install --path . --locked`; Vajra repo only | SHIPPED | Unit test `only_vajras_own_repo_is_told_to_reinstall_after_the_merge` (mod.rs:1034-1063) covers three cases. (a) No Cargo.toml: no note. (b) `[package] name = "rudra" # not vajractl` plus `[dependencies] vajractl = "0.2"`: no note, so a project that only depends on vajractl gets nothing, and the comment-strip is exercised. (c) `name = "vajractl"`: the note is present, right after "prune the branch.". The file and line are shown (mod.rs:357). There was no live merge run, and the summary says so. AC3 allows "the exact file and line shown". |
+| AC4 — the founder's words, quoted with his yes | SHIPPED | Summary §"The founder's words, quoted (AC4)" quotes the line and says he picked "Short" on 2026-10-17 from three drafts. His actual reply is narrated, not quoted, and nothing in the diff records it. The prompt's "the agent proposes and he decides" covers a pick from drafts. |
+| AC5 — verify + demo scripts, full cargo test, close GREEN, push via the belt | PARTIAL | scripts/verify-session-201.sh (5 rows) and scripts/demo-session-201.sh (deck, 6 dk_checks) exist and run live binaries. The close GREEN and the push come after this review. cargo test 745/0 is claimed, not seen by me. Defect: the demo's slide_next (demo-session-201.sh:124-128) is headed "3 ranked options (the same as the summary)" but lists rudra S22 / boot diet / `--version`, while the summary's candidates are pause-Vajra (the founder's pick) / rudra S22 / boot diet. The demo shows the founder a stale option list and labels it as matching (rec 1). |
+
+THE FAKEST GREEN: verify row 5 (and AC4). Its PASS message says "README: the founder's "tested with" line (picked 2026-10-17, "Short") is in README.md". The check is two `grep -qF` calls for the text plus "absent at edb92e3", so it would pass just the same if the agent had written the line without asking anyone. The founder's choice exists only as the summary's account; neither his reply nor any record of it is in the diff. The founder can settle this in one glance, which is why it is a recommendation and not a REJECT (rec 3). Runner-up, same family: verify row 3's `grep -q '^name = "vajractl"' Cargo.toml` is always true in this repo, and its "absent at edb92e3" is a source grep, not an old-binary run. The real proof for N25 is the unit test that row runs.
+
+The builder named N25 as its own fakest green: the note only shows when the merge step is the first open one, and it reaches the founder only if the agent passes it on. That is true and honestly stated, but a weaker gap than the unverified "founder's words" above.
+
+Not built: nothing from D1–D4 is missing. AC5's close and push are outstanding by order.
+
+rec 1 — In scripts/demo-session-201.sh slide_next (lines 124-128), replace the three stale options with the summary's three candidates (1 pause Vajra / use it on another project — founder's pick, 2 rudra S22 synced, 3 boot diet), or remove "(the same as the summary)".
+The demo is what the founder sees, and it currently presents an option list he has already moved past as if it matched the summary.
+
+rec 2 — In .ai/ROADMAP.md's N22 entry (lines 842-843), replace the leftover "Carry → backlog — reason: the founder picks when; on the next ground-truth checklist" with a closed disposition (e.g. "Closed — retired S201 as history").
+The entry now says RETIRED and "carry to backlog, founder picks when" at the same time. The next ground-truth reader will re-raise it.
+
+rec 3 — Add the founder's literal reply that picked "Short" to the summary's AC4 paragraph, and reword verify row 5's PASS message to "the picked 'tested with' line is in README.md" so the script does not claim authorship it cannot check.
+The founder reads this review, so one line from him closes it. A grep cannot prove whose words they are.
+
+rec 4 — Before stamping, the orchestrator runs `bash scripts/verify-session-201.sh` and the full `cargo test` at the tip and pastes the real final lines (the `=== verify-session-201: N passed, M failed ===` line and the summed `test result` counts) into the summary.
+This reviewer had no shell and executed neither. The 5/5 and 745/0 figures are unchecked by any independent run.
+
+rec 5 — Make AC1's "red with `0caedc3`'s binary" and the evidence agree: either update the AC text to edb92e3, or add one line to the summary saying the before binary is edb92e3 (S200's merge, which changed no src/ since 0caedc3).
+A small mismatch between the contract and the evidence, which no document currently explains.
+
+Files: /Users/suman/playground/vajra/prompts/201-task-small-fixes.md, /Users/suman/playground/vajra/sessions/session-201-summary.md, /Users/suman/playground/vajra/src/nextstep/mod.rs, /Users/suman/playground/vajra/scripts/verify-closeout.sh, /Users/suman/playground/vajra/scripts/verify-session-178.sh, /Users/suman/playground/vajra/scripts/demo-session-178.sh, /Users/suman/playground/vajra/scripts/verify-session-201.sh, /Users/suman/playground/vajra/scripts/demo-session-201.sh, /Users/suman/playground/vajra/README.md, /Users/suman/playground/vajra/.ai/ROADMAP.md
+
+## Handoff Delta
+- `+` new: first fidelity-reviewer handoff for this session (9659 bytes of findings)
+- prior stage: the session prompt (Analyst WHAT) — no prior handoff to diff against

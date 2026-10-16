@@ -20,7 +20,9 @@ there it goes red. The README line is the founder's own words: he picked the "Sh
 | **README** | After the Current Status table, in the founder's words: "**Tested with:** Claude Code on Opus and on Haiku 4.5. On Opus the agent followed Vajra's steps; on Haiku it skipped every step that is only an instruction — only what Vajra blocks (the 3-file cap, a push to main) held." | `5c1c295` |
 
 **The founder's words, quoted (AC4):** three drafts were offered in this chat (Short / With evidence / With the RED
-close). He picked **"Short"** on 2026-10-17, and that text went in unchanged.
+close). He picked **"Short"** on 2026-10-17, and that text went in unchanged. His reply, as the chat's question
+tool recorded it: `"Short" selected` (with the Short preview text). Verify row 5 checks only that this text is in the
+README; who picked it rests on this record (review rec 3).
 
 **Evidence:** `scripts/verify-session-201.sh` 5/5 (`1a8b7d0`).
 - Row 1 uses a `vajra init` project on review-only session 10, with the earlier steps done (a recorded tech-lead, a
@@ -37,6 +39,13 @@ close). He picked **"Short"** on 2026-10-17, and that text went in unchanged.
 - Row 5: the README line is there, and absent at `edb92e3`.
 
 `scripts/demo-session-201.sh`: 6/6 live checks. Full `cargo test`: 745 passed / 0 failed (summed from `^test result` lines only). `scripts/ci-lint.sh` exit 0.
+
+**Re-run at the tip after the review (review rec 4), real final lines:** `=== verify-session-201: 5 passed, 0 failed ===` ·
+`cargo test: passed=745 failed=0` · `ci-lint exit=0` · demo `✓ demo complete — all 6 live checks passed`.
+
+**The "before" binary (review rec 5):** AC1 names `0caedc3` (S199's merge); the scripts pin `edb92e3`, the commit S201
+started from (S200's merge on top of it). `git diff 0caedc3 edb92e3 -- src build.rs Cargo.toml Cargo.lock` is empty
+(0 lines), so the two binaries are built from the same code.
 
 ## Fidelity map
 
