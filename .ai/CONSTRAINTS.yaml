@@ -173,6 +173,11 @@ ground_truth:
   pipeline_advance_questions:
     - For each session since the last ground-truth, run `vajra next --stations NN` and read the K-of-8. Is the pipeline advancing (stations demonstrably passed), or is the machinery growing while the payload stalls? (The counter is the proof, not test counts.)
     - Any station ABSENT across many recent sessions is a systemic gap, not per-session noise — name it. A count that never reaches 8/8 in this repo (SHIP needs a synced origin; Reviewer needs an attested ACCEPT) is expected — read the SHAPE, not just the number.
+  # constraint_violation questions added S199 (S195 N14): rudra S20's close check said RED, 5 failed,
+  # and the agent told the founder "fully closed" — nothing in this list read the close result.
+  # A question, not a gate. A new block, so `vajra init --sync-fleet` adds it to existing projects.
+  constraint_violation_questions:
+    - For each session since the last ground truth, read its newest `.ai/verify/closeout/<stamp>/result` (verdict, pass, fail, failed) and what the summary and the agent told the human at close. Did they match? Name every session where they did not.
   constitution_questions:
     - Is any rule now blocking the vision instead of protecting it?
     - Did this audit's own mechanism have a blind spot? (meta-check)
