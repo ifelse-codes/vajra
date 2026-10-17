@@ -188,10 +188,18 @@ fn check_branch(root: &Path, results: &mut Vec<CheckResult>) {
     let branch = current_branch(root);
 
     if branch == "main" || branch == "master" {
+        // S202 bug bash: being on main is the normal state between sessions (the close returns
+        // there) and right after `vajra init`, so it was red on every first run. WORKING on main
+        // is the fault: a change to a tracked file. Nothing changed → pass, with the next step.
+        let dirty = tracked_changes(root);
         results.push(CheckResult {
             name: "branch: not main".into(),
-            passed: false,
-            detail: format!("on {branch} — branch before working"),
+            passed: !dirty,
+            detail: if dirty {
+                format!("on {branch} with uncommitted changes — move them to a session-NN-<slug> branch")
+            } else {
+                format!("on {branch}, nothing changed — create session-NN-<slug> before working")
+            },
         });
         return;
     }
@@ -307,6 +315,18 @@ fn is_session_branch(branch: &str) -> bool {
         && slug
             .chars()
             .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+}
+
+/// Does any tracked file differ from HEAD (staged or not)? Untracked files do not count — a fresh
+/// `vajra init` leaves only untracked ones. Unreadable git counts as changed (fail closed).
+fn tracked_changes(root: &Path) -> bool {
+    Command::new("git")
+        .args(["status", "--porcelain", "--untracked-files=no"])
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|output| output.status.success())
+        .map_or(true, |output| !output.stdout.is_empty())
 }
 
 fn current_branch(root: &Path) -> String {
@@ -458,6 +478,40 @@ mod tests {
                 .output()
                 .unwrap();
         }
+    }
+
+    /// S202 bug bash: main with nothing changed (right after `vajra init`, or between sessions)
+    /// passes with the next step; a change to a tracked file on main still fails.
+    #[test]
+    fn main_fails_only_when_work_is_happening_on_it() {
+        let tmp = tempfile::tempdir().unwrap();
+        setup_minimal_repo(tmp.path(), "01\n");
+        git_init(tmp.path());
+        Command::new("git")
+            .args(["checkout", "-qb", "main"])
+            .current_dir(tmp.path())
+            .output()
+            .unwrap();
+        let mut results = Vec::new();
+        check_branch(tmp.path(), &mut results);
+        assert!(results[0].passed, "fresh init: {}", results[0].detail);
+        assert!(results[0]
+            .detail
+            .contains("create session-NN-<slug> before working"));
+
+        for args in [vec!["add", "-A"], vec!["commit", "-qm", "x"]] {
+            Command::new("git")
+                .args(&args)
+                .current_dir(tmp.path())
+                .env("GIT_CONFIG_GLOBAL", "/dev/null")
+                .output()
+                .unwrap();
+        }
+        fs::write(tmp.path().join(".ai/TASK.md"), "# Task, edited on main").unwrap();
+        let mut results = Vec::new();
+        check_branch(tmp.path(), &mut results);
+        assert!(!results[0].passed, "an edit on main: {}", results[0].detail);
+        assert!(results[0].detail.contains("uncommitted changes"));
     }
 
     #[test]
