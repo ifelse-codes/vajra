@@ -108,6 +108,27 @@ fn version_flag_prints_the_manifest_version() {
     }
 }
 
+/// N25 leftover (S202 bug bash): built from this git checkout, `--version` names the commit, so
+/// an install older than main can be told apart from a fresh one.
+#[test]
+fn version_flag_names_the_commit_it_was_built_from() {
+    let git = std::process::Command::new("git")
+        .args(["rev-parse", "--short=7", "HEAD"])
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .unwrap();
+    if !git.status.success() {
+        return; // a source tree with no git (a crates.io unpack) prints the bare version
+    }
+    let head = String::from_utf8_lossy(&git.stdout).trim().to_string();
+    let out = vajra().arg("--version").output().unwrap();
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.contains(&format!("({head})")),
+        "{stdout:?} vs {head}"
+    );
+}
+
 /// A fresh, empty git repo with one commit — the directory a stranger types their first command in.
 fn empty_git_repo(tag: &str) -> std::path::PathBuf {
     let nanos = std::time::SystemTime::now()
