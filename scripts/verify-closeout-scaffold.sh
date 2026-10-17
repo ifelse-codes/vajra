@@ -52,7 +52,10 @@ esac
 # belt (.githooks/pre-push) lets a session branch out only on a GREEN for the exact commit pushed.
 # Taken now and again at the end: `clean: yes` only if both are clean and HEAD did not move.
 CLOSE_HEAD0="$(git rev-parse HEAD 2>/dev/null || echo none)"
-CLOSE_DIRTY0="$(git status --porcelain --untracked-files=no 2>/dev/null || echo unreadable)"
+# S202 bug bash (a named F127 route): a new file the close read but nobody committed (an
+# approval record, a review) is not in the commit being pushed, so untracked files count too.
+# Ignored files do not (the close's own `.ai/verify/` output is ignored in every scaffold).
+CLOSE_DIRTY0="$(git status --porcelain --untracked-files=normal 2>/dev/null || echo unreadable)"
 
 PASS=0; FAIL=0; RESULTS=(); FAILED_NAMES=()
 ok()  { RESULTS+=("$(printf '%-34s %s' "$1" PASS)"); PASS=$((PASS+1)); }
@@ -1244,7 +1247,7 @@ check_review_attestation
 CLOSE_CLEAN=no
 if [ -z "$CLOSE_DIRTY0" ] && [ "$CLOSE_HEAD0" != none ] \
    && [ "$(git rev-parse HEAD 2>/dev/null || echo none)" = "$CLOSE_HEAD0" ] \
-   && [ -z "$(git status --porcelain --untracked-files=no 2>/dev/null || echo unreadable)" ]; then
+   && [ -z "$(git status --porcelain --untracked-files=normal 2>/dev/null || echo unreadable)" ]; then
   CLOSE_CLEAN=yes
 fi
 {

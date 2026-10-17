@@ -349,6 +349,51 @@ fn the_scaffolds_own_close_check_says_unclean_when_a_tracked_file_is_changed() {
     let mut s = fs::read_to_string(&state).unwrap();
     s.push_str("\nan edit nobody committed\n");
     fs::write(&state, s).unwrap();
+    let written = run_real_close(&root);
+    assert_eq!(written.lines().nth(3), Some("clean: no"), "{written}");
+
+    let (ok, out) = push(&root, BRANCH, &[AGENT]);
+    assert!(!ok && !arrived(&remote, BRANCH), "{out}");
+    assert!(
+        out.contains("uncommitted changes or new files not yet in git"),
+        "{out}"
+    );
+}
+
+/// S202 bug bash (a named F127 route): a new file nobody added is not in the commit being pushed,
+/// so the real close script says `clean: no` for it too — but not for an ignored file.
+#[test]
+fn the_scaffolds_own_close_check_says_unclean_when_a_new_file_is_not_in_git() {
+    let (_t, root, _remote) = project();
+    fs::create_dir_all(root.join(".ai/verify")).unwrap();
+    fs::write(root.join(".ai/verify/ignored-scratch"), "ignored").unwrap();
+    let written = run_real_close(&root);
+    assert_eq!(written.lines().nth(3), Some("clean: yes"), "{written}");
+
+    fs::write(root.join("sessions/session-01-review.md"), "not added").unwrap();
+    let written = run_real_close(&root);
+    assert_eq!(written.lines().nth(3), Some("clean: no"), "{written}");
+}
+
+/// S202 bug bash (named F127 routes): pushing the session branch's commit under another name
+/// (`HEAD:refs/heads/<other>`), or from a bare `session-NN` branch, is still checked.
+#[test]
+fn a_push_under_another_name_or_from_a_bare_session_branch_is_still_checked() {
+    let (_t, root, remote) = project();
+    let (ok, out) = push(&root, "HEAD:refs/heads/elsewhere", &[AGENT]);
+    assert!(!ok && !arrived(&remote, "elsewhere"), "{out}");
+    assert!(out.contains("no close check has run"), "{out}");
+
+    assert!(git(&root, &["checkout", "-qb", "session-1"])
+        .status
+        .success());
+    let (ok, out) = push(&root, "session-1", &[AGENT]);
+    assert!(!ok && !arrived(&remote, "session-1"), "{out}");
+    assert!(out.contains("no close check has run"), "{out}");
+}
+
+/// Run the project's REAL close script for session 1 and return the result it wrote.
+fn run_real_close(root: &Path) -> String {
     let bin = Path::new(env!("CARGO_BIN_EXE_vajra")).parent().unwrap();
     let path = format!(
         "{}:{}",
@@ -357,7 +402,7 @@ fn the_scaffolds_own_close_check_says_unclean_when_a_tracked_file_is_changed() {
     );
     let mut cmd = Command::new("bash");
     cmd.args(["scripts/verify-closeout.sh", "1"])
-        .current_dir(&root)
+        .current_dir(root)
         .env("PATH", path)
         .env("GIT_CONFIG_GLOBAL", "/dev/null");
     for v in BELT_VARS {
@@ -373,12 +418,7 @@ fn the_scaffolds_own_close_check_says_unclean_when_a_tracked_file_is_changed() {
         .max()
         .expect("the close made its folder");
     let written = fs::read_to_string(closeout.join(&stamp).join("result")).unwrap();
-    assert_eq!(written.lines().nth(3), Some("clean: no"), "{written}");
-
-    let (ok, out) = push(&root, BRANCH, &[AGENT]);
-    assert!(!ok && !arrived(&remote, BRANCH), "{out}");
-    assert!(
-        out.contains("uncommitted changes to tracked files"),
-        "{out}"
-    );
+    // The next run gets a new stamp: wait out the one-second name.
+    std::thread::sleep(std::time::Duration::from_millis(1100));
+    written
 }
