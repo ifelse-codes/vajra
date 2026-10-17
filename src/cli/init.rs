@@ -2033,11 +2033,14 @@ commit:
   autonomous: false
   require_user_approval: true
   approval_tokens: [approved, lgtm, "ship it", "yes commit", "go ahead and commit", "go ahead"]
+  forbid_skip_hooks: true
+  forbid_force_push_to: [main, master]
 
 verify:
   required_for_done: true
   script_pattern: 'scripts/verify-session-{NN}.sh'
   template: 'scripts/verify-session-template.sh'
+  artifacts_dir: '.ai/verify/session-{NN}/'
   exit_zero_required: true
   closeout_script: 'scripts/verify-closeout.sh'
   closeout_must_pass_before_close: true   # fails on a missing/incomplete/REJECT fidelity review (reviewer/SKILL.md)
@@ -2083,11 +2086,36 @@ release:
 state:
   state_md_mode: snapshot
   knowledge_md_mode: append-permanent-only
+  session_summary_in: sessions/session-{NN}-summary.md
+  ground_truth_summary_in: sessions/session-{NN}-ground-truth.md
+  session_prompt_in: prompts/{NN}-task-{slug}.md
+  closeout_active_branch_value: "None — between sessions (SNN complete, SNN+1 not yet started)."
 
 communication:
   max_words_per_response: 200
   required_formats: [bullets, tables, code-blocks]
-  forbid: [greetings, apologies, filler, trailing-summaries]
+  forbid: [greetings, apologies, filler, narration-of-thinking, trailing-summaries]
+  max_bullets_per_section: 5
+
+self_review_questions: [what_can_break, hidden_assumptions, production_ready, defensive_patches_only_on_repro_evidence, scope_intact]
+
+end_of_session:
+  must_present_n_options: 3
+  options_drawn_from: .ai/ROADMAP.md
+  options_format: [title, one_sentence_goal, why_pick_this, key_risk]
+  must_write_next_prompt_before_close: true
+
+budget:
+  cap_usd: 5.00
+  mode: warn
+
+enforcement:
+  binds_all_agents: true
+  fail_closed: true
+  closeout_not_done_until: scripts/verify-closeout.sh exits 0
+
+trust:
+  forbidden_phrases: []
 
 ground_truth:
   # Every 5th session is NO-CODE. PROJECT FIRST: the first three audits ask whether THIS
@@ -3141,6 +3169,84 @@ mod tests {
     }
 
     // ── Git-level belt propagation (S43) ─────────────────────────────────────
+
+    /// Settings in Vajra's own `.ai/CONSTRAINTS.yaml` that a new project does NOT get, each with
+    /// its reason. Everything else Vajra runs on must be in `TPL_CONSTRAINTS` (S202 bug bash: six
+    /// settings — `forbid_skip_hooks`, `artifacts_dir`, `self_review_questions`, `end_of_session`,
+    /// `enforcement`, … — had silently stayed Vajra-only since S125's F1 finding).
+    const SCAFFOLD_OMITS_SETTING: &[(&str, &str)] = &[
+        (
+            "session.ground_truth_next_session",
+            "Vajra's own one-time override of its review schedule; a project uses the every-5th rule",
+        ),
+        (
+            "session.obeyed_blocks_from",
+            "a Vajra session number; a project's unchecked claims warn (DECISION-011 S186)",
+        ),
+        (
+            "enforcement.publish_guard",
+            "`off` only in Vajra's repo; absent means ON, so a new project keeps the guard",
+        ),
+        (
+            "enforcement.commit_guard",
+            "`off` only in Vajra's repo; absent means ON, so a new project keeps the guard",
+        ),
+    ];
+
+    /// `section` and `section.key` for every setting in a CONSTRAINTS file. `ground_truth` is left
+    /// out: build.rs derives it and fails the build when it drifts (S129).
+    fn setting_keys(yaml: &str) -> std::collections::BTreeSet<String> {
+        let mut keys = std::collections::BTreeSet::new();
+        let mut section = String::new();
+        for line in yaml.lines() {
+            let indent = line.len() - line.trim_start().len();
+            let Some((key, _)) = line.trim_start().split_once(':') else {
+                continue;
+            };
+            if key.is_empty() || !key.chars().all(|c| c.is_ascii_lowercase() || c == '_') {
+                continue;
+            }
+            match indent {
+                0 => {
+                    section = key.to_string();
+                    keys.insert(section.clone());
+                }
+                2 => {
+                    keys.insert(format!("{section}.{key}"));
+                }
+                _ => {}
+            }
+        }
+        keys.retain(|k| k != "ground_truth" && !k.starts_with("ground_truth."));
+        keys
+    }
+
+    #[test]
+    fn a_new_project_gets_every_setting_vajra_runs_on_or_a_stated_reason() {
+        let live = setting_keys(include_str!("../../.ai/CONSTRAINTS.yaml"));
+        let scaffold = setting_keys(TPL_CONSTRAINTS);
+        let declared: Vec<&str> = SCAFFOLD_OMITS_SETTING.iter().map(|(k, _)| *k).collect();
+        let missing: Vec<&String> = live
+            .iter()
+            .filter(|k| !scaffold.contains(*k) && !declared.contains(&k.as_str()))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "settings Vajra runs on that a new project never gets (add them to TPL_CONSTRAINTS, \
+             or to SCAFFOLD_OMITS_SETTING with a reason): {missing:?}"
+        );
+        for (key, why) in SCAFFOLD_OMITS_SETTING {
+            assert!(!why.is_empty());
+            assert!(
+                live.contains(*key),
+                "stale omission: {key} is no longer in .ai/"
+            );
+            assert!(
+                !scaffold.contains(*key),
+                "{key} is declared omitted but shipped"
+            );
+        }
+    }
 
     #[test]
     fn scaffold_ships_githooks_verbatim() {
