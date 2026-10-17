@@ -20,8 +20,11 @@
 #
 # The published-channel proofs (S108): two more of the exact commands the README prints —
 #   `crates`: a stranger with Rust runs `cargo install vajractl` from crates.io (needs the crate live).
-#   `brew`:   a stranger runs `brew install <tap>/vajra`; here the LOCAL formula, which points at the
-#             SAME v0.1.0 release tarball — brew re-downloads it and verifies its sha256 or FAILS.
+#   `brew`:   a stranger runs `brew install ifelse-codes/tap/vajra` — and so does this, from the
+#             PUBLISHED tap (S202 bug bash: it used to install the repo's own copy of the formula,
+#             which had stayed at v0.1.0 while the tap moved to v0.2.0). It first checks that the
+#             repo's Formula/vajra.rb still matches the published one. VAJRA_SMOKE_FORMULA=<file>
+#             installs that file from a throwaway local tap instead (to try a formula before publishing).
 # Same discipline: a missing crate, a missing/bad formula, a sha mismatch, or a non-zero `vajra` step
 # exits non-zero. Override the target with VAJRA_SMOKE_CRATE / VAJRA_SMOKE_FORMULA (used to prove these
 # fail closed against a bogus target).
@@ -32,7 +35,7 @@
 #   VAJRA_SMOKE_SOURCE=release scripts/install-smoke.sh   # download+run the published prebuilt binary
 #   VAJRA_SMOKE_RELEASE_TAG=v0.1.0 VAJRA_SMOKE_SOURCE=release scripts/install-smoke.sh  # pin a tag
 #   VAJRA_SMOKE_SOURCE=crates scripts/install-smoke.sh    # cargo install vajractl from crates.io
-#   VAJRA_SMOKE_SOURCE=brew scripts/install-smoke.sh      # brew install the local Formula/vajra.rb
+#   VAJRA_SMOKE_SOURCE=brew scripts/install-smoke.sh      # brew install from the published tap
 #   VAJRA_SMOKE_BUDGET_SECS=300 scripts/install-smoke.sh
 set -euo pipefail
 
@@ -42,7 +45,8 @@ GIT_URL="${VAJRA_SMOKE_GIT_URL:-https://github.com/ifelse-codes/vajra}"
 WEB_URL="${VAJRA_SMOKE_WEB_URL:-https://github.com/ifelse-codes/vajra}"
 RELEASE_TAG="${VAJRA_SMOKE_RELEASE_TAG:-latest}"           # latest | v0.1.0 | ... (release mode)
 CRATE="${VAJRA_SMOKE_CRATE:-vajractl}"                     # crate to `cargo install` (crates mode)
-FORMULA="${VAJRA_SMOKE_FORMULA:-$REPO_ROOT/Formula/vajra.rb}"  # formula to `brew install` (brew mode)
+FORMULA="${VAJRA_SMOKE_FORMULA:-}"                         # brew mode: a local formula to try instead of the tap
+PUBLISHED_FORMULA_URL="${VAJRA_SMOKE_PUBLISHED_FORMULA_URL:-https://raw.githubusercontent.com/ifelse-codes/homebrew-tap/main/Formula/vajra.rb}"
 BUDGET="${VAJRA_SMOKE_BUDGET_SECS:-420}"                    # bounds hangs, not slow truth (cf. gate 600s)
 START=$SECONDS
 
@@ -88,10 +92,35 @@ sha_verify() {                                            # dir, asset — check
 pass=0; fail=0
 # step "<name>" cmd... — runs cmd, records PASS/FAIL, emits a `smoke:<name>` marker, never aborts the
 # run (the `if` guard keeps `set -e` from short-circuiting so every step reports).
+# S202 bug bash: `within-budget` was only checked after the last step, so a hung install hung the
+# run. Each step now runs in the background and is killed (with its children) once the WHOLE run's
+# budget is spent — the step FAILS, and so do the steps after it.
+bounded() {
+  if [ $((SECONDS - START)) -ge "$BUDGET" ]; then
+    echo "not run: the run's ${BUDGET}s budget was already spent" >"$STEP_LOG"
+    return 124
+  fi
+  # Monitor mode only while starting it: the step gets its own process group (so its children die
+  # with it), and the shell prints no job notice when it ends.
+  set -m
+  "$@" >"$STEP_LOG" 2>&1 </dev/null &
+  local pid=$!
+  set +m
+  while kill -0 "$pid" 2>/dev/null; do
+    if [ $((SECONDS - START)) -ge "$BUDGET" ]; then
+      kill -TERM -- "-$pid" 2>/dev/null; sleep 1; kill -KILL -- "-$pid" 2>/dev/null
+      wait "$pid" 2>/dev/null
+      echo "killed: the run's ${BUDGET}s budget ran out during this step" >>"$STEP_LOG"
+      return 124
+    fi
+    sleep 0.2
+  done
+  wait "$pid"
+}
 step() {
   local name="$1"; shift
   printf '  %-22s ' "$name"
-  if "$@" >"$STEP_LOG" 2>&1; then
+  if bounded "$@"; then
     echo "PASS  [smoke:${name}]"; pass=$((pass + 1))
   else
     echo "FAIL  [smoke:${name}]"; fail=$((fail + 1))
@@ -134,15 +163,21 @@ elif [ "$SOURCE" = "brew" ]; then
   # a stranger runs. brew re-downloads the release tarball and verifies its sha256 or FAILS.
   export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1
   TAP="${VAJRA_SMOKE_TAP:-ifelse-codes/tap}"
-  echo "  formula:      $FORMULA"
-  echo "  local tap:    $TAP"; echo ""
   step "brew-available"   command -v brew
-  step "stage-formula"    test -f "$FORMULA"
+  step "fetch-published-formula" curl -fsSL -o "$DL_DIR/published-vajra.rb" "$PUBLISHED_FORMULA_URL"
+  step "repo-formula-matches-published" cmp -s "$DL_DIR/published-vajra.rb" "$REPO_ROOT/Formula/vajra.rb"
   brew untap "$TAP" >/dev/null 2>&1 || true          # clean any leftover from a prior run
-  step "brew-tap-new"     brew tap-new "$TAP" --no-git
-  TAP_DIR="$(brew --repository "$TAP" 2>/dev/null)"
-  mkdir -p "$TAP_DIR/Formula"
-  step "install-formula"  cp "$FORMULA" "$TAP_DIR/Formula/vajra.rb"
+  if [ -n "$FORMULA" ]; then
+    echo "  formula:      $FORMULA (local tap $TAP)"; echo ""
+    step "stage-formula"    test -f "$FORMULA"
+    step "brew-tap-new"     brew tap-new "$TAP" --no-git
+    TAP_DIR="$(brew --repository "$TAP" 2>/dev/null)"
+    mkdir -p "$TAP_DIR/Formula"
+    step "install-formula"  cp "$FORMULA" "$TAP_DIR/Formula/vajra.rb"
+  else
+    echo "  tap:          $TAP (published)"; echo ""
+    step "brew-tap"         brew tap "$TAP"
+  fi
   step "brew-install-tap" brew install "${TAP}/vajra"
 elif [ "$SOURCE" = "git" ]; then
   step "install-from-git"  cargo install --git "$GIT_URL" --root "$INSTALL_ROOT" --force --quiet
