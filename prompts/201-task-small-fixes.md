@@ -55,12 +55,48 @@ procedure note for the S205 prompt, not code. Small, each with a real-run check 
 - Founder decisions to respect: no new policing of Vajra's own paperwork (2026-09-15); Vajra's close does not run
   `cargo test` (2026-10-04); one release-coordinator judges all `obeyed:` answers.
 
+## Guardrails
+- Only the four items listed; a new bug found on the way is filed, not fixed (the S199 rule).
+- No paid run by the agent without the founder's yes. No transcript or run capture committed (S126).
+- No new policing of Vajra's own paperwork; N25 is a note, not a gate.
+- The README line is the founder's words only.
+- (Added in-session: the approved draft had no `## Guardrails`, so `--advance` refused it; these lines restate the
+  prompt's own rules and add none.)
+
 ## Design
 design-significant: no
 - Wording, a retirement note, a README line: no design record changes.
+- design-advisor: skipped — no design record changes and no shared rule moves; N25's one choice (the note only in
+  Vajra's own repo, read from `Cargo.toml`'s package name, not prose) is a one-line condition the tech-lead named
+  (`.ai/handoffs/session-201-tech-lead.md`, crew row + rec 2).
 
 ## Plan
-<the S201 agent writes this after the tech-lead>
+1. N24: in `src/nextstep/mod.rs` the review-only sign-off step's how starts "write
+   `sessions/session-NN-ground-truth.md` (every audit, live), then show it…" while that file is absent, today's how
+   once it exists; the QA and Demo-er steps, on a review-only session (`review_only()`, the same helper as the close
+   gate's `is_ground_truth_session`), are ✓ and say the close passes them N/A (tech-lead rec 1).
+   covers: 1
+2. N22: a RETIRED (superseded) block at the top of `scripts/verify-session-178.sh` and `scripts/demo-session-178.sh`
+   (the later wording changes, the founder's "Retire it", left as history); no line below the header moves;
+   `.ai/ROADMAP.md`'s N22 entry says RETIRED S201 (tech-lead rec 3).
+   covers: 2
+3. N25: the Releaser step's how (`src/nextstep/mod.rs`, "the work is merged and the branch is gone") adds "if the
+   merged branch touched src/, run `cargo install --path . --locked` on main" — only when `Cargo.toml`'s package is
+   `vajractl` (tech-lead rec 2).
+   covers: 3
+4. README: the founder's words (picked 2026-10-17, "Short"), after the Current Status table (tech-lead rec 4).
+   covers: 4
+5. `scripts/verify-session-201.sh` (real `vajra init` temp projects; each row red at the start commit `edb92e3` via
+   `scripts/lib-old-checkout.sh`) + `scripts/demo-session-201.sh`; full `cargo test` before the push; stamp → close
+   GREEN → push through the belt (tech-lead recs 5, 6).
+   covers: 5
+
+## Execution
+- step 1 — done: e78b02a
+- step 2 — done: 55e5d14
+- step 3 — done: d5ff467
+- step 4 — done: 5c1c295
+- step 5 — done: 1a8b7d0
 
 ## Delta
 - `~` `src/nextstep/mod.rs` (N24) · the after-merge text (N25, file named in-session) · `README.md` (the founder's line)
@@ -68,3 +104,27 @@ design-significant: no
 - `+` `scripts/verify-session-201.sh`, `scripts/demo-session-201.sh`, `sessions/session-201-*.md`, `prompts/202-task-<slug>.md`
 
 ## Advice
+Roles dispatched: `tech-lead` (mandatory, first). Required at close: `fidelity-reviewer` (the one cold review),
+`release-coordinator` (the one judge of every `obeyed:` answer). `design-advisor`: the recorded skip in `## Design`.
+
+researcher: skipped — the tech-lead deferred it on budget: it had already named every code site (mod.rs:123-140, 194-207, 255-267; verify-closeout.sh:432-435) (~0.1M on top of ~1.4M required).
+requirements-analyst: skipped — the tech-lead deferred it on budget: the founder approved the prompt and AC1–AC5 each name a real-run check (~0.08M would restate them).
+plan-advisor: skipped — the tech-lead deferred it on budget: the prompt fixed the order and the split rule (~0.08M).
+implementation-advisor: skipped — the tech-lead deferred it on budget: two string branches in one file plus two header comments; its recs 1–3 named the traps (~0.15M).
+qa-specialist: skipped — the tech-lead deferred it on budget: AC5 already makes every verify row a real run red at the start commit, read by the fidelity-reviewer (~0.2M).
+demo-producer: skipped — the tech-lead deferred it on budget: the demo is a before/after of `vajra next --steps` from the template (~0.1M).
+
+**tech-lead** (`.ai/handoffs/session-201-tech-lead.md`):
+- tech-lead rec 1 — obeyed: e78b02a (the sign-off how splits on whether `sessions/session-NN-ground-truth.md` is a file; the QA and Demo-er steps are ✓ on `review_only` and say "not needed: the close passes it N/A on a review-only session (no session scripts expected)" — the gate's own words; same helper, no new condition; steps kept, not removed)
+- tech-lead rec 2 — obeyed: d5ff467 (the note sits in the merge step's how right after "prune the branch."; shown only when `Cargo.toml`'s `[package]` `name` key is `vajractl`; the src/ condition is the human's at merge time; a note, not a gate) and 4ddca55 (the summary names `src/nextstep/mod.rs:357` as the site)
+- tech-lead rec 3 — obeyed: 55e5d14 (RETIRED (superseded) blocks in both 178 headers citing S181 Part 5, S184 F107, S186 F113 with commits, the founder's "Retire it", left as history; ROADMAP's N22 says RETIRED S201) and 4ddca55 (the summary says the S190 precedent retired verify-182/186/187 in the GT report and ROADMAP, not their headers)
+- tech-lead rec 4 — obeyed: 5c1c295 (three drafts proposed from the observed facts; the founder picked "Short" in chat on 2026-10-17; only his text committed) and 4ddca55 (quoted in the summary with his pick)
+- tech-lead rec 5 — obeyed: 1a8b7d0 (verify rows run `vajra next --steps` on a `vajra init` review-only project with no report, with the report, the QA/Demo-er lines on review-only session 10 and on CODE session 9; the before binary pinned to `edb92e3` after `git log` showed `0caedc3` is S199's merge and S201 started from `edb92e3`, via `scripts/lib-old-checkout.sh`; the N25 Vajra/non-Vajra pair is a unit test row (`only_vajras_own_repo_is_told_to_reinstall_after_the_merge`, with a rudra project depending on vajractl) because `--steps` prints a how only for the first open step)
+- tech-lead rec 6 — obeyed: cbd2a7a (built in the prompt's order, every commit ≤3 files, `## Delta` above `## Advice`, a skip line per deferred role, handoffs recorded from hand-back text; the closeout's SESSION-BOOT next line keeps "`git pull --ff-only`, then `cargo install --path . --locked`") and 4ddca55 (full `cargo test` 745/0 in the summary before the push)
+
+**fidelity-reviewer** (`.ai/handoffs/session-201-fidelity-reviewer.md`, ACCEPT 8 SHIPPED / 1 PARTIAL):
+- fidelity-reviewer rec 1 — obeyed: 3bc2eb2 (the demo's next slide lists the summary's three candidates, the founder's pause pick first)
+- fidelity-reviewer rec 2 — obeyed: 3bc2eb2 (ROADMAP's N22 entry ends "Closed — retired S201 as history"; the carry-to-backlog tail is gone)
+- fidelity-reviewer rec 3 — obeyed: 3bc2eb2 (verify row 5's PASS message claims only that the picked line is in README.md) and d4c15a8 (the summary quotes the founder's recorded reply, `"Short" selected`)
+- fidelity-reviewer rec 4 — obeyed: d4c15a8 (re-run at the tip after the review; the real final lines pasted: verify 5 passed 0 failed, cargo test 745/0, ci-lint exit 0, demo 6/6)
+- fidelity-reviewer rec 5 — obeyed: d4c15a8 (the summary says the before binary is `edb92e3`, S200's merge on `0caedc3`, and that `git diff 0caedc3 edb92e3` over src/, build.rs and Cargo files is empty)

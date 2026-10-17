@@ -63,6 +63,11 @@ Seven top-level commands (`vajra --help`):
 | `vajra hook` | **Works** — the Claude Code PostToolUse hook entrypoint (invoked by `vajra claude`; not run directly) |
 | `vajra <agent>` | **Not built yet** — only Claude Code is wired; Codex and Cursor are planned |
 
+**Tested with:** Claude Code on Opus and on Haiku 4.5.
+On Opus the agent followed Vajra's steps; on Haiku it
+skipped every step that is only an instruction — only
+what Vajra blocks (the 3-file cap, a push to main) held.
+
 > **Honest note on the receipt:** the headline figure is the tool's own authoritative `total_cost_usd` when the run provides it (fixed in S66/S78), and Vajra says so plainly when it does not (S77) rather than guessing. A secondary token-based figure is printed only as a labeled `[estimate]`, never as the headline. The old cache-pricing overstatement is retired. Fidelity of what we *claim* is the whole point — so the receipt shows the real number either way.
 
 ## The Workflow (the product)
