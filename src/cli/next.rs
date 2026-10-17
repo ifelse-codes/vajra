@@ -36,7 +36,59 @@ const PACKET_FILES: &[&str] = &[
     ".ai/ROADMAP.md",
 ];
 
+/// Every option `vajra next` reads. S203 bug bash: an unknown one was ignored, so a typo
+/// (`--advnce`) printed the packet and exited 0 — read as "advanced" by anyone chaining on it.
+const NEXT_FLAGS: &[&str] = &[
+    "--advance",
+    "--advice",
+    "--check-advice",
+    "--check-close-record",
+    "--check-crew",
+    "--check-demo",
+    "--check-design",
+    "--check-design-handoff",
+    "--check-exec",
+    "--check-fidelity-handoff",
+    "--check-obeyed",
+    "--check-options",
+    "--check-plan",
+    "--check-qa",
+    "--check-release",
+    "--check-release-close",
+    "--clean-room-close",
+    "--clean-room-open",
+    "--crew-cost",
+    "--demo",
+    "--demo-facts",
+    "--design",
+    "--dogfood-age",
+    "--exec",
+    "--from",
+    "--intake",
+    "--plan",
+    "--qa",
+    "--release",
+    "--role",
+    "--scaffold",
+    "--stations",
+    "--steps",
+    "--validate",
+];
+
+/// Refuse an option the command does not know, before anything runs. Only `--words` are judged:
+/// the values after them (a session number, a slug, a file) are not options.
+pub fn refuse_unknown_flags(cmd: &str, args: &[String], known: &[&str]) -> Result<()> {
+    if let Some(bad) = args
+        .iter()
+        .find(|a| a.starts_with("--") && !known.contains(&a.as_str()))
+    {
+        bail!("unknown option {bad:?} for `vajra {cmd}` — run `vajra {cmd} --help` for the list");
+    }
+    Ok(())
+}
+
 pub fn run(args: &[String]) -> Result<()> {
+    refuse_unknown_flags("next", args, NEXT_FLAGS)?;
     // The Analyst stage (S54) rides `vajra next` — no 8th top-level command (max-7 cap).
     if let Some(i) = args.iter().position(|a| a == "--scaffold") {
         return run_scaffold(args.get(i + 1), args.get(i + 2));

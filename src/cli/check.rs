@@ -23,6 +23,7 @@ struct CheckResult {
 }
 
 pub fn run(args: &[String]) -> Result<()> {
+    super::next::refuse_unknown_flags("check", args, &["--render"])?;
     let cwd = env::current_dir().context("failed to read current directory")?;
     let root =
         find_repo_root(&cwd).context("could not find a Vajra repo (.ai directory missing)")?;

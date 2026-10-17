@@ -67,7 +67,16 @@ fn main() -> std::process::ExitCode {
             let check_args: Vec<String> = args.into_iter().skip(2).collect();
             run_args_subcommand(cli::check::run, &check_args)
         }
-        Subcommand::Estimate => run_subcommand(cli::estimate::run),
+        Subcommand::Estimate => {
+            let estimate_args: Vec<String> = args.into_iter().skip(2).collect();
+            run_args_subcommand(
+                |a| {
+                    cli::next::refuse_unknown_flags("estimate", a, &[])?;
+                    cli::estimate::run()
+                },
+                &estimate_args,
+            )
+        }
         Subcommand::Hook => run_subcommand(cli::hook::run),
         Subcommand::Init => {
             // S136: `init` takes args now — `--sync-fleet` is the brownfield UPGRADE path.
@@ -218,7 +227,7 @@ fn subcommand_usage(sub: &Subcommand) -> Option<&'static str> {
 }
 
 fn print_usage() {
-    eprintln!("vajra <init|claude|check|next|estimate|hook|meter>");
+    eprintln!("vajra <init|approve|claude|check|next|estimate|hook|meter>");
     eprintln!("  init              Scaffold .ai/ workflow in the current repo");
     eprintln!("    --sync-fleet    Upgrade an ALREADY-governed repo to the current role roster");
     eprintln!(
@@ -227,7 +236,7 @@ fn print_usage() {
     eprintln!("  approve NN        Record the founder's yes for session NN (own terminal only)");
     eprintln!("  claude [args...]  Launch Claude Code with Vajra hook injection");
     eprintln!(
-        "  check [--render]   Drift detection + readiness score; --render regenerates vajra.varta"
+        "  check [--render]  Drift detection + readiness score; --render regenerates vajra.varta"
     );
     eprintln!("  next [--advance]  Print handoff packet, or advance to next session");
     eprintln!("  estimate          Predict token spend and cost before running a session");
