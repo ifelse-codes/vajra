@@ -228,6 +228,11 @@ pub fn qa_gate_with(
              evaluate FAILS",
             contract.script
         )),
+        QaState::CannotEvaluate(CannotEvaluate::WaitFailure) => reasons.push(format!(
+            "{} could not be evaluated — WAIT FAILURE: it started, but the OS could not report \
+             whether it had exited — a check that cannot evaluate FAILS",
+            contract.script
+        )),
     }
 
     QaVerdict {
@@ -526,6 +531,15 @@ demo:
         assert!(!unspawnable.reasons.iter().any(|r| r.contains("TIMEOUT")));
 
         assert_ne!(timed_out.reasons, unspawnable.reasons);
+
+        // S202 bug bash: an OS wait error is its own reason, not a TIMEOUT.
+        let unwaitable = qa_gate_with(root, 69, |_| Err(CannotEvaluate::WaitFailure));
+        assert!(unwaitable.blocked());
+        assert!(unwaitable
+            .reasons
+            .iter()
+            .any(|r| r.contains("WAIT FAILURE")));
+        assert!(!unwaitable.reasons.iter().any(|r| r.contains("TIMEOUT")));
     }
 
     #[test]
