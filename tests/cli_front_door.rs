@@ -228,6 +228,106 @@ fn init_without_help_still_scaffolds() {
     assert!(wrote_ai, "`vajra init` did not write .ai/SESSION");
 }
 
+/// S203 bug bash — a new project's FIRST `vajra init` was greeted "This project already runs
+/// Vajra" (it starts at session 01, read after init had written it) and never shown its next
+/// steps. The second run is the top-up and keeps that greeting.
+#[test]
+fn first_init_in_a_new_project_is_a_first_run() {
+    let dir = empty_git_repo("first-run");
+    let run = || {
+        let out = vajra()
+            .arg("init")
+            .current_dir(&dir)
+            .stdin(std::process::Stdio::null())
+            .output()
+            .unwrap();
+        assert!(out.status.success());
+        String::from_utf8_lossy(&out.stderr).into_owned()
+    };
+    let first = run();
+    let second = run();
+    let _ = std::fs::remove_dir_all(&dir);
+    assert!(
+        !first.contains("already runs Vajra"),
+        "first init called a new project old:\n{first}"
+    );
+    assert!(
+        first.contains("git checkout -b session-01-kickoff") && first.contains("start session 01"),
+        "first init must name session 01, where a new project starts:\n{first}"
+    );
+    assert!(
+        second.contains("already runs Vajra"),
+        "second init is a top-up:\n{second}"
+    );
+}
+
+/// S203 bug bash — a mistyped option was ignored: `vajra next --advnce` printed the packet and
+/// exited 0, `check --rendr` ran the check, `estimate --x` estimated. Now each names the word and
+/// exits 1, before anything runs.
+#[test]
+fn a_mistyped_option_fails_closed() {
+    let dir = empty_git_repo("typo-flag");
+    vajra()
+        .arg("init")
+        .current_dir(&dir)
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    for (cmd, typo) in [
+        ("next", "--advnce"),
+        ("check", "--rendr"),
+        ("estimate", "--x"),
+    ] {
+        let out = vajra()
+            .args([cmd, typo])
+            .current_dir(&dir)
+            .stdin(std::process::Stdio::null())
+            .output()
+            .unwrap();
+        let err = String::from_utf8_lossy(&out.stderr);
+        assert_eq!(out.status.code(), Some(1), "`vajra {cmd} {typo}`: {err}");
+        assert!(err.contains(typo), "message must name {typo}: {err}");
+    }
+    // The real options still run.
+    for args in [vec!["next", "--steps"], vec!["check"], vec!["estimate"]] {
+        let out = vajra()
+            .args(&args)
+            .current_dir(&dir)
+            .stdin(std::process::Stdio::null())
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "`vajra {args:?}`: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// S203 bug bash — in a folder that is not a git repo, step 1 was `git checkout -b`, which fails.
+#[test]
+fn init_outside_git_says_git_init_first() {
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!("vajra-s203-nogit-{nanos}"));
+    std::fs::create_dir_all(&dir).unwrap();
+    let out = vajra()
+        .arg("init")
+        .current_dir(&dir)
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    let _ = std::fs::remove_dir_all(&dir);
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("1. make it a git repo:") && err.contains("git init"),
+        "no `git init` step outside a git repo:\n{err}"
+    );
+}
+
 /// S179 (F90) — `vajra init` refuses a word it does not know, and writes nothing. Before S179 an
 /// unknown word was ignored: `vajra init --dry-run` (the preview flag, which needs `--sync-fleet`)
 /// ran a full scaffold into the repo it was meant to preview.
