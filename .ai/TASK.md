@@ -2,11 +2,15 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S201 complete, PR open; Vajra development PAUSED (founder, 2026-10-17)
+## Between Sessions — S202 complete, PR #241 open; Vajra development PAUSED (founder, 2026-10-17)
+- Next: **S203** — pause; use Vajra on another project (`prompts/203-task-pause-use-elsewhere.md`, renumbered from 202). Opens only with a finding from real use that blocks that project's work.
 
-**Next: Session 202 — PAUSE: no Vajra development; use Vajra on another project.** Prompt: `prompts/202-task-pause-use-elsewhere.md` (draft; the founder approves it only when he brings a finding from real use that blocks that project's work).
+## Session 202 — AD-HOC: bug bash (founder: "no rules need to be followed") — COMPLETE (PR #241 open)
+- **Round 1 (every open bug):** N28 `--advance` stdin hang · OS wait error named `WAIT FAILURE` · signal-death test · `--dogfood-age` one folder down · F127 leftovers in the push belt · F123 leftovers via `.githooks/reference-transaction` · `vajra --version` names the commit · verify-201 source-claim notes (scaffold-drift red on main).
+- **Round 2 (the 8 candidates):** 7 fixed — scaffold settings parity (+ test) · `vajra check` on clean main · install-smoke on the published tap + per-step budget kill · boot shows the newest 3 session sections · lazy review-attestation walk · `past-verdicts-unchanged` close row. **Not fixed:** verify-88's `>= 16` floor.
+- No prompt, review, demo or GREEN close (ad hoc, founder's call); the founder pushed the branch by hand. `cargo test` 758/0 · CI green both OS. Summary: `sessions/session-202-summary.md`.
 
-## Session 201 — CODE: the S200 small fixes + the README "tested with" line — COMPLETE (PR open)
+## Session 201 — CODE: the S200 small fixes + the README "tested with" line — COMPLETE (merged #240)
 
 - Brief: `prompts/201-task-small-fixes.md`. Summary: `sessions/session-201-summary.md`. Review: `sessions/session-201-review.md`.
 - Shipped: **N24** (report first; verify/demo "not needed" on a review-only session) · **N22** (verify-178/demo-178 RETIRED) · **N25** (Vajra's own merge step says reinstall) · the README "tested with" line (founder's "Short"). Verify 5/5 · demo 6/6 · `cargo test` 745/0.
