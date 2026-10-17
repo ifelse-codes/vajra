@@ -745,11 +745,11 @@ station credit.
 | Item | Severity | Notes |
 |---|---|---|
 | **Dogfood (launcher)** | 🟢 | Fresh — last = **S103 = 2026-07-27, $0.6797 authoritative** (sonnet-4-6, 6-task endurance harness + forced block; S102 = $0.4644). `--dogfood-age` now correctly reports S103 (top-level aggregate receipts added S105-follow-up) |
-| ~~**`--dogfood-age` blind to untracked receipts**~~ | 🟢→🟡 | **RESOLVED for S102/S103** (S105 follow-up). Corrected root cause: the scan reads `receipt.stderr.txt` at the **top level** of each artifacts dir (on-disk, not git; `src/dogfood/mod.rs:63-66`) — S102/S103 receipts sat in per-run subdirs, so it skipped them. Fixed with a top-level aggregate receipt + `run-result.json` per dir. **🟡 residual:** durable code fix = recurse into subdirs (queued for a CODE session) |
+| ~~**`--dogfood-age` blind to untracked receipts**~~ | 🟢→🟡 | **RESOLVED for S102/S103** (S105 follow-up). Corrected root cause: the scan reads `receipt.stderr.txt` at the **top level** of each artifacts dir (on-disk, not git; `src/dogfood/mod.rs:63-66`) — S102/S103 receipts sat in per-run subdirs, so it skipped them. Fixed with a top-level aggregate receipt + `run-result.json` per dir. **residual FIXED S202 bug bash:** the scan also looks one folder down (`run-*/receipt.stderr.txt`, cost beside it) |
 | ~~**Installability unmeasured**~~ | 🟢→🟡 | **CLOSED S106:** `scripts/install-smoke.sh` is the instrument the S105 meta-check found missing (fresh install → `init` → `next`, falsifiable). **🟡 residuals:** the smoke **default** proves `cargo install --path`; the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally identical, disclosed) · `within-budget` is a post-hoc check, not a hard per-step timeout |
 | ~~**No no-Rust install path**~~ | ✅ | CLOSED S107 (prebuilt release binary) + S108 (crates.io + brew). v0.1 installs FOUR ways, all proven |
 | **brew smoke tests a LOCAL formula copy** | 🟡 | S108 fakest green: the `brew` smoke stands up a throwaway local tap from the in-repo `Formula/vajra.rb`, not the published `homebrew-tap`; would stay green if the public tap drifts. Proven byte-identical + public-tap path run live this session. Durable fix = point the brew smoke at the published tap |
-| **`vajra --version` gap** | 🟡 | A stranger who types `vajra --version` gets usage, not a version string (exit 0, falls to help). Minor installability polish (S109-alt B) |
+| ~~**`vajra --version` gap**~~ | ✅ | Fixed S128; S202 bug bash adds the build's commit (`vajra 0.2.0 (edd23e5)`), so a stale install shows (N25 leftover) |
 | **Dogfood (pipeline end-to-end)** | 🟡 | RE-TESTED S102 — quality gates PASSED on a bounded 3-task burst (guards ON, real teeth). Still untested: a *completing, multi-hour, unattended* run + a *forced adversarial* block — both = S103 |
 | ~~**Coder/EXECUTE station dark**~~ | ✅ | CLOSED S100: Coder **PASSED** in S96, S98, S99 (`vajra next --stations NN`). The S95 "ABSENT 4-for-4" finding no longer holds in this repo |
 | **Ladder runs invisible to GT instruments** | 🟡 | **S100 🔴 → mitigated S102.** The fix shipped: S102 produced the first real ladder-run **evidence contract** (`session-102-review.md`, judged on receipt + blocked-action log + subject diff + fidelity; ACCEPT + attested, NOT waived). `--stations` still reads DOGFOOD low by construction — read the contract, not the K-of-8. Residual: the pattern is proven once, not yet templated/enforced (a run must not silently waive it) |
@@ -759,8 +759,8 @@ station credit.
 | ~~Repo-wide rustfmt 1.9.0 drift~~ | ✅ | CLOSED S96: `cargo fmt` reformatted the 3 files; `cargo fmt --check` clean crate-wide; CI green both OS. Keep local rustfmt = 1.9.0-stable (CI's `@stable`) to avoid recurrence |
 | Compression | 🟡 | 0 folds on real CC (S63 + S76); never claim until measured |
 | `full_historical_scan` pass bar | 🟡 | Floor (`verified >= 16`), not strict zero-regression assertion (S88 reviewer note) |
-| Signal-death edge case | 🟡 | `gate_run::code_or_conservative` has no dedicated automated test (S84) |
-| `wait_or_timeout` Err | 🟡 | Pre-existing (S73) OS-level error classifies as `CannotEvaluate::Timeout` |
+| ~~Signal-death edge case~~ | ✅ | S202 bug bash: `a_signal_death_is_a_non_zero_exit_not_a_timeout` (streamed + captured) |
+| ~~`wait_or_timeout` Err~~ | ✅ | S202 bug bash: an OS wait error is `CannotEvaluate::WaitFailure` ("WAIT FAILURE"), not `Timeout` |
 | Legacy opus ids (4.0/4.1/4.5) | 🟡 | No confirmed current rate; held at historical $15/$75 conservative estimate |
 | `candidate_diffs` intermediate-commit scan | 🟡 | Enumerates all commits in base..p2 per merge (S91B fix); O(n·k) scalability; post-merge-tip case still ABSENT |
 | `read_prompt` ambiguous match | 🟡 | Picks first on >1 prompt file match; bash side fails-closed; rare |
@@ -824,9 +824,13 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   prompt in git ("changing it now would undo today's sign-off"), saved the new plan only in Claude Code's private
   memory, and said "nothing is left half-done". Seen live: S196 summary, Findings.
 - **F127's remaining routes (named, not closed, DECISION-007 S196 addendum):** a hand-written GREEN result,
-  `git push --no-verify`, untracked files not counted in `clean:`, an inline waiver, a non-session branch name (N17).
-- **F123's remaining routes (named, not closed, DECISION-007 S194 addendum):** a fast-forward merge, `reset --hard`,
-  `branch -f main`, `update-ref`, `git merge --no-verify` move main with no hook; pre-push still stops the push.
+  `git push --no-verify`, an inline waiver, a non-session branch name (N17). **Closed S202 bug bash:** untracked
+  (non-ignored) files now make `clean: no` (both close scripts); `git push origin HEAD:refs/heads/<other>` is
+  checked against the checked-out branch; a bare `session-NN` branch is a session branch.
+- **F123's remaining routes — CLOSED for the agent S202 bug bash:** `.githooks/reference-transaction` (shipped by
+  `vajra init` / `--sync-fleet`) stops an agent moving main/master — fast-forward, `reset --hard`, `branch -f`,
+  `update-ref` — to a commit `origin/<branch>` does not have; `git pull --ff-only` after a merged PR still works; a
+  person gets a note. Still open: no `origin` remote (nothing to follow), an agent with no marker, `core.hooksPath`.
 - **`latest` — FIXED S199** (the founder saw it — 732 broken self-links + 12 logs from 2026-08-03 — and said yes; now a link to the newest run). Was: **Vajra's own `.ai/verify/closeout/latest` is a real folder** (from 2026-08-03) holding hundreds of links, so
   `ln -sfn` never repoints it. Vajra-only (projects are fine); F121 does not read `latest`. Seen in S194.
 - **N21 — FIXED S199** (`--advance` refuses naming every file; `--steps` leads with a ✗ naming them; the shared
@@ -857,7 +861,7 @@ founder picks when; on the S195 ground-truth checklist.** **S195 picks (founder-
   review file and the S199 push line until `vajra approve 200 --close`. Working as designed (DECISION-011 S197).
   LOW. **→ the S205 prompt:** report → cold review → `--close` → plan, advice, summary.
 - **N27 — FIXED S200 closeout** (STATE's Cost Tracking had no S196 row; the founder's rudra S21 run, $19.21).
-- **N28 — `vajra next --advance` waits forever on an open, non-terminal stdin** (S201): `confirm()`'s `read_line` (`src/cli/next.rs:2200-2203`) blocks when an agent's shell leaves stdin open; S201 hung 2 min, then re-ran with `</dev/null` (KNOWLEDGE already says so). LOW. **Carry → backlog — reason: Vajra development is paused (founder, 2026-10-17); picked only if real use on another project hits it.**
+- **N28 — FIXED S202 bug bash** (a piped answer is read on a thread for 2 s; nothing by then = not asked). Was: **`vajra next --advance` waits forever on an open, non-terminal stdin** (S201): `confirm()`'s `read_line` (`src/cli/next.rs:2200-2203`) blocks when an agent's shell leaves stdin open; S201 hung 2 min, then re-ran with `</dev/null` (KNOWLEDGE already says so). LOW. **Carry → backlog — reason: Vajra development is paused (founder, 2026-10-17); picked only if real use on another project hits it.**
 
 **The active queue is FINISHING THE MVP** (C→B→A: team-voice ✓ → installable v0.1 = S106 → fleet).
 The machinery-freeze rule is **RETIRED** (S103 pivot). Items below get pulled when they serve the MVP
