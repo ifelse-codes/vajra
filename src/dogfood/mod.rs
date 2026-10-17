@@ -60,11 +60,7 @@ pub fn dogfood_age(root: &Path, current_session: u32) -> Option<DogfoodAgeReport
             continue;
         }
         // Check for a full-run receipt file (not the `live-*` smoke-test pattern).
-        let receipt = ["receipt.stderr.txt", "vajra-receipt.txt"]
-            .iter()
-            .find(|f| dir.join(f).is_file())
-            .map(|s| s.to_string());
-        let Some(receipt_file) = receipt else {
+        let Some(receipt_file) = find_receipt(&dir) else {
             continue;
         };
         // Keep the highest-numbered session with a receipt.
@@ -79,8 +75,12 @@ pub fn dogfood_age(root: &Path, current_session: u32) -> Option<DogfoodAgeReport
     // Git date: when was this artifact first committed? Use the earliest commit that touched the dir.
     let date = git_first_date(root, &artifact_dir);
 
-    // Optional cost: parse from run-result.json if the file exists.
-    let cost_usd = parse_cost_json(root, session);
+    // Optional cost: parse from run-result.json if the file exists — at the top, or beside a
+    // receipt found in a per-run folder.
+    let cost_usd = parse_cost_json(root, session).or_else(|| {
+        let (sub, _) = receipt_file.rsplit_once('/')?;
+        parse_cost_file(&root.join(&artifact_dir).join(sub).join("run-result.json"))
+    });
 
     let sessions_since = current_session.saturating_sub(session);
     let calendar_days = date.as_deref().and_then(iso_days_ago);
@@ -145,6 +145,31 @@ pub fn format_dogfood_age(current_session: u32, report: Option<&DogfoodAgeReport
 
 // ---- Helpers ---------------------------------------------------------------------------------
 
+const RECEIPT_NAMES: [&str; 2] = ["receipt.stderr.txt", "vajra-receipt.txt"];
+
+/// The full-run receipt in an artifacts dir: at its top level, else in one per-run folder one
+/// level down (S102/S103 kept theirs in `run-*/`; the scan skipped them until a top-level copy
+/// was added by hand — the S105 residual). Folders are tried in name order. Returns the path
+/// relative to the artifacts dir.
+fn find_receipt(dir: &Path) -> Option<String> {
+    if let Some(f) = RECEIPT_NAMES.iter().find(|f| dir.join(f).is_file()) {
+        return Some(f.to_string());
+    }
+    let mut subs: Vec<_> = fs::read_dir(dir)
+        .ok()?
+        .flatten()
+        .filter(|e| e.path().is_dir())
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .collect();
+    subs.sort();
+    subs.into_iter().find_map(|sub| {
+        RECEIPT_NAMES
+            .iter()
+            .find(|f| dir.join(&sub).join(f).is_file())
+            .map(|f| format!("{sub}/{f}"))
+    })
+}
+
 /// Parse `session-NN-artifacts` → `NN` (as `u32`). Returns `None` on any mismatch.
 fn parse_artifacts_session(name: &str) -> Option<u32> {
     let inner = name.strip_prefix("session-")?.strip_suffix("-artifacts")?;
@@ -184,10 +209,14 @@ fn git_first_date(root: &Path, rel: &str) -> Option<String> {
 /// Try to parse `total_cost_usd` from `sessions/session-NN-artifacts/run-result.json`.
 /// Returns `None` when the file is absent or does not carry the key.
 fn parse_cost_json(root: &Path, session: u32) -> Option<f64> {
-    let path = root.join(format!(
+    parse_cost_file(&root.join(format!(
         "sessions/session-{session:02}-artifacts/run-result.json"
-    ));
-    let text = fs::read_to_string(&path).ok()?;
+    )))
+}
+
+/// `total_cost_usd` from one `run-result.json`, or `None`.
+fn parse_cost_file(path: &Path) -> Option<f64> {
+    let text = fs::read_to_string(path).ok()?;
     // Simple key scan: find `"total_cost_usd":` followed by a float.  No full JSON parser
     // needed — the field is always a bare number in the one place we write it.
     let key = "\"total_cost_usd\":";
@@ -334,6 +363,27 @@ mod tests {
         assert_eq!(report.session, 76);
         assert_eq!(report.cost_usd, None); // S76 has no run-result.json
         assert_eq!(report.sessions_since, 14); // 90 - 76
+    }
+
+    /// S105 residual (S202 bug bash): a receipt kept in a per-run folder one level down counts,
+    /// with the cost beside it; a `live-*` smoke receipt down there still does not.
+    #[test]
+    fn dogfood_age_finds_a_receipt_in_a_per_run_folder() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        write_artifacts(root, 76, "receipt.stderr.txt", None);
+        let run = root.join("sessions/session-103-artifacts/run-1");
+        fs::create_dir_all(&run).unwrap();
+        fs::write(run.join("receipt.stderr.txt"), "receipt\n").unwrap();
+        fs::write(run.join("run-result.json"), r#"{"total_cost_usd":0.6797}"#).unwrap();
+        let smoke = root.join("sessions/session-110-artifacts/run-1");
+        fs::create_dir_all(&smoke).unwrap();
+        fs::write(smoke.join("live-receipt.stderr.txt"), "smoke\n").unwrap();
+
+        let report = dogfood_age(root, 110).expect("should find s103");
+        assert_eq!(report.session, 103);
+        assert_eq!(report.receipt_file, "run-1/receipt.stderr.txt");
+        assert_eq!(report.cost_usd, Some(0.6797));
     }
 
     #[test]
