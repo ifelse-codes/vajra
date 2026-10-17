@@ -972,6 +972,37 @@ _ledger_sha_of() {
   grep -m1 -iE '^[*_[:space:]]*Review-Inputs-SHA[*_[:space:]]*:' \
     | grep -oiE '[0-9a-f]{64}' | head -1 | tr '[:upper:]' '[:lower:]'
 }
+# S202 bug bash (ROADMAP weak table: "--ledger-verify opt-in, not in the mandatory close"): the
+# chain check compared the worktree with HEAD, and nobody ran it. A close now compares every PAST
+# session's review — verdict and Review-Inputs-SHA — on this branch against where it forked from
+# main, so a past verdict changed in this session (committed or not) FAILS by name. A review that
+# did not exist at the fork may be added (S167 recorded S166's retroactive review). This session's
+# own review is not compared. Same limit as the ledger: tamper-evident, not tamper-proof.
+check_past_verdicts_unchanged() {
+  local NAME="past-verdicts-unchanged"; local LOG="$ARTIFACTS/${NAME}.log"
+  local base f n was now changed=""
+  base="$(git merge-base main HEAD 2>/dev/null || true)"
+  if [ -z "$base" ]; then
+    echo "OK: no fork point with main (a new project) — no past verdict to compare" >"$LOG"; ok "$NAME"; return
+  fi
+  while IFS= read -r f; do
+    n="${f#sessions/session-}"; n="${n%-review.md}"
+    case "$n" in (''|*[!0-9]*) continue ;; esac
+    [ "$((10#$n))" -lt "$((10#$N))" ] || continue
+    was="$(git show "$base:$f" 2>/dev/null)"
+    now="$(cat "$f" 2>/dev/null || true)"
+    if [ "$(printf '%s' "$was" | _ledger_verdict_of || true)|$(printf '%s' "$was" | _ledger_sha_of || true)" \
+       != "$(printf '%s' "$now" | _ledger_verdict_of || true)|$(printf '%s' "$now" | _ledger_sha_of || true)" ]; then
+      changed="$changed S$((10#$n))"
+    fi
+  done < <(git ls-tree --name-only "$base" sessions/ 2>/dev/null | grep -E '^sessions/session-[0-9]+-review\.md$' || true)
+  if [ -z "$changed" ]; then
+    echo "OK: every past session's review verdict + Review-Inputs-SHA matches main at $base" >"$LOG"; ok "$NAME"
+  else
+    echo "FAIL: a past session's verdict or Review-Inputs-SHA changed on this branch:$changed — a past review is history; put a correction in this session's own files" >"$LOG"; bad "$NAME"
+  fi
+}
+
 # Session numbers (ascending) whose review is COMMITTED at HEAD / present in the WORKTREE.
 # S186 (F114): a fresh project (no commit yet, or no review yet) is an EMPTY list — under
 # pipefail the failing `git ls-tree` / `ls` used to end the script silently with exit 1 / 128.
@@ -1238,6 +1269,7 @@ check_design_advisor_mandate
 check_required_crew
 check_claimed_evidence
 check_review_attestation
+check_past_verdicts_unchanged
 
 # S194 (F121): the one machine-readable result. `vajra claude` reads it at exit and prints it below
 # the receipt, so the human hears the verdict from Vajra, not from the agent's summary. S196 (F127):
