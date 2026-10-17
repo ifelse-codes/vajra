@@ -683,7 +683,7 @@ fn session_attested_accept(root: &Path, session: u32) -> bool {
 // live-only recompute would therefore falsely reject nearly every already-accepted historical
 // session — worse than the bug it fixes. Fix for THAT: a `--no-ff` merge (this repo's convention,
 // never squash) preserves both parents on the merge commit forever, even after the branch ref
-// itself is pruned — so `candidate_diffs` recovers (base, tip) from every merge commit reachable
+// itself is pruned — so `any_candidate_diff` recovers (base, tip) from every merge commit reachable
 // from `main`, not just a live, possibly-vanished branch ref. Confirmed empirically: this
 // reproduces the exact recorded hash for 16 of 20 real historical reviews sampled from this
 // repo's own history. The remaining 4 (S64, S69, S73, S79) reproduce under NO candidate, even
@@ -721,17 +721,16 @@ fn attested_hash_outcome(root: &Path, session: u32, review_text: &str) -> Attest
     let Some(rel) = analyst::find_prompt_for(root, session) else {
         return AttestOutcome::Unverifiable;
     };
-    for (base, tip) in candidate_diffs(root) {
-        let Some(prompt) = prompt_bytes_at(root, &tip, &rel) else {
-            continue;
-        };
-        if let Some(h) = diff_hash(root, &base, &tip, &prompt) {
-            if h == claimed {
-                return AttestOutcome::Verified;
-            }
-        }
+    let found = any_candidate_diff(root, |base, tip| {
+        prompt_bytes_at(root, tip, &rel)
+            .and_then(|prompt| diff_hash(root, base, tip, &prompt))
+            .is_some_and(|h| h == claimed)
+    });
+    if found {
+        AttestOutcome::Verified
+    } else {
+        AttestOutcome::Unverifiable
     }
-    AttestOutcome::Unverifiable
 }
 
 /// The first well-formed (>=64 consecutive hex chars, first 64 taken) value on the FIRST line
@@ -806,39 +805,47 @@ fn git_out(root: &Path, args: &[&str]) -> Option<(i32, String)> {
 /// commit (e.g. S89: execution shas were added to the prompt in the same commit that committed
 /// the review, so the hash necessarily captured the state one commit earlier — the branch tip
 /// carries a different prompt, so `(base, tip)` alone never matches).
-fn candidate_diffs(root: &Path) -> Vec<(String, String)> {
-    let mut out = Vec::new();
+///
+/// S202 bug bash: the candidates are produced lazily, in the same order, and the walk stops at the
+/// first `(base, tip)` that `matches` — it used to list every merge's every commit (2 git calls
+/// per merge, then 2 per candidate) before trying the first one (8.8 s for S201's own review).
+fn any_candidate_diff(root: &Path, mut matches: impl FnMut(&str, &str) -> bool) -> bool {
     if let (Some((0, head)), Some((0, base))) = (
         git_out(root, &["rev-parse", "HEAD"]),
         git_out(root, &["merge-base", "main", "HEAD"]),
     ) {
-        out.push((base.trim().to_string(), head.trim().to_string()));
+        if matches(base.trim(), head.trim()) {
+            return true;
+        }
     }
-    if let Some((0, log)) = git_out(root, &["log", "--merges", "--format=%P", "main"]) {
-        for line in log.lines() {
-            let mut parents = line.split_whitespace();
-            if let (Some(p1), Some(p2)) = (parents.next(), parents.next()) {
-                if let Some((0, base_raw)) = git_out(root, &["merge-base", p1, p2]) {
-                    let base = base_raw.trim().to_string();
-                    // Primary candidate: the branch tip.
-                    out.push((base.clone(), p2.to_string()));
-                    // Intermediate candidates: every commit on the branch between base and tip.
-                    // `git log base..p2` lists them newest-first; `tip` is the first entry.
-                    if let Some((0, commits)) =
-                        git_out(root, &["log", "--format=%H", &format!("{base}..{p2}")])
-                    {
-                        for commit in commits.lines().skip(1) {
-                            let c = commit.trim();
-                            if !c.is_empty() {
-                                out.push((base.clone(), c.to_string()));
-                            }
-                        }
-                    }
+    let Some((0, log)) = git_out(root, &["log", "--merges", "--format=%P", "main"]) else {
+        return false;
+    };
+    for line in log.lines() {
+        let mut parents = line.split_whitespace();
+        let (Some(p1), Some(p2)) = (parents.next(), parents.next()) else {
+            continue;
+        };
+        let Some((0, base_raw)) = git_out(root, &["merge-base", p1, p2]) else {
+            continue;
+        };
+        let base = base_raw.trim();
+        // Primary candidate: the branch tip.
+        if matches(base, p2) {
+            return true;
+        }
+        // Intermediate candidates: every commit on the branch between base and tip.
+        // `git log base..p2` lists them newest-first; `tip` is the first entry.
+        if let Some((0, commits)) = git_out(root, &["log", "--format=%H", &format!("{base}..{p2}")])
+        {
+            for c in commits.lines().skip(1).map(str::trim) {
+                if !c.is_empty() && matches(base, c) {
+                    return true;
                 }
             }
         }
     }
-    out
+    false
 }
 
 /// `sha256(prompt_bytes \0 delivery_diff)` for one (base, tip) candidate — the SAME preimage and
@@ -1026,7 +1033,7 @@ release:
     /// (`--no-ff`, this repo's convention — never squash), and delete the local branch — mirrors
     /// the mandatory S37 close step (merge + prune). Returns (pre-merge main tip, branch tip) so
     /// callers can compute the REAL canonical hash the same way `attested_hash_outcome`
-    /// re-derives it via `candidate_diffs`/`diff_hash`.
+    /// re-derives it via `any_candidate_diff`/`diff_hash`.
     fn merge_and_prune_session_branch(root: &Path, nn: u32, marker: &str) -> (String, String) {
         let branch = format!("session-{nn:02}-x");
         let base = head_sha(root);
