@@ -36,9 +36,9 @@ use crate::fleet;
 /// a ritual.
 pub const PROMPT_TEMPLATE: &str = r#"# Session {{NN}} — {{SLUG}}: <one-line goal>
 
-> **Status:** DRAFT — the Analyst gate (`vajra next --advance`) BLOCKS starting this session
-> while DRAFT. Flip to `APPROVED` once the human signs off (an approval token recorded here,
-> the same trust model as a commit-approval; tamper-evidence is the later cross-stage ledger).
+> **Status:** DRAFT — `vajra next --advance` will not start this session until the founder types
+> `vajra approve {{NN}}` in their OWN terminal. Editing this line does not approve it, and neither
+> does "approved" in chat. (Only a session below `session_rules_from` reads this line instead.)
 
 ## Type
 session_type: CODE

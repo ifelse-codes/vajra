@@ -126,8 +126,11 @@ pub fn run(args: &[String]) -> Result<()> {
         })
         .unwrap_or("L2");
 
+    // Asked BEFORE scaffolding: a new project with no source files starts at session 01, so asked
+    // after, the files init just wrote made a first run read as "already runs Vajra".
+    let already = vajra_already_running(&root);
     scaffold(&root, &project_name, &goal, maturity)?;
-    first_run_aha(&root);
+    first_run_aha(&root, already);
     Ok(())
 }
 
@@ -1478,9 +1481,9 @@ fn vajra_already_running(root: &Path) -> Option<u32> {
 /// First-run "aha" (S23): after scaffolding, let the user *see* the co-pilot work in
 /// seconds — fire the just-scaffolded hook once against a sample `git commit` so the
 /// guard is felt, not just filed. Best-effort: a missing bash/jq never fails init.
-fn first_run_aha(root: &Path) {
+fn first_run_aha(root: &Path, already: Option<u32>) {
     // Already running Vajra: this was a top-up, not a first run. Say where the project actually is.
-    if let Some(n) = vajra_already_running(root) {
+    if let Some(n) = already {
         eprintln!();
         eprintln!("This project already runs Vajra — nothing of yours was overwritten.");
         eprintln!("  You are on session {n:02}. Next: vajra claude");
@@ -1509,10 +1512,51 @@ fn first_run_aha(root: &Path) {
     // S171 cold review rec 1: a fresh repo is on `main`, and the belt refuses `main` for everyone —
     // so "commit these files" as step 1 walked the user straight into the block this session fixed.
     // The branch comes first, as it does for every session.
-    eprintln!("Next — three steps:");
-    eprintln!("  1. make this session's branch: git checkout -b session-00-onboarding");
-    eprintln!("  2. save these files:           git add -A && git commit -m \"Add Vajra\"");
-    eprintln!("  3. start the session:          vajra claude   (then say: start session 00)");
+    for line in next_steps(root) {
+        eprintln!("{line}");
+    }
+}
+
+/// The steps after a first `vajra init`, for the session the project is really on: an existing
+/// codebase starts at 00 (onboarding), a new one at 01 (kickoff) — both used to be told "00". A
+/// folder that is not a git repo yet needs `git init` before a branch can be made.
+fn next_steps(root: &Path) -> Vec<String> {
+    let nn = fs::read_to_string(root.join(".ai/SESSION"))
+        .ok()
+        .and_then(|s| s.trim().parse::<u32>().ok())
+        .unwrap_or(0);
+    let branch = if nn == 0 {
+        "session-00-onboarding"
+    } else {
+        "session-01-kickoff"
+    };
+    let mut steps = vec![(
+        "make this session's branch:",
+        format!("git checkout -b {branch}"),
+    )];
+    if !root.join(".git").exists() {
+        steps.insert(
+            0,
+            (
+                "make it a git repo:",
+                "git init && git config core.hooksPath .githooks".to_string(),
+            ),
+        );
+    }
+    steps.push((
+        "save these files:",
+        "git add -A && git commit -m \"Add Vajra\"".to_string(),
+    ));
+    steps.push((
+        "start the session:",
+        format!("vajra claude   (then say: start session {nn:02})"),
+    ));
+    let words = ["two", "three", "four"];
+    let mut out = vec![format!("Next — {} steps:", words[steps.len() - 2])];
+    for (i, (what, how)) in steps.iter().enumerate() {
+        out.push(format!("  {}. {what:<28}{how}", i + 1));
+    }
+    out
 }
 
 /// Fire the scaffolded co-pilot hook once and capture what the agent would see.
@@ -2522,12 +2566,15 @@ first-pass understanding.
    invariants, environment quirks. If you can't verify a fact, don't write it.
 4. **Rewrite `.ai/STATE.md`** — What Currently Works / What Is Broken from observed
    reality (run the tests; the results are the evidence).
-5. **Seed `.ai/ROADMAP.md`** with the founder's next milestone, then point `.ai/TASK.md`
-   at `prompts/01-task-kickoff.md` and set `.ai/SESSION` to 01.
+5. **Seed `.ai/ROADMAP.md`** with the founder's next milestone, and fill
+   `prompts/01-task-kickoff.md` from it (Goal, Acceptance, Delta). Do not set `.ai/SESSION`
+   by hand: once the founder has typed `vajra approve 01` in their own terminal,
+   `vajra next --advance` moves it to 01.
 
 ## Guardrails
 - **Docs only**: `.ai/` files. No source-code edits, no refactors, no "quick fixes".
-- Branch `session-00-onboarding` from `main`. Commits need the founder's approval token.
+- Branch `session-00-onboarding` from `main`. Commits need the founder's yes: they commit
+  in their own terminal, or start you with `VAJRA_ALLOW_COMMIT=00 vajra claude`.
 - Max 2 assumptions; unverifiable claims are questions for the founder, not facts.
 
 ## Exit Criteria
