@@ -32,10 +32,32 @@ echo "│   verdict / table), not a wall of prose.                      │"
 echo "└───────────────────────────────────────────────────────────────┘"
 echo ""
 
+# S202 bug bash: SESSION-BOOT.md, TASK.md and STATE.md keep one section per past session, and all
+# of them were printed at every start (~75 KB of the ~95 KB boot in Vajra's own repo). Only the newest
+# BOOT_HISTORY_KEEP session sections of each are printed; the rest are counted and named, never
+# deleted — the file is whole on disk. A session section is a `## Session NN`, `## Previous
+# session …`, `## Prior Session` or `## SNN …` heading; every other section prints in full.
+BOOT_HISTORY_KEEP=3
+print_boot_file() {
+  case "$1" in
+    .ai/SESSION-BOOT.md|.ai/TASK.md|.ai/STATE.md) ;;
+    *) cat "$ROOT/$1"; return ;;
+  esac
+  awk -v keep="$BOOT_HISTORY_KEEP" -v file="$1" '
+    /^## / {
+      hist = ($0 ~ /^## (Session [0-9]+|Previous session|Prior Session|S[0-9]+[ (—-])/)
+      if (hist) { seen++; skip = (seen > keep); if (skip) { held++ } } else { skip = 0 }
+    }
+    skip { lines++; next }
+    { print }
+    END { if (held) printf "\n[boot] %d older session section(s) of %s not shown (%d lines) — open the file if you need one.\n", held, file, lines }
+  ' "$ROOT/$1"
+}
+
 for f in .ai/SESSION .ai/SESSION-BOOT.md .ai/TASK.md .ai/STATE.md .ai/CONSTRAINTS.yaml; do
   if [ -f "$ROOT/$f" ]; then
     echo "----- $f -----"
-    cat "$ROOT/$f"
+    print_boot_file "$f"
     echo ""
   else
     echo "[hook warn] missing: $f" >&2
