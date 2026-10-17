@@ -746,27 +746,27 @@ station credit.
 |---|---|---|
 | **Dogfood (launcher)** | 🟢 | Fresh — last = **S103 = 2026-07-27, $0.6797 authoritative** (sonnet-4-6, 6-task endurance harness + forced block; S102 = $0.4644). `--dogfood-age` now correctly reports S103 (top-level aggregate receipts added S105-follow-up) |
 | ~~**`--dogfood-age` blind to untracked receipts**~~ | 🟢→🟡 | **RESOLVED for S102/S103** (S105 follow-up). Corrected root cause: the scan reads `receipt.stderr.txt` at the **top level** of each artifacts dir (on-disk, not git; `src/dogfood/mod.rs:63-66`) — S102/S103 receipts sat in per-run subdirs, so it skipped them. Fixed with a top-level aggregate receipt + `run-result.json` per dir. **residual FIXED S202 bug bash:** the scan also looks one folder down (`run-*/receipt.stderr.txt`, cost beside it) |
-| ~~**Installability unmeasured**~~ | 🟢→🟡 | **CLOSED S106:** `scripts/install-smoke.sh` is the instrument the S105 meta-check found missing (fresh install → `init` → `next`, falsifiable). **🟡 residuals:** the smoke **default** proves `cargo install --path`; the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally identical, disclosed) · `within-budget` is a post-hoc check, not a hard per-step timeout |
+| ~~**Installability unmeasured**~~ | 🟢→🟡 | **CLOSED S106:** `scripts/install-smoke.sh` is the instrument the S105 meta-check found missing (fresh install → `init` → `next`, falsifiable). **🟡 residuals:** the smoke **default** proves `cargo install --path`; the README headline `--git` remote path runs only under `VAJRA_SMOKE_SOURCE=git` (structurally identical, disclosed) · `within-budget` was a post-hoc check — FIXED S202 bug bash: each step is killed (with its children) once the run's budget is spent |
 | ~~**No no-Rust install path**~~ | ✅ | CLOSED S107 (prebuilt release binary) + S108 (crates.io + brew). v0.1 installs FOUR ways, all proven |
-| **brew smoke tests a LOCAL formula copy** | 🟡 | S108 fakest green: the `brew` smoke stands up a throwaway local tap from the in-repo `Formula/vajra.rb`, not the published `homebrew-tap`; would stay green if the public tap drifts. Proven byte-identical + public-tap path run live this session. Durable fix = point the brew smoke at the published tap |
+| ~~**brew smoke tests a LOCAL formula copy**~~ | ✅ | S202 bug bash: the drift was real (repo `Formula/vajra.rb` at v0.1.0, tap at v0.2.0) — synced; brew mode installs from the PUBLISHED tap and first checks the repo copy matches it (`VAJRA_SMOKE_FORMULA` keeps the local-tap path); every step is killed when the run's budget is spent |
 | ~~**`vajra --version` gap**~~ | ✅ | Fixed S128; S202 bug bash adds the build's commit (`vajra 0.2.0 (edd23e5)`), so a stale install shows (N25 leftover) |
 | **Dogfood (pipeline end-to-end)** | 🟡 | RE-TESTED S102 — quality gates PASSED on a bounded 3-task burst (guards ON, real teeth). Still untested: a *completing, multi-hour, unattended* run + a *forced adversarial* block — both = S103 |
 | ~~**Coder/EXECUTE station dark**~~ | ✅ | CLOSED S100: Coder **PASSED** in S96, S98, S99 (`vajra next --stations NN`). The S95 "ABSENT 4-for-4" finding no longer holds in this repo |
 | **Ladder runs invisible to GT instruments** | 🟡 | **S100 🔴 → mitigated S102.** The fix shipped: S102 produced the first real ladder-run **evidence contract** (`session-102-review.md`, judged on receipt + blocked-action log + subject diff + fidelity; ACCEPT + attested, NOT waived). `--stations` still reads DOGFOOD low by construction — read the contract, not the K-of-8. Residual: the pattern is proven once, not yet templated/enforced (a run must not silently waive it) |
-| **KNOWLEDGE §6 bloat** | 🟡 | **475 lines / ~91K tokens (GROWING** — was 416/85K at S100); header "Reloaded every session" false; flagged since S60, unremediated; prune queued as an S106-alt option |
+| ~~**KNOWLEDGE §6 bloat**~~ | ✅ | S202 bug bash: KNOWLEDGE is not in the boot; the boot's real weight was every past session section of SESSION-BOOT/TASK/STATE — the start hook now prints the newest 3 of each and names the rest (95 KB → 53 KB); files untouched |
 | **Commit gate in THIS repo** | 🟡 | Un-forgeable only at L3, which is `commit_guard: off` here (build-agent exemption); L2 belt is inline-forgeable + `--no-verify` bypasses both. Teeth proven by test + ON in scaffolds (S93 fakest green) |
 | ~~Nested-repo guard blindspot~~ | ✅ | CLOSED S94: git facts pinned to own git top-level; fail-closed when no own repo; governed project surfaced. Residual (🟡): own-git **non-session-branch** marker fallthrough left intact (zero-regression); worktree/submodule/symlink shapes fail-closed but untested |
 | ~~Repo-wide rustfmt 1.9.0 drift~~ | ✅ | CLOSED S96: `cargo fmt` reformatted the 3 files; `cargo fmt --check` clean crate-wide; CI green both OS. Keep local rustfmt = 1.9.0-stable (CI's `@stable`) to avoid recurrence |
 | Compression | 🟡 | 0 folds on real CC (S63 + S76); never claim until measured |
-| `full_historical_scan` pass bar | 🟡 | Floor (`verified >= 16`), not strict zero-regression assertion (S88 reviewer note) |
+| `full_historical_scan` pass bar | 🟡 | Floor (`verified >= 16`), not strict zero-regression assertion (S88 reviewer note). S202 bug bash: NOT fixed — pinning the exact list needs one full scan, and an unverifiable review walks every candidate (~1 min each); stopped by the founder as too slow |
 | ~~Signal-death edge case~~ | ✅ | S202 bug bash: `a_signal_death_is_a_non_zero_exit_not_a_timeout` (streamed + captured) |
 | ~~`wait_or_timeout` Err~~ | ✅ | S202 bug bash: an OS wait error is `CannotEvaluate::WaitFailure` ("WAIT FAILURE"), not `Timeout` |
 | Legacy opus ids (4.0/4.1/4.5) | 🟡 | No confirmed current rate; held at historical $15/$75 conservative estimate |
-| `candidate_diffs` intermediate-commit scan | 🟡 | Enumerates all commits in base..p2 per merge (S91B fix); O(n·k) scalability; post-merge-tip case still ABSENT |
+| `any_candidate_diff` (was `candidate_diffs`) | 🟡 | S202 bug bash: lazy, stops at the first match (S201 review 8.8 s → 1.1 s). A review that never verifies still walks every candidate (inherent) |
 | `read_prompt` ambiguous match | 🟡 | Picks first on >1 prompt file match; bash side fails-closed; rare |
 | Cross-agent breadth | 🟡 | 0 code; founder-gated (S26/S70) |
 | `canonical_inputs_sha` is single-candidate | 🟡 | Can only verify current open session; historical re-verification requires Rust side |
-| Ledger: tamper-evident not tamper-proof | 🟡 | `--ledger-verify` opt-in, not in mandatory closeout run |
+| Ledger: tamper-evident not tamper-proof | 🟡 | S202 bug bash: the close now FAILS when a past session's verdict or Review-Inputs-SHA changed on the branch (`past-verdicts-unchanged`, both close scripts). Still evident, not proof: committed-history rewrites are out of reach |
 
 ---
 
@@ -886,7 +886,12 @@ below is deleted — S125 was a full-stack review, not a punch list to work now.
   the DEFAULT for anything new is CARRIED, and a stale declaration fails the BUILD.
   `scripts/scaffold-drift.sh` is the execute-based guard (17/17) and `scaffold_drift_check` is the
   12th required GT audit.
-  **Still open, named not softened — F1's successor and the S131 pick:** only THREE lists are
+  **S202 bug bash:** the six settings below now ship (`forbid_skip_hooks`, `forbid_force_push_to`,
+  `artifacts_dir`, all 5 `communication.forbid`, `self_review_questions`, `end_of_session`, plus
+  `state.*`, `budget`, `enforcement`, `trust`); `init.rs`'s test
+  `a_new_project_gets_every_setting_vajra_runs_on_or_a_stated_reason` fails when Vajra's file gains a
+  setting a new project does not get, unless `SCAFFOLD_OMITS_SETTING` names it with a reason.
+  **Was still open, named not softened — F1's successor and the S131 pick:** only THREE lists are
   derived. `TPL_CONSTRAINTS` still hand-types twins of `communication.forbid` (**shipping 4 of our
   5**), `commit.forbid_skip_hooks` (**absent, and `src/varta/render.rs:84` reads it**),
   `commit.forbid_force_push_to`, `self_review_questions`, `end_of_session`,
