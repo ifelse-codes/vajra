@@ -59,6 +59,12 @@ const SYNC_HOOKS: &[(&str, &str)] = &[
     (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
     // S194 (F123): a merge commit runs pre-merge-commit, not pre-commit — the belt's third file.
     (".githooks/pre-merge-commit", TPL_GITHOOK_PRE_MERGE_COMMIT),
+    // S202 bug bash (F123's named routes): a fast-forward, `reset --hard`, `branch -f` and
+    // `update-ref` make no commit — the belt's fourth file sees every branch move.
+    (
+        ".githooks/reference-transaction",
+        TPL_GITHOOK_REFERENCE_TRANSACTION,
+    ),
 ];
 
 /// The canonical STAMPED render of one hook — a shell-comment `vajra-render-sha:` trailing line over
@@ -1827,6 +1833,10 @@ fn files(
         fxs(".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
         fxs(".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
         fxs(".githooks/pre-merge-commit", TPL_GITHOOK_PRE_MERGE_COMMIT),
+        fxs(
+            ".githooks/reference-transaction",
+            TPL_GITHOOK_REFERENCE_TRANSACTION,
+        ),
         fx("scripts/verify-session-template.sh", TPL_VERIFY_TEMPLATE),
         // S167 (DECISION-009): the demo template + the drawing kit it sources are on `SYNC_HOOKS`,
         // scaffolded stamped so a fresh `init` + immediate `--sync-fleet` reports them `UpToDate`.
@@ -2332,6 +2342,9 @@ const TPL_GITHOOK_PRE_COMMIT: &str = include_str!("../../.githooks/pre-commit");
 const TPL_GITHOOK_PRE_PUSH: &str = include_str!("../../.githooks/pre-push");
 // S194 (F123): no merge commit on main/master — `git merge` never runs pre-commit.
 const TPL_GITHOOK_PRE_MERGE_COMMIT: &str = include_str!("../../.githooks/pre-merge-commit");
+// S202 bug bash (F123's named routes): the agent moves main/master only to what origin has.
+const TPL_GITHOOK_REFERENCE_TRANSACTION: &str =
+    include_str!("../../.githooks/reference-transaction");
 
 // The scaffold's `.gitignore` — the session-guard writes the owning chat's id into
 // `.ai/.session-owner`, a local-only record that must never be committed.
@@ -3136,6 +3149,10 @@ mod tests {
             (".githooks/pre-commit", TPL_GITHOOK_PRE_COMMIT),
             (".githooks/pre-push", TPL_GITHOOK_PRE_PUSH),
             (".githooks/pre-merge-commit", TPL_GITHOOK_PRE_MERGE_COMMIT),
+            (
+                ".githooks/reference-transaction",
+                TPL_GITHOOK_REFERENCE_TRANSACTION,
+            ),
         ] {
             let hook = dir.path().join(rel);
             assert!(hook.exists(), "{rel} not scaffolded");
@@ -4470,6 +4487,7 @@ mod tests {
         assert!(dir.path().join(".githooks/pre-commit").exists());
         assert!(dir.path().join(".githooks/pre-push").exists());
         assert!(dir.path().join(".githooks/pre-merge-commit").exists());
+        assert!(dir.path().join(".githooks/reference-transaction").exists());
         for unwanted in [".ai/CONSTRAINTS.yaml", ".ai/SESSION", "prompts", "sessions"] {
             assert!(
                 !dir.path().join(unwanted).exists(),
