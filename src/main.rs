@@ -94,7 +94,11 @@ fn main() -> std::process::ExitCode {
         Subcommand::Version => {
             // READ from the crate at compile time. Never typed into a string here — a
             // hand-typed version is a lie waiting for the next `cargo release`.
-            println!("vajra {}", env!("CARGO_PKG_VERSION"));
+            // N25 leftover (S202): the build's commit, so an install older than main shows.
+            match env!("VAJRA_GIT_COMMIT") {
+                "" => println!("vajra {}", env!("CARGO_PKG_VERSION")),
+                commit => println!("vajra {} ({commit})", env!("CARGO_PKG_VERSION")),
+            }
             0
         }
         Subcommand::Unknown(word) => {

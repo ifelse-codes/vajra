@@ -3,17 +3,18 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S201 complete on `session-201-small-fixes` (PR open; the founder merges). Vajra development is PAUSED (founder, 2026-10-17): the next session, S202 (`prompts/202-task-pause-use-elsewhere.md`), opens only with a finding from real use on another project that blocks that project's work.**
+**None — between sessions. S202 (ad-hoc bug bash) complete on `session-202-bug-bash`, PR #241 open, CI green; the founder merges. Vajra development is PAUSED (founder, 2026-10-17): the next session, S203 (`prompts/203-task-pause-use-elsewhere.md`), opens only with a finding from real use on another project that blocks that project's work.**
 
-## What was done this session (S201 — CODE: the S200 small fixes + the README "tested with" line)
+## What was done this session (S202 — AD-HOC: bug bash, founder: "no rules need to be followed")
 
-- **N24:** on a review-only session the sign-off step says "write sessions/session-NN-ground-truth.md (every audit, live)" first while the report is missing; the verify and demo steps read ✓ "not needed" (the close passes them N/A — the same shared helper). A CODE session is unchanged (`e78b02a`).
-- **N22:** verify-178 / demo-178 RETIRED (superseded) as history — header comments only, naming S181 Part 5, S184 F107, S186 F113 (`55e5d14`).
-- **N25:** in Vajra's own repo (`Cargo.toml` package `vajractl`, read as a key) the merge step says `cargo install --path . --locked` after a `src/` merge; other projects never see it. A note, not a gate (`d5ff467`).
-- **README:** "Tested with: Claude Code on Opus and on Haiku 4.5 …" — the founder's "Short" draft, unchanged (`5c1c295`).
-- Verify 5/5 (each row red at `edb92e3`) · demo 6/6 · `cargo test` 745/0 · ci-lint exit 0. N28 filed (`--advance` waits on an open stdin). The approved prompt had no `## Guardrails`; one was added restating its own rules (`b527493`).
-- **Founder decision (2026-10-17):** stop Vajra development; use it on another project and judge it by that project's goals.
-- Crew: tech-lead, fidelity-reviewer (one cold pass), release-coordinator (the judge of every obeyed answer); six roles deferred on budget with reasons.
+- **Round 1:** N28 fixed (`confirm()` reads a piped answer on a thread, 2 s) · `CannotEvaluate::WaitFailure` · signal-death test · `--dogfood-age` reads `run-*/receipt.stderr.txt` · push belt: untracked files make `clean: no` (both close scripts), `HEAD:<other>` and bare `session-NN` checked · **`.githooks/reference-transaction`**: an agent moves main/master only to a commit origin has (ff, `reset --hard`, `branch -f`, `update-ref`); a person gets a note; ships via `vajra init` / `--sync-fleet` · `vajra --version` → `0.2.0 (<commit>)` · verify-201 `# source-claim:` notes (scaffold-drift was red on main).
+- **Round 2:** `TPL_CONSTRAINTS` carries every setting Vajra runs on (test `a_new_project_gets_every_setting_vajra_runs_on_or_a_stated_reason`, omissions in `SCAFFOLD_OMITS_SETTING`) · `vajra check` passes on main with no tracked change · install-smoke: published brew tap, repo `Formula/vajra.rb` synced (was 0.1.0), every step killed past the budget · the start hook prints the newest 3 session sections of SESSION-BOOT/TASK/STATE (95 → 53 KB) · `any_candidate_diff` stops at the first match (8.8 → 1.1 s, 0 verdict differences on 25 sessions) · close row `past-verdicts-unchanged`.
+- **Not fixed:** verify-88's `verified >= 16` floor (the full scan was too slow; the founder stopped it).
+- `cargo test` 758/0 · clippy + fmt clean · scaffold-drift 20/20 · install-smoke 7/7 · CI green both OS. No prompt/review/demo/close (ad hoc); the push belt stopped the agent's push and the founder pushed. The pause session renumbered 202 → 203.
+
+## Previous session (S201 — CODE: the S200 small fixes + the README "tested with" line, merged #240)
+
+- N24, N22 retired, N25 reinstall note, README "tested with" line. Verify 5/5 · demo 6/6 · `cargo test` 745/0. N28 filed. Founder: pause Vajra development.
 
 ## Previous session (S200 — NO-CODE ground truth, 🟡 PARTIAL PASS, merged #239)
 
@@ -159,16 +160,17 @@
 
 ## What Is In Progress
 
-- Nothing. S201 complete (PR open). Vajra development paused (founder, 2026-10-17).
+- Nothing. S202 complete (PR #241 open). Vajra development paused (founder, 2026-10-17).
 
 ## Active PRs
 
-- S201's PR (the founder merges). S200 merged as #239.
+- #241 — S202 bug bash (CI green; the founder merges). S201 merged as #240.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S202 | $0 | No paid run. Ad-hoc bug bash; no fleet dispatches |
 | S201 | $0 | No paid run. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass; release-coordinator as the judge of every obeyed answer); six roles deferred on budget |
 | S200 | $0 | NO-CODE ground truth. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |
 | S199 | $0 | No paid run. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |

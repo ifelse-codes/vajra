@@ -84,6 +84,10 @@ pub fn gate_timeout(constraints_path: &Path, section: &str) -> Duration {
 pub enum CannotEvaluate {
     Timeout,
     SpawnFailure,
+    /// The child started, but the OS could not say whether it had exited (`try_wait` failed).
+    /// Before the S202 bug bash this read as `Timeout`, sending the operator to raise a bound
+    /// that was never hit.
+    WaitFailure,
 }
 
 /// `<program> <script>` at `root`, spawned in its OWN process group (Unix) so a timeout can kill
@@ -135,21 +139,21 @@ fn kill_tree(child: &mut Child) {
     let _ = child.wait();
 }
 
-/// Poll `child` until it exits or `timeout` elapses. `Some(status)` = exited in time; `None` =
-/// timed out (the caller kills). Polling `try_wait` needs no dependency and makes no assumption
+/// Poll `child` until it exits or `timeout` elapses. `Ok(status)` = exited in time;
+/// `Err(Timeout)` = timed out, `Err(WaitFailure)` = the OS could not report (the caller kills). Polling `try_wait` needs no dependency and makes no assumption
 /// about the child's stdio, so it serves both the streamed and the captured run below.
-fn wait_or_timeout(child: &mut Child, timeout: Duration) -> Option<ExitStatus> {
+fn wait_or_timeout(child: &mut Child, timeout: Duration) -> Result<ExitStatus, CannotEvaluate> {
     let deadline = Instant::now() + timeout;
     loop {
         match child.try_wait() {
-            Ok(Some(status)) => return Some(status),
+            Ok(Some(status)) => return Ok(status),
             Ok(None) => {
                 if Instant::now() >= deadline {
-                    return None;
+                    return Err(CannotEvaluate::Timeout);
                 }
                 std::thread::sleep(POLL_INTERVAL);
             }
-            Err(_) => return None,
+            Err(_) => return Err(CannotEvaluate::WaitFailure),
         }
     }
 }
@@ -185,11 +189,13 @@ fn run_streamed_inner(
         Err(_) => return Err(CannotEvaluate::SpawnFailure),
     };
     match wait_or_timeout(&mut child, timeout) {
-        Some(status) => Ok(code_or_conservative(&status)),
-        None => {
+        Ok(status) => Ok(code_or_conservative(&status)),
+        Err(why) => {
             kill_tree(&mut child);
-            eprintln!("{}", timeout_notice(script, timeout));
-            Err(CannotEvaluate::Timeout)
+            if why == CannotEvaluate::Timeout {
+                eprintln!("{}", timeout_notice(script, timeout));
+            }
+            Err(why)
         }
     }
 }
@@ -255,10 +261,10 @@ fn run_captured_inner(
     let out_reader = read_to_end(child.stdout.take());
     let err_reader = read_to_end(child.stderr.take());
     let (code, timed_out) = match wait_or_timeout(&mut child, timeout) {
-        Some(status) => (Ok(code_or_conservative(&status)), false),
-        None => {
+        Ok(status) => (Ok(code_or_conservative(&status)), false),
+        Err(why) => {
             kill_tree(&mut child);
-            (Err(CannotEvaluate::Timeout), true)
+            (Err(why), why == CannotEvaluate::Timeout)
         }
     };
     // Kill (above) closes the child's write ends, so both readers reach EOF and join.
@@ -461,14 +467,14 @@ pub fn run_bootstrap(
     };
 
     match wait_or_timeout(&mut child, timeout) {
-        Some(status) if status.success() => Ok(()),
-        Some(_) => {
+        Ok(status) if status.success() => Ok(()),
+        Ok(_) => {
             // Non-zero exit from bootstrap — treat as a setup failure.
             Err(CannotEvaluate::SpawnFailure)
         }
-        None => {
+        Err(why) => {
             kill_tree(&mut child);
-            Err(CannotEvaluate::Timeout)
+            Err(why)
         }
     }
 }
@@ -484,6 +490,33 @@ mod tests {
         fs::create_dir_all(&scripts).unwrap();
         fs::write(scripts.join("s.sh"), script_body).unwrap();
         tmp
+    }
+
+    /// Weak/Broken table (S84): a script killed by a signal it did not get from us has no exit
+    /// code. It must read as a real non-zero exit, never as success and never as a timeout.
+    #[cfg(unix)]
+    #[test]
+    fn a_signal_death_is_a_non_zero_exit_not_a_timeout() {
+        let tmp = repo_with("kill -KILL $$\n");
+        let code = run_streamed(tmp.path(), "scripts/s.sh", Duration::from_secs(20));
+        assert_eq!(code, Ok(1));
+        let (code, _) = run_captured(tmp.path(), "scripts/s.sh", Duration::from_secs(20));
+        assert_eq!(code, Ok(1));
+    }
+
+    /// S202 bug bash: when the OS cannot say whether the child exited (`try_wait` fails — here
+    /// because someone else already reaped it), the answer is `WaitFailure`, not `Timeout`.
+    #[cfg(unix)]
+    #[test]
+    fn a_failed_wait_is_named_wait_failure_not_timeout() {
+        let mut child = Command::new("true").spawn().unwrap();
+        let mut status = 0;
+        // SAFETY: waitpid on our own child's pid; reaping it makes the next try_wait fail (ECHILD).
+        unsafe { libc::waitpid(child.id() as libc::pid_t, &mut status, 0) };
+        assert_eq!(
+            wait_or_timeout(&mut child, Duration::from_secs(5)).err(),
+            Some(CannotEvaluate::WaitFailure)
+        );
     }
 
     #[test]

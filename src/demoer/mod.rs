@@ -417,6 +417,11 @@ pub fn demo_gate_with_facts(
              evaluate FAILS",
             contract.script
         )),
+        DemoState::CannotEvaluate(CannotEvaluate::WaitFailure) => reasons.push(format!(
+            "{} could not be evaluated — WAIT FAILURE: it started, but the OS could not report \
+             whether it had exited — a check that cannot evaluate FAILS",
+            contract.script
+        )),
     }
 
     DemoVerdict {

@@ -7,8 +7,9 @@
 # and the 2026-09-21 founder decision: nobody commits on main/master, human or agent. Only the
 # branch is checked: merging main INTO a session branch is not this hook's business.
 #
-# Not covered (named, DECISION-007 S194 addendum): a fast-forward merge, `reset --hard`,
-# `branch -f`, `update-ref` make no commit, so no hook fires. pre-push still stops the push.
+# A fast-forward merge, `reset --hard`, `branch -f`, `update-ref` make no commit, so this hook
+# never fires for them (DECISION-007 S194 addendum); since the S202 bug bash
+# .githooks/reference-transaction stops the agent moving main onto work origin does not have.
 
 set -euo pipefail
 

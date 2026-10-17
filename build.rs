@@ -103,6 +103,7 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=.ai/AGENTS.md");
     println!("cargo:rerun-if-changed=.ai/CONSTRAINTS.yaml");
+    emit_git_commit(&root);
 
     // `.ai/` is un-excluded in Cargo.toml precisely so this works from a packaged crate.
     // If it ever gets re-excluded, `cargo install vajractl` breaks HERE, loudly, rather
@@ -120,6 +121,39 @@ fn main() {
         render_ground_truth(&constraints),
     )
     .expect("write scaffold_ground_truth.yaml");
+}
+
+/// N25 leftover (S202 bug bash): `vajra --version` said `0.2.0` for a binary built days before
+/// main, so a stale install could not be told apart. The commit it was built from rides along as
+/// `VAJRA_GIT_COMMIT` — empty when there is no git checkout (a crates.io build).
+fn emit_git_commit(root: &Path) {
+    let git = |args: &[&str]| {
+        std::process::Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+    };
+    // Only this crate's own checkout: a crates.io source unpacked inside some other repo must not
+    // print that repo's commit.
+    let top = git(&["rev-parse", "--show-toplevel"]).map(PathBuf::from);
+    let own = top.is_some_and(|t| t.canonicalize().ok() == root.canonicalize().ok());
+    let commit = if own {
+        git(&["rev-parse", "--short=7", "HEAD"]).unwrap_or_default()
+    } else {
+        String::new()
+    };
+    if let Some(dir) = own
+        .then(|| git(&["rev-parse", "--absolute-git-dir"]))
+        .flatten()
+    {
+        // `logs/HEAD` changes on every commit and checkout, so the commit is never stale.
+        println!("cargo:rerun-if-changed={dir}/logs/HEAD");
+        println!("cargo:rerun-if-changed={dir}/HEAD");
+    }
+    println!("cargo:rustc-env=VAJRA_GIT_COMMIT={commit}");
 }
 
 fn read_or_die(p: &Path) -> String {

@@ -5,7 +5,8 @@
 //! install the real hook files into a temp repo (`core.hooksPath`) and drive real `git commit` /
 //! the real pre-push script, with the agent markers set and unset. S194 (F123) adds
 //! `.githooks/pre-merge-commit`: a merge commit never runs pre-commit, so `git merge` on main
-//! slipped past the belt in rudra S20.
+//! slipped past the belt in rudra S20. The S202 bug bash adds `.githooks/reference-transaction`:
+//! a fast-forward, `reset --hard`, `branch -f` and `update-ref` make no commit at all.
 
 use std::fs;
 use std::path::Path;
@@ -52,7 +53,12 @@ fn repo() -> tempfile::TempDir {
     }
     let hooks = root.join(".githooks");
     fs::create_dir_all(&hooks).unwrap();
-    for name in ["pre-commit", "pre-push", "pre-merge-commit"] {
+    for name in [
+        "pre-commit",
+        "pre-push",
+        "pre-merge-commit",
+        "reference-transaction",
+    ] {
         fs::copy(hook(name), hooks.join(name)).unwrap();
         #[cfg(unix)]
         {
@@ -322,4 +328,118 @@ fn s194_merging_into_a_session_branch_is_not_policed() {
         ok,
         "agent merging a 5-file branch into its session branch: {out}"
     );
+}
+
+/// `git <args>` with exactly `env` set (on top of a clean belt environment).
+fn git_as(root: &Path, args: &[&str], env: &[(&str, &str)]) -> (bool, String) {
+    let mut cmd = Command::new("git");
+    cmd.args(args)
+        .current_dir(root)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null");
+    for v in BELT_VARS {
+        cmd.env_remove(v);
+    }
+    for (k, v) in env {
+        cmd.env(k, v);
+    }
+    let out = cmd.output().expect("git runs");
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    (out.status.success(), text)
+}
+
+fn rev(root: &Path, what: &str) -> String {
+    String::from_utf8_lossy(&git(root, &["rev-parse", what]).stdout)
+        .trim()
+        .to_string()
+}
+
+/// `repo()` plus a bare `origin` (outside the work tree, so `git add -A` never sweeps it in)
+/// holding main as it is now, fetched so `origin/main` exists. Returns (repo, remote's dir).
+fn repo_with_origin() -> (tempfile::TempDir, tempfile::TempDir) {
+    let d = repo();
+    let r = tempfile::tempdir().unwrap();
+    let remote = r.path().join("origin.git");
+    assert!(git(
+        d.path(),
+        &["init", "-q", "--bare", remote.to_str().unwrap()]
+    )
+    .status
+    .success());
+    git(
+        d.path(),
+        &["remote", "add", "origin", remote.to_str().unwrap()],
+    );
+    assert!(git_as(d.path(), &["push", "-q", "origin", "main"], &[]).0);
+    assert!(git(d.path(), &["fetch", "-q", "origin"]).status.success());
+    (d, r)
+}
+
+#[test]
+fn s202_the_agent_cannot_move_main_onto_work_origin_does_not_have() {
+    let (d, _remote) = repo_with_origin();
+    let root = d.path();
+    branch_with_work(root, "session-01-x", 1, "main");
+    let main_before = rev(root, "main");
+    let work = rev(root, "session-01-x");
+    for args in [
+        &["merge", "--ff-only", "session-01-x"][..],
+        &["reset", "-q", "--hard", "session-01-x"],
+        &["update-ref", "refs/heads/main", "session-01-x"],
+    ] {
+        let (ok, out) = git_as(root, args, &[CLAUDE]);
+        assert!(!ok, "agent `git {}` moved main: {out}", args.join(" "));
+        assert!(out.contains("origin/main does not have"), "{out}");
+        assert_eq!(rev(root, "main"), main_before, "git {}", args.join(" "));
+    }
+    // `branch -f` needs another branch checked out.
+    git(root, &["checkout", "-q", "session-01-x"]);
+    let (ok, out) = git_as(root, &["branch", "-f", "main", &work], &[CLAUDE]);
+    assert!(!ok, "agent `git branch -f main` moved main: {out}");
+    assert_eq!(rev(root, "main"), main_before);
+}
+
+#[test]
+fn s202_a_pull_after_a_merged_pr_still_moves_main_and_a_person_gets_a_note() {
+    let (d, _remote) = repo_with_origin();
+    let root = d.path();
+    branch_with_work(root, "session-01-x", 1, "main");
+    // The pull request is merged on the remote: origin's main is now the session's work.
+    let (ok, out) = git_as(root, &["push", "-q", "origin", "session-01-x:main"], &[]);
+    assert!(ok, "{out}");
+    let (ok, out) = git_as(
+        root,
+        &["pull", "-q", "--ff-only", "origin", "main"],
+        &[CLAUDE],
+    );
+    assert!(ok, "agent pull after a merged PR: {out}");
+    assert_eq!(rev(root, "main"), rev(root, "session-01-x"));
+    // Going back to an older commit origin has is not policed either.
+    let (ok, out) = git_as(root, &["reset", "-q", "--hard", "HEAD~1"], &[CLAUDE]);
+    assert!(ok, "agent reset to an older commit: {out}");
+
+    // A person moving main onto local work is told, and the move goes on (the S171 split).
+    branch_with_work(root, "session-02-y", 1, "main");
+    let (ok, out) = git_as(root, &["merge", "-q", "--ff-only", "session-02-y"], &[]);
+    assert!(
+        ok && out.contains("Note: moving 'main'"),
+        "person ff: {out}"
+    );
+    assert_eq!(rev(root, "main"), rev(root, "session-02-y"));
+}
+
+#[test]
+fn s202_a_repo_with_no_origin_is_not_checked_by_design() {
+    // Named limit: nothing to follow, so nothing is checked (a brand-new local project).
+    let d = repo();
+    branch_with_work(d.path(), "session-01-x", 1, "main");
+    let (ok, out) = git_as(
+        d.path(),
+        &["merge", "-q", "--ff-only", "session-01-x"],
+        &[CLAUDE],
+    );
+    assert!(ok, "{out}");
 }

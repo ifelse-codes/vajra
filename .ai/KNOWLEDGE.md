@@ -401,3 +401,10 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 
 - **Vajra development is PAUSED (founder, 2026-10-17, S201):** "stop development of Vajra and use it in some other project to see if it actually helpful". The next Vajra change comes only from a finding in real use on another project that blocks that project's work; "helpful" is judged by that project's own goals, not by Vajra's checks. The backlog stays as written, unpicked.
 - **`vajra next --steps` prints a step's `how:` only for the FIRST open step (S201):** to show a later step's how in a real run, make the earlier steps done in the fixture (a recorded tech-lead, a filled `## Delta`, the approval record) — or prove it with a unit test.
+
+## S202 — permanent facts
+
+- **`.githooks/reference-transaction` guards main/master for the agent (S202 bug bash):** an agent shell may move main/master only to a commit `origin/<branch>` already has (ff merge, `reset --hard`, `branch -f`, `update-ref` are refused); `git pull --ff-only` after a merged PR still works; a person gets a note. No `origin` remote → not checked. Ships via `vajra init` / `--sync-fleet`.
+- **A new project gets every setting in Vajra's own `.ai/CONSTRAINTS.yaml` (S202):** `src/cli/init.rs`'s test `a_new_project_gets_every_setting_vajra_runs_on_or_a_stated_reason` fails otherwise; a Vajra-only setting goes in `SCAFFOLD_OMITS_SETTING` with its reason. `ground_truth` stays derived by build.rs.
+- **The start hook prints only the newest 3 session sections of SESSION-BOOT/TASK/STATE (S202):** older ones are counted in a `[boot] … not shown` line and stay whole in the file — open the file when an older entry matters.
+- **An ad-hoc session without a GREEN close cannot be pushed by the agent (S202):** the push belt refuses; the founder pushes from his own terminal (a person gets a note).

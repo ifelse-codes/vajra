@@ -68,8 +68,8 @@ if has "$GT" "✓ the checks run and pass — not needed: the close passes it N/
 else bad "N24 scripts: gt=[$(printf '%s' "$GT" | grep -E 'checks run|demo script')] code=[$(printf '%s' "$CODE" | grep -E 'checks run|demo script')]"; fi
 
 # --- 3 (N25, AC3): the merge step's reinstall note, Vajra's own repo only -----------------------------------
-SITE=$(grep -n 'fn reinstall_note' src/nextstep/mod.rs | cut -d: -f1)
-OLD_HAS=$(git show "$OLD_SHA:src/nextstep/mod.rs" | grep -c 'cargo install --path . --locked')
+SITE=$(grep -n 'fn reinstall_note' src/nextstep/mod.rs | cut -d: -f1)  # source-claim: the line number shown in the message; the unit test below is the proof
+OLD_HAS=$(git show "$OLD_SHA:src/nextstep/mod.rs" | grep -c 'cargo install --path . --locked')  # source-claim: history — the note was absent before S201
 if one_test --lib only_vajras_own_repo_is_told_to_reinstall_after_the_merge && [ -n "$SITE" ] && [ "$OLD_HAS" = 0 ] \
    && grep -q '^name = "vajractl"' Cargo.toml; then
   ok "N25: src/nextstep/mod.rs:$SITE reinstall_note — the merge step (\"the work is merged and the branch is gone\") adds \`cargo install --path . --locked\` when Cargo.toml's [package] name is vajractl, nothing for another project or a dependency named vajractl (unit test ran, 1 passed); absent at $OLD_SHA"

@@ -2199,8 +2199,10 @@ fn confirm(question: &str) -> Result<bool> {
     // there is nobody to ask, and the advance says so instead of pretending.
     if !io::stdin().is_terminal() {
         // Cold review pass 4 rec 6: a piped answer is still an answer — `echo n |` stops.
-        let mut piped = String::new();
-        let _ = io::stdin().lock().read_line(&mut piped);
+        // N28: an agent's shell can leave stdin open with nothing ever written, and a plain
+        // `read_line` then waits forever. Read on a thread and wait a short while; no line by
+        // then means nobody is answering. The thread is left blocked — the process exits anyway.
+        let piped = piped_answer(io::stdin(), std::time::Duration::from_secs(2));
         if matches!(piped.trim().to_ascii_lowercase().as_str(), "n" | "no") {
             return Ok(false);
         }
@@ -2221,6 +2223,18 @@ fn confirm(question: &str) -> Result<bool> {
         line.trim().to_ascii_lowercase().as_str(),
         "y" | "yes"
     ))
+}
+
+/// One line from a piped `input`, or "" when none arrives within `wait` (N28): the read runs on
+/// its own thread, so an open pipe nobody writes to cannot hold the advance.
+fn piped_answer<R: io::Read + Send + 'static>(input: R, wait: std::time::Duration) -> String {
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut line = String::new();
+        let _ = io::BufReader::new(input).read_line(&mut line);
+        let _ = tx.send(line);
+    });
+    rx.recv_timeout(wait).unwrap_or_default()
 }
 
 fn find_repo_root(start: &Path) -> Option<PathBuf> {
@@ -2330,6 +2344,25 @@ fn extract_backticked_prompt(line: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// N28 (S201): an open pipe nobody writes to made `--advance` wait forever. A reader that
+    /// never answers must give up after the wait; a real piped answer still reads.
+    #[test]
+    fn a_silent_open_pipe_does_not_hold_the_advance() {
+        struct Silent;
+        impl io::Read for Silent {
+            fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+                std::thread::sleep(std::time::Duration::from_secs(60));
+                Ok(0)
+            }
+        }
+        let start = std::time::Instant::now();
+        let got = piped_answer(Silent, std::time::Duration::from_millis(200));
+        assert_eq!(got, "");
+        assert!(start.elapsed() < std::time::Duration::from_secs(5));
+        let answered = piped_answer(&b"n\n"[..], std::time::Duration::from_secs(5));
+        assert_eq!(answered.trim(), "n");
+    }
 
     /// S99 (AC3): the packet's classification encodes the SAME rule `hook-commit-guard.sh` applies
     /// (session digits from a `session-NN-*` branch; off such a branch any non-empty marker is
