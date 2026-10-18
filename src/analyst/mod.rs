@@ -551,7 +551,9 @@ pub fn options_gate(root: &Path, session: u32) -> OptionsVerdict {
                      present exactly 3 A/B/C options (end_of_session.must_present_n_options)"
                 )),
                 OptionsState::Unrecorded => warnings.push(format!(
-                    "{rel} has no ranked-candidates section (add exactly 3 A/B/C next candidates)"
+                    "{rel} has no ranked-candidates section — the close counts 0 and FAILS. Add a heading \
+                     with the word \"candidates\" (e.g. `## Next — 3 ranked candidates`) and exactly 3 \
+                     options under it (1/2/3 or A/B/C)"
                 )),
             },
         },

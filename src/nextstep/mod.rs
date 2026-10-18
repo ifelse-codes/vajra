@@ -52,8 +52,13 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
     let tech_lead = report.fleet.governed.iter().any(|r| r == "tech-lead");
     // The options gate passes vacuously when there is no summary at all — an absent summary is
     // not three ranked options, so the step is done only when the file exists AND the gate is happy.
+    // S203 bug bash: nor when the summary has no candidates heading (the gate only warns) — the
+    // close's `three-next-options` counts 0 there and FAILS, so ✓ here sent the agent to a red close.
     let options = analyst::options_gate(root, session);
-    let options_ready = options.summary_path.is_some() && !options.blocked();
+    let options_ready = options.summary_path.as_ref().is_some_and(|rel| {
+        std::fs::read_to_string(root.join(rel))
+            .is_ok_and(|t| analyst::options_state(&t) == analyst::OptionsState::Exactly3)
+    });
     let next_prompt = prompt_exists(root, session + 1);
     // S173 F46: once the close is merged, the attested hash can no longer be rebuilt from the diff
     // (the branch is gone into main), so the Reviewer station reads ABSENT forever and rudra's boot
@@ -224,8 +229,9 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
             options_ready,
             "the summary ends with exactly 3 ranked options for the next session",
             format!(
-                "write sessions/session-{nn}-summary.md with 3 ranked candidates, then: \
-                 vajra next --check-options {nn}"
+                "write sessions/session-{nn}-summary.md ending in a heading with the word \
+                 \"candidates\" (e.g. `## Next — 3 ranked candidates`) and 3 options under it, \
+                 1/2/3 or A/B/C, then: vajra next --check-options {nn}"
             ),
         ),
         Step::new(
@@ -661,6 +667,31 @@ mod tests {
         let s = design_step(r);
         assert!(!s.done, "`yes` with no `## Design` is not done");
         assert!(s.how.contains("design-significant: no"), "how = {}", s.how);
+    }
+
+    /// S203 bug bash: a summary with three options under `## Next options` (no "candidates" word)
+    /// showed ✓ here, while the close's `three-next-options` counted 0 and FAILED.
+    #[test]
+    fn options_step_needs_three_counted_options_not_just_a_summary() {
+        let d = repo();
+        let r = d.path();
+        let step = |r: &Path| {
+            steps(r, 1)
+                .into_iter()
+                .find(|s| s.what.contains("3 ranked options"))
+                .unwrap()
+        };
+        let summary = r.join("sessions/session-01-summary.md");
+        fs::write(&summary, "# S01\n## Next options\n1. a\n2. b\n3. c\n").unwrap();
+        let s = step(r);
+        assert!(!s.done, "no candidates heading = 0 counted at close");
+        assert!(s.how.contains("\"candidates\""), "how = {}", s.how);
+        fs::write(
+            &summary,
+            "# S01\n## Next — 3 ranked candidates\n1. a\n2. b\n3. c\n",
+        )
+        .unwrap();
+        assert!(step(r).done);
     }
 
     fn repo() -> TempDir {
