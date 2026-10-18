@@ -1283,7 +1283,7 @@ build_ledger() {
 if [ "${1:-}" = "--inputs-sha" ]; then
   if [ -n "${2:-}" ]; then N="$((10#$2))"; else check_session_file >/dev/null 2>&1; fi
   if H=$(canonical_inputs_sha); then echo "$H"; exit 0; else
-    echo "ERROR: canonical input hash uncomputable (need a single prompts/NN-task-*.md, git, and a sha tool)." >&2; exit 1
+    echo "ERROR: canonical input hash uncomputable (need a single prompts/NN-task-*.md, a \`main\` branch the session branched from, git, and a sha tool)." >&2; exit 1
   fi
 fi
 

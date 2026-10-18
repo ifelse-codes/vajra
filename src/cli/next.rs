@@ -1324,7 +1324,18 @@ fn run_scaffold(nn: Option<&String>, slug: Option<&String>) -> Result<()> {
     let rel = scaffold_and_point(&root, session, slug)?;
     println!("scaffolded {rel} (DRAFT)");
     println!("  .ai/TASK.md pointer -> {rel}");
-    println!("  fill Goal/Deliverables/Acceptance/Guardrails/Delta, then flip Status -> APPROVED.");
+    // S203 bug bash: from `session_rules_from` on the Status line is not read — the approval is
+    // the founder's `vajra approve NN` record, so "flip Status" sent a new project nowhere.
+    if session >= crate::approval::rules_from(&root).0 {
+        println!(
+            "  fill Goal/Deliverables/Acceptance/Guardrails/Delta, then the founder types \
+             `vajra approve {session:02}` in their OWN terminal."
+        );
+    } else {
+        println!(
+            "  fill Goal/Deliverables/Acceptance/Guardrails/Delta, then flip Status -> APPROVED."
+        );
+    }
     println!(
         "  the advance gate blocks `vajra next --advance` into session {session:02} until then."
     );
