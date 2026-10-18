@@ -3,14 +3,20 @@
 **Snapshot, not log.** Overwritten in full at every closeout.
 
 ## Active Branch
-**None — between sessions. S202 (ad-hoc bug bash) complete on `session-202-bug-bash`, PR #241 open, CI green; the founder merges. Vajra development is PAUSED (founder, 2026-10-17): the next session, S203 (`prompts/203-task-pause-use-elsewhere.md`), opens only with a finding from real use on another project that blocks that project's work.**
+**None — between sessions. S203 (ad-hoc bug bash 2) complete on `session-203-bug-bash`; the founder pushes it and opens the PR (no GREEN close, so the push belt stops the agent). Vajra development is PAUSED (founder, 2026-10-17): the next session, S204 (`prompts/204-task-pause-use-elsewhere.md`), opens only with a finding from real use on another project that blocks that project's work.**
 
-## What was done this session (S202 — AD-HOC: bug bash, founder: "no rules need to be followed")
+## What was done this session (S203 — AD-HOC: bug bash 2, founder 2026-10-18: "like last session")
 
-- **Round 1:** N28 fixed (`confirm()` reads a piped answer on a thread, 2 s) · `CannotEvaluate::WaitFailure` · signal-death test · `--dogfood-age` reads `run-*/receipt.stderr.txt` · push belt: untracked files make `clean: no` (both close scripts), `HEAD:<other>` and bare `session-NN` checked · **`.githooks/reference-transaction`**: an agent moves main/master only to a commit origin has (ff, `reset --hard`, `branch -f`, `update-ref`); a person gets a note; ships via `vajra init` / `--sync-fleet` · `vajra --version` → `0.2.0 (<commit>)` · verify-201 `# source-claim:` notes (scaffold-drift was red on main).
-- **Round 2:** `TPL_CONSTRAINTS` carries every setting Vajra runs on (test `a_new_project_gets_every_setting_vajra_runs_on_or_a_stated_reason`, omissions in `SCAFFOLD_OMITS_SETTING`) · `vajra check` passes on main with no tracked change · install-smoke: published brew tap, repo `Formula/vajra.rb` synced (was 0.1.0), every step killed past the budget · the start hook prints the newest 3 session sections of SESSION-BOOT/TASK/STATE (95 → 53 KB) · `any_candidate_diff` stops at the first match (8.8 → 1.1 s, 0 verdict differences on 25 sessions) · close row `past-verdicts-unchanged`.
-- **Not fixed:** verify-88's `verified >= 16` floor (the full scan was too slow; the founder stopped it).
-- `cargo test` 758/0 · clippy + fmt clean · scaffold-drift 20/20 · install-smoke 7/7 · CI green both OS. No prompt/review/demo/close (ad hoc); the push belt stopped the agent's push and the founder pushed. The pause session renumbered 202 → 203.
+- **Method:** a fresh project taken through `vajra init`, one whole session, the close, the merge and the advance, as a new user would; every place it got stuck was fixed.
+- **First contact:** init asks "already running?" before it writes (a new project starts at 01, so it was told "already runs Vajra") and its steps match the session (00 onboarding / 01 kickoff), with `git init` first outside git and `git branch main` in a repo with no commit · the prompt template, the onboarding brief and `vajra next --scaffold` name `vajra approve NN`, not "flip Status" · `next`/`check`/`estimate` refuse an unknown `--option` · help lists `approve`; `meter` usage says `vajra`.
+- **The session:** the options step needs the 3 the close counts (a heading with "candidates") · the verify template runs on bash 3.2 and is RED with no checks · init's SESSION-BOOT is the shape `--advance` moves · the step list names a merged session branch left to delete · **a person may merge on main** (pre-merge-commit, and pre-commit while finishing a conflicted merge; founder 2026-10-18 "allow"; the agent is still stopped).
+- **Old checks red on main, repaired:** verify-191 and -198 (stale test-count pins), verify-133 (matched a help line that hid `approve`; S181 made it an 8th command), verify-193 (receipt controls set aside S194's close-check line, still require it).
+- **Parked, the founder's call:** `VAJRA_SKIP_ANALYST_GATE=1` lets the agent skip the approval record at `--advance`; the refusal message names it.
+- `cargo test` 764/0 · lint clean · stranger-check 21/21 · scaffold-drift green · verify-188…201 green. No prompt/review/demo/close (ad hoc).
+
+## Previous session (S202 — AD-HOC: bug bash, merged #241)
+
+- 15 fixes (N28, `WaitFailure`, F123 routes via `.githooks/reference-transaction`, F127 leftovers, scaffold settings parity, boot newest-3 sections, lazy attestation walk, `past-verdicts-unchanged`, …). Not fixed: verify-88's `>= 16` floor.
 
 ## Previous session (S201 — CODE: the S200 small fixes + the README "tested with" line, merged #240)
 
@@ -160,16 +166,17 @@
 
 ## What Is In Progress
 
-- Nothing. S202 complete (PR #241 open). Vajra development paused (founder, 2026-10-17).
+- Nothing. S203 complete (the founder pushes it). Vajra development paused (founder, 2026-10-17).
 
 ## Active PRs
 
-- #241 — S202 bug bash (CI green; the founder merges). S201 merged as #240.
+- None yet — S203's PR opens when the founder pushes `session-203-bug-bash`. S202 merged as #241.
 
 ## Cost Tracking
 
 | Session | Cost (authoritative) | Notes |
 |---------|----------------------|-------|
+| S203 | $0 | No paid run. Ad-hoc bug bash 2; no fleet dispatches |
 | S202 | $0 | No paid run. Ad-hoc bug bash; no fleet dispatches |
 | S201 | $0 | No paid run. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass; release-coordinator as the judge of every obeyed answer); six roles deferred on budget |
 | S200 | $0 | NO-CODE ground truth. 3 fleet dispatches (tech-lead; fidelity-reviewer — one pass, ACCEPT; release-coordinator as the judge of every obeyed answer); design-advisor a recorded skip |

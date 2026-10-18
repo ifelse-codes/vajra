@@ -408,3 +408,11 @@ GT results live in `sessions/session-NN-ground-truth.md` and `SESSION-BOOT.md`. 
 - **A new project gets every setting in Vajra's own `.ai/CONSTRAINTS.yaml` (S202):** `src/cli/init.rs`'s test `a_new_project_gets_every_setting_vajra_runs_on_or_a_stated_reason` fails otherwise; a Vajra-only setting goes in `SCAFFOLD_OMITS_SETTING` with its reason. `ground_truth` stays derived by build.rs.
 - **The start hook prints only the newest 3 session sections of SESSION-BOOT/TASK/STATE (S202):** older ones are counted in a `[boot] … not shown` line and stay whole in the file — open the file when an older entry matters.
 - **An ad-hoc session without a GREEN close cannot be pushed by the agent (S202):** the push belt refuses; the founder pushes from his own terminal (a person gets a note).
+
+## S203 — permanent facts
+
+- **A person may merge on main/master (founder, 2026-10-18: "allow"):** `.githooks/pre-merge-commit` lets a person's merge through with a note and stops an agent shell; finishing a conflicted merge runs `.githooks/pre-commit`, which lets a person through while `MERGE_HEAD` exists (every other pre-commit check still runs). A plain commit on main stays closed to both. Replaces the 2026-09-21 "nobody commits on main, human or agent" for merges only.
+- **`vajra next` / `check` / `estimate` refuse an unknown `--option` (S203):** `vajra next`'s list is `NEXT_FLAGS` in `src/cli/next.rs` — a new `vajra next` flag must be added there or it is refused.
+- **`vajra init` writes SESSION-BOOT in the shape `--advance` moves (S203):** one `- **Number:**` entry with indented lines, then `## Prior Session`. Projects scaffolded before S203 keep the old shape and get the number swap only.
+- **A fresh `git init` repo has no `main` until its first commit is on it (S203):** init's steps add `git branch main` after the first commit on the session branch; the close's review stamp diffs against `main`.
+- **Vajra has eight top-level commands since S181 (`approve` is the eighth, DECISION-011):** the help's first line names all eight since S203.
