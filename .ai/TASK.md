@@ -2,10 +2,19 @@
 
 **Thin pointer. Real session briefs live under `prompts/`.**
 
-## Between Sessions — S202 complete, PR #241 open; Vajra development PAUSED (founder, 2026-10-17)
-- Next: **S203** — pause; use Vajra on another project (`prompts/203-task-pause-use-elsewhere.md`, renumbered from 202). Opens only with a finding from real use that blocks that project's work.
+## Between Sessions — S203 complete, PR not yet open (the founder pushes); Vajra development PAUSED (founder, 2026-10-17)
+- Next: **S204** — pause; use Vajra on another project (`prompts/204-task-pause-use-elsewhere.md`, renumbered 202 → 203 → 204). Opens only with a finding from real use that blocks that project's work.
 
-## Session 202 — AD-HOC: bug bash (founder: "no rules need to be followed") — COMPLETE (PR #241 open)
+## Session 203 — AD-HOC: bug bash 2 (founder, 2026-10-18: "like last session") — COMPLETE (PR not yet open)
+- **Method:** used Vajra as a new user would — a fresh project through `vajra init`, one whole session, the close, the merge and the advance to session 02 — and fixed what got in the way.
+- **Round 1 (first ten minutes):** first init said "already runs Vajra" · the briefs said "flip Status" (now `vajra approve NN`) · onboarding brief set `.ai/SESSION` by hand · no `git init` step outside git · mistyped options ignored (`next`/`check`/`estimate`) · help omits `approve`, `meter` said `vajractl`.
+- **Round 2 (one whole session):** no `main` in a fresh repo (a `git branch main` step; the stamp error names it) · the options step ✓ with 0 counted · `--scaffold` said "flip Status" · the verify template crashed on bash 3.2 and passed with no checks.
+- **Round 3 (merge + advance):** a person may merge on main (founder: "allow"; the agent still may not) · init's SESSION-BOOT now moves on the first advance · the step list names a merged branch left to delete · verify-191/198 stale test-count pins.
+- **Round 4 (old checks red on main):** verify-133 matched a help line that hid `approve` (and with it verify-191's two-runs check) · verify-193's receipt controls read S194's close-check line as a regression.
+- **Parked (founder's call):** `VAJRA_SKIP_ANALYST_GATE=1` skips the approval record at `--advance`, and the refusal names it.
+- No prompt, review, demo or GREEN close (ad hoc). `cargo test` 764/0 · lint clean · stranger-check 21/21 · scaffold-drift green · verify-188…201 green. Summary: `sessions/session-203-summary.md`.
+
+## Session 202 — AD-HOC: bug bash (founder: "no rules need to be followed") — COMPLETE (merged #241)
 - **Round 1 (every open bug):** N28 `--advance` stdin hang · OS wait error named `WAIT FAILURE` · signal-death test · `--dogfood-age` one folder down · F127 leftovers in the push belt · F123 leftovers via `.githooks/reference-transaction` · `vajra --version` names the commit · verify-201 source-claim notes (scaffold-drift red on main).
 - **Round 2 (the 8 candidates):** 7 fixed — scaffold settings parity (+ test) · `vajra check` on clean main · install-smoke on the published tap + per-step budget kill · boot shows the newest 3 session sections · lazy review-attestation walk · `past-verdicts-unchanged` close row. **Not fixed:** verify-88's `>= 16` floor.
 - No prompt, review, demo or GREEN close (ad hoc, founder's call); the founder pushed the branch by hand. `cargo test` 758/0 · CI green both OS. Summary: `sessions/session-202-summary.md`.
