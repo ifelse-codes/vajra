@@ -683,7 +683,9 @@ run_check "lib-tests-green" exec lib_tests_green_and_says_how_many
 # BEHAVIORAL, and labelled so — the same hardcoded-banner grep named since S69.
 help_lists_seven() {
   local help; help="$("$VAJRA" --help 2>&1)"; echo "$help"
-  grep -q "vajra <init|claude|check|next|estimate|hook|meter>" <<<"$help"
+  # S203 bug bash: S181 added `approve` (DECISION-011) as an 8th command, and the help's first line
+  # left it out — so this line-match passed with eight. The line now names all eight; this matches it.
+  grep -q "vajra <init|approve|claude|check|next|estimate|hook|meter>" <<<"$help"
 }
 run_check "no-eighth-command" behav help_lists_seven
 

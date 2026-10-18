@@ -273,7 +273,10 @@ fn merge(root: &Path, branch: &str, env: &[(&str, &str)]) -> (bool, String) {
         String::from_utf8_lossy(&out.stderr)
     );
     if !out.status.success() {
+        // A merge refused by pre-merge-commit leaves the merged files staged with no MERGE_HEAD,
+        // so `--abort` has nothing to abort: put the tree back to HEAD for the next case.
         git(root, &["merge", "--abort"]);
+        git(root, &["reset", "-q", "--hard"]);
     }
     (out.status.success(), text)
 }
@@ -292,8 +295,10 @@ fn branch_with_work(root: &Path, branch: &str, files: usize, back_to: &str) {
     assert!(git(root, &["checkout", "-q", back_to]).status.success());
 }
 
+/// S194 stopped both; S203 bug bash (founder, 2026-10-18: "allow"): a person may merge on main —
+/// a project with no pull-request site could not land a session at all. The agent still may not.
 #[test]
-fn s194_a_merge_commit_on_main_is_stopped_for_the_agent_and_the_human() {
+fn s194_a_merge_commit_on_main_is_stopped_for_the_agent_not_the_human() {
     let d = repo();
     branch_with_work(d.path(), "session-01-x", 1, "main");
     let before = head(d.path());
@@ -309,10 +314,57 @@ fn s194_a_merge_commit_on_main_is_stopped_for_the_agent_and_the_human() {
     assert_eq!(head(d.path()), before, "main moved");
     let (ok, out) = merge(d.path(), "session-01-x", &[]);
     assert!(
-        !ok && out.contains("Vajra stopped this merge: you are on 'main'"),
+        ok && out.contains("allowed for a person"),
         "human merge on main: {out}"
     );
-    assert_eq!(head(d.path()), before, "main moved");
+    assert_ne!(head(d.path()), before, "the human's merge did not land");
+}
+
+/// S203 bug bash: a merge that stops on a conflict is finished with `git commit`, which runs
+/// pre-commit, not pre-merge-commit — the person finishes it there; the agent does not; and a
+/// plain commit on main stays closed to both.
+#[test]
+fn finishing_a_conflicted_merge_on_main_is_the_humans_alone() {
+    let d = repo();
+    let root = d.path();
+    assert!(git(root, &["checkout", "-qb", "session-01-x"])
+        .status
+        .success());
+    fs::write(root.join("README"), "branch\n").unwrap();
+    assert!(git(
+        root,
+        &["-c", "core.hooksPath=/dev/null", "commit", "-qam", "b"]
+    )
+    .status
+    .success());
+    assert!(git(root, &["checkout", "-q", "main"]).status.success());
+    fs::write(root.join("README"), "main\n").unwrap();
+    assert!(git(
+        root,
+        &["-c", "core.hooksPath=/dev/null", "commit", "-qam", "m"]
+    )
+    .status
+    .success());
+    let conflicted = git(root, &["merge", "--no-ff", "-m", "merge", "session-01-x"]);
+    assert!(
+        !conflicted.status.success(),
+        "the merge should stop on a conflict"
+    );
+    fs::write(root.join("README"), "both\n").unwrap();
+    git(root, &["add", "README"]);
+    let before = head(root);
+    let (ok, out) = git_as(root, &["commit", "-q", "--no-edit"], &[CLAUDE]);
+    assert!(!ok && out.contains("you are on 'main'"), "agent: {out}");
+    assert_eq!(head(root), before);
+    let (ok, out) = git_as(root, &["commit", "-q", "--no-edit"], &[]);
+    assert!(ok && out.contains("allowed for a person"), "human: {out}");
+    assert_ne!(head(root), before);
+    // No merge in progress: main is closed to the human again.
+    let (ok, out) = commit(root, 1, &[]);
+    assert!(
+        !ok && out.contains("you are on 'main'"),
+        "plain commit: {out}"
+    );
 }
 
 #[test]

@@ -58,8 +58,11 @@ if [ "$(cat "$P/.ai/SESSION")" = 07 ] && cmp -s "$WANT" "$P/.ai/SESSION-BOOT.md"
 else bad "F118 AC1:"$'\n'"$(diff "$WANT" "$P/.ai/SESSION-BOOT.md")"$'\n'"$A1"$'\n'"old current: $CUR_OLD"; fi
 
 # --- 2 (F118, AC2): any other shape keeps the number swap and says why the entry did not move ---
-# (a) the SESSION-BOOT `vajra init` writes; (b) Vajra's shape with a second entry under Current.
-P=$(project "$VAJRA" ac2a); B2A=$(cat "$P/.ai/SESSION-BOOT.md"); A2A=$(advance "$P" "$VAJRA")
+# (a) the SESSION-BOOT `vajra init` wrote until S203 (written out here: since S203 init writes the
+# shape that moves); (b) Vajra's shape with a second entry under Current.
+P=$(project "$VAJRA" ac2a)
+printf '# Session Boot\n\n## Current Session\n- **Number:** 06\n- **Type:** CODE\n- **Branch:** pending\n\n## Repo State Snapshot\n- `.ai/SESSION` = 06.\n\n## Next Session\n- **Read prompt:** `prompts/01-task-kickoff.md`\n' > "$P/.ai/SESSION-BOOT.md"
+B2A=$(cat "$P/.ai/SESSION-BOOT.md"); A2A=$(advance "$P" "$VAJRA")
 # The advance also re-points the `Read prompt` line to session 07's prompt (unchanged behaviour).
 W2A=$(printf '%s\n' "$B2A" | perl -pe 's/\*\*Number:\*\* 06/**Number:** 07/; s#prompts/01-task-kickoff\.md#prompts/07-task-next.md#')
 P2=$(project "$VAJRA" ac2b); vajra_boot "$ENTRY"$'\n''- **Number:** 04 — a second entry.' > "$P2/.ai/SESSION-BOOT.md"
@@ -96,8 +99,9 @@ if [ "$(scanned "$SD")" = "$EXPECT" ] && [ "$(scanned "$SN")" = "$EXPECT" ] && h
 else bad "N18 AC3: expect=[$EXPECT]"$'\n'"dashed=[$(scanned "$SD")]"$'\n'"plain=[$(scanned "$SN")]"$'\n'"old dashed:"$'\n'"$(printf '%s\n' "$OD" | grep -A3 -- '--- 6')"; fi
 
 # --- 4 (AC4): the SESSION-BOOT unit tests (both shapes, the S191 prose-number case) pass ---
-if cargo test -q --lib -- session_boot >"$T/ut.log" 2>&1 && grep -qE 'test result: ok\. 5 passed;' "$T/ut.log"; then
-  ok "the five SESSION-BOOT unit tests pass (Vajra's shape, other shapes, S191's prose numbers, exact swap)"
+# 7 since S203: S199 added the CRLF test (this check had read 6 as a fail since), S203 the init-shape move.
+if cargo test -q --lib -- session_boot >"$T/ut.log" 2>&1 && grep -qE 'test result: ok\. 7 passed;' "$T/ut.log"; then
+  ok "the seven SESSION-BOOT unit tests pass (Vajra's shape, init's shape, other shapes, CRLF, S191's prose numbers, exact swap, the pointer)"
 else bad "SESSION-BOOT unit tests — $(tail -3 "$T/ut.log")"; fi
 
 echo ""

@@ -104,10 +104,15 @@ else bad "F117 meter FILE at $OLD_SHA:"$'\n'"$OLD"; fi
 
 # --- 4 (controls): no figure from Claude Code — the estimate stays, the same lines as at the start ---
 # A crash (no cost-state written) and a fork (the total started before this launch). The unknown-model
-# warning is now written last, so the lines are compared as a set.
+# warning is now written last, so the lines are compared as a set. S194 (F121) added a close-check line
+# to every receipt on purpose — it is set aside here, or these controls read F121 as a regression
+# (they did, from S194 until the S203 bug bash). It must still be there, so F121 is not hidden by this.
+F121_LINE='close check: not run during this run'
 for c in "crash STUB_CRASH=1" "fork STUB_SEED_START=1700000000000"; do
   set -- $c; name=$1; shift
   NEW=$(launch "$VAJRA" "$name" STUB_STATS=1 "$@" --); OLD=$(launch "$OLD_VAJRA" "$name" STUB_STATS=1 "$@" --)
+  has "$NEW" "$F121_LINE" || { bad "control $name: the F121 close-check line is missing"$'\n'"$NEW"; continue; }
+  NEW=$(printf '%s\n' "$NEW" | grep -vF "$F121_LINE")
   if has "$NEW" "Vajra's own estimate from the tokens" && has "$NEW" '[estimate] split:' && has "$NEW" 'not in pricing table' \
      && diff <(printf '%s\n' "$NEW" | sort) <(printf '%s\n' "$OLD" | sort) >/dev/null; then
     ok "control $name (no figure): estimate, split and pricing warning still shown — the same $(printf '%s\n' "$NEW" | wc -l | tr -d ' ') lines as at $OLD_SHA"

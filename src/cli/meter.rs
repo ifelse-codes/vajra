@@ -9,7 +9,7 @@ pub fn run() -> Result<()> {
         Some("--all") => run_baseline(std::env::args().nth(3)),
         Some(path) => run_single(PathBuf::from(path)),
         None => Err(anyhow!(
-            "usage: vajractl meter <path-to-session.jsonl> | vajractl meter --all [dir]"
+            "usage: vajra meter <path-to-session.jsonl> | vajra meter --all [dir]"
         )),
     }
 }
@@ -43,7 +43,7 @@ fn run_baseline(dir_arg: Option<String>) -> Result<()> {
     let dir = match dir_arg {
         Some(d) => PathBuf::from(d),
         None => default_project_dir().context(
-            "could not locate ~/.claude/projects/<project>; pass one: vajractl meter --all <dir>",
+            "could not locate ~/.claude/projects/<project>; pass one: vajra meter --all <dir>",
         )?,
     };
     let rows = obedience::baseline_for_dir(&dir)?;

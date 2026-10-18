@@ -36,9 +36,9 @@ use crate::fleet;
 /// a ritual.
 pub const PROMPT_TEMPLATE: &str = r#"# Session {{NN}} — {{SLUG}}: <one-line goal>
 
-> **Status:** DRAFT — the Analyst gate (`vajra next --advance`) BLOCKS starting this session
-> while DRAFT. Flip to `APPROVED` once the human signs off (an approval token recorded here,
-> the same trust model as a commit-approval; tamper-evidence is the later cross-stage ledger).
+> **Status:** DRAFT — `vajra next --advance` will not start this session until the founder types
+> `vajra approve {{NN}}` in their OWN terminal. Editing this line does not approve it, and neither
+> does "approved" in chat. (Only a session below `session_rules_from` reads this line instead.)
 
 ## Type
 session_type: CODE
@@ -551,7 +551,9 @@ pub fn options_gate(root: &Path, session: u32) -> OptionsVerdict {
                      present exactly 3 A/B/C options (end_of_session.must_present_n_options)"
                 )),
                 OptionsState::Unrecorded => warnings.push(format!(
-                    "{rel} has no ranked-candidates section (add exactly 3 A/B/C next candidates)"
+                    "{rel} has no ranked-candidates section — the close counts 0 and FAILS. Add a heading \
+                     with the word \"candidates\" (e.g. `## Next — 3 ranked candidates`) and exactly 3 \
+                     options under it (1/2/3 or A/B/C)"
                 )),
             },
         },

@@ -37,7 +37,11 @@ echo ""
 echo "=== Session ${SESSION} Verify Summary ==="
 printf '%-30s %s\n' "STEP" "RESULT"
 printf '%-30s %s\n' "------------------------------" "------"
-for r in "${RESULTS[@]}"; do echo "$r"; done
+# `${RESULTS[@]+...}`: macOS bash 3.2 calls an empty array unbound under `set -u`.
+for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
+
+# No check ran = nothing was verified: an unedited copy must not pass.
+if [ $((PASS + FAIL)) -eq 0 ]; then echo "RED — no checks ran; add run_check lines above"; exit 1; fi
 
 if [ "$FAIL" -eq 0 ]; then echo "ALL GREEN ($PASS pass, 0 fail)"; exit 0
 else echo "RED ($PASS pass, $FAIL fail)"; exit 1; fi

@@ -3,8 +3,8 @@
 #
 # A merge commit runs git's pre-merge-commit hook, never pre-commit — so pre-commit's "not on
 # main" check never saw `git checkout main && git merge --no-ff <branch>`. rudra S20's agent did
-# exactly that 24 seconds after its close check went RED. Same rule as pre-commit's first check
-# and the 2026-09-21 founder decision: nobody commits on main/master, human or agent. Only the
+# exactly that 24 seconds after its close check went RED. Was: the 2026-09-21 founder decision,
+# nobody commits on main/master, human or agent; for merges, a person now may (below). Only the
 # branch is checked: merging main INTO a session branch is not this hook's business.
 #
 # A fast-forward merge, `reset --hard`, `branch -f`, `update-ref` make no commit, so this hook
@@ -13,12 +13,20 @@
 
 set -euo pipefail
 
+# S203 bug bash (founder, 2026-10-18: "allow"): a PERSON may merge on main/master — a project
+# with no pull-request site had no way to land a session at all. The agent still may not. Who is
+# typing: the same agent-shell markers as pre-commit (an agent that drops them for one command
+# gets past this git-level belt; it is auditable, not un-forgeable — see pre-commit).
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo DETACHED)"
 case "$branch" in
   main|master)
-    echo "Vajra stopped this merge: you are on '$branch'."
-    echo "  Work reaches $branch through a pull request: push the session branch and open one."
-    exit 1 ;;
+    if [ -n "${CLAUDECODE:-}${CLAUDE_CODE_ENTRYPOINT:-}${CURSOR_TRACE_ID:-}${VAJRA_AGENT:-}" ]; then
+      echo "Vajra stopped this merge: you are on '$branch'."
+      echo "  Work reaches $branch through a pull request: push the session branch and open one."
+      echo "  (A person may merge here from their own terminal; the agent may not.)"
+      exit 1
+    fi
+    echo "Note: merging into '$branch' from your own terminal — allowed for a person." ;;
 esac
 
 exit 0

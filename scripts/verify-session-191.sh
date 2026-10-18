@@ -97,7 +97,7 @@ grep -q "mkdir -p '$O/nope'" "$T/pw.err" && ok "AC1 the missing-folder block nam
 # `line.replace` rewrites session-188-summary.md and the rest).
 # ==============================================================================================
 cargo test -q --lib -- update_session_boot swap_boot_number >"$T/ac2.log" 2>&1 \
-  && grep -q "3 passed" "$T/ac2.log" && ok "AC2 the three SESSION-BOOT tests pass at the tip" \
+  && grep -qE "test result: ok\. 7 passed;" "$T/ac2.log" && ok "AC2 the seven SESSION-BOOT tests pass at the tip (3 at S191; S198/S199/S203 added the rest — the old \"3 passed\" pin read them as a fail)" \
   || bad "AC2 the SESSION-BOOT tests at the tip — $(tail -3 "$T/ac2.log")"
 REAL188=$(git show 976ba05:.ai/SESSION-BOOT.md | grep -F '**Number:** 188 — COMPLETE (merged #226)')
 if grep -qF "$REAL188" src/cli/next.rs; then  # source-claim: the claim IS the test fixture's text; the tests above run it

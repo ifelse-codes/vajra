@@ -8,10 +8,17 @@ cd "$ROOT"
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo DETACHED)"
 case "$branch" in
   main|master)
-    echo "Vajra stopped this commit: you are on '$branch'."
-    echo "  Work happens on a session branch. Make one first:"
-    echo "      git checkout -b session-NN-<what-this-session-is>"
-    exit 1 ;;
+    # S203 bug bash (founder, 2026-10-18): a person may merge on main. A merge that stopped on a
+    # conflict is finished with `git commit`, which runs THIS hook, not pre-merge-commit.
+    if [ -f "$(git rev-parse --git-path MERGE_HEAD)" ] \
+       && [ -z "${CLAUDECODE:-}${CLAUDE_CODE_ENTRYPOINT:-}${CURSOR_TRACE_ID:-}${VAJRA_AGENT:-}" ]; then
+      echo "Note: finishing a merge into '$branch' from your own terminal — allowed for a person."
+    else
+      echo "Vajra stopped this commit: you are on '$branch'."
+      echo "  Work happens on a session branch. Make one first:"
+      echo "      git checkout -b session-NN-<what-this-session-is>"
+      exit 1
+    fi ;;
 esac
 
 # --- Who is typing this commit? (S171 — from the founder's first-run test) -------------------
