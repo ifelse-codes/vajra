@@ -172,6 +172,24 @@ pub fn steps(root: &Path, session: u32) -> Vec<Step> {
         };
         Step::new(state == "declared", "the prompt says its session type", how)
     }))
+    // S203 bug bash: after a merge nothing on this list said to delete the merged branch, and
+    // this session's close then blocked on it (`require_pruned`). Listed only while one is left.
+    .chain(
+        releaser::derive_ship_state(root, session.saturating_sub(1))
+            .map(|s| s.unpruned)
+            .ok()
+            .filter(|u| !u.is_empty())
+            .map(|u| {
+                Step::new(
+                    false,
+                    "the merged branches of earlier sessions are deleted",
+                    format!(
+                        "git branch -d {} — this session's close blocks while they are left",
+                        u.join(" ")
+                    ),
+                )
+            }),
+    )
     .chain([
         // S197 (F119): a `design-significant: no` prompt is READY at `--check-design`, but the
         // Architect station reads it ABSENT (it was not moved through), so this step showed ✗ and
