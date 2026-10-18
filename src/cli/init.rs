@@ -1517,6 +1517,18 @@ fn first_run_aha(root: &Path, already: Option<u32>) {
     }
 }
 
+/// Does the repo have a commit? False for a folder that is not a git repo, or a fresh `git init`.
+fn has_commits(root: &Path) -> bool {
+    root.join(".git").exists()
+        && Command::new("git")
+            .args(["rev-parse", "-q", "--verify", "HEAD"])
+            .current_dir(root)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .is_ok_and(|s| s.success())
+}
+
 /// The steps after a first `vajra init`, for the session the project is really on: an existing
 /// codebase starts at 00 (onboarding), a new one at 01 (kickoff) — both used to be told "00". A
 /// folder that is not a git repo yet needs `git init` before a branch can be made.
@@ -1547,11 +1559,16 @@ fn next_steps(root: &Path) -> Vec<String> {
         "save these files:",
         "git add -A && git commit -m \"Add Vajra\"".to_string(),
     ));
+    // A repo with no commit yet has no `main` once the work moves to the session branch, and the
+    // close measures a session against `main` (its review stamp could not be taken at all).
+    if !has_commits(root) {
+        steps.push(("start main here:", "git branch main".to_string()));
+    }
     steps.push((
         "start the session:",
         format!("vajra claude   (then say: start session {nn:02})"),
     ));
-    let words = ["two", "three", "four"];
+    let words = ["two", "three", "four", "five"];
     let mut out = vec![format!("Next — {} steps:", words[steps.len() - 2])];
     for (i, (what, how)) in steps.iter().enumerate() {
         out.push(format!("  {}. {what:<28}{how}", i + 1));
@@ -2496,7 +2513,11 @@ echo ""
 echo "=== Session ${SESSION} Verify Summary ==="
 printf '%-30s %s\n' "STEP" "RESULT"
 printf '%-30s %s\n' "------------------------------" "------"
-for r in "${RESULTS[@]}"; do echo "$r"; done
+# `${RESULTS[@]+...}`: macOS bash 3.2 calls an empty array unbound under `set -u`.
+for r in ${RESULTS[@]+"${RESULTS[@]}"}; do echo "$r"; done
+
+# No check ran = nothing was verified: an unedited copy must not pass.
+if [ $((PASS + FAIL)) -eq 0 ]; then echo "RED — no checks ran; add run_check lines above"; exit 1; fi
 
 if [ "$FAIL" -eq 0 ]; then echo "ALL GREEN ($PASS pass, 0 fail)"; exit 0
 else echo "RED ($PASS pass, $FAIL fail)"; exit 1; fi

@@ -256,6 +256,10 @@ fn first_init_in_a_new_project_is_a_first_run() {
         "first init must name session 01, where a new project starts:\n{first}"
     );
     assert!(
+        !first.contains("git branch main"),
+        "a repo with a commit already has its main:\n{first}"
+    );
+    assert!(
         second.contains("already runs Vajra"),
         "second init is a top-up:\n{second}"
     );
@@ -325,6 +329,12 @@ fn init_outside_git_says_git_init_first() {
     assert!(
         err.contains("1. make it a git repo:") && err.contains("git init"),
         "no `git init` step outside a git repo:\n{err}"
+    );
+    // No commit yet: once the work moves to the session branch there is no `main`, and the close
+    // measures the session against `main` (its review stamp was "uncomputable").
+    assert!(
+        err.contains("start main here:") && err.contains("git branch main"),
+        "no `git branch main` step in a repo with no commits:\n{err}"
     );
 }
 
