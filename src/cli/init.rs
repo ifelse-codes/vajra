@@ -2024,17 +2024,20 @@ fn governed_body_canonical() -> String {
 
 const TPL_SESSION: &str = "{FIRST_NN}\n";
 
+// S203 bug bash: the shape `vajra next --advance` moves (one `- **Number:**` entry with indented
+// lines, then `## Prior Session`). The old shape — four `- ` lines, then `## Repo State Snapshot`
+// naming `.ai/SESSION` = 01 — was never moved, so a new project's first advance left session 01's
+// entry under the new number and the snapshot stale.
 const TPL_SESSION_BOOT: &str = r#"# Session Boot
 
 ## Current Session
-- **Number:** {FIRST_NN}
-- **Type:** CODE
-- **Branch:** pending
-- **Date last updated:** {DATE}
+- **Number:** {FIRST_NN} — {FIRST_NOTE}
+  - **Type:** CODE
+  - **Branch:** pending
+  - **Date last updated:** {DATE}
 
-## Repo State Snapshot
-- `.ai/SESSION` = {FIRST_NN}.
-- {FIRST_NOTE}
+## Prior Session
+- None yet.
 
 ## Next Session
 - **Read prompt:** `{FIRST_PROMPT}`

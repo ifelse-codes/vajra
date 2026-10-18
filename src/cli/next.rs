@@ -2732,17 +2732,44 @@ mod tests {
         );
     }
 
+    /// S203 bug bash: the SESSION-BOOT `vajra init` writes is the shape the advance moves — a new
+    /// project's first advance used to leave session 01's entry under the new number.
+    #[test]
+    fn update_session_boot_moves_the_entry_on_what_init_writes() {
+        for brownfield in [false, true] {
+            let tmp = tempfile::tempdir().unwrap();
+            if brownfield {
+                fs::write(tmp.path().join("main.py"), "print()\n").unwrap();
+            }
+            crate::cli::init::scaffold(tmp.path(), "p", "goal", "L2").unwrap();
+            let first: u32 = fs::read_to_string(tmp.path().join(".ai/SESSION"))
+                .unwrap()
+                .trim()
+                .parse()
+                .unwrap();
+            assert_eq!(
+                update_session_boot(tmp.path(), first, first + 1).unwrap(),
+                BootUpdate::Moved,
+                "brownfield = {brownfield}"
+            );
+            let after = fs::read_to_string(tmp.path().join(".ai/SESSION-BOOT.md")).unwrap();
+            let next = format!("- **Number:** {:02} — IN PROGRESS", first + 1);
+            let prior = format!("## Prior Session\n- **Number:** {first:02} — ");
+            assert!(after.contains(&next) && after.contains(&prior), "{after}");
+        }
+    }
+
     /// S198 AC2 (F118): any other shape is never rewritten by guess — the number swaps as before
     /// and the reason the entry did not move comes back for `--advance` to print.
     #[test]
     fn update_session_boot_only_swaps_other_shapes() {
-        let init_shape = "# Session Boot\n\n## Current Session\n- **Number:** 01\n- **Type:** CODE\n- **Branch:** pending\n\n## Repo State Snapshot\n- x\n";
+        let old_init_shape = "# Session Boot\n\n## Current Session\n- **Number:** 01\n- **Type:** CODE\n- **Branch:** pending\n\n## Repo State Snapshot\n- x\n";
         let two_entries = "## Current Session\n- **Number:** 05 — a\n- **Number:** 04 — b\n\n## Prior Session\n- c\n";
         let no_prior = "## Current Session\n- **Number:** 05 — a\n\n## Next Session\n- b\n";
         let two_heads = "## Current Session\n- **Number:** 05 — a\n\n## Current Session\n- d\n\n## Prior Session\n- c\n";
         let cases: [(&str, u32, &str); 4] = [
             (
-                init_shape,
+                old_init_shape,
                 1,
                 "is `## Repo State Snapshot`, not `## Prior Session`",
             ),
