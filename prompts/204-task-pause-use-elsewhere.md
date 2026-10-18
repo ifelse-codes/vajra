@@ -1,10 +1,11 @@
-# Session 203 — PAUSE: no Vajra development; use Vajra on another project
+# Session 204 — PAUSE: no Vajra development; use Vajra on another project
 
 > **Status:** DRAFT — written in the S201 chat from the founder's decision (2026-10-17): "I think we should stop
 > development of Vajra and use it in some other project to see if it actually helpful … I feel it does not impact."
-> Then: "finish all now and close it". The founder approves it with `vajra approve 203` only when he brings findings
+> Then: "finish all now and close it". The founder approves it with `vajra approve 204` only when he brings findings
 > from real use. Until then, nothing in this repo is built.
 > **Renumbered 202 → 203 (2026-10-17):** the founder ran an ad-hoc bug bash as S202 first (PR #241).
+> **Renumbered 203 → 204 (2026-10-18):** a second ad-hoc bug bash ran as S203.
 
 ## Type
 session_type: INTERACTIVE
@@ -21,7 +22,7 @@ development is paused. This session exists only to handle what real use turns up
    - Did Vajra catch a real mistake in that project's work that he would have missed? Name it.
    - What did it cost each session (money from the receipt, minutes, steps that got in the way)?
    - After 3–5 sessions: would he keep it on?
-2. **Setup there:** reinstall `vajra` from main (`cargo install --path . --locked`, since S202 touched `src/`), then
+2. **Setup there:** reinstall `vajra` from main (`cargo install --path . --locked`, since S203 touched `src/`), then
    `vajra init` (a new project) or `vajra init --sync-fleet` (rudra; this also turns N23 green).
 3. **In this repo, only on findings:** fix a finding only if it **blocks** that project's work, one at a time, in
    the founder's words. Anything else is written down, not built.
@@ -34,6 +35,12 @@ development is paused. This session exists only to handle what real use turns up
 | AC3 | The summary answers the measure with evidence from the other project (a commit, a receipt, a session log). |
 
 ## Carried in
+- **From S203 (ad-hoc bug bash 2, founder 2026-10-18):** 15 fixes found by using Vajra as a new user would, plus 4
+  old checks repaired (`sessions/session-203-summary.md`). A new project's first `vajra init` no longer says "already
+  runs Vajra"; its briefs name `vajra approve NN`; a repo with no commit gets `git branch main`; init's SESSION-BOOT
+  moves on the first advance; a mistyped option fails; **a person may merge on main** (the agent still may not).
+  Parked, the founder's call: `VAJRA_SKIP_ANALYST_GATE=1` lets the agent skip the approval record at `--advance`,
+  and the refusal message names it.
 - **From S202 (ad-hoc bug bash, PR #241):** 15 fixes — N28, F123's routes closed for the agent
   (`.githooks/reference-transaction`, ships via `vajra init` / `--sync-fleet`), F127 leftovers, scaffold settings
   parity, a shorter boot (newest 3 session sections), faster review checks, `past-verdicts-unchanged` at close,
